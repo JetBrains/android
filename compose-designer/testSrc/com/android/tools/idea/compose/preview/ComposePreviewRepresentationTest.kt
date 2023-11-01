@@ -24,6 +24,7 @@ import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.preview.actions.ReRunUiCheckModeAction
 import com.android.tools.idea.compose.preview.actions.UiCheckReopenTabAction
 import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
+import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.awaitStatus
@@ -240,8 +241,7 @@ class ComposePreviewRepresentationTest {
       }
       assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
 
-      val previewElements =
-        mainSurface.models.mapNotNull { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) }
+      val previewElements = mainSurface.models.mapNotNull { it.dataContext.previewElement() }
       val uiCheckElement = previewElements.single { it.methodFqn == "TestKt.Preview1" }
 
       val contentManager =
@@ -563,8 +563,7 @@ class ComposePreviewRepresentationTest {
       }
       assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
 
-      val previewElements =
-        mainSurface.models.mapNotNull { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) }
+      val previewElements = mainSurface.models.mapNotNull { it.dataContext.previewElement() }
       val uiCheckElement = previewElements.single { it.methodFqn == "TestKt.Preview1" }
 
       val contentManager =

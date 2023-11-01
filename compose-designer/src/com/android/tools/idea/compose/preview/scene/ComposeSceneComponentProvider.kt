@@ -20,11 +20,11 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.DefaultHitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneManager
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.PxBounds
 import com.android.tools.idea.compose.preview.isEmpty
 import com.android.tools.idea.compose.preview.parseViewInfo
+import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.intellij.openapi.diagnostic.Logger
 
@@ -95,11 +95,9 @@ class ComposeSceneComponentProvider : SceneManager.SceneComponentHierarchyProvid
     val viewInfo = component.viewInfo ?: return listOf()
 
     if (LOG.isDebugEnabled) {
-      component.model.dataContext
-        .getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
-        ?.displaySettings
-        ?.name
-        ?.let { LOG.debug(" $it component=${component} model=${component.model}") }
+      component.model.dataContext.previewElement()?.displaySettings?.name?.let {
+        LOG.debug(" $it component=${component} model=${component.model}")
+      }
     }
 
     return debugResult(

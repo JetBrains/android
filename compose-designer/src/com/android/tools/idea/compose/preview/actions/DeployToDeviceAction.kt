@@ -16,11 +16,11 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
+import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ParametrizedComposePreviewElementInstance
@@ -30,7 +30,6 @@ import com.intellij.execution.configurations.runConfigurationType
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import icons.StudioIcons.Compose.Toolbar.RUN_ON_DEVICE
@@ -103,8 +102,6 @@ internal class DeployToDeviceAction :
       DefaultRunExecutor.getRunExecutorInstance()
     )
   }
-
-  private fun DataContext.previewElement() = getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
 }
 
 /**

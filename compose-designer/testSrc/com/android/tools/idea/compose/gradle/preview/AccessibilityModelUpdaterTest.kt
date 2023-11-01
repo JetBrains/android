@@ -18,10 +18,10 @@ package com.android.tools.idea.compose.gradle.preview
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -109,8 +109,7 @@ class AccessibilityModelUpdaterTest {
     val twoElementsPreviewModel =
       previewView.mainSurface.models.first { it.modelDisplayName == "TwoElementsPreview" }
 
-    val uiCheckElement =
-      twoElementsPreviewModel.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)!!
+    val uiCheckElement = twoElementsPreviewModel.dataContext.previewElement()!!
 
     val onRefreshCompletable = previewView.getOnRefreshCompletable()
     composePreviewRepresentation.mode =

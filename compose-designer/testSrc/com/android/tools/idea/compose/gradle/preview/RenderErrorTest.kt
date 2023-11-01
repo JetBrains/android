@@ -22,10 +22,10 @@ import com.android.tools.idea.common.surface.SceneViewErrorsPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -300,7 +300,7 @@ class RenderErrorTest {
         previewView.mainSurface.models
           .firstOrNull { it.modelDisplayName == model }
           ?.dataContext
-          ?.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
+          ?.previewElement()
           ?.also { uiCheckElement = it } != null
       }
 

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
@@ -42,7 +42,7 @@ class AnimationInspectorAction :
       val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
       isEnabled = !isEssentialsModeEnabled
       // Only display the animation inspector icon if there are animations to be inspected.
-      isVisible = e.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)?.hasAnimations == true
+      isVisible = e.dataContext.previewElement()?.hasAnimations == true
       text = if (isEssentialsModeEnabled) null else message("action.animation.inspector.title")
       description =
         if (isEssentialsModeEnabled)

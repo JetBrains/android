@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
+import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
@@ -39,7 +40,7 @@ class ComposeVisualLintIssueProvider(parentDisposable: Disposable) :
 
   override fun customizeIssue(issue: VisualLintRenderIssue) {
     val model = issue.models.firstOrNull() ?: return
-    val previewElement = model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) ?: return
+    val previewElement = model.dataContext.previewElement() ?: return
 
     issue.customizeIsSuppressed {
       val suppressedTypes = runReadAction {

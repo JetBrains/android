@@ -19,12 +19,15 @@ import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Segment
@@ -70,3 +73,6 @@ fun createToolbarWithNavigation(rootComponent: JComponent, place: String, action
 fun isFastPreviewAvailable(project: Project) =
   FastPreviewManager.getInstance(project).isAvailable &&
     !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+
+fun DataContext.previewElement(): ComposePreviewElementInstance? =
+  getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
