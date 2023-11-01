@@ -547,10 +547,9 @@ class ComposePreviewRepresentation(
     composePreviewFlowManager.setSingleFilter(instance)
     sceneComponentProvider.enabled = false
     val startUpStart = System.currentTimeMillis()
-    forceRefresh(
-        if (quickRefresh) ComposePreviewRefreshType.QUICK else ComposePreviewRefreshType.NORMAL
-      )
-      .join()
+    invalidateAndRefresh(
+      if (quickRefresh) ComposePreviewRefreshType.QUICK else ComposePreviewRefreshType.NORMAL
+    )
     // Currently it will re-create classloader and will be slower than switch from static
     InteractivePreviewUsageTracker.getInstance(surface)
       .logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
@@ -583,7 +582,7 @@ class ComposePreviewRepresentation(
       }
       createUiCheckTab(instance)
     }
-    forceRefresh().join()
+    invalidateAndRefresh()
   }
 
   fun createUiCheckTab(instance: ComposePreviewElementInstance) {
@@ -618,14 +617,14 @@ class ComposePreviewRepresentation(
       }
     }
     uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
-    forceRefresh().join()
+    invalidateAndRefresh()
   }
 
   private suspend fun onInteractivePreviewStop() {
     requestVisibilityAndNotificationsUpdate()
     interactiveManager.stop()
     composePreviewFlowManager.setSingleFilter(null)
-    forceRefresh().join()
+    invalidateAndRefresh()
   }
 
   private fun updateAnimationPanelVisibility() {
@@ -1326,18 +1325,18 @@ class ComposePreviewRepresentation(
 
   /**
    * Same as [requestRefresh] but does a previous [invalidate] to ensure the preview definitions are
-   * re-loaded from the files.
-   *
-   * The return [Deferred] will complete when the refresh finalizes.
+   * re-loaded from the files. This function will suspend until the refresh job completes normally
+   * or exceptionally. A successful completion doesn't mean the refresh was successful, as it might
+   * have failed or been cancelled.
    */
-  private fun forceRefresh(
+  private suspend fun invalidateAndRefresh(
     type: ComposePreviewRefreshType = ComposePreviewRefreshType.NORMAL
-  ): Deferred<Unit> {
-    val completableDeferred = CompletableDeferred<Unit>()
-    invalidate()
-    requestRefresh(type, completableDeferred)
-
-    return completableDeferred
+  ) {
+    CompletableDeferred<Unit>().let {
+      invalidate()
+      requestRefresh(type, it)
+      it.join()
+    }
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {
@@ -1399,7 +1398,7 @@ class ComposePreviewRepresentation(
     ) { outputAbsolutePath ->
       ModuleClassLoaderOverlays.getInstance(previewFileModule)
         .pushOverlayPath(File(outputAbsolutePath).toPath())
-      forceRefresh().join()
+      invalidateAndRefresh()
     }
   }
 
@@ -1422,7 +1421,7 @@ class ComposePreviewRepresentation(
       is PreviewMode.Default -> {
         sceneComponentProvider.enabled = true
         composePreviewFlowManager.setSingleFilter(null)
-        forceRefresh().join()
+        invalidateAndRefresh()
         surface.repaint()
       }
       is PreviewMode.Interactive -> {
@@ -1450,7 +1449,7 @@ class ComposePreviewRepresentation(
           }
           updateAnimationPanelVisibility()
         }
-        forceRefresh().join()
+        invalidateAndRefresh()
       }
       is PreviewMode.Gallery -> {
         composePreviewFlowManager.setSingleFilter(mode.selected as ComposePreviewElementInstance)
