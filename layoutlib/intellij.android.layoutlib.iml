@@ -13,5 +13,6 @@
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
     <orderEntry type="library" name="layoutlib" level="project" />
+    <orderEntry type="module" module-name="intellij.android.environment-services" />
   </component>
 </module>

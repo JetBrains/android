@@ -16,6 +16,7 @@ iml_module(
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module]",
         "//tools/adt/idea/.idea/libraries:layoutlib",
+        "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
     ],
 )
 
@@ -48,8 +49,8 @@ kotlin_library(
     visibility = ["//visibility:public"],
     deps = [
         "//prebuilts/studio/layoutlib/data:layoutlib",
-        "//prebuilts/tools/common/lint-psi/intellij-core",
         "//tools/adt/idea/layoutlib-loader:tools.layoutlib-loader",
+        "//tools/base/environment-services:tools.environment-services",
         "//tools/base/layoutlib-api:tools.layoutlib-api",
         "@maven//:com.google.guava.guava",
         "@maven//:org.ow2.asm.asm",

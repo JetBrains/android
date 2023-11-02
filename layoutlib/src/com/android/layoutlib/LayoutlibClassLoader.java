@@ -16,8 +16,8 @@
 package com.android.layoutlib;
 
 import android.os._Original_Build;
+import com.android.tools.environment.Logger;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
