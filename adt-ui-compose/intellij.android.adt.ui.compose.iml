@@ -27,13 +27,18 @@
     <orderEntry type="module-library" exported="">
       <library name="jewel-ide">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ui/0.8.1/jewel-ui-0.8.1.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-foundation/0.8.1/jewel-foundation-0.8.1.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ide-laf-bridge/0.8.1-ij-232/jewel-ide-laf-bridge-0.8.1-ij-232.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ide-laf-bridge-platform-specific/0.8.1-ij-232/jewel-ide-laf-bridge-platform-specific-0.8.1-ij-232.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ui/0.8.1/jewel-ui-0.8.1.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-foundation/0.8.1/jewel-foundation-0.8.1-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ide-laf-bridge/0.8.1-ij-232/jewel-ide-laf-bridge-0.8.1-ij-232-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ide-laf-bridge-platform-specific/0.8.1-ij-232/jewel-ide-laf-bridge-platform-specific-0.8.1-ij-232-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ui/0.8.1/jewel-ui-0.8.1-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="">
@@ -74,16 +79,18 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="module-library" exported="" scope="TEST" >
+    <orderEntry type="module-library" exported="" scope="TEST">
       <library name="jewel-standalone">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-int-ui-standalone/0.8.1/jewel-int-ui-standalone-0.8.1.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-int-ui-standalone/0.8.1/jewel-int-ui-standalone-0.8.1-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="module-library" exported="" scope="TEST" >
+    <orderEntry type="module-library" exported="" scope="TEST">
       <library name="compose-desktop-test">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-test-junit4-desktop/1.5.2/ui-test-junit4-desktop-1.5.2.jar!/" />
