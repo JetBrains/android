@@ -32,6 +32,9 @@ interface ModuleRenderContext {
 
   val module: Module
 
-  /** Creates [CachingClassLoaderLoader] for the classes of this context. */
-  fun createClassLoaderLoader(): CachingClassLoaderLoader
+  /**
+   * Creates [CachingClassLoaderLoader] for the classes of this context that might change in time.
+   * That could happen if e.g. the sources were recompiled and new class files were generated.
+   */
+  fun createInjectableClassLoaderLoader(): CachingClassLoaderLoader
 }

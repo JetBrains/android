@@ -42,7 +42,7 @@ open class StudioModuleRenderContext protected constructor(
 
   override val module: Module
     get() = moduleProvider.getIdeaModule()
-  override fun createClassLoaderLoader(): ProjectSystemClassLoader {
+  override fun createInjectableClassLoaderLoader(): ProjectSystemClassLoader {
     val moduleRef = WeakReference(module)
     val psiFile = fileProvider.get()
     return ProjectSystemClassLoader { fqcn ->

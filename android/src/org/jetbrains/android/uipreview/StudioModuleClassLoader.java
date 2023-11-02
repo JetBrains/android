@@ -223,7 +223,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
       renderContext,
       new ModuleClassLoaderImpl(
         renderContext.getModule(),
-        renderContext.createClassLoaderLoader(),
+        renderContext.createInjectableClassLoaderLoader(),
         parent,
         projectTransformations,
         nonProjectTransformations,

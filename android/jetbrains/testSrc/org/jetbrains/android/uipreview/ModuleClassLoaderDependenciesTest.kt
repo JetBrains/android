@@ -134,6 +134,6 @@ class ModuleClassLoaderDependenciesTest : AndroidTestCase() {
 /** The classes from [toInject] are not shown as loaded in [ModuleClassLoader]. */
 private class InjectableContext(module: Module, private val toInject: Map<String, ClassContent>) :
   StudioModuleRenderContext({ module }, { null }) {
-  override fun createClassLoaderLoader(): ProjectSystemClassLoader =
-    super.createClassLoaderLoader().also { cl -> toInject.forEach { cl.injectClassFile(it.key, it.value) } }
+  override fun createInjectableClassLoaderLoader(): ProjectSystemClassLoader =
+    super.createInjectableClassLoaderLoader().also { cl -> toInject.forEach { cl.injectClassFile(it.key, it.value) } }
 }
