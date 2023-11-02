@@ -511,7 +511,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       LOG.info("onImportFailed($projectPath)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       if (syncStateUpdaterService.stopTrackingTask(projectPath!!) != null) {
-        // If `onImportFailed` is called because of `ProcessCancelledException`, it results in `isCancelled == true`, and this is the way
+        // If `onImportFailed` is called because of `ProcessCanceledException`, it results in `isCancelled == true`, and this is the way
         // we detect this case since we don't have access to the exception instance itself here.
         if (ProgressManager.getGlobalProgressIndicator()?.isCanceled == true) {
           ProgressManager.getInstance().executeNonCancelableSection {
