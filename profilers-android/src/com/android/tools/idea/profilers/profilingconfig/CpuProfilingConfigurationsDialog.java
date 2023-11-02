@@ -15,19 +15,22 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.menu.CommonMenuItem;
 import com.android.tools.adtui.stdui.menu.CommonPopupMenu;
 import com.android.tools.adtui.ui.options.OptionsPanel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
-import com.android.tools.idea.run.profiler.TaskSettingConfig;
-import com.android.tools.idea.run.profiler.TaskSettingConfigsState;
+import com.android.tools.idea.profilers.IntellijProfilerServices;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
+import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
+import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
-import com.android.tools.profilers.TaskProfilerConfigModel;
+import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.PerfettoConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
@@ -49,6 +52,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
@@ -79,20 +83,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
-public class TaskProfilingConfigurationsDialog extends SingleConfigurableEditor {
+public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
-  @NotNull private final TaskProfilerConfigModel myProfilerModel;
+  @NotNull private final CpuProfilerConfigModel myProfilerModel;
 
   @NotNull private Consumer<ProfilingConfiguration> myOnCloseCallback;
 
   private final int myDeviceLevel;
 
-  public TaskProfilingConfigurationsDialog(@NotNull final Project project,
-                                           int deviceLevel,
-                                           @NotNull TaskProfilerConfigModel model,
-                                           @NotNull Consumer<ProfilingConfiguration> onCloseCallback,
-                                           @NotNull FeatureTracker featureTracker,
-                                           @NotNull IdeProfilerServices ideProfilerServices) {
+  public CpuProfilingConfigurationsDialog(@NotNull final Project project,
+                                          int deviceLevel,
+                                          @NotNull CpuProfilerConfigModel model,
+                                          @NotNull Consumer<ProfilingConfiguration> onCloseCallback,
+                                          @NotNull FeatureTracker featureTracker,
+                                          @NotNull IdeProfilerServices ideProfilerServices) {
     super(project, new ProfilingConfigurable(project, model, deviceLevel, featureTracker, ideProfilerServices), IdeModalityType.IDE);
     myProfilerModel = model;
     myOnCloseCallback = onCloseCallback;
@@ -166,14 +170,14 @@ public class TaskProfilingConfigurationsDialog extends SingleConfigurableEditor 
      */
     private OptionsPanel myProfilersPanel;
 
-    private TaskProfilerConfigModel myProfilerModel;
+    private CpuProfilerConfigModel myProfilerModel;
 
     private int myDeviceLevel;
 
     private boolean isTaskBasedUxEnabled;
 
     public ProfilingConfigurable(Project project,
-                                 TaskProfilerConfigModel model,
+                                 CpuProfilerConfigModel model,
                                  int deviceLevel,
                                  FeatureTracker featureTracker,
                                  IdeProfilerServices ideProfilerServices) {
@@ -307,7 +311,7 @@ public class TaskProfilingConfigurationsDialog extends SingleConfigurableEditor 
 
       // Check for configs with repeated names
       Set<String> configNames = new HashSet<>();
-      List<TaskSettingConfig> configsToSave = new ArrayList<>();
+      List<CpuProfilerConfig> configsToSave = new ArrayList<>();
 
       for (int i = 0; i < myConfigurationsModel.getSize(); i++) {
         ProfilingConfiguration config = myConfigurationsModel.getElementAt(i);
@@ -323,14 +327,14 @@ public class TaskProfilingConfigurationsDialog extends SingleConfigurableEditor 
         // Default configs are editable(except name) in task based ux and hence always save to reflect latest update when task-based flag
         // is enabled
         if (!isDefaultConfig(config) || isTaskBasedUxEnabled) {
-          configsToSave.add(TaskProfilerConfigConverter.fromProfilingConfiguration(config));
+          configsToSave.add(CpuProfilerConfigConverter.fromProfilingConfiguration(config));
         }
       }
 
       if (isTaskBasedUxEnabled) {
-        TaskSettingConfigsState.getInstance(myProject).setTaskConfigs(configsToSave);
+        CpuProfilerConfigsState.getInstance(myProject).setTaskConfigs(configsToSave);
       } else {
-        TaskSettingConfigsState.getInstance(myProject).setUserConfigs(configsToSave);
+        CpuProfilerConfigsState.getInstance(myProject).setUserConfigs(configsToSave);
       }
     }
 
@@ -341,7 +345,7 @@ public class TaskProfilingConfigurationsDialog extends SingleConfigurableEditor 
     }
 
     private static boolean isDefaultConfig(@NotNull ProfilingConfiguration configuration) {
-      return TaskSettingConfigsState.getDefaultConfigs()
+      return CpuProfilerConfigsState.getDefaultConfigs()
         .stream()
         .anyMatch(c -> c.getName().equals(configuration.getName()));
     }
@@ -397,10 +401,10 @@ public class TaskProfilingConfigurationsDialog extends SingleConfigurableEditor 
       private MyAddAction() {
         super("Add Configuration", "Add a new configuration", IconUtil.getAddIcon());
         myPopup = new CommonPopupMenu();
-        myPopup.add(buildPopupMenuItem(TaskSettingConfig.Technology.SAMPLED_NATIVE.getName(), SimpleperfConfiguration::new));
-        myPopup.add(buildPopupMenuItemPerfetto(TaskSettingConfig.Technology.SYSTEM_TRACE.getName()));
-        myPopup.add(buildPopupMenuItem(TaskSettingConfig.Technology.INSTRUMENTED_JAVA.getName(), ArtInstrumentedConfiguration::new));
-        myPopup.add(buildPopupMenuItem(TaskSettingConfig.Technology.SAMPLED_JAVA.getName(), ArtSampledConfiguration::new));
+        myPopup.add(buildPopupMenuItem(CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName(), SimpleperfConfiguration::new));
+        myPopup.add(buildPopupMenuItemPerfetto(CpuProfilerConfig.Technology.SYSTEM_TRACE.getName()));
+        myPopup.add(buildPopupMenuItem(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName(), ArtInstrumentedConfiguration::new));
+        myPopup.add(buildPopupMenuItem(CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(), ArtSampledConfiguration::new));
       }
 
       private CommonMenuItem buildPopupMenuItemPerfetto(String name) {

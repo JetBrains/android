@@ -46,7 +46,7 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.InterimStage;
 import com.android.tools.profilers.cpu.adapters.CpuDataProvider;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
-import com.android.tools.profilers.TaskProfilerConfigModel;
+import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalOptions;
 import com.android.tools.profilers.event.EventMonitor;
@@ -93,7 +93,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
   }
   private final CpuDataProvider myCpuDataProvider;
 
-  private final TaskProfilerConfigModel myProfilerConfigModel;
+  private final CpuProfilerConfigModel myProfilerConfigModel;
 
   @NotNull
   private final RecordingOptionsModel myRecordingOptionsModel;
@@ -179,7 +179,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     super(profilers);
     mySession = profilers.getSession();
     myCpuDataProvider = new CpuDataProvider(profilers, getTimeline());
-    myProfilerConfigModel = new TaskProfilerConfigModel(profilers, this);
+    myProfilerConfigModel = new CpuProfilerConfigModel(profilers, this);
     myRecordingOptionsModel = new RecordingOptionsModel();
 
     myCaptureState = CaptureState.IDLE;
@@ -254,7 +254,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
   }
 
   @NotNull
-  public TaskProfilerConfigModel getProfilerConfigModel() {
+  public CpuProfilerConfigModel getProfilerConfigModel() {
     return myProfilerConfigModel;
   }
 

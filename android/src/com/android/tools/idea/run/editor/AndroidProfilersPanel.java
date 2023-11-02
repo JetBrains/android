@@ -17,8 +17,8 @@ package com.android.tools.idea.run.editor;
 
 
 import com.android.tools.adtui.ui.ClickableLabel;
-import com.android.tools.idea.run.profiler.TaskSettingConfig;
-import com.android.tools.idea.run.profiler.TaskSettingConfigsState;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
+import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.LabeledComponent;
@@ -51,7 +51,7 @@ public class AndroidProfilersPanel {
   private JCheckBox myStartupProfileCheckBox;
   private ClickableLabel myStartupProfileLabel;
   private LabeledComponent<JBTextField> myNativeMemoryProfilerSampleRate;
-  private ComboBox<TaskSettingConfig> myStartupCpuConfigsComboBox;
+  private ComboBox<CpuProfilerConfig> myStartupCpuConfigsComboBox;
   private JTextPane myStartupCpuProfilerDescription;
   private JBRadioButton myCpuRecordingRadio;
   private JBRadioButton myMemoryRecordingRadio;
@@ -105,9 +105,9 @@ public class AndroidProfilersPanel {
       }
     });
 
-    myStartupCpuConfigsComboBox.setModel(new DefaultComboBoxModel<>(TaskSettingConfigsState.getInstance(myProject).getConfigs()
-                                                                      .toArray(new TaskSettingConfig[0])));
-    myStartupCpuConfigsComboBox.setRenderer(SimpleListCellRenderer.create("", TaskSettingConfig::getName));
+    myStartupCpuConfigsComboBox.setModel(new DefaultComboBoxModel<>(CpuProfilerConfigsState.getInstance(myProject).getConfigs()
+                                                                      .toArray(new CpuProfilerConfig[0])));
+    myStartupCpuConfigsComboBox.setRenderer(SimpleListCellRenderer.create("", CpuProfilerConfig::getName));
     myStartupCpuConfigsComboBox.setSelectedIndex(0);
   }
 
@@ -131,7 +131,7 @@ public class AndroidProfilersPanel {
     myStartupCpuProfilerDescription.setFont(JBFont.small());
 
     String name = state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
-    TaskSettingConfig config = TaskSettingConfigsState.getInstance(myProject).getConfigByName(name);
+    CpuProfilerConfig config = CpuProfilerConfigsState.getInstance(myProject).getConfigByName(name);
     if (config != null) {
       myStartupCpuConfigsComboBox.setSelectedItem(config);
     }
@@ -144,8 +144,8 @@ public class AndroidProfilersPanel {
     state.ADVANCED_PROFILING_ENABLED = myAdvancedProfilingCheckBox.isSelected();
 
     state.STARTUP_CPU_PROFILING_ENABLED = myCpuRecordingRadio.isSelected();
-    assert myStartupCpuConfigsComboBox.getSelectedItem() instanceof TaskSettingConfig;
-    state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME = ((TaskSettingConfig)myStartupCpuConfigsComboBox.getSelectedItem()).getName();
+    assert myStartupCpuConfigsComboBox.getSelectedItem() instanceof CpuProfilerConfig;
+    state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME = ((CpuProfilerConfig)myStartupCpuConfigsComboBox.getSelectedItem()).getName();
     state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = myMemoryRecordingRadio.isSelected();
     state.STARTUP_PROFILING_ENABLED = myStartupProfileCheckBox.isSelected();
     try {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers
+package com.android.tools.profilers.cpu.config
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.AspectObserver
@@ -21,23 +21,23 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common.Device
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerAspect
 import com.android.tools.profilers.cpu.CpuProfilerStage
-import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
-import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class TaskProfilerConfigModelTest {
+class CpuProfilerConfigModelTest {
   private val myTimer = FakeTimer()
   private val myServices = FakeIdeProfilerServices()
   private var myProfilers: StudioProfilers? = null
   private var myProfilerStage: CpuProfilerStage? = null
-  private var model: TaskProfilerConfigModel? = null
+  private var model: CpuProfilerConfigModel? = null
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel("CpuProfilerConfigModelTest", FakeTransportService(myTimer))
@@ -46,7 +46,7 @@ class TaskProfilerConfigModelTest {
   fun setup() {
     myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myServices, myTimer)
     myProfilerStage = CpuProfilerStage(myProfilers!!)
-    model = TaskProfilerConfigModel(myProfilers!!, myProfilerStage!!)
+    model = CpuProfilerConfigModel(myProfilers!!, myProfilerStage!!)
   }
 
   @Test

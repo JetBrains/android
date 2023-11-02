@@ -19,7 +19,7 @@ import static com.android.tools.profilers.cpu.config.ProfilingConfiguration.SYST
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.run.profiler.TaskSettingConfig;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.AtraceConfiguration;
@@ -30,58 +30,58 @@ import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 
-public class TaskProfilerConfigConverter {
+public class CpuProfilerConfigConverter {
 
-  private TaskProfilerConfigConverter() { }
+  private CpuProfilerConfigConverter() { }
 
   /**
-   * Converts from a {@link ProfilingConfiguration} to a {@link TaskSettingConfig}
+   * Converts from a {@link ProfilingConfiguration} to a {@link CpuProfilerConfig}
    */
-  public static TaskSettingConfig fromProfilingConfiguration(ProfilingConfiguration config) {
-    TaskSettingConfig taskSettingConfig = null;
+  public static CpuProfilerConfig fromProfilingConfiguration(ProfilingConfiguration config) {
+    CpuProfilerConfig cpuProfilerConfig = null;
 
     switch (config.getTraceType()) {
       case ART:
         if (config instanceof ArtSampledConfiguration) {
           ArtSampledConfiguration artSampledConfiguration = (ArtSampledConfiguration)config;
-          taskSettingConfig = new TaskSettingConfig(artSampledConfiguration.getName(), TaskSettingConfig.Technology.SAMPLED_JAVA);
-          taskSettingConfig.setSamplingIntervalUs(artSampledConfiguration.getProfilingSamplingIntervalUs());
-          taskSettingConfig.setBufferSizeMb(artSampledConfiguration.getProfilingBufferSizeInMb());
+          cpuProfilerConfig = new CpuProfilerConfig(artSampledConfiguration.getName(), CpuProfilerConfig.Technology.SAMPLED_JAVA);
+          cpuProfilerConfig.setSamplingIntervalUs(artSampledConfiguration.getProfilingSamplingIntervalUs());
+          cpuProfilerConfig.setBufferSizeMb(artSampledConfiguration.getProfilingBufferSizeInMb());
         }
         else {
           ArtInstrumentedConfiguration artInstrumentedConfiguration = (ArtInstrumentedConfiguration)config;
-          taskSettingConfig = new TaskSettingConfig(artInstrumentedConfiguration.getName(), TaskSettingConfig.Technology.INSTRUMENTED_JAVA);
-          taskSettingConfig.setBufferSizeMb(artInstrumentedConfiguration.getProfilingBufferSizeInMb());
+          cpuProfilerConfig = new CpuProfilerConfig(artInstrumentedConfiguration.getName(), CpuProfilerConfig.Technology.INSTRUMENTED_JAVA);
+          cpuProfilerConfig.setBufferSizeMb(artInstrumentedConfiguration.getProfilingBufferSizeInMb());
         }
         break;
       case SIMPLEPERF:
         SimpleperfConfiguration simpleperfConfiguration = (SimpleperfConfiguration)config;
-        taskSettingConfig = new TaskSettingConfig(simpleperfConfiguration.getName(), TaskSettingConfig.Technology.SAMPLED_NATIVE);
-        taskSettingConfig.setSamplingIntervalUs(simpleperfConfiguration.getProfilingSamplingIntervalUs());
+        cpuProfilerConfig = new CpuProfilerConfig(simpleperfConfiguration.getName(), CpuProfilerConfig.Technology.SAMPLED_NATIVE);
+        cpuProfilerConfig.setSamplingIntervalUs(simpleperfConfiguration.getProfilingSamplingIntervalUs());
         break;
       case ATRACE:
         AtraceConfiguration atraceConfiguration = (AtraceConfiguration)config;
-        taskSettingConfig = new TaskSettingConfig(atraceConfiguration.getName(), TaskSettingConfig.Technology.SYSTEM_TRACE);
-        taskSettingConfig.setBufferSizeMb(SYSTEM_TRACE_BUFFER_SIZE_MB);
+        cpuProfilerConfig = new CpuProfilerConfig(atraceConfiguration.getName(), CpuProfilerConfig.Technology.SYSTEM_TRACE);
+        cpuProfilerConfig.setBufferSizeMb(SYSTEM_TRACE_BUFFER_SIZE_MB);
         break;
       case PERFETTO:
         PerfettoConfiguration perfettoConfiguration = (PerfettoConfiguration)config;
-        taskSettingConfig = new TaskSettingConfig(perfettoConfiguration.getName(), TaskSettingConfig.Technology.SYSTEM_TRACE);
-        taskSettingConfig.setBufferSizeMb(SYSTEM_TRACE_BUFFER_SIZE_MB);
+        cpuProfilerConfig = new CpuProfilerConfig(perfettoConfiguration.getName(), CpuProfilerConfig.Technology.SYSTEM_TRACE);
+        cpuProfilerConfig.setBufferSizeMb(SYSTEM_TRACE_BUFFER_SIZE_MB);
         break;
       case UNSPECIFIED:
         UnspecifiedConfiguration unspecifiedConfiguration = (UnspecifiedConfiguration)config;
-        taskSettingConfig = new TaskSettingConfig(unspecifiedConfiguration.getName(), TaskSettingConfig.Technology.SAMPLED_JAVA);
+        cpuProfilerConfig = new CpuProfilerConfig(unspecifiedConfiguration.getName(), CpuProfilerConfig.Technology.SAMPLED_JAVA);
         break;
     }
 
-    return taskSettingConfig;
+    return cpuProfilerConfig;
   }
 
   /**
-   * Converts from a {@link TaskSettingConfig} to a {@link ProfilingConfiguration}
+   * Converts from a {@link CpuProfilerConfig} to a {@link ProfilingConfiguration}
    */
-  public static ProfilingConfiguration toProfilingConfiguration(TaskSettingConfig config, int deviceApi) {
+  public static ProfilingConfiguration toProfilingConfiguration(CpuProfilerConfig config, int deviceApi) {
     ProfilingConfiguration configuration = null;
 
     String name = config.getName();
@@ -120,9 +120,9 @@ public class TaskProfilerConfigConverter {
   }
 
   /**
-   * Converts from list of {@link TaskSettingConfig} to a list of {@link ProfilingConfiguration}
+   * Converts from list of {@link CpuProfilerConfig} to a list of {@link ProfilingConfiguration}
    */
-  public static List<ProfilingConfiguration> toProfilingConfiguration(List<TaskSettingConfig> configs, int deviceApi) {
+  public static List<ProfilingConfiguration> toProfilingConfiguration(List<CpuProfilerConfig> configs, int deviceApi) {
     return ContainerUtil.map(configs, config -> toProfilingConfiguration(config, deviceApi));
   }
 }

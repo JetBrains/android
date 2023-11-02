@@ -19,8 +19,8 @@ import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.run.profiler.TaskSettingConfig
-import com.android.tools.idea.run.profiler.TaskSettingConfigsState
+import com.android.tools.idea.run.profiler.CpuProfilerConfig
+import com.android.tools.idea.run.profiler.CpuProfilerConfigsState
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeFeatureTracker
@@ -29,7 +29,7 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.cpu.CpuProfilerStage
-import com.android.tools.profilers.TaskProfilerConfigModel
+import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel
 import com.android.tools.profilers.event.FakeEventService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockProjectEx
@@ -48,11 +48,11 @@ import org.mockito.Mockito.spy
 import javax.swing.JComponent
 import javax.swing.JLabel
 
-class TaskProfilingConfigurationsDialogTest {
+class CpuProfilingConfigurationsDialogTest {
 
-  private lateinit var configurations: TaskProfilingConfigurationsDialog.ProfilingConfigurable
+  private lateinit var configurations: CpuProfilingConfigurationsDialog.ProfilingConfigurable
   private lateinit var project: Project
-  private lateinit var model: TaskProfilerConfigModel
+  private lateinit var model: CpuProfilerConfigModel
   private lateinit var featureTracker: FeatureTracker
   private lateinit var myStage: CpuProfilerStage
   private var deviceLevel = 0
@@ -79,11 +79,11 @@ class TaskProfilingConfigurationsDialogTest {
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     project = MockProjectEx(disposableRule.disposable)
     myStage = CpuProfilerStage(profilers)
-    model = TaskProfilerConfigModel(profilers, myStage)
+    model =  CpuProfilerConfigModel(profilers, myStage)
     model.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
     featureTracker = FakeFeatureTracker()
     myIdeServices.enableTaskBasedUx(true)
-    configurations = TaskProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
+    configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
   }
 
   @Test
@@ -98,7 +98,7 @@ class TaskProfilingConfigurationsDialogTest {
   @Test
   fun nonTaskBasedUxHasNoTaskHeader() {
     myIdeServices.enableTaskBasedUx(false)
-    configurations = TaskProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
+    configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
     var profilingComponent : JComponent = configurations.createComponent()!!
     val walker = TreeWalker(profilingComponent)
     val headerLabel = walker.descendants().filterIsInstance(JLabel::class.java).filter { ((it.text)) == "Tasks" }
@@ -127,7 +127,7 @@ class TaskProfilingConfigurationsDialogTest {
   @Test
   fun configDialogIconWhenTaskBasedUxDisabled() {
     myIdeServices.enableTaskBasedUx(false)
-    configurations = TaskProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
+    configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
     var profilingComponent : JComponent = configurations.createComponent()!!
     assertThat(profilingComponent).isNotNull()
     val splitter: JBSplitter = TreeWalker(profilingComponent).descendants().filterIsInstance<JBSplitter>().first()
@@ -156,7 +156,7 @@ class TaskProfilingConfigurationsDialogTest {
   @Test
   fun setupConfigWhenTaskBasedDisabled() {
     myIdeServices.enableTaskBasedUx(false)
-    configurations = TaskProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
+    configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
     project = spy(MockProjectEx(disposableRule.disposable))
     configurations = getCpuProfilingDialogConfiguration(project)
 
@@ -168,14 +168,13 @@ class TaskProfilingConfigurationsDialogTest {
   @Test
   fun userConfigGettingSavedInApply() {
     myIdeServices.enableTaskBasedUx(false)
-    configurations = TaskProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
+    configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
     project = spy(MockProjectEx(disposableRule.disposable))
-    val cpuProfilerStateSpy = spy(TaskSettingConfigsState())
-    MockitoKt.whenever(project.getService(
-      TaskSettingConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
+    val cpuProfilerStateSpy = spy(CpuProfilerConfigsState())
+    MockitoKt.whenever(project.getService(CpuProfilerConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
     configurations = getCpuProfilingDialogConfiguration(project)
     configurations.apply()
-    val callbackCaptor: ArgumentCaptor<List<TaskSettingConfig>> = ArgumentCaptor.forClass(List::class.java) as ArgumentCaptor<List<TaskSettingConfig>>
+    val callbackCaptor: ArgumentCaptor<List<CpuProfilerConfig>> = ArgumentCaptor.forClass(List::class.java) as ArgumentCaptor<List<CpuProfilerConfig>>
 
     Mockito.verify(cpuProfilerStateSpy, Mockito.times(1)).userConfigs = callbackCaptor.capture()
     // All 4 from configuration model is resulted since default config is identified with name and tests have different name.
@@ -185,12 +184,11 @@ class TaskProfilingConfigurationsDialogTest {
   @Test
   fun taskConfigGettingSavedInApplyForTaskBasedUx() {
     project = spy(MockProjectEx(disposableRule.disposable))
-    val cpuProfilerStateSpy = spy(TaskSettingConfigsState())
-    MockitoKt.whenever(project.getService(
-      TaskSettingConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
+    val cpuProfilerStateSpy = spy(CpuProfilerConfigsState())
+    MockitoKt.whenever(project.getService(CpuProfilerConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
     configurations = getCpuProfilingDialogConfiguration(project)
     configurations.apply()
-    val callbackCaptor: ArgumentCaptor<List<TaskSettingConfig>> = ArgumentCaptor.forClass(List::class.java) as ArgumentCaptor<List<TaskSettingConfig>>
+    val callbackCaptor: ArgumentCaptor<List<CpuProfilerConfig>> = ArgumentCaptor.forClass(List::class.java) as ArgumentCaptor<List<CpuProfilerConfig>>
     Mockito.verify(cpuProfilerStateSpy, Mockito.times(1)).taskConfigs = callbackCaptor.capture()
     assertThat(callbackCaptor.value.size).isEqualTo(model.taskProfilingConfigurations.size)
   }
@@ -198,9 +196,8 @@ class TaskProfilingConfigurationsDialogTest {
   @Test
   fun savingTaskConfigInProjectForTaskBasedUx() {
     project = spy(MockProjectEx(disposableRule.disposable))
-    val cpuProfilerStateSpy = spy(TaskSettingConfigsState())
-    MockitoKt.whenever(project.getService(
-      TaskSettingConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
+    val cpuProfilerStateSpy = spy(CpuProfilerConfigsState())
+    MockitoKt.whenever(project.getService(CpuProfilerConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
     configurations = getCpuProfilingDialogConfiguration(project)
     configurations.apply()
 
@@ -213,11 +210,10 @@ class TaskProfilingConfigurationsDialogTest {
   @Test
   fun savingUserConfigInProjectForNonTaskBasedUx() {
     myIdeServices.enableTaskBasedUx(false)
-    configurations = TaskProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
+    configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
     project = spy(MockProjectEx(disposableRule.disposable))
-    val cpuProfilerStateSpy = spy(TaskSettingConfigsState())
-    MockitoKt.whenever(project.getService(
-      TaskSettingConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
+    val cpuProfilerStateSpy = spy(CpuProfilerConfigsState())
+    MockitoKt.whenever(project.getService(CpuProfilerConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
     configurations = getCpuProfilingDialogConfiguration(project)
     configurations.apply()
 
@@ -227,13 +223,13 @@ class TaskProfilingConfigurationsDialogTest {
     Mockito.verify(cpuProfilerStateSpy, Mockito.times(0)).taskConfigs = any()
   }
 
-  private fun getCpuProfilingDialogConfiguration(project: Project): TaskProfilingConfigurationsDialog.ProfilingConfigurable {
+  private fun getCpuProfilingDialogConfiguration(project: Project): CpuProfilingConfigurationsDialog.ProfilingConfigurable {
     val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     myStage = CpuProfilerStage(profilers)
-    model = TaskProfilerConfigModel(profilers, myStage)
+    model =  CpuProfilerConfigModel(profilers, myStage)
     model.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
     featureTracker = FakeFeatureTracker()
-    return TaskProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
+    return CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
   }
 }

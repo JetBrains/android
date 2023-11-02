@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.run.AndroidRunConfigurationBase
-import com.android.tools.idea.run.profiler.TaskSettingConfig
+import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.util.CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP
 import com.android.tools.idea.util.LinkedAndroidModuleGroup
@@ -241,7 +241,7 @@ private fun ProjectDumper.dump(runConfiguration: AndroidRunConfigurationBase) {
     "StartupCpuProfilingEnabled") { runConfiguration.profilerState.STARTUP_CPU_PROFILING_ENABLED.takeUnless { it == false }?.toString() }
   prop(
     "StartupCpuProfilingConfigurationName") {
-    runConfiguration.profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME.takeUnless { it == TaskSettingConfig.Technology.SAMPLED_JAVA.getName() }
+    runConfiguration.profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME.takeUnless { it == CpuProfilerConfig.Technology.SAMPLED_JAVA.getName() }
   }
 }
 

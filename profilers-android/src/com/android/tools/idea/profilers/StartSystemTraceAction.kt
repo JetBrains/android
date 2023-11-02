@@ -17,7 +17,7 @@ package com.android.tools.idea.profilers
 
 import android.annotation.SuppressLint
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.profiler.TaskSettingConfig
+import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.PerfettoConfiguration
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -45,8 +45,7 @@ class StartSystemTraceAction : DumbAwareAction(
     val project = e.project!!
     val profilers = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)!!.profilers
     val stage = CpuProfilerStage(profilers)
-    stage.profilerConfigModel.profilingConfiguration = PerfettoConfiguration(
-      TaskSettingConfig.Technology.SYSTEM_TRACE.getName(), StudioFlags.PROFILER_TRACEBOX.get())
+    stage.profilerConfigModel.profilingConfiguration = PerfettoConfiguration(CpuProfilerConfig.Technology.SYSTEM_TRACE.getName(), StudioFlags.PROFILER_TRACEBOX.get())
     profilers.stage = stage
     stage.recordingModel.start()
   }

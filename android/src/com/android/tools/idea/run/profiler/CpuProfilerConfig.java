@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class TaskSettingConfig {
+public class CpuProfilerConfig {
   public static final int DEFAULT_BUFFER_SIZE_MB = 8;
 
   @NotNull private String myName;
@@ -29,14 +29,14 @@ public class TaskSettingConfig {
   private int myBufferSizeMb = DEFAULT_BUFFER_SIZE_MB;
 
   /**
-   * Default constructor to be used by {@link TaskSettingConfigsState}.
+   * Default constructor to be used by {@link CpuProfilerConfigsState}.
    */
-  public TaskSettingConfig() {
+  public CpuProfilerConfig() {
     myName = Technology.SAMPLED_JAVA.getName();
     myTechnology = Technology.SAMPLED_JAVA;
   }
 
-  public TaskSettingConfig(@NotNull String name, @NotNull Technology technology) {
+  public CpuProfilerConfig(@NotNull String name, @NotNull Technology technology) {
     myName = name;
     myTechnology = technology;
   }
@@ -44,7 +44,7 @@ public class TaskSettingConfig {
   /**
    * Creates a default configuration with the given {@param technology}.
    */
-  TaskSettingConfig(@NotNull Technology technology) {
+  CpuProfilerConfig(@NotNull Technology technology) {
     this(technology.getName(), technology);
   }
 
@@ -53,7 +53,7 @@ public class TaskSettingConfig {
     return myName;
   }
 
-  public TaskSettingConfig setName(@NotNull String name) {
+  public CpuProfilerConfig setName(@NotNull String name) {
     myName = name;
     return this;
   }
@@ -64,7 +64,7 @@ public class TaskSettingConfig {
   }
 
   @NotNull
-  public TaskSettingConfig setTechnology(@NotNull Technology technology) {
+  public CpuProfilerConfig setTechnology(@NotNull Technology technology) {
     myTechnology = technology;
     return this;
   }
@@ -74,7 +74,7 @@ public class TaskSettingConfig {
   }
 
   @NotNull
-  public TaskSettingConfig setSamplingIntervalUs(int samplingIntervalUs) {
+  public CpuProfilerConfig setSamplingIntervalUs(int samplingIntervalUs) {
     mySamplingIntervalUs = samplingIntervalUs;
     return this;
   }
@@ -84,7 +84,7 @@ public class TaskSettingConfig {
   }
 
   @NotNull
-  public TaskSettingConfig setBufferSizeMb(int bufferSize) {
+  public CpuProfilerConfig setBufferSizeMb(int bufferSize) {
     myBufferSizeMb = bufferSize;
     return this;
   }
@@ -93,7 +93,7 @@ public class TaskSettingConfig {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    TaskSettingConfig config = (TaskSettingConfig)o;
+    CpuProfilerConfig config = (CpuProfilerConfig)o;
     return mySamplingIntervalUs == config.mySamplingIntervalUs &&
            myBufferSizeMb == config.myBufferSizeMb &&
            Objects.equals(myName, config.myName) &&

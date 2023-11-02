@@ -18,17 +18,17 @@ package com.android.tools.idea.run.profiler
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-class TaskSettingConfigsStateTest {
-  private val myConfigsState = TaskSettingConfigsState()
+class CpuProfilerConfigsStateTest {
+  private val myConfigsState = CpuProfilerConfigsState()
 
   @Test
   fun testDefaultConfigs() {
-    val configs = TaskSettingConfigsState.getDefaultConfigs()
+    val configs = CpuProfilerConfigsState.getDefaultConfigs()
     assertThat(configs.map { it.name }).containsExactly(
-      TaskSettingConfig.Technology.SAMPLED_NATIVE.getName(),
-      TaskSettingConfig.Technology.SYSTEM_TRACE.getName(),
-      TaskSettingConfig.Technology.INSTRUMENTED_JAVA.getName(),
-      TaskSettingConfig.Technology.SAMPLED_JAVA.getName(),
+        CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName(),
+        CpuProfilerConfig.Technology.SYSTEM_TRACE.getName(),
+        CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName(),
+        CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(),
     ).inOrder()
   }
 
@@ -44,10 +44,10 @@ class TaskSettingConfigsStateTest {
 
   @Test
   fun testTaskConfigWhenNotEmpty() {
-    val configsToSave: ArrayList<TaskSettingConfig> = ArrayList()
-    configsToSave.add(TaskSettingConfig("HelloTest1", TaskSettingConfig.Technology.INSTRUMENTED_JAVA))
-    configsToSave.add(TaskSettingConfig("HelloTest2", TaskSettingConfig.Technology.SAMPLED_NATIVE))
-    configsToSave.add(TaskSettingConfig("HelloTest3", TaskSettingConfig.Technology.SAMPLED_JAVA))
+    val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
+    configsToSave.add(CpuProfilerConfig("HelloTest1", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
+    configsToSave.add(CpuProfilerConfig("HelloTest2", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
+    configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.SAMPLED_JAVA))
     myConfigsState.taskConfigs = configsToSave
     // Verify set task configs
     val result = myConfigsState.taskConfigs;
@@ -59,7 +59,7 @@ class TaskSettingConfigsStateTest {
 
   @Test
   fun testTaskConfigAfterEmptyAssign() {
-    val configsToSave: ArrayList<TaskSettingConfig> = ArrayList()
+    val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
     // Set task configs to be empty
     myConfigsState.taskConfigs = configsToSave
     // Verify task config
@@ -72,10 +72,10 @@ class TaskSettingConfigsStateTest {
 
   @Test
   fun testTaskConfigSaveWillSetNewValues() {
-    val configsToSave: ArrayList<TaskSettingConfig> = ArrayList()
-    configsToSave.add(TaskSettingConfig("HelloTest1", TaskSettingConfig.Technology.INSTRUMENTED_JAVA))
-    configsToSave.add(TaskSettingConfig("HelloTest2", TaskSettingConfig.Technology.SAMPLED_NATIVE))
-    configsToSave.add(TaskSettingConfig("HelloTest3", TaskSettingConfig.Technology.SAMPLED_JAVA))
+    val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
+    configsToSave.add(CpuProfilerConfig("HelloTest1", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
+    configsToSave.add(CpuProfilerConfig("HelloTest2", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
+    configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.SAMPLED_JAVA))
     myConfigsState.taskConfigs = configsToSave
     var result = myConfigsState.taskConfigs
     assertThat(result.size).isEqualTo(3)
@@ -83,8 +83,8 @@ class TaskSettingConfigsStateTest {
     assertThat(result[1].name).isEqualTo("HelloTest2")
     assertThat(result[2].name).isEqualTo("HelloTest3")
 
-    val configsToSaveNew: ArrayList<TaskSettingConfig> = ArrayList()
-    configsToSaveNew.add(TaskSettingConfig("HelloTest4", TaskSettingConfig.Technology.INSTRUMENTED_JAVA))
+    val configsToSaveNew: ArrayList<CpuProfilerConfig> = ArrayList()
+    configsToSaveNew.add(CpuProfilerConfig("HelloTest4", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
     // Task config is reassigned
     myConfigsState.taskConfigs = configsToSaveNew
     result = myConfigsState.taskConfigs
@@ -95,19 +95,19 @@ class TaskSettingConfigsStateTest {
 
   @Test
   fun getConfigByNameFromDefaultConfigs() {
-    assertThat(myConfigsState.getConfigByName(TaskSettingConfig.Technology.SAMPLED_JAVA.getName())?.technology)
-      .isEqualTo(TaskSettingConfig.Technology.SAMPLED_JAVA)
-    assertThat(myConfigsState.getConfigByName(TaskSettingConfig.Technology.SAMPLED_NATIVE.getName())?.technology)
-      .isEqualTo(TaskSettingConfig.Technology.SAMPLED_NATIVE)
-    assertThat(myConfigsState.getConfigByName(TaskSettingConfig.Technology.INSTRUMENTED_JAVA.getName())?.technology)
-      .isEqualTo(TaskSettingConfig.Technology.INSTRUMENTED_JAVA)
-    assertThat(myConfigsState.getConfigByName(TaskSettingConfig.Technology.SYSTEM_TRACE.getName())?.technology)
-      .isEqualTo(TaskSettingConfig.Technology.SYSTEM_TRACE)
+    assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.SAMPLED_JAVA.getName())?.technology)
+      .isEqualTo(CpuProfilerConfig.Technology.SAMPLED_JAVA)
+    assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName())?.technology)
+      .isEqualTo(CpuProfilerConfig.Technology.SAMPLED_NATIVE)
+    assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName())?.technology)
+      .isEqualTo(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA)
+    assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.SYSTEM_TRACE.getName())?.technology)
+      .isEqualTo(CpuProfilerConfig.Technology.SYSTEM_TRACE)
   }
 
   @Test
   fun addUserConfig() {
-    val added = myConfigsState.addUserConfig(TaskSettingConfig("MyConfig", TaskSettingConfig.Technology.SAMPLED_JAVA))
+    val added = myConfigsState.addUserConfig(CpuProfilerConfig("MyConfig", CpuProfilerConfig.Technology.SAMPLED_JAVA))
     assertThat(added).isTrue()
     assertThat(myConfigsState.userConfigs).hasSize(1)
     assertThat(myConfigsState.userConfigs[0].name).isEqualTo("MyConfig")
@@ -115,9 +115,7 @@ class TaskSettingConfigsStateTest {
 
   @Test
   fun addUserConfigWithDefaultName() {
-    val config = TaskSettingConfig(
-      TaskSettingConfig.Technology.SAMPLED_JAVA.getName(),
-      TaskSettingConfig.Technology.SAMPLED_JAVA)
+    val config = CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(), CpuProfilerConfig.Technology.SAMPLED_JAVA)
     val added = myConfigsState.addUserConfig(config)
     assertThat(added).isFalse()
     assertThat(myConfigsState.userConfigs).hasSize(0)
@@ -125,15 +123,15 @@ class TaskSettingConfigsStateTest {
 
   @Test
   fun addUserConfigWithDuplicatedName() {
-    val configSampled = TaskSettingConfig("MyConfig", TaskSettingConfig.Technology.SAMPLED_JAVA)
+    val configSampled = CpuProfilerConfig("MyConfig", CpuProfilerConfig.Technology.SAMPLED_JAVA)
     assertThat(myConfigsState.addUserConfig(configSampled)).isTrue()
-    val configInstrumented = TaskSettingConfig("MyConfig", TaskSettingConfig.Technology.INSTRUMENTED_JAVA)
+    val configInstrumented = CpuProfilerConfig("MyConfig", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA)
     assertThat(myConfigsState.addUserConfig(configInstrumented)).isFalse()
   }
 
   @Test
   fun getConfigByNameCustomConfig() {
-    myConfigsState.userConfigs = listOf(TaskSettingConfig("MyConfig", TaskSettingConfig.Technology.SAMPLED_JAVA))
+    myConfigsState.userConfigs = listOf(CpuProfilerConfig("MyConfig", CpuProfilerConfig.Technology.SAMPLED_JAVA))
     assertThat(myConfigsState.getConfigByName("MyConfig")?.name).isEqualTo("MyConfig")
   }
 
