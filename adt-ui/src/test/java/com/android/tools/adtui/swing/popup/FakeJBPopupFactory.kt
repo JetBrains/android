@@ -77,6 +77,12 @@ class FakeJBPopupFactory : JBPopupFactory() {
     get() = popups.size
 
   /**
+   * Returns the number of balloons created using this factory
+   */
+  val balloonCount: Int
+    get() = balloons.size
+
+  /**
    * Returns a popup that has been created using this factory.
    *
    * Type safety is the responsibility of the caller.

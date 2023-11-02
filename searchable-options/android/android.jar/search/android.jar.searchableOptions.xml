@@ -162,6 +162,9 @@
     <option name="data" path="ActionManager" hit="Collect logs and diagnostic data" />
     <option name="diagnostic" path="ActionManager" hit="Collect logs and diagnostic data" />
     <option name="logs" path="ActionManager" hit="Collect logs and diagnostic data" />
+    <option name="android" path="ActionManager" hit="Common Android Settings" />
+    <option name="common" path="ActionManager" hit="Common Android Settings" />
+    <option name="settings" path="ActionManager" hit="Common Android Settings" />
     <option name="configure" path="ActionManager" hit="Configure project structure" />
     <option name="project" path="ActionManager" hit="Configure project structure" />
     <option name="structure" path="ActionManager" hit="Configure project structure" />
@@ -786,6 +789,11 @@
     <option name="set" path="ActionManager" hit="Set up Android Test Retention" />
     <option name="test" path="ActionManager" hit="Set up Android Test Retention" />
     <option name="up" path="ActionManager" hit="Set up Android Test Retention" />
+    <option name="android" path="ActionManager" hit="Shortcuts to common Android settings" />
+    <option name="common" path="ActionManager" hit="Shortcuts to common Android settings" />
+    <option name="settings" path="ActionManager" hit="Shortcuts to common Android settings" />
+    <option name="shortcuts" path="ActionManager" hit="Shortcuts to common Android settings" />
+    <option name="to" path="ActionManager" hit="Shortcuts to common Android settings" />
     <option name="in" path="ActionManager" hit="Show In Resource Manager" />
     <option name="manager" path="ActionManager" hit="Show In Resource Manager" />
     <option name="resource" path="ActionManager" hit="Show In Resource Manager" />

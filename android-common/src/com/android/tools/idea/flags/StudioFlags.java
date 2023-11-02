@@ -894,6 +894,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "trace.discovery", "Enable Tracing of Emulator Discovery",
     "Enables tracing of Emulator discovery",
     false);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_SETTINGS_PICKER = Flag.create(
+    EMBEDDED_EMULATOR, "settings.picker", "Show settings picker",
+    "Enables the settings picker to be shown for testing an application",
+    false);
   //endregion
 
   //region Device Mirroring
