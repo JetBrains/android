@@ -79,7 +79,7 @@ abstract class StreamingDevicePanel(
       secondaryToolbar.setOrientation(SwingConstants.HORIZONTAL)
       toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
       toolbarPanel.add(secondaryToolbar.component, BorderLayout.EAST)
-      centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.TOP)
+      toolbarPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.BOTTOM)
       addToTop(toolbarPanel)
     }
     else {
@@ -87,7 +87,7 @@ abstract class StreamingDevicePanel(
       secondaryToolbar.setOrientation(SwingConstants.VERTICAL)
       toolbarPanel.add(mainToolbar.component, BorderLayout.CENTER)
       toolbarPanel.add(secondaryToolbar.component, BorderLayout.SOUTH)
-      centerPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.LEFT)
+      toolbarPanel.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.RIGHT)
       addToLeft(toolbarPanel)
     }
   }
