@@ -18,7 +18,6 @@ package com.android.layoutlib;
 import android.os._Original_Build;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -72,7 +71,7 @@ public class LayoutlibClassLoader extends ClassLoader {
       @Override
       public String map(String typeName) {
         if (typeName.startsWith(originalBuildBinaryClassName)) {
-          return "android/os/Build" + StringUtil.trimStart(typeName, originalBuildBinaryClassName);
+          return "android/os/Build" + typeName.substring(originalBuildBinaryClassName.length());
         }
 
         return typeName;
@@ -81,8 +80,12 @@ public class LayoutlibClassLoader extends ClassLoader {
 
     while (!pendingClasses.isEmpty()) {
       String name = pendingClasses.pop();
+      String trimmedName =
+        name.startsWith(originalBuildClassName) ?
+        name.substring(originalBuildClassName.length()) :
+        name;
 
-      String newName = "android.os.Build" + StringUtil.trimStart(name, originalBuildClassName);
+      String newName = "android.os.Build" + trimmedName;
       String binaryName = toBinaryClassName(name);
 
       try (InputStream is = loader.getResourceAsStream(binaryName + ".class")) {
