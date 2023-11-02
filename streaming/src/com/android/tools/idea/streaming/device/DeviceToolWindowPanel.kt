@@ -51,6 +51,7 @@ import com.intellij.ui.JBColor
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
 import kotlinx.coroutines.launch
 import java.awt.EventQueue
+import java.util.concurrent.TimeoutException
 import java.util.function.IntFunction
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -250,7 +251,13 @@ internal class DeviceToolWindowPanel(
     fun onDisplaysChanged() {
       contentDisposable?.let {
         AndroidCoroutineScope(it).launch {
-          val displays = deviceClient.deviceController?.getDisplayConfigurations() ?: return@launch
+          val displays = try {
+            deviceClient.deviceController?.getDisplayConfigurations() ?: return@launch
+          }
+          catch (e: TimeoutException) {
+            thisLogger().warn("Unable to get device display configurations", e)
+            return@launch
+          }
           if (displays.isEmpty()) {
             return@launch // All displays are turned off.
           }

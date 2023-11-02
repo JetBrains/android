@@ -370,4 +370,4 @@ internal data class FoldingState(val id: Int, val name: String, val flags: Set<F
 
 private const val CONTROL_MSG_BUFFER_SIZE = 4096
 
-private const val RESPONSE_TIMEOUT_SEC = 2L
+private const val RESPONSE_TIMEOUT_SEC = 10L
