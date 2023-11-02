@@ -532,7 +532,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   /**
    * @return the primary (first) {@link NlModel} if exist. null otherwise.
    * @see #getModels()
-   * @deprecated The surface can contain multiple models. Use {@link #getModels() instead}.
+   * @deprecated The surface can contain multiple models. Use {@link #getModels()} instead.
    */
   @Deprecated
   @Nullable
