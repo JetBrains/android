@@ -359,7 +359,7 @@ class PlatformIntegrationTest {
   /**
    * A data service which simulates cancellation of import at data services phase.
    *
-   * Note, that it needs to run first to avoid `ProcessCancelledException` related memory leaks, which are later caught by the testing
+   * Note, that it needs to run first to avoid `ProcessCanceledException` related memory leaks, which are later caught by the testing
    * infrastructure. For example, see https://youtrack.jetbrains.com/issue/IDEA-298437.
    */
   @Order(BUILTIN_MODULE_DATA_SERVICE_ORDER - 1)
