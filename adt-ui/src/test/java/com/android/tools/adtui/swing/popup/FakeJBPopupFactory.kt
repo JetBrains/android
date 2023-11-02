@@ -213,11 +213,8 @@ class FakeJBPopupFactory : JBPopupFactory() {
   private fun getComponentContextSupplier(parentDataContext: DataContext,
                                           component: Component?): Supplier<DataContext> {
     if (component == null) return Supplier { parentDataContext }
-    val dataContext = Utils.wrapDataContext(DataManager.getInstance().getDataContext(component))
-    return when {
-      Utils.isAsyncDataContext(dataContext) -> Supplier { dataContext }
-      else -> Supplier { DataManager.getInstance().getDataContext(component) }
-    }
+    val dataContext = Utils.createAsyncDataContext(DataManager.getInstance().getDataContext(component))
+    return Supplier { dataContext }
   }
 
 
