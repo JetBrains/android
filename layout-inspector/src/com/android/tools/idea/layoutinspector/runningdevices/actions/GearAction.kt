@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.actions
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.DumbAwareAction
 import java.awt.Component
 import java.awt.event.MouseEvent
+import javax.swing.Icon
 
 /** A gear action that when clicked shows a popup containing [actions]. */
 class GearAction(vararg val actions: AnAction) :
@@ -60,98 +63,117 @@ enum class UiConfig {
   RIGHT_VERTICAL_SWAP
 }
 
-/** Split the UI vertically. */
-class VerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
-  AnAction(LayoutInspectorBundle.message("split.vertical"), "", AllIcons.Actions.SplitVertically) {
-  override fun actionPerformed(e: AnActionEvent) {
-    updateUi(UiConfig.VERTICAL)
+abstract class UiConfigAction(
+  title: String,
+  private val icon: Icon,
+  private val uiConfig: UiConfig,
+  @UiThread private val currentConfig: () -> UiConfig,
+  @UiThread private val updateUi: (UiConfig) -> Unit
+) : AnAction(title, "", icon) {
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    if (currentConfig() == uiConfig) {
+      e.presentation.icon = AllIcons.Actions.Checked
+    } else {
+      e.presentation.icon = icon
+    }
   }
+
+  override fun actionPerformed(e: AnActionEvent) {
+    updateUi(uiConfig)
+  }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 }
+
+/** Split the UI vertically. */
+class VerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
+  UiConfigAction(
+    LayoutInspectorBundle.message("split.vertical"),
+    AllIcons.Actions.SplitVertically,
+    UiConfig.VERTICAL,
+    currentConfig,
+    updateUi
+  )
 
 /** Split the UI vertically and swap tree and attributes panel. */
-class SwapVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
-  AnAction(
+class SwapVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
+  UiConfigAction(
     @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("split.vertical.swap"),
-    "",
-    AllIcons.Actions.SplitVertically
-  ) {
-  override fun actionPerformed(e: AnActionEvent) {
-    updateUi(UiConfig.VERTICAL_SWAP)
-  }
-}
+    AllIcons.Actions.SplitVertically,
+    UiConfig.VERTICAL_SWAP,
+    currentConfig,
+    updateUi
+  )
 
 /** Split the UI horizontally. */
-class HorizontalSplitAction(private val updateUi: (UiConfig) -> Unit) :
-  AnAction(
+class HorizontalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
+  UiConfigAction(
     LayoutInspectorBundle.message("split.horizontal"),
-    "",
-    AllIcons.Actions.SplitHorizontally
-  ) {
-  override fun actionPerformed(e: AnActionEvent) {
-    updateUi(UiConfig.HORIZONTAL)
-  }
-}
+    AllIcons.Actions.SplitHorizontally,
+    UiConfig.HORIZONTAL,
+    currentConfig,
+    updateUi
+  )
 
 /** Split the UI horizontally and swap tree and attributes panel. */
-class SwapHorizontalSplitAction(private val updateUi: (UiConfig) -> Unit) :
-  AnAction(
+class SwapHorizontalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
+  UiConfigAction(
     @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("split.horizontal.swap"),
-    "",
-    AllIcons.Actions.SplitHorizontally
-  ) {
-  override fun actionPerformed(e: AnActionEvent) {
-    updateUi(UiConfig.HORIZONTAL_SWAP)
-  }
-}
+    AllIcons.Actions.SplitHorizontally,
+    UiConfig.HORIZONTAL_SWAP,
+    currentConfig,
+    updateUi
+  )
 
 /**
  * Split the UI to have both panels vertically stacked on the left of the device, tree panel at the
  * top
  */
-class LeftVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
-  AnAction(LayoutInspectorBundle.message("left.vertical"), "", AllIcons.Actions.MoveToLeftTop) {
-  override fun actionPerformed(e: AnActionEvent) {
-    updateUi(UiConfig.LEFT_VERTICAL)
-  }
-}
+class LeftVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
+  UiConfigAction(
+    LayoutInspectorBundle.message("left.vertical"),
+    AllIcons.Actions.MoveToLeftTop,
+    UiConfig.LEFT_VERTICAL,
+    currentConfig,
+    updateUi
+  )
 
 /**
  * Split the UI to have both panels vertically stacked on the left of the device, tree panel at the
  * bottom.
  */
-class SwapLeftVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
-  AnAction(
+class SwapLeftVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
+  UiConfigAction(
     @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("left.vertical.swap"),
-    "",
-    AllIcons.Actions.MoveToLeftBottom
-  ) {
-  override fun actionPerformed(e: AnActionEvent) {
-    updateUi(UiConfig.LEFT_VERTICAL_SWAP)
-  }
-}
+    AllIcons.Actions.MoveToLeftBottom,
+    UiConfig.LEFT_VERTICAL_SWAP,
+    currentConfig,
+    updateUi
+  )
 
 /**
  * Split the UI to have both panels vertically stacked on the right of the device, tree panel at the
  * top
  */
-class RightVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
-  AnAction(LayoutInspectorBundle.message("right.vertical"), "", AllIcons.Actions.MoveToRightTop) {
-  override fun actionPerformed(e: AnActionEvent) {
-    updateUi(UiConfig.RIGHT_VERTICAL)
-  }
-}
+class RightVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
+  UiConfigAction(
+    LayoutInspectorBundle.message("right.vertical"),
+    AllIcons.Actions.MoveToRightTop,
+    UiConfig.RIGHT_VERTICAL,
+    currentConfig,
+    updateUi
+  )
 
 /**
  * Split the UI to have both panels vertically stacked on the right of the device, tree panel at the
  * bottom.
  */
-class SwapRightVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
-  AnAction(
+class SwapRightVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
+  UiConfigAction(
     @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("right.vertical.swap"),
-    "",
-    AllIcons.Actions.MoveToRightBottom
-  ) {
-  override fun actionPerformed(e: AnActionEvent) {
-    updateUi(UiConfig.RIGHT_VERTICAL_SWAP)
-  }
-}
+    AllIcons.Actions.MoveToRightBottom,
+    UiConfig.RIGHT_VERTICAL_SWAP,
+    currentConfig,
+    updateUi
+  )

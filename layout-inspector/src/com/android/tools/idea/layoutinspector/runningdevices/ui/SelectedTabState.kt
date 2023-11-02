@@ -234,14 +234,14 @@ data class SelectedTabState(
       listOf(
         toggleDeepInspectAction,
         GearAction(
-          HorizontalSplitAction(::updateUi),
-          SwapHorizontalSplitAction(::updateUi),
-          VerticalSplitAction(::updateUi),
-          SwapVerticalSplitAction(::updateUi),
-          LeftVerticalSplitAction(::updateUi),
-          SwapLeftVerticalSplitAction(::updateUi),
-          RightVerticalSplitAction(::updateUi),
-          SwapRightVerticalSplitAction(::updateUi),
+          HorizontalSplitAction({ uiConfig }, ::updateUi),
+          SwapHorizontalSplitAction({ uiConfig }, ::updateUi),
+          VerticalSplitAction({ uiConfig }, ::updateUi),
+          SwapVerticalSplitAction({ uiConfig }, ::updateUi),
+          LeftVerticalSplitAction({ uiConfig }, ::updateUi),
+          SwapLeftVerticalSplitAction({ uiConfig }, ::updateUi),
+          RightVerticalSplitAction({ uiConfig }, ::updateUi),
+          SwapRightVerticalSplitAction({ uiConfig }, ::updateUi),
           Separator.create(),
           DimensionUnitAction
         )
