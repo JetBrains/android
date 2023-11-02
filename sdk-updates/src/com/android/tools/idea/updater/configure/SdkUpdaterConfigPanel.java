@@ -38,17 +38,8 @@ import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.ui.ApplicationUtils;
+import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
-import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
-import com.android.tools.idea.welcome.wizard.deprecated.ConsolidatedProgressStep;
-import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath;
-import com.android.tools.idea.wizard.WizardConstants;
-import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
-import com.android.tools.idea.wizard.dynamic.DynamicWizard;
-import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
-import com.android.tools.idea.wizard.dynamic.SingleStepPath;
 import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableList;
@@ -71,7 +62,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.updateSettings.impl.UpdateSettingsConfigurable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
@@ -94,10 +84,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.JComboBox;
@@ -111,8 +101,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -231,8 +219,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
                                @Nullable SettingsController settings,
                                @NotNull SdkUpdaterConfigurable configurable) {
     UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(EventCategory.SDK_MANAGER)
-                                     .setKind(EventKind.SDK_MANAGER_LOADED));
+                       .setCategory(EventCategory.SDK_MANAGER)
+                       .setKind(EventKind.SDK_MANAGER_LOADED));
 
     myConfigurable = configurable;
     myUpdateSitesPanel.setConfigurable(configurable);
@@ -285,67 +273,10 @@ public class SdkUpdaterConfigPanel implements Disposable {
     myEditSdkLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
-        final DynamicWizardHost host = new DialogWrapperHost(null);
-        DynamicWizard wizard = new DynamicWizard(null, null, "SDK Setup", host) {
-          @Override
-          public void init() {
-            DownloadingComponentsStep progressStep = new DownloadingComponentsStep(myHost.getDisposable(), myHost);
-
-            String sdkPath = mySdkLocationTextField.getText();
-            File location;
-            if (StringUtil.isEmpty(sdkPath)) {
-              location = FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK);
-            }
-            else {
-              location = new File(sdkPath);
-            }
-
-            InstallComponentsPath path =
-              new InstallComponentsPath(FirstRunWizardMode.MISSING_SDK, location, progressStep, false);
-
-            progressStep.setInstallComponentsPath(path);
-
-            addPath(path);
-            addPath(new SingleStepPath(progressStep));
-            super.init();
-          }
-
-          @Override
-          public void performFinishingActions() {
-            File sdkLocation = IdeSdks.getInstance().getAndroidSdkPath();
-
-            if (sdkLocation == null) {
-              return;
-            }
-
-            String stateSdkLocationPath = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
-            assert stateSdkLocationPath != null;
-
-            File stateSdkLocation = new File(stateSdkLocationPath);
-
-            if (!FileUtil.filesEqual(sdkLocation, stateSdkLocation)) {
-              setAndroidSdkLocation(stateSdkLocation);
-              sdkLocation = stateSdkLocation;
-            }
-
-            mySelectedSdkLocation.setValue(sdkLocation);
-            // Pick up changes done by the wizard.
-            refresh(false);
-          }
-
-          @NotNull
-          @Override
-          protected String getProgressTitle() {
-            return "Setting up SDK...";
-          }
-
-          @Override
-          protected String getWizardActionDescription() {
-            return "Setting up SDK...";
-          }
-        };
-        wizard.init();
-        wizard.show();
+        SelectSdkDialog.createDownloadingComponentsStepDialog(mySdkLocationTextField.getText(), s -> {
+          mySelectedSdkLocation.setValue(s);
+          refresh(false);
+        });
       }
     });
     mySdkLocationTextField.setEditable(false);
@@ -416,28 +347,6 @@ public class SdkUpdaterConfigPanel implements Disposable {
   @Override
   public void dispose() {
     myBindingsManager.releaseAll();
-  }
-
-  private static final class DownloadingComponentsStep extends ConsolidatedProgressStep {
-    private InstallComponentsPath myInstallComponentsPath;
-
-    private DownloadingComponentsStep(@NotNull Disposable disposable, @NotNull DynamicWizardHost host) {
-      super(disposable, host);
-    }
-
-    private void setInstallComponentsPath(InstallComponentsPath installComponentsPath) {
-      setPaths(Collections.singletonList(installComponentsPath));
-      myInstallComponentsPath = installComponentsPath;
-    }
-
-    @Override
-    public boolean isStepVisible() {
-      return myInstallComponentsPath.shouldDownloadingComponentsStepBeShown();
-    }
-  }
-
-  private static void setAndroidSdkLocation(final File sdkLocation) {
-    ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), () -> IdeSdks.getInstance().setAndroidSdkPath(sdkLocation));
   }
 
   /**
@@ -563,13 +472,11 @@ public class SdkUpdaterConfigPanel implements Disposable {
       myPlatformComponentsPanel.startLoading();
       myToolComponentsPanel.startLoading();
       myConfigurable.getRepoManager()
-                    .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
-                          progressRunner, myDownloader, mySettings);
+        .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null, progressRunner, myDownloader, mySettings);
     }
     else {
       myConfigurable.getRepoManager()
-                    .load(0, ImmutableList.of(myLocalUpdater), null, null,
-                          progressRunner, null, mySettings);
+        .load(0, ImmutableList.of(myLocalUpdater), null, null, progressRunner, null, mySettings);
     }
   }
 

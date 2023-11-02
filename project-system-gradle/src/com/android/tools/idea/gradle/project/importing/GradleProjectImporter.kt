@@ -32,6 +32,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.ToolWindows
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.impl.OpenProjectTask
+import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.WriteAction
@@ -120,9 +121,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
   private fun setUpLocalProperties(projectFolderPath: File) {
     try {
       val localProperties = LocalProperties(projectFolderPath)
-      if (IdeInfo.getInstance().isAndroidStudio) {
-        mySdkSync.syncIdeAndProjectAndroidSdks(localProperties)
-      }
+      mySdkSync.syncIdeAndProjectAndroidSdks(localProperties, ProjectUtil.findProject(projectFolderPath.toPath()))
     }
     catch (e: IOException) {
       logger.info("Failed to sync SDKs", e)
