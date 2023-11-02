@@ -12,16 +12,6 @@ import json
 import xml.etree.ElementTree as ET
 import intellij
 
-# A list of files excluded from the compile classpath.
-HIDDEN = [
-    # kotlinc-lib.jar contains kotlin-stdlib and kotlin-reflect from the Kotlin compiler.
-    # We prefer compiling against the IntelliJ version of kotlin-stdlib
-    # because IntelliJ has a hack in PluginClassLoader.mustBeLoadedByPlatform()
-    # which circumvents the normal classloader delegation hierarchy in order to
-    # prioritize its own version of kotlin-stdlib at runtime.
-    "/plugins/Kotlin/lib/kotlinc-lib.jar",
-]
-
 ALL = "all"
 LINUX = "linux"
 WIN = "windows"
@@ -54,7 +44,6 @@ def list_sdk_jars(sdk):
     # Java plugin sdk are included as part of the platform as there are references to it.
     idea_home = sdk + HOME_PATHS[platform]
     jars += ["/plugins/java/lib/" + jar for jar in os.listdir(idea_home + "/plugins/java/lib/") if jar.endswith(".jar")]
-    jars = [jar for jar in jars if jar not in HIDDEN]
     sets[platform] = set(jars)
 
   sets[ALL] = sets[WIN] & sets[MAC] & sets[MAC_ARM] & sets[LINUX]
@@ -81,7 +70,6 @@ def list_plugin_jars(sdk):
         continue
       path = "/plugins/" + plugin + "/lib/"
       jars = [path + jar for jar in os.listdir(idea_home + path) if jar.endswith(".jar")]
-      jars = [jar for jar in jars if jar not in HIDDEN]
       all[platform][plugin] = set(jars)
 
   plugins = sorted(set(all[MAC].keys()) | set(all[WIN].keys()) | set(all[LINUX].keys()))
