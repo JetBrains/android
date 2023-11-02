@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.actions.ColorBlindModeAction
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
@@ -73,18 +74,11 @@ class ComposeViewControlActionTest {
         createOption("Layout C", EmptySurfaceLayoutManager())
       )
 
-    val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
-
     val viewControlAction =
       ComposeViewControlAction(
         options,
         onSurfaceLayoutSelected = { _, _ -> },
-        additionalActionProvider =
-          ColorBlindModeAction(
-            designSurfaceMock.screenViewProvider,
-            designSurfaceMock::setColorBlindMode
-          )
+        additionalActionProvider = ColorBlindModeAction()
       )
 
     val expected =
@@ -106,7 +100,11 @@ class ComposeViewControlActionTest {
         Tritanomaly
 """
 
-    val actionContent = prettyPrintActions(viewControlAction)
+    val designSurfaceMock = mock<NlDesignSurface>()
+    whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
+    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) designSurfaceMock else null }
+
+    val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
     assertEquals(expected, actionContent)
   }
 
@@ -121,18 +119,11 @@ class ComposeViewControlActionTest {
         createOption("Layout C", EmptySurfaceLayoutManager())
       )
 
-    val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
-
     val viewControlAction =
       ComposeViewControlAction(
         options,
         onSurfaceLayoutSelected = { _, _ -> },
-        additionalActionProvider =
-          ColorBlindModeAction(
-            designSurfaceMock.screenViewProvider,
-            designSurfaceMock::setColorBlindMode
-          )
+        additionalActionProvider = ColorBlindModeAction()
       )
 
     val expected =
@@ -158,7 +149,11 @@ class ComposeViewControlActionTest {
         Tritanomaly
 """
 
-    val actionContent = prettyPrintActions(viewControlAction)
+    val designSurfaceMock = mock<NlDesignSurface>()
+    whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
+    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) designSurfaceMock else null }
+
+    val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
     assertEquals(expected, actionContent)
   }
 
@@ -173,21 +168,11 @@ class ComposeViewControlActionTest {
         createOption("Layout C", EmptySurfaceLayoutManager())
       )
 
-    val screenViewProviderMock = mock<ScreenViewProvider>()
-
-    val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.screenViewProvider).thenReturn(screenViewProviderMock)
-    whenever(screenViewProviderMock.colorBlindFilter).thenReturn(ColorBlindMode.PROTANOMALY)
-
     val viewControlAction =
       ComposeViewControlAction(
         options,
         onSurfaceLayoutSelected = { _, _ -> },
-        additionalActionProvider =
-          ColorBlindModeAction(
-            designSurfaceMock.screenViewProvider,
-            designSurfaceMock::setColorBlindMode
-          )
+        additionalActionProvider = ColorBlindModeAction()
       )
 
     val expected =
@@ -213,7 +198,14 @@ class ComposeViewControlActionTest {
         Tritanomaly
 """
 
-    val actionContent = prettyPrintActions(viewControlAction)
+    val screenViewProviderMock = mock<ScreenViewProvider>()
+
+    val designSurfaceMock = mock<NlDesignSurface>()
+    whenever(designSurfaceMock.screenViewProvider).thenReturn(screenViewProviderMock)
+    whenever(screenViewProviderMock.colorBlindFilter).thenReturn(ColorBlindMode.PROTANOMALY)
+    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) designSurfaceMock else null }
+
+    val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
     assertEquals(expected, actionContent)
   }
 

@@ -28,7 +28,7 @@ import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.TestActionEvent.createTestEvent
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -84,9 +84,8 @@ class SetColorBlindModeActionTest {
 
     surface.setScreenViewProvider(myScreenViewProvider, false)
 
-    val setColorBlindModeAction =
-      SetColorBlindModeAction(ColorBlindMode.PROTANOPES) { surface.setColorBlindMode(it) }
-    val event = TestActionEvent(setColorBlindModeAction)
+    val setColorBlindModeAction = SetColorBlindModeAction(ColorBlindMode.PROTANOPES)
+    val event = createTestEvent(surface::getData)
 
     // Two things are tested here:
     // 1. That the color-blind filter is modified according to the setColorBlindModeAction

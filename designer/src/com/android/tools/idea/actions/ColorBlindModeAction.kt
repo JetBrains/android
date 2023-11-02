@@ -16,29 +16,21 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /** A Dropdown action that contains a checkbox of the color-blind modes to be applied in a layout */
-class ColorBlindModeAction(
-  private val screenViewProvider: ScreenViewProvider,
-  private val onColorBlindModeSelected: (ColorBlindMode) -> Unit
-) : DropDownAction("Color Blind Modes", null, null) {
+class ColorBlindModeAction : DropDownAction("Color Blind Modes", null, null) {
 
   init {
-    ColorBlindMode.values().forEach {
-      addAction(SetColorBlindModeAction(it, onColorBlindModeSelected))
-    }
+    ColorBlindMode.values().forEach { addAction(SetColorBlindModeAction(it)) }
   }
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    getChildren(e).forEach { action ->
-      action as SetColorBlindModeAction
-      action.isSelected = screenViewProvider.colorBlindFilter == action.colorBlindMode
-    }
+    e.presentation.isVisible = e.getData(DESIGN_SURFACE) is NlDesignSurface
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

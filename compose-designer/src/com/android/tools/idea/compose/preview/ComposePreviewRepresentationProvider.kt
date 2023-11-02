@@ -49,7 +49,6 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -115,9 +114,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
               }
             },
             additionalActionProvider =
-              if (StudioFlags.COMPOSE_COLORBLIND_MODE.get() && surface is NlDesignSurface)
-                ColorBlindModeAction(surface.screenViewProvider) { surface.setColorBlindMode(it) }
-              else null
+              if (StudioFlags.COMPOSE_COLORBLIND_MODE.get()) ColorBlindModeAction() else null
           )
           .visibleOnlyInStaticPreview(),
         Separator.getInstance().visibleOnlyInUiCheck(),

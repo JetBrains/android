@@ -143,12 +143,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.BLUEPRINT, nlDesignSurface));
     designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER_AND_BLUEPRINT, nlDesignSurface));
 
-    DefaultActionGroup colorBlindMode = new ColorBlindModeAction(
-      nlDesignSurface.getScreenViewProvider(),
-      mode -> {
-        nlDesignSurface.setColorBlindMode(mode);
-        return Unit.INSTANCE;
-      });
+    DefaultActionGroup colorBlindMode = new ColorBlindModeAction();
     designSurfaceMenu.addAction(colorBlindMode);
 
     designSurfaceMenu.addSeparator();
