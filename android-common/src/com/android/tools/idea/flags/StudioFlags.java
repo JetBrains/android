@@ -1012,7 +1012,7 @@ public final class StudioFlags {
     EDITOR, "samples.support.enabled",
     "Enable supports of samples (tag inside KDoc) that are used in quick documentation",
     "Enable supports of samples (tag inside KDoc) that are used in quick documentation",
-    false
+    true
   );
 
   public static final Flag<Boolean> DAGGER_SUPPORT_ENABLED = Flag.create(
