@@ -18,6 +18,7 @@ iml_module(
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
         "//tools/base/apkparser:studio.android.sdktools.binary-resources[module]",
         "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
+        "//tools/adt/idea/.idea/libraries:asm-tools",
     ],
 )
 
@@ -44,6 +45,7 @@ kotlin_library(
         "//tools/base/sdklib:tools.sdklib",
         "//tools/base/zipflinger",
         "@maven//:net.sf.kxml.kxml2",
+        "@maven//:org.ow2.asm.asm",
     ],
 )
 

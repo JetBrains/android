@@ -32,15 +32,15 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.org.objectweb.asm.ClassWriter;
-import org.jetbrains.org.objectweb.asm.MethodVisitor;
-import org.jetbrains.org.objectweb.asm.Type;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 
 import java.util.*;
 
 import static com.android.tools.log.LogAnonymizer.anonymizeClassName;
 import static com.android.tools.log.LogAnonymizer.isPublicClass;
-import static org.jetbrains.org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.*;
 
 /**
  * The {@linkplain ResourceClassGenerator} can generate R classes on the fly for a given resource repository.
