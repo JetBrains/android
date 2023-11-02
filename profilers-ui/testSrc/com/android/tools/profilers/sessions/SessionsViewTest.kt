@@ -44,6 +44,7 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HprofArtifactView
 import com.android.tools.profilers.memory.LegacyAllocationsArtifactView
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
+import com.android.tools.profilers.memory.MemoryCaptureStage
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
 import com.google.common.truth.Truth.assertThat
@@ -751,10 +752,11 @@ class SessionsViewTest {
     ui.mouse.click(allocationItem.bounds.x + 1, allocationItem.bounds.y + 1)
     // Move away again so we're not hovering
     ui.mouse.moveTo(-10, -10)
-    // Makes sure memory profiler stage is now open.
-    assertThat(myProfilers.stage).isInstanceOf(MainMemoryProfilerStage::class.java)
+    // Makes sure memory capture stage is now open.
+    assertThat(myProfilers.stage).isInstanceOf(MemoryCaptureStage::class.java)
     // Makes sure a LegacyAllocationCaptureObject is loaded.
-    assertThat((myProfilers.stage as MainMemoryProfilerStage).captureSelection.selectedCapture).isInstanceOf(LegacyAllocationCaptureObject::class.java)
+    assertThat((myProfilers.stage as MemoryCaptureStage).captureSelection.selectedCapture).isInstanceOf(
+      LegacyAllocationCaptureObject::class.java)
     // Makes sure artifact's proto selection is saved
     assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(allocationItem.artifact.artifactProto);
 

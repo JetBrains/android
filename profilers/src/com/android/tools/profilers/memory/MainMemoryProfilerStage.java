@@ -40,6 +40,7 @@ import com.android.tools.profilers.SupportLevel;
 import com.android.tools.profilers.InterimStage;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
+import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject;
 import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.sessions.SessionAspect;
@@ -145,7 +146,9 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
 
     // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
     myHeapDumpDurations = makeModel(CaptureDataSeries::ofHeapDumpSamples);
-    myAllocationDurations = makeModel(CaptureDataSeries::ofAllocationInfos);
+    myAllocationDurations = isLiveAllocationTrackingSupported()
+                            ? makeModel(CaptureDataSeries::ofAllocationInfos)
+                            : makeModel(CaptureDataSeries::ofLegacyAllocationInfos);
     myNativeAllocationDurations = makeModel(CaptureDataSeries::ofNativeAllocationSamples);
 
     myHeapDumpDurations.setRenderSeriesPredicate((data, series) ->
@@ -585,7 +588,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     }
     else if (durationData != null &&
              (HeapDumpCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()) ||
-              NativeAllocationSampleCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()))) {
+              NativeAllocationSampleCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()) ||
+              LegacyAllocationCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()))) {
       profilers.setStage(new MemoryCaptureStage(profilers, getLoader(), durationData, joiner));
     }
     else {

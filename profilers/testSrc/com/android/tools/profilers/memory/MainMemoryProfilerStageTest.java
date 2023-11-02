@@ -20,6 +20,7 @@ import static com.android.tools.idea.transport.faketransport.FakeTransportServic
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeTrue;
 
 import com.android.ddmlib.allocations.AllocationsParserTest;
@@ -139,18 +140,20 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     MemoryProfilerTestUtils
       .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
-    assertThat(myStage.getCaptureSelection().getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
-    myAspectObserver.assertAndResetCounts(1, 1, 0, 0, 0, 0, 0, 0);
-    LegacyAllocationCaptureObject capture = (LegacyAllocationCaptureObject)myStage.getCaptureSelection().getSelectedCapture();
+    // The MemoryCaptureStage should be entered at this point to display the legacy (pre-O) Java/Kotlin Allocation capture data.
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryCaptureStage.class);
+    CaptureObject capture = ((MemoryCaptureStage)myProfilers.getStage()).getCaptureSelection().getSelectedCapture();
+    assertThat(capture).isInstanceOf(LegacyAllocationCaptureObject.class);
+    myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
     assertThat(capture.isDoneLoading()).isFalse();
     assertThat(capture.isError()).isFalse();
 
     // Finish the load task.
     myMockLoader.runTask();
-    assertThat(myStage.getCaptureSelection().getSelectedCapture()).isEqualTo(capture);
+    assertThat(((MemoryCaptureStage)myProfilers.getStage()).getCaptureSelection().getSelectedCapture()).isEqualTo(capture);
     assertThat(capture.isDoneLoading()).isTrue();
     assertThat(capture.isError()).isFalse();
-    myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
   }
 
   @Test
@@ -674,8 +677,11 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
       .stopTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
 
     assertThat(myStage.isTrackingAllocations()).isEqualTo(false);
-    assertThat(myStage.getCaptureSelection().getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
-    myAspectObserver.assertAndResetCounts(2, 1, 1, 0, 1, 0, 0, 0);
+    // The MemoryCaptureStage should be entered at this point to display the legacy (pre-O) Java/Kotlin Allocation capture data.
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryCaptureStage.class);
+    assertThat(((MemoryCaptureStage)myProfilers.getStage()).getCaptureSelection().getSelectedCapture()).isInstanceOf(
+      LegacyAllocationCaptureObject.class);
+    myAspectObserver.assertAndResetCounts(2, 0, 0, 0, 0, 0, 0, 0);
   }
 
   @Test
@@ -842,6 +848,29 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.selectCaptureDuration(dataList.get(0).value, null);
     assertThat(myProfilers.getStage()).isInstanceOf(MemoryCaptureStage.class);
     assertThat(myProfilers.getStage().getStageType()).isEqualTo(AndroidProfilerEvent.Stage.MEMORY_HEAP_DUMP_STAGE);
+  }
+
+  @Test
+  public void selectingLegacyAllocationsGoesToMemoryCaptureStage() {
+    long startTimeUs = 5;
+    long endTimeUs = 10;
+    AllocationsInfo info = AllocationsInfo.newBuilder()
+      .setStartTime(TimeUnit.MICROSECONDS.toNanos(startTimeUs)).setEndTime(TimeUnit.MICROSECONDS.toNanos(endTimeUs)).setLegacy(true)
+      .build();
+    myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                        ProfilersTestData.generateMemoryAllocationInfoData(info.getStartTime(),
+                                                                                           ProfilersTestData.SESSION_DATA.getPid(),
+                                                                                           info).build());
+
+    DataSeries<CaptureDurationData<? extends CaptureObject>> series =
+      CaptureDataSeries.ofLegacyAllocationInfos(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
+                                                myIdeProfilerServices.getFeatureTracker(), myStage);
+    List<SeriesData<CaptureDurationData<? extends CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
+
+    assertEquals(1, dataList.size());
+    myStage.selectCaptureDuration(dataList.get(0).value, null);
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryCaptureStage.class);
+    assertThat(myProfilers.getStage().getStageType()).isEqualTo(AndroidProfilerEvent.Stage.MEMORY_STAGE);
   }
 
   @Test
