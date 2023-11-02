@@ -24,16 +24,16 @@ import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.environment.Logger;
 import com.android.utils.ILogger;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.system.CpuArch;
 import java.io.File;
+import java.lang.ref.SoftReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
-import java.util.function.Function;
+import java.util.WeakHashMap;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,8 +44,7 @@ import org.jetbrains.annotations.Nullable;
 public class LayoutLibraryLoader {
   protected static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.LayoutLibraryLoader");
 
-  private static final Map<IAndroidTarget, LayoutLibrary> ourLibraryCache =
-    ContainerUtil.createWeakKeySoftValueMap();
+  private static final Map<IAndroidTarget, SoftReference<LayoutLibrary>> ourLibraryCache = new WeakHashMap<>();
 
   private LayoutLibraryLoader() {
   }
@@ -113,14 +112,15 @@ public class LayoutLibraryLoader {
     if (Bridge.hasNativeCrash()) {
       throw new RenderingException("Rendering disabled following a crash");
     }
-    LayoutLibrary library = ourLibraryCache.get(target);
+    SoftReference<LayoutLibrary> libraryRef = ourLibraryCache.get(target);
+    LayoutLibrary library = libraryRef != null ? libraryRef.get() : null;
     if (library == null || library.isDisposed()) {
       if (hasExternalCrash.get()) {
         Bridge.setNativeCrash(true);
         throw new RenderingException("Rendering disabled following a crash");
       }
       library = loadImpl(target, enumMap);
-      ourLibraryCache.put(target, library);
+      ourLibraryCache.put(target, new SoftReference<>(library));
     }
 
     return library;
