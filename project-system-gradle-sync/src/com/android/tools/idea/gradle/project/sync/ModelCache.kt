@@ -33,6 +33,10 @@ import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
@@ -203,10 +207,10 @@ internal val AgpVersion.agpModelIncludesApplicationId: Boolean
    get() = isAtLeast(7, 4, 0, "alpha", 4, false)
 
 internal fun convertArtifactName(name: String): IdeArtifactName = when (name) {
-  AndroidProject.ARTIFACT_MAIN -> IdeArtifactName.MAIN
-  AndroidProject.ARTIFACT_ANDROID_TEST -> IdeArtifactName.ANDROID_TEST
-  AndroidProject.ARTIFACT_UNIT_TEST -> IdeArtifactName.UNIT_TEST
-  AndroidProject.ARTIFACT_TEST_FIXTURES -> IdeArtifactName.TEST_FIXTURES
+  ARTIFACT_NAME_MAIN -> IdeArtifactName.MAIN
+  ARTIFACT_NAME_ANDROID_TEST -> IdeArtifactName.ANDROID_TEST
+  ARTIFACT_NAME_UNIT_TEST -> IdeArtifactName.UNIT_TEST
+  ARTIFACT_NAME_TEST_FIXTURES -> IdeArtifactName.TEST_FIXTURES
   else -> error("Invalid android artifact name: $name")
 }
 

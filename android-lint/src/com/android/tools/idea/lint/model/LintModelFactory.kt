@@ -16,10 +16,12 @@
 package com.android.tools.idea.lint.model
 
 import com.android.AndroidProjectTypes
-import com.android.builder.model.AndroidProject
 import com.android.builder.model.LintOptions
 import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
@@ -406,15 +408,15 @@ class LintModelFactory : LintModelModuleLoader {
   }
 
   private fun IdeExtraSourceProvider.isTestFixtures(): Boolean {
-    return AndroidProject.ARTIFACT_TEST_FIXTURES == artifactName
+    return ARTIFACT_NAME_TEST_FIXTURES == artifactName
   }
 
   private fun IdeExtraSourceProvider.isUnitTest(): Boolean {
-    return AndroidProject.ARTIFACT_UNIT_TEST == artifactName
+    return ARTIFACT_NAME_UNIT_TEST == artifactName
   }
 
   private fun IdeExtraSourceProvider.isInstrumentationTest(): Boolean {
-    return AndroidProject.ARTIFACT_ANDROID_TEST == artifactName
+    return ARTIFACT_NAME_ANDROID_TEST == artifactName
   }
 
   private fun computeExtraSourceProviders(

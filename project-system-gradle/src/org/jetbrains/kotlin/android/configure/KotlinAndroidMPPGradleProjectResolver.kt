@@ -5,7 +5,10 @@
 
 package org.jetbrains.kotlin.android.configure
 
-import com.android.builder.model.AndroidProject
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
@@ -197,10 +200,10 @@ private fun IdeVariantCoreImpl.artifact(artifact: IdeModuleWellKnownSourceSet): 
 
 private val IdeModuleWellKnownSourceSet.artifactName: String
   get() = when (this) {
-    MAIN -> AndroidProject.ARTIFACT_MAIN
-    ANDROID_TEST -> AndroidProject.ARTIFACT_ANDROID_TEST
-    UNIT_TEST -> AndroidProject.ARTIFACT_UNIT_TEST
-    TEST_FIXTURES -> AndroidProject.ARTIFACT_TEST_FIXTURES
+    MAIN -> ARTIFACT_NAME_MAIN
+    ANDROID_TEST -> ARTIFACT_NAME_ANDROID_TEST
+    UNIT_TEST -> ARTIFACT_NAME_UNIT_TEST
+    TEST_FIXTURES -> ARTIFACT_NAME_TEST_FIXTURES
   }
 
 private fun IdeSourceProviderContainer.sourceProvider(artifact: IdeModuleWellKnownSourceSet): IdeSourceProvider? {

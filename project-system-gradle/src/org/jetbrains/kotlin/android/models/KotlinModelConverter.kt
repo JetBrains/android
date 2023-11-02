@@ -15,7 +15,6 @@
  */
 package org.jetbrains.kotlin.android.models
 
-import com.android.builder.model.AndroidProject
 import com.android.builder.model.proto.ide.AndroidGradlePluginProjectFlags
 import com.android.builder.model.proto.ide.AndroidVersion
 import com.android.builder.model.proto.ide.Library
@@ -29,6 +28,8 @@ import com.android.kotlin.multiplatform.models.AndroidCompilation
 import com.android.kotlin.multiplatform.models.AndroidTarget
 import com.android.kotlin.multiplatform.models.SourceProvider
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
@@ -399,12 +400,12 @@ class KotlinModelConverter {
           sourceSet.extras[androidSourceSetKey]?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
         },
         extraSourceProviders = listOf(
-          AndroidProject.ARTIFACT_UNIT_TEST to unitTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
+          ARTIFACT_NAME_UNIT_TEST to unitTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
             it.name == unitTestAndroidCompilation?.defaultSourceSetName
           }?.let { sourceSet ->
             sourceSet.extras[androidSourceSetKey]?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
           },
-          AndroidProject.ARTIFACT_ANDROID_TEST to androidTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
+          ARTIFACT_NAME_ANDROID_TEST  to androidTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
             it.name == androidTestAndroidCompilation?.defaultSourceSetName
           }?.let { sourceSet ->
             sourceSet.extras[androidSourceSetKey]?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
