@@ -29,6 +29,7 @@ import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.actionSystem.impl.Utils
@@ -163,7 +164,9 @@ class DeviceMenuActionTest {
     whenever(configuration.settings)
       .thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
     whenever(configuration.configModule).thenReturn(configurationModelModule)
-    val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(configuration) else null }
+    val dataContext = CustomizedDataContext.create(DataContext.EMPTY_CONTEXT) {
+      if (CONFIGURATIONS.`is`(it)) listOf(configuration) else null
+    }
 
     val menuAction =
       DeviceMenuAction(

@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
@@ -77,7 +78,7 @@ fun createTestEvent(source: Component, project: Project, place: String = ActionP
   return AnActionEvent(inputEvent, TestDataContext(source, project), place, presentation, ActionManager.getInstance(), 0)
 }
 
-private class TestDataContext(private val component: Component, private val project: Project) : DataContext {
+private class TestDataContext(private val component: Component, private val project: Project) : CustomizedDataContext() {
   private val emulatorView
     get() = component as? EmulatorView
   private val deviceView
@@ -85,7 +86,9 @@ private class TestDataContext(private val component: Component, private val proj
   private val displayView
     get() = component as? AbstractDisplayView
 
-  override fun getData(dataId: String): Any? {
+  override fun getParent(): DataContext = EMPTY_CONTEXT
+
+  override fun getRawCustomData(dataId: String): Any? {
     return when (dataId) {
       EMULATOR_VIEW_KEY.name -> emulatorView
       EMULATOR_CONTROLLER_KEY.name -> emulatorView?.emulator
