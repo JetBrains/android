@@ -19,7 +19,11 @@ import com.android.SdkConstants
 import com.android.repository.api.ProgressIndicatorAdapter
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
+import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.ui.ApplicationUtils
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.application.ModalityState
+import java.io.File
 
 /**
  * Android SDK installable component.
@@ -54,4 +58,11 @@ class AndroidSdk(installUpdates: Boolean) : InstallableComponent(
   }
 
   override fun isOptionalForSdkLocation(): Boolean = false
+
+}
+
+fun setAndroidSdkLocation(sdkLocation: File) {
+  ApplicationUtils.invokeWriteActionAndWait(ModalityState.any()) {
+    IdeSdks.getInstance().setAndroidSdkPath(sdkLocation)
+  }
 }
