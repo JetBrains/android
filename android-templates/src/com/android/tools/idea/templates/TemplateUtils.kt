@@ -35,15 +35,13 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
-import org.jetbrains.android.uipreview.EditorUtil.openEditor
-import org.jetbrains.android.uipreview.EditorUtil.selectEditor
 import java.io.File
 import java.io.IOException
 import java.security.InvalidParameterException
+import org.jetbrains.android.uipreview.EditorUtil.openEditor
+import org.jetbrains.android.uipreview.EditorUtil.selectEditor
 
-/**
- * Utility methods pertaining to templates for projects, modules, and activities.
- */
+/** Utility methods pertaining to templates for projects, modules, and activities. */
 object TemplateUtils {
   private val LOG = Logger.getInstance("#org.jetbrains.android.templates.DomUtilities")
 
@@ -51,19 +49,20 @@ object TemplateUtils {
    * Opens the specified files in the editor
    *
    * @param project The project which contains the given file.
-   * @param files   The files on disk.
-   * @param select  If true, select the last (topmost) file in the project view
+   * @param files The files on disk.
+   * @param select If true, select the last (topmost) file in the project view
    */
   @JvmStatic
   fun openEditors(project: Project, files: Collection<File>, select: Boolean) {
     var last: VirtualFile? = null
 
-    files.filter(File::exists).mapNotNull {
-      VfsUtil.findFileByIoFile(it, true)
-    }.forEach {
-      last = it
-      openEditor(project, it)
-    }
+    files
+      .filter(File::exists)
+      .mapNotNull { VfsUtil.findFileByIoFile(it, true) }
+      .forEach {
+        last = it
+        openEditor(project, it)
+      }
 
     if (select && last != null) {
       selectEditor(project, last!!)
@@ -71,8 +70,8 @@ object TemplateUtils {
   }
 
   /**
-   * Returns the contents of `file`, or `null` if an [IOException] occurs.
-   * If an [IOException] occurs and `warnIfNotExists` is `true`, logs a warning.
+   * Returns the contents of `file`, or `null` if an [IOException] occurs. If an [IOException]
+   * occurs and `warnIfNotExists` is `true`, logs a warning.
    *
    * @throws AssertionError if `file` is not absolute
    */
@@ -82,8 +81,7 @@ object TemplateUtils {
     assert(file.isAbsolute)
     return try {
       Files.asCharSource(file, Charsets.UTF_8).read()
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       if (warnIfNotExists) {
         LOG.warn(e)
       }
@@ -92,7 +90,8 @@ object TemplateUtils {
   }
 
   /**
-   * Reads the given file as text (or the current contents of the edited buffer of the file, if open and not saved).
+   * Reads the given file as text (or the current contents of the edited buffer of the file, if open
+   * and not saved).
    *
    * @param file The file to read.
    * @return the contents of the file as text, or null if for some reason it couldn't be read
@@ -109,7 +108,8 @@ object TemplateUtils {
   }
 
   /**
-   * Reads the given file as text (or the current contents of the edited buffer of the file, if open and not saved).
+   * Reads the given file as text (or the current contents of the edited buffer of the file, if open
+   * and not saved).
    *
    * @param file The file to read.
    * @return the contents of the file as text, or null if for some reason it couldn't be read
@@ -117,10 +117,13 @@ object TemplateUtils {
   @JvmStatic
   fun readTextFromDocument(project: Project, file: VirtualFile): String? {
     assert(project.isInitialized)
-    return ApplicationManager.getApplication().runReadAction(Computable<String> {
-      val document = FileDocumentManager.getInstance().getDocument(file)
-      document?.text
-    })
+    return ApplicationManager.getApplication()
+      .runReadAction(
+        Computable<String> {
+          val document = FileDocumentManager.getInstance().getDocument(file)
+          document?.text
+        }
+      )
   }
 
   /**
@@ -131,9 +134,13 @@ object TemplateUtils {
   @Throws(IOException::class)
   @JvmStatic
   fun checkedCreateDirectoryIfMissing(directory: File): VirtualFile =
-    WriteCommandAction.runWriteCommandAction(null, ThrowableComputable<VirtualFile, IOException> {
-      VfsUtil.createDirectoryIfMissing(directory.absolutePath) ?: throw IOException("Unable to create " + directory.absolutePath)
-    })
+    WriteCommandAction.runWriteCommandAction(
+      null,
+      ThrowableComputable<VirtualFile, IOException> {
+        VfsUtil.createDirectoryIfMissing(directory.absolutePath)
+          ?: throw IOException("Unable to create " + directory.absolutePath)
+      }
+    )
 
   /**
    * Find the first parent directory that exists and check if this directory is writeable.
@@ -153,30 +160,35 @@ object TemplateUtils {
   }
 
   /**
-   * [VfsUtil.copyDirectory] messes up the undo stack, most likely by trying to create a directory even if it already exists.
-   * This is an undo-friendly replacement.
+   * [VfsUtil.copyDirectory] messes up the undo stack, most likely by trying to create a directory
+   * even if it already exists. This is an undo-friendly replacement.
    *
    * Note: this method should be run inside write action.
    */
   @JvmStatic
   @JvmOverloads
   @UiThread
-  fun copyDirectory(src: VirtualFile, dest: File, copyFile: (file: VirtualFile, src: VirtualFile, destination: File) -> Boolean = ::copyFile) {
-    VfsUtilCore.visitChildrenRecursively(src, object : VirtualFileVisitor<Any>() {
-      override fun visitFile(file: VirtualFile): Boolean {
-        try {
-          return copyFile(file, src, dest)
+  fun copyDirectory(
+    src: VirtualFile,
+    dest: File,
+    copyFile: (file: VirtualFile, src: VirtualFile, destination: File) -> Boolean = ::copyFile
+  ) {
+    VfsUtilCore.visitChildrenRecursively(
+      src,
+      object : VirtualFileVisitor<Any>() {
+        override fun visitFile(file: VirtualFile): Boolean {
+          try {
+            return copyFile(file, src, dest)
+          } catch (e: IOException) {
+            throw VisitorException(e)
+          }
         }
-        catch (e: IOException) {
-          throw VisitorException(e)
-        }
-      }
-    }, IOException::class.java)!!
+      },
+      IOException::class.java
+    )
   }
 
-  /**
-   * Copies a file or a directory. Returns true if it was copied, otherwise false.
-   */
+  /** Copies a file or a directory. Returns true if it was copied, otherwise false. */
   @JvmStatic
   @UiThread
   private fun copyFile(fileToCopy: VirtualFile, parent: VirtualFile, destination: File): Boolean {
@@ -196,46 +208,47 @@ object TemplateUtils {
     return true
   }
 
-  /**
-   * Returns true iff the given file has the given extension (with or without .)
-   */
+  /** Returns true iff the given file has the given extension (with or without .) */
   @JvmStatic
   fun hasExtension(file: File, extension: String): Boolean =
     Files.getFileExtension(file.name).equals(extension.trimStart { it == '.' }, ignoreCase = true)
 }
 
 /**
- * Attempts to resolve dynamic versions (e.g. "2.+") to specific versions from the repository, returning a
- * Dependency object with the version replaced with a concrete (required) version, if found, or the minimum
- * revision, if provided.  If no version is found or provided, the given identifier is returned as a
- * Dependency.  If a version is found and the minimum is provided, the found version is used if it is accepted
- * by the minimum.
+ * Attempts to resolve dynamic versions (e.g. "2.+") to specific versions from the repository,
+ * returning a Dependency object with the version replaced with a concrete (required) version, if
+ * found, or the minimum revision, if provided. If no version is found or provided, the given
+ * identifier is returned as a Dependency. If a version is found and the minimum is provided, the
+ * found version is used if it is accepted by the minimum.
  *
  * @param minRev the minimum revision to accept
  * @see RepositoryUrlManager.resolveDependency
  */
-fun resolveDependency(repo: RepositoryUrlManager, dependencyIdentifier: String, minRev: String? = null): Dependency {
+fun resolveDependency(
+  repo: RepositoryUrlManager,
+  dependencyIdentifier: String,
+  minRev: String? = null
+): Dependency {
   val dependency = Dependency.parse(dependencyIdentifier)
   val group = dependency.group
   val version = dependency.version
-  if (group == null || version == null) throw InvalidParameterException("Invalid dependency: $dependency")
+  if (group == null || version == null)
+    throw InvalidParameterException("Invalid dependency: $dependency")
 
   val resolvedVersion = repo.resolveDependency(dependency, null, null)?.version
   val minRichVersion = minRev?.let { RichVersion.parse(it) }
   return when {
-    resolvedVersion == null -> minRichVersion?.let { dependency.copy(version = minRichVersion) } ?: dependency
+    resolvedVersion == null -> minRichVersion?.let { dependency.copy(version = minRichVersion) }
+        ?: dependency
     minRichVersion == null -> dependency.copy(version = RichVersion.require(resolvedVersion))
-    minRichVersion.accepts(resolvedVersion) -> dependency.copy(version = RichVersion.require(resolvedVersion))
+    minRichVersion.accepts(resolvedVersion) ->
+      dependency.copy(version = RichVersion.require(resolvedVersion))
     else -> dependency.copy(version = minRichVersion)
   }
 }
 
 fun getAppNameForTheme(appName: String): String {
-  val result = appName
-    .split(" ")
-    .joinToString("") {
-      it.usLocaleCapitalize()
-    }
+  val result = appName.split(" ").joinToString("") { it.usLocaleCapitalize() }
   // The characters need to be valid characters for Kotlin because name is used for resource names
   return StringUtil.sanitizeJavaIdentifier(result).takeIf { it.isNotEmpty() } ?: "App"
 }
