@@ -297,7 +297,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public List<ProfilingConfiguration> getTaskCpuProfilerConfigs(int apiLevel) {
     CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
-    return CpuProfilerConfigConverter.toProfilingConfiguration(configsState.getTaskConfigs(), apiLevel);
+    return CpuProfilerConfigConverter.toProfilingConfiguration(configsState.getSavedTaskConfigsIfPresentOrDefault(), apiLevel);
   }
 
   @Override

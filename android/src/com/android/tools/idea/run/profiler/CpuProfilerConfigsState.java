@@ -65,10 +65,19 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
   }
 
   @NotNull
-  public List<CpuProfilerConfig> getTaskConfigs() {
+  public List<CpuProfilerConfig> getSavedTaskConfigsIfPresentOrDefault() {
     if (myTaskConfigs.isEmpty()) {
       return getTaskDefaultConfigs();
     }
+    return myTaskConfigs;
+  }
+
+  /**
+   * This method will be invoked by default during project loading and should return empty list, if not it would result in deserialization
+   * error while reading from xml (storage) file.
+   */
+  @NotNull
+  public List<CpuProfilerConfig> getTaskConfigs() {
     return myTaskConfigs;
   }
 

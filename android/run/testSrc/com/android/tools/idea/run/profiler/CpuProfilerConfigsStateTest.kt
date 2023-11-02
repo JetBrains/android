@@ -34,7 +34,7 @@ class CpuProfilerConfigsStateTest {
 
   @Test
   fun testTaskConfigWhenItsEmpty() {
-    val result = myConfigsState.taskConfigs
+    val result = myConfigsState.savedTaskConfigsIfPresentOrDefault
     // Default task configs added when task config is empty
     assertThat(result.size).isEqualTo(3)
     assertThat(result[0].name).isEqualTo("Callstack Sample")
@@ -50,7 +50,7 @@ class CpuProfilerConfigsStateTest {
     configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.SAMPLED_JAVA))
     myConfigsState.taskConfigs = configsToSave
     // Verify set task configs
-    val result = myConfigsState.taskConfigs;
+    val result = myConfigsState.savedTaskConfigsIfPresentOrDefault;
     assertThat(result.size).isEqualTo(3)
     assertThat(result[0].name).isEqualTo("HelloTest1")
     assertThat(result[1].name).isEqualTo("HelloTest2")
@@ -63,7 +63,7 @@ class CpuProfilerConfigsStateTest {
     // Set task configs to be empty
     myConfigsState.taskConfigs = configsToSave
     // Verify task config
-    val result = myConfigsState.taskConfigs
+    val result = myConfigsState.savedTaskConfigsIfPresentOrDefault
     assertThat(result.size).isEqualTo(3)
     assertThat(result[0].name).isEqualTo("Callstack Sample")
     assertThat(result[1].name).isEqualTo("Java/Kotlin Method Trace")
@@ -77,7 +77,7 @@ class CpuProfilerConfigsStateTest {
     configsToSave.add(CpuProfilerConfig("HelloTest2", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
     configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.SAMPLED_JAVA))
     myConfigsState.taskConfigs = configsToSave
-    var result = myConfigsState.taskConfigs
+    var result = myConfigsState.savedTaskConfigsIfPresentOrDefault
     assertThat(result.size).isEqualTo(3)
     assertThat(result[0].name).isEqualTo("HelloTest1")
     assertThat(result[1].name).isEqualTo("HelloTest2")
@@ -87,7 +87,7 @@ class CpuProfilerConfigsStateTest {
     configsToSaveNew.add(CpuProfilerConfig("HelloTest4", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
     // Task config is reassigned
     myConfigsState.taskConfigs = configsToSaveNew
-    result = myConfigsState.taskConfigs
+    result = myConfigsState.savedTaskConfigsIfPresentOrDefault
     // Config reflects latest update
     assertThat(result.size).isEqualTo(1)
     assertThat(result[0].name).isEqualTo("HelloTest4")
