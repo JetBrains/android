@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
+import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.idea.annotations.getContainingUMethodAnnotatedWith
 import com.android.tools.idea.annotations.getUAnnotations
 import com.android.tools.idea.annotations.isAnnotatedWith
@@ -68,7 +69,10 @@ private fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
 
 /** Returns true if the [UAnnotation] is a `@Preview` annotation. */
 internal fun UAnnotation.isPreviewAnnotation() =
-  ReadAction.compute<Boolean, Throwable> { COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName }
+  ReadAction.compute<Boolean, Throwable> {
+    COMPOSE_PREVIEW_ANNOTATION_NAME == qualifiedName?.substringAfterLast(".") &&
+      COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName
+  }
 
 /**
  * Returns true if the [UMethod] is annotated with a @Preview annotation, taking in consideration
