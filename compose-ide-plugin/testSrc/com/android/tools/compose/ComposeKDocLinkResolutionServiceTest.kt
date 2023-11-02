@@ -33,8 +33,8 @@ import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-/** Tests for [ComposeSampleResolutionService] */
-class ComposeSampleResolutionServiceTest : AndroidGradleTestCase() {
+/** Tests for [ComposeKDocLinkResolutionService] */
+class ComposeKDocLinkResolutionServiceTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
     myFixture.testDataPath = getComposePluginTestDataPath()
