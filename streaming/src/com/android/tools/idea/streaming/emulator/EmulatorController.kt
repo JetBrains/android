@@ -33,6 +33,7 @@ import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.Notification
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PhysicalModelValue
+import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.SnapshotFilter
 import com.android.emulator.control.SnapshotList
@@ -78,10 +79,13 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
 import com.intellij.util.containers.ConcurrentList
 import com.intellij.util.containers.ContainerUtil
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap
 import java.io.IOException
 import java.io.InputStream
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
+import java.nio.file.Files
+import java.util.Locale
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -98,7 +102,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   @Volatile private var snapshotServiceStubInternal: SnapshotServiceGrpc.SnapshotServiceStub? = null
   @Volatile private var uiControllerStubInternal: UiControllerGrpc.UiControllerStub? = null
   @Volatile private var emulatorConfigInternal: EmulatorConfiguration? = null
-  @Volatile internal var skinDefinition: SkinDefinition? = null
+  @Volatile private var defaultSkin: SkinDefinition? = null
+  @Volatile private var postureSkins = emptyMap<PostureValue, SkinDefinition>()
   private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
   private var connectionStateInternal = AtomicReference(ConnectionState.NOT_INITIALIZED)
   private val emulatorState = AtomicReference(EmulatorState.RUNNING)
@@ -209,7 +214,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       return
     }
     emulatorConfig = config
-    skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(config.skinFolder)
+    loadSkins(config)
 
     val maxPixels =
         config.displayModes.maxOfOrNull { it.displaySize.width * it.displaySize.height } ?: (config.displayWidth * config.displayHeight)
@@ -217,6 +222,30 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
     connectGrpc(maxInboundMessageSize)
     sendKeepAlive()
+  }
+
+  private fun loadSkins(config: EmulatorConfiguration) {
+    val skinFolder = config.skinFolder
+    if (skinFolder != null) {
+      if (config.postures.isEmpty()) {
+        defaultSkin = SkinDefinitionCache.getInstance().getSkinDefinition(skinFolder)
+      }
+      else {
+        defaultSkin = SkinDefinitionCache.getInstance().getSkinDefinition(skinFolder.resolve("default"))
+        val skins = Object2ObjectArrayMap<PostureValue, SkinDefinition>()
+        for (posture in config.postures) {
+          val dir = posture.posture.name.substringAfter("_").lowercase(Locale.getDefault())
+          val folder = skinFolder.resolve(dir)
+          if (Files.exists(folder.resolve("layout"))) {
+            val skin = SkinDefinitionCache.getInstance().getSkinDefinition(folder)
+            if (skin != null) {
+              skins[posture.posture] = skin
+            }
+          }
+        }
+        postureSkins = skins
+      }
+    }
   }
 
   /**
@@ -251,6 +280,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
     channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
   }
+
+  internal fun getSkin(posture: PostureValue? = null): SkinDefinition? =
+      posture?.let { postureSkins[posture]} ?: defaultSkin
 
   /**
    * Sends a shutdown command to the emulator. Subsequent [shutdown] calls are ignored.

@@ -76,8 +76,8 @@ import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.interpolate
 import com.google.common.base.Predicates.alwaysTrue
 import com.google.common.util.concurrent.SettableFuture
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.concurrency.ConcurrentCollectionFactory
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -142,14 +142,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   @Volatile private var notificationStreamObserver: StreamObserver<Notification>? = null
   private var displays = listOf(DisplayConfiguration.newBuilder().setWidth(config.displayWidth).setHeight(config.displayHeight).build())
 
-  private var posture: PostureValue? = config.postures.lastOrNull()?.posture
-    set(value) {
+  @Volatile var devicePosture: PostureValue? = config.postures.lastOrNull()?.posture
+    private set(value) {
       if (value != null && value != field) {
         field = value
-        executor.execute {
-          notificationStreamObserver?.sendStreamingResponse(createPostureNotification(value))
-          foldedDisplay = if (value == PostureValue.POSTURE_CLOSED) foldedDisplayRegion else null
-        }
+        notificationStreamObserver?.sendStreamingResponse(createPostureNotification(value))
+        foldedDisplay = if (value == PostureValue.POSTURE_CLOSED) foldedDisplayRegion else null
       }
     }
 
@@ -157,11 +155,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     set(value) {
       if (field != value) {
         field = value
-        executor.execute {
-          val screenshotObserver = screenshotStreamObserver ?: return@execute
-          val request = screenshotStreamRequest ?: return@execute
-          sendScreenshot(request, screenshotObserver)
-        }
+        val screenshotObserver = screenshotStreamObserver ?: return
+        val request = screenshotStreamRequest ?: return
+        sendScreenshot(request, screenshotObserver)
       }
     }
 
@@ -191,7 +187,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
   @Volatile var extendedControlsVisible = false
 
-  private var frameNumber = 0
+  @Volatile var frameNumber: UInt = 0u
+    private set
   /** Ids of snapshots that were created by calling the [createIncompatibleSnapshot] method. */
   private val incompatibleSnapshots = ConcurrentCollectionFactory.createConcurrentSet<String>()
 
@@ -311,10 +308,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   /**
    * Folds/unfolds the primary display.
    */
-  fun setFolded(folded: Boolean) {
-    executor.execute {
-      foldedDisplay = if (folded) foldedDisplayRegion else null
-    }
+  fun setPosture(posture: PostureValue) {
+    executor.submit {
+      devicePosture = posture
+    }.get()
   }
 
   /**
@@ -324,8 +321,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
    */
   @UiThread
   @Throws(TimeoutException::class)
-  fun getNextGrpcCall(timeout: Long, unit: TimeUnit, filter: Predicate<GrpcCallRecord> = defaultCallFilter): GrpcCallRecord
-    = grpcCallLog.get(timeout, unit, filter)
+  fun getNextGrpcCall(timeout: Long, unit: TimeUnit, filter: Predicate<GrpcCallRecord> = defaultCallFilter): GrpcCallRecord =
+      grpcCallLog.get(timeout, unit, filter)
 
   /**
    * Clears the gRPC call log.
@@ -473,7 +470,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     val response = Image.newBuilder()
       .setImage(ByteString.copyFrom(imageBytes))
       .setFormat(imageFormat)
-      .setSeq(++frameNumber)
+      .setSeq((++frameNumber).toInt())
     responseObserver.sendStreamingResponse(response.build())
   }
 
@@ -543,7 +540,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
             displayRotation = SkinRotation.forNumber(((zAngle / 90).roundToInt() + 4) % 4)
           }
           target == PhysicalType.HINGE_ANGLE0 && config.isFoldable || target == PhysicalType.ROLLABLE0 && config.isRollable -> {
-            findPosture(request.value.getData(0))?.let { posture = it }
+            findPosture(request.value.getData(0))?.let { devicePosture = it }
           }
         }
         sendEmptyResponse(responseObserver)
@@ -584,7 +581,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         if (virtualSceneCameraActive) {
           responseObserver.sendStreamingResponse(createVirtualSceneCameraNotification(true, PRIMARY_DISPLAY_ID))
         }
-        posture?.let {
+        devicePosture?.let {
           responseObserver.sendStreamingResponse(createPostureNotification(it))
         }
       }
@@ -805,16 +802,16 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val forwardingCall = object : SimpleForwardingServerCall<ReqT, RespT>(call) {
         override fun sendMessage(response: RespT) {
           grpcSemaphore.withPermit {
-            callRecord.responseMessageCounter.add(Unit)
             super.sendMessage(response)
+            callRecord.responseMessageCounter.add(Unit)
           }
         }
       }
       return object : SimpleForwardingServerCallListener<ReqT>(handler.startCall(forwardingCall, headers)) {
         override fun onMessage(request: ReqT) {
           grpcSemaphore.withPermit {
-            callRecord.requestMessages.put(request as MessageOrBuilder)
             super.onMessage(request)
+            callRecord.requestMessages.put(request as MessageOrBuilder)
           }
         }
 
@@ -1085,13 +1082,14 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     /**
-     * Creates a fake "Pixel Fold" AVD.
+     * Creates a fake "Pixel Fold" AVD. The skin path in config.ini is absolute.
      */
     @JvmStatic
     fun createFoldableAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 33): Path {
       val avdId = "Pixel_Fold_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
+      val skinFolder = getSkinFolder("pixel_fold")
       val systemImage = "system-images/android-$api/google_apis_playstore/x86_64/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
@@ -1146,10 +1144,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           runtime.network.speed=full
           sdcard.path=${avdFolder}/sdcard.img
           sdcard.size=512M
-          showDeviceFrame=no
+          showDeviceFrame=yes
           skin.dynamic=yes
-          skin.name = 2208x1840
-          skin.path = _no_skin
+          skin.name=${skinFolder.fileName}
+          skin.path=${skinFolder}
           tag.display=Google PLay
           tag.id=google_apis_playstore
           """.trimIndent()

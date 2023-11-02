@@ -132,7 +132,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.displayWidth).isEqualTo(2208)
     assertThat(config?.displayHeight).isEqualTo(1840)
     assertThat(config?.density).isEqualTo(420)
-    assertThat(config?.skinFolder).isNull()
+    assertThat(config?.skinFolder?.toString()).isEqualTo(FakeEmulator.getSkinFolder("pixel_fold").toString())
     assertThat(config?.hasAudioOutput).isTrue()
     assertThat(config?.isFoldable).isTrue()
     assertThat(config?.isRollable).isFalse()
