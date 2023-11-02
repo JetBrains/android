@@ -61,7 +61,6 @@ enum class UiConfig {
 }
 
 /** Split the UI vertically. */
-// TODO(b/307787934) all the icons in these actions are temporary. Replace once they are ready.
 class VerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
   AnAction(LayoutInspectorBundle.message("split.vertical"), "", AllIcons.Actions.SplitVertically) {
   override fun actionPerformed(e: AnActionEvent) {
@@ -74,7 +73,7 @@ class SwapVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
   AnAction(
     @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("split.vertical.swap"),
     "",
-    AllIcons.Actions.SplitHorizontally
+    AllIcons.Actions.SplitVertically
   ) {
   override fun actionPerformed(e: AnActionEvent) {
     updateUi(UiConfig.VERTICAL_SWAP)
@@ -110,7 +109,7 @@ class SwapHorizontalSplitAction(private val updateUi: (UiConfig) -> Unit) :
  * top
  */
 class LeftVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
-  AnAction(LayoutInspectorBundle.message("left.vertical"), "", AllIcons.Actions.SplitHorizontally) {
+  AnAction(LayoutInspectorBundle.message("left.vertical"), "", AllIcons.Actions.MoveToLeftTop) {
   override fun actionPerformed(e: AnActionEvent) {
     updateUi(UiConfig.LEFT_VERTICAL)
   }
@@ -124,7 +123,7 @@ class SwapLeftVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
   AnAction(
     @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("left.vertical.swap"),
     "",
-    AllIcons.Actions.SplitHorizontally
+    AllIcons.Actions.MoveToLeftBottom
   ) {
   override fun actionPerformed(e: AnActionEvent) {
     updateUi(UiConfig.LEFT_VERTICAL_SWAP)
@@ -136,11 +135,7 @@ class SwapLeftVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
  * top
  */
 class RightVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
-  AnAction(
-    LayoutInspectorBundle.message("right.vertical"),
-    "",
-    AllIcons.Actions.SplitHorizontally
-  ) {
+  AnAction(LayoutInspectorBundle.message("right.vertical"), "", AllIcons.Actions.MoveToRightTop) {
   override fun actionPerformed(e: AnActionEvent) {
     updateUi(UiConfig.RIGHT_VERTICAL)
   }
@@ -154,7 +149,7 @@ class SwapRightVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
   AnAction(
     @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("right.vertical.swap"),
     "",
-    AllIcons.Actions.SplitHorizontally
+    AllIcons.Actions.MoveToRightBottom
   ) {
   override fun actionPerformed(e: AnActionEvent) {
     updateUi(UiConfig.RIGHT_VERTICAL_SWAP)

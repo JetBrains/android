@@ -234,10 +234,10 @@ data class SelectedTabState(
       listOf(
         toggleDeepInspectAction,
         GearAction(
-          VerticalSplitAction(::updateUi),
-          SwapVerticalSplitAction(::updateUi),
           HorizontalSplitAction(::updateUi),
           SwapHorizontalSplitAction(::updateUi),
+          VerticalSplitAction(::updateUi),
+          SwapVerticalSplitAction(::updateUi),
           LeftVerticalSplitAction(::updateUi),
           SwapLeftVerticalSplitAction(::updateUi),
           RightVerticalSplitAction(::updateUi),
