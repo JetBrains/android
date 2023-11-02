@@ -19,13 +19,14 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
+import com.android.tools.lint.detector.api.LintFix
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 
-class LaunchTargetSdkVersionAssistantFix :
+class LaunchTargetSdkVersionAssistantFix(fix: LintFix?) :
   DefaultLintQuickFix("Launch Android SDK Upgrade Assistant") {
 
   override fun isApplicable(

@@ -33,6 +33,6 @@ class AndroidLintEditedTargetSdkVersionInspection :
     message: String,
     fixData: LintFix?
   ): Array<LintIdeQuickFix> {
-    return arrayOf(LaunchTargetSdkVersionAssistantFix(), IgnoreTargetSdkEditFix())
+    return arrayOf(LaunchTargetSdkVersionAssistantFix(fixData), IgnoreTargetSdkEditFix())
   }
 }

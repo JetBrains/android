@@ -35,6 +35,6 @@ public class AndroidLintOldTargetApiInspection extends AndroidLintInspectionBase
                                          @NotNull PsiElement endElement,
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
-    return new LintIdeQuickFix[]{new LaunchTargetSdkVersionAssistantFix()};
+    return new LintIdeQuickFix[]{new LaunchTargetSdkVersionAssistantFix(fixData)};
   }
 }
