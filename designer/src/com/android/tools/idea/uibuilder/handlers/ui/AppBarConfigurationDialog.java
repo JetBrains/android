@@ -119,7 +119,7 @@ public class AppBarConfigurationDialog extends JDialog {
   private final NlModel myModel;
   private final Disposable myDisposable;
   private final JBLoadingPanel myLoadingPanel;
-  private final boolean myUserAndroidxDependency;
+  private final boolean myUseAndroidxDependency;
   private JPanel myContentPane;
   private JButton myButtonOK;
   private JButton myButtonCancel;
@@ -150,7 +150,7 @@ public class AppBarConfigurationDialog extends JDialog {
 
   public AppBarConfigurationDialog(@NotNull NlModel model, boolean useAndroidxDependency) {
     myModel = model;
-    myUserAndroidxDependency = useAndroidxDependency;
+    myUseAndroidxDependency = useAndroidxDependency;
     myDisposable = Disposer.newDisposable();
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myDisposable, 20);
     myLoadingPanel.add(myContentPane);
@@ -263,7 +263,7 @@ public class AppBarConfigurationDialog extends JDialog {
 
     Module module = myModel.getModule();
 
-    GoogleMavenArtifactId artifact = myUserAndroidxDependency ?
+    GoogleMavenArtifactId artifact = myUseAndroidxDependency ?
                                      GoogleMavenArtifactId.ANDROIDX_DESIGN :
                                      GoogleMavenArtifactId.DESIGN;
     boolean designAdded = DependencyManagementUtil
