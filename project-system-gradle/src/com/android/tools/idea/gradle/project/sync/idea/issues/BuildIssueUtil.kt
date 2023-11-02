@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter.Companion.getInstance
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
-import com.intellij.openapi.application.readAction
+import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
+import java.util.concurrent.CompletableFuture
 
 /**
  * Helper class to conditionally construct the buildIssue containing all the information about a sync exception handling.
@@ -87,4 +88,17 @@ interface DescribedBuildIssueQuickFix : BuildIssueQuickFix {
   val description : String
   val html: String
     get() = "<a href=\"${id}\">$description</a>"
+}
+
+abstract class OpenLinkDescribedQuickFix : DescribedBuildIssueQuickFix {
+  abstract val link: String
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
+    val future = CompletableFuture<Any>()
+
+    invokeLater {
+      BrowserUtil.browse(link)
+      future.complete(null)
+    }
+    return future
+  }
 }
