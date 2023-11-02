@@ -781,9 +781,6 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
         }
       }
     }
-
-    override fun thisUsesUnstableApi() {
-    }
   }
 }
 
