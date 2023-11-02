@@ -38,20 +38,17 @@ import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.run.configuration.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.util.androidFacet
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
-import com.intellij.ui.ContextHelpLabel
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.gridLayout.HorizontalAlign
-import com.intellij.ui.layout.separatorAndComment
 import com.jetbrains.rd.util.firstOrNull
-import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComboBox
 import javax.swing.JPanel
+import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.annotations.VisibleForTesting
 
 
 private val USES_FEATURE_OTHER_FORM_FACTORS = setOf(
@@ -81,7 +78,9 @@ class ConfigureBaselineProfilesModuleStep(
 
   init {
     bindTargetModule()
-    validate()
+    validateAgpVersion()
+    validateTargetModule()
+    validatePackageName()
 
     bindings.bind(model.useGmd, SelectedProperty(useGmdCheck))
   }
@@ -134,61 +133,104 @@ class ConfigureBaselineProfilesModuleStep(
     })
   }
 
-  private fun validate() {
-    validatorPanel.registerValidator(model.agpVersion, createValidator { version ->
-      if (version.compareIgnoringQualifiers(BP_PLUGIN_MIN_SUPPORTED) < 0) {
-        Validator.Result.fromNullableMessage(
-          AndroidBundle.message("android.wizard.validate.module.needs.new.agp.baseline.profiles", BP_PLUGIN_MIN_SUPPORTED.toString())
-        )
+  private fun validateAgpVersion() =
+    validatorPanel.registerValidator(
+      model.agpVersion,
+      createValidator { version ->
+        if (version.compareIgnoringQualifiers(BP_PLUGIN_MIN_SUPPORTED) < 0) {
+          Validator.Result.fromNullableMessage(
+            AndroidBundle.message(
+              "android.wizard.validate.module.needs.new.agp.baseline.profiles",
+              BP_PLUGIN_MIN_SUPPORTED.toString()
+            )
+          )
+        } else {
+          Validator.Result.OK
+        }
       }
-      else {
-        Validator.Result.OK
-      }
-    })
-    validatorPanel.registerValidator(model.targetModule, createValidator {
-      if (model.project.getSyncManager().isSyncNeeded()) {
-        return@createValidator Validator.Result.fromNullableMessage(
-          AndroidBundle.message("android.wizard.validate.module.sync.needed.baseline.profiles"))
-      }
-      if (it.isEmpty) {
-        return@createValidator Validator.Result.fromNullableMessage(
-          AndroidBundle.message("android.wizard.validate.module.not.present.baseline.profiles"))
-      }
-      val module = it.get()
-      val androidModel = GradleAndroidModel.get(module) ?: return@createValidator Validator.Result.fromNullableMessage(
-        AndroidBundle.message("android.wizard.validate.module.invalid.application.baseline.profiles"))
-      if (androidModel.applicationId.isEmpty() || androidModel.applicationId == AndroidModel.UNINITIALIZED_APPLICATION_ID) {
-        Validator.Result.fromNullableMessage(AndroidBundle.message("android.wizard.validate.module.invalid.applicationid.baseline.profiles"))
-      }
-      else {
-        Validator.Result.OK
-      }
-    }, model.packageName)
-    validatorPanel.registerValidator(model.packageName, createValidator {
-      val packageName = if (it.isEmpty()) {
-        return@createValidator Validator.Result.fromNullableMessage(AndroidBundle.message("android.wizard.validate.module.empty.packagename.baseline.profiles"))
-      } else {
-        it
-      }
-      val module = model.targetModule.get().let { optionalModule ->
-        if (optionalModule.isEmpty) {
+    )
+
+  private fun validateTargetModule() =
+    validatorPanel.registerValidator(
+      model.targetModule,
+      createValidator {
+        if (model.project.getSyncManager().isSyncNeeded()) {
           return@createValidator Validator.Result.fromNullableMessage(
-            AndroidBundle.message("android.wizard.validate.module.not.present.baseline.profiles"))
+            AndroidBundle.message("android.wizard.validate.module.sync.needed.baseline.profiles")
+          )
         }
-        else {
-          optionalModule.get()
+        if (it.isEmpty) {
+          return@createValidator Validator.Result.fromNullableMessage(
+            AndroidBundle.message("android.wizard.validate.module.not.present.baseline.profiles")
+          )
         }
-      }
-      val androidModel = GradleAndroidModel.get(module) ?: return@createValidator Validator.Result.fromNullableMessage(
-        AndroidBundle.message("android.wizard.validate.module.invalid.application.baseline.profiles"))
-      if (androidModel.applicationId == packageName) {
-        Validator.Result.fromNullableMessage(AndroidBundle.message("android.wizard.validate.module.same.packagename.baseline.profiles"))
-      }
-      else {
-        Validator.Result.OK
-      }
-    }, model.targetModule)
-  }
+        val module = it.get()
+        val androidModel =
+          GradleAndroidModel.get(module)
+            ?: return@createValidator Validator.Result.fromNullableMessage(
+              AndroidBundle.message(
+                "android.wizard.validate.module.invalid.application.baseline.profiles"
+              )
+            )
+        if (
+          androidModel.applicationId.isEmpty() ||
+            androidModel.applicationId == AndroidModel.UNINITIALIZED_APPLICATION_ID
+        ) {
+          Validator.Result.fromNullableMessage(
+            AndroidBundle.message(
+              "android.wizard.validate.module.invalid.application.id.baseline.profiles"
+            )
+          )
+        } else {
+          Validator.Result.OK
+        }
+      },
+      model.packageName
+    )
+
+  private fun validatePackageName() =
+    validatorPanel.registerValidator(
+      model.packageName,
+      createValidator {
+        val packageName =
+          it.ifEmpty {
+            return@createValidator Validator.Result.fromNullableMessage(
+              AndroidBundle.message(
+                "android.wizard.validate.module.empty.package.name.baseline.profiles"
+              )
+            )
+          }
+        val module =
+          model.targetModule.get().let { optionalModule ->
+            if (optionalModule.isEmpty) {
+              return@createValidator Validator.Result.fromNullableMessage(
+                AndroidBundle.message(
+                  "android.wizard.validate.module.not.present.baseline.profiles"
+                )
+              )
+            } else {
+              optionalModule.get()
+            }
+          }
+        val androidModel =
+          GradleAndroidModel.get(module)
+            ?: return@createValidator Validator.Result.fromNullableMessage(
+              AndroidBundle.message(
+                "android.wizard.validate.module.invalid.application.baseline.profiles"
+              )
+            )
+        if (androidModel.applicationId == packageName) {
+          Validator.Result.fromNullableMessage(
+            AndroidBundle.message(
+              "android.wizard.validate.module.same.package.name.baseline.profiles"
+            )
+          )
+        } else {
+          Validator.Result.OK
+        }
+      },
+      model.targetModule
+    )
 
   override fun createMainPanel(): JPanel = panel {
     row {
