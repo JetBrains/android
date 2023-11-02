@@ -20,9 +20,6 @@ HIDDEN = [
     # which circumvents the normal classloader delegation hierarchy in order to
     # prioritize its own version of kotlin-stdlib at runtime.
     "/plugins/Kotlin/lib/kotlinc-lib.jar",
-    # This annotation jar is nonexistent, despite being referenced by product-info.json.
-    # Probably this happens because BaseIdeaProperties.copyAdditionalFiles() moves this jar.
-    "/lib/annotations-java5.jar",
 ]
 
 ALL = "all"
