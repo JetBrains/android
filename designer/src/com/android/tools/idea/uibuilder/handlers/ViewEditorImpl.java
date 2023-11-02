@@ -30,13 +30,13 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.RenderTask;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.parsers.RenderXmlTag;
@@ -240,6 +240,6 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public boolean moduleDependsOnAppCompat() {
-    return NlModelHelperKt.moduleDependsOnAppCompat(myModel);
+    return DependencyManagementUtil.dependsOnAppCompat(myModel.getModule());
   }
 }

@@ -20,7 +20,6 @@ import com.android.resources.Density
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaPsiFacade
 
@@ -44,14 +43,6 @@ fun NlModel.overrideConfigurationDensity(density: Density) {
   device.allStates.map { it.hardware.screen }.forEach { it.pixelDensity = density }
 
   configuration.setEffectiveDevice(device, device.defaultState)
-}
-
-@Deprecated(
-  message = "Use NlModel.module.dependsOnAppCompat()",
-  replaceWith = ReplaceWith("com.android.tools.idea.util.dependsOnAppCompat()")
-)
-fun NlModel.moduleDependsOnAppCompat(): Boolean {
-  return module.dependsOnAppCompat()
 }
 
 fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {

@@ -51,6 +51,7 @@ import com.android.tools.idea.uibuilder.handlers.actions.ScaleTypesViewActionMen
 import com.android.tools.idea.uibuilder.handlers.assistant.ImageViewAssistant;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
 import java.util.EnumSet;
@@ -205,7 +206,7 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   public static boolean shouldUseSrcCompat(@NotNull NlModel model) {
-    return NlModelHelperKt.moduleDependsOnAppCompat(model) &&
+    return DependencyManagementUtil.dependsOnAppCompat(model.getModule()) &&
            NlModelHelperKt.currentActivityIsDerivedFromAppCompatActivity(model);
   }
 
