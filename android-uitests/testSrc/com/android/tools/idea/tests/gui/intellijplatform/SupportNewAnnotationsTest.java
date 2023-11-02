@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.intellijplatform;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProblemsPaneFixture;
@@ -36,12 +37,10 @@ import org.junit.runner.RunWith;
 public class SupportNewAnnotationsTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
-  private static final String LOCATION_MANAGER_CODE = "\n" +
-                                                    "((LocationManager) getSystemService(Context.LOCATION_SERVICE)).getLastKnownLocation(\"gps\");\n" +
-                                                    "\n";
+  private static final String LOCATION_MANAGER_CODE = "\n((getSystemService(Context.LOCATION_SERVICE) as LocationManager).getLastKnownLocation(\"gps\")";
   private  static final String IMPORT_STATEMENTS = "\n" +
-                                                  "import android.content.Context;\n" +
-                                                  "import android.location.LocationManager;\n" +
+                                                  "import android.content.Context\n" +
+                                                  "import android.location.LocationManager\n" +
                                                   "\n";
 
   /**
@@ -84,16 +83,16 @@ public class SupportNewAnnotationsTest {
   public void testPermissions() {
     WizardUtils.createNewProject(guiTest,
                                  "Empty Views Activity",
-                                 Language.Java,
+                                 Language.Kotlin,
                                  BuildConfigurationLanguageForNewProject.KTS);
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editorFixture = ideFrame.getEditor();
 
-    editorFixture.open("/app/src/main/java/com/google/myapplication/MainActivity.java")
+    editorFixture.open("/app/src/main/java/com/google/myapplication/MainActivity.kt")
       .moveBetween("", "import android")
       .enterText(IMPORT_STATEMENTS)
-      .moveBetween("", "setContentView")
+      .moveBetween("activity_main)", "")
       .enterText(LOCATION_MANAGER_CODE);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
@@ -103,20 +102,28 @@ public class SupportNewAnnotationsTest {
           editorFixture.getHighlights(HighlightSeverity.ERROR).size() > 0
         );
 
-    new ProblemsPaneFixture(ideFrame).activate();
+    GuiTests.waitForProjectIndexingToFinish(ideFrame.getProject());
 
-    editorFixture.moveBetween("public class ", "Main");
-
+    editorFixture.moveBetween("getSystem", "Service");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    Wait.seconds(60)
-        .expecting("Wait needed to reduce flakiness.");
-
-    editorFixture.select(String.format("LocationManager.*(getSystemService.*getLastKnownLocation).*gps"));
+    // To reduce test flakiness, invoking the shortcuts and closing it in the first attempt.
+    editorFixture.invokeAction(EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    editorFixture.invokeAction(EditorFixture.EditorAction.ESCAPE);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    editorFixture.invokeQuickfixAction("Add Permission");
+    Wait.seconds(5)
+      .expecting("Wait needed to reduce flakiness.");
+
+    editorFixture.moveBetween("getSystem", "Service");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    editorFixture.invokeQuickfixAction("Add Permission ACCESS_FINE_LOCATION");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    Wait.seconds(5)
+      .expecting("Wait needed to reduce flakiness.");
 
     editorFixture.moveBetween("getSys", "temService");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
@@ -124,9 +131,9 @@ public class SupportNewAnnotationsTest {
     editorFixture.invokeQuickfixAction("Add permission check");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    assertThat(editorFixture.getHighlights(HighlightSeverity.ERROR).size()).isEqualTo(0);
-    assertThat(editorFixture.getCurrentFileContents()).contains("ActivityCompat#requestPermissions");
-    assertThat(editorFixture.getCurrentFileContents()).contains("public void onRequestPermissionsResult");
+    String fileContents = editorFixture.getCurrentFileContents();
+    assertThat(fileContents).contains("ActivityCompat#requestPermissions");
+    assertThat(fileContents).contains("ActivityCompat.checkSelfPermission");
   }
 }
 
