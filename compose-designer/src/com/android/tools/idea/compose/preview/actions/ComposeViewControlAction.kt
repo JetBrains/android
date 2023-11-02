@@ -19,15 +19,12 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.actions.ZoomActualAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
-import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.compose.preview.analytics.PreviewCanvasTracker
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.isPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -42,46 +39,28 @@ import com.intellij.ui.icons.copyIcon
 //
 // We clone the icon here so we can control the multi-choice state of this action ourselves.
 class ComposeViewControlAction(
-  private val layoutManagerSwitcher: LayoutManagerSwitcher,
-  private val layoutManagers: List<SurfaceLayoutManagerOption>,
-  private val isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true },
-  private val onSurfaceLayoutSelected: (SurfaceLayoutManagerOption, DataContext) -> Unit,
-  private val additionalActionProvider: (DataContext) -> AnAction? = { null }
+  layoutManagers: List<SurfaceLayoutManagerOption>,
+  isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true },
+  onSurfaceLayoutSelected: (SurfaceLayoutManagerOption, DataContext) -> Unit,
+  additionalActionProvider: AnAction? = null
 ) :
   DropDownAction(
     message("action.scene.view.control.title"),
     message("action.scene.view.control.description"),
     copyIcon(AllIcons.Debugger.RestoreLayout, null, true)
   ) {
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    e.presentation.isEnabled = !isPreviewRefreshing(e.dataContext)
-    e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
-    e.presentation.description =
-      if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
-        message("action.scene.view.control.essentials.mode.description")
-      else message("action.scene.view.control.description")
-  }
-
-  @VisibleForTesting
-  public override fun updateActions(context: DataContext): Boolean {
-    removeAll()
+  init {
     if (
       StudioFlags.COMPOSE_VIEW_FILTER.get() &&
         !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
     ) {
-      DESIGN_SURFACE.getData(context)?.let { surface ->
-        add(ComposeShowFilterAction(surface))
-        addSeparator()
-      }
+      add(ComposeShowFilterAction())
+      addSeparator()
     }
     add(
-      SwitchSurfaceLayoutManagerAction(
-          layoutManagerSwitcher,
-          layoutManagers,
-          isSurfaceLayoutActionEnabled
-        ) { selectedOption ->
+      SwitchSurfaceLayoutManagerAction(layoutManagers, isSurfaceLayoutActionEnabled) {
+          selectedOption,
+          context ->
           PreviewCanvasTracker.getInstance().logSwitchLayout(selectedOption.layoutManager)
           onSurfaceLayoutSelected(selectedOption, context)
         }
@@ -92,18 +71,27 @@ class ComposeViewControlAction(
     )
     if (StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.get()) {
       addSeparator()
-      add(WrappedZoomAction(ZoomInAction.getInstance(), context))
-      add(WrappedZoomAction(ZoomOutAction.getInstance(), context))
-      add(WrappedZoomAction(ZoomActualAction.getInstance(), context, "Zoom to 100%"))
+      add(WrappedZoomAction(ZoomInAction.getInstance()))
+      add(WrappedZoomAction(ZoomOutAction.getInstance()))
+      add(WrappedZoomAction(ZoomActualAction.getInstance(), "Zoom to 100%"))
     }
     // TODO(263038548): Implement Zoom-to-selection when preview is selectable.
     addSeparator()
-    add(ShowInspectionTooltipsAction(context))
-    additionalActionProvider(context)?.let {
+    add(ShowInspectionTooltipsAction())
+    additionalActionProvider?.let {
       addSeparator()
       add(it)
     }
-    return true
+  }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.isEnabled = !isPreviewRefreshing(e.dataContext)
+    e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
+    e.presentation.description =
+      if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
+        message("action.scene.view.control.essentials.mode.description")
+      else message("action.scene.view.control.description")
   }
 
   // Actions calling isAnyPreviewRefreshing in the update method, must run in BGT
@@ -118,7 +106,6 @@ class ComposeViewControlAction(
    */
   private inner class WrappedZoomAction(
     private val action: AnAction,
-    private val wrappedDataContext: DataContext,
     private val overwriteText: String? = null
   ) : AnAction() {
 
@@ -127,18 +114,16 @@ class ComposeViewControlAction(
     }
 
     override fun actionPerformed(e: AnActionEvent) {
-      val event = e.withDataContext(wrappedDataContext)
-      action.actionPerformed(event)
+      action.actionPerformed(e)
     }
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun update(e: AnActionEvent) {
-      val event = e.withDataContext(wrappedDataContext)
-      action.update(event)
-      event.presentation.icon = null
+      action.update(e)
+      e.presentation.icon = null
       if (overwriteText != null) {
-        event.presentation.text = overwriteText
+        e.presentation.text = overwriteText
       }
     }
   }

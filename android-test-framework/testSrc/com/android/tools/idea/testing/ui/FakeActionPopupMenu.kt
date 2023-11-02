@@ -20,21 +20,25 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.TestActionEvent.createTestEvent
 import java.util.function.Supplier
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
 
 class FakeActionPopupMenu(private val group: ActionGroup) : ActionPopupMenu {
   private val popup: JPopupMenu = MockitoKt.mock()
+  private var dataProvider: Supplier<out DataContext>? = null
 
   override fun getComponent(): JPopupMenu = popup
   override fun getActionGroup(): ActionGroup = group
   override fun getPlace(): String = error("Not implemented")
   override fun setTargetComponent(component: JComponent) = error("Not implemented")
-  override fun setDataContext(dataProvider: Supplier<out DataContext>) = error("Not implemented")
+  override fun setDataContext(dataProvider: Supplier<out DataContext>) {
+    this.dataProvider = dataProvider
+  }
 
   fun getActions(): List<AnAction> {
-    return group.getChildren(TestActionEvent()).toList()
+    val event = dataProvider?.get()?.let { createTestEvent(it) } ?: createTestEvent()
+    return group.getChildren(event).toList()
   }
 }

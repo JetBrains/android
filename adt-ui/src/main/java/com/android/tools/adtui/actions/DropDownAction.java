@@ -18,11 +18,13 @@ package com.android.tools.adtui.actions;
 import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
@@ -44,6 +46,7 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -145,8 +148,9 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
 
   private void showPopupMenu(@NotNull AnActionEvent eve, @NotNull ActionButton button) {
     ActionManagerImpl am = (ActionManagerImpl)ActionManager.getInstance();
-    JPopupMenu component = am.createActionPopupMenu(eve.getPlace(), this).getComponent();
-    JBPopupMenu.showBelow(button, component);
+    ActionPopupMenu popUpMenu = am.createActionPopupMenu(eve.getPlace(), this);
+    popUpMenu.setDataContext(eve::getDataContext);
+    JBPopupMenu.showBelow(button, popUpMenu.getComponent());
   }
 
   private static ActionButton getActionButton(@NotNull AnActionEvent eve) {

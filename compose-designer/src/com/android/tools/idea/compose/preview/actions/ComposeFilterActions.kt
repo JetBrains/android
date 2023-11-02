@@ -40,10 +40,10 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 
 /** The action to start the query mode in compose preview. */
-class ComposeShowFilterAction(private val surface: DesignSurface<*>) :
+class ComposeShowFilterAction :
   AnAction(message("action.scene.view.control.start.filter.preview.mode")) {
   override fun actionPerformed(e: AnActionEvent) {
-    val manager = COMPOSE_PREVIEW_MANAGER.getData(surface) ?: return
+    val manager = COMPOSE_PREVIEW_MANAGER.getData(e.dataContext) ?: return
     manager.isFilterEnabled = true
   }
 

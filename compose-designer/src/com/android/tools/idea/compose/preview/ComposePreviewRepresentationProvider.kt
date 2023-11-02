@@ -92,7 +92,6 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
         // TODO(b/292057010) Enable group filtering for Gallery mode.
         GroupSwitchAction().visibleOnlyInComposeDefaultPreview(),
         ComposeViewControlAction(
-            layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
             layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS,
             isSurfaceLayoutActionEnabled = {
               !isPreviewRefreshing(it.dataContext) &&
@@ -115,17 +114,15 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
                 }
               }
             },
-            additionalActionProvider = {
+            additionalActionProvider =
               if (StudioFlags.COMPOSE_COLORBLIND_MODE.get() && surface is NlDesignSurface)
                 ColorBlindModeAction(surface.screenViewProvider) { surface.setColorBlindMode(it) }
               else null
-            },
           )
           .visibleOnlyInStaticPreview(),
         Separator.getInstance().visibleOnlyInUiCheck(),
         UiCheckDropDownAction().visibleOnlyInUiCheck(),
         ComposeViewControlAction(
-            layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
             layoutManagers = BASE_LAYOUT_MANAGER_OPTIONS,
             isSurfaceLayoutActionEnabled = {
               !isPreviewRefreshing(it.dataContext) &&
