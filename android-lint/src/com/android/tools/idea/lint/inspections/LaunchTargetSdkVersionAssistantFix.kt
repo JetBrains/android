@@ -26,14 +26,23 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 
+private const val minSdkUpgradeAsstVersion = 26
+private const val maxSdkUpgradeAsstVersion = 33
+
 class LaunchTargetSdkVersionAssistantFix(fix: LintFix?) :
   DefaultLintQuickFix("Launch Android SDK Upgrade Assistant") {
+
+  private val sdkUpgradeAssistantHasSupport =
+    fix?.let {
+      val tsdkv = LintFix.getInt(it, "currentTargetSdkVersion", -1)
+      tsdkv in minSdkUpgradeAsstVersion..maxSdkUpgradeAsstVersion
+    } == true
 
   override fun isApplicable(
     startElement: PsiElement,
     endElement: PsiElement,
     contextType: AndroidQuickfixContexts.ContextType
-  ): Boolean = IdeInfo.getInstance().isAndroidStudio
+  ): Boolean = IdeInfo.getInstance().isAndroidStudio && sdkUpgradeAssistantHasSupport
 
   override fun apply(
     startElement: PsiElement,
