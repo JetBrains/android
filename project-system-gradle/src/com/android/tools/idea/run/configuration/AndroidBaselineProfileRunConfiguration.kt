@@ -27,7 +27,6 @@ import com.intellij.execution.configurations.WithoutOwnBeforeRunSteps
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
@@ -108,10 +107,6 @@ class AndroidBaselineProfileRunConfiguration(project: Project, factory: Configur
 
   @JvmField
   var generateAllVariants: Boolean = false
-
-  override fun setModule(module: Module?) {
-    super.setModule(module)
-  }
 
   override fun getBeforeRunTasks(): MutableList<BeforeRunTask<*>> {
     // Do not allow build, as the gradle task will do it for us.

@@ -16,7 +16,10 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.kotlin.getQualifiedName
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.resolve
 import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -28,6 +31,7 @@ import com.intellij.openapi.actionSystem.ActionGroupWrapper
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiClass
@@ -189,12 +193,16 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
 class BaselineProfileAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
+    val sourceModule = e.getData(PlatformCoreDataKeys.MODULE) ?: return
+    val targetModulePath = GradleAndroidModel.get(sourceModule)?.selectedVariant?.testedTargetVariants?.map { it.targetProjectPath }?.firstOrNull() ?: return
+    val targetModuleGradlePath = sourceModule.getGradleProjectPath()?.resolve(targetModulePath)
     val runManager = RunManagerEx.getInstanceEx(project)
-    val runConfiguration = runManager.findConfigurationByTypeAndName(
-      AndroidBaselineProfileRunConfigurationType.getInstance(),
-      AndroidBaselineProfileRunConfigurationType.NAME)
+    val runConfiguration = runManager.allSettings
+      .asSequence()
+      .filter { it.type == AndroidBaselineProfileRunConfigurationType.getInstance() }
+      .filter { (it.configuration as AndroidBaselineProfileRunConfiguration).configurationModule.module?.getGradleProjectPath() == targetModuleGradlePath }
+      .firstOrNull()
       .let {
-
         // If the configuration was found, use this one
         if (it != null) return@let it
 
