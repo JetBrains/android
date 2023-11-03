@@ -24,7 +24,6 @@ import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.SessionParams;
-import com.intellij.openapi.Disposable;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -40,7 +39,7 @@ import java.util.Map;
  * {@link #init}, {@link #createSession(SessionParams)},
  * {@link #dispose()}, {@link #clearResourceCaches(Object)}.
  */
-public class LayoutLibrary implements Disposable {
+public class LayoutLibrary {
     /** Link to the layout bridge */
     private final Bridge mBridge;
     /** classloader used to load the jar file */
@@ -99,7 +98,6 @@ public class LayoutLibrary implements Disposable {
      *
      * @see Bridge#dispose()
      */
-    @Override
     public void dispose() {
         mIsDisposed = mBridge.dispose();
     }

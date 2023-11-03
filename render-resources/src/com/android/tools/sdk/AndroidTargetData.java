@@ -131,7 +131,7 @@ public class AndroidTargetData {
         LOG.warn("Rendering will not use the EmbeddedRenderTarget");
       }
       myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues(), hasLayoutlibCrash);
-      Disposer.register(parentDisposable, myLayoutLibrary);
+      Disposer.register(parentDisposable, () -> myLayoutLibrary.dispose());
     }
 
     return myLayoutLibrary;
