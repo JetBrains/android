@@ -221,27 +221,34 @@ public final class PsiResourceItem implements ResourceItem {
   @Nullable
   public ResourceValue getResourceValue() {
     if (myResourceValue == null) {
-      XmlTag tag = getTag();
-      if (tag == null) {
-        PsiResourceFile source = getSourceFile();
-        assert source != null : "getResourceValue called on a PsiResourceItem with no source";
-        // Density based resource value?
-        ResourceType type = getType();
-        Density density = type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP ? getFolderDensity() : null;
-
-        VirtualFile virtualFile = source.getVirtualFile();
-        String path = virtualFile == null ? null : VfsUtilCore.virtualToIoFile(virtualFile).getAbsolutePath();
-        if (density != null) {
-          myResourceValue = new DensityBasedResourceValueImpl(getNamespace(), myType, myName, path, density, null);
-        } else {
-          myResourceValue = new ResourceValueImpl(getNamespace(), myType, myName, path, null);
-        }
-      } else {
-        myResourceValue = parseXmlToResourceValueSafe(tag);
-      }
+      myResourceValue = ApplicationManager.getApplication().runReadAction((Computable<ResourceValue>)this::computeResourceValue);
     }
 
     return myResourceValue;
+  }
+
+  @Nullable
+  private ResourceValue computeResourceValue() {
+    XmlTag tag = getTag();
+    if (tag == null) {
+      PsiResourceFile source = getSourceFile();
+      assert source != null : "getResourceValue called on a PsiResourceItem with no source";
+      // Density based resource value?
+      ResourceType type = getType();
+      Density density = type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP ? getFolderDensity() : null;
+
+      VirtualFile virtualFile = source.getVirtualFile();
+      String path = virtualFile == null ? null : VfsUtilCore.virtualToIoFile(virtualFile).getAbsolutePath();
+      if (density != null) {
+        return new DensityBasedResourceValueImpl(getNamespace(), myType, myName, path, density, null);
+      }
+      else {
+        return new ResourceValueImpl(getNamespace(), myType, myName, path, null);
+      }
+    }
+    else {
+      return parseXmlToResourceValueSafe(tag);
+    }
   }
 
   @Override

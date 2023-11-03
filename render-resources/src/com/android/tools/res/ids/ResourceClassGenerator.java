@@ -25,9 +25,7 @@ import com.android.resources.RClassNaming;
 import com.android.resources.ResourceType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Computable;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -191,8 +189,7 @@ public class ResourceClassGenerator {
    */
   @NotNull
   private static List<ResourceReference> getStyleableAttributes(@NotNull ResourceItem item) {
-    ResourceValue resourceValue = ApplicationManager.getApplication().runReadAction(
-      (Computable<ResourceValue>)() -> item.getResourceValue());
+    ResourceValue resourceValue = item.getResourceValue();
     assert resourceValue instanceof StyleableResourceValue;
     StyleableResourceValue dv = (StyleableResourceValue)resourceValue;
     return Lists.transform(dv.getAllAttributes(), ResourceValue::asReference);
