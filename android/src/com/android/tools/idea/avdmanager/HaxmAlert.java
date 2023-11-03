@@ -18,6 +18,7 @@ package com.android.tools.idea.avdmanager;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
 
 import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.analytics.CommonMetricsData;
 import com.google.common.annotations.VisibleForTesting;
@@ -150,7 +151,7 @@ public class HaxmAlert extends JPanel {
             warningTextBuilder.append(nonX86ImageWarning).append("<br>");
           }
 
-          if (!SystemImageDescription.TAGS_WITH_GOOGLE_API.contains(myImageDescription.getTag())) {
+          if (!myImageDescription.hasGoogleApis()) {
             if (warningTextBuilder.length() > 0) {
               warningTextBuilder.append("<br>");
             }

@@ -1395,7 +1395,8 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
   }
 
   private fun setUpAvd(sdkPackage: LocalPackage, tag: IdDisplay?, apiLevel: Int): AvdInfo {
-    val systemImage = SystemImage(sdkPackage.location, tag, null, "x86", arrayOf(), sdkPackage)
+    val systemImage =
+      SystemImage(sdkPackage.location, listOfNotNull(tag), null, "x86", arrayOf(), sdkPackage)
     val properties = mutableMapOf<String, String>()
     if (tag != null) {
       properties[AvdManager.AVD_INI_TAG_ID] = tag.id

@@ -460,17 +460,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private boolean isGoogleApiSelected() {
     assert getModel().systemImage().get().isPresent();
-    SystemImageDescription systemImage = getModel().systemImage().getValue();
-    return isGoogleApiTag(systemImage.getTag());
-  }
-
-  @VisibleForTesting
-  static boolean isGoogleApiTag(IdDisplay tag) {
-    return SystemImageTags.WEAR_TAG.equals(tag) ||
-           SystemImageTags.DESKTOP_TAG.equals(tag) ||
-           SystemImageTags.ANDROID_TV_TAG.equals(tag) ||
-           SystemImageTags.GOOGLE_TV_TAG.equals(tag) ||
-           SystemImageTags.GOOGLE_APIS_TAG.equals(tag);
+    return getModel().systemImage().getValue().hasGoogleApis();
   }
 
   private boolean isIntel() {

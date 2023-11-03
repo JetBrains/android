@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static java.util.stream.Collectors.joining;
+
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RemotePackage;
@@ -23,7 +25,6 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImageManager;
@@ -248,10 +249,10 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       @NotNull
       @Override
       public String valueOf(SystemImageDescription systemImage) {
-        IdDisplay tag = systemImage.getTag();
-        String name = systemImage.getName();
-        return String.format("%1$s%2$s", name, tag.equals(SystemImageTags.DEFAULT_TAG) ? "" :
-                                               String.format(" (%s)", tag.getDisplay()));
+        List<IdDisplay> tags = systemImage.getTags();
+        String tagString =
+          tags.isEmpty() ? "" : String.format(" (%s)", tags.stream().map(IdDisplay::getDisplay).collect(joining(" ")));
+        return systemImage.getName() + tagString;
       }
     },
   };
@@ -408,18 +409,8 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
     @Nullable
     @Override
     public Comparator<SystemImageDescription> getComparator() {
-      return new Comparator<SystemImageDescription>() {
-        ApiLevelComparator myComparator = new ApiLevelComparator();
-        @Override
-        public int compare(SystemImageDescription o1, SystemImageDescription o2) {
-          int res = myComparator.compare(valueOf(o1), valueOf(o2));
-          if (res == 0) {
-            return o1.getTag().compareTo(o2.getTag());
-          }
-          return res;
-
-        }
-      };
+      return Comparator.comparing(this::valueOf, new ApiLevelComparator())
+        .thenComparing(SystemImageDescription::getTags, IdDisplay.ID_DISPLAY_LIST_COMPARATOR);
     }
 
     @Override

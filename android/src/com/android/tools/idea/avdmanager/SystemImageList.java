@@ -178,7 +178,7 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
       .compareTrueFirst(image.isRemote(), bestSoFar.isRemote())
       .compare(abiRank(image), abiRank(bestSoFar))
       .compare(image.getVersion(), bestSoFar.getVersion())
-      .compareFalseFirst(image.getTag().equals(GOOGLE_APIS_TAG), bestSoFar.getTag().equals(GOOGLE_APIS_TAG))
+      .compareFalseFirst(image.hasGoogleApis(), bestSoFar.hasGoogleApis())
       .result();
   }
 

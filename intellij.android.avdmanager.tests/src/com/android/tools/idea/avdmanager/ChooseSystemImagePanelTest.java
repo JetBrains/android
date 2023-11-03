@@ -24,6 +24,7 @@ import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
 import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
 import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_X86_TAG;
 import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
+import static com.android.sdklib.SystemImageTags.TABLET_TAG;
 import static com.android.sdklib.SystemImageTags.WEAR_TAG;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.OTHER;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.PERFORMANT;
@@ -382,6 +383,10 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
                    getClassificationFromParts(Abi.X86_64, new AndroidVersion(31), GOOGLE_APIS_TAG, isArmHostOs));
       assertEquals(isArmHostOs ? RECOMMENDED : OTHER,
                    getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(31), GOOGLE_APIS_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
+                   getClassificationFromParts(Abi.X86_64, new AndroidVersion(31), ImmutableList.of(TABLET_TAG, GOOGLE_APIS_TAG), isArmHostOs));
+      assertEquals(isArmHostOs ? RECOMMENDED : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(31), ImmutableList.of(TABLET_TAG, GOOGLE_APIS_TAG), isArmHostOs));
       assertEquals(isArmHostOs ? OTHER : PERFORMANT,
                    getClassificationFromParts(Abi.X86, new AndroidVersion(31, null, 5, false), GOOGLE_APIS_TAG, isArmHostOs));
       assertEquals(isArmHostOs ? PERFORMANT : OTHER,
@@ -584,6 +589,10 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertTrue(systemImageMatchesDevice(mSysImagesX86.gapi30ImageDescription, myFreeform));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.tv30ImageDescription, my4KTV));
     assertTrue(systemImageMatchesDevice(mSysImagesX86.tv31ImageDescription, my4KTV));
+    assertTrue(systemImageMatchesDevice(mSysImagesX86.wearImageDescription, myWearDevice));
+    assertTrue(systemImageMatchesDevice(mSysImagesX86.wear29ImageDescription, myWearDevice));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.gapiImageDescription, myWearDevice));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.automotivePsImageDescription, myWearDevice));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.automotivePsImageDescription, myPlayStorePhoneDevice));
   }
 }

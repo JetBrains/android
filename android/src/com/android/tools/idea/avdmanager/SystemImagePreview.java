@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.sdklib.SystemImageTags;
+import static java.util.stream.Collectors.joining;
+
 import com.android.tools.idea.ui.ChooseApiLevelDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
@@ -111,15 +112,8 @@ public class SystemImagePreview {
    */
   private static boolean isChinaLocalizedWearOsImage(@Nullable SystemImageDescription image) {
     return image != null &&
-           SystemImageTags.WEAR_TAG.getId().equals(image.getTag().getId()) &&
+           image.isWearImage() &&
            image.getSystemImage().getPackage().getPath().contains(SystemImage.WEAR_CN_DIRECTORY);
-  }
-
-  /**
-   * @return True if the given {@link SystemImagePreview} is a Television device.
-   */
-  private static boolean isTvDevice(@NotNull IdDisplay tag) {
-    return TV_DEVICES.contains(tag.getId());
   }
 
   /**
@@ -161,17 +155,16 @@ public class SystemImagePreview {
       myAndroidVersion.setVisible(!image.getVersion().isPreview());
       myAndroidVersion.setText(SdkVersionInfo.getVersionString(apiLevel));
       String vendorName;
-      IdDisplay tag = myImageDescription.getTag();
-      if (tag.getId().equals("android-wear")) {
+      if (myImageDescription.isWearImage()) {
         vendorName = "Android";
-      } else if (isTvDevice(tag)) {
+      } else if (myImageDescription.isTvImage()) {
         vendorName = "Google LLC";
       } else {
         vendorName = myImageDescription.getVendor();
       }
       myVendor.setText("<html>" + vendorName + "</html>");
-
-      myTagDisplay.setText("<html>" + tag.getDisplay() + "</html>");
+      String tagDisplay = myImageDescription.getTags().stream().map(IdDisplay::getDisplay).collect(joining(" "));
+      myTagDisplay.setText("<html>" + tagDisplay + "</html>");
 
       myAbi.setText(myImageDescription.getAbiType());
     }

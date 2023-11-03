@@ -20,7 +20,6 @@ import com.android.sdklib.SystemImageTags
 import com.android.sdklib.repository.meta.DetailsTypes.AddonDetailsType
 import com.android.sdklib.repository.meta.DetailsTypes.PlatformDetailsType
 import com.android.sdklib.repository.meta.DetailsTypes.SysImgDetailsType
-import com.android.sdklib.repository.targets.SystemImage
 
 internal fun RepoPackage.hasSystemImage(): Boolean {
   val details = typeDetails
@@ -31,22 +30,5 @@ internal fun RepoPackage.hasSystemImage(): Boolean {
 }
 
 private fun AddonDetailsType.hasSystemImage(): Boolean {
-  return apiLevel <= 19 && vendor.id == "google" && isGoogleApiTag(tag)
-}
-
-private fun isGoogleApiTag(tag: Any): Boolean {
-  return when (tag) {
-    SystemImageTags.ANDROID_TV_TAG,
-    SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG,
-    SystemImageTags.AUTOMOTIVE_TAG,
-    SystemImageTags.CHROMEOS_TAG,
-    SystemImageTags.DESKTOP_TAG,
-    SystemImageTags.GOOGLE_APIS_TAG,
-    SystemImageTags.GOOGLE_APIS_X86_TAG,
-    SystemImageTags.GOOGLE_TV_TAG,
-    SystemImageTags.PLAY_STORE_TAG,
-    SystemImageTags.WEAR_TAG -> true
-
-    else -> false
-  }
+  return apiLevel <= 19 && vendor.id == "google" && SystemImageTags.TAGS_WITH_GOOGLE_API.contains(tag)
 }

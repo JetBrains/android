@@ -202,17 +202,6 @@ public final class ConfigureAvdOptionsStepTest {
   }
 
   @Test
-  public void isGoogleApiTag() {
-    assertTrue(ConfigureAvdOptionsStep.isGoogleApiTag(GOOGLE_APIS_TAG));
-    assertTrue(ConfigureAvdOptionsStep.isGoogleApiTag(ANDROID_TV_TAG));
-    assertTrue(ConfigureAvdOptionsStep.isGoogleApiTag(GOOGLE_TV_TAG));
-    assertTrue(ConfigureAvdOptionsStep.isGoogleApiTag(WEAR_TAG));
-
-    assertFalse(ConfigureAvdOptionsStep.isGoogleApiTag(DEFAULT_TAG));
-    assertFalse(ConfigureAvdOptionsStep.isGoogleApiTag(GOOGLE_APIS_X86_TAG));
-  }
-
-  @Test
   public void onEntering() {
     // Arrange
     var model = new AvdOptionsModel(myQAvdInfo);

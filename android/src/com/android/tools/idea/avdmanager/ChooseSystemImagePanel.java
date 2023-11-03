@@ -38,6 +38,7 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.idea.avdmanager.SystemImagePreview.ImageRecommendation;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.ProductDetails;
 import com.intellij.icons.AllIcons;
@@ -147,10 +148,10 @@ public class ChooseSystemImagePanel extends JPanel
     Abi abi = Abi.getEnum(image.getAbiType());
     SystemImageClassification classification = getClassificationFromParts(abi,
                                                                           image.getVersion(),
-                                                                          image.getTag(),
+                                                                          image.getTags(),
                                                                           isArm64HostOs);
 
-    if (theDevice != null && !image.getTag().equals(SystemImageTags.WEAR_TAG)) {
+    if (theDevice != null && !image.getTags().contains(SystemImageTags.WEAR_TAG)) {
       // For non-Wear devices, adjust the recommendation based on Play Store
       if (theDevice.hasPlayStore()) {
         // The device supports Google Play Store. Recommend only system images that also support Play Store.
@@ -179,6 +180,15 @@ public class ChooseSystemImagePanel extends JPanel
                                                               @NotNull AndroidVersion androidVersion,
                                                               @NotNull IdDisplay tag,
                                                               boolean isArm64HostOs) {
+    return getClassificationFromParts(abi, androidVersion, ImmutableList.of(tag), isArm64HostOs);
+  }
+
+  @NotNull
+  @VisibleForTesting
+  static SystemImageClassification getClassificationFromParts(@NotNull Abi abi,
+                                                              @NotNull AndroidVersion androidVersion,
+                                                              @NotNull List<IdDisplay> tags,
+                                                              boolean isArm64HostOs) {
     int apiLevel = androidVersion.getApiLevel();
     boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
     boolean isAvdArm = abi == Abi.ARM64_V8A;
@@ -198,7 +208,7 @@ public class ChooseSystemImagePanel extends JPanel
       return SystemImageClassification.OTHER;
     }
 
-    if (tag.equals(SystemImageTags.WEAR_TAG)) {
+    if (SystemImageTags.isWearImage(tags)) {
       // For Wear, recommend based on API level (all Wear have Google APIs)
       return (apiLevel >= MIN_RECOMMENDED_WEAR_API && (isArm64HostOs || isAvdIntel))
              ? SystemImageClassification.RECOMMENDED
@@ -208,13 +218,13 @@ public class ChooseSystemImagePanel extends JPanel
       return SystemImageClassification.PERFORMANT;
     }
 
-    if (!SystemImageDescription.TAGS_WITH_GOOGLE_API.contains(tag)) {
+    if (!SystemImageTags.hasGoogleApi(tags)) {
       return SystemImageClassification.PERFORMANT;
     }
 
     // Android TV does not ship x86_64 images at any API level, so we recommend
     // almost all images on the same OS.
-    if (SystemImageDescription.TV_TAGS.contains(tag)) {
+    if (SystemImageTags.isTvImage(tags)) {
       if (apiLevel == TIRAMISU) { // Tiramisu is an unsupported Android TV version.
         return SystemImageClassification.PERFORMANT;
       } else {
@@ -244,7 +254,7 @@ public class ChooseSystemImagePanel extends JPanel
 
     String deviceTagId = device.getTagId();
     String deviceId = device.getId();
-    IdDisplay imageTag = image.getTag();
+    List<IdDisplay> imageTags = image.getTags();
 
     // Foldable device requires Q preview or API29 and above.
     if (device.getDefaultHardware().getScreen().isFoldable() &&
@@ -294,10 +304,11 @@ public class ChooseSystemImagePanel extends JPanel
       // of device. Rather than just checking "imageTag.getId().equals(SystemImage.DEFAULT_TAG.getId())"
       // here (which will filter out system images with a non-default tag, such as the Google API
       // system images (see issue #78947), we instead deliberately skip the other form factor images
-      return !imageTag.equals(SystemImageTags.ANDROID_TV_TAG) && !imageTag.equals(SystemImageTags.GOOGLE_TV_TAG) &&
-             !imageTag.equals(SystemImageTags.WEAR_TAG) && !imageTag.equals(SystemImageTags.DESKTOP_TAG) &&
-             !imageTag.equals(SystemImageTags.CHROMEOS_TAG) && !imageTag.equals(SystemImageTags.AUTOMOTIVE_TAG) &&
-             !imageTag.equals(SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG);
+      return !SystemImageTags.isTvImage(imageTags)
+             && !SystemImageTags.isWearImage(imageTags)
+             && !SystemImageTags.isAutomotiveImage(imageTags)
+             && !imageTags.contains(SystemImageTags.DESKTOP_TAG)
+             && !imageTags.contains(SystemImageTags.CHROMEOS_TAG);
     }
 
     // 4K TV requires at least S (API 31)
@@ -309,11 +320,11 @@ public class ChooseSystemImagePanel extends JPanel
 
     // Android TV / Google TV and vice versa
     if (deviceTagId.equals(SystemImageTags.ANDROID_TV_TAG.getId()) || deviceTagId.equals(SystemImageTags.GOOGLE_TV_TAG.getId())) {
-      return imageTag.equals(SystemImageTags.ANDROID_TV_TAG) || imageTag.equals(SystemImageTags.GOOGLE_TV_TAG);
+      return image.isTvImage();
     }
 
     // Non-square rectangular Wear OS requires at least P (API 28)
-    if (imageTag.equals(SystemImageTags.WEAR_TAG) && !device.isScreenRound()) {
+    if (image.isWearImage() && !device.isScreenRound()) {
       Dimension screenSize = device.getScreenSize(ScreenOrientation.PORTRAIT);
       if (screenSize != null && screenSize.getWidth() != screenSize.getHeight()) {
         if (image.getVersion().getFeatureLevel() < MIN_RECTANGULAR_WEAR_API) {
@@ -322,7 +333,7 @@ public class ChooseSystemImagePanel extends JPanel
       }
     }
 
-    return deviceTagId.equals(imageTag.getId());
+    return imageTags.stream().anyMatch(it -> it.getId().equals(deviceTagId));
   }
 
   private void setupImageLists() {
