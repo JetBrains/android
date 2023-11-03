@@ -21,6 +21,7 @@ import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -32,7 +33,6 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMember
 import com.intellij.psi.PsiNewExpression
 import com.intellij.psi.util.PsiTreeUtil
-import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -62,7 +62,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
     return when (e.node.elementType) {
       KtTokens.CLASS_KEYWORD -> {
         if (e.parent is KtClass && doesKtClassHaveBaselineProfileRule(e)) {
-          Info(StudioIcons.Wizards.Modules.BASELINE_PROFILE, actions) {
+          Info(AllIcons.RunConfigurations.TestState.Run_run, actions) {
             AndroidBundle.message("android.run.configuration.generate.baseline.profile")
           }
         }
@@ -70,7 +70,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
       }
       JavaTokenType.CLASS_KEYWORD -> {
         if (e.parent is PsiClass && doesJavaClassHaveBaselineProfileRule(e)) {
-          Info(StudioIcons.Wizards.Modules.BASELINE_PROFILE, actions) {
+          Info(AllIcons.RunConfigurations.TestState.Run_run, actions) {
             AndroidBundle.message("android.run.configuration.generate.baseline.profile")
           }
         }

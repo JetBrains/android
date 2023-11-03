@@ -331,8 +331,8 @@
     <action
         id="AndroidX.BaselineProfile.RunGenerate"
         class="com.android.tools.idea.run.configuration.BaselineProfileAction"
-        text="Generate Baseline Profile"
-        icon="StudioIcons.Shell.Toolbar.RUN"
+        text="Generate Entire App Baseline Profile"
+        icon="StudioIcons.Wizards.Modules.BASELINE_PROFILE_GENERATE"
         description="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class.">
     </action>
   </actions>

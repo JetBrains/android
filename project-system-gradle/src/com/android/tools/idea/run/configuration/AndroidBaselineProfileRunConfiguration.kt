@@ -73,7 +73,7 @@ class AndroidBaselineProfileRunConfigurationType : ConfigurationType {
   }
 
   override fun getIcon(): Icon {
-    return StudioIcons.Wizards.Modules.BASELINE_PROFILE
+    return StudioIcons.Wizards.Modules.BASELINE_PROFILE_GENERATE
   }
 
   override fun getId(): String = ID

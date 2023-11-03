@@ -336,9 +336,11 @@
     <option name="views" path="ActionManager" hit="Extracts one or more views into a separate layout" />
     <option name="fold" path="ActionManager" hit="Fold/Unfold" />
     <option name="unfold" path="ActionManager" hit="Fold/Unfold" />
-    <option name="baseline" path="ActionManager" hit="Generate Baseline Profile" />
-    <option name="generate" path="ActionManager" hit="Generate Baseline Profile" />
-    <option name="profile" path="ActionManager" hit="Generate Baseline Profile" />
+    <option name="app" path="ActionManager" hit="Generate Entire App Baseline Profile" />
+    <option name="baseline" path="ActionManager" hit="Generate Entire App Baseline Profile" />
+    <option name="entire" path="ActionManager" hit="Generate Entire App Baseline Profile" />
+    <option name="generate" path="ActionManager" hit="Generate Entire App Baseline Profile" />
+    <option name="profile" path="ActionManager" hit="Generate Entire App Baseline Profile" />
     <option name="apk" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="bundle" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="generate" path="ActionManager" hit="Generate Signed Bundle / APK…" />
