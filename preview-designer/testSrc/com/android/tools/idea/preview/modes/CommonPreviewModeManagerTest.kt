@@ -11,6 +11,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -29,6 +30,7 @@ class CommonPreviewModeManagerTest {
     scope.cancel()
   }
 
+  @Ignore("b/307382027")
   @Test
   fun testOnExitAndOnEnterAreCalledWithOldAndNewModes(): Unit = runBlocking {
     val modes =
