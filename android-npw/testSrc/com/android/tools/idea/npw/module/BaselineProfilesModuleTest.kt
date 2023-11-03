@@ -124,7 +124,9 @@ class BaselineProfilesModuleTest {
 
     assertConfigurationsSize(runManager.allConfigurationsList, 1)
 
-    val generateRunConfiguration = runManager.allConfigurationsList.find { it.name == RUN_CONFIGURATION_NAME }
+    val generateRunConfiguration = runManager.allConfigurationsList.find {
+      it.name == "$RUN_CONFIGURATION_NAME for ${appModule.getModuleNameForGradleTask()}"
+    }
     assertThat(generateRunConfiguration).isNotNull()
     assertThat(runManager.selectedConfiguration?.name).isEqualTo(generateRunConfiguration?.name)
   }
