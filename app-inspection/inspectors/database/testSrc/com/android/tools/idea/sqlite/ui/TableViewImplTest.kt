@@ -51,8 +51,8 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.concurrency.EdtExecutorService
@@ -69,7 +69,7 @@ import org.mockito.Mockito.verify
 private const val COLUMN_DEFAULT_WIDTH = 75
 private const val AUTORESIZE_OFF_COLUMN_PREFERRED_WIDTH = 85
 
-class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
+class TableViewImplTest : BasePlatformTestCase() {
   private lateinit var view: TableViewImpl
   private lateinit var fakeUi: FakeUi
   private lateinit var mockActionManager: ActionManager

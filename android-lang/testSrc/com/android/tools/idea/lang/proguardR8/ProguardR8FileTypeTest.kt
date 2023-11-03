@@ -16,9 +16,9 @@
 package com.android.tools.idea.lang.proguardR8
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.BasePlatformTestCase
 
-class ProguardR8FileTypeTest : LightJavaCodeInsightFixtureTestCase() {
+class ProguardR8FileTypeTest : BasePlatformTestCase() {
   fun test() {
     var file = myFixture.configureByText("proguard.cfg", "")
     assertThat(file.fileType).isEqualTo(ProguardR8FileType.INSTANCE)
