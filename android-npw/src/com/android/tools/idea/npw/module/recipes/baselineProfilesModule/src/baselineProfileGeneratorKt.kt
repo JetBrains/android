@@ -49,6 +49,8 @@ import org.junit.runner.RunWith
  * for more information about available instrumentation arguments.
  *
  * After you run the generator, you can verify the improvements running the [StartupBenchmarks] benchmark.
+ *
+ * When using this class to generate a baseline profile, only API 33+ or rooted API 26+ are supported.
  **/
 @RunWith(AndroidJUnit4::class)
 @LargeTest
