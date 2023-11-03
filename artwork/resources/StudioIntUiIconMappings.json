@@ -525,16 +525,28 @@
         }
       },
       "layout-inspector": {
-        "clear-overlay.svg": "studio/icons/layout-inspector/clear-overlay.svg",
-        "color-picker.svg": "studio/icons/layout-inspector/color-picker.svg",
-        "degree.svg": "studio/icons/layout-inspector/degree.svg",
-        "live-updates.svg": "studio/icons/layout-inspector/live-updates.svg",
-        "load-overlay.svg": "studio/icons/layout-inspector/load-overlay.svg",
-        "mode-2d.svg": "studio/icons/layout-inspector/mode-2d.svg",
-        "mode-3d.svg": "studio/icons/layout-inspector/mode-3d.svg",
-        "recomposition-count.svg": "studio/icons/layout-inspector/recomposition-count.svg",
-        "recomposition-skipped.svg": "studio/icons/layout-inspector/recomposition-skipped.svg",
-        "reset-view.svg": "studio/icons/layout-inspector/reset-view.svg"
+        "panel": {
+          "bottom-swap.svg": "studio/icons/layout-inspector/panel/bottom-swap.svg",
+          "bottom.svg": "studio/icons/layout-inspector/panel/bottom.svg",
+          "left-vertical-swap.svg": "studio/icons/layout-inspector/panel/left-vertical-swap.svg",
+          "left-vertical.svg": "studio/icons/layout-inspector/panel/left-vertical.svg",
+          "right-vertical-swap.svg": "studio/icons/layout-inspector/panel/right-vertical-swap.svg",
+          "right-vertical.svg": "studio/icons/layout-inspector/panel/right-vertical.svg",
+          "vertical-split-swap.svg": "studio/icons/layout-inspector/panel/vertical-split-swap.svg",
+          "vertical-split.svg": "studio/icons/layout-inspector/panel/vertical-split.svg"
+        },
+        "toolbar": {
+          "clear-overlay.svg": "studio/icons/layout-inspector/toolbar/clear-overlay.svg",
+          "color-picker.svg": "studio/icons/layout-inspector/toolbar/color-picker.svg",
+          "degree.svg": "studio/icons/layout-inspector/toolbar/degree.svg",
+          "live-updates.svg": "studio/icons/layout-inspector/toolbar/live-updates.svg",
+          "load-overlay.svg": "studio/icons/layout-inspector/toolbar/load-overlay.svg",
+          "mode-2d.svg": "studio/icons/layout-inspector/toolbar/mode-2d.svg",
+          "mode-3d.svg": "studio/icons/layout-inspector/toolbar/mode-3d.svg",
+          "recomposition-count.svg": "studio/icons/layout-inspector/toolbar/recomposition-count.svg",
+          "recomposition-skipped.svg": "studio/icons/layout-inspector/toolbar/recomposition-skipped.svg",
+          "reset-view.svg": "studio/icons/layout-inspector/toolbar/reset-view.svg"
+        }
       },
       "logcat": {
         "input": {

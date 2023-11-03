@@ -119,7 +119,7 @@ class Toggle3dActionTest {
     verify(presentation).description =
       "Visually inspect the hierarchy by clicking and dragging to rotate the layout. Enabling this " +
         "mode consumes more device resources and might impact runtime performance."
-    verify(presentation).icon = StudioIcons.LayoutInspector.MODE_3D
+    verify(presentation).icon = StudioIcons.LayoutInspector.Toolbar.MODE_3D
   }
 
   @Test
@@ -131,7 +131,7 @@ class Toggle3dActionTest {
     verify(presentation).text = "2D Mode"
     verify(presentation).description =
       "Inspect the layout in 2D mode. Enabling this mode has less impact on your device's runtime performance."
-    verify(presentation).icon = StudioIcons.LayoutInspector.RESET_VIEW
+    verify(presentation).icon = StudioIcons.LayoutInspector.Toolbar.RESET_VIEW
   }
 
   @Test

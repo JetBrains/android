@@ -34,7 +34,7 @@ import org.jetbrains.android.util.AndroidBundle
 class ToggleLiveUpdatesAction(
   private val layoutInspector: LayoutInspector,
 ) :
-  ToggleAction({ "Live Updates" }, StudioIcons.LayoutInspector.LIVE_UPDATES),
+  ToggleAction({ "Live Updates" }, StudioIcons.LayoutInspector.Toolbar.LIVE_UPDATES),
   TooltipDescriptionProvider,
   TooltipLinkProvider {
 

@@ -35,7 +35,9 @@ private const val ROTATION_FRAMES = 20L
 private const val ROTATION_TIMEOUT = 10_000L
 
 class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
-  AnAction(StudioIcons.LayoutInspector.MODE_3D), TooltipLinkProvider, TooltipDescriptionProvider {
+  AnAction(StudioIcons.LayoutInspector.Toolbar.MODE_3D),
+  TooltipLinkProvider,
+  TooltipDescriptionProvider {
   @VisibleForTesting var executorFactory = { Executors.newSingleThreadScheduledExecutor() }
   @VisibleForTesting var getCurrentTimeMillis = { System.currentTimeMillis() }
 
@@ -90,8 +92,8 @@ class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
     val client = inspector?.currentClient
     val inspectorModel = inspector?.inspectorModel
     event.presentation.icon =
-      if (model.isRotated) StudioIcons.LayoutInspector.RESET_VIEW
-      else StudioIcons.LayoutInspector.MODE_3D
+      if (model.isRotated) StudioIcons.LayoutInspector.Toolbar.RESET_VIEW
+      else StudioIcons.LayoutInspector.Toolbar.MODE_3D
     if (
       model.overlay == null &&
         client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true &&

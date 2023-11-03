@@ -433,7 +433,7 @@ private class FakeContent(
 
   override fun setIcon(icon: Icon?) {}
 
-  override fun getIcon() = StudioIcons.LayoutInspector.SNAPSHOT
+  override fun getIcon() = StudioIcons.LayoutInspector.Toolbar.SNAPSHOT
 
   override fun setDisplayName(displayName: String?) {}
 
@@ -509,7 +509,7 @@ private class FakeContent(
 
   override fun setPopupIcon(icon: Icon?) {}
 
-  override fun getPopupIcon() = StudioIcons.LayoutInspector.CLEAR_OVERLAY
+  override fun getPopupIcon() = StudioIcons.LayoutInspector.Toolbar.CLEAR_OVERLAY
 
   override fun setExecutionId(executionId: Long) {}
 

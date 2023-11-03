@@ -39,7 +39,7 @@ import java.util.Locale
 import org.jetbrains.kotlin.idea.util.application.invokeLater
 
 object SnapshotAction :
-  DropDownAction(null, "Snapshot Export/Import", StudioIcons.LayoutInspector.SNAPSHOT),
+  DropDownAction(null, "Snapshot Export/Import", StudioIcons.LayoutInspector.Toolbar.SNAPSHOT),
   TooltipDescriptionProvider {
   init {
     add(ExportSnapshotAction)

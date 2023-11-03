@@ -34,7 +34,7 @@ import javax.imageio.ImageIO
  * against design mocks.
  */
 class ToggleOverlayAction(private val renderModelProvider: () -> RenderModel) :
-  AnAction(StudioIcons.LayoutInspector.LOAD_OVERLAY) {
+  AnAction(StudioIcons.LayoutInspector.Toolbar.LOAD_OVERLAY) {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -42,10 +42,10 @@ class ToggleOverlayAction(private val renderModelProvider: () -> RenderModel) :
     super.update(e)
     val renderModel = renderModelProvider()
     if (renderModel.overlay != null) {
-      e.presentation.icon = StudioIcons.LayoutInspector.CLEAR_OVERLAY
+      e.presentation.icon = StudioIcons.LayoutInspector.Toolbar.CLEAR_OVERLAY
       e.presentation.text = "Clear Overlay"
     } else {
-      e.presentation.icon = StudioIcons.LayoutInspector.LOAD_OVERLAY
+      e.presentation.icon = StudioIcons.LayoutInspector.Toolbar.LOAD_OVERLAY
       e.presentation.text = "Load Overlay"
     }
     e.presentation.isEnabled = renderModel.isActive
