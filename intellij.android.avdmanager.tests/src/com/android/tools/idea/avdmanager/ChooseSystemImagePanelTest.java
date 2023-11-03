@@ -16,15 +16,15 @@
 
 package com.android.tools.idea.avdmanager;
 
-import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_PLAY_STORE_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
+import static com.android.sdklib.SystemImageTags.ANDROID_TV_TAG;
+import static com.android.sdklib.SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG;
+import static com.android.sdklib.SystemImageTags.AUTOMOTIVE_TAG;
+import static com.android.sdklib.SystemImageTags.CHROMEOS_TAG;
+import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_X86_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
+import static com.android.sdklib.SystemImageTags.WEAR_TAG;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.OTHER;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.PERFORMANT;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.RECOMMENDED;

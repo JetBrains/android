@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.sdklib.SystemImageTags
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.actions.ShowLogAction
@@ -145,9 +145,9 @@ internal inline fun <reified T : Component> Component.findContainingComponent():
 internal val AvdInfo.icon: Icon
   get() {
     return when (tag) {
-      SystemImage.ANDROID_TV_TAG, SystemImage.GOOGLE_TV_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
-      SystemImage.AUTOMOTIVE_TAG, SystemImage.AUTOMOTIVE_PLAY_STORE_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
-      SystemImage.WEAR_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
+      SystemImageTags.ANDROID_TV_TAG, SystemImageTags.GOOGLE_TV_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
+      SystemImageTags.AUTOMOTIVE_TAG, SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
+      SystemImageTags.WEAR_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
       else -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
     }
   }

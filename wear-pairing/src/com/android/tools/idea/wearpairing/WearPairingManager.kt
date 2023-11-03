@@ -22,8 +22,8 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.EmulatorConsole
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IDevice.HardwareFeature
+import com.android.sdklib.SystemImageTags
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
@@ -32,11 +32,8 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
-import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.wireless.android.sdk.stats.WearPairingEvent
-import com.intellij.notification.Notification
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -530,7 +527,7 @@ private fun AvdInfo.toPairingDevice(deviceID: String): PairingDevice {
     displayName = displayName,
     apiLevel = androidVersion.featureLevel,
     isEmulator = true,
-    isWearDevice = SystemImage.WEAR_TAG == tag,
+    isWearDevice = SystemImageTags.WEAR_TAG == tag,
     state = ConnectionState.OFFLINE,
     hasPlayStore = hasPlayStore(),
   ).apply {
@@ -547,13 +544,13 @@ private fun IDevice.isPhysicalPhone(): Boolean = when {
 }
 
 internal fun AvdInfo.isWearOrPhone(): Boolean = when (tag) {
-  SystemImage.WEAR_TAG -> true
-  SystemImage.DESKTOP_TAG -> false
-  SystemImage.ANDROID_TV_TAG -> false
-  SystemImage.GOOGLE_TV_TAG -> false
-  SystemImage.AUTOMOTIVE_TAG -> false
-  SystemImage.AUTOMOTIVE_PLAY_STORE_TAG -> false
-  SystemImage.CHROMEOS_TAG -> false
+  SystemImageTags.WEAR_TAG -> true
+  SystemImageTags.DESKTOP_TAG -> false
+  SystemImageTags.ANDROID_TV_TAG -> false
+  SystemImageTags.GOOGLE_TV_TAG -> false
+  SystemImageTags.AUTOMOTIVE_TAG -> false
+  SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG -> false
+  SystemImageTags.CHROMEOS_TAG -> false
   else -> true
 }
 

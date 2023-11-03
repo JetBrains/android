@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.DESKTOP_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
+import static com.android.sdklib.SystemImageTags.ANDROID_TV_TAG;
+import static com.android.sdklib.SystemImageTags.AUTOMOTIVE_TAG;
+import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
+import static com.android.sdklib.SystemImageTags.DESKTOP_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
+import static com.android.sdklib.SystemImageTags.WEAR_TAG;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;

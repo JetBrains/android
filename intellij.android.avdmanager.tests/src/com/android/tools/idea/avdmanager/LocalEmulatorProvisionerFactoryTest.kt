@@ -18,12 +18,12 @@ package com.android.tools.idea.avdmanager
 import com.android.adblib.testing.FakeAdbSession
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
+import com.android.sdklib.SystemImageTags
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.FakeAvdManager
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceIcons
 import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
@@ -79,15 +79,15 @@ class LocalEmulatorProvisionerFactoryTest {
     }
     validateIcon(avdManager.makeAvdInfo(1), StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
     validateIcon(
-      avdManager.makeAvdInfo(2, tag = SystemImage.GOOGLE_TV_TAG),
+      avdManager.makeAvdInfo(2, tag = SystemImageTags.GOOGLE_TV_TAG),
       StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
     )
     validateIcon(
-      avdManager.makeAvdInfo(3, tag = SystemImage.WEAR_TAG),
+      avdManager.makeAvdInfo(3, tag = SystemImageTags.WEAR_TAG),
       StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
     )
     validateIcon(
-      avdManager.makeAvdInfo(4, tag = SystemImage.AUTOMOTIVE_TAG),
+      avdManager.makeAvdInfo(4, tag = SystemImageTags.AUTOMOTIVE_TAG),
       StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
     )
   }

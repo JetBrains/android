@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.sdklib.SystemImageTags;
 import com.android.tools.idea.ui.ChooseApiLevelDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
@@ -110,7 +111,7 @@ public class SystemImagePreview {
    */
   private static boolean isChinaLocalizedWearOsImage(@Nullable SystemImageDescription image) {
     return image != null &&
-           SystemImage.WEAR_TAG.getId().equals(image.getTag().getId()) &&
+           SystemImageTags.WEAR_TAG.getId().equals(image.getTag().getId()) &&
            image.getSystemImage().getPackage().getPath().contains(SystemImage.WEAR_CN_DIRECTORY);
   }
 

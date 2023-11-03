@@ -24,14 +24,14 @@ import com.android.repository.impl.meta.TypeDetails
 import com.android.repository.testframework.FakePackage
 import com.android.repository.testframework.FakeRepoManager
 import com.android.resources.Density
+import com.android.sdklib.SystemImageTags.DEFAULT_TAG
+import com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG
+import com.android.sdklib.SystemImageTags.PLAY_STORE_TAG
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImage
-import com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG
-import com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG
-import com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever

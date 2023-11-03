@@ -18,12 +18,12 @@ package com.android.tools.idea.avdmanager;
 
 import static com.android.sdklib.internal.avd.GpuMode.OFF;
 import static com.android.sdklib.internal.avd.GpuMode.SWIFT;
-import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
+import static com.android.sdklib.SystemImageTags.ANDROID_TV_TAG;
+import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_X86_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
+import static com.android.sdklib.SystemImageTags.WEAR_TAG;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;

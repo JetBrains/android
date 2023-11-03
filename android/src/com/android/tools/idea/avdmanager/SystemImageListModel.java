@@ -23,9 +23,9 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.progress.StudioProgressRunner;
@@ -250,7 +250,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       public String valueOf(SystemImageDescription systemImage) {
         IdDisplay tag = systemImage.getTag();
         String name = systemImage.getName();
-        return String.format("%1$s%2$s", name, tag.equals(SystemImage.DEFAULT_TAG) ? "" :
+        return String.format("%1$s%2$s", name, tag.equals(SystemImageTags.DEFAULT_TAG) ? "" :
                                                String.format(" (%s)", tag.getDisplay()));
       }
     },

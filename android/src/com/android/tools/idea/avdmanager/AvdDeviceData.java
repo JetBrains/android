@@ -21,6 +21,7 @@ import com.android.resources.Density;
 import com.android.resources.Keyboard;
 import com.android.resources.Navigation;
 import com.android.resources.ScreenOrientation;
+import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.devices.ButtonType;
 import com.android.sdklib.devices.CameraLocation;
 import com.android.sdklib.devices.Device;
@@ -31,7 +32,6 @@ import com.android.sdklib.devices.Software;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.DoubleProperty;
@@ -493,8 +493,8 @@ public final class AvdDeviceData {
     myName.set(device.getDisplayName());
     String tagId = device.getTagId();
     if (myTagId.get().isEmpty()) {
-      myTagId.set(SystemImage.DEFAULT_TAG.getId());
-      myDeviceType.setValue(SystemImage.DEFAULT_TAG);
+      myTagId.set(SystemImageTags.DEFAULT_TAG.getId());
+      myDeviceType.setValue(SystemImageTags.DEFAULT_TAG);
     }
     else {
       for (IdDisplay tag : AvdWizardUtils.ALL_DEVICE_TAGS) {

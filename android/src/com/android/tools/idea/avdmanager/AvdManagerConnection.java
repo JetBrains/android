@@ -34,8 +34,8 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RANGES;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_1_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_2_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
-import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
+import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 import com.android.SdkConstants;

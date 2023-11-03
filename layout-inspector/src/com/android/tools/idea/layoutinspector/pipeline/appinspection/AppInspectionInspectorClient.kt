@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.repository.Revision
 import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoPackage
+import com.android.sdklib.SystemImageTags
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.sdklib.repository.targets.SystemImage
@@ -409,7 +410,9 @@ class AppInspectionInspectorClient(
     }
 
     val tags = (image.typeDetails as? DetailsTypes.SysImgDetailsType)?.tags ?: listOf()
-    if (tags.contains(SystemImage.GOOGLE_APIS_TAG) || tags.contains(SystemImage.DEFAULT_TAG)) {
+    if (
+      tags.contains(SystemImageTags.GOOGLE_APIS_TAG) || tags.contains(SystemImageTags.DEFAULT_TAG)
+    ) {
       val logger = StudioLoggerProgressIndicator(AppInspectionInspectorClient::class.java)
       val showBanner =
         RepoManager.RepoLoadedListener { packages ->
@@ -418,9 +421,9 @@ class AppInspectionInspectorClient(
           val remote = packages.consolidatedPkgs[image.path]?.remote
           if (
             remote != null &&
-              ((tags.contains(SystemImage.GOOGLE_APIS_TAG) &&
+              ((tags.contains(SystemImageTags.GOOGLE_APIS_TAG) &&
                 remote.version >= Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
-                (tags.contains(SystemImage.DEFAULT_TAG) &&
+                (tags.contains(SystemImageTags.DEFAULT_TAG) &&
                   remote.version >= Revision(MIN_API_29_AOSP_SYSIMG_REV)))
           ) {
             message =
@@ -498,12 +501,12 @@ fun checkSystemImageForAppInspectionCompatibility(
     val imagePackage = (avd?.systemImage as? SystemImage)?.`package`
     if (imagePackage != null) {
       if (
-        (SystemImage.GOOGLE_APIS_TAG == avd.tag &&
+        (SystemImageTags.GOOGLE_APIS_TAG == avd.tag &&
           imagePackage.version < Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
-          (SystemImage.DEFAULT_TAG == avd.tag &&
+          (SystemImageTags.DEFAULT_TAG == avd.tag &&
             imagePackage.version < Revision(MIN_API_29_AOSP_SYSIMG_REV) ||
             // We don't know when the play store images will be updated yet
-            SystemImage.PLAY_STORE_TAG == avd.tag)
+            SystemImageTags.PLAY_STORE_TAG == avd.tag)
       ) {
         return Pair(false, imagePackage)
       }

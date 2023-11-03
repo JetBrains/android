@@ -16,8 +16,8 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.resources.Navigation;
+import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.TooltipLabel;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
@@ -109,7 +109,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<>(AvdWizardUtils.ALL_DEVICE_TAGS));
 
     myDeviceTypeComboBox.setRenderer(SimpleListCellRenderer.create(
-      DEFAULT_DEVICE_TYPE_LABEL, value -> SystemImage.DEFAULT_TAG.equals(value) ? DEFAULT_DEVICE_TYPE_LABEL : value.getDisplay()));
+      DEFAULT_DEVICE_TYPE_LABEL, value -> SystemImageTags.DEFAULT_TAG.equals(value) ? DEFAULT_DEVICE_TYPE_LABEL : value.getDisplay()));
 
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
 
@@ -186,11 +186,11 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       if (idDisplayOptional.isPresent()) {
         IdDisplay selectedType = idDisplayOptional.get();
 
-        boolean isWear = selectedType.equals(SystemImage.WEAR_TAG);
+        boolean isWear = selectedType.equals(SystemImageTags.WEAR_TAG);
         getModel().getDeviceData().isWear().set(isWear);
-        getModel().getDeviceData().isTv().set(selectedType.equals(SystemImage.ANDROID_TV_TAG)
-                                              || selectedType.equals(SystemImage.GOOGLE_TV_TAG));
-        getModel().getDeviceData().isDesktop().set(selectedType.equals(SystemImage.DESKTOP_TAG));
+        getModel().getDeviceData().isTv().set(selectedType.equals(SystemImageTags.ANDROID_TV_TAG)
+                                              || selectedType.equals(SystemImageTags.GOOGLE_TV_TAG));
+        getModel().getDeviceData().isDesktop().set(selectedType.equals(SystemImageTags.DESKTOP_TAG));
 
         myIsScreenRound.setEnabled(isWear);
         boolean isRound = getModel().getDeviceData().isScreenRound().get();
