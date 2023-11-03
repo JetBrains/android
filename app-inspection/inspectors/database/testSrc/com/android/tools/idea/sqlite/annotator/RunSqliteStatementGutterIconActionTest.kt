@@ -38,9 +38,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.testFramework.TestActionEvent
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.awt.RelativePoint
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 import java.awt.Component
 import java.awt.Point
 import java.awt.event.MouseEvent
@@ -50,7 +50,7 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
-class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCase() {
+class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureAdtTestCase() {
   private lateinit var ideComponents: IdeComponents
   private lateinit var mockDatabaseInspectorProjectService: DatabaseInspectorProjectService
   private lateinit var sqliteDatabaseId1: SqliteDatabaseId

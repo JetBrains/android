@@ -30,12 +30,12 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.LightProjectDescriptor
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import com.intellij.util.ArrayUtil
 import com.intellij.util.PathUtil
 import junit.framework.ComparisonFailure
 import junit.framework.TestCase
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.kotlin.android.DirectiveBasedActionUtils
 import org.jetbrains.kotlin.android.InTextDirectivesUtils
 import org.jetbrains.kotlin.android.KotlinTestUtils
@@ -45,7 +45,7 @@ import java.io.File
 import java.util.regex.Pattern
 
 // Largely copied from the Kotlin test framework (after taking over android-kotlin sources).
-abstract class AbstractQuickFixMultiFileTest : LightJavaCodeInsightFixtureTestCase() {
+abstract class AbstractQuickFixMultiFileTest : LightJavaCodeInsightFixtureAdtTestCase() {
 
   override fun getProjectDescriptor(): LightProjectDescriptor = AdtTestProjectDescriptors.kotlin()
 

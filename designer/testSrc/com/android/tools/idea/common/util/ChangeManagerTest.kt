@@ -26,7 +26,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.ui.update.MergingUpdateQueue
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
@@ -36,6 +35,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.intellij.lang.annotations.Language
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 import org.junit.Assert.assertEquals
 
 /** Extension to run operations on the [Document] associated to the given [PsiFile] */
@@ -85,7 +85,7 @@ private class ChangeTracker {
   fun assertRefreshed(runnable: () -> Unit) = assertWithCounters(refresh = 1, runnable = runnable)
 }
 
-class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
+class ChangeManagerTest : LightJavaCodeInsightFixtureAdtTestCase() {
   fun testSingleFileChangeTests() {
     @Language("kotlin")
     val startFileContent =
