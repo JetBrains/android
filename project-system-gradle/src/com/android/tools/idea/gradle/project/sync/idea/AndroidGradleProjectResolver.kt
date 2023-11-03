@@ -63,7 +63,6 @@ import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultipla
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectJdkUpdateData
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
-import com.android.tools.idea.gradle.project.sync.idea.issues.validateProjectGradleJdk
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
@@ -663,16 +662,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     SdkSync.getInstance().syncAndroidSdks(projectPath)
     val project = project
 
-    if (IdeInfo.getInstance().isAndroidStudio) {
-      // do not confuse IDEA users with warnings and quick fixes that suggest something about Android Studio in pure gradle-java projects (IDEA-266355)
-
-      val settings = resolverCtx.settings
-      if (settings != null) { // In Android Studio we always have settings.
-        // TODO(JetBrains): check if we should move JdkImportCheck to platform (IDEA-268384)
-        validateProjectGradleJdk(settings.javaHome!!)
-      }
-    }
-
     displayInternalWarningIfForcedUpgradesAreDisabled()
     project?.getService(AssistantInvoker::class.java)?.expireProjectUpgradeNotifications(project)
     if (IdeInfo.getInstance().isAndroidStudio && !ApplicationManager.getApplication().isHeadlessEnvironment) {
@@ -765,7 +754,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     AndroidSyncExceptionType.AGP_VERSIONS_MISMATCH -> GradleSyncFailure.MULTIPLE_ANDROID_PLUGIN_VERSIONS
     AndroidSyncExceptionType.NO_VALID_NATIVE_ABI_FOUND -> GradleSyncFailure.ANDROID_SYNC_NO_VALID_NATIVE_ABI_FOUND
     AndroidSyncExceptionType.NO_VARIANTS_FOUND -> GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND
-    AndroidSyncExceptionType.JDK_IMPORT_CHECK -> GradleSyncFailure.ANDROID_SYNC_JDK_IMPORT_CHECK
   }
 
   private fun displayInternalWarningIfForcedUpgradesAreDisabled() {

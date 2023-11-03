@@ -55,7 +55,6 @@ enum class AndroidSyncExceptionType {
   AGP_VERSIONS_MISMATCH,
   NO_VALID_NATIVE_ABI_FOUND,
   NO_VARIANTS_FOUND,
-  JDK_IMPORT_CHECK
 }
 
 class AgpVersionTooOld(agpVersion: AgpVersion) : AndroidSyncException(AGP_VERSION_TOO_OLD, generateMessage(agpVersion)) {

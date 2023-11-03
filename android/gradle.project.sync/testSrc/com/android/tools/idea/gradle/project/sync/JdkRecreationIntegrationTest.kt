@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.sync.idea.issues.createNewGradleJvmProjectJdk
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult.SUCCESS
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.JdkUtils.createNewGradleJvmProjectJdk
 import com.android.tools.idea.testing.openPreparedProject
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat

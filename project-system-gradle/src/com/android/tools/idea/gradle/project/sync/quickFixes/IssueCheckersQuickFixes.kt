@@ -90,16 +90,6 @@ class CreateGradleWrapperQuickFix : BuildIssueQuickFix {
   }
 }
 
-class DownloadAndroidStudioQuickFix : DescribedBuildIssueQuickFix {
-  override val description: String = "See Android Studio download options"
-  override val id: String = "download.android.studio"
-
-  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
-    BrowserUtil.browse("http://developer.android.com/studio/index.html#downloads")
-    return CompletableFuture.completedFuture(null)
-  }
-}
-
 /**
  * This QuickFix upgrades Gradle and the Android Gradle Plugin in the build configuration to the specified versions, or
  * latest versions if not given.
@@ -350,5 +340,18 @@ class OpenStudioProxySettingsQuickFix: BuildIssueQuickFix {
       future.complete(null)
     }
     return future
+  }
+}
+
+class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
+  override val description: String = "Change Gradle JDK..."
+  override val id: String = "select.jdk.from.gradle.settings"
+
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
+    val service = ProjectSettingsService.getInstance(project)
+    if (service is AndroidProjectSettingsService) {
+      service.chooseJdkLocation(project.basePath)
+    }
+    return CompletableFuture.completedFuture(null)
   }
 }

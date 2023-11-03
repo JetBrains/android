@@ -234,7 +234,7 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingPlatformIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingNdkIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker"/>
-    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedJdkMinimumVersionIssueChecker"/>
     <issueChecker id="UnsupportedGradleVersionIssueChecker" implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionIssueChecker"/>
     <importCustomizer implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleImportCustomizer"/>
     <settingsControlProvider implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettingsControlProvider"/>
