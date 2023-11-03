@@ -30,6 +30,7 @@ public class NewProjectTestUtil {
     System.out.println("\nValidating template: " + templateName+ " in: " +tabName.toString());
 
     WizardUtils.createNewProject(guiTest,tabName,templateName);
+    GuiTests.waitForProjectIndexingToFinish(guiTest.ideFrame().getProject());
     GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
     guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
@@ -40,6 +41,7 @@ public class NewProjectTestUtil {
     System.out.println("\nValidating template: " + templateName+ " in: " +tabName.toString());
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     WizardUtils.createCppProject(guiTest,tabName,templateName, language);
+    GuiTests.waitForProjectIndexingToFinish(guiTest.ideFrame().getProject());
     GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
     guiTest.waitForBackgroundTasks();
     guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
