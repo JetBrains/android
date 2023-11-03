@@ -181,6 +181,9 @@
   <extensions defaultExtensionNs="org.jetbrains.android.refactoring">
     <unusedResourcesToken implementation="org.jetbrains.android.refactoring.UnusedResourcesGradleToken"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.actions.annotations">
+    <inferAnnotationsToken implementation="com.android.tools.idea.actions.annotations.InferAnnotationsGradleToken"/>
+  </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>

@@ -733,6 +733,9 @@
     <extensionPoint qualifiedName="org.jetbrains.android.refactoring.unusedResourcesToken"
                     interface="org.jetbrains.android.refactoring.UnusedResourcesToken"
                     area="IDEA_PROJECT"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.actions.annotations.inferAnnotationsToken"
+                    interface="com.android.tools.idea.actions.annotations.InferAnnotationsToken"
+                    area="IDEA_PROJECT"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.project">
