@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 
 private const val MAIN_CARD = "main"
 private const val GET_STARTED = "get_started"
+private const val VITALS_WORKBENCH_NAME = "AQI_VITALS"
 
 class VitalsContentContainerPanel(
   projectController: AppInsightsProjectLevelController,
@@ -91,7 +92,8 @@ class VitalsContentContainerPanel(
         project,
         this,
         AppInsightsIssuesTableCellRenderer,
-        listOfNotNull(DistributionToolWindow.create(scope, projectController.state))
+        VITALS_WORKBENCH_NAME,
+        listOf(DistributionToolWindow.create(VITALS_WORKBENCH_NAME, scope, projectController.state))
       ) {
         VitalsIssueDetailsPanel(projectController, project, it, this, tracker)
       },
