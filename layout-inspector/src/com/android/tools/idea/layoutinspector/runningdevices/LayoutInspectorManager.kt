@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
@@ -36,8 +37,11 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.ui.content.Content
+import com.intellij.ui.scale.JBUIScale
 import javax.swing.JComponent
 
 const val SHOW_EXPERIMENTAL_WARNING_KEY =
@@ -46,6 +50,8 @@ const val EMBEDDED_EXPERIMENTAL_MESSAGE_KEY = "embedded.inspector.experimental.n
 
 const val SPLITTER_KEY =
   "com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager.Splitter"
+
+private const val DEFAULT_WINDOW_WIDTH = 800
 
 /**
  * Object used to track tabs that have Layout Inspector enabled across multiple projects. Layout
@@ -237,6 +243,17 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
   override fun enableLayoutInspector(deviceId: DeviceId, enable: Boolean) {
     ApplicationManager.getApplication().assertIsDispatchThread()
+
+    val toolWindow =
+      ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
+        as? ToolWindowEx
+    toolWindow?.let {
+      val width = it.component.width
+      // Resize the tool window width, to be equal to DEFAULT_WINDOW_WIDTH
+      // stretchWidth resizes relatively to the current width of the tool window.
+      it.stretchWidth(JBUIScale.scale(DEFAULT_WINDOW_WIDTH) - width)
+    }
+
     if (enable) {
       if (tabsWithLayoutInspector.contains(deviceId)) {
         // do nothing if Layout Inspector is already enabled
