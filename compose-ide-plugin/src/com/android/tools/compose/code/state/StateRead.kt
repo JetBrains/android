@@ -15,6 +15,8 @@
  */
 package com.android.tools.compose.code.state
 
+import com.android.tools.compose.ComposeBundle
+import com.android.tools.compose.composableScope
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.descendants
@@ -34,6 +36,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.types.KotlinType
@@ -48,10 +51,34 @@ private val STATE_CLASSES_BY_ACCESSOR =
 private val GENERIC_STATE_CLASS_ID =
   checkNotNull(STATE_CLASSES_BY_ACCESSOR["value"]) { "No class ID for generic State class!" }
 
-internal fun KtNameReferenceExpression.getStateReadElement(): PsiElement? =
-  CachedValuesManager.getProjectPsiDependentCache(this) { it.computeStateReadElement() }
+internal data class StateRead(
+  val stateVar: KtExpression,
+  val scope: KtExpression,
+  val scopeName: String
+) {
+  companion object {
+    fun create(stateVar: KtExpression, scope: KtExpression): StateRead? {
+      val scopeName =
+        when (scope) {
+          is KtLambdaExpression ->
+            ComposeBundle.message("compose.state.read.recompose.target.enclosing.lambda")
+          else -> scope.name ?: return null
+        }
+      return StateRead(stateVar, scope, scopeName)
+    }
+  }
+}
 
-private fun KtNameReferenceExpression.computeStateReadElement(): PsiElement? {
+internal fun KtNameReferenceExpression.getStateRead(): StateRead? =
+  CachedValuesManager.getProjectPsiDependentCache(this) { it.computeStateRead() }
+
+private fun KtNameReferenceExpression.computeStateRead(): StateRead? {
+  val scope = composableScope() ?: return null
+  val element = computeStateReadElement() ?: return null
+  return StateRead.create(element, scope)
+}
+
+private fun KtNameReferenceExpression.computeStateReadElement(): KtExpression? {
   if (isAssignee()) return null
   if (isImplicitStateRead()) return this
   return getExplicitStateReadElement()
@@ -62,7 +89,7 @@ private fun KtNameReferenceExpression.computeStateReadElement(): PsiElement? {
  *
  * e.g. for `foo.bar.baz.value`, will return the [PsiElement] for `baz`.
  */
-private fun KtNameReferenceExpression.getExplicitStateReadElement(): PsiElement? {
+private fun KtNameReferenceExpression.getExplicitStateReadElement(): KtExpression? {
   val stateClassId = STATE_CLASSES_BY_ACCESSOR[text] ?: return null
   return (parent as? KtDotQualifiedExpression)
     ?.takeIf { it.selectorExpression == this }

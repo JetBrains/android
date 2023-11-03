@@ -22,7 +22,6 @@ import com.android.tools.idea.kotlin.hasAnnotation
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -45,6 +44,7 @@ import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtLambdaExpression
@@ -126,7 +126,7 @@ fun PsiElement.isInsideComposableCode(): Boolean {
 }
 
 /** Returns the `@Composable` scope around this [KtElement]. */
-tailrec fun KtElement.composableScope(): PsiNamedElement? {
+tailrec fun KtElement.composableScope(): KtExpression? {
   return when (val nextParent = parentOfTypes(KtNamedFunction::class, KtLambdaExpression::class)) {
     // Always stop at a named function - if it's not composable, we're done.
     is KtNamedFunction -> nextParent.takeIf { it.hasComposableAnnotation() }
@@ -140,7 +140,7 @@ tailrec fun KtElement.composableScope(): PsiNamedElement? {
         // If it's inlined then continue up to the enclosing function (i.e. recurse).
         argument.composableScope()
       } else {
-        param.takeIf { it.typeReference?.hasComposableAnnotation() == true }
+        nextParent.takeIf { param.typeReference?.hasComposableAnnotation() == true }
       }
     }
     else -> null

@@ -15,24 +15,27 @@
  */
 package com.android.tools.compose.code.state
 
-import com.android.tools.compose.ComposeBundle
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
-import com.android.tools.idea.testing.offsetForWindow
 import com.android.tools.idea.testing.onEdt
+import com.android.utils.associateWithNotNull
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.PsiElement
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubComposeRuntime
 import org.jetbrains.android.compose.stubKotlinStdlib
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
+import org.jetbrains.kotlin.psi.psiUtil.endOffset
+import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -57,11 +60,10 @@ private val COMPOSE_RUNTIME_IMPORTS =
 
 @RunWith(JUnit4::class)
 @RunsInEdt
-class ComposeStateReadAnnotatorTest {
+class StateReadTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
-  private val annotator = ComposeStateReadAnnotator()
 
   @Before
   fun setUp() {
@@ -69,7 +71,6 @@ class ComposeStateReadAnnotatorTest {
     fixture.stubComposableAnnotation()
     fixture.stubComposeRuntime()
     fixture.stubKotlinStdlib()
-    StudioFlags.COMPOSE_STATE_READ_HIGHLIGHTING_ENABLED.override(true)
   }
 
   @Test
@@ -79,7 +80,10 @@ class ComposeStateReadAnnotatorTest {
         "Inner(arg = stateVar) { stateVar = it }",
         "var stateVar by rememberSaveable { mutableStateOf(\"\") }",
       )
-      .assertSingleHighlight("|stateVar|)", composeScope = OUTER_FUNCTION)
+      .assertContainsSingleStateRead {
+        val element = stateVar()
+        element to StateRead.create(element, outerFunction())
+      }
   }
 
   @Test
@@ -88,7 +92,9 @@ class ComposeStateReadAnnotatorTest {
         "fun Inner(arg: String, onNameChange: (String) -> Unit)",
         "Inner(arg = stateVar.value) { stateVar.value = it }",
       )
-      .assertSingleHighlight("|value|)", composeScope = OUTER_FUNCTION)
+      .assertContainsSingleStateRead {
+        expression("|value|)") to StateRead.create(stateVar(), outerFunction())
+      }
   }
 
   @Test
@@ -98,11 +104,10 @@ class ComposeStateReadAnnotatorTest {
         "Inner(arg = stateListVar[0].value) { stateListVar[0].value = it }",
         "val stateListVar = listOf(rememberSaveable { mutableStateOf(\"\") })",
       )
-      .assertSingleHighlight(
-        "|value|)",
-        stateVariable = "stateListVar[0]",
-        composeScope = OUTER_FUNCTION
-      )
+      .assertContainsSingleStateRead {
+        expression("|value|)") to
+          StateRead.create(expression("= |stateListVar[0]|"), outerFunction())
+      }
   }
 
   @Test
@@ -113,7 +118,10 @@ class ComposeStateReadAnnotatorTest {
         "val container = StateHolder(rememberSaveable { mutableStateOf(\"\") })",
         "class StateHolder(val stateProp: MutableState<String>)",
       )
-      .assertSingleHighlight("|value|)", stateVariable = "stateProp", composeScope = OUTER_FUNCTION)
+      .assertContainsSingleStateRead {
+        expression("|value|)") to
+          StateRead.create(expression("= container.|stateProp|"), outerFunction())
+      }
   }
 
   @Test
@@ -123,7 +131,9 @@ class ComposeStateReadAnnotatorTest {
         "Inner(arg = stateVar.intValue) { stateVar.intValue = it }",
         "val stateVar = rememberSaveable { mutableIntStateOf(42) }",
       )
-      .assertSingleHighlight("|intValue|", composeScope = OUTER_FUNCTION)
+      .assertContainsSingleStateRead {
+        expression("|intValue|)") to StateRead.create(stateVar(), outerFunction())
+      }
   }
 
   @Test
@@ -133,7 +143,9 @@ class ComposeStateReadAnnotatorTest {
         "Inner(arg = stateVar.longValue) { stateVar.longValue = it }",
         "val stateVar = rememberSaveable { mutableLongStateOf(8657309L) }",
       )
-      .assertSingleHighlight("|longValue|", composeScope = OUTER_FUNCTION)
+      .assertContainsSingleStateRead {
+        expression("|longValue|)") to StateRead.create(stateVar(), outerFunction())
+      }
   }
 
   @Test
@@ -143,7 +155,9 @@ class ComposeStateReadAnnotatorTest {
         "Inner(arg = stateVar.floatValue) { stateVar.floatValue = it }",
         "val stateVar = rememberSaveable { mutableFloatStateOf(3.14159f) }",
       )
-      .assertSingleHighlight("|floatValue|", composeScope = OUTER_FUNCTION)
+      .assertContainsSingleStateRead {
+        expression("|floatValue|)") to StateRead.create(stateVar(), outerFunction())
+      }
   }
 
   @Test
@@ -151,18 +165,20 @@ class ComposeStateReadAnnotatorTest {
     createPsiFile(
         "fun Inner(arg: Double, (Double) -> Unit)",
         "Inner(arg = stateVar.doubleValue) { stateVar.doubleValue = it }",
-        "val stateVar = rememberSaveable { mutableDoubleStateOf(2.71828) }",
+        "val stateVar = rememberSaveable { mutableDoubleStateOf(2.71828) }"
       )
-      .assertSingleHighlight("|doubleValue|", composeScope = OUTER_FUNCTION)
+      .assertContainsSingleStateRead {
+        expression("|doubleValue|)") to StateRead.create(stateVar(), outerFunction())
+      }
   }
 
   @Test
   fun composableLambdaArgument() {
-    createPsiFile(
-        "fun Inner(arg: @Composable () -> Unit)",
-        "Inner { stateVar.value }",
-      )
-      .assertSingleHighlight("|value|")
+    createPsiFile("fun Inner(arg: @Composable () -> Unit)", "Inner { stateVar.value }")
+      .assertContainsSingleStateRead {
+        expression("|value|") to
+          StateRead.create(expression("{ |stateVar|."), lambda("|stateVar.value|"))
+      }
   }
 
   @Test
@@ -171,7 +187,8 @@ class ComposeStateReadAnnotatorTest {
         "fun Inner(arg: () -> Unit)",
         "Inner { stateVar.value }",
       )
-      .assertNoHighlight()
+      .findAllStateReads()
+      .let { assertThat(it).isEmpty() }
   }
 
   @Test
@@ -180,7 +197,9 @@ class ComposeStateReadAnnotatorTest {
         "inline fun Inner(arg: () -> Unit)",
         "Inner { stateVar.value }",
       )
-      .assertSingleHighlight("|value|", composeScope = OUTER_FUNCTION)
+      .assertContainsSingleStateRead {
+        expression("|value|") to StateRead.create(expression("{ |stateVar|."), outerFunction())
+      }
   }
 
   @Test
@@ -189,7 +208,8 @@ class ComposeStateReadAnnotatorTest {
         "inline fun Inner(noinline arg: () -> Unit)",
         "Inner { stateVar.value }",
       )
-      .assertNoHighlight()
+      .findAllStateReads()
+      .let { assertThat(it).isEmpty() }
   }
 
   @Test
@@ -198,7 +218,10 @@ class ComposeStateReadAnnotatorTest {
         "fun Inner(arg: @Composable () -> Unit, otherArg: Int)",
         "Inner({ stateVar.value }, 3)",
       )
-      .assertSingleHighlight("|value|")
+      .assertContainsSingleStateRead {
+        expression("|value|") to
+          StateRead.create(expression("{ |stateVar|."), lambda("|stateVar.value|"))
+      }
   }
 
   @Test
@@ -207,7 +230,10 @@ class ComposeStateReadAnnotatorTest {
         "fun Inner(arg: @Composable () -> Unit, otherArg: Int)",
         "Inner({ stateVar.value }, 3)",
       )
-      .assertSingleHighlight("|value|")
+      .assertContainsSingleStateRead {
+        expression("|value|") to
+          StateRead.create(expression("{ |stateVar|."), lambda("|stateVar.value|"))
+      }
   }
 
   @Test
@@ -216,7 +242,23 @@ class ComposeStateReadAnnotatorTest {
         "fun Inner(beforeArg: Int, arg: @Composable () -> Unit, afterArg: Int)",
         "Inner(arg = { stateVar.value }, beforeArg = 17, afterArg = 42)",
       )
-      .assertSingleHighlight("|value|")
+      .assertContainsSingleStateRead {
+        expression("|value|") to
+          StateRead.create(expression("{ |stateVar|."), lambda("|stateVar.value|"))
+      }
+  }
+
+  @Test
+  fun inlineLambdaInsideComposableLambda() {
+    createPsiFile(
+        "fun Inner(arg: @Composable () -> Unit)",
+        "Inner { MoreInner { stateVar.value } }",
+        extraCode = "inline fun MoreInner(arg: () -> Unit)",
+      )
+      .assertContainsSingleStateRead {
+        expression("|value|") to
+          StateRead.create(expression("{ |stateVar|."), lambda("|MoreInner { stateVar.value }|"))
+      }
   }
 
   private fun createPsiFile(
@@ -243,35 +285,59 @@ class ComposeStateReadAnnotatorTest {
     )
   }
 
-  private fun PsiFile.assertNoHighlight() {
-    val allElements = collectDescendantsOfType<PsiElement>()
-    val annotations = CodeInsightTestUtil.testAnnotator(annotator, *allElements.toTypedArray())
-
-    assertThat(annotations).hasSize(0)
+  private fun PsiFile.assertContainsSingleStateRead(
+    keyValueSupplier: PsiFile.() -> Pair<KtExpression, StateRead?>
+  ) {
+    val pair = keyValueSupplier()
+    assertThat(findAllStateReads()).containsExactly(pair.first, pair.second)
   }
 
-  private fun PsiFile.assertSingleHighlight(
-    window: String,
-    stateVariable: String = "stateVar",
-    composeScope: String =
-      ComposeBundle.message("compose.state.read.recompose.target.enclosing.lambda")
-  ) {
-    val allElements = collectDescendantsOfType<PsiElement>()
-    val annotations = CodeInsightTestUtil.testAnnotator(annotator, *allElements.toTypedArray())
+  private fun PsiFile.findAllStateReads(): Map<KtNameReferenceExpression, StateRead> =
+    collectDescendantsOfType<KtNameReferenceExpression>()
+      .associateWithNotNull(KtNameReferenceExpression::getStateRead)
 
-    assertThat(annotations).hasSize(1)
-
+  private inline fun <reified T> PsiFile.getSmallestEnclosing(window: String): T {
     val windowStart = window.reversed().replaceFirst("|", "").reversed()
     val windowEnd = window.replaceFirst("|", "")
+    return getSmallestEnclosing(windowStart to windowEnd)
+  }
 
-    with(annotations.single()) {
-      val expectedMessage =
-        ComposeBundle.message("compose.state.read.message", stateVariable, composeScope)
-      assertThat(message).isEqualTo(expectedMessage)
-      assertThat(gutterIconRenderer).isNull()
-      assertThat(textAttributes).isEqualTo(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
-      assertThat(startOffset).isEqualTo(fixture.offsetForWindow(windowStart))
-      assertThat(endOffset).isEqualTo(fixture.offsetForWindow(windowEnd))
+  private fun PsiFile.lambda(window: String) = getSmallestEnclosing<KtLambdaExpression>(window)
+
+  private fun PsiFile.expression(window: String) = getSmallestEnclosing<KtExpression>(window)
+
+  private fun PsiFile.stateVar(): KtNameReferenceExpression = getSmallestEnclosing("= |stateVar|")
+
+  private fun PsiFile.outerFunction(): KtNamedFunction =
+    getSmallestEnclosing("|fun $OUTER_FUNCTION" to "\n}|")
+
+  private inline fun <reified T> PsiFile.getSmallestEnclosing(window: Pair<String, String>): T {
+    val startOffset = offsetForWindow(window.first)
+    val endOffset = offsetForWindow(window.second, startOffset)
+    var candidate = findElementAt(startOffset)
+    // Climb up until we find something
+    while (
+      candidate != null &&
+        (candidate !is T || candidate.startOffset > startOffset || candidate.endOffset < endOffset)
+    ) {
+      candidate = candidate.parent
     }
+    assertWithMessage(
+        "Did not find an enclosing ${T::class} in $this between ${window.first} and ${window.second}"
+      )
+      .that(candidate)
+      .isNotNull()
+    return checkNotNull(candidate as T)
+  }
+
+  private fun PsiFile.offsetForWindow(window: String, startIndex: Int = 0): Int {
+    val delta = window.indexOf("|")
+    require(delta >= 0) { "No '|' character found in window: \"$window\"" }
+    val target = window.substring(0, delta) + window.substring(delta + 1)
+    val start = text.indexOf(target, startIndex - delta)
+    assertWithMessage("Didn't find the string $target in the source of $this")
+      .that(start)
+      .isAtLeast(0)
+    return start + delta
   }
 }

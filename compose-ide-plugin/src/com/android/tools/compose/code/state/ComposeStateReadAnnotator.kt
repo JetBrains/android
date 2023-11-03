@@ -16,7 +16,6 @@
 package com.android.tools.compose.code.state
 
 import com.android.tools.compose.ComposeBundle
-import com.android.tools.compose.composableScope
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
@@ -25,7 +24,6 @@ import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
-import org.jetbrains.kotlin.psi.KtParameter
 
 const val COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME = "ComposeStateReadTextAttributes"
 
@@ -48,17 +46,11 @@ class ComposeStateReadAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     if (!StudioFlags.COMPOSE_STATE_READ_HIGHLIGHTING_ENABLED.get()) return
     if (element !is KtNameReferenceExpression) return
-    val scopeName =
-      when (val scope = element.composableScope()) {
-        is KtParameter ->
-          ComposeBundle.message("compose.state.read.recompose.target.enclosing.lambda")
-        else -> scope?.name ?: return
-      }
-    element.getStateReadElement()?.let {
+    element.getStateRead()?.let {
       holder
         .newAnnotation(
           HighlightSeverity.INFORMATION,
-          ComposeBundle.message("compose.state.read.message", it.text, scopeName)
+          ComposeBundle.message("compose.state.read.message", it.stateVar.text, it.scopeName)
         )
         .textAttributes(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
         .create()
