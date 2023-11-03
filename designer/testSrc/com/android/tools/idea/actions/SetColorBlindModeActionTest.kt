@@ -17,7 +17,6 @@ package com.android.tools.idea.actions
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -29,9 +28,7 @@ import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.TestActionEvent.createTestEvent
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -54,16 +51,6 @@ private class TestScreenViewProvider : ScreenViewProvider {
 
 class SetColorBlindModeActionTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
-
-  @Before
-  fun setup() {
-    StudioFlags.COMPOSE_COLORBLIND_MODE.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_COLORBLIND_MODE.clearOverride()
-  }
 
   // Regression test for b/274076939
   @Test

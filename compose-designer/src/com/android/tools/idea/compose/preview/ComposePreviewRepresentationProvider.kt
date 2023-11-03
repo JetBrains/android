@@ -113,8 +113,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
                 }
               }
             },
-            additionalActionProvider =
-              if (StudioFlags.COMPOSE_COLORBLIND_MODE.get()) ColorBlindModeAction() else null
+            additionalActionProvider = ColorBlindModeAction()
           )
           .visibleOnlyInStaticPreview(),
         Separator.getInstance().visibleOnlyInUiCheck(),

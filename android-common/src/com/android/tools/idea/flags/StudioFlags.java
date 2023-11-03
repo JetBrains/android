@@ -1218,13 +1218,6 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_COLORBLIND_MODE = Flag.create(
-    COMPOSE, "preview.colorblind",
-    "Enable the colorblind mode for Compose previews",
-    "If enabled, the user can change the mode of Compose previews, between different types of colorblind modes",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_VIEW_INSPECTOR = Flag.create(
     COMPOSE, "view.inspector",
     "Show the switch of view inspection tool in Compose",

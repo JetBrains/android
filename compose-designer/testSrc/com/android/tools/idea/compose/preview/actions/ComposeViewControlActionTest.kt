@@ -51,14 +51,12 @@ class ComposeViewControlActionTest {
   @Before
   fun setup() {
     StudioFlags.COMPOSE_VIEW_FILTER.override(false)
-    StudioFlags.COMPOSE_COLORBLIND_MODE.override(true)
     StudioFlags.COMPOSE_VIEW_INSPECTOR.override(true)
   }
 
   @After
   fun tearDown() {
     StudioFlags.COMPOSE_VIEW_INSPECTOR.clearOverride()
-    StudioFlags.COMPOSE_COLORBLIND_MODE.clearOverride()
     StudioFlags.COMPOSE_VIEW_FILTER.clearOverride()
     StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.clearOverride()
   }
