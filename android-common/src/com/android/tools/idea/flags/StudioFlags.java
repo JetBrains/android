@@ -1693,5 +1693,13 @@ public final class StudioFlags {
                 10);
   // endregion WEAR_RUN_CONFIGS_AUTOCREATE
 
+  // region GOOGLE_LOGIN
+  private static final FlagGroup GOOGLE_LOGIN =
+    new FlagGroup(FLAGS, "google.login", "Google Login");
+  public static final Flag<Boolean> ENABLE_SETTINGS_ACCOUNT_UI =
+    Flag.create(GOOGLE_LOGIN, "enabled", "Enable new login settings UI",
+                "When enabled, a login settings page will replace the popup from the login action in the top right.", false);
+  // endregion GOOGLE_LOGIN
+
   private StudioFlags() { }
 }
