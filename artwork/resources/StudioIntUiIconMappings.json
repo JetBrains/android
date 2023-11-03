@@ -755,7 +755,8 @@
           "native.svg": "studio/icons/wizards/modules/native.svg",
           "phone-tablet.svg": "studio/icons/wizards/modules/phone-tablet.svg",
           "wear-os.svg": "studio/icons/wizards/modules/wear-os.svg",
-          "baseline-profile.svg": "studio/icons/wizards/modules/baseline-profile.svg"
+          "baseline-profile.svg": "studio/icons/wizards/modules/baseline-profile.svg",
+          "baseline-profile-generate.svg": "studio/icons/wizards/modules/baseline-profile-generate.svg"
         }
       }
     }
