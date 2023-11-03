@@ -360,6 +360,7 @@ public class TestUtils {
 
     pathMappings.put("tools/adt/idea", homePath.relativize(communityHomePath) + "/android");
     pathMappings.put("prebuilts/tools/common/kotlin-plugin/Kotlin", "out/artifacts/KotlinPlugin");
+    pathMappings.put("tools/base/resource-repository/test/resources/aar", homePath.relativize(communityHomePath) + "/android/android/testData/aar");
 
     for (Map.Entry<String, String> entry : pathMappings.entrySet()) {
       String aospPathPrefix = entry.getKey();
