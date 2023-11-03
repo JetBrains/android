@@ -156,14 +156,12 @@ public final class GradleApkProvider implements ApkProvider {
       return Collections.emptyList();
     }
 
-    boolean supportsPrivacySandbox = supportsPrivacySandbox(device);
-    boolean supportsSdkRuntime = supportsSdkRuntime(device, supportsPrivacySandbox);
+    boolean deviceSupportsPrivacySandbox = deviceSupportsPrivacySandbox(device);
 
     return getApks(
       device.getAbis(),
       device.getVersion(),
-      supportsPrivacySandbox,
-      supportsSdkRuntime,
+      deviceSupportsPrivacySandbox,
       androidModel,
       androidModel.getSelectedVariant(), getOutputKind(
         myFacet.getModule(),
@@ -172,13 +170,7 @@ public final class GradleApkProvider implements ApkProvider {
         device.getVersion()));
   }
 
-  private static boolean supportsPrivacySandbox(@NotNull IDevice device) {
-    // Standalone SDK apks need to be installed to API 33 devices, despite no release versions shipping with SDK runtime due to the need to
-    // build a single base apk with the '<uses-sdk-library>' manifest tag enforcing SDK installations on 33.
-    return device.getVersion().isGreaterOrEqualThan(33);
-  }
-
-  private static boolean supportsSdkRuntime(@NotNull IDevice device, @NotNull boolean supportsPrivacySandbox) {
+  private static boolean deviceSupportsPrivacySandbox(@NotNull IDevice device) {
     return device.getVersion().isGreaterOrEqualThan(34) && device.services().containsKey("sdk_sandbox");
   }
 
@@ -186,8 +178,7 @@ public final class GradleApkProvider implements ApkProvider {
   public List<ApkInfo> getApks(
     @NotNull List<String> deviceAbis,
     @NotNull AndroidVersion deviceVersion,
-    @NotNull boolean deviceSupportsPrivacySandbox,
-    @NotNull boolean deviceSupportsSdkRuntime,
+    boolean deviceSupportsPrivacySandbox,
     @NotNull GradleAndroidModel androidModel,
     @NotNull IdeVariant variant,
     @NotNull OutputKind outputKind)
@@ -232,8 +223,9 @@ public final class GradleApkProvider implements ApkProvider {
                     .getOutputListingFile(),
                   variant.getMainArtifact().getAbiFilters(),
                   deviceAbis));
-            }
-            if (!deviceSupportsSdkRuntime) {
+              // Add the additional split containing the use-sdk-library manifest element
+              apkFileList.add(new ApkFileUnit(androidModel.getModuleName(), variant.getMainArtifact().getPrivacySandboxSdkInfo().getAdditionalApkSplitFile()));
+            } else {
               // Legacy Privacy Sandbox APKs need to be installed together and with
               // the base APK.
               apkFileList.addAll(
@@ -262,9 +254,7 @@ public final class GradleApkProvider implements ApkProvider {
             else {
               // Privacy sandbox SDKs should be installed before the app itself.
               IdeVariant baseVariant = baseAndroidModel.getSelectedVariant();
-              if (deviceSupportsPrivacySandbox && deviceSupportsSdkRuntime
-                  && baseVariant.getMainArtifact().getPrivacySandboxSdkInfo()
-                     != null) {
+              if (deviceSupportsPrivacySandbox && baseVariant.getMainArtifact().getPrivacySandboxSdkInfo() != null) {
                 apkList.addAll(
                   getApksForPrivacySandboxSdks(
                     baseVariant.getName(),

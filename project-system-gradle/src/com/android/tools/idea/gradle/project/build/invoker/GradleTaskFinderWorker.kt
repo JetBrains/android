@@ -180,6 +180,7 @@ class GradleTaskFinderWorker private constructor(
             moduleToProcess.getTasksBy { listOfNotNull(
               it.assembleTaskName,
               it.getPrivacySandboxSdkTask(),
+              it.getAdditionalApkSplitTask(),
               it.getPrivacySandboxSdkLegacyTask())
             }.copy( cleanTasks = setOf("clean"))
           // Note, this should eventually include ":clean" tasks, but it is dangerous right now as it might run in a separate but second
@@ -191,6 +192,7 @@ class GradleTaskFinderWorker private constructor(
               listOfNotNull(
                 it.assembleTaskName,
                 it.getPrivacySandboxSdkTask(),
+                it.getAdditionalApkSplitTask(),
                 it.getPrivacySandboxSdkLegacyTask())
             }
           BuildMode.COMPILE_JAVA ->
@@ -206,7 +208,8 @@ class GradleTaskFinderWorker private constructor(
               listOfNotNull(
                 (it as? IdeAndroidArtifact)?.buildInformation?.bundleTaskName,
                 it.getPrivacySandboxSdkTask(),
-                it.getPrivacySandboxSdkLegacyTask())
+                it.getPrivacySandboxSdkLegacyTask()
+              ) // Don't need getAdditionalApkSplitTask for bundle deployment
             }
           }
           BuildMode.APK_FROM_BUNDLE -> {
@@ -220,7 +223,7 @@ class GradleTaskFinderWorker private constructor(
                   (it as? IdeAndroidArtifact)?.buildInformation?.apkFromBundleTaskName,
                   it.getPrivacySandboxSdkTask(),
                   it.getPrivacySandboxSdkLegacyTask()
-                )
+                ) // Don't need getAdditionalApkSplitTask for bundle deployment
               }.tasks +
               if (moduleToProcess.androidModel.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE && moduleToProcess.testCompileMode.compileAndroidTests)
                 setOfNotNull(moduleToProcess.androidModel.selectedVariant.androidTestArtifact?.assembleTaskName)
@@ -248,6 +251,9 @@ class GradleTaskFinderWorker private constructor(
 
   private fun IdeBaseArtifact.getPrivacySandboxSdkTask() =
     (this as? IdeAndroidArtifact)?.privacySandboxSdkInfo?.task
+
+  private fun IdeBaseArtifact.getAdditionalApkSplitTask() =
+    (this as? IdeAndroidArtifact)?.privacySandboxSdkInfo?.additionalApkSplitTask
 
   private fun IdeBaseArtifact.getPrivacySandboxSdkLegacyTask() =
     (this as? IdeAndroidArtifact)?.privacySandboxSdkInfo?.taskLegacy

@@ -90,6 +90,7 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toPersistentSet
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.nio.file.Path
 
@@ -211,7 +212,6 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
       .getApks(
         emptyList(),
         AndroidVersion(30),
-        false,
         false,
         androidModel,
         androidModel.selectedVariant,
@@ -483,6 +483,7 @@ private fun createIdeaSourceProviderFromModelSourceProvider(it: IdeSourceProvide
 /** Convert a set of IO files into a set of IDEA file urls referring to equivalent virtual files  */
 private fun Sequence<File>.toUrls(): Sequence<String> = map { VfsUtil.fileToUrl(it) }
 
+@TestOnly
 fun AssembleInvocationResult.getBuiltApksForSelectedVariant(androidFacet: AndroidFacet, forTests: Boolean = false): List<ApkInfo>? {
   val projectSystem = androidFacet.module.project.getProjectSystem() as? GradleProjectSystem
                       ?: error("The supplied facet does not represent a project managed by the Gradle project system. " +
