@@ -138,14 +138,14 @@ class SyncUtilTest {
       emulateSync(SyncResult.SUCCESS)
       // Now we are in dumb mode but synced
       assertThat(callCount.get()).isEqualTo(0)
-
-      ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-      assertThat(callCount.get()).isEqualTo(1)
-
-      // Once the callback has been called, new syncs or dumb mode changes won't call the method
-      emulateSync(SyncResult.SUCCESS)
-      assertThat(callCount.get()).isEqualTo(1)
     }
+
+    ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    assertThat(callCount.get()).isEqualTo(1)
+
+    // Once the callback has been called, new syncs or dumb mode changes won't call the method
+    emulateSync(SyncResult.SUCCESS)
+    assertThat(callCount.get()).isEqualTo(1)
   }
 
   @Test
