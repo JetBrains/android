@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
+import com.intellij.execution.impl.FakeConfigurationFactory;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.importing.ImportSpecImpl;
@@ -141,6 +142,6 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
       getProject(),
       settings,
       null,
-      new ExternalSystemRunConfiguration(GradleConstants.SYSTEM_ID, getProject(), null, "TestConfigurationName"));
+      new ExternalSystemRunConfiguration(GradleConstants.SYSTEM_ID, getProject(), FakeConfigurationFactory.INSTANCE, "TestConfigurationName"));
   }
 }
