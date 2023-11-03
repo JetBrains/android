@@ -27,6 +27,10 @@ internal fun compile(file: PsiFile, irClassCache: MutableIrClassCache = MutableI
   return compile(listOf(LiveEditCompilerInput(ktFile, ktFile)), irClassCache)
 }
 
+internal fun compile(files: List<PsiFile>, irClassCache: MutableIrClassCache = MutableIrClassCache()) : LiveEditCompilerOutput {
+  return compile(files.map { LiveEditCompilerInput(it as KtFile, it) }, irClassCache)
+}
+
 internal fun compile(file: PsiFile?, functionName: String, irClassCache: MutableIrClassCache = MutableIrClassCache()) =
   compile(file!!, findFunction(file, functionName), irClassCache)
 

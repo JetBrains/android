@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.InvalidModuleException
 import org.jetbrains.kotlin.diagnostics.Severity
 import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.core.util.analyzeInlinedFunctions
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
@@ -177,6 +178,9 @@ private object CompileScopeImpl : CompileScope {
 
   override fun backendCodeGen(project: Project, analysisResult: AnalysisResult, input: List<KtFile>,  module: Module,
                               inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState {
+
+    input.firstOrNull { it.module != module }?.let {
+      throw LiveEditUpdateException.internalError("KtFile outside targeted module found in code generation", it) }
 
     val compilerConfiguration = CompilerConfiguration()
     compilerConfiguration.languageVersionSettings = input.first().languageVersionSettings

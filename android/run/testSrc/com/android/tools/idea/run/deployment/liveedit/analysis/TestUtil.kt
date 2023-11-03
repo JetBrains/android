@@ -32,6 +32,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Computable
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.idea.util.module
@@ -71,6 +72,26 @@ fun AndroidProjectRule.Typed<CodeInsightTestFixture, Nothing>.compileIr(text: St
     }
   }
   return output.map { IrClass(it) }
+}
+
+fun AndroidProjectRule.Typed<*, Nothing>.directApiCompile(inputFiles: List<KtFile>): List<ByteArray> {
+  return ApplicationManager.getApplication().runReadAction(Computable<List<ByteArray>> {
+    runWithCompileLock {
+      val output = mutableListOf<ByteArray>()
+      val resolution = fetchResolution(project, inputFiles)
+      val analysisResult = analyze(inputFiles, resolution)
+      val generationState: GenerationState = backendCodeGen(project,
+                                                            analysisResult,
+                                                            inputFiles,
+                                                            inputFiles.first().module!!,
+                                                            emptySet())
+      generationState.factory.asList()
+        .filter { it.relativePath.endsWith(".class") }
+        .map { it.asByteArray() }
+        .forEach { output.add(it) }
+      output
+    }
+  })
 }
 
 /**

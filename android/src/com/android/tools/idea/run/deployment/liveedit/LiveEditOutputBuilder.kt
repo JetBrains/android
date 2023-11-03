@@ -107,6 +107,7 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
 
     if (isNewClass) {
       // TODO: throw exception if not synthetic class; we don't support adding a new class yet.
+      output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, LiveEditClassType.NORMAL_CLASS))
       return newClass
     }
 
