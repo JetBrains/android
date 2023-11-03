@@ -50,6 +50,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.io.File
 import java.io.OutputStream
@@ -58,6 +59,7 @@ import java.util.Date
 import java.util.Locale
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import java.nio.file.Path
 
 class AndroidBaselineProfileConfigurationExecutor(
   val env: ExecutionEnvironment,
@@ -189,11 +191,48 @@ class AndroidBaselineProfileConfigurationExecutor(
     project: Project,
     devices: List<IDevice>,
   ): GradleExecutionSettings {
+    val initScriptFile = File.createTempFile("initScript", ".gradle.kts", Path.of(FileUtil.getTempDirectory()).toFile()).apply {
+      deleteOnExit()
+    }
+    initScriptFile.writeText("""
+      afterProject {
+        pluginManager.withPlugin("androidx.baselineprofile") {
+          val baselineExt = extensions.findByName("baselineProfile") ?: return@withPlugin
+          val extClass: Class<*> = try {
+            baselineExt.javaClass.classLoader.loadClass(
+                "androidx.baselineprofile.gradle.producer.BaselineProfileProducerExtension"
+            )
+          } catch (_: Exception) { null } ?: return@withPlugin
+
+          val baselineExtWithType = extensions.findByType(extClass) ?: return@withPlugin
+
+          val setterMethod = try {
+            extClass.getMethod("setUseConnectedDevices", Boolean::class.java)
+          } catch (_: Exception) { null } ?: return@withPlugin
+
+          try {
+            // Enable useConnectedDevices flag.
+            setterMethod(baselineExtWithType, true)
+          } catch (_: Exception) { }
+
+          // Clear managed devices.
+          val getterMethodForManagedDevices = try {
+            extClass.getMethod("getManagedDevices")
+          } catch (_: Exception) { null } ?: return@withPlugin
+
+          val managedDevices = try {
+            getterMethodForManagedDevices(baselineExtWithType) as? MutableList<*>
+          } catch (_: Exception) { null } ?: return@withPlugin
+          managedDevices.clear()
+        }
+      }
+    """.trimIndent())
     return GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project).apply {
       // Add an environmental variable to filter connected devices for selected devices.
       val deviceSerials = devices.joinToString(",") { device -> device.serialNumber }
       withEnvironmentVariables(mapOf(("ANDROID_SERIAL" to deviceSerials)))
       configuration.getFilterArgument()?.let { withArgument(it) }
+      withArgument("--init-script=${initScriptFile.absolutePath}")
     }
   }
 
