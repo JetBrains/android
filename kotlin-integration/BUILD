@@ -62,6 +62,6 @@ maven_repository(
         "@maven//:org.hamcrest.hamcrest-integration_1.3",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.intellij.deps.trove4j_1.0.20181211",
-        "@maven//:org.mockito.mockito-core_4.8.0",
+        "@maven//:org.mockito.mockito-core_5.6.0",
     ],
 )

@@ -27,7 +27,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import org.mockito.InOrder
 import org.mockito.Mockito
-import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 
 class ParametersBindingControllerTest : LightPlatformTestCase() {
@@ -40,7 +39,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     super.setUp()
 
     val databaseInspectorViewsFactory = FakeDatabaseInspectorViewsFactory()
-    view = spy(databaseInspectorViewsFactory.parametersBindingDialogView)
+    view = databaseInspectorViewsFactory.parametersBindingDialogView
     orderVerifier = Mockito.inOrder(view)
 
     ranStatements = mutableListOf()
@@ -60,7 +59,7 @@ class ParametersBindingControllerTest : LightPlatformTestCase() {
     controller.setUp()
 
     // Assert
-    orderVerifier.verify(view).addListener(any(ParametersBindingDialogView.Listener::class.java))
+    orderVerifier.verify(view).addListener(any<ParametersBindingDialogView.Listener>())
     orderVerifier
       .verify(view)
       .showNamedParameters(setOf(SqliteParameter(":barVal"), SqliteParameter(":bazVal")))

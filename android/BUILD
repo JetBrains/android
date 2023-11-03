@@ -506,7 +506,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.4.31",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.21",
-        "@maven//:org.mockito.mockito-core_4.8.0",
+        "@maven//:org.mockito.mockito-core_5.6.0",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
     # Do not change: this target is explicitly marked private to subpackages to avoid bloat.
