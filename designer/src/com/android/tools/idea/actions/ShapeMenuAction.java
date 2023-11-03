@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.configurations;
+package com.android.tools.idea.actions;
 
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.configurations.AdaptiveIconShape;
 import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationAction;
+import com.android.tools.idea.configurations.ConfigurationHolder;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.adaptiveicon;
 
+import com.android.tools.idea.actions.SystemUiModeAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.SystemUiModeAction;
-import com.android.tools.idea.configurations.ShapeMenuAction;
-import com.android.tools.idea.configurations.ThemeMenuAction;
+import com.android.tools.idea.actions.ShapeMenuAction;
+import com.android.tools.idea.actions.ThemeMenuAction;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;

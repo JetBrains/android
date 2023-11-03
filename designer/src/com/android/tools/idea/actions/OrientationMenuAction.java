@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.configurations;
+package com.android.tools.idea.actions;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.resources.configuration.DeviceConfigHelper;
@@ -25,6 +25,9 @@ import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationProjectState;
+import com.android.tools.idea.configurations.ConfigurationAction;
+import com.android.tools.idea.configurations.ConfigurationHolder;
+import com.android.tools.idea.configurations.ConfigurationMatcher;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;

@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.configurations;
+package com.android.tools.idea.actions;
 
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationHolder;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DataContext;

@@ -44,5 +44,6 @@
     <orderEntry type="module" module-name="android.sdktools.lint-api" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.android.rendering" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
   </component>
 </module>

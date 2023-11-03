@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.configurations
+package com.android.tools.idea.actions
 
 import com.android.sdklib.devices.Device
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationModelModule
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.configurations.AdditionalDeviceService
+import com.android.tools.idea.configurations.ConfigurationHolder
+import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.configurations.StudioConfigurationModelModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.registerServiceInstance
@@ -40,19 +43,18 @@ import org.mockito.Mockito
 
 class DeviceMenuActionTest {
 
-  @JvmField
-  @Rule
-  val appRule = ApplicationRule()
+  @JvmField @Rule val appRule = ApplicationRule()
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
+  @JvmField @Rule val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication().registerServiceInstance(AdditionalDeviceService::class.java,
-                                                                AdditionalDeviceService(),
-                                                                projectRule.testRootDisposable)
+    ApplicationManager.getApplication()
+      .registerServiceInstance(
+        AdditionalDeviceService::class.java,
+        AdditionalDeviceService(),
+        projectRule.testRootDisposable
+      )
     // Initial the window size devices, which is lazy.
     AdditionalDeviceService.getInstance()!!.getWindowSizeDevices()
   }
@@ -69,8 +71,9 @@ class DeviceMenuActionTest {
 
   @Test
   fun testAction() {
-    testActions(getReferenceDevicesExpected() +
-                """Phones
+    testActions(
+      getReferenceDevicesExpected() +
+        """Phones
         Pixel 8 (411 × 914 dp, 420dpi)
         Pixel 8 Pro (448 × 997 dp, xxhdpi)
         Pixel 7 (411 × 914 dp, 420dpi)
@@ -150,24 +153,40 @@ class DeviceMenuActionTest {
         10.1" WXGA (Tablet) (1280 × 800 dp, mdpi)
         13.5" Freeform (1707 × 960 dp, hdpi)
     Add Device Definition
-""")
+"""
+    )
   }
 
   private fun testActions(expected: String) {
     val configuration = Mockito.mock(Configuration::class.java)
-    val configurationModelModule: ConfigurationModelModule = StudioConfigurationModelModule(projectRule.projectRule.module)
-    whenever(configuration.settings).thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
+    val configurationModelModule: ConfigurationModelModule =
+      StudioConfigurationModelModule(projectRule.projectRule.module)
+    whenever(configuration.settings)
+      .thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
     whenever(configuration.configModule).thenReturn(configurationModelModule)
     val holder = ConfigurationHolder { configuration }
-    val menuAction = DeviceMenuAction(holder, object : DeviceChangeListener {
-      override fun onDeviceChanged(oldDevice: Device?, newDevice: Device?) {}
-    })
+    val menuAction =
+      DeviceMenuAction(
+        holder,
+        object : DeviceChangeListener {
+          override fun onDeviceChanged(oldDevice: Device?, newDevice: Device?) {}
+        }
+      )
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
     val presentationFactory = PresentationFactory()
     val actual = runInEdtAndGet {
       @Suppress("UnstableApiUsage")
-      Utils.expandActionGroup(menuAction, presentationFactory, DataContext.EMPTY_CONTEXT, ActionPlaces.TOOLBAR)
-      prettyPrintActions(menuAction, { action: AnAction -> !isAvdAction(action) }, presentationFactory)
+      Utils.expandActionGroup(
+        menuAction,
+        presentationFactory,
+        DataContext.EMPTY_CONTEXT,
+        ActionPlaces.TOOLBAR
+      )
+      prettyPrintActions(
+        menuAction,
+        { action: AnAction -> !isAvdAction(action) },
+        presentationFactory
+      )
     }
 
     Truth.assertThat(actual).isEqualTo(expected)

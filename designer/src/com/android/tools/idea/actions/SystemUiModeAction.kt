@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.configurations
+package com.android.tools.idea.actions
 
 import com.android.resources.NightMode
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.selectionBackground
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.Wallpaper
+import com.android.tools.idea.configurations.ConfigurationAction
+import com.android.tools.idea.configurations.ConfigurationHolder
 import com.intellij.ide.ui.laf.darcula.ui.DarculaMenuSeparatorUI
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
@@ -45,7 +47,6 @@ import com.intellij.util.ui.JBValue
 import com.intellij.util.ui.LafIconLookup.getIcon
 import com.intellij.util.ui.LafIconLookup.getSelectedIcon
 import icons.StudioIcons
-import org.jetbrains.annotations.TestOnly
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -57,6 +58,7 @@ import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
 import javax.swing.SwingConstants
 import javax.swing.plaf.basic.BasicMenuItemUI
+import org.jetbrains.annotations.TestOnly
 
 private const val POPUP_VERTICAL_BORDER = 6
 private const val TITLE_VERTICAL_BORDER = 2
@@ -64,49 +66,55 @@ private const val WALLPAPER_ICON_SEPARATION = 2
 private const val WALLPAPER_ICON_PADDING = 2
 private const val ICON_SIZE = 24
 private val sideBorderWidth = JBValue.UIInteger("PopupMenuSeparator.withToEdge", 1)
-private val separatorUI = object : DarculaMenuSeparatorUI(){
-  override fun getPreferredSize(c: JComponent?): Dimension {
-    return Dimension(0, JBValue.UIInteger("PopupMenuSeparator.height", 3).get())
+private val separatorUI =
+  object : DarculaMenuSeparatorUI() {
+    override fun getPreferredSize(c: JComponent?): Dimension {
+      return Dimension(0, JBValue.UIInteger("PopupMenuSeparator.height", 3).get())
+    }
+
+    override fun getStripeIndent(): Int {
+      return JBValue.UIInteger("PopupMenuSeparator.stripeIndent", 1).get()
+    }
+
+    override fun getStripeWidth(): Int {
+      return JBValue.UIInteger("PopupMenuSeparator.stripeWidth", 1).get()
+    }
+
+    override fun getWithToEdge(): Int {
+      return sideBorderWidth.get()
+    }
   }
 
-  override fun getStripeIndent(): Int {
-    return JBValue.UIInteger("PopupMenuSeparator.stripeIndent", 1).get()
-  }
-
-  override fun getStripeWidth(): Int {
-    return JBValue.UIInteger("PopupMenuSeparator.stripeWidth", 1).get()
-  }
-
-  override fun getWithToEdge(): Int {
-    return sideBorderWidth.get()
-  }
-}
-
-class SystemUiModeAction(private val renderContext: ConfigurationHolder)
-  : DropDownAction("System UI Mode", "System UI Mode", StudioIcons.DeviceConfiguration.NIGHT_MODE) {
+class SystemUiModeAction(private val renderContext: ConfigurationHolder) :
+  DropDownAction("System UI Mode", "System UI Mode", StudioIcons.DeviceConfiguration.NIGHT_MODE) {
 
   override fun actionPerformed(event: AnActionEvent) {
-    val button = event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) as? ActionButton ?: return
-    val menu = JPopupMenu().apply {
-      isLightWeightPopupEnabled = false
-      isOpaque = false
-      border = JBUI.Borders.empty(POPUP_VERTICAL_BORDER, 0)
-    }
+    val button =
+      event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) as? ActionButton
+        ?: return
+    val menu =
+      JPopupMenu().apply {
+        isLightWeightPopupEnabled = false
+        isOpaque = false
+        border = JBUI.Borders.empty(POPUP_VERTICAL_BORDER, 0)
+      }
     menu.layout = GridBagLayout()
     val numWallpapers = enumValues<Wallpaper>().size
-    val gbc = GridBagConstraints().apply {
-      fill = GridBagConstraints.HORIZONTAL
-      gridx = 0
-      gridy = 0
-      gridwidth = numWallpapers + 1
-    }
+    val gbc =
+      GridBagConstraints().apply {
+        fill = GridBagConstraints.HORIZONTAL
+        gridx = 0
+        gridy = 0
+        gridwidth = numWallpapers + 1
+      }
 
     val modeTitle = TitleItem("Mode")
     menu.add(modeTitle, gbc)
 
     renderContext.configuration?.nightMode.let { currentNightMode ->
       enumValues<NightMode>().forEach { mode ->
-        val action = SetNightModeAction(renderContext, mode.shortDisplayValue, mode, mode == currentNightMode)
+        val action =
+          SetNightModeAction(renderContext, mode.shortDisplayValue, mode, mode == currentNightMode)
         val item = ActionItem(action, event.dataContext)
         gbc.gridy += 1
         menu.add(item, gbc)
@@ -114,9 +122,7 @@ class SystemUiModeAction(private val renderContext: ConfigurationHolder)
     }
 
     gbc.gridy += 1
-    val separator = JPopupMenu.Separator().apply {
-      setUI(separatorUI)
-    }
+    val separator = JPopupMenu.Separator().apply { setUI(separatorUI) }
     menu.add(separator, gbc)
 
     val wallpaperTitle = TitleItem("Dynamic Color")
@@ -132,18 +138,23 @@ class SystemUiModeAction(private val renderContext: ConfigurationHolder)
       ipady = wallpaperPadding
     }
     renderContext.configuration?.let {
-      val wallpapers = mutableListOf<Wallpaper?>().apply {
-        addAll(enumValues<Wallpaper>())
-        add(null)
-      }
+      val wallpapers =
+        mutableListOf<Wallpaper?>().apply {
+          addAll(enumValues<Wallpaper>())
+          add(null)
+        }
       val currentWallpaper = wallpaperFromPath(it.wallpaperPath)
       wallpapers.forEachIndexed { index, wallpaper ->
-        val menuItem = SetWallpaperAction(renderContext, wallpaper).toMenuItem(event, currentWallpaper == wallpaper)
-        gbc.insets = when (index) {
-          0 -> JBUI.insets(4, sideBorderWidth.unscaled.toInt(), 0, 0)
-          numWallpapers -> JBUI.insets(4, WALLPAPER_ICON_SEPARATION, 0, sideBorderWidth.unscaled.toInt())
-          else -> JBUI.insets(4, WALLPAPER_ICON_SEPARATION, 0, 0)
-        }
+        val menuItem =
+          SetWallpaperAction(renderContext, wallpaper)
+            .toMenuItem(event, currentWallpaper == wallpaper)
+        gbc.insets =
+          when (index) {
+            0 -> JBUI.insets(4, sideBorderWidth.unscaled.toInt(), 0, 0)
+            numWallpapers ->
+              JBUI.insets(4, WALLPAPER_ICON_SEPARATION, 0, sideBorderWidth.unscaled.toInt())
+            else -> JBUI.insets(4, WALLPAPER_ICON_SEPARATION, 0, 0)
+          }
         menu.add(menuItem, gbc)
         gbc.gridx += 1
       }
@@ -170,14 +181,17 @@ class SystemUiModeAction(private val renderContext: ConfigurationHolder)
     renderContext.configuration?.let {
       val currentNightMode = it.nightMode
       enumValues<NightMode>().forEach { mode ->
-        actions.add(SetNightModeAction(renderContext, mode.shortDisplayValue, mode, mode == currentNightMode))
+        actions.add(
+          SetNightModeAction(renderContext, mode.shortDisplayValue, mode, mode == currentNightMode)
+        )
       }
     }
     return actions
   }
 }
 
-private class ActionItem(action: AnAction, dataContext: DataContext) : JBMenuItem(action.templateText) {
+private class ActionItem(action: AnAction, dataContext: DataContext) :
+  JBMenuItem(action.templateText) {
   init {
     if (Toggleable.isSelected(action.templatePresentation)) {
       var checkmark = getIcon("checkmark")
@@ -188,8 +202,7 @@ private class ActionItem(action: AnAction, dataContext: DataContext) : JBMenuIte
       }
       icon = checkmark
       selectedIcon = selectedCheckmark
-    }
-    else {
+    } else {
       icon = EmptyIcon.ICON_16
       selectedIcon = EmptyIcon.ICON_16
     }
@@ -198,7 +211,12 @@ private class ActionItem(action: AnAction, dataContext: DataContext) : JBMenuIte
     border = JBUI.Borders.empty(2, sideBorderWidth.unscaled.toInt())
 
     addActionListener {
-      val anEvent = AnActionEvent.createFromDataContext(ActionPlaces.POPUP, action.templatePresentation, dataContext)
+      val anEvent =
+        AnActionEvent.createFromDataContext(
+          ActionPlaces.POPUP,
+          action.templatePresentation,
+          dataContext
+        )
       action.actionPerformed(anEvent)
     }
   }
@@ -215,7 +233,8 @@ private class ActionItem(action: AnAction, dataContext: DataContext) : JBMenuIte
   }
 
   private fun shouldConvertIconToDarkVariant(): Boolean {
-    return JBColor.isBright() && ColorUtil.isDark(JBColor.namedColor("MenuItem.background", 0xffffff))
+    return JBColor.isBright() &&
+      ColorUtil.isDark(JBColor.namedColor("MenuItem.background", 0xffffff))
   }
 }
 
@@ -255,7 +274,8 @@ private class ItemUI : BasicMenuItemUI() {
   }
 }
 
-private class SetWallpaperAction(renderContext: ConfigurationHolder, val wallpaper: Wallpaper?) : ConfigurationAction(renderContext) {
+private class SetWallpaperAction(renderContext: ConfigurationHolder, val wallpaper: Wallpaper?) :
+  ConfigurationAction(renderContext) {
 
   override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
     configuration.setWallpaper(wallpaper)
@@ -264,16 +284,22 @@ private class SetWallpaperAction(renderContext: ConfigurationHolder, val wallpap
   @Suppress("UnstableApiUsage")
   fun toMenuItem(event: AnActionEvent, isSelected: Boolean): JMenuItem {
     val scaledIconSize = JBUIScale.scale(ICON_SIZE)
-    val scaledWallpaperIcon = wallpaper?.let {
-      RoundedIcon(IconUtil.cropIcon(it.icon, scaledIconSize, scaledIconSize), 0.1)
-    } ?: getNullWallpaperIcon(scaledIconSize)
-    val action = object : AbstractAction(null, scaledWallpaperIcon) {
-      override fun actionPerformed(e: ActionEvent) {
-        val actionEvent = AnActionEvent.createFromDataContext(ActionPlaces.POPUP, this@SetWallpaperAction.templatePresentation,
-                                                              event.dataContext)
-        this@SetWallpaperAction.actionPerformed(actionEvent)
+    val scaledWallpaperIcon =
+      wallpaper?.let {
+        RoundedIcon(IconUtil.cropIcon(it.icon, scaledIconSize, scaledIconSize), 0.1)
+      } ?: getNullWallpaperIcon(scaledIconSize)
+    val action =
+      object : AbstractAction(null, scaledWallpaperIcon) {
+        override fun actionPerformed(e: ActionEvent) {
+          val actionEvent =
+            AnActionEvent.createFromDataContext(
+              ActionPlaces.POPUP,
+              this@SetWallpaperAction.templatePresentation,
+              event.dataContext
+            )
+          this@SetWallpaperAction.actionPerformed(actionEvent)
+        }
       }
-    }
     return WallpaperItem(action, isSelected)
   }
 }
@@ -286,12 +312,13 @@ private enum class WallpaperIcon(val icon: Icon) {
 }
 
 private val Wallpaper.icon: Icon
-  get() = when(this) {
-    Wallpaper.RED -> WallpaperIcon.RED
-    Wallpaper.GREEN -> WallpaperIcon.GREEN
-    Wallpaper.BLUE -> WallpaperIcon.BLUE
-    Wallpaper.YELLOW -> WallpaperIcon.YELLOW
-  }.icon
+  get() =
+    when (this) {
+      Wallpaper.RED -> WallpaperIcon.RED
+      Wallpaper.GREEN -> WallpaperIcon.GREEN
+      Wallpaper.BLUE -> WallpaperIcon.BLUE
+      Wallpaper.YELLOW -> WallpaperIcon.YELLOW
+    }.icon
 
 private fun wallpaperFromPath(path: String?): Wallpaper? {
   if (path == null) {
@@ -304,14 +331,19 @@ private fun getWallpaperIcon(path: String): Icon {
   return IconLoader.getIcon(path, Wallpaper::class.java)
 }
 
-private fun getNullWallpaperIcon(scaledIconSize: Int) = LayeredIcon(2).apply {
-  setIcon(ColorIcon(scaledIconSize, JBUI.CurrentTheme.ActionButton.hoverBackground()), 0)
-  val icon = StudioIcons.Common.CLEAR
-  setIcon(icon, 1, (scaledIconSize - icon.iconWidth) / 2, (scaledIconSize - icon.iconHeight) / 2)
-}
+private fun getNullWallpaperIcon(scaledIconSize: Int) =
+  LayeredIcon(2).apply {
+    setIcon(ColorIcon(scaledIconSize, JBUI.CurrentTheme.ActionButton.hoverBackground()), 0)
+    val icon = StudioIcons.Common.CLEAR
+    setIcon(icon, 1, (scaledIconSize - icon.iconWidth) / 2, (scaledIconSize - icon.iconHeight) / 2)
+  }
 
-private class SetNightModeAction(renderContext: ConfigurationHolder, title: String, private val nightMode: NightMode, checked: Boolean)
-  : ConfigurationAction(renderContext, title) {
+private class SetNightModeAction(
+  renderContext: ConfigurationHolder,
+  title: String,
+  private val nightMode: NightMode,
+  checked: Boolean
+) : ConfigurationAction(renderContext, title) {
 
   init {
     templatePresentation.putClientProperty(SELECTED_PROPERTY, checked)

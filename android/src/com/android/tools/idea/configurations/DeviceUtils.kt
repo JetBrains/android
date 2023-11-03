@@ -198,12 +198,6 @@ fun isUseWearDeviceAsDefault(configuration: Configuration): Boolean {
   return isUseWearDeviceAsDefault(module)
 }
 
-/**
- * Convert px to dp.
- * The formula is "px = dp * (dpi / 160)"
- */
-internal fun Int.toDp(density: Density): Double = (this.toDouble() * 160 / density.dpiValue)
-
 const val DEVICE_CLASS_PHONE_TOOLTIP = "This reference device uses the COMPACT width size class," +
                                        " which represents 99% of Android phones in portrait orientation."
 const val DEVICE_CLASS_FOLDABLE_TOOLTIP = "This reference device uses the MEDIUM width size class," +

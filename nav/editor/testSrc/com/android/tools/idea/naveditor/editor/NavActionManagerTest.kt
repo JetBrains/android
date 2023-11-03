@@ -27,7 +27,7 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.actions.GotoComponentAction
 import com.android.tools.idea.common.util.NlTreeDumper
-import com.android.tools.idea.configurations.OrientationMenuAction
+import com.android.tools.idea.actions.OrientationMenuAction
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.actions.ActivateComponentAction

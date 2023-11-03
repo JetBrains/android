@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.configurations;
+package com.android.tools.idea.actions;
 
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
@@ -22,6 +22,10 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationModelModule;
+import com.android.tools.idea.configurations.ConfigurationAction;
+import com.android.tools.idea.configurations.ConfigurationHolder;
+import com.android.tools.idea.configurations.ConfigurationMatcher;
+import com.android.tools.idea.configurations.StudioConfigurationModelModule;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.StudioRenderServiceKt;

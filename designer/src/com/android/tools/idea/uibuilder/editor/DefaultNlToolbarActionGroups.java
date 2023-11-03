@@ -17,7 +17,9 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.ColorBlindModeAction;
+import com.android.tools.idea.actions.DeviceMenuAction;
 import com.android.tools.idea.actions.SetScreenViewProviderAction;
+import com.android.tools.idea.actions.SystemUiModeAction;
 import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.common.actions.NextDeviceAction;
 import com.android.tools.idea.common.actions.RefreshRenderAction;
@@ -26,12 +28,10 @@ import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.DeviceMenuAction;
-import com.android.tools.idea.configurations.LocaleMenuAction;
-import com.android.tools.idea.configurations.OrientationMenuAction;
-import com.android.tools.idea.configurations.SystemUiModeAction;
-import com.android.tools.idea.configurations.TargetMenuAction;
-import com.android.tools.idea.configurations.ThemeMenuAction;
+import com.android.tools.idea.actions.LocaleMenuAction;
+import com.android.tools.idea.actions.OrientationMenuAction;
+import com.android.tools.idea.actions.TargetMenuAction;
+import com.android.tools.idea.actions.ThemeMenuAction;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.android.tools.idea.ui.designer.overlays.OverlayMenuAction;
 import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
@@ -48,7 +48,6 @@ import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.List;
-import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 /**

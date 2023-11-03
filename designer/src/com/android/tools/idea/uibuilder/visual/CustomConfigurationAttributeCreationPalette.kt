@@ -25,12 +25,12 @@ import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
+import com.android.tools.idea.actions.createFilter
+import com.android.tools.idea.actions.getFrameworkThemeNames
+import com.android.tools.idea.actions.getProjectThemeNames
+import com.android.tools.idea.actions.getRecommendedThemeNames
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
-import com.android.tools.idea.configurations.createFilter
-import com.android.tools.idea.configurations.getFrameworkThemeNames
-import com.android.tools.idea.configurations.getProjectThemeNames
-import com.android.tools.idea.configurations.getRecommendedThemeNames
 import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.editors.theme.ThemeResolver
 import com.intellij.psi.PsiFile

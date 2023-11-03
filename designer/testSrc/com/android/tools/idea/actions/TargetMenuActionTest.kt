@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.configurations
+package com.android.tools.idea.actions
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.sdklib.AndroidVersion
@@ -21,7 +21,9 @@ import com.android.sdklib.IAndroidTarget
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
-import com.android.tools.idea.configurations.TargetMenuAction.SetTargetAction
+import com.android.tools.idea.actions.TargetMenuAction.SetTargetAction
+import com.android.tools.idea.configurations.ConfigurationForFile
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
@@ -42,7 +44,8 @@ class TargetMenuActionTest : AndroidTestCase() {
     val menuAction = TargetMenuAction { config }
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
 
-    val expected = """30
+    val expected =
+      """30
     ✔ Automatically Pick Best
     ------------------------------------------------------
     33
@@ -74,7 +77,8 @@ class TargetMenuActionTest : AndroidTestCase() {
   }
 
   fun testNotSelectAutomaticallyPickupActionWhenSelectOtherTarget() {
-    // When switching the selected action from "Automatically Pick Best" to specified target, the "Automatically Pick Best" action should
+    // When switching the selected action from "Automatically Pick Best" to specified target, the
+    // "Automatically Pick Best" action should
     // not be marked as selected.
 
     val file = runInEdtAndGet { myFixture.addFileToProject("res/layout/layout.xml", "") }
@@ -87,7 +91,7 @@ class TargetMenuActionTest : AndroidTestCase() {
 
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
     menuAction.getChildren(null).let { children ->
-      val presentation =  Presentation()
+      val presentation = Presentation()
       children[0].update(TestActionEvent.createTestToolbarEvent(presentation))
       assertTrue(Toggleable.isSelected(presentation))
       for (child in children.drop(2)) {
@@ -100,7 +104,7 @@ class TargetMenuActionTest : AndroidTestCase() {
 
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
     menuAction.getChildren(null).let { children ->
-      val presentation =  Presentation()
+      val presentation = Presentation()
       // Automatically pick best should not be selected
       children[0].update(TestActionEvent.createTestToolbarEvent(presentation))
       assertFalse(Toggleable.isSelected(presentation))
@@ -119,7 +123,7 @@ class TargetMenuActionTest : AndroidTestCase() {
 
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
     menuAction.getChildren(null).let { children ->
-      val presentation =  Presentation()
+      val presentation = Presentation()
       // Automatically pick best should be selected
       children[0].update(TestActionEvent.createTestToolbarEvent(presentation))
       assertTrue(Toggleable.isSelected(presentation))
@@ -136,15 +140,17 @@ class TargetMenuActionTest : AndroidTestCase() {
     val spied = spy(manager)
 
     val highestApi = createApiTarget(30, 0)
-    val targets = arrayOf(createApiTarget(28),
-                          createApiTarget(29),
-                          highestApi,
-                          createApiTarget(31),
-                          createApiTarget(32),
-                          createApiTarget(33),
-                          createApiTarget(33, 1),
-                          createApiTarget(33, 2)
-    )
+    val targets =
+      arrayOf(
+        createApiTarget(28),
+        createApiTarget(29),
+        highestApi,
+        createApiTarget(31),
+        createApiTarget(32),
+        createApiTarget(33),
+        createApiTarget(33, 1),
+        createApiTarget(33, 2)
+      )
 
     doReturn(targets).whenever(spied).targets
     doReturn(highestApi).whenever(spied).highestApiTarget
@@ -160,4 +166,3 @@ class TargetMenuActionTest : AndroidTestCase() {
     return target
   }
 }
-

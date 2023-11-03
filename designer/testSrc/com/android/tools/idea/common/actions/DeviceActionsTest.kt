@@ -17,11 +17,11 @@ package com.android.tools.idea.common.actions
 
 import com.android.sdklib.devices.Device
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.actions.DeviceChangeListener
+import com.android.tools.idea.actions.DeviceMenuAction
+import com.android.tools.idea.actions.SetDeviceAction
 import com.android.tools.idea.common.surface.TestDesignSurface
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.configurations.DeviceChangeListener
-import com.android.tools.idea.configurations.DeviceMenuAction
-import com.android.tools.idea.configurations.SetDeviceAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.actionSystem.ActionGroup

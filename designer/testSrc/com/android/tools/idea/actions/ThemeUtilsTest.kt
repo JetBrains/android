@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.configurations
+package com.android.tools.idea.actions
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.configurations.ThemeStyleFilter
 import com.android.tools.idea.editors.theme.ThemeResolver
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
@@ -71,7 +73,6 @@ class ThemeUtilsTest : AndroidTestCase() {
     assertEquals("@style/Theme1", recentUsedThemes5[0])
     assertEquals("@style/Theme3", recentUsedThemes5[1])
 
-
     // Check the maximum size of recentUsedThemes is same as ThemeUtils.MAX_RECENTLY_USED_THEMES.
     // And the other older themes should be dropped.
     for (i in 0..4) {
@@ -87,12 +88,17 @@ class ThemeUtilsTest : AndroidTestCase() {
 
   fun testGetFrameworkThemesWithFilter() {
     val layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml")
-    val configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
+    val configuration =
+      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
     val themeResolver = ThemeResolver(configuration)
     val reference = ResourceReference.style(ResourceNamespace.ANDROID, "Theme.Black")
     val style = configuration.resourceResolver.getStyle(reference)!!
-    val filter: ThemeStyleFilter = createFilter(themeResolver, emptySet(), *Array(1) {style})
+    val filter: ThemeStyleFilter = createFilter(themeResolver, emptySet(), *Array(1) { style })
     val themes = getFrameworkThemeNames(themeResolver, filter)
-    assertThat(themes).containsExactly("android:Theme.Black.NoTitleBar", "android:Theme.Black.NoTitleBar.Fullscreen")
+    assertThat(themes)
+      .containsExactly(
+        "android:Theme.Black.NoTitleBar",
+        "android:Theme.Black.NoTitleBar.Fullscreen"
+      )
   }
 }

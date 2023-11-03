@@ -23,7 +23,7 @@ import com.android.tools.idea.common.actions.GotoComponentAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.configurations.ConfigurationHolder
-import com.android.tools.idea.configurations.OrientationMenuAction
+import com.android.tools.idea.actions.OrientationMenuAction
 import com.android.tools.idea.naveditor.actions.ActivateComponentAction
 import com.android.tools.idea.naveditor.actions.ActivateSelectionAction
 import com.android.tools.idea.naveditor.actions.AddActionToolbarAction

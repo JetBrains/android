@@ -18,8 +18,8 @@ package com.android.tools.idea.common.actions
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.DesignerActions
+import com.android.tools.idea.actions.DeviceMenuAction
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.configurations.DeviceMenuAction
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.isActionSupported
