@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.flags.ifEnabled
 import com.android.tools.idea.actions.ColorBlindModeAction
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
@@ -73,8 +74,7 @@ import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
 import org.jetbrains.annotations.TestOnly
 
 /** [ToolbarActionGroups] that includes the actions that can be applied to Compose Previews. */
-private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
-  ToolbarActionGroups(surface) {
+private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGroups(surface) {
 
   override fun getNorthGroup(): ActionGroup = ComposePreviewNorthGroup()
 
@@ -136,21 +136,19 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
 
     override fun update(e: AnActionEvent) {
       super.update(e)
-      isEssentialsModeSelected = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+      if (isEssentialsModeSelected != ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) {
+        isEssentialsModeSelected = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+        if (isEssentialsModeSelected) {
+          (e.getData(DESIGN_SURFACE)?.sceneViewLayoutManager as? LayoutManagerSwitcher)
+            ?.setLayoutManager(
+              PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager,
+              PREVIEW_LAYOUT_GALLERY_OPTION.sceneViewAlignment
+            )
+        }
+      }
     }
 
     private var isEssentialsModeSelected: Boolean = false
-      set(value) {
-        if (value == field) return
-        field = value
-        if (!value) return
-        // Gallery mode should be selected when Essentials mode is enabled.
-        // In that case need to select this option in toolbar.
-        (surface.sceneViewLayoutManager as? LayoutManagerSwitcher)?.setLayoutManager(
-          PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager,
-          PREVIEW_LAYOUT_GALLERY_OPTION.sceneViewAlignment
-        )
-      }
   }
 
   override fun getNorthEastGroup(): ActionGroup = ComposeNotificationGroup(this)
