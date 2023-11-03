@@ -66,7 +66,30 @@ class DaggerIndexParameterWrapperTest {
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("arg")
-    assertThat(wrapper.getType().getSimpleName()).isEqualTo("Bat")
+    assertThat(wrapper.getType()?.getSimpleName()).isEqualTo("Bat")
+  }
+
+  @Test
+  fun kotlinParameterWithoutType() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+      package com.example
+
+      class Foo {
+        fun bar(arg): Baz {}
+      }
+      """
+          .trimIndent()
+      ) as KtFile
+
+    val element: KtParameter = myFixture.findParentElement("a|rg")
+    val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
+
+    assertThat(wrapper.getSimpleName()).isEqualTo("arg")
+    assertThat(wrapper.getType()).isNull()
   }
 
   @Test
@@ -89,6 +112,6 @@ class DaggerIndexParameterWrapperTest {
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("arg")
-    assertThat(wrapper.getType().getSimpleName()).isEqualTo("Bat")
+    assertThat(wrapper.getType()?.getSimpleName()).isEqualTo("Bat")
   }
 }

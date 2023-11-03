@@ -46,7 +46,7 @@ class DaggerIndex : FileBasedIndexExtension<String, Set<IndexValue>>() {
 
   override fun dependsOnFileContent() = true
 
-  override fun getVersion() = 1
+  override fun getVersion() = 2
 
   override fun getInputFilter(): FileBasedIndex.InputFilter = DaggerIndexInputFilter
 

@@ -93,7 +93,7 @@ private object ProvidesMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodWra
     )
 
     for (parameter in wrapper.getParameters()) {
-      val parameterSimpleTypeName = parameter.getType().getSimpleName() ?: ""
+      val parameterSimpleTypeName = parameter.getType()?.getSimpleName() ?: ""
       val parameterName = parameter.getSimpleName()
       indexEntries.addIndexValue(
         parameterSimpleTypeName,

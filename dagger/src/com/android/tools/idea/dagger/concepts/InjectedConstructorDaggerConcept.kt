@@ -74,7 +74,7 @@ private object InjectedConstructorIndexer : DaggerConceptIndexer<DaggerIndexMeth
     indexEntries.addIndexValue(classId.asFqNameString(), InjectedConstructorIndexValue(classId))
 
     for (parameter in wrapper.getParameters()) {
-      val parameterSimpleTypeName = parameter.getType().getSimpleName()
+      val parameterSimpleTypeName = parameter.getType()?.getSimpleName()
       val parameterName = parameter.getSimpleName()
       indexEntries.addIndexValue(
         parameterSimpleTypeName ?: "",

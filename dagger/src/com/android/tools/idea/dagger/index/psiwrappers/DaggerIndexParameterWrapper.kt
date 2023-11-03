@@ -23,7 +23,7 @@ interface DaggerIndexParameterWrapper : DaggerIndexAnnotatedWrapper {
   /** Simple name of the parameter. Eg: "someParameterName" */
   fun getSimpleName(): String
 
-  fun getType(): DaggerIndexTypeWrapper
+  fun getType(): DaggerIndexTypeWrapper?
 }
 
 internal class KtParameterWrapper(
@@ -32,8 +32,10 @@ internal class KtParameterWrapper(
 ) : DaggerIndexAnnotatedKotlinWrapper(ktParameter, importHelper), DaggerIndexParameterWrapper {
   override fun getSimpleName(): String = ktParameter.name!!
 
-  override fun getType(): DaggerIndexTypeWrapper =
-    KtTypeReferenceWrapper(ktParameter.typeReference!!, importHelper)
+  override fun getType(): DaggerIndexTypeWrapper? {
+    val typeReference = ktParameter.typeReference ?: return null
+    return KtTypeReferenceWrapper(typeReference, importHelper)
+  }
 }
 
 internal class PsiParameterWrapper(
