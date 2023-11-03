@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.DumbAwareAction
+import icons.StudioIcons
 import java.awt.Component
 import java.awt.event.MouseEvent
 import javax.swing.Icon
@@ -90,7 +91,7 @@ abstract class UiConfigAction(
 class VerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
   UiConfigAction(
     LayoutInspectorBundle.message("split.vertical"),
-    AllIcons.Actions.SplitVertically,
+    StudioIcons.LayoutInspector.Panel.VERTICAL_SPLIT,
     UiConfig.VERTICAL,
     currentConfig,
     updateUi
@@ -100,7 +101,7 @@ class VerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) ->
 class SwapVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
   UiConfigAction(
     @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("split.vertical.swap"),
-    AllIcons.Actions.SplitVertically,
+    StudioIcons.LayoutInspector.Panel.VERTICAL_SPLIT_SWAP,
     UiConfig.VERTICAL_SWAP,
     currentConfig,
     updateUi
@@ -110,7 +111,7 @@ class SwapVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig
 class HorizontalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
   UiConfigAction(
     LayoutInspectorBundle.message("split.horizontal"),
-    AllIcons.Actions.SplitHorizontally,
+    StudioIcons.LayoutInspector.Panel.BOTTOM,
     UiConfig.HORIZONTAL,
     currentConfig,
     updateUi
@@ -120,7 +121,7 @@ class HorizontalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) 
 class SwapHorizontalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
   UiConfigAction(
     @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("split.horizontal.swap"),
-    AllIcons.Actions.SplitHorizontally,
+    StudioIcons.LayoutInspector.Panel.BOTTOM_SWAP,
     UiConfig.HORIZONTAL_SWAP,
     currentConfig,
     updateUi
@@ -133,7 +134,7 @@ class SwapHorizontalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConf
 class LeftVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
   UiConfigAction(
     LayoutInspectorBundle.message("left.vertical"),
-    AllIcons.Actions.MoveToLeftTop,
+    StudioIcons.LayoutInspector.Panel.LEFT_VERTICAL,
     UiConfig.LEFT_VERTICAL,
     currentConfig,
     updateUi
@@ -146,7 +147,7 @@ class LeftVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig
 class SwapLeftVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
   UiConfigAction(
     @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("left.vertical.swap"),
-    AllIcons.Actions.MoveToLeftBottom,
+    StudioIcons.LayoutInspector.Panel.LEFT_VERTICAL_SWAP,
     UiConfig.LEFT_VERTICAL_SWAP,
     currentConfig,
     updateUi
@@ -159,7 +160,7 @@ class SwapLeftVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiCo
 class RightVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
   UiConfigAction(
     LayoutInspectorBundle.message("right.vertical"),
-    AllIcons.Actions.MoveToRightTop,
+    StudioIcons.LayoutInspector.Panel.RIGHT_VERTICAL,
     UiConfig.RIGHT_VERTICAL,
     currentConfig,
     updateUi
@@ -172,7 +173,7 @@ class RightVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfi
 class SwapRightVerticalSplitAction(currentConfig: () -> UiConfig, updateUi: (UiConfig) -> Unit) :
   UiConfigAction(
     @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("right.vertical.swap"),
-    AllIcons.Actions.MoveToRightBottom,
+    StudioIcons.LayoutInspector.Panel.RIGHT_VERTICAL_SWAP,
     UiConfig.RIGHT_VERTICAL_SWAP,
     currentConfig,
     updateUi
