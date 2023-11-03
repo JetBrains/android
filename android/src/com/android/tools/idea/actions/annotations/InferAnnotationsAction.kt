@@ -206,7 +206,7 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
           }
         }
 
-        override fun onFailure(t: Throwable?) {
+        override fun onFailure(t: Throwable) {
           throw RuntimeException(t)
         }
       },
