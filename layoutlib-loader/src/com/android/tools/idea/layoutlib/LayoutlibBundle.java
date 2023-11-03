@@ -17,11 +17,9 @@ package com.android.tools.idea.layoutlib;
 
 import static com.intellij.reference.SoftReference.dereference;
 
+import com.android.annotations.NonNull;
 import java.text.MessageFormat;
 import java.util.Locale;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.PropertyKey;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
@@ -31,7 +29,6 @@ import java.util.ResourceBundle;
  * Messages bundle.
  */
 public final class LayoutlibBundle {
-  @NonNls
   private static final String BUNDLE_NAME = "messages.LayoutlibBundle";
   private static Reference<ResourceBundle> ourBundle;
 
@@ -47,11 +44,11 @@ public final class LayoutlibBundle {
   private LayoutlibBundle() {
   }
 
-  public static String message(@NotNull @PropertyKey(resourceBundle = BUNDLE_NAME) String key, @NotNull Object... params) {
+  public static String message(@NonNull String key, @NonNull Object... params) {
     return readFromBundleAndFormat(getBundle(), key, params);
   }
 
-  private static String readFromBundleAndFormat(@NotNull ResourceBundle bundle, @NotNull String key, @NotNull Object... params) {
+  private static String readFromBundleAndFormat(@NonNull ResourceBundle bundle, @NonNull String key, @NonNull Object... params) {
     String rawValue = bundle.getString(key);
     Locale locale = bundle.getLocale();
     MessageFormat format = new MessageFormat(rawValue, locale);

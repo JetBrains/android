@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.layoutlib;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.rendering.api.DrawableParams;
 import com.android.ide.common.rendering.api.ILayoutLog;
@@ -28,8 +30,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Class to use the Layout library.
@@ -51,7 +51,7 @@ public class LayoutLibrary implements Disposable {
     /**
      * Returns the classloader used to load the classes in the layoutlib jar file.
      */
-    @NotNull
+    @NonNull
     public ClassLoader getClassLoader() {
         return mClassLoader;
     }
@@ -59,12 +59,12 @@ public class LayoutLibrary implements Disposable {
     /**
      * Returns a {@link LayoutLibrary} instance using the given {@link Bridge} and {@link ClassLoader}
      */
-    @NotNull
-    public static LayoutLibrary load(@NotNull Bridge bridge, @NotNull ClassLoader classLoader) {
+    @NonNull
+    public static LayoutLibrary load(@NonNull Bridge bridge, @NonNull ClassLoader classLoader) {
         return new LayoutLibrary(bridge, classLoader);
     }
 
-    private LayoutLibrary(@NotNull Bridge bridge, @NotNull ClassLoader classLoader) {
+    private LayoutLibrary(@NonNull Bridge bridge, @NonNull ClassLoader classLoader) {
         mBridge = bridge;
         mClassLoader = classLoader;
     }
@@ -84,12 +84,12 @@ public class LayoutLibrary implements Disposable {
      * @param log a {@link ILayoutLog} object. Can be null.
      * @return true if success.
      */
-    public boolean init(@NotNull Map<String, String> platformProperties,
-                        @NotNull File fontLocation,
-                        @NotNull String nativeLibDirPath,
-                        @NotNull String icuDataPath,
-                        @NotNull String[] keyboardPaths,
-                        @NotNull Map<String, Map<String, Integer>> enumValueMap,
+    public boolean init(@NonNull Map<String, String> platformProperties,
+                        @NonNull File fontLocation,
+                        @NonNull String nativeLibDirPath,
+                        @NonNull String icuDataPath,
+                        @NonNull String[] keyboardPaths,
+                        @NonNull Map<String, Map<String, Integer>> enumValueMap,
                         @Nullable ILayoutLog log) {
         return mBridge.init(platformProperties, fontLocation, nativeLibDirPath, icuDataPath, keyboardPaths, enumValueMap, log);
     }

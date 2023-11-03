@@ -17,6 +17,8 @@
 package com.android.tools.idea.layoutlib;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.sdklib.IAndroidTarget;
@@ -35,8 +37,6 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.WeakHashMap;
 import java.util.function.Supplier;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Loads a {@link LayoutLibrary}
@@ -49,8 +49,8 @@ public class LayoutLibraryLoader {
   private LayoutLibraryLoader() {
   }
 
-  @NotNull
-  private static LayoutLibrary loadImpl(@NotNull IAndroidTarget target, @NotNull Map<String, Map<String, Integer>> enumMap)
+  @NonNull
+  private static LayoutLibrary loadImpl(@NonNull IAndroidTarget target, @NonNull Map<String, Map<String, Integer>> enumMap)
     throws RenderingException {
     final Path fontFolderPath = (target.getPath(IAndroidTarget.FONTS));
     if (!Files.exists(fontFolderPath) || !Files.isDirectory(fontFolderPath)) {
@@ -87,12 +87,12 @@ public class LayoutLibraryLoader {
     return library;
   }
 
-  @NotNull
-  private static String getNativeLibraryPath(@NotNull String dataPath) {
+  @NonNull
+  private static String getNativeLibraryPath(@NonNull String dataPath) {
     return dataPath + "/" + getPlatformName() + "/lib64/";
   }
 
-  @NotNull
+  @NonNull
   private static String getPlatformName() {
     if (SystemInfo.isWindows) return "win";
     else if (SystemInfo.isMac) return CpuArch.isArm64() ? "mac-arm" : "mac";
@@ -103,11 +103,11 @@ public class LayoutLibraryLoader {
   /**
    * Loads and initializes layoutlib.
    */
-  @NotNull
+  @NonNull
   public static synchronized LayoutLibrary load(
-    @NotNull IAndroidTarget target,
-    @NotNull Map<String, Map<String, Integer>> enumMap,
-    @NotNull Supplier<Boolean> hasExternalCrash)
+    @NonNull IAndroidTarget target,
+    @NonNull Map<String, Map<String, Integer>> enumMap,
+    @NonNull Supplier<Boolean> hasExternalCrash)
     throws RenderingException {
     if (Bridge.hasNativeCrash()) {
       throw new RenderingException("Rendering disabled following a crash");
@@ -126,7 +126,7 @@ public class LayoutLibraryLoader {
     return library;
   }
 
-  @NotNull
+  @NonNull
   public static Optional<LayoutLibraryProvider> getLayoutLibraryProvider() {
     return ServiceLoader.load(LayoutLibraryProvider.class, LayoutLibraryProvider.class.getClassLoader()).findFirst();
   }

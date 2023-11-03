@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutlib;
 
+import com.android.annotations.NonNull;
 import com.android.io.IAbstractFile;
 import com.android.io.StreamException;
 import com.google.common.base.MoreObjects;
@@ -25,12 +26,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import org.jetbrains.annotations.NotNull;
 
 class BufferingFileWrapper implements IAbstractFile {
   private final File myFile;
 
-  public BufferingFileWrapper(@NotNull File file) {
+  public BufferingFileWrapper(@NonNull File file) {
     myFile = file;
   }
 
@@ -59,7 +59,7 @@ class BufferingFileWrapper implements IAbstractFile {
     }
   }
 
-  @NotNull
+  @NonNull
   public File getFile() {
     return myFile;
   }
