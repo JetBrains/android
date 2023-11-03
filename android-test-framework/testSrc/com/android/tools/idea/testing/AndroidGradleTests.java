@@ -634,15 +634,13 @@ public class AndroidGradleTests {
 
     IdeSdks ideSdks = IdeSdks.getInstance();
     runWriteCommandAction(project, () -> {
-      Sdk jdk = null;
-      if (!ideSdks.isUsingEnvVariableJdk()) {
-        Path jdkPath = IdeInfo.getInstance().isAndroidStudio()
-                       ? ideSdks.getEmbeddedJdkPath()
-                       : TestUtils.getEmbeddedJdk17Path();
-        jdk = ideSdks.setJdkPath(jdkPath);
+      if (IdeInfo.getInstance().isAndroidStudio()) {
+        if (!ideSdks.isUsingEnvVariableJdk()) {
+          ideSdks.setUseEmbeddedJdk();
+          applyJdkToProject(project, ideSdks.getJdk());
+        }
+        LOG.info("Set JDK to " + ideSdks.getJdkPath());
       }
-      applyJdkToProject(project, ideSdks.getJdk());
-      LOG.info("Set JDK to " + ideSdks.getJdkPath());
 
       Sdks.allowAccessToSdk(projectDisposable);
 
@@ -650,7 +648,7 @@ public class AndroidGradleTests {
       ideSdks.setAndroidSdkPath(androidSdkPath);
       Disposer.register(projectDisposable, () -> {
         WriteAction.runAndWait(() -> {
-            AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.getAbsolutePath() : null);
+          AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.toPath().toString() : null);
         });
       });
 
