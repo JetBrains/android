@@ -159,7 +159,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewShouldNotBeCalledRecursively"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.preview.recursive.name"
                      level="WEAK WARNING"/>
