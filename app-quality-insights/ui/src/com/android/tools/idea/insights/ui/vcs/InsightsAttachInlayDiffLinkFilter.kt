@@ -206,9 +206,7 @@ class InsightsAttachInlayDiffLinkFilter(
       "https://d.android.com/studio/preview/features#aqi-vcs"
 
     private const val TOOLTIP_TEXT =
-      "Show the difference between the historical<br/>" +
-        "source from the app version referenced in<br/>" +
-        "the issue and the current source.<br/><br/>"
+      "Show the difference between the historical source from the app version referenced in the issue and the current source."
   }
 }
 
