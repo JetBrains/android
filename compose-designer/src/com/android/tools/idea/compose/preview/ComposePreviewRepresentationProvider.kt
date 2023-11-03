@@ -86,7 +86,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
         StopUiCheckPreviewAction(),
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled { ComposeFilterShowHistoryAction() },
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled {
-          ComposeFilterTextAction(ComposeViewSingleWordFilter(surface))
+          ComposeFilterTextAction(ComposeViewSingleWordFilter())
         },
         // TODO(b/292057010) Enable group filtering for Gallery mode.
         GroupSwitchAction().visibleOnlyInComposeDefaultPreview(),
@@ -132,7 +132,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
       ),
     ) {
 
-    override fun getActionUpdateThread() = ActionUpdateThread.EDT
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun update(e: AnActionEvent) {
       super.update(e)
@@ -153,7 +153,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
       }
   }
 
-  override fun getNorthEastGroup(): ActionGroup = ComposeNotificationGroup(surface, this)
+  override fun getNorthEastGroup(): ActionGroup = ComposeNotificationGroup(this)
 }
 
 /** [InMemoryLayoutVirtualFile] for composable functions. */

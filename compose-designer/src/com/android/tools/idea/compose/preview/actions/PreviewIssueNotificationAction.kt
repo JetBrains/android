@@ -355,10 +355,10 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
  * [DefaultActionGroup] that shows the notification chip and the
  * [ForceCompileAndRefreshActionForNotification] button when applicable.
  */
-class ComposeNotificationGroup(surface: DesignSurface<*>, parentDisposable: Disposable) :
+class ComposeNotificationGroup(parentDisposable: Disposable) :
   DefaultActionGroup(
     listOf(
-      ComposeHideFilterAction(surface),
+      ComposeHideFilterAction(),
       PreviewIssueNotificationAction(parentDisposable),
       ForceCompileAndRefreshActionForNotification.getInstance()
     )
