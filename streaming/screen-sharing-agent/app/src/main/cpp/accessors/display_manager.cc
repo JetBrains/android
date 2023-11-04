@@ -135,6 +135,7 @@ void DisplayManager::RemoveAllDisplayListeners(Jni jni) {
   }
 
   display_listeners_.Clear();
+  display_listener_dispatcher_->Stop();
 }
 
 void DisplayManager::OnDisplayAdded(Jni jni, int32_t display_id) {
