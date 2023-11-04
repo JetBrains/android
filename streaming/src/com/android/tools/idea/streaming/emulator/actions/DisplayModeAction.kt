@@ -27,7 +27,7 @@ import java.awt.EventQueue
  */
 internal sealed class DisplayModeAction(
   val mode: DisplayModeValue,
-) : AbstractEmulatorAction(configFilter = { it.displayModes.isNotEmpty() }) {
+) : AbstractEmulatorAction(configFilter = { it.displayModes.any { it.displayModeId == mode } }) {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorView = getEmulatorView(event) ?: return

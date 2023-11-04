@@ -234,13 +234,16 @@ internal fun Dimension.rotatedByQuadrants(numQuadrants: Int): Dimension =
  * Returns this [Point] rotated according to [rotation].
  */
 internal fun Point.rotatedByQuadrants(rotation: Int): Point {
-  return when (rotation and 0x3) { // True modulus
+  return when (normalizedRotation(rotation)) {
     1 -> Point(y, -x)
     2 -> Point(-x, -y)
     3 -> Point(-y, x)
     else -> this
   }
 }
+
+internal fun normalizedRotation(rotation: Int) =
+    rotation and 0x3
 
 /**
  * Returns this Dimension if both its components are not greater than the [maximumValue], otherwise

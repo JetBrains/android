@@ -336,6 +336,7 @@
     <option name="views" path="ActionManager" hit="Extracts one or more views into a separate layout" />
     <option name="fold" path="ActionManager" hit="Fold/Unfold" />
     <option name="unfold" path="ActionManager" hit="Fold/Unfold" />
+    <option name="foldable" path="ActionManager" hit="Foldable" />
     <option name="app" path="ActionManager" hit="Generate Entire App Baseline Profile" />
     <option name="baseline" path="ActionManager" hit="Generate Entire App Baseline Profile" />
     <option name="entire" path="ActionManager" hit="Generate Entire App Baseline Profile" />
@@ -937,8 +938,6 @@
     <option name="connections" path="ActionManager" hit="Troubleshoot Device Connections" />
     <option name="device" path="ActionManager" hit="Troubleshoot Device Connections" />
     <option name="troubleshoot" path="ActionManager" hit="Troubleshoot Device Connections" />
-    <option name="foldable" path="ActionManager" hit="Unfolded Foldable" />
-    <option name="unfolded" path="ActionManager" hit="Unfolded Foldable" />
     <option name="agp" path="ActionManager" hit="Upgrade the project's Android Gradle Plugin (AGP) dependency" />
     <option name="android" path="ActionManager" hit="Upgrade the project's Android Gradle Plugin (AGP) dependency" />
     <option name="dependency" path="ActionManager" hit="Upgrade the project's Android Gradle Plugin (AGP) dependency" />

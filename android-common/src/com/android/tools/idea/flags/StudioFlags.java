@@ -850,6 +850,10 @@ public final class StudioFlags {
 
   //region Embedded Emulator
   private static final FlagGroup EMBEDDED_EMULATOR = new FlagGroup(FLAGS, "embedded.emulator", "Embedded Emulator");
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_RESIZABLE_FOLDING = Flag.create(
+    EMBEDDED_EMULATOR, "resizable.folding", "Folding Support in Resizable AVD",
+    "Folding toolbar button in the Foldable mode of Resizable AVD",
+    true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS = Flag.create(
     EMBEDDED_EMULATOR, "screenshot.statistics", "Enable Collection of Screenshot Statistics",
     "Captures statistics of received Emulator screenshots",

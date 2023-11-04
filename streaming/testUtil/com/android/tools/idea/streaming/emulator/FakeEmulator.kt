@@ -74,6 +74,8 @@ import com.android.tools.idea.protobuf.MessageOrBuilder
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.interpolate
+import com.android.tools.idea.streaming.core.normalizedRotation
+import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.google.common.base.Predicates.alwaysTrue
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.concurrency.ConcurrentCollectionFactory
@@ -534,21 +536,22 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     override fun setPhysicalModel(request: PhysicalModelValue, responseObserver: StreamObserver<Empty>) {
       executor.execute {
         val target = request.target
-        when {
-          target == PhysicalType.ROTATION -> {
-            val zAngle = request.value.getData(2)
-            displayRotation = SkinRotation.forNumber(((zAngle / 90).roundToInt() + 4) % 4)
+        val value = request.value
+        when (target) {
+          PhysicalType.ROTATION -> {
+            val zAngle = value.getData(2)
+            displayRotation = SkinRotation.forNumber(normalizedRotation((zAngle / 90).roundToInt()))
           }
-          target == PhysicalType.HINGE_ANGLE0 && config.isFoldable || target == PhysicalType.ROLLABLE0 && config.isRollable -> {
-            findPosture(request.value.getData(0))?.let { devicePosture = it }
-          }
+          PhysicalType.HINGE_ANGLE0 -> findPosture(PostureDescriptor.ValueType.HINGE_ANGLE, value.getData(0))?.let { devicePosture = it }
+          PhysicalType.ROLLABLE0 -> findPosture(PostureDescriptor.ValueType.ROLL_PERCENTAGE, value.getData(0))?.let { devicePosture = it }
+          else -> {}
         }
         sendEmptyResponse(responseObserver)
       }
     }
 
-    private fun findPosture(value: Float): PostureValue? =
-        config.postures.find { it.minValue <= value && value <= it.maxValue }?.posture
+    private fun findPosture(valueType: PostureDescriptor.ValueType, value: Float): PostureValue? =
+        config.postures.find { it.valueType == valueType && it.minValue <= value && value <= it.maxValue }?.posture
 
     override fun getStatus(request: Empty, responseObserver: StreamObserver<EmulatorStatus>) {
       executor.execute {
@@ -875,7 +878,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     fun getNextRequest(timeout: Long, unit: TimeUnit): MessageOrBuilder = requestMessages.get(timeout, unit)
 
     override fun toString(): String {
-      return "$methodName(${shortDebugString(request)})"
+      return requestMessages.firstOrNull()?.let { "$methodName(${shortDebugString(it)})" } ?: methodName
     }
   }
 
@@ -1379,11 +1382,20 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.lcd.width = 1080
           hw.mainKeys=no
           hw.ramSize=1536
+          hw.resizable.configs = phone-0-1080-2340-420, foldable-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160
           hw.sdCard=yes
+          hw.sensor.hinge = yes
+          hw.sensor.hinge.areas = 884-0-1-2208
+          hw.sensor.hinge.count = 1
+          hw.sensor.hinge.defaults = 180
+          hw.sensor.hinge.ranges = 0-180
+          hw.sensor.hinge.sub_type = 1
+          hw.sensor.hinge.type = 1
+          hw.sensor.hinge_angles_posture_definitions = 0-30, 30-150, 150-180
+          hw.sensor.posture_list = 1, 2, 3
           hw.sensors.orientation=yes
           hw.sensors.proximity=no
           hw.trackBall=no
-          hw.resizable.configs = phone-0-1080-2340-420, foldable-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160
           image.sysdir.1 = $systemImage
           runtime.network.latency=none
           runtime.network.speed=full
@@ -1414,6 +1426,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.gyroscope = true
           hw.audioInput = true
           hw.audioOutput = true
+          hw.sensor.hinge.resizable.config = 1
           hw.sdCard = true
           hw.sdCard.path = ${avdFolder}/sdcard.img
           android.sdk.root = $sdkFolder

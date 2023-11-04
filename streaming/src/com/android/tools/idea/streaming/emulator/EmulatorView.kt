@@ -1250,7 +1250,7 @@ class EmulatorView(
         val imageDimensions = if (imageFormat.rotation.rotationValue % 2 == 0) "${imageFormat.width}x${imageFormat.height}"
                               else "${imageFormat.height}x${imageFormat.width}"
         LOG.error("Inconsistent ImageMessage: the $imageDimensions display image has different aspect ratio than" +
-                  " the ${displayMode.width}x${displayMode.height} display")
+                  " the ${displayMode.width}x${displayMode.height} display in the ${displayMode.displayModeId} mode")
         return false
       }
       return true

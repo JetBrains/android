@@ -144,8 +144,7 @@
         <keyboard-shortcut first-keystroke="alt shift 0" keymap="$default"/>
       </action>
       <action id="android.emulator.display.mode.foldable" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Foldable"
-              icon="StudioIcons.Emulator.Menu.MODE_FOLDABLE" text="Unfolded Foldable"
-              description="Change display size to match a typical foldable">
+              icon="StudioIcons.Emulator.Menu.MODE_FOLDABLE" text="Foldable" description="Change display size to match a typical foldable">
         <keyboard-shortcut first-keystroke="alt shift 1" keymap="$default"/>
       </action>
       <action id="android.emulator.display.mode.tablet" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Tablet"
