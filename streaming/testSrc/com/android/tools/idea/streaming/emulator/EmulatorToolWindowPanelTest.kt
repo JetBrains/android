@@ -470,6 +470,8 @@ class EmulatorToolWindowPanelTest {
     call = emulator.getNextGrpcCall(2, SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: HINGE_ANGLE0 value { data: 0.0 }")
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 170 height: 347")
     waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)"}
     panel.waitForFrame(ui, ++frameNumber, 2, SECONDS)
     assertThat(emulatorView.deviceDisplaySize).isEqualTo(Dimension(1080, 2092))

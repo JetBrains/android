@@ -240,6 +240,9 @@ class EmulatorView(
       if (field != value) {
         field = value
         if (value != null) {
+          if (deviceFrameVisible) {
+            requestScreenshotFeed()
+          }
           for (listener in postureListeners) {
             listener.postureChanged(value)
           }
