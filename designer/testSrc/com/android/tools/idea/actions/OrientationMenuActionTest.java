@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.actions;
 
+import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationHolder;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -26,24 +26,25 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OrientationMenuActionTest extends AndroidTestCase {
   private static final String FILE_ARROW = " \u2192 ";
-  private ConfigurationHolder myConfigurationHolder;
+  private DataContext myDataContext;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myConfigurationHolder = createConfigurationAndHolder();
+    myDataContext = createDataContext();
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      myConfigurationHolder = null;
+      myDataContext = null;
     }
     finally {
       super.tearDown();
@@ -51,8 +52,8 @@ public class OrientationMenuActionTest extends AndroidTestCase {
   }
 
   public void testAction() {
-    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, true);
-    action.updateActions(DataContext.EMPTY_CONTEXT);
+    OrientationMenuAction action = new OrientationMenuAction(true);
+    action.updateActions(myDataContext);
     AnAction[] actions = action.getChildren(null);
     int index = 0;
     checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
@@ -63,8 +64,8 @@ public class OrientationMenuActionTest extends AndroidTestCase {
   }
 
   public void testActionWithoutUIMode() {
-    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, false);
-    action.updateActions(DataContext.EMPTY_CONTEXT);
+    OrientationMenuAction action = new OrientationMenuAction(false);
+    action.updateActions(myDataContext);
     AnAction[] actions = action.getChildren(null);
     int index = 0;
     checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
@@ -75,8 +76,8 @@ public class OrientationMenuActionTest extends AndroidTestCase {
   public void testActionWithExistingLandscapeVariation() throws Exception {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
     waitForResourceRepositoryUpdates();
-    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, true);
-    action.updateActions(DataContext.EMPTY_CONTEXT);
+    OrientationMenuAction action = new OrientationMenuAction(true);
+    action.updateActions(myDataContext);
     AnAction[] actions = action.getChildren(null);
     int index = 0;
     checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
@@ -91,8 +92,8 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-sw600dp/layout1.xml");
     waitForResourceRepositoryUpdates();
-    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, true);
-    action.updateActions(DataContext.EMPTY_CONTEXT);
+    OrientationMenuAction action = new OrientationMenuAction(true);
+    action.updateActions(myDataContext);
     AnAction[] actions = action.getChildren(null);
     int index = 0;
     checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
@@ -108,10 +109,18 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     assertThat(action).isInstanceOf(actionClass);
   }
 
-  private @NotNull ConfigurationHolder createConfigurationAndHolder() {
+  private @NotNull DataContext createDataContext() {
     VirtualFile file = myFixture.copyFileToProject("configurations/layout1.xml", "res/layout/layout1.xml");
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = manager.getConfiguration(file);
-    return () -> configuration;
+    return new DataContext() {
+      @Override
+      public @Nullable Object getData(@NotNull String dataId) {
+        if (CONFIGURATIONS.is(dataId)) {
+          return List.of(configuration);
+        }
+        return null;
+      }
+    };
   }
 }

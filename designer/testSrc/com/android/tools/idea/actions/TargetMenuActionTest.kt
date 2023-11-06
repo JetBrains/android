@@ -26,7 +26,6 @@ import com.android.tools.idea.configurations.ConfigurationForFile
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
@@ -41,8 +40,9 @@ class TargetMenuActionTest : AndroidTestCase() {
     val manager = createSpiedConfigurationManager()
 
     val config = ConfigurationForFile(file.virtualFile, manager, FolderConfiguration())
-    val menuAction = TargetMenuAction { config }
-    menuAction.updateActions(DataContext.EMPTY_CONTEXT)
+    val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(config) else null }
+    val menuAction = TargetMenuAction()
+    menuAction.updateActions(dataContext)
 
     val expected =
       """30
@@ -56,7 +56,7 @@ class TargetMenuActionTest : AndroidTestCase() {
     28
 """
 
-    val actual = prettyPrintActions(menuAction)
+    val actual = prettyPrintActions(menuAction, dataContext = dataContext)
     assertThat(actual).isEqualTo(expected)
   }
 
@@ -65,8 +65,9 @@ class TargetMenuActionTest : AndroidTestCase() {
     val manager = createSpiedConfigurationManager()
 
     val config = ConfigurationForFile(file.virtualFile, manager, FolderConfiguration())
-    val menuAction = TargetMenuAction { config }
-    menuAction.updateActions(DataContext.EMPTY_CONTEXT)
+    val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(config) else null }
+    val menuAction = TargetMenuAction()
+    menuAction.updateActions(dataContext)
 
     val children = menuAction.getChildren(null)
     // First child is TargetMenuAction.TogglePickBestAction, second child is Separator
@@ -85,52 +86,57 @@ class TargetMenuActionTest : AndroidTestCase() {
     val manager = createSpiedConfigurationManager()
 
     val config = ConfigurationForFile(file.virtualFile, manager, FolderConfiguration())
-    val menuAction = TargetMenuAction { config }
+    val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(config) else null }
+    val menuAction = TargetMenuAction()
 
     manager.configModule.configurationStateManager.projectState.isPickTarget = true
 
-    menuAction.updateActions(DataContext.EMPTY_CONTEXT)
+    menuAction.updateActions(dataContext)
     menuAction.getChildren(null).let { children ->
-      val presentation = Presentation()
-      children[0].update(TestActionEvent.createTestToolbarEvent(presentation))
-      assertTrue(Toggleable.isSelected(presentation))
+      val event = TestActionEvent.createTestEvent(dataContext)
+      children[0].update(event)
+      assertTrue(Toggleable.isSelected(event.presentation))
       for (child in children.drop(2)) {
-        assertFalse(Toggleable.isSelected(child.templatePresentation))
+        child.update(event)
+        assertFalse(Toggleable.isSelected(event.presentation))
       }
 
       // Choose particular target
-      children[2].actionPerformed(TestActionEvent.createTestEvent())
+      children[2].actionPerformed(TestActionEvent.createTestEvent(dataContext))
     }
 
-    menuAction.updateActions(DataContext.EMPTY_CONTEXT)
+    menuAction.updateActions(dataContext)
     menuAction.getChildren(null).let { children ->
-      val presentation = Presentation()
+      val event = TestActionEvent.createTestEvent(dataContext)
       // Automatically pick best should not be selected
-      children[0].update(TestActionEvent.createTestToolbarEvent(presentation))
-      assertFalse(Toggleable.isSelected(presentation))
+      children[0].update(event)
+      assertFalse(Toggleable.isSelected(event.presentation))
 
       // The performed action should be selected
-      assertTrue(Toggleable.isSelected(children[2].templatePresentation))
+      children[2].update(event)
+      assertTrue(Toggleable.isSelected(event.presentation))
 
       // Other action is not selected
       for (child in children.drop(3)) {
-        assertFalse(Toggleable.isSelected(child.templatePresentation))
+        child.update(event)
+        assertFalse(Toggleable.isSelected(event.presentation))
       }
 
       // Select Automatically Pick Best action
-      children[0].actionPerformed(TestActionEvent.createTestEvent())
+      children[0].actionPerformed(TestActionEvent.createTestEvent(dataContext))
     }
 
-    menuAction.updateActions(DataContext.EMPTY_CONTEXT)
+    menuAction.updateActions(dataContext)
     menuAction.getChildren(null).let { children ->
-      val presentation = Presentation()
+      val event = TestActionEvent.createTestEvent(dataContext)
       // Automatically pick best should be selected
-      children[0].update(TestActionEvent.createTestToolbarEvent(presentation))
-      assertTrue(Toggleable.isSelected(presentation))
+      children[0].update(event)
+      assertTrue(Toggleable.isSelected(event.presentation))
 
       // Other actions should not be selected
       for (child in children.drop(2)) {
-        assertFalse(Toggleable.isSelected(child.templatePresentation))
+        child.update(event)
+        assertFalse(Toggleable.isSelected(event.presentation))
       }
     }
   }

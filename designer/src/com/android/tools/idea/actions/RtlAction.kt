@@ -18,7 +18,6 @@ package com.android.tools.idea.actions
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier
 import com.android.resources.LayoutDirection
 import com.android.tools.configurations.ConfigurationListener.CFG_LOCALE
-import com.android.tools.idea.configurations.ConfigurationHolder
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 
@@ -26,15 +25,16 @@ private const val TEXT = "Preview Right to Left"
 private const val DESCRIPTION = "Text direction setting in the editor"
 
 /** Action that sets the layout direction in the layout editor */
-class RtlAction(private val holder: ConfigurationHolder) : ToggleAction(TEXT, DESCRIPTION, null) {
+class RtlAction : ToggleAction(TEXT, DESCRIPTION, null) {
 
   override fun displayTextInToolbar(): Boolean = true
 
   override fun isSelected(e: AnActionEvent) =
-    holder.configuration?.fullConfig?.layoutDirectionQualifier?.value == LayoutDirection.RTL
+    e.getData(CONFIGURATIONS)?.firstOrNull()?.fullConfig?.layoutDirectionQualifier?.value ==
+      LayoutDirection.RTL
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    val configuration = holder.configuration ?: return
+    val configuration = e.getData(CONFIGURATIONS)?.firstOrNull() ?: return
     configuration.editedConfig.layoutDirectionQualifier =
       LayoutDirectionQualifier(if (state) LayoutDirection.RTL else LayoutDirection.LTR)
     // Notify the change and update so the surface is updated

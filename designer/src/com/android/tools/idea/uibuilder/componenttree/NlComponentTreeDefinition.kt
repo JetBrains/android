@@ -244,7 +244,7 @@ private class ComponentTreePanel(
 
   private fun showContextMenuForComponent(component: NlComponent, x: Int, y: Int) {
     surface?.actionManager?.getPopupMenuActions(component)?.let {
-      showPopup(componentTree.focusComponent, x, y, it, ActionPlaces.EDITOR_POPUP)
+      showPopup(surface, componentTree.focusComponent, x, y, it, ActionPlaces.EDITOR_POPUP)
     }
   }
 

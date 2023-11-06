@@ -20,14 +20,11 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.selectionBackground
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.Wallpaper
-import com.android.tools.idea.configurations.ConfigurationAction
-import com.android.tools.idea.configurations.ConfigurationHolder
 import com.intellij.ide.ui.laf.darcula.ui.DarculaMenuSeparatorUI
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.ui.JBMenuItem
@@ -85,7 +82,7 @@ private val separatorUI =
     }
   }
 
-class SystemUiModeAction(private val renderContext: ConfigurationHolder) :
+class SystemUiModeAction :
   DropDownAction("System UI Mode", "System UI Mode", StudioIcons.DeviceConfiguration.NIGHT_MODE) {
 
   override fun actionPerformed(event: AnActionEvent) {
@@ -111,14 +108,11 @@ class SystemUiModeAction(private val renderContext: ConfigurationHolder) :
     val modeTitle = TitleItem("Mode")
     menu.add(modeTitle, gbc)
 
-    renderContext.configuration?.nightMode.let { currentNightMode ->
-      enumValues<NightMode>().forEach { mode ->
-        val action =
-          SetNightModeAction(renderContext, mode.shortDisplayValue, mode, mode == currentNightMode)
-        val item = ActionItem(action, event.dataContext)
-        gbc.gridy += 1
-        menu.add(item, gbc)
-      }
+    enumValues<NightMode>().forEach { mode ->
+      val action = SetNightModeAction(mode.shortDisplayValue, mode)
+      val item = ActionItem(action, event.dataContext)
+      gbc.gridy += 1
+      menu.add(item, gbc)
     }
 
     gbc.gridy += 1
@@ -137,27 +131,22 @@ class SystemUiModeAction(private val renderContext: ConfigurationHolder) :
       ipadx = wallpaperPadding
       ipady = wallpaperPadding
     }
-    renderContext.configuration?.let {
-      val wallpapers =
-        mutableListOf<Wallpaper?>().apply {
-          addAll(enumValues<Wallpaper>())
-          add(null)
-        }
-      val currentWallpaper = wallpaperFromPath(it.wallpaperPath)
-      wallpapers.forEachIndexed { index, wallpaper ->
-        val menuItem =
-          SetWallpaperAction(renderContext, wallpaper)
-            .toMenuItem(event, currentWallpaper == wallpaper)
-        gbc.insets =
-          when (index) {
-            0 -> JBUI.insets(4, sideBorderWidth.unscaled.toInt(), 0, 0)
-            numWallpapers ->
-              JBUI.insets(4, WALLPAPER_ICON_SEPARATION, 0, sideBorderWidth.unscaled.toInt())
-            else -> JBUI.insets(4, WALLPAPER_ICON_SEPARATION, 0, 0)
-          }
-        menu.add(menuItem, gbc)
-        gbc.gridx += 1
+    val wallpapers =
+      mutableListOf<Wallpaper?>().apply {
+        addAll(enumValues<Wallpaper>())
+        add(null)
       }
+    wallpapers.forEachIndexed { index, wallpaper ->
+      val menuItem = SetWallpaperAction(wallpaper).toMenuItem(event.dataContext)
+      gbc.insets =
+        when (index) {
+          0 -> JBUI.insets(4, sideBorderWidth.unscaled.toInt(), 0, 0)
+          numWallpapers ->
+            JBUI.insets(4, WALLPAPER_ICON_SEPARATION, 0, sideBorderWidth.unscaled.toInt())
+          else -> JBUI.insets(4, WALLPAPER_ICON_SEPARATION, 0, 0)
+        }
+      menu.add(menuItem, gbc)
+      gbc.gridx += 1
     }
 
     JBPopupMenu.showBelow(button, menu)
@@ -166,34 +155,26 @@ class SystemUiModeAction(private val renderContext: ConfigurationHolder) :
   @TestOnly
   fun getWallpaperActions(): List<AnAction> {
     val actions = mutableListOf<ConfigurationAction>()
-    renderContext.configuration?.let {
-      enumValues<Wallpaper>().forEach { wallpaper ->
-        actions.add(SetWallpaperAction(renderContext, wallpaper))
-      }
-      actions.add(SetWallpaperAction(renderContext, null))
-    }
+    enumValues<Wallpaper>().forEach { wallpaper -> actions.add(SetWallpaperAction(wallpaper)) }
+    actions.add(SetWallpaperAction(null))
     return actions
   }
 
   @TestOnly
   fun getNightModeActions(): List<AnAction> {
     val actions = mutableListOf<ConfigurationAction>()
-    renderContext.configuration?.let {
-      val currentNightMode = it.nightMode
-      enumValues<NightMode>().forEach { mode ->
-        actions.add(
-          SetNightModeAction(renderContext, mode.shortDisplayValue, mode, mode == currentNightMode)
-        )
-      }
+    enumValues<NightMode>().forEach { mode ->
+      actions.add(SetNightModeAction(mode.shortDisplayValue, mode))
     }
     return actions
   }
 }
 
-private class ActionItem(action: AnAction, dataContext: DataContext) :
+private class ActionItem(action: SetNightModeAction, dataContext: DataContext) :
   JBMenuItem(action.templateText) {
   init {
-    if (Toggleable.isSelected(action.templatePresentation)) {
+    val currentNightMode = dataContext.getData(CONFIGURATIONS)?.firstOrNull()?.nightMode
+    if (currentNightMode == action.nightMode) {
       var checkmark = getIcon("checkmark")
       var selectedCheckmark = getSelectedIcon("checkmark")
       if (shouldConvertIconToDarkVariant()) {
@@ -211,12 +192,7 @@ private class ActionItem(action: AnAction, dataContext: DataContext) :
     border = JBUI.Borders.empty(2, sideBorderWidth.unscaled.toInt())
 
     addActionListener {
-      val anEvent =
-        AnActionEvent.createFromDataContext(
-          ActionPlaces.POPUP,
-          action.templatePresentation,
-          dataContext
-        )
+      val anEvent = AnActionEvent.createFromAnAction(action, null, ActionPlaces.POPUP, dataContext)
       action.actionPerformed(anEvent)
     }
   }
@@ -274,15 +250,14 @@ private class ItemUI : BasicMenuItemUI() {
   }
 }
 
-private class SetWallpaperAction(renderContext: ConfigurationHolder, val wallpaper: Wallpaper?) :
-  ConfigurationAction(renderContext) {
+private class SetWallpaperAction(val wallpaper: Wallpaper?) : ConfigurationAction() {
 
   override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
     configuration.setWallpaper(wallpaper)
   }
 
   @Suppress("UnstableApiUsage")
-  fun toMenuItem(event: AnActionEvent, isSelected: Boolean): JMenuItem {
+  fun toMenuItem(dataContext: DataContext): JMenuItem {
     val scaledIconSize = JBUIScale.scale(ICON_SIZE)
     val scaledWallpaperIcon =
       wallpaper?.let {
@@ -292,15 +267,17 @@ private class SetWallpaperAction(renderContext: ConfigurationHolder, val wallpap
       object : AbstractAction(null, scaledWallpaperIcon) {
         override fun actionPerformed(e: ActionEvent) {
           val actionEvent =
-            AnActionEvent.createFromDataContext(
+            AnActionEvent.createFromAnAction(
+              this@SetWallpaperAction,
+              null,
               ActionPlaces.POPUP,
-              this@SetWallpaperAction.templatePresentation,
-              event.dataContext
+              dataContext
             )
           this@SetWallpaperAction.actionPerformed(actionEvent)
         }
       }
-    return WallpaperItem(action, isSelected)
+    val currentWallpaperPath = dataContext.getData(CONFIGURATIONS)?.firstOrNull()?.wallpaperPath
+    return WallpaperItem(action, this.wallpaper == wallpaperFromPath(currentWallpaperPath))
   }
 }
 
@@ -339,15 +316,9 @@ private fun getNullWallpaperIcon(scaledIconSize: Int) =
   }
 
 private class SetNightModeAction(
-  renderContext: ConfigurationHolder,
   title: String,
-  private val nightMode: NightMode,
-  checked: Boolean
-) : ConfigurationAction(renderContext, title) {
-
-  init {
-    templatePresentation.putClientProperty(SELECTED_PROPERTY, checked)
-  }
+  val nightMode: NightMode,
+) : ConfigurationAction(title) {
 
   override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
     configuration.nightMode = nightMode

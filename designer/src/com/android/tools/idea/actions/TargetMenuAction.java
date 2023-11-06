@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.actions;
 
+import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationSettings;
-import com.android.tools.idea.configurations.ConfigurationAction;
-import com.android.tools.idea.configurations.ConfigurationHolder;
 import com.android.tools.layoutlib.AndroidTargets;
 import com.android.tools.module.AndroidModuleInfo;
 import com.android.tools.sdk.CompatibilityRenderTarget;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -33,6 +34,7 @@ import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -44,40 +46,30 @@ public class TargetMenuAction extends DropDownAction {
   // We don't show ancient rendering targets, they're pretty broken
   private static final int SHOW_FROM_API_LEVEL = 7;
 
-  private final ConfigurationHolder myRenderContext;
   private final boolean myUseCompatibilityTarget;
 
   /**
    * Creates a {@code TargetMenuAction}
    *
-   * @param renderContext          A {@link ConfigurationHolder} instance
    * @param useCompatibilityTarget when true, this menu action will set a CompatibilityRenderTarget as instead of a real IAndroidTarget
    */
-  public TargetMenuAction(ConfigurationHolder renderContext, boolean useCompatibilityTarget) {
+  public TargetMenuAction(boolean useCompatibilityTarget) {
     super("API Version for Preview", "API Version for Preview", StudioIcons.LayoutEditor.Toolbar.ANDROID_API);
-    myRenderContext = renderContext;
     myUseCompatibilityTarget = useCompatibilityTarget;
-    Presentation presentation = getTemplatePresentation();
-    Configuration configuration = myRenderContext.getConfiguration();
-    boolean visible = configuration != null;
-    if (visible) {
-      IAndroidTarget target = configuration.getTarget();
-      String brief = getRenderingTargetLabel(target, true);
-      presentation.setText(brief);
-    }
-    if (visible != presentation.isVisible()) {
-      presentation.setVisible(visible);
-    }
   }
 
-  public TargetMenuAction(ConfigurationHolder renderContext) {
-    this(renderContext, false);
+  public TargetMenuAction() {
+    this(false);
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
+    Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
+    if (configurations == null) {
+      return;
+    }
     Presentation presentation = e.getPresentation();
-    Configuration configuration = myRenderContext.getConfiguration();
+    Configuration configuration = Iterables.getFirst(configurations, null);
     boolean visible = configuration != null;
     if (visible) {
       IAndroidTarget target = configuration.getTarget();
@@ -99,52 +91,39 @@ public class TargetMenuAction extends DropDownAction {
   /**
    * @return Minimum Sdk Version if defined in the module, otherwise -1
    */
-  private int getMinSdkVersion() {
-    Configuration configuration = myRenderContext.getConfiguration();
-    if (configuration != null ) {
-      AndroidModuleInfo moduleInfo = configuration.getConfigModule().getAndroidModuleInfo();
-      if (moduleInfo != null) {
-        return moduleInfo.getMinSdkVersion().getFeatureLevel();
-      }
+  private int getMinSdkVersion(@NotNull Configuration configuration) {
+    AndroidModuleInfo moduleInfo = configuration.getConfigModule().getAndroidModuleInfo();
+    if (moduleInfo != null) {
+      return moduleInfo.getMinSdkVersion().getFeatureLevel();
     }
     return -1;
   }
 
   @NotNull
-  private List<SetTargetAction> getCompatibilitySetTargetActions(boolean defaultSelectable) {
-    Configuration configuration = myRenderContext.getConfiguration();
-    assert configuration != null;
-
-    IAndroidTarget currentTarget = configuration.getTarget();
+  private List<SetTargetAction> getCompatibilitySetTargetActions(@NotNull Configuration configuration, boolean defaultSelectable) {
     IAndroidTarget highestTarget = configuration.getSettings().getHighestApiTarget();
     assert highestTarget != null;
 
     List<SetTargetAction> actions = new ArrayList<>();
 
     int highestApiLevel = highestTarget.getVersion().getFeatureLevel();
-    int minApi = Math.max(getMinSdkVersion(), SHOW_FROM_API_LEVEL);
+    int minApi = Math.max(getMinSdkVersion(configuration), SHOW_FROM_API_LEVEL);
     for (int apiLevel = highestApiLevel; apiLevel >= minApi; apiLevel--) {
       IAndroidTarget target = new CompatibilityRenderTarget(highestTarget, apiLevel, null);
-      boolean isSelected = !defaultSelectable && currentTarget != null && target.getVersion().equals(currentTarget.getVersion());
-      actions.add(new SetTargetAction(myRenderContext, target.getVersionName(), target, isSelected));
+      actions.add(new SetTargetAction(target.getVersionName(), target, defaultSelectable));
     }
 
     return deduplicateSetTargetAction(actions);
   }
 
   @NotNull
-  private List<SetTargetAction> getRealSetTargetActions(boolean defaultSelectable) {
-
-    Configuration configuration = myRenderContext.getConfiguration();
-    assert configuration != null;
-
-    IAndroidTarget current = configuration.getTarget();
+  private List<SetTargetAction> getRealSetTargetActions(@NotNull Configuration configuration, boolean defaultSelectable) {
     IAndroidTarget[] targets = configuration.getSettings().getTargets();
 
     List<SetTargetAction> actions = new ArrayList<>();
 
     boolean haveRecent = false;
-    int minSdk = getMinSdkVersion();
+    int minSdk = getMinSdkVersion(configuration);
 
     for (int i = targets.length - 1; i >= 0; i--) {
       IAndroidTarget target = targets[i];
@@ -166,8 +145,7 @@ public class TargetMenuAction extends DropDownAction {
       }
 
       String title = getRenderingTargetLabel(target, true);
-      boolean select = !defaultSelectable && current != null && target.getVersion().equals(current.getVersion());
-      actions.add(new SetTargetAction(myRenderContext, title, target, select));
+      actions.add(new SetTargetAction(title, target, defaultSelectable));
     }
 
     return deduplicateSetTargetAction(actions);
@@ -198,7 +176,11 @@ public class TargetMenuAction extends DropDownAction {
   @Override
   protected boolean updateActions(@NotNull DataContext context) {
     removeAll();
-    Configuration configuration = myRenderContext.getConfiguration();
+    Collection<Configuration> configurations = context.getData(CONFIGURATIONS);
+    if (configurations == null) {
+      return true;
+    }
+    Configuration configuration = Iterables.getFirst(configurations, null);
     if (configuration == null) {
       return true;
     }
@@ -211,10 +193,10 @@ public class TargetMenuAction extends DropDownAction {
 
     List<SetTargetAction> actions;
     if (myUseCompatibilityTarget && settings.getHighestApiTarget() != null) {
-      actions = getCompatibilitySetTargetActions(isPickBest);
+      actions = getCompatibilitySetTargetActions(configuration, isPickBest);
     }
     else {
-      actions = getRealSetTargetActions(isPickBest);
+      actions = getRealSetTargetActions(configuration, isPickBest);
     }
     addAll(actions);
 
@@ -302,19 +284,21 @@ public class TargetMenuAction extends DropDownAction {
     @VisibleForTesting
     final IAndroidTarget myTarget;
     private final String myTitle;
+    private final boolean myDefaultSelectable;
 
-    public SetTargetAction(@NotNull ConfigurationHolder renderContext, @NotNull final String title,
-                           @NotNull final IAndroidTarget target, final boolean select) {
-      super(renderContext, title);
+    public SetTargetAction(@NotNull final String title,
+                           @NotNull final IAndroidTarget target,
+                           boolean defaultSelectable) {
+      super(title);
       myTarget = target;
       myTitle = title;
-      getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, select);
+      myDefaultSelectable = defaultSelectable;
     }
 
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       if (commit) {
-        setProjectWideTarget();
+        setProjectWideTarget(configuration);
       }
       else {
         configuration.setTarget(myTarget);
@@ -323,29 +307,44 @@ public class TargetMenuAction extends DropDownAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-      Configuration config = myRenderContext.getConfiguration();
+      Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
+      if (configurations == null) {
+        return;
+      }
+      Configuration config = Iterables.getFirst(configurations, null);
       if (config != null) {
         config.getSettings().getConfigModule().getConfigurationStateManager().getProjectState().setPickTarget(false);
       }
+      Toggleable.setSelected(e.getPresentation(), true);
       super.actionPerformed(e);
     }
 
     @Override
-    protected void pickedBetterMatch(@NotNull VirtualFile file, @NotNull VirtualFile old) {
-      super.pickedBetterMatch(file, old);
-      Configuration configuration = myRenderContext.getConfiguration();
-      if (configuration != null) {
-        // Save project-wide configuration; not done by regular listening scheme since the previous configuration was not switched
-        setProjectWideTarget();
+    public void update(@NotNull AnActionEvent e) {
+      super.update(e);
+      Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
+      if (configurations == null) {
+        return;
       }
+      Configuration config = Iterables.getFirst(configurations, null);
+      if (config == null) {
+        return;
+      }
+      IAndroidTarget current = config.getTarget();
+      boolean selected = !myDefaultSelectable && current != null && myTarget.getVersion().equals(current.getVersion());
+      Toggleable.setSelected(e.getPresentation(), selected);
     }
 
-    private void setProjectWideTarget() {
+    @Override
+    protected void pickedBetterMatch(@NotNull Configuration configuration, @NotNull VirtualFile file, @NotNull VirtualFile old) {
+      super.pickedBetterMatch(configuration, file, old);
+      // Save project-wide configuration; not done by regular listening scheme since the previous configuration was not switched
+      setProjectWideTarget(configuration);
+    }
+
+    private void setProjectWideTarget(@NotNull Configuration configuration) {
       // Also set the project-wide rendering target, since targets (and locales) are project wide
-      Configuration configuration = myRenderContext.getConfiguration();
-      if (configuration != null) {
-        configuration.getSettings().setTarget(myTarget);
-      }
+      configuration.getSettings().setTarget(myTarget);
     }
   }
 }

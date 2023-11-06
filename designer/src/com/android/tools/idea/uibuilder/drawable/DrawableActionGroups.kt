@@ -28,7 +28,7 @@ class DrawableActionGroups(surface: DesignSurface<*>) : ToolbarActionGroups(surf
   override fun getNorthGroup(): ActionGroup {
     // TODO(b/136258816): Update to support multi-model
     return DefaultActionGroup().apply {
-      add(ThemeMenuAction { mySurface.configuration })
+      add(ThemeMenuAction())
       add(DrawableBackgroundMenuAction())
     }
   }

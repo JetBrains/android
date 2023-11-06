@@ -21,7 +21,6 @@ import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationModelModule
 import com.android.tools.idea.configurations.AdditionalDeviceService
-import com.android.tools.idea.configurations.ConfigurationHolder
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.StudioConfigurationModelModule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -164,28 +163,24 @@ class DeviceMenuActionTest {
     whenever(configuration.settings)
       .thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
     whenever(configuration.configModule).thenReturn(configurationModelModule)
-    val holder = ConfigurationHolder { configuration }
+    val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(configuration) else null }
+
     val menuAction =
       DeviceMenuAction(
-        holder,
         object : DeviceChangeListener {
           override fun onDeviceChanged(oldDevice: Device?, newDevice: Device?) {}
         }
       )
-    menuAction.updateActions(DataContext.EMPTY_CONTEXT)
+    menuAction.updateActions(dataContext)
     val presentationFactory = PresentationFactory()
     val actual = runInEdtAndGet {
       @Suppress("UnstableApiUsage")
-      Utils.expandActionGroup(
-        menuAction,
-        presentationFactory,
-        DataContext.EMPTY_CONTEXT,
-        ActionPlaces.TOOLBAR
-      )
+      Utils.expandActionGroup(menuAction, presentationFactory, dataContext, ActionPlaces.TOOLBAR)
       prettyPrintActions(
         menuAction,
         { action: AnAction -> !isAvdAction(action) },
-        presentationFactory
+        presentationFactory,
+        dataContext
       )
     }
 

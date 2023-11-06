@@ -94,7 +94,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(designModeAction);
     group.addSeparator();
 
-    OrientationMenuAction orientationMenuAction = new OrientationMenuAction(mySurface::getConfiguration, true);
+    OrientationMenuAction orientationMenuAction = new OrientationMenuAction(true);
     appendShortcutText(orientationMenuAction, ToggleDeviceOrientationAction.getInstance());
     group.add(orientationMenuAction);
 
@@ -105,21 +105,20 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     }
 
     group.addSeparator();
-    SystemUiModeAction systemUiModeAction = new SystemUiModeAction(mySurface::getConfiguration);
+    SystemUiModeAction systemUiModeAction = new SystemUiModeAction();
     appendShortcutText(systemUiModeAction, ToggleDeviceNightModeAction.getInstance());
     group.add(systemUiModeAction);
 
     group.addSeparator();
-    DeviceMenuAction menuAction = new DeviceMenuAction(() -> mySurface.getConfigurations().stream().findFirst().orElse(null),
-                                                       (oldDevice, newDevice) -> mySurface.zoomToFit());
+    DeviceMenuAction menuAction = new DeviceMenuAction((oldDevice, newDevice) -> mySurface.zoomToFit());
     appendShortcutText(menuAction, NextDeviceAction.getInstance());
     group.add(menuAction);
 
-    group.add(new TargetMenuAction(mySurface::getConfiguration));
-    group.add(new ThemeMenuAction(mySurface::getConfiguration));
+    group.add(new TargetMenuAction());
+    group.add(new ThemeMenuAction());
 
     group.addSeparator();
-    group.add(new LocaleMenuAction(mySurface::getConfiguration));
+    group.add(new LocaleMenuAction());
 
     group.addSeparator();
     return group;

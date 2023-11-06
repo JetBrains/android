@@ -33,7 +33,7 @@ public final class StateListActionGroups extends ToolbarActionGroups {
   protected ActionGroup getNorthGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
     // TODO(b/136258816): Update to support multi-model
-    group.add(new ThemeMenuAction(mySurface::getConfiguration));
+    group.add(new ThemeMenuAction());
     group.add(new DrawableBackgroundMenuAction());
     return group;
   }

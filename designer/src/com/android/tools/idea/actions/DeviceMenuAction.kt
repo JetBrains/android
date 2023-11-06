@@ -29,8 +29,6 @@ import com.android.tools.idea.avdmanager.AvdOptionsModel
 import com.android.tools.idea.avdmanager.AvdWizardUtils
 import com.android.tools.idea.configurations.AdditionalDeviceService
 import com.android.tools.idea.configurations.CanonicalDeviceType
-import com.android.tools.idea.configurations.ConfigurationAction
-import com.android.tools.idea.configurations.ConfigurationHolder
 import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.configurations.DEVICE_CLASS_DESKTOP_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_FOLDABLE_TOOLTIP
@@ -48,7 +46,6 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -78,10 +75,7 @@ internal val DEVICE_ID_TO_TOOLTIPS =
  * New device menu for layout editor. Because we are going to deprecate [DeviceMenuAction], some of
  * the duplicated codes are not shared between them.
  */
-class DeviceMenuAction(
-  private val renderContext: ConfigurationHolder,
-  private val deviceChangeListener: DeviceChangeListener
-) :
+class DeviceMenuAction(private val deviceChangeListener: DeviceChangeListener) :
   DropDownAction(
     "Device for Preview",
     "Device for Preview",
@@ -95,6 +89,7 @@ class DeviceMenuAction(
     updateActions(e.dataContext)
 
     val toolbar = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.POPUP, this)
+    toolbar.setDataContext { e.dataContext }
     val popupMenu = toolbar.component
     JBPopupMenu.showBelow(button, popupMenu)
     // The items in toolbar.component are filled after JBPopupMenu.showBelow() is called.
@@ -124,11 +119,12 @@ class DeviceMenuAction(
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    updatePresentation(e.presentation)
+    updatePresentation(e)
   }
 
-  private fun updatePresentation(presentation: Presentation) {
-    val configuration = renderContext.configuration
+  private fun updatePresentation(e: AnActionEvent) {
+    val presentation = e.presentation
+    val configuration = e.getData(CONFIGURATIONS)?.firstOrNull()
     val visible = configuration != null
     if (visible) {
       val device = configuration!!.cachedDevice
@@ -144,30 +140,33 @@ class DeviceMenuAction(
 
   public override fun updateActions(context: DataContext): Boolean {
     removeAll()
-    createDeviceMenuList()
+    context.getData(CONFIGURATIONS)?.firstOrNull()?.let { createDeviceMenuList(it) }
     return true
   }
 
-  private fun createDeviceMenuList() {
-    val groupedDevices = getSuitableDevicesForMenu(renderContext.configuration!!)
-    addReferenceDeviceSection(groupedDevices)
-    addWearDeviceSection(groupedDevices)
-    addTvDeviceSection(groupedDevices)
-    addAutomotiveDeviceSection(groupedDevices)
-    addCustomDeviceSection()
-    addAvdDeviceSection()
-    addGenericDeviceAndNewDefinitionSection(groupedDevices)
+  private fun createDeviceMenuList(configuration: Configuration) {
+    val groupedDevices = getSuitableDevicesForMenu(configuration)
+    val currentDevice = configuration.device
+    addReferenceDeviceSection(groupedDevices, currentDevice)
+    addWearDeviceSection(groupedDevices, currentDevice)
+    addTvDeviceSection(groupedDevices, currentDevice)
+    addAutomotiveDeviceSection(groupedDevices, currentDevice)
+    addCustomDeviceSection(currentDevice)
+    addAvdDeviceSection(configuration.settings.avdDevices, currentDevice)
+    addGenericDeviceAndNewDefinitionSection(groupedDevices, currentDevice)
   }
 
-  private fun addReferenceDeviceSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
+  private fun addReferenceDeviceSection(
+    groupedDevices: Map<DeviceGroup, List<Device>>,
+    currentDevice: Device?
+  ) {
     add(DeviceCategory("Reference Devices", "Reference Devices", StudioIcons.Avd.DEVICE_MOBILE))
 
     for (type in ReferenceDeviceType.values()) {
       val device = getReferenceDevice(groupedDevices, type) ?: continue
-      val selected = device == renderContext.configuration?.device
+      val selected = device == currentDevice
       add(
         SetDeviceAction(
-          renderContext,
           getDeviceLabel(device),
           { updatePresentation(it) },
           deviceChangeListener,
@@ -184,27 +183,29 @@ class DeviceMenuAction(
         getCanonicalDevice(groupedDevices, CanonicalDeviceType.SMALL_PHONE),
         getCanonicalDevice(groupedDevices, CanonicalDeviceType.MEDIUM_PHONE)
       ) + groupedDevices.getOrDefault(DeviceGroup.NEXUS_XL, emptyList())
-    addDevicesToPopup("Phones", phoneDevices)
+    addDevicesToPopup("Phones", phoneDevices, currentDevice)
 
     // Add canonical medium tablet device at the top of menu.
     val tabletDevices =
       listOfNotNull(getCanonicalDevice(groupedDevices, CanonicalDeviceType.MEDIUM_TABLET)) +
         groupedDevices.getOrDefault(DeviceGroup.NEXUS_TABLET, emptyList())
-    addDevicesToPopup("Tablets", tabletDevices)
+    addDevicesToPopup("Tablets", tabletDevices, currentDevice)
 
-    groupedDevices.get(DeviceGroup.DESKTOP)?.let { addDevicesToPopup("Desktop", it) }
+    groupedDevices.get(DeviceGroup.DESKTOP)?.let { addDevicesToPopup("Desktop", it, currentDevice) }
     addSeparator()
   }
 
-  private fun addWearDeviceSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
+  private fun addWearDeviceSection(
+    groupedDevices: Map<DeviceGroup, List<Device>>,
+    currentDevice: Device?
+  ) {
     val wearDevices = groupedDevices.get(DeviceGroup.WEAR) ?: return
     add(DeviceCategory("Wear", "Wear devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_WEAR))
     for (device in wearDevices) {
       val label = getDeviceLabel(device)
-      val selected = device == renderContext.configuration?.device
+      val selected = device == currentDevice
       add(
         SetWearDeviceAction(
-          renderContext,
           label,
           { updatePresentation(it) },
           deviceChangeListener,
@@ -217,14 +218,16 @@ class DeviceMenuAction(
     addSeparator()
   }
 
-  private fun addTvDeviceSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
+  private fun addTvDeviceSection(
+    groupedDevices: Map<DeviceGroup, List<Device>>,
+    currentDevice: Device?
+  ) {
     val tvDevices = groupedDevices.get(DeviceGroup.TV) ?: return
     add(DeviceCategory("TV", "Television devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV))
     for (device in tvDevices) {
-      val selected = device == renderContext.configuration?.device
+      val selected = device == currentDevice
       add(
         SetDeviceAction(
-          renderContext,
           getDeviceLabel(device),
           { updatePresentation(it) },
           deviceChangeListener,
@@ -237,7 +240,10 @@ class DeviceMenuAction(
     addSeparator()
   }
 
-  private fun addAutomotiveDeviceSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
+  private fun addAutomotiveDeviceSection(
+    groupedDevices: Map<DeviceGroup, List<Device>>,
+    currentDevice: Device?
+  ) {
     val automotiveDevices = groupedDevices.get(DeviceGroup.AUTOMOTIVE) ?: return
     add(
       DeviceCategory(
@@ -247,10 +253,9 @@ class DeviceMenuAction(
       )
     )
     for (device in automotiveDevices) {
-      val selected = device == renderContext.configuration?.device
+      val selected = device == currentDevice
       add(
         SetDeviceAction(
-          renderContext,
           getDeviceLabel(device),
           { updatePresentation(it) },
           deviceChangeListener,
@@ -263,20 +268,13 @@ class DeviceMenuAction(
     addSeparator()
   }
 
-  private fun addCustomDeviceSection() {
-    add(
-      SetCustomDeviceAction(
-        renderContext,
-        { updatePresentation(it) },
-        renderContext.configuration?.device
-      )
-    )
+  private fun addCustomDeviceSection(currentDevice: Device?) {
+    add(SetCustomDeviceAction({ updatePresentation(it) }, currentDevice))
     addSeparator()
   }
 
-  private fun addAvdDeviceSection() {
-    val devices = renderContext.configuration!!.settings.avdDevices
-    if (devices.isNotEmpty()) {
+  private fun addAvdDeviceSection(avdDevices: List<Device>, currentDevice: Device?) {
+    if (avdDevices.isNotEmpty()) {
       add(
         DeviceCategory(
           "Virtual Device",
@@ -284,13 +282,11 @@ class DeviceMenuAction(
           StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES
         )
       )
-      val current = renderContext.configuration?.device
-      for (device in devices) {
-        val selected = current != null && current.id == device.id
+      for (device in avdDevices) {
+        val selected = currentDevice?.id == device.id
         val avdDisplayName = "AVD: " + device.displayName
         add(
           SetAvdAction(
-            renderContext,
             { updatePresentation(it) },
             deviceChangeListener,
             device,
@@ -304,23 +300,23 @@ class DeviceMenuAction(
   }
 
   private fun addGenericDeviceAndNewDefinitionSection(
-    groupedDevices: Map<DeviceGroup, List<Device>>
+    groupedDevices: Map<DeviceGroup, List<Device>>,
+    currentDevice: Device?
   ) {
     val devices = groupedDevices.get(DeviceGroup.GENERIC) ?: return
-    addDevicesToPopup("Generic Devices", devices)
-    add(AddDeviceDefinitionAction(renderContext))
+    addDevicesToPopup("Generic Devices", devices, currentDevice)
+    add(AddDeviceDefinitionAction())
   }
 
-  private fun addDevicesToPopup(title: String, devices: List<Device>) {
+  private fun addDevicesToPopup(title: String, devices: List<Device>, currentDevice: Device?) {
     val group = createSubMenuGroup { title }
     add(group)
 
     for (device in devices) {
       val label = getDeviceLabel(device)
-      val selected = device == renderContext.configuration?.device
+      val selected = device == currentDevice
       group.addAction(
         SetDeviceAction(
-          renderContext,
           label,
           { updatePresentation(it) },
           deviceChangeListener,
@@ -394,14 +390,14 @@ private class DeviceCategory(text: String?, description: String?, private val my
   override fun actionPerformed(e: AnActionEvent) = Unit
 }
 
-class AddDeviceDefinitionAction(private val configurationHolder: ConfigurationHolder) : AnAction() {
+class AddDeviceDefinitionAction : AnAction() {
   init {
     templatePresentation.text = "Add Device Definition"
     templatePresentation.icon = null
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val config = configurationHolder.configuration ?: return
+    val config = e.dataContext.getData(CONFIGURATIONS)?.firstOrNull() ?: return
     val project = config.configModule.project
 
     val optionsModel = AvdOptionsModel(null)
@@ -510,29 +506,27 @@ private object VarianceComparator : Comparator<String> {
 }
 
 abstract class DeviceAction(
-  renderContext: ConfigurationHolder,
   title: String?,
-  private val updatePresentationCallback: Consumer<Presentation>,
+  private val updatePresentationCallback: Consumer<AnActionEvent>,
   icon: Icon?
-) : ConfigurationAction(renderContext, title, icon) {
+) : ConfigurationAction(title, icon) {
   protected abstract val device: Device?
 
-  override fun updatePresentation(presentation: Presentation) {
-    updatePresentationCallback.accept(presentation)
+  override fun updatePresentation(event: AnActionEvent) {
+    updatePresentationCallback.accept(event)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
 
 open class SetDeviceAction(
-  renderContext: ConfigurationHolder,
   private val title: String,
-  updatePresentationCallback: Consumer<Presentation>,
+  updatePresentationCallback: Consumer<AnActionEvent>,
   protected val deviceChangeListener: DeviceChangeListener,
   public override val device: Device,
   defaultIcon: Icon?,
   private val selected: Boolean
-) : DeviceAction(renderContext, null, updatePresentationCallback, getBestIcon(title, defaultIcon)) {
+) : DeviceAction(null, updatePresentationCallback, getBestIcon(title, defaultIcon)) {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
@@ -597,16 +591,14 @@ open class SetDeviceAction(
 }
 
 private class SetWearDeviceAction(
-  renderContext: ConfigurationHolder,
   title: String,
-  updatePresentationCallback: Consumer<Presentation>,
+  updatePresentationCallback: Consumer<AnActionEvent>,
   deviceChangeListener: DeviceChangeListener,
   device: Device,
   defaultIcon: Icon?,
   selected: Boolean
 ) :
   SetDeviceAction(
-    renderContext,
     title,
     updatePresentationCallback,
     deviceChangeListener,
@@ -656,10 +648,9 @@ private class SetWearDeviceAction(
 private const val CUSTOM_DEVICE_NAME = "Custom"
 
 private class SetCustomDeviceAction(
-  renderContext: ConfigurationHolder,
-  updatePresentationCallback: Consumer<Presentation>,
+  updatePresentationCallback: Consumer<AnActionEvent>,
   private val baseDevice: Device?
-) : DeviceAction(renderContext, CUSTOM_DEVICE_NAME, updatePresentationCallback, null) {
+) : DeviceAction(CUSTOM_DEVICE_NAME, updatePresentationCallback, null) {
   var customDevice: Device? = null
   override val device: Device?
     get() = customDevice
@@ -682,20 +673,19 @@ private class SetCustomDeviceAction(
 }
 
 private class SetAvdAction(
-  renderContext: ConfigurationHolder,
-  private val updatePresentationCallback: Consumer<Presentation>?,
+  private val updatePresentationCallback: Consumer<AnActionEvent>?,
   private val deviceChangeListener: DeviceChangeListener,
   private val avdDevice: Device,
   displayName: String,
   private val selected: Boolean
-) : ConfigurationAction(renderContext, displayName) {
+) : ConfigurationAction(displayName) {
   override fun update(event: AnActionEvent) {
     super.update(event)
     Toggleable.setSelected(event.presentation, selected)
   }
 
-  override fun updatePresentation(presentation: Presentation) {
-    updatePresentationCallback?.accept(presentation)
+  override fun updatePresentation(event: AnActionEvent) {
+    updatePresentationCallback?.accept(event)
   }
 
   override fun updateConfiguration(configuration: Configuration, commit: Boolean) {

@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.actions;
 
+import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
+
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.configurations.AdaptiveIconShape;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationAction;
-import com.android.tools.idea.configurations.ConfigurationHolder;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -28,20 +30,21 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ShapeMenuAction extends DropDownAction {
 
-  @NotNull private final ConfigurationHolder myRenderContext;
-
-  public ShapeMenuAction(@NotNull ConfigurationHolder renderContext) {
+  public ShapeMenuAction() {
     super("Adaptive Icon Shape", "Adaptive Icon Shape", null);
-    myRenderContext = renderContext;
     for (AdaptiveIconShape shape : AdaptiveIconShape.values()) {
-      add(new SetShapeAction(myRenderContext, shape));
+      add(new SetShapeAction(shape));
     }
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
-    Configuration configuration = myRenderContext.getConfiguration();
+    Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
+    if (configurations == null) {
+      return;
+    }
+    Configuration configuration = Iterables.getFirst(configurations, null);
     AdaptiveIconShape shape = configuration != null ? configuration.getAdaptiveShape() : AdaptiveIconShape.getDefaultShape();
     e.getPresentation().setText(shape.getName());
   }
@@ -54,8 +57,8 @@ public class ShapeMenuAction extends DropDownAction {
   private static class SetShapeAction extends ConfigurationAction {
     private final AdaptiveIconShape myShape;
 
-    private SetShapeAction(@NotNull ConfigurationHolder renderContext, @NotNull AdaptiveIconShape shape) {
-      super(renderContext, shape.getName());
+    private SetShapeAction(@NotNull AdaptiveIconShape shape) {
+      super(shape.getName());
       myShape = shape;
     }
 

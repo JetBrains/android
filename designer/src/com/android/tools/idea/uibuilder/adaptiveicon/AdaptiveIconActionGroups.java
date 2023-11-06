@@ -39,9 +39,9 @@ public class AdaptiveIconActionGroups extends ToolbarActionGroups {
       group.add(new DensityMenuAction(model));
     }
     // TODO(b/136258816): Update to support multi-model
-    group.add(new ShapeMenuAction(mySurface::getConfiguration));
-    group.add(new ThemeMenuAction(mySurface::getConfiguration));
-    group.add(new SystemUiModeAction(mySurface::getConfiguration));
+    group.add(new ShapeMenuAction());
+    group.add(new ThemeMenuAction());
+    group.add(new SystemUiModeAction());
     return group;
   }
 }

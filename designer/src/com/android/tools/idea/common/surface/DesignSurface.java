@@ -18,11 +18,11 @@ package com.android.tools.idea.common.surface;
 import static com.android.tools.adtui.PannableKt.PANNABLE_KEY;
 import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
 import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
+import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.UiThread;
-import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.editor.PanZoomListener;
@@ -1771,6 +1771,9 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   public Object getData(@NotNull @NonNls String dataId) {
     if (DESIGN_SURFACE.is(dataId) || ZOOMABLE_KEY.is(dataId) || PANNABLE_KEY.is(dataId) || GuiInputHandler.CURSOR_RECEIVER.is(dataId)) {
       return this;
+    }
+    if (CONFIGURATIONS.is(dataId)) {
+      return getConfigurations();
     }
     if (PlatformCoreDataKeys.FILE_EDITOR.is(dataId)) {
       return myFileEditorDelegate.get();

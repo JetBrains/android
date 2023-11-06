@@ -35,7 +35,7 @@ import java.awt.event.MouseEvent
  */
 fun DesignSurface<*>.showPopup(event: MouseEvent, group: ActionGroup, place: String) {
   val invoker = if (event.source is Component) event.source as Component else this
-  showPopup(invoker, event.x, event.y, group, place)
+  showPopup(this, invoker, event.x, event.y, group, place)
 }
 
 /**
@@ -47,12 +47,20 @@ fun DesignSurface<*>.showPopup(event: MouseEvent, group: ActionGroup, place: Str
  * [ActionManager.createActionPopupMenu] and [com.intellij.openapi.actionSystem.ActionPlaces] for
  * more information.
  */
-fun showPopup(invoker: Component, x: Int, y: Int, group: ActionGroup, place: String) {
+fun showPopup(
+  surface: DesignSurface<*>?,
+  invoker: Component,
+  x: Int,
+  y: Int,
+  group: ActionGroup,
+  place: String
+) {
   if (group.getChildren(null).isEmpty()) {
     return
   }
   val actionManager = ActionManager.getInstance()
   // TODO (b/151315668): Should the place be ActionPlaces.POPUP?
   val popupMenu = actionManager.createActionPopupMenu(place, group)
+  surface?.let { popupMenu.setTargetComponent(it) }
   popupMenu.component.show(invoker, x, y)
 }

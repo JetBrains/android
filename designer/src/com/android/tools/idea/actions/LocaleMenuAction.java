@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.actions;
 
+import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
+
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -22,8 +24,6 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationModelModule;
-import com.android.tools.idea.configurations.ConfigurationAction;
-import com.android.tools.idea.configurations.ConfigurationHolder;
 import com.android.tools.idea.configurations.ConfigurationMatcher;
 import com.android.tools.idea.configurations.StudioConfigurationModelModule;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
@@ -32,6 +32,7 @@ import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.res.ResourceRepositoryManager;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -41,17 +42,16 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LocaleMenuAction extends DropDownAction {
-  private final ConfigurationHolder myRenderContext;
-
-  public LocaleMenuAction(@NotNull ConfigurationHolder renderContext) {
+  public LocaleMenuAction() {
     super("Locale for Preview", "Locale for Preview", null);
-    myRenderContext = renderContext;
   }
 
   @Override
@@ -68,15 +68,18 @@ public class LocaleMenuAction extends DropDownAction {
     // other advantages: fitting in with the overall IDE look and feel (e.g. dark colors),
     // allowing typing to filter, etc.
 
-    Configuration conf = myRenderContext.getConfiguration();
-    String currentLocalLabel = Locale.getLocaleLabel(conf == null ? Locale.ANY : conf.getLocale(), false);
+    Collection<Configuration> configurations = context.getData(CONFIGURATIONS);
+    if (configurations == null) {
+      return true;
+    }
+    Configuration configuration = Iterables.getFirst(configurations, null);
+    String currentLocalLabel = Locale.getLocaleLabel(configuration == null ? Locale.ANY : configuration.getLocale(), false);
 
-    List<Locale> locales = getRelevantLocales();
+    List<Locale> locales = getRelevantLocales(configuration);
 
-    Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null && !locales.isEmpty()) {
       String title = Locale.getLocaleLabel(Locale.ANY, false);
-      add(new SetLocaleAction(myRenderContext, title, Locale.ANY, currentLocalLabel.equals(title)));
+      add(new SetLocaleAction(title, Locale.ANY, currentLocalLabel.equals(title)));
       addSeparator();
 
       Collections.sort(locales, Locale.LANGUAGE_CODE_COMPARATOR);
@@ -88,7 +91,7 @@ public class LocaleMenuAction extends DropDownAction {
           title = ConfigurationAction.getBetterMatchLabel(Locale.getLocaleLabel(locale, true), better, configuration.getFile());
         }
 
-        add(new SetLocaleAction(myRenderContext, title, locale, currentLocalLabel.equals(title)));
+        add(new SetLocaleAction(title, locale, currentLocalLabel.equals(title)));
       }
 
       addSeparator();
@@ -98,7 +101,7 @@ public class LocaleMenuAction extends DropDownAction {
 
     if (configuration != null && !hasAnyRtlLocales(configuration, locales)) {
       // The switch RtlAction is only added is there are not any RTL locales that you can use to preview the layout
-      add(new RtlAction(myRenderContext));
+      add(new RtlAction());
     }
 
     return true;
@@ -124,10 +127,9 @@ public class LocaleMenuAction extends DropDownAction {
    * @return the list of relevant locales in the project
    */
   @NotNull
-  private List<Locale> getRelevantLocales() {
+  private List<Locale> getRelevantLocales(@Nullable Configuration configuration) {
     List<Locale> locales = new ArrayList<>();
 
-    Configuration configuration = myRenderContext.getConfiguration();
     if (configuration == null) {
       return Collections.emptyList();
     }
@@ -165,11 +167,16 @@ public class LocaleMenuAction extends DropDownAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
-    updatePresentation(e.getPresentation());
+    updatePresentation(e);
   }
 
-  private void updatePresentation(Presentation presentation) {
-    Configuration configuration = myRenderContext.getConfiguration();
+  private void updatePresentation(@NotNull AnActionEvent e) {
+    Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
+    if (configurations == null) {
+      return;
+    }
+    Configuration configuration = Iterables.getFirst(configurations, null);
+    Presentation presentation = e.getPresentation();
     boolean visible = configuration != null;
     if (visible) {
       // TEMPORARY WORKAROUND:
@@ -195,10 +202,10 @@ public class LocaleMenuAction extends DropDownAction {
     private final Locale myLocale;
     private final boolean myIsCurrentLocale;
 
-    public SetLocaleAction(ConfigurationHolder renderContext, String title, @NotNull Locale locale, boolean isCurrentLocale) {
+    public SetLocaleAction(String title, @NotNull Locale locale, boolean isCurrentLocale) {
       // TODO: Rather than passing in the title, update the code to implement update() instead; that
       // way we can lazily compute the label as part of the list rendering
-      super(renderContext, title, null);
+      super(title, null);
       myLocale = locale;
       myIsCurrentLocale = isCurrentLocale;
     }
@@ -218,7 +225,7 @@ public class LocaleMenuAction extends DropDownAction {
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       if (commit) {
-        setProjectWideLocale();
+        setProjectWideLocale(configuration);
       }
       else {
         // The locale can affect the direction qualifier: don't constrain best match
@@ -230,21 +237,15 @@ public class LocaleMenuAction extends DropDownAction {
     }
 
     @Override
-    protected void pickedBetterMatch(@NotNull VirtualFile file, @NotNull VirtualFile old) {
-      super.pickedBetterMatch(file, old);
-      Configuration configuration = myRenderContext.getConfiguration();
-      if (configuration != null) {
-        // Save project-wide configuration; not done by regular listening scheme since the previous configuration was not switched
-        setProjectWideLocale();
-      }
+    protected void pickedBetterMatch(@NotNull Configuration configuration, @NotNull VirtualFile file, @NotNull VirtualFile old) {
+      super.pickedBetterMatch(configuration, file, old);
+      // Save project-wide configuration; not done by regular listening scheme since the previous configuration was not switched
+      setProjectWideLocale(configuration);
     }
 
-    private void setProjectWideLocale() {
-      Configuration configuration = myRenderContext.getConfiguration();
-      if (configuration != null) {
-        // Also set the project-wide locale, since locales (and rendering targets) are project wide
-        configuration.getSettings().setLocale(myLocale);
-      }
+    private void setProjectWideLocale(@NotNull Configuration configuration) {
+      // Also set the project-wide locale, since locales (and rendering targets) are project wide
+      configuration.getSettings().setLocale(myLocale);
     }
   }
 
@@ -256,7 +257,11 @@ public class LocaleMenuAction extends DropDownAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-      Configuration configuration = myRenderContext.getConfiguration();
+      Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
+      if (configurations == null) {
+        return;
+      }
+      Configuration configuration = Iterables.getFirst(configurations, null);
       if (configuration != null) {
         Module module = ((StudioConfigurationModelModule)(configuration.getConfigModule())).getModule();
         StringResourceEditorProvider.openEditor(module);

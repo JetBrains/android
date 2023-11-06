@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.actions;
 
+import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
+
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.resources.configuration.DeviceConfigHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -25,42 +27,41 @@ import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationProjectState;
-import com.android.tools.idea.configurations.ConfigurationAction;
-import com.android.tools.idea.configurations.ConfigurationHolder;
 import com.android.tools.idea.configurations.ConfigurationMatcher;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
+import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class OrientationMenuAction extends DropDownAction {
-  private final ConfigurationHolder myRenderContext;
   private final boolean myIncludeUiMode;
 
   /**
    * Create a Menu to switch the orientation and UI mode of the preview.
-   *
-   * @param renderContext The render context to get the configuration
    */
-  // TODO The surface is probably no needed, createVariationAction should be able to use the renderContext configuration
-  public OrientationMenuAction(@NotNull ConfigurationHolder renderContext, boolean includeUiMode) {
+  public OrientationMenuAction(boolean includeUiMode) {
     super("Orientation for Preview", "Orientation for Preview", StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON);
-    myRenderContext = renderContext;
     myIncludeUiMode = includeUiMode;
   }
 
-  public void updateActionsImmediately() {
-    updateActions(DataContext.EMPTY_CONTEXT);
+  public void updateActionsImmediately(@NotNull DataContext dataContext) {
+    updateActions(dataContext);
   }
 
   @Override
   protected boolean updateActions(@NotNull DataContext context) {
     removeAll();
-    Configuration configuration = myRenderContext.getConfiguration();
+    Collection<Configuration> configurations = context.getData(CONFIGURATIONS);
+    if (configurations == null) {
+      return true;
+    }
+    Configuration configuration = Iterables.getFirst(configurations, null);
     if (configuration != null) {
       Device device = configuration.getCachedDevice();
       if (device != null) {
@@ -81,7 +82,7 @@ public class OrientationMenuAction extends DropDownAction {
               title = ConfigurationAction.getBetterMatchLabel(stateName, better, configuration.getFile());
             }
 
-            SetDeviceStateAction action = new SetDeviceStateAction(myRenderContext, title, state, state == currentDeviceState);
+            SetDeviceStateAction action = new SetDeviceStateAction(title, state, state == currentDeviceState);
             add(action);
           }
         }
@@ -94,7 +95,7 @@ public class OrientationMenuAction extends DropDownAction {
         for (UiMode uiMode : UiMode.values()) {
           String title = uiMode.getShortDisplayValue();
           boolean checked = uiMode == currentUiMode;
-          uiModeGroup.add(new SetUiModeAction(myRenderContext, title, uiMode, checked));
+          uiModeGroup.add(new SetUiModeAction(title, uiMode, checked));
         }
         add(uiModeGroup);
       }
@@ -121,11 +122,10 @@ public class OrientationMenuAction extends DropDownAction {
   static class SetDeviceStateAction extends ConfigurationAction {
     @NotNull private final State myState;
 
-    private SetDeviceStateAction(@NotNull ConfigurationHolder renderContext,
-                                 @NotNull String title,
+    private SetDeviceStateAction(@NotNull String title,
                                  @NotNull State state,
                                  boolean isCurrentState) {
-      super(renderContext, title);
+      super(title);
       myState = state;
       Toggleable.setSelected(getTemplatePresentation(), isCurrentState);
     }
@@ -145,8 +145,8 @@ public class OrientationMenuAction extends DropDownAction {
   private static class SetUiModeAction extends ConfigurationAction {
     @NotNull private final UiMode myUiMode;
 
-    private SetUiModeAction(@NotNull ConfigurationHolder renderContext, @NotNull String title, @NotNull UiMode uiMode, boolean checked) {
-      super(renderContext, title);
+    private SetUiModeAction(@NotNull String title, @NotNull UiMode uiMode, boolean checked) {
+      super(title);
       myUiMode = uiMode;
       Toggleable.setSelected(getTemplatePresentation(), checked);
     }

@@ -18,6 +18,7 @@ package com.android.tools.idea.actions
 import com.android.resources.NightMode
 import com.android.tools.configurations.Wallpaper
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.TestActionEvent
 import junit.framework.Assert
 import org.jetbrains.android.AndroidTestCase
@@ -28,13 +29,14 @@ class SystemUiModeActionTest : AndroidTestCase() {
     val file = myFixture.copyFileToProject("configurations/layout1.xml", "res/layout/layout1.xml")
     val manager = ConfigurationManager.getOrCreateInstance(myModule)
     val configuration = manager.getConfiguration(file)
-    val systemUiModeAction = SystemUiModeAction { configuration }
+    val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(configuration) else null }
+    val systemUiModeAction = SystemUiModeAction()
 
     val wallpaperActions = systemUiModeAction.getWallpaperActions()
     val wallpapers = enumValues<Wallpaper>()
     Assert.assertEquals(wallpapers.size + 1, wallpaperActions.size)
     wallpaperActions.forEachIndexed { index, action ->
-      action.actionPerformed(TestActionEvent())
+      action.actionPerformed(TestActionEvent.createTestEvent(dataContext))
       if (index < wallpapers.size) {
         Assert.assertEquals(wallpapers[index].resourcePath, configuration.wallpaperPath)
       } else {
@@ -45,7 +47,7 @@ class SystemUiModeActionTest : AndroidTestCase() {
     val nightModeActions = systemUiModeAction.getNightModeActions()
     val nightModes = enumValues<NightMode>()
     nightModeActions.forEachIndexed { index, action ->
-      action.actionPerformed(TestActionEvent())
+      action.actionPerformed(TestActionEvent.createTestEvent(dataContext))
       Assert.assertEquals(nightModes[index], configuration.nightMode)
     }
   }

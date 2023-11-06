@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.actions;
 
+import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
+
 import com.android.SdkConstants;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationAction;
-import com.android.tools.idea.configurations.ConfigurationHolder;
 import com.android.xml.AttrNameSplitter;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.StyleResourceValue;
@@ -27,6 +27,7 @@ import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -34,6 +35,7 @@ import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,17 +45,14 @@ import org.jetbrains.annotations.Nullable;
 
 public class ThemeMenuAction extends DropDownAction {
 
-  private final ConfigurationHolder myRenderContext;
-
-  public ThemeMenuAction(@NotNull ConfigurationHolder renderContext) {
+  public ThemeMenuAction() {
     super("Theme for Preview", "Theme for Preview", StudioIcons.LayoutEditor.Toolbar.THEME_BUTTON);
-    myRenderContext = renderContext;
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
-    updatePresentation(e.getPresentation());
+    updatePresentation(e);
   }
 
   @Override
@@ -61,8 +60,13 @@ public class ThemeMenuAction extends DropDownAction {
     return true;
   }
 
-  private void updatePresentation(Presentation presentation) {
-    Configuration configuration = myRenderContext.getConfiguration();
+  private void updatePresentation(@NotNull AnActionEvent e) {
+    Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
+    if (configurations == null) {
+      return;
+    }
+    Configuration configuration = Iterables.getFirst(configurations, null);
+    Presentation presentation = e.getPresentation();
     boolean visible = configuration != null;
     if (visible) {
       String brief = getThemeLabel(configuration.getTheme(), true);
@@ -100,32 +104,31 @@ public class ThemeMenuAction extends DropDownAction {
   @Override
   protected boolean updateActions(@NotNull DataContext context) {
     removeAll();
-    addThemeActions();
+    Collection<Configuration> configurations = context.getData(CONFIGURATIONS);
+    if (configurations == null) {
+      return true;
+    }
+    Configuration configuration = Iterables.getFirst(configurations, null);
+    addThemeActions(configuration);
     add(new MoreThemesAction());
     return true;
   }
 
-  private void addThemeActions() {
-    Configuration conf = myRenderContext.getConfiguration();
-    if (conf == null) {
-      return;
-    }
-    ThemeResolver themeResolver = new ThemeResolver(myRenderContext.getConfiguration());
+  private void addThemeActions(@NotNull Configuration configuration) {
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
     StyleResourceValue[] baseThemes = themeResolver.requiredBaseThemes();
 
     // This is the selected theme in layout editor, may be different with the theme used at runtime.
-    String currentThemeName = getCurrentTheme();
+    String currentThemeName = getCurrentTheme(configuration);
 
     // Add the default theme, which is the theme applied at runtime.
-    String defaultTheme = getDefaultTheme();
-    if (defaultTheme != null) {
-      String themeName = ThemeUtils.getPreferredThemeName(defaultTheme);
-      add(new SetThemeAction(myRenderContext, themeName, themeName + " [default]", isSameTheme(defaultTheme, currentThemeName)));
-      addSeparator();
-    }
+    String defaultTheme = getDefaultTheme(configuration);
+    String themeName = ThemeUtils.getPreferredThemeName(defaultTheme);
+    add(new SetThemeAction(themeName, themeName + " [default]", isSameTheme(defaultTheme, currentThemeName)));
+    addSeparator();
 
     // Add project themes exclude the default theme.
-    Set<String> excludedThemes = defaultTheme != null ? ImmutableSet.of(defaultTheme) : ImmutableSet.of();
+    Set<String> excludedThemes = ImmutableSet.of(defaultTheme);
     Function1<ConfiguredThemeEditorStyle, Boolean> filter = ThemeUtils.createFilter(themeResolver, excludedThemes, baseThemes);
     List<String> projectThemeWithoutDefaultTheme = ThemeUtils.getProjectThemeNames(themeResolver, filter);
     addThemes(projectThemeWithoutDefaultTheme, currentThemeName, false);
@@ -134,19 +137,16 @@ public class ThemeMenuAction extends DropDownAction {
     List<String> recommendedThemes = ThemeUtils.getRecommendedThemeNames(themeResolver, filter);
     addThemes(recommendedThemes, currentThemeName, true);
 
-    Configuration config = myRenderContext.getConfiguration();
-    if (config != null) {
-      Project project = config.getConfigModule().getProject();
+    Project project = configuration.getConfigModule().getProject();
 
-      // Add recent used themes
-      // Don't show any theme added above as recent Theme.
-      Set<String> existingThemes = new HashSet<>();
-      existingThemes.addAll(excludedThemes);
-      existingThemes.addAll(projectThemeWithoutDefaultTheme);
-      existingThemes.addAll(recommendedThemes);
-      List<String> recentUsedThemes = ThemeUtils.getRecentlyUsedThemes(project, existingThemes);
-      addThemes(recentUsedThemes, currentThemeName, true);
-    }
+    // Add recent used themes
+    // Don't show any theme added above as recent Theme.
+    Set<String> existingThemes = new HashSet<>();
+    existingThemes.addAll(excludedThemes);
+    existingThemes.addAll(projectThemeWithoutDefaultTheme);
+    existingThemes.addAll(recommendedThemes);
+    List<String> recentUsedThemes = ThemeUtils.getRecentlyUsedThemes(project, existingThemes);
+    addThemes(recentUsedThemes, currentThemeName, true);
   }
 
   /**
@@ -155,15 +155,10 @@ public class ThemeMenuAction extends DropDownAction {
    * The returned name does <b>not</b> have resource prefix.
    * If the current configuration or its theme doesn't exist, returns null instead.
    *
-   * @return The name of current theme without resource prefix, or null if the theme doesn't exist.
+   * @return The name of current theme without resource prefix.
    */
-  @Nullable
-  private String getCurrentTheme() {
-    Configuration configuration = myRenderContext.getConfiguration();
-    if (configuration == null) {
-      return null;
-    }
-
+  @NotNull
+  private String getCurrentTheme(@NotNull Configuration configuration) {
     String theme = configuration.getTheme();
     theme = convertToNonResourcePrefixName(theme);
     return theme;
@@ -172,12 +167,8 @@ public class ThemeMenuAction extends DropDownAction {
   /**
    * Returns the default theme which will be applied at runtime.
    */
-  @Nullable
-  private String getDefaultTheme() {
-    Configuration configuration = myRenderContext.getConfiguration();
-    if (configuration == null) {
-      return null;
-    }
+  @NotNull
+  private String getDefaultTheme(@NotNull Configuration configuration) {
     String theme = configuration.getPreferredTheme();
     return convertToNonResourcePrefixName(theme);
   }
@@ -192,7 +183,7 @@ public class ThemeMenuAction extends DropDownAction {
       if (builtInTheme) {
         displayName = ThemeUtils.getPreferredThemeName(displayName);
       }
-      add(new SetThemeAction(myRenderContext, theme, displayName, isSameTheme(theme, currentSelectedTheme)));
+      add(new SetThemeAction(theme, displayName, isSameTheme(theme, currentSelectedTheme)));
     }
     addSeparator();
   }
@@ -229,11 +220,10 @@ public class ThemeMenuAction extends DropDownAction {
     private final String myTheme;
     private final boolean mySelected;
 
-    public SetThemeAction(@NotNull final ConfigurationHolder configurationHolder,
-                          @NotNull final String theme,
+    public SetThemeAction(@NotNull final String theme,
                           @NotNull final String themeDisplayName,
                           final boolean selected) {
-      super(configurationHolder, themeDisplayName);
+      super(themeDisplayName);
       myTheme = theme;
       mySelected = selected;
     }
@@ -245,8 +235,8 @@ public class ThemeMenuAction extends DropDownAction {
     }
 
     @Override
-    protected void updatePresentation(@NotNull Presentation presentation) {
-      ThemeMenuAction.this.updatePresentation(presentation);
+    protected void updatePresentation(@NotNull AnActionEvent event) {
+      ThemeMenuAction.this.updatePresentation(event);
     }
 
     @Override
@@ -270,7 +260,11 @@ public class ThemeMenuAction extends DropDownAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-      Configuration configuration = myRenderContext.getConfiguration();
+      Collection<Configuration> configurations = e.getData(CONFIGURATIONS);
+      if (configurations == null) {
+        return;
+      }
+      Configuration configuration = Iterables.getFirst(configurations, null);
       if (configuration != null) {
         ThemeSelectionDialog dialog = new ThemeSelectionDialog(configuration);
         if (dialog.showAndGet()) {

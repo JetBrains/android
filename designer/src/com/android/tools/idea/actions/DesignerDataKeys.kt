@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.actions
 
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.editor.AnimationToolbar
@@ -36,3 +37,7 @@ val ANIMATION_TOOLBAR: DataKey<AnimationToolbar> =
   DataKey.create(AnimationToolbar::class.qualifiedName!!)
 
 @JvmField val SCENE_VIEW: DataKey<SceneView> = DataKey.create(SceneView::class.qualifiedName!!)
+
+@JvmField
+val CONFIGURATIONS: DataKey<Collection<Configuration>> =
+  DataKey.create(DesignSurface::class.qualifiedName!! + "_Configurations")
