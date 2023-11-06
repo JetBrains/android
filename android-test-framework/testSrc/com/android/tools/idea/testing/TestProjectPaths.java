@@ -99,6 +99,7 @@ public final class TestProjectPaths {
   public static final String SCRIPTED_DIMENSIONS = "projects/scriptedDimensions";
   public static final String SIGNAPK_MULTIFLAVOR = "projects/signapk/multiflavor";
   public static final String SIGNAPK_NO_FLAVORS = "projects/signapk/no_flavors";
+  public static final String SIMPLE_AIDL = "projects/simpleAidl";
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
   public static final String SIMPLE_APPLICATION_PLUGINS_DSL = "projects/simpleApplicationPluginsDsl";
   public static final String SIMPLE_APPLICATION_PLUGIN_MANAGEMENT_DSL = "projects/simpleApplicationPluginManagementDsl";
