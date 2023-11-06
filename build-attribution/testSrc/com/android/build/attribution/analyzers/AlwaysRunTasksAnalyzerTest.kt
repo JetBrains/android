@@ -44,7 +44,7 @@ class AlwaysRunTasksAnalyzerTest {
 
     FileUtil.appendToFile(
       File(preparedProject.root, FN_GRADLE_PROPERTIES),
-      "org.gradle.unsafe.configuration-cache=true"
+      "org.gradle.unsafe.configuration-cache=true\n"
     )
 
     preparedProject.runTest {

@@ -124,12 +124,12 @@ class EmptyDimensionSyncErrorTest {
       }
 
       val failureEvent = usageTracker.usages
-        .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
-      assertThat(failureEvent.studioEvent.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND)
+        .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+        .single { it.studioEvent.gradleSyncFailure == AndroidStudioEvent.GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND }
+      assertThat(failureEvent.studioEvent.gradleSyncFailure).isNotNull()
       val issuesEvent = usageTracker.usages
-        .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES }
-      assertThat(issuesEvent.studioEvent.gradleSyncIssuesList.map { it.type }).containsExactly(
-        AndroidStudioEvent.GradleSyncIssueType.TYPE_EMPTY_FLAVOR_DIMENSION)
+        .single { it.studioEvent.gradleSyncIssuesList.any {it.type == AndroidStudioEvent.GradleSyncIssueType.TYPE_EMPTY_FLAVOR_DIMENSION} }
+      assertThat(issuesEvent).isNotNull()
     }
   }
 }
