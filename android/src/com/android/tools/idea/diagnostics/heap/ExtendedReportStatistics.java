@@ -43,6 +43,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class ExtendedReportStatistics {
 
+  // In the current configuration maximum value for NOMINATED_CLASSES_NUMBER_IN_SECTION is 4. If it's not enough please also change the
+  // type of RootPathElement#rootPathTreeNodeWasPropagated mask.
   static final int NOMINATED_CLASSES_NUMBER_IN_SECTION = 3;
   static final int NUMBER_OF_LOADERS_FOR_CLASS_NAME_THRESHOLD = 10;
   private static final String CLASS_FQN = "java.lang.Class";

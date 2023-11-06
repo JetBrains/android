@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics.heap;
 
 import static com.android.tools.idea.diagnostics.heap.ExtendedReportStatistics.NOMINATED_CLASSES_NUMBER_IN_SECTION;
 import static com.google.common.base.Strings.padStart;
+import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMask;
 
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils;
 import com.google.common.collect.Maps;
@@ -87,7 +88,7 @@ public class RootPathTree {
     // Iterate in reverse.
     while (rootPathIterator.hasPrevious()) {
       pathElement = rootPathIterator.previous();
-      if (pathElement.rootPathTreeNode != null && pathElement.rootPathTreeNodeWasPropagated[exceededClusterId][nominatedNodeTypeId]) {
+      if (pathElement.rootPathTreeNode != null && pathElement.isRootPathTreeNodeWasPropagated(exceededClusterId, nominatedNodeTypeId)) {
         rootPathIterator.next();
         rootPathTreeNode = pathElement.rootPathTreeNode;
         break;
@@ -348,15 +349,19 @@ public class RootPathTree {
 
     @Nullable
     private RootPathTreeNode rootPathTreeNode;
-    private final boolean[][] rootPathTreeNodeWasPropagated;
+    private final short[] rootPathTreeNodeWasPropagated;
 
 
     public RootPathElement(@NotNull ExtendedStackNode node, long size, @NotNull final ExtendedReportStatistics extendedReportStatistics) {
       extendedStackNode = node;
-      rootPathTreeNodeWasPropagated =
-        new boolean[extendedReportStatistics.componentToExceededClustersStatistics.size()][MAX_NUMBER_OF_NOMINATED_NODE_TYPES];
+      rootPathTreeNodeWasPropagated = new short[extendedReportStatistics.componentToExceededClustersStatistics.size()];
       this.size = size;
       this.subtreeSize = size;
+    }
+
+    boolean isRootPathTreeNodeWasPropagated(int exceededClusterId,
+                                            int nominatedNodeTypeId) {
+      return (rootPathTreeNodeWasPropagated[exceededClusterId] & (1 << nominatedNodeTypeId)) != 0;
     }
 
     public String getClassName() {
@@ -376,7 +381,7 @@ public class RootPathTree {
                                     int exceededClusterId,
                                     int nominatedNodeTypeId) {
       this.rootPathTreeNode = rootPathTreeNode;
-      rootPathTreeNodeWasPropagated[exceededClusterId][nominatedNodeTypeId] = true;
+      rootPathTreeNodeWasPropagated[exceededClusterId] |= 1 << nominatedNodeTypeId;
     }
 
     public long getSize() {
@@ -396,12 +401,8 @@ public class RootPathTree {
       // When we add subtree size to the node it may already participate in some object paths - we need to reflect the subtree size
       // change there as well to avoid out of sync.
       for (int i = 0; i < rootPathTreeNodeWasPropagated.length; i++) {
-        boolean[] nodes = rootPathTreeNodeWasPropagated[i];
-        for (int j = 0; j < nodes.length; j++) {
-          if (nodes[j]) {
-            rootPathTreeNode.instancesStatistics[i][j].addStats(0, size);
-          }
-        }
+        int finalI = i;
+        processMask(rootPathTreeNodeWasPropagated[i], j -> rootPathTreeNode.instancesStatistics[finalI][j].addStats(0, size));
       }
     }
   }
