@@ -294,6 +294,7 @@ iml_module(
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
+        "//tools/base/environment-services:studio.intellij.android.environment-services[module, test]",
     ],
 )
 
