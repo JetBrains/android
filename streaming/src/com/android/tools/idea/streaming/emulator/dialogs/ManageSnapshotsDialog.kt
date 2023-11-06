@@ -129,7 +129,7 @@ internal class ManageSnapshotsDialog(
 
   private val snapshotTableModel = SnapshotTableModel()
   private val snapshotTable = SnapshotTable(snapshotTableModel)
-  private val takeSnapshotButton = JButton("Create Snapshot").apply {
+  private val createSnapshotButton = JButton("Create Snapshot").apply {
     addActionListener { createSnapshot() }
   }
   private val runningOperationLabel = JBLabel().apply {
@@ -200,7 +200,7 @@ internal class ManageSnapshotsDialog(
       }
       row {
         cell {
-          component(takeSnapshotButton)
+          component(createSnapshotButton)
           component(runningOperationLabel)
         }
       }
@@ -309,8 +309,8 @@ internal class ManageSnapshotsDialog(
     val completionTracker = object : EmptyStreamObserver<SnapshotPackage>() {
 
       init {
-        takeSnapshotButton.transferFocusBackward() // Transfer focus to the table.
-        takeSnapshotButton.isEnabled = false // Disable the button temporarily.
+        createSnapshotButton.transferFocusBackward() // Transfer focus to the table.
+        createSnapshotButton.isEnabled = false // Disable the button temporarily.
         startLongOperation("Saving snapshot...")
         emulatorView.showLongRunningOperationIndicator("Saving state...")
       }
@@ -343,7 +343,7 @@ internal class ManageSnapshotsDialog(
       @UiThread
       private fun finished() {
         emulatorView.hideLongRunningOperationIndicator()
-        takeSnapshotButton.isEnabled = true // Re-enable the button.
+        createSnapshotButton.isEnabled = true // Re-enable the button.
         endLongOperation()
       }
 
