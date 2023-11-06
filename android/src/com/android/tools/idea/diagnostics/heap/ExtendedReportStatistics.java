@@ -200,25 +200,30 @@ public class ExtendedReportStatistics {
     WeakList<Object> firstTraverseRoots = new WeakList<>();
     WeakList<Object> nominatedLoadersRoots = new WeakList<>();
 
-    startRoots.forEach(o -> {
+    for (Object root : startRoots) {
+      if (root == null) {
+        continue;
+      }
       ClassLoader cl;
-      if(o instanceof Class) {
-        cl = ((Class<?>)o).getClassLoader();
-      } else if (o instanceof ClassLoader) {
-        cl = (ClassLoader)o;
+      if(root instanceof Class) {
+        cl = ((Class<?>)root).getClassLoader();
+      } else if (root instanceof ClassLoader) {
+        cl = (ClassLoader)root;
       }
       else {
-        firstTraverseRoots.add(o);
-        return;
+        firstTraverseRoots.add(root);
+        continue;
       }
-      if (globalNominatedClassLoaders.contains(cl) ||
-          componentToExceededClustersStatistics.values().stream().anyMatch(a -> a.isClassLoaderNominated(cl))) {
-        nominatedLoadersRoots.add(o);
+
+      if (cl != null && (globalNominatedClassLoaders.contains(cl) ||
+                         componentToExceededClustersStatistics.values().stream().anyMatch(a -> a.isClassLoaderNominated(cl)))) {
+        nominatedLoadersRoots.add(root);
       }
       else {
-        firstTraverseRoots.add(o);
+        firstTraverseRoots.add(root);
       }
-    });
+    }
+
     traverse.start(firstTraverseRoots);
     traverse.disableClassLoaderTracking();
     traverse.start(nominatedLoadersRoots);
