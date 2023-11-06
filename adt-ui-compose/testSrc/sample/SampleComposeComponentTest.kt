@@ -23,6 +23,7 @@ import androidx.compose.ui.test.performClick
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
+import org.jetbrains.jewel.ui.ComponentStyling
 import org.junit.Rule
 import org.junit.Test
 
@@ -39,7 +40,7 @@ class SampleComposeComponentTest {
   @Test
   fun sampleComposeComponentTest() {
     composeTestRule.setContent {
-      IntUiTheme(JewelTheme.lightThemeDefinition(), { arrayOf() }, true) {
+      IntUiTheme(JewelTheme.lightThemeDefinition(), ComponentStyling.provide { arrayOf() }, true) {
         SampleComposeComponent()
       }
     }

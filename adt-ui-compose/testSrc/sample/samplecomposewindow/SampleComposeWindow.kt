@@ -34,6 +34,7 @@ import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.intui.standalone.theme.darkThemeDefinition
 import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
+import org.jetbrains.jewel.ui.ComponentStyling
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.theme.colorPalette
 import sample.samplecomposewindow.ComponentShowcase
@@ -77,7 +78,7 @@ fun main() {
         JewelTheme.lightThemeDefinition()
       }
 
-    IntUiTheme(themeDefinition, { arrayOf() }, swingCompat) {
+    IntUiTheme(themeDefinition, ComponentStyling.provide { arrayOf() }, swingCompat) {
       val windowBackground = if (isDark) {
         JewelTheme.colorPalette.grey(1)
       } else {
