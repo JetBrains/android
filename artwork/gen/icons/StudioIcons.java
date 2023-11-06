@@ -904,6 +904,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon ANDROID_THINGS = load("studio/icons/wizards/modules/android-things.svg", -1767582343, 2);
       /** 16x16 */ public static final @NotNull Icon ANDROID_TV = load("studio/icons/wizards/modules/android-tv.svg", 1354658815, 2);
       /** 16x16 */ public static final @NotNull Icon AUTOMOTIVE = load("studio/icons/wizards/modules/automotive.svg", -1211404863, 2);
+      /** 14x14 */ public static final @NotNull Icon BASELINE_PROFILE_GENERATE = load("studio/icons/wizards/modules/baseline-profile-generate.svg", 1893574134, 2);
       /** 16x16 */ public static final @NotNull Icon BASELINE_PROFILE = load("studio/icons/wizards/modules/baseline-profile.svg", -45303928, 2);
       /** 16x16 */ public static final @NotNull Icon BENCHMARK = load("studio/icons/wizards/modules/benchmark.svg", -1382249542, 2);
       /** 16x16 */ public static final @NotNull Icon DYNAMIC_FEATURE = load("studio/icons/wizards/modules/dynamic-feature.svg", 981095810, 2);
