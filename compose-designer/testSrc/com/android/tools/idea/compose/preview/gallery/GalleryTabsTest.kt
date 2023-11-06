@@ -33,6 +33,7 @@ import javax.swing.JPanel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Ignore
 import org.junit.Rule
@@ -294,6 +295,22 @@ class GalleryTabsTest {
       assertTrue(scrollPane.bounds.contains(buttons[0].relativeBounds()))
       assertFalse(scrollPane.bounds.contains(buttons[1].relativeBounds()))
       assertFalse(scrollPane.bounds.contains(buttons[2].relativeBounds()))
+    }
+  }
+
+  @Test
+  fun `empty gallery`() {
+    invokeAndWaitIfNeeded {
+      var selected: TestKey? = null
+      val tabs =
+        GalleryTabs<TestKey>(rootComponent, { null }, { emptySet() }) { _, key -> selected = key }
+      // Use a direct executor instead of the default (invokeLater) for replacing the toolbar,
+      // so the ActionButtonWithText can be found when using TreeWalker.
+      tabs.setUpdateToolbarExecutorForTests(MoreExecutors.directExecutor())
+      val ui = FakeUi(tabs)
+      ui.updateNestedActions()
+      assertEquals(0, findAllActionButtons(tabs).size)
+      assertNull(selected)
     }
   }
 

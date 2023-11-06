@@ -74,7 +74,7 @@ sealed class PreviewMode {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
   }
   // TODO(b/290579083): extract Essential mode outside of PreviewMode
-  class Gallery(selected: PreviewElement) : Focus<PreviewElement>(selected) {
+  class Gallery(val selected: PreviewElement?) : PreviewMode() {
     override val layoutMode: LayoutMode = LayoutMode.Gallery
 
     /**
@@ -86,7 +86,7 @@ sealed class PreviewMode {
     fun newMode(
       newElements: Collection<PreviewElement>,
       previousElements: Set<PreviewElement>,
-    ): Gallery? {
+    ): Gallery {
       // Try to match which element was selected before
       // If selectedKey was removed select first key. If it was only updated (i.e. if a
       // parameter value has changed), we select the new key corresponding to it.
@@ -105,8 +105,7 @@ sealed class PreviewMode {
 
       // TODO(b/292482974): Find the correct key when there are Multipreview changes
 
-      // TODO(b/292057010) Handle the case if there is nothing to select.
-      return newSelected?.let { Gallery(it) }
+      return Gallery(newSelected)
     }
   }
 

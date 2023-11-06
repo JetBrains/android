@@ -411,8 +411,7 @@ class ComposePreviewRepresentation(
       // There is no need to switch back to Default mode as toolbar is available.
       // When exiting Essentials mode - preview will stay in Gallery mode.
     } else {
-      allPreviewElementsInFileFlow.value.firstOrNull()?.let {
-        // TODO(b/301513969) What if allPreviewElementsInFileFlow is empty?
+      allPreviewElementsInFileFlow.value.firstOrNull().let {
         previewModeManager.setMode(PreviewMode.Gallery(it))
       }
     }
@@ -1320,8 +1319,7 @@ class ComposePreviewRepresentation(
           )
           // If gallery mode was selected before - need to restore this type of layout.
           if (it == PREVIEW_LAYOUT_GALLERY_OPTION) {
-            allPreviewElementsInFileFlow.value.firstOrNull()?.let { previewElement ->
-              // TODO(b/301513969) What if allPreviewElementsInFileFlow is empty?
+            allPreviewElementsInFileFlow.value.firstOrNull().let { previewElement ->
               previewModeManager.setMode(PreviewMode.Gallery(previewElement))
             }
           }
@@ -1477,7 +1475,9 @@ class ComposePreviewRepresentation(
         invalidateAndRefresh()
       }
       is PreviewMode.Gallery -> {
-        composePreviewFlowManager.setSingleFilter(mode.selected as ComposePreviewElementInstance)
+        (mode.selected as? ComposePreviewElementInstance)?.let {
+          composePreviewFlowManager.setSingleFilter(it)
+        }
         withContext(uiThread) {
           val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
           if (!layoutManager.isLayoutManagerSelected(PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager)) {

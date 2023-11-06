@@ -30,6 +30,7 @@ import com.intellij.util.ui.UIUtil
 import javax.swing.JPanel
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 
@@ -61,6 +62,17 @@ class ComposeGalleryModeTest {
     assertEquals(firstElement, gallery.selectedKey!!.element)
     assertInstanceOf<PreviewMode.Gallery>(composePreviewManager.mode.value)
     assertEquals(firstElement, (composePreviewManager.mode.value as PreviewMode.Gallery).selected)
+  }
+
+  @Test
+  fun nothingSelectedInGallery() {
+    val composePreviewManager =
+      TestManager().apply { allPreviewElementsInFileFlow.value = emptyList() }
+    composePreviewManager.setMode(PreviewMode.Gallery(null))
+    val (gallery, _) = setupGallery { composePreviewManager }
+    assertNull(gallery.selectedKey)
+    assertInstanceOf<PreviewMode.Gallery>(composePreviewManager.mode.value)
+    assertNull((composePreviewManager.mode.value as PreviewMode.Gallery).selected)
   }
 
   @Test
