@@ -45,7 +45,7 @@ private fun defaultCache(maxWeight: Long) =
     .maximumWeight(maxWeight)
     .build<String, EntryCache>()
 
-typealias EntryCache = Map<String, ByteArray?>
+typealias EntryCache = MutableMap<String, ByteArray?>
 
 private fun EntryCache.weight() = values.sumOf { it?.size ?: 0 }
 
@@ -70,14 +70,14 @@ private fun loadBytes(file: ZipFile, entry: ZipEntry): ByteArray =
  * file after the "!/" separator, it will be ignored. This method will throw an exception if the
  * files can not be loaded.
  */
-private fun loadAllFilesFromJarOnDisk(jarFilePath: Path): Map<String, ByteArray> =
+private fun loadAllFilesFromJarOnDisk(jarFilePath: Path): EntryCache =
   ZipFile(jarFilePath.toFile()).use {
     return it
       .stream()
       .asSequence()
       .filter { !it.isDirectory }
       .map { zipEntry -> zipEntry.name to loadBytes(it, zipEntry) }
-      .toMap()
+      .toMap(mutableMapOf())
   }
 
 /**
@@ -199,7 +199,7 @@ class JarManager {
     if (cachedEntry == null) {
       // The entry was not in the EntryCache, add it
       cachedEntry = loadFileFromJarOnDiskOrNull(jarFilePath, filePath)
-      (entryCache as MutableMap)[filePath] = cachedEntry
+      entryCache[filePath] = cachedEntry
 
       // Ensure that the weights are re-calculated by updating the jarFileCache entry. If the
       // cachedEntry is null, then, do not update as
