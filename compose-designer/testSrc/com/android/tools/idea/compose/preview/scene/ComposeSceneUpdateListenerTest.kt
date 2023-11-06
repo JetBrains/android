@@ -113,7 +113,7 @@ internal class ComposeSceneUpdateListenerTest {
     updateAnimationInspectorToolbarIcon(fakeView, previewManager, composable) { logTracker }
     assertFalse(composable.hasAnimations)
 
-    previewManager.setMode(PreviewMode.Default)
+    previewManager.setMode(PreviewMode.Default())
     updateAnimationInspectorToolbarIcon(fakeView, previewManager, composable) { logTracker }
     assertTrue(composable.hasAnimations)
   }

@@ -61,7 +61,7 @@ class ReRunUiCheckModeAction : AnAction() {
     val instance =
       dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE.name) as? ComposePreviewElementInstance
         ?: return
-    manager.setMode(PreviewMode.UiCheck(selected = instance))
+    manager.setMode(PreviewMode.UiCheck(baseElement = instance))
     instance.containingFile?.let {
       FileEditorManager.getInstance(project).openFile(it.virtualFile, true, true)
     }

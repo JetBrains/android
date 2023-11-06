@@ -63,6 +63,7 @@ import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
+import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
@@ -292,7 +293,7 @@ class ComposePreviewRepresentation(
       },
       onDelayedDeactivate = {
         // If currently selected mode is not Normal mode, switch for Default normal mode.
-        if (!mode.value.isNormal) previewModeManager.setMode(PreviewMode.Default)
+        if (!mode.value.isNormal) previewModeManager.setMode(PreviewMode.Default())
         log.debug("Delayed surface deactivation")
         surface.deactivate()
       },
@@ -541,7 +542,6 @@ class ComposePreviewRepresentation(
     // We should call this before assigning the instance to singlePreviewElementInstance
     val peerPreviews = composePreviewFlowManager.previewsCount()
     val quickRefresh = peerPreviews == 1
-    composePreviewFlowManager.setSingleFilter(instance)
     sceneComponentProvider.enabled = false
     val startUpStart = System.currentTimeMillis()
     invalidateAndRefresh(
@@ -566,20 +566,8 @@ class ComposePreviewRepresentation(
         isVisible = false
         surface.layeredPane.add(this, JLayeredPane.POPUP_LAYER, 0)
       }
-      if (
-        (surface.sceneViewLayoutManager as LayoutManagerSwitcher).isLayoutManagerSelected(
-          PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager
-        )
-      ) {
-        // Gallery layout does not make sense for UI Check mode. So if coming from Gallery mode,
-        // switch to the default layout.
-        (surface.sceneViewLayoutManager as LayoutManagerSwitcher).setLayoutManager(
-          DEFAULT_PREVIEW_LAYOUT_MANAGER
-        )
-      }
       createUiCheckTab(instance)
     }
-    invalidateAndRefresh()
   }
 
   fun createUiCheckTab(instance: ComposePreviewElementInstance) {
@@ -616,10 +604,9 @@ class ComposePreviewRepresentation(
     uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
   }
 
-  private suspend fun onInteractivePreviewStop() {
+  private fun onInteractivePreviewStop() {
     requestVisibilityAndNotificationsUpdate()
     interactiveManager.stop()
-    composePreviewFlowManager.setSingleFilter(null)
   }
 
   private fun updateAnimationPanelVisibility() {
@@ -764,9 +751,21 @@ class ComposePreviewRepresentation(
       var lastMode: PreviewMode? = null
 
       previewModeManager.mode.collect {
-        lastMode?.let { last -> onExit(last) }
-        onEnter(it)
+        if (PreviewModeManager.areModesOfDifferentType(lastMode, it)) {
+          lastMode?.let { last -> onExit(last) }
+          onEnter(it)
+        }
         lastMode = it
+        (it.selected as? ComposePreviewElementInstance).let { element ->
+          composePreviewFlowManager.setSingleFilter(element)
+        }
+        withUiContext {
+          val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
+          layoutManager.setLayoutManager(
+            it.layoutOption.layoutManager,
+            it.layoutOption.sceneViewAlignment
+          )
+        }
       }
     }
     updateGalleryMode()
@@ -1314,14 +1313,13 @@ class ComposePreviewRepresentation(
 
       PREVIEW_LAYOUT_MANAGER_OPTIONS.find { it.displayName == previewLayoutName }
         ?.let {
-          (surface.sceneViewLayoutManager as LayoutManagerSwitcher).setLayoutManager(
-            it.layoutManager
-          )
           // If gallery mode was selected before - need to restore this type of layout.
           if (it == PREVIEW_LAYOUT_GALLERY_OPTION) {
             allPreviewElementsInFileFlow.value.firstOrNull().let { previewElement ->
               previewModeManager.setMode(PreviewMode.Gallery(previewElement))
             }
+          } else {
+            previewModeManager.setMode(PreviewMode.Default(it))
           }
         }
     }
@@ -1439,11 +1437,13 @@ class ComposePreviewRepresentation(
     previewModeManager.setMode(mode)
   }
 
+  /**
+   * Performs setup for [mode] when this mode is started from a previous mode of a different class.
+   */
   private suspend fun onEnter(mode: PreviewMode) {
     when (mode) {
       is PreviewMode.Default -> {
         sceneComponentProvider.enabled = true
-        composePreviewFlowManager.setSingleFilter(null)
         invalidateAndRefresh()
         surface.repaint()
       }
@@ -1451,11 +1451,10 @@ class ComposePreviewRepresentation(
         startInteractivePreview(mode.selected as ComposePreviewElementInstance)
       }
       is PreviewMode.UiCheck -> {
-        startUiCheckPreview(mode.selected as ComposePreviewElementInstance)
+        startUiCheckPreview(mode.baseElement as ComposePreviewElementInstance)
       }
       is PreviewMode.AnimationInspection -> {
         ComposePreviewAnimationManager.onAnimationInspectorOpened()
-        composePreviewFlowManager.setSingleFilter(mode.selected as ComposePreviewElementInstance)
         sceneComponentProvider.enabled = false
 
         withContext(uiThread) {
@@ -1474,24 +1473,20 @@ class ComposePreviewRepresentation(
         }
         invalidateAndRefresh()
       }
-      is PreviewMode.Gallery -> {
-        (mode.selected as? ComposePreviewElementInstance)?.let {
-          composePreviewFlowManager.setSingleFilter(it)
-        }
-        withContext(uiThread) {
-          val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
-          if (!layoutManager.isLayoutManagerSelected(PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager)) {
-            // The only allowed layout manager for Gallery mode is the one from
-            // PREVIEW_LAYOUT_GALLERY_OPTION
-            layoutManager.setLayoutManager(PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager)
-          }
-        }
-      }
+      is PreviewMode.Gallery -> {}
     }
     surface.background = mode.backgroundColor
-    withUiContext { currentLayoutMode = mode.layoutMode }
+    withUiContext {
+      val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
+      layoutManager.setLayoutManager(
+        mode.layoutOption.layoutManager,
+        mode.layoutOption.sceneViewAlignment
+      )
+      currentLayoutMode = mode.layoutMode
+    }
   }
 
+  /** Performs cleanup for [mode] when leaving this mode to go to a mode of a different class. */
   private suspend fun onExit(mode: PreviewMode) {
     when (mode) {
       is PreviewMode.Default -> {}

@@ -19,17 +19,18 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.actions.ZoomActualAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
+import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.analytics.PreviewCanvasTracker
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.isPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.ui.icons.copyIcon
 
 // When using [AllIcons.Debugger.RestoreLayout] as the icon, this action is considered as a
@@ -41,7 +42,7 @@ import com.intellij.ui.icons.copyIcon
 class ComposeViewControlAction(
   layoutManagers: List<SurfaceLayoutManagerOption>,
   isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true },
-  onSurfaceLayoutSelected: (SurfaceLayoutManagerOption, DataContext) -> Unit,
+  updateMode: (SurfaceLayoutManagerOption, ComposePreviewManager) -> Unit,
   additionalActionProvider: AnAction? = null
 ) :
   DropDownAction(
@@ -60,9 +61,9 @@ class ComposeViewControlAction(
     add(
       SwitchSurfaceLayoutManagerAction(layoutManagers, isSurfaceLayoutActionEnabled) {
           selectedOption,
-          context ->
+          previewManager ->
           PreviewCanvasTracker.getInstance().logSwitchLayout(selectedOption.layoutManager)
-          onSurfaceLayoutSelected(selectedOption, context)
+          updateMode(selectedOption, previewManager)
         }
         .apply {
           isPopup = false

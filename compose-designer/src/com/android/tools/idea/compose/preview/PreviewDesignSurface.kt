@@ -20,127 +20,25 @@ import com.android.tools.idea.common.model.NopSelectionModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
-import com.android.tools.idea.compose.preview.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.graphics.NlConstants
+import com.android.tools.idea.preview.modes.GRID_LAYOUT_MANAGER_OPTIONS
+import com.android.tools.idea.preview.modes.LIST_LAYOUT_MANAGER_OPTION
+import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
-import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
-import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
-import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
-import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 
-private val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale ->
-  // Minimum 5 at 20% and maximum 20 at 100%, responsive.
-  val min = 5
-  val max = 20
-
-  when {
-    scale <= 0.2 -> min
-    scale >= 1.0 -> max
-    else ->
-      min + ((max - min) / (1 - 0.2)) * (scale - 0.2) // find interpolated value between min and max
-  }.toInt()
-}
-
-private val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<PositionableGroup> = {
-  // FIXME(b/258718991): we decide not group the previews for now.
-  listOf(PositionableGroup(it.toList()))
-}
-
-private val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<PositionableGroup> =
-  { contents ->
-    val groups = mutableMapOf<String?, MutableList<PositionableContent>>()
-    for (content in contents) {
-      groups.getOrPut(content.organizationGroup) { mutableListOf() }.add(content)
-    }
-
-    // Put previews which are the only preview in a group last as one group.
-    val singles = groups.filter { it.value.size == 1 }
-    singles.forEach { groups.remove(it.key) }
-    groups.values.map { PositionableGroup(it) } +
-      listOf(PositionableGroup(singles.values.flatten()))
-  }
-
-/** Toolbar option to select [LayoutMode.Gallery] layout. */
-internal val PREVIEW_LAYOUT_GALLERY_OPTION =
-  SurfaceLayoutManagerOption(
-    message("gallery.mode.title"),
-    GroupedGridSurfaceLayoutManager(5, 0, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
-    DesignSurface.SceneViewAlignment.LEFT,
-  )
-
 internal val BASE_LAYOUT_MANAGER_OPTIONS =
-  if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get()) {
-    listOf(
-      SurfaceLayoutManagerOption(
-        // TODO(b/289994157) Change name to "List"
-        message("vertical.groups"),
-        GroupedListSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, GROUP_BY_BASE_COMPONENT),
-        DesignSurface.SceneViewAlignment.LEFT
-      ),
-      SurfaceLayoutManagerOption(
-        // TODO(b/289994157) Change name to "Grid"
-        message("grid.groups"),
-        GroupedGridSurfaceLayoutManager(
-          5,
-          25,
-          PREVIEW_FRAME_PADDING_PROVIDER,
-          GROUP_BY_BASE_COMPONENT
-        ),
-        DesignSurface.SceneViewAlignment.LEFT,
-      )
-    )
-  } else if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
-    listOf(
-      SurfaceLayoutManagerOption(
-        message("vertical.layout"),
-        VerticalOnlyLayoutManager(
-          NlConstants.DEFAULT_SCREEN_OFFSET_X,
-          NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-          NlConstants.SCREEN_DELTA,
-          NlConstants.SCREEN_DELTA,
-          SingleDirectionLayoutManager.Alignment.CENTER
-        )
-      ),
-      SurfaceLayoutManagerOption(
-        message("grid.layout"),
-        GridSurfaceLayoutManager(
-          NlConstants.DEFAULT_SCREEN_OFFSET_X,
-          NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-          NlConstants.SCREEN_DELTA,
-          NlConstants.SCREEN_DELTA
-        ),
-        DesignSurface.SceneViewAlignment.LEFT
-      )
-    )
-  } else {
-    listOf(
-      SurfaceLayoutManagerOption(
-        message("new.list.layout.title"),
-        GroupedListSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
-        DesignSurface.SceneViewAlignment.LEFT
-      ),
-      SurfaceLayoutManagerOption(
-        message("new.grid.layout.title"),
-        GroupedGridSurfaceLayoutManager(5, 0, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
-        DesignSurface.SceneViewAlignment.LEFT,
-      )
-    )
-  }
+  listOf(LIST_LAYOUT_MANAGER_OPTION, GRID_LAYOUT_MANAGER_OPTIONS)
 
 /** List of available layouts for the Compose Preview Surface. */
 internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =

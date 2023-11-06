@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.gallery
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
+import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.preview.ComposePreviewElementInstance
@@ -61,6 +62,7 @@ class ComposeGalleryModeTest {
     val (gallery, _) = setupGallery { composePreviewManager }
     assertEquals(firstElement, gallery.selectedKey!!.element)
     assertInstanceOf<PreviewMode.Gallery>(composePreviewManager.mode.value)
+    assertEquals(PREVIEW_LAYOUT_GALLERY_OPTION, composePreviewManager.mode.value.layoutOption)
     assertEquals(firstElement, (composePreviewManager.mode.value as PreviewMode.Gallery).selected)
   }
 

@@ -25,6 +25,7 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -75,7 +76,7 @@ class ComposeViewControlActionTest {
     val viewControlAction =
       ComposeViewControlAction(
         options,
-        onSurfaceLayoutSelected = { _, _ -> },
+        updateMode = { _, _ -> },
         additionalActionProvider = ColorBlindModeAction()
       )
 
@@ -120,7 +121,7 @@ class ComposeViewControlActionTest {
     val viewControlAction =
       ComposeViewControlAction(
         options,
-        onSurfaceLayoutSelected = { _, _ -> },
+        updateMode = { _, _ -> },
         additionalActionProvider = ColorBlindModeAction()
       )
 
@@ -169,7 +170,7 @@ class ComposeViewControlActionTest {
     val viewControlAction =
       ComposeViewControlAction(
         options,
-        onSurfaceLayoutSelected = { _, _ -> },
+        updateMode = { _, _ -> },
         additionalActionProvider = ColorBlindModeAction()
       )
 
@@ -236,7 +237,7 @@ class ComposeViewControlActionTest {
     val viewControlAction =
       ComposeViewControlAction(
         listOf(createOption("Layout A", EmptySurfaceLayoutManager())),
-        onSurfaceLayoutSelected = { _, _ -> }
+        updateMode = { _, _ -> }
       )
 
     manager.currentStatus = nonRefreshingStatus

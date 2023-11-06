@@ -15,21 +15,13 @@
  */
 package com.android.tools.idea.preview.modes
 
-import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-private val log = Logger.getInstance(CommonPreviewModeManager::class.java)
-
-/**
- * Common implementation of a [PreviewModeManager].
- *
- * @param onEnter a function that will be called with the new mode when switching to a new mode.
- * @param onExit a function that will be called with the current mode when switching to a new mode.
- */
+/** Common implementation of a [PreviewModeManager]. */
 class CommonPreviewModeManager : PreviewModeManager {
 
-  private val _mode = MutableStateFlow<PreviewMode>(PreviewMode.Default)
+  private val _mode = MutableStateFlow<PreviewMode>(PreviewMode.Default())
   override val mode = _mode.asStateFlow()
   private val lock = Any()
 
@@ -47,7 +39,12 @@ class CommonPreviewModeManager : PreviewModeManager {
 
   override fun setMode(mode: PreviewMode) {
     synchronized(lock) {
-      restoreMode = this._mode.value
+      val currentMode = this._mode.value
+      if (PreviewModeManager.areModesOfDifferentType(currentMode, mode)) {
+        // We only change the restore mode when we change mode type. That way we can go back
+        // to the latest state of the previous type of mode.
+        restoreMode = currentMode
+      }
       this._mode.value = mode
     }
   }

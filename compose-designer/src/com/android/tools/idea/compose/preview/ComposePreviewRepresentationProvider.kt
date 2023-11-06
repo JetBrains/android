@@ -38,6 +38,7 @@ import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
+import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_GALLERY_OPTION
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
@@ -97,20 +98,19 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
                 // If Essentials Mode is enabled, it should not be possible to switch layout.
                 !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
             },
-            onSurfaceLayoutSelected = { selectedOption, dataContext ->
-              val manager = dataContext.getData(COMPOSE_PREVIEW_MANAGER)
-              manager?.let {
-                if (selectedOption == PREVIEW_LAYOUT_GALLERY_OPTION) {
-                  // If turning on Gallery layout option - it should be set in preview.
-                  // TODO (b/292057010) If group filtering is enabled - first element in this group
-                  // should be selected.
-                  val element = it.allPreviewElementsInFileFlow.value.firstOrNull()
-                  it.setMode(PreviewMode.Gallery(element))
-                } else if (it.mode.value is PreviewMode.Gallery) {
-                  // When switching from Gallery mode to Default layout mode - need to set back
-                  // Default preview mode.
-                  it.setMode(PreviewMode.Default)
-                }
+            updateMode = { selectedOption, manager ->
+              if (selectedOption == PREVIEW_LAYOUT_GALLERY_OPTION) {
+                // If turning on Gallery layout option - it should be set in preview.
+                // TODO (b/292057010) If group filtering is enabled - first element in this group
+                // should be selected.
+                val element = manager.allPreviewElementsInFileFlow.value.firstOrNull()
+                manager.setMode(PreviewMode.Gallery(element))
+              } else if (manager.mode.value is PreviewMode.Gallery) {
+                // When switching from Gallery mode to Default layout mode - need to set back
+                // Default preview mode.
+                manager.setMode(PreviewMode.Default(selectedOption))
+              } else {
+                manager.setMode(manager.mode.value.deriveWithLayout(selectedOption))
               }
             },
             additionalActionProvider = ColorBlindModeAction()
@@ -125,7 +125,9 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
                 // If Essentials Mode is enabled, it should not be possible to switch layout.
                 !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
             },
-            onSurfaceLayoutSelected = { _, _ -> },
+            updateMode = { selectedOption, manager ->
+              manager.setMode(manager.mode.value.deriveWithLayout(selectedOption))
+            },
           )
           .visibleOnlyInUiCheck(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },

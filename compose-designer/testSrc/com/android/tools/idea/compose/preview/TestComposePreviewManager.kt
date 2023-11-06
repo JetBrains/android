@@ -52,7 +52,7 @@ open class TestComposePreviewManager : ComposePreviewManager {
 
   override var atfChecksEnabled: Boolean = false
 
-  private val _mode: MutableStateFlow<PreviewMode> = MutableStateFlow(PreviewMode.Default)
+  private val _mode: MutableStateFlow<PreviewMode> = MutableStateFlow(PreviewMode.Default())
   override val mode = _mode.asStateFlow()
 
   override fun restorePrevious() {}

@@ -19,6 +19,7 @@ import com.android.tools.idea.compose.preview.LayoutMode
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.Colors
 import com.android.tools.preview.PreviewElement
+import com.google.common.base.Objects
 import com.intellij.openapi.actionSystem.DataKey
 import java.awt.Color
 import kotlinx.coroutines.flow.StateFlow
@@ -39,6 +40,12 @@ interface PreviewModeManager {
 
   companion object {
     val KEY = DataKey.create<PreviewModeManager>("PreviewModeManager")
+
+    fun areModesOfDifferentType(mode1: PreviewMode?, mode2: PreviewMode?): Boolean {
+      // TODO(b/309802158): Find a better way to check whether the new mode is of the same type
+      //  as the old one.
+      return mode1?.javaClass != mode2?.javaClass
+    }
   }
 }
 
@@ -62,20 +69,69 @@ sealed class PreviewMode {
   /** Background color. */
   open val backgroundColor: Color = Colors.DEFAULT_BACKGROUND_COLOR
 
-  object Default : PreviewMode()
+  open val layoutOption: SurfaceLayoutManagerOption = LIST_LAYOUT_MANAGER_OPTION
 
-  sealed class Focus<T : PreviewElement>(val selected: T) : PreviewMode()
+  open val selected: PreviewElement? = null
+
+  /**
+   * Returns a [PreviewMode] with the same content as the current one, but with a different layout
+   * option if that is allowed by the mode. Modes that want to react to layout changes have to
+   * override this.
+   */
+  open fun deriveWithLayout(layoutOption: SurfaceLayoutManagerOption): PreviewMode {
+    return this
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as PreviewMode
+    return layoutMode == other.layoutMode &&
+      backgroundColor == other.backgroundColor &&
+      layoutOption == other.layoutOption &&
+      selected == other.selected
+  }
+
+  override fun hashCode(): Int {
+    return Objects.hashCode(layoutMode, backgroundColor, layoutOption, selected)
+  }
+
+  class Default(
+    override val layoutOption: SurfaceLayoutManagerOption = LIST_LAYOUT_MANAGER_OPTION
+  ) : PreviewMode() {
+    override fun deriveWithLayout(layoutOption: SurfaceLayoutManagerOption): PreviewMode {
+      return Default(layoutOption)
+    }
+  }
+
+  sealed class Focus<T : PreviewElement>(override val selected: T) : PreviewMode()
 
   class UiCheck(
-    selected: PreviewElement,
+    val baseElement: PreviewElement,
+    override val layoutOption: SurfaceLayoutManagerOption = GRID_LAYOUT_MANAGER_OPTIONS,
     val atfChecksEnabled: Boolean = StudioFlags.NELE_ATF_FOR_COMPOSE.get(),
     val visualLintingEnabled: Boolean = StudioFlags.NELE_COMPOSE_VISUAL_LINT_RUN.get()
-  ) : Focus<PreviewElement>(selected) {
+  ) : PreviewMode() {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
+
+    override fun deriveWithLayout(layoutOption: SurfaceLayoutManagerOption): PreviewMode {
+      return UiCheck(baseElement, layoutOption, atfChecksEnabled, visualLintingEnabled)
+    }
+
+    override fun equals(other: Any?): Boolean {
+      return super.equals(other) && baseElement == (other as UiCheck).baseElement
+    }
+
+    override fun hashCode(): Int {
+      return Objects.hashCode(super.hashCode(), baseElement)
+    }
   }
+
   // TODO(b/290579083): extract Essential mode outside of PreviewMode
-  class Gallery(val selected: PreviewElement?) : PreviewMode() {
+  class Gallery(override val selected: PreviewElement?) : PreviewMode() {
     override val layoutMode: LayoutMode = LayoutMode.Gallery
+    override val layoutOption: SurfaceLayoutManagerOption = PREVIEW_LAYOUT_GALLERY_OPTION
 
     /**
      * If list of previews is updated while [PreviewMode.Gallery] is selected - [selected] element

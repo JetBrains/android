@@ -119,7 +119,7 @@ class NopComposePreviewManager : ComposePreviewManager {
   override var isInspectionTooltipEnabled: Boolean = false
   override var isFilterEnabled: Boolean = false
   override var isUiCheckFilterEnabled: Boolean = false
-  private val _mode = MutableStateFlow<PreviewMode>(PreviewMode.Default)
+  private val _mode = MutableStateFlow<PreviewMode>(PreviewMode.Default())
   override val mode = _mode.asStateFlow()
 
   override fun invalidate() {}

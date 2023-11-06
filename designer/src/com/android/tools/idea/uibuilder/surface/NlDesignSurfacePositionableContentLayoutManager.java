@@ -25,6 +25,7 @@ import java.awt.Point;
 import java.util.Collection;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * {@link PositionableContentLayoutManager} for the {@link NlDesignSurface}. It uses a delegated {@link SurfaceLayoutManager} to layout the
@@ -59,8 +60,9 @@ public class NlDesignSurfacePositionableContentLayoutManager extends Positionabl
     return dimension;
   }
 
+  @VisibleForTesting
   @NotNull
-  SurfaceLayoutManager getLayoutManager() {
+  public SurfaceLayoutManager getLayoutManager() {
     return myLayoutManager;
   }
 

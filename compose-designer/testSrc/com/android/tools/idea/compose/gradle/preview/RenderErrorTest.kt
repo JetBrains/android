@@ -312,7 +312,7 @@ class RenderErrorTest {
 
     composePreviewRepresentation.setMode(
       PreviewMode.UiCheck(
-        selected = uiCheckElement,
+        baseElement = uiCheckElement,
         atfChecksEnabled = true,
         visualLintingEnabled = true,
       ),
@@ -322,7 +322,7 @@ class RenderErrorTest {
 
   private suspend fun stopUiCheck() {
     val onRefreshCompletable = previewView.getOnRefreshCompletable()
-    composePreviewRepresentation.setMode(PreviewMode.Default)
+    composePreviewRepresentation.setMode(PreviewMode.Default())
     onRefreshCompletable.join()
   }
 
