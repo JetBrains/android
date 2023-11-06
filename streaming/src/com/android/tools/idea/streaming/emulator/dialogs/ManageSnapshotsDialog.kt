@@ -33,6 +33,7 @@ import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.CommonBundle
 import com.intellij.execution.runners.ExecutionUtil.getLiveIndicator
 import com.intellij.ide.ui.LafManagerListener
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -657,10 +658,25 @@ internal class ManageSnapshotsDialog(
   }
 
   private fun invokeLaterIfDialogIsShowing(runnable: Runnable) {
-    EventQueue.invokeLater {
-      if (dialogManager != null) {
-        runnable.run()
+    dialogManager?.disposable?.let {
+      val disposableRunnable = DisposableRunnable(runnable)
+      Disposer.register(it, disposableRunnable)
+      EventQueue.invokeLater {
+        disposableRunnable.run()
       }
+    }
+  }
+
+  private class DisposableRunnable(runnable: Runnable) : Runnable, Disposable {
+
+    private var nullableRunnable: Runnable? = runnable
+
+    override fun run() {
+      nullableRunnable?.run()
+    }
+
+    override fun dispose() {
+      nullableRunnable = null
     }
   }
 
