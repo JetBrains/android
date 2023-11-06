@@ -873,6 +873,7 @@ java_test(
 
 java_test(
     name = "CodeConversionFromJavaToKotlinTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/JavaToKotlinCode/**",
     ]),
