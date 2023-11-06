@@ -188,8 +188,6 @@ internal class ComposePreviewFlowManager {
     restorePreviousMode: () -> Unit,
     queryStatus: () -> ProjectStatus,
     updateVisibilityAndNotifications: () -> Unit,
-    onEnter: suspend (PreviewMode) -> Unit,
-    onExit: suspend (PreviewMode) -> Unit,
   ) {
     with(this@initializeFlows) {
       val project = psiFilePointer.project
@@ -345,17 +343,6 @@ internal class ComposePreviewFlowManager {
             )
               requestRefresh()
           }
-      }
-    }
-
-    launch {
-      // Keep track of the last mode that was set to ensure it is correctly disposed
-      var lastMode: PreviewMode? = null
-
-      modeFlow.collect {
-        lastMode?.let { last -> onExit(last) }
-        onEnter(it)
-        lastMode = it
       }
     }
   }

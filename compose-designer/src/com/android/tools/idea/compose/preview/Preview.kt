@@ -759,6 +759,16 @@ class ComposePreviewRepresentation(
   private val previewModeManager: PreviewModeManager = CommonPreviewModeManager()
 
   init {
+    launch {
+      // Keep track of the last mode that was set to ensure it is correctly disposed
+      var lastMode: PreviewMode? = null
+
+      previewModeManager.mode.collect {
+        lastMode?.let { last -> onExit(last) }
+        onEnter(it)
+        lastMode = it
+      }
+    }
     updateGalleryMode()
   }
 
@@ -812,9 +822,7 @@ class ComposePreviewRepresentation(
         ::requestFastPreviewRefreshAndTrack,
         ::restorePrevious,
         { projectBuildStatusManager.status },
-        { composeWorkBench.updateVisibilityAndNotifications() },
-        ::onEnter,
-        ::onExit
+        { composeWorkBench.updateVisibilityAndNotifications() }
       )
     }
 
