@@ -1456,6 +1456,7 @@ public final class StudioFlags {
   // region Firebase Test Lab
   private static final FlagGroup FIREBASE_TEST_LAB = new FlagGroup(FLAGS, "firebasetestlab", "Firebase Test Lab");
 
+  // TODO(b/304622231) deprecate StudioFlags.DIRECT_ACCESS
   public static final Flag<Boolean> DIRECT_ACCESS =
     Flag.create(
       FIREBASE_TEST_LAB,
@@ -1463,6 +1464,14 @@ public final class StudioFlags {
       "Direct Access",
       "Enable FTL DirectAccess",
       false);
+
+  public static final Flag<Boolean> DIRECT_ACCESS_SETTINGS_PAGE =
+    Flag.create(
+      FIREBASE_TEST_LAB,
+      "direct.access.settings.page",
+      "Device Streaming Settings Page",
+      "Show Device Streaming Settings Page",
+      true);
 
   public static final Flag<Boolean> DIRECT_ACCESS_ADD_DEVICE =
     Flag.create(
