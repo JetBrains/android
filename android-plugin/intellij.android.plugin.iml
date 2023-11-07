@@ -18,6 +18,7 @@
     <orderEntry type="module" module-name="app-inspection.inspectors.database" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.lang" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.apk" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.upgrade" scope="RUNTIME" />

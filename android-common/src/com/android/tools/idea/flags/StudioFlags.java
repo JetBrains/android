@@ -634,6 +634,7 @@ public final class StudioFlags {
   );
   //endregion
 
+  //region Project System
   //region Gradle Project System
   private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle Project System");
 
@@ -826,6 +827,16 @@ public final class StudioFlags {
     true
   );
 
+  //endregion
+  //region Apk Project System
+  private static final FlagGroup APK_IDE = new FlagGroup(FLAGS, "apk.ide", "APK Project System");
+
+  public static final Flag<Boolean> ENABLE_APK_PROJECT_SYSTEM =
+    new BooleanFlag(APK_IDE, "enable.apk.project.system", "Use a dedicated APK project system for debugging or profiling APKs",
+                    "If enabled, use the in-development APK project system for project-related services.",
+                    ChannelDefault.enabledUpTo(CANARY));
+
+  //endregion
   //endregion
 
   //region Layout Inspector

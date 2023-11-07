@@ -17,6 +17,7 @@ package com.android.tools.idea.project
 
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.apk.ApkFacet
+import com.android.tools.idea.flags.StudioFlags.ENABLE_APK_PROJECT_SYSTEM
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.navigator.getSubmodules
@@ -136,8 +137,8 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
     if (forTests) {
       return NonGradleApkProvider(facet, applicationIdProvider, null)
     }
-    val apkFacet = ApkFacet.getInstance(module)
-    return when {
+    val apkFacet = if (ENABLE_APK_PROJECT_SYSTEM.get()) null else ApkFacet.getInstance(module)
+    return when  {
       apkFacet != null -> FileSystemApkProvider(apkFacet.module, File(apkFacet.configuration.APK_PATH))
       runConfiguration is AndroidRunConfiguration -> NonGradleApkProvider(facet, applicationIdProvider, runConfiguration.ARTIFACT_NAME)
       else -> null

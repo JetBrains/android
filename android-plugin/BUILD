@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspectors/database:app-inspection.inspectors.database",
         "//tools/adt/idea/android-lang:intellij.android.lang",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "//tools/adt/idea/project-system-apk:intellij.android.projectSystem.apk",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade",
