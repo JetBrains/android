@@ -25,7 +25,6 @@ import com.intellij.CommonBundle
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.updateSettings.impl.UpdateChecker
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
@@ -48,13 +47,17 @@ class AndroidSdkCompatibilityDialog(
 ) : DialogWrapper(project, true, IdeModalityType.MODELESS) {
 
   init {
-    title = AndroidBundle.message("project.upgrade.studio.notification.title")
+    title = if(recommendedVersion.versionReleased.not() && potentialFallbackVersion == null) {
+      AndroidBundle.message("project.upgrade.studio.notification.no.recommendation.title")
+    } else {
+      AndroidBundle.message("project.upgrade.studio.notification.title")
+    }
     setCancelButtonText(CommonBundle.getCloseButtonText())
     init()
   }
 
   override fun createCenterPanel(): JComponent {
-    val dialogContent = if (!recommendedVersion.versionReleased) {
+    val dialogContent = if (recommendedVersion.versionReleased.not()) {
       if (potentialFallbackVersion != null) {
         AndroidBundle.message(
           "project.upgrade.studio.notification.body.different.channel.recommendation",
@@ -68,14 +71,13 @@ class AndroidSdkCompatibilityDialog(
         ) + getAffectedModules(modulesViolatingSupportRules)
       }
     } else {
-      // We can't recommend upgrading to the latest version of AS (from the same channel) that will support
-      // the required API level
       AndroidBundle.message(
         "project.upgrade.studio.notification.body.same.channel.recommendation",
         ApplicationInfo.getInstance().fullVersion,
         recommendedVersion.buildDisplayName
       ) + getAffectedModules(modulesViolatingSupportRules)
     }
+
     val messageArea = JEditorPane("text/html", dialogContent).apply {
       border = JBUI.Borders.empty(3)
       isEditable = false
@@ -103,7 +105,7 @@ class AndroidSdkCompatibilityDialog(
 
   override fun createActions(): Array<Action> {
     return if (recommendedVersion.versionReleased) {
-      arrayOf(UpgradeStudioAction(), cancelAction, DontAskAgainAction())
+      arrayOf(cancelAction, DontAskAgainAction())
     } else {
       arrayOf(cancelAction, DontAskAgainAction())
     }
@@ -144,14 +146,6 @@ class AndroidSdkCompatibilityDialog(
     return content.toString()
   }
 
-  private inner class UpgradeStudioAction: AbstractAction(UPDATE_STUDIO_BUTTON_TEXT) {
-    override fun actionPerformed(e: ActionEvent) {
-      logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.UPGRADE_STUDIO)
-      UpdateChecker.updateAndShowResult(project)
-      close(OK_EXIT_CODE)
-    }
-  }
-
   private inner class DontAskAgainAction: AbstractAction(DO_NOT_ASK_FOR_PROJECT_BUTTON_TEXT) {
     override fun actionPerformed(e: ActionEvent?) {
       logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.DO_NOT_ASK_AGAIN)
@@ -164,7 +158,6 @@ class AndroidSdkCompatibilityDialog(
   }
 
   companion object {
-    const val UPDATE_STUDIO_BUTTON_TEXT = "Check for Updates"
     const val DO_NOT_ASK_FOR_PROJECT_BUTTON_TEXT = "Don't ask for this project"
   }
 }

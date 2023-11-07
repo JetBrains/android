@@ -65,23 +65,23 @@ class AndroidSdkCompatibilityDialogTest {
     waitForCondition(5, TimeUnit.SECONDS) { findDialog() != null }
 
     dialog.let {
-      assertThat(it.title).isEqualTo("Android Studio upgrade recommended")
+      assertThat(it.title).isEqualTo("Android Studio upgrade suggested")
       val rootPane = it.rootPane
       val ui = FakeUi(rootPane)
       val message = ui.getComponent<JEditorPane>().normalizedText
       assertThat(message).contains("Your project is configured with a compile SDK version that is not supported by this version of Android Studio")
-      assertThat(message).contains("We recommend upgrading to Android Studio Canary X")
+      assertThat(message).contains("You can upgrade to Android Studio Canary X or higher to have better IDE support for this project")
       assertThat(message).contains(".myapp")
       assertThat(message).contains("(compileSdk=1000)")
 
       val buttons = ui.findAllComponents(JButton::class.java)
-      assertThat(buttons).hasSize(3)
+      assertThat(buttons).hasSize(2)
       assertThat(buttons.map { btn -> btn.text }).containsAllOf(
-        "Close", "Check for Updates", "Don't ask for this project"
+        "Close",  "Don't ask for this project"
       )
-      buttons.find { btn -> btn.text == "Check for Updates" }!!.doClick()
+      buttons.find { btn -> btn.text == "Close" }!!.doClick()
     }
-    assertThat(dialog.exitCode).isEqualTo(DialogWrapper.OK_EXIT_CODE)
+    assertThat(dialog.exitCode).isEqualTo(DialogWrapper.CLOSE_EXIT_CODE)
   }
 
   @Test
@@ -114,7 +114,7 @@ class AndroidSdkCompatibilityDialogTest {
     waitForCondition(5, TimeUnit.SECONDS) { findDialog() != null }
 
     dialog.let {
-      assertThat(it.title).isEqualTo("Android Studio upgrade recommended")
+      assertThat(it.title).isEqualTo("Android Studio upgrade suggested")
       val rootPane = it.rootPane
       val ui = FakeUi(rootPane)
       val message = ui.getComponent<JEditorPane>().normalizedText
@@ -147,11 +147,11 @@ class AndroidSdkCompatibilityDialogTest {
     waitForCondition(5, TimeUnit.SECONDS) { findDialog() != null }
 
     dialog.let {
-      assertThat(it.title).isEqualTo("Android Studio upgrade recommended")
+      assertThat(it.title).isEqualTo("Android Studio does not support the specified Android API level")
       val rootPane = it.rootPane
       val ui = FakeUi(rootPane)
       val message = ui.getComponent<JEditorPane>().normalizedText
-      assertThat(message).contains("There is no version of Android Studio that supports it. You may experience issues while working on this project.")
+      assertThat(message).contains("Currently, there is no version of Android Studio that supports this compile SDK. You may experience issues while working on this project")
 
       val buttons = ui.findAllComponents(JButton::class.java)
       assertThat(buttons).hasSize(2)
