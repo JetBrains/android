@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.preview.animation.InspectorLayout.colorBut
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -80,6 +81,10 @@ class ColorStateAction(
       colorResourcePickedCallback = {}
     )
     tracker.openPicker()
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
   }
 
   var state: ComposeUnit.Color = defaultState

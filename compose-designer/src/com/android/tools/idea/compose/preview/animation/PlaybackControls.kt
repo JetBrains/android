@@ -124,6 +124,10 @@ class PlaybackControls(
         super.updateButton(e)
         e.presentation.isEnabled = !clockControl.isAtStart()
       }
+
+      override fun getActionUpdateThread(): ActionUpdateThread {
+        return ActionUpdateThread.BGT
+      }
     }
 
     /** Snap the animation to the end state. */
@@ -145,6 +149,10 @@ class PlaybackControls(
       override fun updateButton(e: AnActionEvent) {
         super.updateButton(e)
         e.presentation.isEnabled = !clockControl.isAtEnd()
+      }
+
+      override fun getActionUpdateThread(): ActionUpdateThread {
+        return ActionUpdateThread.BGT
       }
     }
   }
@@ -231,6 +239,10 @@ class PlaybackControls(
       ticker.dispose()
     }
 
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.BGT
+    }
+
     init {
       Disposer.register(parentDisposable, this)
     }
@@ -261,6 +273,10 @@ class PlaybackControls(
 
     override fun displayTextInToolbar() = true
 
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.BGT
+    }
+
     private inner class SpeedAction(private val speed: TimelineSpeed) :
       ToggleAction(speed.displayText, speed.displayText, null) {
       override fun isSelected(e: AnActionEvent) = clockControl.speed == speed
@@ -268,6 +284,10 @@ class PlaybackControls(
       override fun setSelected(e: AnActionEvent, state: Boolean) {
         clockControl.speed = speed
         tracker.changeAnimationSpeed(speed.speedMultiplier)
+      }
+
+      override fun getActionUpdateThread(): ActionUpdateThread {
+        return ActionUpdateThread.BGT
       }
     }
   }
@@ -292,6 +312,10 @@ class PlaybackControls(
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       clockControl.playInLoop = state
       if (state) tracker.enableLoopAction() else tracker.disableLoopAction()
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.BGT
     }
   }
 }
