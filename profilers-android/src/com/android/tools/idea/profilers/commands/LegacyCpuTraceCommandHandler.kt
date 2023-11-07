@@ -224,6 +224,9 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
       }
     }
 
+    val requestTime = transportStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
+    addSessionEndedEvent(eventQueue, requestTime, command.pid, command.sessionId)
+
     // Remove the entry if there exists one.
     legacyProfilingRecord.remove(pid)
   }

@@ -134,6 +134,8 @@ class LegacyAllocationCommandHandler(val device: IDevice,
       }.build()
       eventQueue.offer(allocEvent)
 
+      addSessionEndedEvent(eventQueue, requestTime, command.pid, command.sessionId)
+
       if (success) {
         statusBuilder.setStatus(Memory.TrackStatus.Status.SUCCESS).setStartTime(lastInfo.startTime)
       }

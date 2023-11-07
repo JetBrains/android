@@ -20,6 +20,7 @@ import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.profilers.LegacyCpuProfilingHandler
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -32,6 +33,7 @@ import com.google.common.truth.Truth.assertThat
 import com.android.tools.idea.io.grpc.ManagedChannel
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
 import com.android.tools.profiler.proto.Trace
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
@@ -126,6 +128,87 @@ class LegacyCpuTraceCommandHandlerTest {
   }
 
   @Test
+  fun testStartStopWorkflowWithTaskBasedUxEnabled() {
+    StudioFlags.PROFILER_TASK_BASED_UX.override(true)
+
+    val testPid = 1
+    val startTimestamp = 10L
+    val endTimestamp = 20L
+
+    val mockClient = createMockClient(testPid)
+    val eventQueue = LinkedBlockingDeque<Common.Event>()
+    val byteCache = HashMap<String, ByteString>()
+    val commandHandler = LegacyCpuTraceCommandHandler(mockClient.device,
+                                                      TransportServiceGrpc.newBlockingStub(channel),
+                                                      eventQueue,
+                                                      byteCache)
+
+    timer.currentTimeNs = startTimestamp
+    commandHandler.execute(buildStartCommand(testPid, 1))
+
+    val expectedStartStatus = Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.SUCCESS).build()
+    val expectedTraceInfo = Trace.TraceInfo.newBuilder().apply {
+      traceId = startTimestamp
+      configuration = TRACE_CONFIG
+      fromTimestamp = startTimestamp
+      toTimestamp = -1
+      startStatus = expectedStartStatus
+    }
+    val expectedStartStatusEvent = Common.Event.newBuilder().apply {
+      pid = testPid
+      kind = Common.Event.Kind.TRACE_STATUS
+      timestamp = startTimestamp
+      commandId = 1
+      traceStatus = Trace.TraceStatusData.newBuilder().apply {
+        traceStartStatus = expectedStartStatus
+      }.build()
+    }.build()
+    val expectedStartTrackingEvent = Common.Event.newBuilder().apply {
+      pid = testPid
+      kind = Common.Event.Kind.CPU_TRACE
+      groupId = startTimestamp
+      timestamp = startTimestamp
+      traceData = Trace.TraceData.newBuilder().apply {
+        traceStarted = Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(expectedTraceInfo).build()
+      }.build()
+    }.build()
+    assertThat(eventQueue).containsExactly(expectedStartStatusEvent, expectedStartTrackingEvent)
+
+    eventQueue.clear()
+    timer.currentTimeNs = endTimestamp
+    commandHandler.execute(buildStopCommand(testPid, 2))
+
+    val expectedEndStatus = Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.SUCCESS).build()
+    expectedTraceInfo.apply {
+      toTimestamp = endTimestamp
+      stopStatus = expectedEndStatus
+    }
+    val stopStatusEvent = Common.Event.newBuilder().apply {
+      pid = testPid
+      kind = Common.Event.Kind.TRACE_STATUS
+      timestamp = endTimestamp
+      commandId = 2
+      traceStatus = Trace.TraceStatusData.newBuilder().apply {
+        traceStopStatus = expectedEndStatus
+      }.build()
+    }.build()
+    val stopTrackingEvent = Common.Event.newBuilder().apply {
+      pid = testPid
+      kind = Common.Event.Kind.CPU_TRACE
+      groupId = startTimestamp
+      timestamp = endTimestamp
+      traceData = Trace.TraceData.newBuilder().apply {
+        traceEnded = Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(expectedTraceInfo).build()
+      }.build()
+    }.build()
+    assertThat(eventQueue).hasSize(3)
+    assertThat(eventQueue).containsAllOf(stopStatusEvent, stopTrackingEvent)
+    assertThat(eventQueue.find { it.kind == Common.Event.Kind.SESSION && it.isEnded }).isNotNull()
+    // Also assert that the bytes are stored in the cache.
+    assertThat(byteCache[startTimestamp.toString()]).isEqualTo(ByteString.copyFrom(FAKE_TRACE_BYTES))
+  }
+
+  @Test
   fun testMultiDeviceWorkflow() {
     // Start and stop recording on Device 1.
     val testPid1 = 1
@@ -164,6 +247,11 @@ class LegacyCpuTraceCommandHandlerTest {
     timer.currentTimeNs = 40L
     commandHandler2.execute(buildStopCommand(testPid2, 4))
     assertThat(byteCache2[startTimestamp2.toString()]).isEqualTo(ByteString.copyFrom(traceBytes))
+  }
+
+  @After
+  fun cleanup() {
+    StudioFlags.PROFILER_TASK_BASED_UX.clearOverride()
   }
 
   companion object {
