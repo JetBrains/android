@@ -157,6 +157,11 @@
         overrides="true"
         text="Collect Logs and Diagnostic Data"
         description="Collect logs and diagnostic data"/>
+    <action
+        id="ResetUserIdAction"
+        class="com.android.tools.idea.actions.ResetUserIdAction"
+        text="Reset Data Sharing User Identifier"
+        description="Reset Data Sharing User Identifier"/>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">

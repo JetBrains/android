@@ -731,6 +731,11 @@
     <option name="replaces" path="ActionManager" hit="Replaces attributes by Android style reference where possible" />
     <option name="style" path="ActionManager" hit="Replaces attributes by Android style reference where possible" />
     <option name="where" path="ActionManager" hit="Replaces attributes by Android style reference where possible" />
+    <option name="data" path="ActionManager" hit="Reset Data Sharing User Identifier" />
+    <option name="identifier" path="ActionManager" hit="Reset Data Sharing User Identifier" />
+    <option name="reset" path="ActionManager" hit="Reset Data Sharing User Identifier" />
+    <option name="sharing" path="ActionManager" hit="Reset Data Sharing User Identifier" />
+    <option name="user" path="ActionManager" hit="Reset Data Sharing User Identifier" />
     <option name="manager" path="ActionManager" hit="Resource Manager" />
     <option name="resource" path="ActionManager" hit="Resource Manager" />
     <option name="logcat" path="ActionManager" hit="Restart Logcat" />
