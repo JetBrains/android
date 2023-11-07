@@ -83,11 +83,11 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.resources.ResourcesDomFileDescription"/>
 
     <!-- File descriptions for res/xml: -->
-    <dom.fileDescription implementation="org.jetbrains.android.dom.xml.PreferenceClassDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.xml.XmlResourceDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.xml.PreferenceClassDomFileDescription"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.xml.XmlResourceDomFileDescription"/>
     <dom.fileMetaData implementation="org.jetbrains.android.dom.xml.AppRestrictionsDomFileDescription" rootTagName="restrictions"/>
-    <dom.fileDescription implementation="com.android.tools.idea.dom.xml.PathsDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.motion.MotionDomFileDescription"/>
+    <dom.fileMetaData implementation="com.android.tools.idea.dom.xml.PathsDomFileDescription" rootTagName="paths"/>
+    <dom.fileMetaData implementation="org.jetbrains.android.dom.motion.MotionDomFileDescription" rootTagName="MotionScene"/>
 
     <!-- File description for file with <lint> root tag: -->
     <dom.fileDescription implementation="org.jetbrains.android.dom.lint.LintSettingsFileDescription"/>
