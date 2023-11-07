@@ -1,12 +1,12 @@
-package org.jetbrains.android.dom.xml;
+package org.jetbrains.android.dom.xml
 
-import com.intellij.util.xml.Required;
-import org.jetbrains.android.dom.AndroidAttributeValue;
+import com.intellij.util.xml.Required
+import org.jetbrains.android.dom.AndroidAttributeValue
 
-public interface Extra extends XmlResourceElement {
-  @Required
-  AndroidAttributeValue<String> getName();
+interface Extra : XmlResourceElement {
+  @get:Required
+  val name: AndroidAttributeValue<String?>?
 
-  @Required
-  AndroidAttributeValue<String> getValue();
+  @get:Required
+  val value: AndroidAttributeValue<String?>?
 }

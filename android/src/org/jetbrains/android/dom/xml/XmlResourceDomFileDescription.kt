@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.jetbrains.android.dom.xml
 
-package org.jetbrains.android.dom.xml;
-
-import com.android.resources.ResourceFolderType;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription;
-import org.jetbrains.android.dom.motion.MotionDomFileDescription;
-import org.jetbrains.android.dom.motion.MotionScene;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.psi.xml.XmlFile
+import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription
+import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription.isMyFile
 
 /**
- * Describes all files in {@link ResourceFolderType.XML}, except for {@link MotionScene} and for {@link PreferenceElement}.
+ * Describes all files in [ResourceFolderType.XML], except for [MotionScene] and for [PreferenceElement].
  *
  * @see MotionDomFileDescription
+ *
  * @see PreferenceClassDomFileDescription
  */
-public class XmlResourceDomFileDescription extends MultipleKnownRootsResourceDomFileDescription<XmlResourceElement> {
-  public XmlResourceDomFileDescription() {
-    super(XmlResourceElement.class, ResourceFolderType.XML, AndroidXmlResourcesUtil.ROOT_TAGS);
-  }
-
-  public static boolean isXmlResourceFile(@NotNull final XmlFile file) {
-    return ReadAction.compute(() -> new XmlResourceDomFileDescription().isMyFile(file, null));
+object XmlResourceDomFileDescription : MultipleKnownRootsResourceDomFileDescription<XmlResourceElement?>() {
+  @JvmStatic
+  fun isXmlResourceFile(file: XmlFile): Boolean {
+    return ReadAction.compute(ThrowableComputable<Boolean, RuntimeException> { XmlResourceDomFileDescription().isMyFile(file, null) })
   }
 }

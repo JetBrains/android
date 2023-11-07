@@ -13,30 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.jetbrains.android.dom.xml
 
-package org.jetbrains.android.dom.xml;
+import com.intellij.psi.PsiClass
+import com.intellij.util.xml.Attribute
+import com.intellij.util.xml.Convert
+import com.intellij.util.xml.PsiPackageConverter
+import com.intellij.util.xml.converters.ClassValueConverterImpl
+import org.jetbrains.android.dom.AndroidAttributeValue
+import org.jetbrains.android.dom.LookupClass
+import org.jetbrains.android.dom.LookupPrefix
+import org.jetbrains.android.dom.converters.ConstantFieldConverter
 
-import com.intellij.psi.PsiClass;
-import com.intellij.util.xml.Attribute;
-import com.intellij.util.xml.Convert;
-import com.intellij.util.xml.PsiPackageConverter;
-import com.intellij.util.xml.converters.ClassValueConverterImpl;
-import org.jetbrains.android.dom.AndroidAttributeValue;
-import org.jetbrains.android.dom.LookupClass;
-import org.jetbrains.android.dom.LookupPrefix;
-import org.jetbrains.android.dom.converters.ConstantFieldConverter;
+interface Intent : XmlResourceElement {
+  @get:LookupPrefix("android.intent.action")
+  @get:LookupClass("android.content.Intent")
+  @get:Convert(ConstantFieldConverter::class)
+  val action: AndroidAttributeValue<String?>?
 
-public interface Intent extends XmlResourceElement {
-  @Convert(ConstantFieldConverter.class)
-  @LookupClass("android.content.Intent")
-  @LookupPrefix("android.intent.action")
-  AndroidAttributeValue<String> getAction();
+  @get:Convert(ClassValueConverterImpl::class)
+  @get:Attribute("targetClass")
+  val targetClass: AndroidAttributeValue<PsiClass?>?
 
-  @Attribute("targetClass")
-  @Convert(ClassValueConverterImpl.class)
-  AndroidAttributeValue<PsiClass> getTargetClass();
-
-  @Attribute("targetPackage")
-  @Convert(PsiPackageConverter.class)
-  AndroidAttributeValue<String> getTargetPackage();
+  @get:Convert(PsiPackageConverter::class)
+  @get:Attribute("targetPackage")
+  val targetPackage: AndroidAttributeValue<String?>?
 }
