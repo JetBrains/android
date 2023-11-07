@@ -84,7 +84,9 @@ internal fun httpClosed(id: Long, timestamp: Long, completed: Boolean) =
 internal fun httpThread(id: Long, timestampNanos: Long, threadId: Long, threadName: String) =
   httpConnectionEvent(id, timestampNanos) {
       setHttpThread(
-        HttpConnectionEvent.ThreadData.newBuilder().setThreadId(threadId).setThreadName(threadName)
+        NetworkInspectorProtocol.ThreadData.newBuilder()
+          .setThreadId(threadId)
+          .setThreadName(threadName)
       )
     }
     .build()
