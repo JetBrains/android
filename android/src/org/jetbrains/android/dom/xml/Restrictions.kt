@@ -26,13 +26,13 @@ import org.jetbrains.android.dom.resources.ResourceValue
 @DefinesXml
 interface Restrictions : XmlResourceElement {
   fun getRestrictions(): List<Restriction>
+
   fun addRestriction(): Restriction
 }
 
 interface Restriction : XmlResourceElement {
 
-  @Attribute("defaultValue")
-  fun getDefaultValue(): AndroidAttributeValue<String>
+  @Attribute("defaultValue") fun getDefaultValue(): AndroidAttributeValue<String>
 
   @Convert(ResourceReferenceConverter::class)
   @AndroidResourceType("array")
@@ -49,8 +49,7 @@ interface Restriction : XmlResourceElement {
 
   fun getKey(): AndroidAttributeValue<String>
 
-  @Attribute("restrictionType")
-  fun getRestrictionType(): AndroidAttributeValue<String>
+  @Attribute("restrictionType") fun getRestrictionType(): AndroidAttributeValue<String>
 
   @Convert(ResourceReferenceConverter::class)
   @AndroidResourceType("string")

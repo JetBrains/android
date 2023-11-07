@@ -22,11 +22,13 @@ import com.intellij.openapi.module.Module
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.CustomLogicResourceDomFileDescription
 
-/**
- * Describes files in [ResourceFolderType.XML] that has preference class as root tag.
- */
-class PreferenceClassDomFileDescription : CustomLogicResourceDomFileDescription<PreferenceElement>(
-  PreferenceElement::class.java, ResourceFolderType.XML, "preference") {
+/** Describes files in [ResourceFolderType.XML] that has preference class as root tag. */
+class PreferenceClassDomFileDescription :
+  CustomLogicResourceDomFileDescription<PreferenceElement>(
+    PreferenceElement::class.java,
+    ResourceFolderType.XML,
+    "preference"
+  ) {
 
   object Util {
     @JvmStatic
@@ -34,14 +36,16 @@ class PreferenceClassDomFileDescription : CustomLogicResourceDomFileDescription<
       val rootTag = file.rootTag ?: return false
 
       /**
-       * If the root tag uses a custom namespace, leave it alone and don't provide any schema. See IDEA-105294.
+       * If the root tag uses a custom namespace, leave it alone and don't provide any schema. See
+       * IDEA-105294.
        */
       if (rootTag.attributes.any { it.name == SdkConstants.XMLNS }) {
         return false
       }
       /**
-       * If we know parent tag (tag hardcoded in AS, one of [AndroidXmlResourcesUtil.ROOT_TAGS]) -> we use [XmlResourceDomFileDescription].
-       * If we don't, we assume it's a class name that we need to resolve.
+       * If we know parent tag (tag hardcoded in AS, one of [AndroidXmlResourcesUtil.ROOT_TAGS]) ->
+       * we use [XmlResourceDomFileDescription]. If we don't, we assume it's a class name that we
+       * need to resolve.
        */
       return !AndroidXmlResourcesUtil.PREFERENCES_ROOT_TAGS.contains(rootTag.name)
     }

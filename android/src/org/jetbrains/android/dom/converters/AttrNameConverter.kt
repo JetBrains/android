@@ -33,13 +33,13 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.xml.ConvertContext
 import com.intellij.util.xml.ResolvingConverter
+import java.util.ArrayDeque
 import org.jetbrains.android.dom.resources.Attr
 import org.jetbrains.android.dom.resources.StyleItem
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.FrameworkResourceManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.annotations.NonNls
-import java.util.ArrayDeque
 
 /**
  * This converter deals with the name attribute in a [StyleItem] or [Attr] tag.
@@ -51,7 +51,8 @@ class AttrNameConverter : ResolvingConverter<ResourceReference>() {
   override fun getVariants(context: ConvertContext): Collection<ResourceReference> {
     val result = arrayListOf<ResourceReference>()
 
-    // TODO(lukeegan): When we have access to ConvertContext in createLookupElement (b/138991620), we want to prioritize variants which are
+    // TODO(lukeegan): When we have access to ConvertContext in createLookupElement (b/138991620),
+    // we want to prioritize variants which are
     //  in parent styles.
     val manager = FrameworkResourceManager.getInstance(context)
     if (manager != null) {
@@ -74,33 +75,49 @@ class AttrNameConverter : ResolvingConverter<ResourceReference>() {
     return result
   }
 
-  override fun resolve(resourceReference: ResourceReference?, context: ConvertContext): PsiElement? {
+  override fun resolve(
+    resourceReference: ResourceReference?,
+    context: ConvertContext
+  ): PsiElement? {
     if (context.xmlElement == null || resourceReference == null) {
       return null
     }
     val facet = AndroidFacet.getInstance(context) ?: return null
-    val allResources = StudioResourceRepositoryManager.getInstance(facet).getResourcesForNamespace(resourceReference.namespace) ?: return null
-    val hasResources = allResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)
-    return if (hasResources) ResourceReferencePsiElement(context.xmlElement as PsiElement, resourceReference) else null
+    val allResources =
+      StudioResourceRepositoryManager.getInstance(facet)
+        .getResourcesForNamespace(resourceReference.namespace) ?: return null
+    val hasResources =
+      allResources.hasResources(
+        resourceReference.namespace,
+        resourceReference.resourceType,
+        resourceReference.name
+      )
+    return if (hasResources)
+      ResourceReferencePsiElement(context.xmlElement as PsiElement, resourceReference)
+    else null
   }
 
-  override fun isReferenceTo(element: PsiElement,
-                             stringValue: String,
-                             resolveResult: ResourceReference?,
-                             context: ConvertContext): Boolean {
+  override fun isReferenceTo(
+    element: PsiElement,
+    stringValue: String,
+    resolveResult: ResourceReference?,
+    context: ConvertContext
+  ): Boolean {
     val target = resolve(resolveResult, context)
     return element.manager.areElementsEquivalent(target, element)
   }
 
   /**
-   * Try to find the parents of the styles where this item is defined and add to the suggestion every non-framework attribute that has been
-   * used. This is helpful in themes like AppCompat where there is not only a framework attribute defined but also a custom attribute. This
-   * will show both in the completion list.
+   * Try to find the parents of the styles where this item is defined and add to the suggestion
+   * every non-framework attribute that has been used. This is helpful in themes like AppCompat
+   * where there is not only a framework attribute defined but also a custom attribute. This will
+   * show both in the completion list.
    */
   private fun getAttributesUsedByParentStyle(styleTag: XmlTag): Collection<ResourceReference> {
     val module = ModuleUtilCore.findModuleForPsiElement(styleTag) ?: return emptyList()
     val appResources = StudioResourceRepositoryManager.getAppResources(module) ?: return emptyList()
-    var parentStyleReference: ResourceReference? = getParentStyleFromTag(styleTag) ?: return emptyList()
+    var parentStyleReference: ResourceReference? =
+      getParentStyleFromTag(styleTag) ?: return emptyList()
     val parentStyles = appResources.getResources(parentStyleReference!!)
 
     val attributeNames = HashSet<ResourceReference>()
@@ -142,8 +159,9 @@ class AttrNameConverter : ResolvingConverter<ResourceReference>() {
   }
 
   /**
-   * Finds the parent style from the passed style [XmlTag]. The parent name might be in the parent attribute or it can be part of the
-   * style name. Returns null if it cannot determine the parent style.
+   * Finds the parent style from the passed style [XmlTag]. The parent name might be in the parent
+   * attribute or it can be part of the style name. Returns null if it cannot determine the parent
+   * style.
    */
   private fun getParentStyleFromTag(styleTag: XmlTag): ResourceReference? {
     var parentName = styleTag.getAttributeValue(SdkConstants.ATTR_PARENT)
@@ -173,7 +191,9 @@ class AttrNameConverter : ResolvingConverter<ResourceReference>() {
     val tag = context.tag ?: return resourceReference.resourceUrl.toString()
     val namespaceContext = getNamespacesContext(tag)
     return if (namespaceContext != null) {
-      resourceReference.getRelativeResourceUrl(namespaceContext.currentNs, namespaceContext.resolver).qualifiedName
+      resourceReference
+        .getRelativeResourceUrl(namespaceContext.currentNs, namespaceContext.resolver)
+        .qualifiedName
     } else {
       resourceReference.resourceUrl.toString()
     }

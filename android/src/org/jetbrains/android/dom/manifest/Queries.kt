@@ -21,26 +21,28 @@ import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.converters.AndroidPackageConverter
 
-interface Queries: ManifestElement {
+interface Queries : ManifestElement {
   fun getProviders(): List<Provider>
 
   fun getIntents(): List<Intent>
 
   fun getPackages(): List<Package>
 
-  interface Package: AndroidDomElement {
+  interface Package : AndroidDomElement {
     @Attribute("name")
     @Convert(AndroidPackageConverter::class)
     fun getName(): AndroidAttributeValue<String>
   }
 
-  interface Intent: AndroidDomElement {
+  interface Intent : AndroidDomElement {
     fun getAction(): Action
+
     fun getData(): Data
+
     fun getCategory(): Category
   }
 
-  interface Provider: AndroidDomElement {
+  interface Provider : AndroidDomElement {
     @Attribute("authorities")
     @Convert(AndroidPackageConverter::class)
     fun getAuthorities(): AndroidAttributeValue<String>

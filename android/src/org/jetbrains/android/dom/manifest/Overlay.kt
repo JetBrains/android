@@ -22,9 +22,7 @@ import org.jetbrains.android.dom.AndroidDomElement
 
 interface Overlay : GenericDomValue<String?>, AndroidDomElement {
 
-  @Attribute("targetPackage")
-  fun getTargetPackage(): AndroidAttributeValue<String>
+  @Attribute("targetPackage") fun getTargetPackage(): AndroidAttributeValue<String>
 
-  @Attribute("targetName")
-  fun getTargetName(): AndroidAttributeValue<String>
+  @Attribute("targetName") fun getTargetName(): AndroidAttributeValue<String>
 }

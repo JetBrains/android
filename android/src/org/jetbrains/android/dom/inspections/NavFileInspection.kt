@@ -33,23 +33,28 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.Nls
 
-private val tagsWithDestination = setOf(
-  "activity",
-  "dialog",
-  "fragment",
-)
+private val tagsWithDestination =
+  setOf(
+    "activity",
+    "dialog",
+    "fragment",
+  )
 
 class NavFileInspection : LocalInspectionTool() {
 
   @Nls
-  override fun getGroupDisplayName(): String = AndroidBundle.message("android.inspections.group.name")
+  override fun getGroupDisplayName(): String =
+    AndroidBundle.message("android.inspections.group.name")
 
-  @Nls
-  override fun getDisplayName(): String = AndroidBundle.message("android.inspections.nav.file")
+  @Nls override fun getDisplayName(): String = AndroidBundle.message("android.inspections.nav.file")
 
   override fun getShortName(): String = "NavigationFile"
 
-  override fun checkFile(file: PsiFile, manager: InspectionManager, isOnTheFly: Boolean): Array<ProblemDescriptor>? {
+  override fun checkFile(
+    file: PsiFile,
+    manager: InspectionManager,
+    isOnTheFly: Boolean
+  ): Array<ProblemDescriptor>? {
     if (file !is XmlFile) {
       return ProblemDescriptor.EMPTY_ARRAY
     }
@@ -64,15 +69,16 @@ class NavFileInspection : LocalInspectionTool() {
   }
 
   private fun isRelevantFile(facet: AndroidFacet, file: XmlFile): Boolean {
-    val resourceType = ModuleResourceManagers.getInstance(facet).localResourceManager.getFileResourceFolderType(file)
+    val resourceType =
+      ModuleResourceManagers.getInstance(facet).localResourceManager.getFileResourceFolderType(file)
     return resourceType == ResourceFolderType.NAVIGATION
   }
-
 
   private class AttributesVisitor(
     private val module: Module,
     private val myInspectionManager: InspectionManager,
-    private val myOnTheFly: Boolean) : XmlRecursiveElementVisitor() {
+    private val myOnTheFly: Boolean
+  ) : XmlRecursiveElementVisitor() {
     val myResult: MutableList<ProblemDescriptor> = ArrayList()
 
     override fun visitXmlAttribute(attribute: XmlAttribute) {
@@ -86,7 +92,8 @@ class NavFileInspection : LocalInspectionTool() {
       if (!tagsWithDestination.contains(tag.name)) return
 
       val value = attribute.value ?: ""
-      val allowedDestinations = getClassesForTag(module, tag.name).keys.map { it.qualifiedName }.toSet()
+      val allowedDestinations =
+        getClassesForTag(module, tag.name).keys.map { it.qualifiedName }.toSet()
       if (!allowedDestinations.contains(value)) {
         attribute.valueElement?.let {
           myResult.add(

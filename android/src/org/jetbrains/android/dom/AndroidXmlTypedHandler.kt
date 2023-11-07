@@ -17,6 +17,7 @@ package org.jetbrains.android.dom
 
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.getFolderType
+import com.android.tools.idea.res.isResourceFile
 import com.intellij.codeInsight.AutoPopupController
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
 import com.intellij.openapi.editor.Editor
@@ -27,7 +28,6 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlText
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription
 import org.jetbrains.android.facet.AndroidFacet
-import com.android.tools.idea.res.isResourceFile
 
 class AndroidXmlTypedHandler : TypedHandlerDelegate() {
   override fun charTyped(charTyped: Char, project: Project, editor: Editor, file: PsiFile): Result {
@@ -35,15 +35,22 @@ class AndroidXmlTypedHandler : TypedHandlerDelegate() {
       AutoPopupController.getInstance(project).autoPopupMemberLookup(editor) { psiFile ->
         val facet = AndroidFacet.getInstance(file) ?: return@autoPopupMemberLookup false
         val caretOffset = editor.caretModel.offset
-        val lastElement = psiFile.findElementAt(caretOffset - 1) ?: return@autoPopupMemberLookup false
+        val lastElement =
+          psiFile.findElementAt(caretOffset - 1) ?: return@autoPopupMemberLookup false
 
-
-        if(!isSupportedSymbol(lastElement.text[0])) return@autoPopupMemberLookup false
-        if(psiFile !is XmlFile) return@autoPopupMemberLookup false
-        if(!ManifestDomFileDescription.isManifestFile(psiFile) && !isResourceFile(psiFile.virtualFile, facet)) return@autoPopupMemberLookup false
-        if(lastElement.parent !is XmlAttributeValue && lastElement.parent !is XmlText) return@autoPopupMemberLookup false
-        if(lastElement.parent is XmlText && getFolderType(psiFile) != ResourceFolderType.VALUES) return@autoPopupMemberLookup false
-        if(lastElement.text[0] == '?' && getFolderType(psiFile) != ResourceFolderType.LAYOUT) return@autoPopupMemberLookup false
+        if (!isSupportedSymbol(lastElement.text[0])) return@autoPopupMemberLookup false
+        if (psiFile !is XmlFile) return@autoPopupMemberLookup false
+        if (
+          !ManifestDomFileDescription.isManifestFile(psiFile) &&
+            !isResourceFile(psiFile.virtualFile, facet)
+        )
+          return@autoPopupMemberLookup false
+        if (lastElement.parent !is XmlAttributeValue && lastElement.parent !is XmlText)
+          return@autoPopupMemberLookup false
+        if (lastElement.parent is XmlText && getFolderType(psiFile) != ResourceFolderType.VALUES)
+          return@autoPopupMemberLookup false
+        if (lastElement.text[0] == '?' && getFolderType(psiFile) != ResourceFolderType.LAYOUT)
+          return@autoPopupMemberLookup false
 
         true
       }
@@ -61,7 +68,6 @@ class AndroidXmlTypedHandler : TypedHandlerDelegate() {
         '?' -> true
         else -> false
       }
-
     }
   }
 }
