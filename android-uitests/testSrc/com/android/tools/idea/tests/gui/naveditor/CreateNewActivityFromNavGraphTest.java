@@ -19,6 +19,7 @@ import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.Assert.assertTrue;
 
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -41,7 +42,7 @@ public class CreateNewActivityFromNavGraphTest {
   protected static final String BASIC_ACTIVITY_TEMPLATE = "Basic Views Activity";
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
-  protected static final int MIN_SDK_API = 30;
+  protected static final int MIN_SDK_API = SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION;
 
   private static String NavFilePath = "app/src/main/res/navigation/nav_graph.xml";
 

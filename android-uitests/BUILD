@@ -1757,12 +1757,12 @@ java_test(
 
 java_test(
     name = "ManuallyAddNavLibTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.ManuallyAddNavLibTest"],
     tags = COMMON_TAGS + [
-        "manual",
         "no_windows",
         "qa_fast",
     ],
@@ -2996,8 +2996,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_windows",
         "qa_fast",
-        "qa_fast_unreliable",  # b/111997969
-        "qa_unreliable",  # b/111997969
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -3654,8 +3652,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_windows",
         "qa_fast",
-        "qa_fast_unreliable",  # b/115679328
-        "qa_unreliable",  # b/115679328
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

@@ -49,7 +49,7 @@ public class NavigateToLayoutFromNavGraphTest {
   protected static final String BASIC_ACTIVITY_TEMPLATE = "Basic Views Activity";
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
-  protected static final int MIN_SDK_API = SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION;;
+  protected static final int MIN_SDK_API = SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION;
 
   private static final String FRAGMENT_FILE_NAME = "fragment_first.xml";
   private static final String FRAGMENT_FILE_PATH = "app/src/main/res/layout/fragment_first.xml";
