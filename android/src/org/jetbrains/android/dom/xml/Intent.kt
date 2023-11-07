@@ -26,16 +26,16 @@ import org.jetbrains.android.dom.LookupPrefix
 import org.jetbrains.android.dom.converters.ConstantFieldConverter
 
 interface Intent : XmlResourceElement {
-  @get:LookupPrefix("android.intent.action")
-  @get:LookupClass("android.content.Intent")
-  @get:Convert(ConstantFieldConverter::class)
-  val action: AndroidAttributeValue<String?>?
+  @LookupPrefix("android.intent.action")
+  @LookupClass("android.content.Intent")
+  @Convert(ConstantFieldConverter::class)
+  fun getAction(): AndroidAttributeValue<String>
 
-  @get:Convert(ClassValueConverterImpl::class)
-  @get:Attribute("targetClass")
-  val targetClass: AndroidAttributeValue<PsiClass?>?
+  @Convert(ClassValueConverterImpl::class)
+  @Attribute("targetClass")
+  fun getTargetClass(): AndroidAttributeValue<PsiClass>
 
-  @get:Convert(PsiPackageConverter::class)
-  @get:Attribute("targetPackage")
-  val targetPackage: AndroidAttributeValue<String?>?
+  @Convert(PsiPackageConverter::class)
+  @Attribute("targetPackage")
+  fun getTargetPackage(): AndroidAttributeValue<String>
 }

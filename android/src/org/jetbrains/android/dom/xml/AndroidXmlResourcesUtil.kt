@@ -20,8 +20,6 @@ import com.android.SdkConstants
 import com.android.SdkConstants.PreferenceClasses
 import com.android.tools.idea.dom.xml.PathsDomFileDescription
 import com.android.tools.idea.psi.TagToClassMapper
-import com.google.common.collect.ImmutableMap
-import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClassType
@@ -44,22 +42,24 @@ object AndroidXmlResourcesUtil {
   @NonNls val ACCOUNT_AUTHENTICATOR_TAG_NAME = "account-authenticator"
 
   @NonNls val PREFERENCE_HEADERS_TAG_NAME = "preference-headers"
+
   @JvmField
   val SPECIAL_STYLEABLE_NAMES =
-    ImmutableMap.builder<String, String>()
-      .put(SdkConstants.TAG_APPWIDGET_PROVIDER, "AppWidgetProviderInfo")
-      .put(SEARCHABLE_TAG_NAME, "Searchable")
-      .put("actionkey", "SearchableActionKey")
-      .put("intent", "Intent")
-      .put(KEYBOARD_TAG_NAME, "Keyboard")
-      .put("Row", "Keyboard_Row")
-      .put("Key", "Keyboard_Key")
-      .put(DEVICE_ADMIN_TAG_NAME, "DeviceAdmin")
-      .put(ACCOUNT_AUTHENTICATOR_TAG_NAME, "AccountAuthenticator")
-      .put("header", "PreferenceHeader")
-      .build()
+    mapOf(
+      SdkConstants.TAG_APPWIDGET_PROVIDER to "AppWidgetProviderInfo",
+      SEARCHABLE_TAG_NAME to "Searchable",
+      "actionkey" to "SearchableActionKey",
+      "intent" to "Intent",
+      KEYBOARD_TAG_NAME to "Keyboard",
+      "Row" to "Keyboard_Row",
+      "Key" to "Keyboard_Key",
+      DEVICE_ADMIN_TAG_NAME to "DeviceAdmin",
+      ACCOUNT_AUTHENTICATOR_TAG_NAME to "AccountAuthenticator",
+      "header" to "PreferenceHeader"
+    )
+
   val PREFERENCES_ROOT_TAGS =
-    ImmutableSet.of(
+    setOf(
       SdkConstants.TAG_APPWIDGET_PROVIDER,
       SEARCHABLE_TAG_NAME,
       KEYBOARD_TAG_NAME,
@@ -68,50 +68,33 @@ object AndroidXmlResourcesUtil {
       PREFERENCE_HEADERS_TAG_NAME,
       PathsDomFileDescription.TAG_NAME
     )
+
   @JvmField
-  val ROOT_TAGS =
-    ImmutableSet.builder<String>()
-      .addAll(PREFERENCES_ROOT_TAGS)
-      .add(AppRestrictionsDomFileDescription.ROOT_TAG_NAME)
-      .build()
+  val ROOT_TAGS = PREFERENCES_ROOT_TAGS + setOf(AppRestrictionsDomFileDescription.ROOT_TAG_NAME)
 
   @JvmStatic
   fun getPossibleRoots(facet: AndroidFacet): List<String> {
-    val result: MutableList<String> = ArrayList()
-    val javaPsiFacade = JavaPsiFacade.getInstance(facet.module.project)
-    val hasAndroidXClass =
-      javaPsiFacade.findClass(
-        PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX.newName(),
-        facet.module.moduleWithLibrariesScope
-      ) != null
-    if (hasAndroidXClass) {
-      result.addAll(
-        AndroidDomUtil.removeUnambiguousNames(
-          TagToClassMapper.getInstance(facet.module)
-            .getClassMap(PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX.newName())
-        )
-      )
-    } else if (
-      javaPsiFacade.findClass(
-        PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX.oldName(),
-        facet.module.moduleWithLibrariesScope
-      ) != null
-    ) {
-      result.addAll(
-        AndroidDomUtil.removeUnambiguousNames(
-          TagToClassMapper.getInstance(facet.module)
-            .getClassMap(PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX.oldName())
-        )
-      )
-    } else {
-      result.addAll(
-        AndroidDomUtil.removeUnambiguousNames(
-          TagToClassMapper.getInstance(facet.module).getClassMap(PreferenceClasses.CLASS_PREFERENCE)
-        )
-      )
+    val module = facet.module
+    val javaPsiFacade = JavaPsiFacade.getInstance(module.project)
+    fun JavaPsiFacade.hasClass(className: String) =
+      findClass(className, module.moduleWithLibrariesScope) != null
+
+    val preferenceSource =
+      when {
+        javaPsiFacade.hasClass(PreferenceSource.ANDROIDX.qualifiedBaseClass) ->
+          PreferenceSource.ANDROIDX
+        javaPsiFacade.hasClass(PreferenceSource.SUPPORT.qualifiedBaseClass) ->
+          PreferenceSource.SUPPORT
+        else -> PreferenceSource.FRAMEWORK
+      }
+
+    val classMap =
+      TagToClassMapper.getInstance(module).getClassMap(preferenceSource.qualifiedBaseClass)
+
+    return buildList {
+      addAll(AndroidDomUtil.removeUnambiguousNames(classMap))
+      addAll(ROOT_TAGS)
     }
-    result.addAll(ROOT_TAGS)
-    return result
   }
 
   @JvmStatic
@@ -135,17 +118,19 @@ object AndroidXmlResourcesUtil {
       @JvmStatic
       fun getPreferencesSource(tag: XmlTag, facet: AndroidFacet): PreferenceSource {
         val rootTag = (tag.containingFile as XmlFile).rootTag ?: return FRAMEWORK
+
         val rootTagName = rootTag.name
-        if (rootTagName.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX)) {
-          return ANDROIDX
-        } else if (
+        if (rootTagName.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX)) return ANDROIDX
+
+        if (
           rootTagName.startsWith("android.support.v") &&
             StringUtil.getPackageName(rootTagName).endsWith("preference")
         ) {
           return SUPPORT
-        } else if (rootTagName.startsWith(SdkConstants.ANDROID_PKG_PREFIX)) {
-          return FRAMEWORK
         }
+
+        if (rootTagName.startsWith(SdkConstants.ANDROID_PKG_PREFIX)) return FRAMEWORK
+
         val project = facet.module.project
         val supportLibName = PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX.oldName()
         val androidXLibName = PreferenceAndroidX.CLASS_PREFERENCE_ANDROIDX.newName()
@@ -156,27 +141,23 @@ object AndroidXmlResourcesUtil {
         ) {
           return FRAMEWORK
         }
+
         val parser = psiFacade.parserFacade
         try {
           val type = parser.createTypeFromText(rootTagName, null)
           if (type is PsiClassType && type.resolve() != null) {
-            if (InheritanceUtil.isInheritor(type, androidXLibName)) {
-              return ANDROIDX
-            } else if (InheritanceUtil.isInheritor(type, supportLibName)) {
-              return SUPPORT
+            return when {
+              InheritanceUtil.isInheritor(type, androidXLibName) -> ANDROIDX
+              InheritanceUtil.isInheritor(type, supportLibName) -> SUPPORT
+              else -> FRAMEWORK
             }
-            return FRAMEWORK
           }
         } catch (ignored: IncorrectOperationException) {}
         // The root tag is an unqualified name (eg. PreferenceScreen) or does not specify a valid
-        // type eg. <preference-headers>, if AndroidX
-        // Preference class can be found then we assume that AndroidX classes are being used.
-        // Otherwise, support libraries are being used.
-        return if (psiFacade.findClass(androidXLibName, rootTag.resolveScope) != null) {
-          ANDROIDX
-        } else {
-          SUPPORT
-        }
+        // type eg. <preference-headers>, if AndroidX. Preference class can be found then we assume
+        // that AndroidX classes are being used. Otherwise, support libraries are being used.
+        if (psiFacade.findClass(androidXLibName, rootTag.resolveScope) != null) return ANDROIDX
+        return SUPPORT
       }
     }
   }

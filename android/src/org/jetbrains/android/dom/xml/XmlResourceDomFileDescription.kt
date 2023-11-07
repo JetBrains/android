@@ -15,11 +15,10 @@
  */
 package org.jetbrains.android.dom.xml
 
-import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.util.ThrowableComputable
+import com.android.resources.ResourceFolderType
+import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription
-import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription.isMyFile
 
 /**
  * Describes all files in [ResourceFolderType.XML], except for [MotionScene] and for
@@ -28,14 +27,17 @@ import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription.is
  * @see MotionDomFileDescription
  * @see PreferenceClassDomFileDescription
  */
-object XmlResourceDomFileDescription :
-  MultipleKnownRootsResourceDomFileDescription<XmlResourceElement?>() {
-  @JvmStatic
-  fun isXmlResourceFile(file: XmlFile): Boolean {
-    return ReadAction.compute(
-      ThrowableComputable<Boolean, RuntimeException> {
-        XmlResourceDomFileDescription().isMyFile(file, null)
-      }
-    )
+class XmlResourceDomFileDescription :
+  MultipleKnownRootsResourceDomFileDescription<XmlResourceElement>(
+    XmlResourceElement::class.java,
+    ResourceFolderType.XML,
+    AndroidXmlResourcesUtil.ROOT_TAGS
+  ) {
+
+  companion object {
+    @JvmStatic
+    fun isXmlResourceFile(file: XmlFile) = runReadAction {
+      XmlResourceDomFileDescription().isMyFile(file, null)
+    }
   }
 }
