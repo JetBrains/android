@@ -77,6 +77,7 @@ class LegacyCpuTraceCommandHandlerTest {
       pid = testPid
       kind = Common.Event.Kind.TRACE_STATUS
       commandId = 1
+      timestamp = startTimestamp
       traceStatus = Trace.TraceStatusData.newBuilder().apply {
         traceStartStatus = expectedStartStatus
       }.build()
@@ -105,6 +106,7 @@ class LegacyCpuTraceCommandHandlerTest {
       pid = testPid
       kind = Common.Event.Kind.TRACE_STATUS
       commandId = 2
+      timestamp = endTimestamp
       traceStatus = Trace.TraceStatusData.newBuilder().apply {
         traceStopStatus = expectedEndStatus
       }.build()

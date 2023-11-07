@@ -245,6 +245,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
       pid = command.pid
       kind = Common.Event.Kind.TRACE_STATUS
       commandId = command.commandId
+      timestamp = transportStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
       traceStatus = Trace.TraceStatusData.newBuilder().setTraceStartStatus(startStatus).build()
     }.build()
     eventQueue.offer(statusEvent)
@@ -267,6 +268,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
       pid = command.pid
       kind = Common.Event.Kind.TRACE_STATUS
       commandId = command.commandId
+      timestamp = transportStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
       traceStatus = Trace.TraceStatusData.newBuilder().setTraceStopStatus(startStatus).build()
     }.build()
     eventQueue.offer(statusEvent)
