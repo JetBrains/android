@@ -18,5 +18,4 @@ package org.jetbrains.android.dom.xml
 import com.intellij.util.xml.DefinesXml
 import org.jetbrains.android.dom.AndroidDomElement
 
-@DefinesXml
-interface XmlResourceElement : AndroidDomElement
+@DefinesXml interface XmlResourceElement : AndroidDomElement

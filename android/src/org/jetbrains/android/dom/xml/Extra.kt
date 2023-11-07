@@ -4,9 +4,7 @@ import com.intellij.util.xml.Required
 import org.jetbrains.android.dom.AndroidAttributeValue
 
 interface Extra : XmlResourceElement {
-  @get:Required
-  val name: AndroidAttributeValue<String?>?
+  @get:Required val name: AndroidAttributeValue<String?>?
 
-  @get:Required
-  val value: AndroidAttributeValue<String?>?
+  @get:Required val value: AndroidAttributeValue<String?>?
 }

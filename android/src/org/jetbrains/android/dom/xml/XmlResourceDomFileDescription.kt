@@ -22,15 +22,20 @@ import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription
 import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription.isMyFile
 
 /**
- * Describes all files in [ResourceFolderType.XML], except for [MotionScene] and for [PreferenceElement].
+ * Describes all files in [ResourceFolderType.XML], except for [MotionScene] and for
+ * [PreferenceElement].
  *
  * @see MotionDomFileDescription
- *
  * @see PreferenceClassDomFileDescription
  */
-object XmlResourceDomFileDescription : MultipleKnownRootsResourceDomFileDescription<XmlResourceElement?>() {
+object XmlResourceDomFileDescription :
+  MultipleKnownRootsResourceDomFileDescription<XmlResourceElement?>() {
   @JvmStatic
   fun isXmlResourceFile(file: XmlFile): Boolean {
-    return ReadAction.compute(ThrowableComputable<Boolean, RuntimeException> { XmlResourceDomFileDescription().isMyFile(file, null) })
+    return ReadAction.compute(
+      ThrowableComputable<Boolean, RuntimeException> {
+        XmlResourceDomFileDescription().isMyFile(file, null)
+      }
+    )
   }
 }
