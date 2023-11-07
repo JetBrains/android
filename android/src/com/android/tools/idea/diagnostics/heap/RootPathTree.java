@@ -16,23 +16,14 @@
 package com.android.tools.idea.diagnostics.heap;
 
 import static com.android.tools.idea.diagnostics.heap.ExtendedReportStatistics.NOMINATED_CLASSES_NUMBER_IN_SECTION;
-import static com.google.common.base.Strings.padStart;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMask;
 
-import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.util.Pair;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
 import java.util.ListIterator;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Stack;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,21 +32,17 @@ public class RootPathTree {
   // 1) all the nominated classes are separate types (3 sections, NOMINATED_CLASSES_NUMBER_IN_SECTION nominated classes in each at max)
   // 2) disposed but referenced objects
   // 3) Objects that were loaded with a regular ClassLoader but refer to objects loaded with `StudioModuleClassLoader`
-  private static final int MAX_NUMBER_OF_NOMINATED_NODE_TYPES = NOMINATED_CLASSES_NUMBER_IN_SECTION * 3 + 2;
-  private static final int DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE = 9;
-  private static final int OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE = 10;
-  private static final IntSet NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION =
+  static final int MAX_NUMBER_OF_NOMINATED_NODE_TYPES = NOMINATED_CLASSES_NUMBER_IN_SECTION * 3 + 2;
+  static final int DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE = 9;
+  static final int OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE = 10;
+  static final IntSet NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION =
     IntSet.of(DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE, OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE);
-  @NotNull
-  private final Map<ExtendedStackNode, RootPathTreeNode> roots = Maps.newHashMap();
-  @NotNull
-  private final ObjectsStatistics totalNominatedLoadersReferringObjectsStatistics = new ObjectsStatistics();
+  @NotNull final Map<ExtendedStackNode, RootPathTreeNode> roots = Maps.newHashMap();
+  @NotNull final ObjectsStatistics totalNominatedLoadersReferringObjectsStatistics = new ObjectsStatistics();
   private int numberOfRootPathTreeNodes = 0;
 
   private final ExtendedReportStatistics extendedReportStatistics;
   private static final int ROOT_PATH_TREE_MAX_OBJECT_DEPTH = 200;
-  private static final int NODE_SUBTREE_SIZE_PERCENTAGE_REQUIREMENT = 2;
-  private static final int NODE_SUBTREE_OBJECTS_SIZE_REQUIREMENT_BYTES = 750_000; //750kb
 
   public RootPathTree(@NotNull final ExtendedReportStatistics extendedReportStatistics) {
     this.extendedReportStatistics = extendedReportStatistics;
@@ -150,193 +137,6 @@ public class RootPathTree {
     addPathElementIteration(childNode, rootPathElement, iterator, exceededClusterId, nominatedNodeTypeId);
   }
 
-  public void printPathTreeForComponentDisposedReferencedObjects(@NotNull final Consumer<String> writer,
-                                                                 @NotNull final ExceededClusterStatistics exceededClusterStatistics,
-                                                                 @NotNull final ObjectsStatistics totalNominatedTypeStatistics) {
-    if (totalNominatedTypeStatistics.getObjectsCount() == 0) {
-      return;
-    }
-    writer.accept("================= DISPOSED OBJECTS ================");
-    printPathTreeForComponentAndNominatedType(writer, exceededClusterStatistics, DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE,
-                                              totalNominatedTypeStatistics);
-  }
-
-  public void printPathTreeForComponentObjectsReferringNominatedLoaders(@NotNull final Consumer<String> writer,
-                                                                        @NotNull final ExceededClusterStatistics exceededClusterStatistics,
-                                                                        @NotNull final ComponentsSet.Component component) {
-    if (totalNominatedLoadersReferringObjectsStatistics.getObjectsCount() == 0) {
-      return;
-    }
-    writer.accept("================= OBJECTS RETAINING NOMINATED LOADERS ================");
-    writer.accept("Nominated ClassLoaders:");
-    Map<String, Integer> classLoaderNameToCount = Maps.newHashMap();
-    extendedReportStatistics.globalNominatedClassLoaders.forEach(
-      cl -> classLoaderNameToCount.merge(cl.getClass().getName(), 1, (count, unused) -> count + 1));
-    for (String classLoaderName : classLoaderNameToCount.keySet()) {
-      writer.accept(" --> " + classLoaderName + ": " + classLoaderNameToCount.get(classLoaderName));
-    }
-    writer.accept("Duplicated classes:");
-    for (Pair<String, Integer> classNameAndNumberOfInstances : extendedReportStatistics.duplicatedClassNamesAndNumberOfInstances) {
-      writer.accept(" --> " + classNameAndNumberOfInstances.first + ": " + classNameAndNumberOfInstances.second);
-    }
-    printPathTreeForComponentAndNominatedType(writer, exceededClusterStatistics, OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE,
-                                              totalNominatedLoadersReferringObjectsStatistics);
-  }
-
-  public void printPathTreeForComponentAndNominatedType(@NotNull final Consumer<String> writer,
-                                                        @NotNull final ExceededClusterStatistics exceededClusterStatistics,
-                                                        int nominatedNodeTypeId,
-                                                        @NotNull final ObjectsStatistics totalNominatedTypeStatistics) {
-    Map<RootPathTreeNode, ObjectsStatistics> nominatedObjectsStatsInTheNodeSubtree = new HashMap<>();
-    for (RootPathTreeNode root : roots.values()) {
-      calculateNominatedObjectsStatisticsInTheSubtree(root, exceededClusterStatistics.exceededClusterIndex, nominatedNodeTypeId,
-                                                      nominatedObjectsStatsInTheNodeSubtree);
-    }
-    AtomicInteger rootIndex = new AtomicInteger(1);
-    roots.values().stream().filter(r -> {
-      ObjectsStatistics rootSubtreeStatistics = nominatedObjectsStatsInTheNodeSubtree.get(r);
-      return (rootSubtreeStatistics != null) &&
-             !shouldSkipPrintingNodeSubtree(totalNominatedTypeStatistics, rootSubtreeStatistics, nominatedNodeTypeId);
-    }).sorted(Comparator.comparingLong(r -> nominatedObjectsStatsInTheNodeSubtree.get(r).getTotalSizeInBytes()).reversed()).forEach(r -> {
-      writer.accept(String.format(Locale.US, "Root %d:", rootIndex.getAndIncrement()));
-      printRootPathIteration(writer, r, " ", true, false, totalNominatedTypeStatistics, exceededClusterStatistics.exceededClusterIndex,
-                             nominatedNodeTypeId, nominatedObjectsStatsInTheNodeSubtree);
-    });
-  }
-
-  private static boolean shouldSkipPrintingNodeSubtree(@NotNull ObjectsStatistics totalNominatedTypeStatistics,
-                                                       ObjectsStatistics rootSubtreeStatistics,
-                                                       int nominatedNodeTypeId) {
-    return (100 * rootSubtreeStatistics.getTotalSizeInBytes() <
-            totalNominatedTypeStatistics.getTotalSizeInBytes() * NODE_SUBTREE_SIZE_PERCENTAGE_REQUIREMENT) &&
-           (100 * rootSubtreeStatistics.getObjectsCount() <
-            totalNominatedTypeStatistics.getObjectsCount() * NODE_SUBTREE_SIZE_PERCENTAGE_REQUIREMENT) &&
-           (rootSubtreeStatistics.getTotalSizeInBytes() < NODE_SUBTREE_OBJECTS_SIZE_REQUIREMENT_BYTES) &&
-           !NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION.contains(nominatedNodeTypeId);
-  }
-
-  private ObjectsStatistics calculateNominatedObjectsStatisticsInTheSubtree(@NotNull final RootPathTreeNode node,
-                                                                            int exceededClusterId,
-                                                                            int nominatedNodeTypeId,
-                                                                            @NotNull final Map<RootPathTreeNode, ObjectsStatistics> nominatedObjectsStatsInTheNodeSubtree) {
-    ObjectsStatistics statistics = new ObjectsStatistics();
-    if (node.instancesStatistics[exceededClusterId][nominatedNodeTypeId] == null ||
-        node.instancesStatistics[exceededClusterId][nominatedNodeTypeId].getObjectsCount() == 0) {
-      return statistics;
-    }
-    if (node.selfSizes[exceededClusterId][nominatedNodeTypeId] != null) {
-      statistics.addStats(node.instancesStatistics[exceededClusterId][nominatedNodeTypeId].getObjectsCount(),
-                          node.selfSizes[exceededClusterId][nominatedNodeTypeId]);
-    }
-
-    for (RootPathTreeNode childNode : node.children.values()) {
-      if (childNode.instancesStatistics[exceededClusterId][nominatedNodeTypeId] == null ||
-          childNode.instancesStatistics[exceededClusterId][nominatedNodeTypeId].getObjectsCount() == 0) {
-        continue;
-      }
-      statistics.addStats(calculateNominatedObjectsStatisticsInTheSubtree(childNode, exceededClusterId, nominatedNodeTypeId,
-                                                                          nominatedObjectsStatsInTheNodeSubtree));
-    }
-    if (statistics.getObjectsCount() > 0) {
-      nominatedObjectsStatsInTheNodeSubtree.put(node, statistics);
-    }
-    return statistics;
-  }
-
-  private String transformPrefix(@NotNull final String prefix,
-                                 boolean isOnlyChild,
-                                 boolean isLastChild) {
-    if (isOnlyChild) {
-      return prefix + ' ';
-    }
-    if (isLastChild) {
-      return prefix.substring(0, prefix.length() - 1) + "\\-";
-    }
-    return prefix.substring(0, prefix.length() - 1) + "+-";
-  }
-
-  private void printRootPathIteration(@NotNull final Consumer<String> writer,
-                                      @NotNull final RootPathTreeNode node,
-                                      @NotNull final String prefix,
-                                      boolean isOnlyChild,
-                                      boolean isLastChild,
-                                      @NotNull final ObjectsStatistics totalNominatedTypeStatistics,
-                                      int exceededClusterId,
-                                      int nominatedNodeTypeId,
-                                      @NotNull final Map<RootPathTreeNode, ObjectsStatistics> nominatedObjectsStatsInTheNodeSubtree) {
-    ObjectsStatistics nominatedObjectsInTheSubtree = nominatedObjectsStatsInTheNodeSubtree.get(node);
-
-    if (shouldSkipPrintingNodeSubtree(totalNominatedTypeStatistics, nominatedObjectsInTheSubtree, nominatedNodeTypeId)) {
-      return;
-    }
-
-    writer.accept(
-      constructRootPathLine(node, prefix, isOnlyChild, isLastChild, totalNominatedTypeStatistics, exceededClusterId, nominatedNodeTypeId,
-                            nominatedObjectsInTheSubtree));
-
-    List<RootPathTreeNode> children = node.children.values().stream().filter(
-        c -> (c.instancesStatistics[exceededClusterId][nominatedNodeTypeId] != null &&
-              c.instancesStatistics[exceededClusterId][nominatedNodeTypeId].getObjectsCount() > 0) &&
-             nominatedObjectsStatsInTheNodeSubtree.containsKey(c))
-      .sorted(Comparator.comparingLong(c -> nominatedObjectsStatsInTheNodeSubtree.get(c).getTotalSizeInBytes()).reversed()).toList();
-
-    if (children.size() > 1) {
-      int i = 0;
-
-      for (RootPathTreeNode childNode : children) {
-        String childPrefix = prefix;
-        if (i == children.size() - 1) {
-          childPrefix += "  ";
-        }
-        else {
-          childPrefix += " |";
-        }
-        printRootPathIteration(writer, childNode, childPrefix, false,
-                               i == children.size() - 1, totalNominatedTypeStatistics, exceededClusterId, nominatedNodeTypeId,
-                               nominatedObjectsStatsInTheNodeSubtree);
-        i++;
-      }
-      return;
-    }
-    for (RootPathTreeNode childNode : children) {
-      printRootPathIteration(writer, childNode, prefix, true, false, totalNominatedTypeStatistics, exceededClusterId, nominatedNodeTypeId,
-                             nominatedObjectsStatsInTheNodeSubtree);
-    }
-  }
-
-  @NotNull
-  private String constructRootPathLine(@NotNull final RootPathTreeNode node,
-                                       @NotNull final String prefix,
-                                       boolean isOnlyChild,
-                                       boolean isLastChild,
-                                       @NotNull final ObjectsStatistics totalNominatedTypeStatistics,
-                                       int exceededClusterId,
-                                       int nominatedNodeTypeId,
-                                       @NotNull final ObjectsStatistics nominatedObjectsInTheSubtree) {
-    String percentString =
-      padStart((int)(100.0 * nominatedObjectsInTheSubtree.getTotalSizeInBytes() / totalNominatedTypeStatistics.getTotalSizeInBytes()) + "%",
-               4,
-               ' ');
-
-    return '[' +
-           padStart(HeapReportUtils.INSTANCE.toShortStringAsCount(nominatedObjectsInTheSubtree.getObjectsCount()), 5, ' ') +
-           '/' +
-           percentString +
-           '/' +
-           padStart(HeapReportUtils.INSTANCE.toShortStringAsSize(nominatedObjectsInTheSubtree.getTotalSizeInBytes()), 6, ' ') +
-           ']' +
-           padStart(HeapTraverseUtil.getObjectsStatsPresentation(node.instancesStatistics[exceededClusterId][nominatedNodeTypeId],
-                                                                 MemoryReportCollector.HeapSnapshotPresentationConfig.PresentationStyle.OPTIMAL_UNITS),
-                    20, ' ') +
-           ' ' + (node.selfSizes[exceededClusterId][nominatedNodeTypeId] != null ? '*' : ' ') +
-           ' ' + (node.isRepeated ? "(rep)" : "     ") +
-           transformPrefix(prefix, isOnlyChild, isLastChild) +
-           node.label +
-           ": " +
-           node.className +
-           (node.isDisposedButReferenced ? "(disposed)" : "");
-  }
-
   public int getNumberOfRootPathTreeNodes() {
     return numberOfRootPathTreeNodes;
   }
@@ -404,48 +204,6 @@ public class RootPathTree {
         int finalI = i;
         processMask(rootPathTreeNodeWasPropagated[i], j -> rootPathTreeNode.instancesStatistics[finalI][j].addStats(0, size));
       }
-    }
-  }
-
-  private static class RootPathTreeNode {
-    @NotNull final String className;
-    @NotNull final String label;
-    boolean isDisposedButReferenced;
-
-    @NotNull final Map<ExtendedStackNode, RootPathTreeNode> children = Maps.newHashMap();
-    boolean isRepeated = false;
-
-    // [i][j]: Contains number of objects/total subtree size in bytes that participate in a tree for exceeded cluster #i,
-    // nomination type #j.
-    final ObjectsStatistics[][] instancesStatistics;
-    // [i][j]: Null if node is not nominated for exceeded cluster #i, nomination type #j. Otherwise total self size of objects.
-    final Long[][] selfSizes;
-
-    private RootPathTreeNode(@NotNull final String label,
-                             @NotNull final String className,
-                             boolean isDisposedButReferenced,
-                             @NotNull final ExtendedReportStatistics extendedReportStatistics) {
-      this.className = className;
-      this.label = label;
-      this.isDisposedButReferenced = isDisposedButReferenced;
-      this.instancesStatistics =
-        new ObjectsStatistics[extendedReportStatistics.componentToExceededClustersStatistics.size()][MAX_NUMBER_OF_NOMINATED_NODE_TYPES];
-      this.selfSizes =
-        new Long[extendedReportStatistics.componentToExceededClustersStatistics.size()][MAX_NUMBER_OF_NOMINATED_NODE_TYPES];
-    }
-
-    private void incrementNumberOfInstances(int exceededClusterId, int nominatedNodeTypeId, long subtreeSize) {
-      if (instancesStatistics[exceededClusterId][nominatedNodeTypeId] == null) {
-        instancesStatistics[exceededClusterId][nominatedNodeTypeId] = new ObjectsStatistics();
-      }
-      instancesStatistics[exceededClusterId][nominatedNodeTypeId].addObject(subtreeSize);
-    }
-
-    private void markNodeAsNominated(int exceededClusterId, int nominatedNodeTypeId, long size) {
-      if (selfSizes[exceededClusterId][nominatedNodeTypeId] == null) {
-        selfSizes[exceededClusterId][nominatedNodeTypeId] = 0L;
-      }
-      selfSizes[exceededClusterId][nominatedNodeTypeId] += size;
     }
   }
 }

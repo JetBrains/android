@@ -67,10 +67,8 @@ public class ExtendedReportStatistics {
 
   @NotNull
   private final Map<String, ObjectsStatistics> disposedButReferencedObjectsClasses = Maps.newHashMap();
-  @NotNull
-  final RootPathTree rootPathTree = new RootPathTree(this);
-  @NotNull
-  final HeapTraverseConfig myConfig;
+  @NotNull final RootPathTree rootPathTree = new RootPathTree(this);
+  @NotNull final HeapTraverseConfig myConfig;
 
   public ExtendedReportStatistics(@NotNull final HeapTraverseConfig config) {
     myConfig = config;
@@ -205,9 +203,10 @@ public class ExtendedReportStatistics {
         continue;
       }
       ClassLoader cl;
-      if(root instanceof Class) {
+      if (root instanceof Class) {
         cl = ((Class<?>)root).getClassLoader();
-      } else if (root instanceof ClassLoader) {
+      }
+      else if (root instanceof ClassLoader) {
         cl = (ClassLoader)root;
       }
       else {
@@ -230,8 +229,8 @@ public class ExtendedReportStatistics {
   }
 
   /**
-   *  Sort classes from the histogram using the specified {@param extractorForComparator} and register top
-   *  {@code NOMINATED_CLASSES_NUMBER_IN_SECTION} of them as nominated classes.
+   * Sort classes from the histogram using the specified {@param extractorForComparator} and register top
+   * {@code NOMINATED_CLASSES_NUMBER_IN_SECTION} of them as nominated classes.
    */
   private void addNominatedClassesFromHistogram(@NotNull final ExceededClusterStatistics exceededClusterStatistics,
                                                 @NotNull final Map<String, ObjectsStatistics> histogram,
@@ -255,7 +254,9 @@ public class ExtendedReportStatistics {
     for (ObjectsStatistics value : componentHistograms.get(component.getId()).disposedButReferencedObjects.values()) {
       totalDisposedButReferencedObjectsStatistics.addStats(value);
     }
-    rootPathTree.printPathTreeForComponentDisposedReferencedObjects(writer, statistics, totalDisposedButReferencedObjectsStatistics);
+    new RootPathTreePrinter.RootPathTreeDisposedObjectsPrinter(totalDisposedButReferencedObjectsStatistics, this,
+                                                               statistics).print(writer);
+
 
     writer.accept("======== INSTANCES OF EACH NOMINATED CLASS ========");
     writer.accept("Nominated classes:");
@@ -267,11 +268,12 @@ public class ExtendedReportStatistics {
 
     for (Pair<String, ObjectsStatistics> pair : nominatedClassesInOrder) {
       writer.accept(String.format(Locale.US, "CLASS: %s (%d objects)", pair.first, pair.second.getObjectsCount()));
-      rootPathTree.printPathTreeForComponentAndNominatedType(writer, statistics, statistics.nominatedClassesEnumeration.getInt(pair.first),
-                                                             pair.second);
+      new RootPathTreePrinter.RootPathTreeNominatedTypePrinter(pair.second, this, statistics,
+                                                               statistics.nominatedClassesEnumeration.getInt(pair.first)).print(writer);
     }
 
-    rootPathTree.printPathTreeForComponentObjectsReferringNominatedLoaders(writer, statistics, component);
+    new RootPathTreePrinter.RootPathTreeNominatedLoadersPrinter(rootPathTree.totalNominatedLoadersReferringObjectsStatistics, this,
+                                                                statistics).print(writer);
   }
 
   class CategoryHistogram extends ClusterHistogram {
