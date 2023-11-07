@@ -19,6 +19,8 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.dom.attrs.AttributeDefinition;
+import com.android.tools.dom.attrs.AttributeDefinitions;
 import com.android.tools.idea.databinding.DataBindingAnnotationsService;
 import com.android.tools.idea.lang.databinding.DataBindingCompletionUtil;
 import com.intellij.codeInsight.completion.CompletionContributor;
@@ -64,8 +66,6 @@ import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.android.dom.AttributeProcessingUtil;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
-import com.android.tools.dom.attrs.AttributeDefinition;
-import com.android.tools.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.color.AndroidColorDomUtil;
 import org.jetbrains.android.dom.converters.FlagConverter;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
@@ -77,7 +77,6 @@ import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.raw.RawDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
-import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
@@ -223,7 +222,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       return false;
     }
     else if (XmlResourceDomFileDescription.Util.isXmlResourceFile(xmlFile)) {
-      addAll(AndroidXmlResourcesUtil.ROOT_TAGS, resultSet);
+      addAll(XmlResourceDomFileDescription.Util.SUPPORTED_TAGS, resultSet);
       return false;
     }
     else if (TransitionDomFileDescription.isTransitionFile(xmlFile)) {

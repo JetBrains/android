@@ -15,10 +15,13 @@
  */
 package org.jetbrains.android.dom.xml
 
+import com.android.SdkConstants
 import com.android.resources.ResourceFolderType
+import com.android.tools.idea.dom.xml.PathsDomFileDescription
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription
+import org.jetbrains.annotations.NonNls
 
 /**
  * Describes all files in [ResourceFolderType.XML], except for
@@ -31,13 +34,38 @@ class XmlResourceDomFileDescription :
   MultipleKnownRootsResourceDomFileDescription<XmlResourceElement>(
     XmlResourceElement::class.java,
     ResourceFolderType.XML,
-    AndroidXmlResourcesUtil.ROOT_TAGS
+    Util.SUPPORTED_TAGS
   ) {
+
+  companion object {
+    @NonNls const val SEARCHABLE_TAG_NAME = "searchable"
+
+    @NonNls const val KEYBOARD_TAG_NAME = "Keyboard"
+
+    @NonNls const val DEVICE_ADMIN_TAG_NAME = "device-admin"
+
+    @NonNls const val ACCOUNT_AUTHENTICATOR_TAG_NAME = "account-authenticator"
+
+    @NonNls const val PREFERENCE_HEADERS_TAG_NAME = "preference-headers"
+  }
 
   object Util {
     @JvmStatic
     fun isXmlResourceFile(file: XmlFile) = runReadAction {
       XmlResourceDomFileDescription().isMyFile(file, null)
     }
+
+    @JvmField
+    val SUPPORTED_TAGS =
+      setOf(
+        SdkConstants.TAG_APPWIDGET_PROVIDER,
+        SEARCHABLE_TAG_NAME,
+        KEYBOARD_TAG_NAME,
+        DEVICE_ADMIN_TAG_NAME,
+        ACCOUNT_AUTHENTICATOR_TAG_NAME,
+        PREFERENCE_HEADERS_TAG_NAME,
+        PathsDomFileDescription.TAG_NAME,
+        AppRestrictionsDomFileDescription.ROOT_TAG_NAME
+      )
   }
 }

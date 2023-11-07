@@ -47,7 +47,8 @@ class PreferenceClassDomFileDescription :
        * we use [XmlResourceDomFileDescription]. If we don't, we assume it's a class name that we
        * need to resolve.
        */
-      return !AndroidXmlResourcesUtil.PREFERENCES_ROOT_TAGS.contains(rootTag.name)
+      return rootTag.name == AppRestrictionsDomFileDescription.ROOT_TAG_NAME ||
+        rootTag.name !in XmlResourceDomFileDescription.Util.SUPPORTED_TAGS
     }
   }
 

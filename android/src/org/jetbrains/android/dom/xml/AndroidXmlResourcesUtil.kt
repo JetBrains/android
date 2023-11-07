@@ -18,7 +18,6 @@ package org.jetbrains.android.dom.xml
 import com.android.AndroidXConstants.PreferenceAndroidX
 import com.android.SdkConstants
 import com.android.SdkConstants.PreferenceClasses
-import com.android.tools.idea.dom.xml.PathsDomFileDescription
 import com.android.tools.idea.psi.TagToClassMapper
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaPsiFacade
@@ -30,47 +29,22 @@ import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.dom.AndroidDomUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.findClassValidInXMLByName
-import org.jetbrains.annotations.NonNls
 
 object AndroidXmlResourcesUtil {
-  @NonNls val SEARCHABLE_TAG_NAME = "searchable"
-
-  @NonNls val KEYBOARD_TAG_NAME = "Keyboard"
-
-  @NonNls val DEVICE_ADMIN_TAG_NAME = "device-admin"
-
-  @NonNls val ACCOUNT_AUTHENTICATOR_TAG_NAME = "account-authenticator"
-
-  @NonNls val PREFERENCE_HEADERS_TAG_NAME = "preference-headers"
-
   @JvmField
   val SPECIAL_STYLEABLE_NAMES =
     mapOf(
       SdkConstants.TAG_APPWIDGET_PROVIDER to "AppWidgetProviderInfo",
-      SEARCHABLE_TAG_NAME to "Searchable",
+      XmlResourceDomFileDescription.SEARCHABLE_TAG_NAME to "Searchable",
       "actionkey" to "SearchableActionKey",
       "intent" to "Intent",
-      KEYBOARD_TAG_NAME to "Keyboard",
+      XmlResourceDomFileDescription.KEYBOARD_TAG_NAME to "Keyboard",
       "Row" to "Keyboard_Row",
       "Key" to "Keyboard_Key",
-      DEVICE_ADMIN_TAG_NAME to "DeviceAdmin",
-      ACCOUNT_AUTHENTICATOR_TAG_NAME to "AccountAuthenticator",
+      XmlResourceDomFileDescription.DEVICE_ADMIN_TAG_NAME to "DeviceAdmin",
+      XmlResourceDomFileDescription.ACCOUNT_AUTHENTICATOR_TAG_NAME to "AccountAuthenticator",
       "header" to "PreferenceHeader"
     )
-
-  val PREFERENCES_ROOT_TAGS =
-    setOf(
-      SdkConstants.TAG_APPWIDGET_PROVIDER,
-      SEARCHABLE_TAG_NAME,
-      KEYBOARD_TAG_NAME,
-      DEVICE_ADMIN_TAG_NAME,
-      ACCOUNT_AUTHENTICATOR_TAG_NAME,
-      PREFERENCE_HEADERS_TAG_NAME,
-      PathsDomFileDescription.TAG_NAME
-    )
-
-  @JvmField
-  val ROOT_TAGS = PREFERENCES_ROOT_TAGS + setOf(AppRestrictionsDomFileDescription.ROOT_TAG_NAME)
 
   @JvmStatic
   fun getPossibleRoots(facet: AndroidFacet): List<String> {
@@ -93,13 +67,13 @@ object AndroidXmlResourcesUtil {
 
     return buildList {
       addAll(AndroidDomUtil.removeUnambiguousNames(classMap))
-      addAll(ROOT_TAGS)
+      addAll(XmlResourceDomFileDescription.Util.SUPPORTED_TAGS)
     }
   }
 
   @JvmStatic
   fun isSupportedRootTag(facet: AndroidFacet, rootTagName: String): Boolean {
-    return ROOT_TAGS.contains(rootTagName) ||
+    return XmlResourceDomFileDescription.Util.SUPPORTED_TAGS.contains(rootTagName) ||
       findClassValidInXMLByName(facet, rootTagName, PreferenceClasses.CLASS_PREFERENCE) != null
   }
 

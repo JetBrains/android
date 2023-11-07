@@ -38,7 +38,7 @@ object XmlResourceNSDescriptor : XmlNSDescriptorImpl() {
 
     return CachedValuesManager.getManager(doc.project).getCachedValue(facet) {
       val static =
-        AndroidXmlResourcesUtil.ROOT_TAGS.map {
+        XmlResourceDomFileDescription.Util.SUPPORTED_TAGS.map {
             object : AbstractDomChildrenDescriptor(manager) {
               override fun getDefaultName() = it
 
