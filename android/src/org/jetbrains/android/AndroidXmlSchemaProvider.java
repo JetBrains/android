@@ -96,8 +96,8 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
 
         // Don't run on custom XML files with defined namespaces. Users may want to validate them.
         return resType != ResourceFolderType.XML ||
-               XmlResourceDomFileDescription.isXmlResourceFile(originalFile) ||
-               PreferenceClassDomFileDescription.Companion.isPreferenceClassFile(originalFile);
+               XmlResourceDomFileDescription.Util.isXmlResourceFile(originalFile) ||
+               PreferenceClassDomFileDescription.Util.isPreferenceClassFile(originalFile);
       }
 
       return ManifestDomFileDescription.isManifestFile(originalFile);

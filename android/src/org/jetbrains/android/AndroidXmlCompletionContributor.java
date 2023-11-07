@@ -222,7 +222,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       addAll(AndroidAnimatorUtil.getPossibleRoots(), resultSet);
       return false;
     }
-    else if (XmlResourceDomFileDescription.isXmlResourceFile(xmlFile)) {
+    else if (XmlResourceDomFileDescription.Util.isXmlResourceFile(xmlFile)) {
       addAll(AndroidXmlResourcesUtil.ROOT_TAGS, resultSet);
       return false;
     }

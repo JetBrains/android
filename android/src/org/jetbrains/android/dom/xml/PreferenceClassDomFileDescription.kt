@@ -28,7 +28,8 @@ import org.jetbrains.android.dom.CustomLogicResourceDomFileDescription
 class PreferenceClassDomFileDescription : CustomLogicResourceDomFileDescription<PreferenceElement>(
   PreferenceElement::class.java, ResourceFolderType.XML, "preference") {
 
-  companion object {
+  object Util {
+    @JvmStatic
     fun isPreferenceClassFile(file: XmlFile): Boolean {
       val rootTag = file.rootTag ?: return false
 
@@ -47,6 +48,6 @@ class PreferenceClassDomFileDescription : CustomLogicResourceDomFileDescription<
   }
 
   override fun checkFile(file: XmlFile, module: Module?): Boolean {
-    return runReadAction { isPreferenceClassFile(file) }
+    return runReadAction { Util.isPreferenceClassFile(file) }
   }
 }

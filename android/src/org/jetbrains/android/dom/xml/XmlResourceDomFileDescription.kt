@@ -21,10 +21,10 @@ import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription
 
 /**
- * Describes all files in [ResourceFolderType.XML], except for [MotionScene] and for
- * [PreferenceElement].
+ * Describes all files in [ResourceFolderType.XML], except for
+ * [org.jetbrains.android.dom.motion.MotionScene] and for [PreferenceElement].
  *
- * @see MotionDomFileDescription
+ * @see org.jetbrains.android.dom.motion.MotionDomFileDescription
  * @see PreferenceClassDomFileDescription
  */
 class XmlResourceDomFileDescription :
@@ -34,7 +34,7 @@ class XmlResourceDomFileDescription :
     AndroidXmlResourcesUtil.ROOT_TAGS
   ) {
 
-  companion object {
+  object Util {
     @JvmStatic
     fun isXmlResourceFile(file: XmlFile) = runReadAction {
       XmlResourceDomFileDescription().isMyFile(file, null)
