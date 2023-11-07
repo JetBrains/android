@@ -50,6 +50,8 @@ public class StudioBleakOptions {
     new IgnoredRef(-2, "com.intellij.util.containers.SLRUMap", "myProbationalQueue"),
     new IgnoredRef(-2, "com.intellij.util.IntSLRUCache", "myProtectedQueue"),
     new IgnoredRef(-2, "com.intellij.util.IntSLRUCache", "myProbationalQueue"),
+    new IgnoredRef(-1, "com.intellij.util.containers.FixedHashMap", "table"),
+    new IgnoredRef(-1, "com.github.benmanes.caffeine.cache.BoundedBuffer$RingBuffer", "buffer"),
 
     new IgnoredRef(-2, "com.android.tools.idea.configurations.ConfigurationManager", "myCache"),
     new IgnoredRef(-2, "com.intellij.openapi.vfs.newvfs.impl.VfsData$Segment", "myObjectArray"),
