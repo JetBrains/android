@@ -74,7 +74,7 @@ public class SdksCleanupUtil {
   @Nullable
   private static IAndroidTarget getTarget(@NotNull Sdk sdk) {
     AndroidSdkAdditionalData additionalData = AndroidSdkAdditionalData.from(sdk);
-    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+    AndroidSdkData sdkData = AndroidSdks.getSdkData(sdk);
     if (additionalData == null || sdkData == null) {
       return null;
     }

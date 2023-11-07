@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -357,7 +358,7 @@ public class GradleSyncTest {
 
     Sdk sdk = ModuleRootManager.getInstance(appModule).getSdk();
 
-    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+    AndroidSdkData sdkData = AndroidSdks.getSdkData(sdk);
 
     SdkAdditionalData data = sdk.getSdkAdditionalData();
     assertThat(data).isInstanceOf(AndroidSdkAdditionalData.class);

@@ -27,7 +27,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.projectRoots.Sdk;
 import java.io.File;
 import java.lang.ref.SoftReference;
 import java.nio.file.Path;
@@ -78,15 +77,6 @@ public class AndroidSdkData {
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull String sdkPath) {
     return getSdkData(new File(sdkPath));
-  }
-
-  @Nullable
-  public static AndroidSdkData getSdkData(@NotNull Sdk sdk) {
-    String sdkHomePath = sdk.getHomePath();
-    if (sdkHomePath != null) {
-      return getSdkData(sdk.getHomePath());
-    }
-    return null;
   }
 
   private AndroidSdkData(@NotNull File localSdk) {

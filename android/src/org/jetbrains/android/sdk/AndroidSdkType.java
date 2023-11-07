@@ -3,7 +3,6 @@ package org.jetbrains.android.sdk;
 
 import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetPresentableName;
 
 import com.android.sdklib.AndroidVersion;
@@ -92,7 +91,7 @@ public class AndroidSdkType extends SdkType implements JavaSdkType {
 
   @Override
   public boolean setupSdkPaths(@NotNull Sdk sdk, @NotNull SdkModel sdkModel) {
-    AndroidSdkData sdkData = getSdkData(sdk);
+    AndroidSdkData sdkData = AndroidSdks.getSdkData(sdk);
     if (sdkData == null) {
       Messages.showErrorDialog(AndroidBundle.message("cannot.parse.sdk.error"), "SDK Parsing Error");
       return false;
