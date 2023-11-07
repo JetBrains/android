@@ -32,7 +32,6 @@ import com.android.resources.ResourceType;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
-import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import kotlin.text.StringsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -211,7 +211,7 @@ public class ProjectFonts {
     }
     ListMultimap<String, ResourceItem> fonts =
       myResourceRepository.getAppResources().getResources(ResourceNamespace.TODO(), ResourceType.FONT);
-    String fontName = StringUtil.trimStart(name, "@font/");
+    String fontName = StringsKt.removePrefix(name, "@font/");
     if (!fonts.keySet().contains(fontName)) {
       createUnresolvedFontFamily(name);
       return;
@@ -288,7 +288,7 @@ public class ProjectFonts {
   }
 
   private void createEmbeddedFontFamily(@NotNull String name, @NotNull String fileName) {
-    String fontName = StringUtil.trimStart(name, "@font/");
+    String fontName = StringsKt.removePrefix(name, "@font/");
     String fileUrl = FILE_PROTOCOL_START + fileName;
     MutableFontDetail detail = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, false, fileUrl, "", false, false);
     FontFamily family = new FontFamily(FontProvider.EMPTY_PROVIDER, FontSource.PROJECT, fontName, fileUrl, "", Collections.singletonList(detail));
@@ -296,7 +296,7 @@ public class ProjectFonts {
   }
 
   private FontFamily createUnresolvedFontFamily(@NotNull String name) {
-    String fontName = StringUtil.trimStart(name, "@font/");
+    String fontName = StringsKt.removePrefix(name, "@font/");
     MutableFontDetail detail = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, false);
     FontFamily family = new FontFamily(FontProvider.EMPTY_PROVIDER, FontSource.PROJECT, fontName, "", "", Collections.singletonList(detail));
     myProjectFonts.put(name, family);
@@ -309,7 +309,7 @@ public class ProjectFonts {
     FontDetail best = wanted.findBestMatch(details);
     assert best != null;
     FontProvider provider = best.getFamily().getProvider();
-    String fontName = StringUtil.trimStart(name, "@font/");
+    String fontName = StringsKt.removePrefix(name, "@font/");
     FontFamily family = new FontFamily(provider, FontSource.PROJECT, fontName, best.getFontUrl(), "", ImmutableList.copyOf(details));
     myProjectFonts.put(name, family);
     return family;
@@ -317,7 +317,7 @@ public class ProjectFonts {
 
   private FontFamily createCompoundFamily(@NotNull String name, @NotNull List<FontDetail> fonts) {
     assert !fonts.isEmpty();
-    String fontName = StringUtil.trimStart(name, "@font/");
+    String fontName = StringsKt.removePrefix(name, "@font/");
     MutableFontDetail wanted = new MutableFontDetail(400, 100, false);
     FontDetail best = wanted.findBestMatch(fonts);
     assert best != null;

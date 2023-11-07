@@ -62,16 +62,15 @@ import com.android.tools.res.ResourceUtils;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.UserDataHolderBase;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -566,7 +565,7 @@ public class Configuration extends UserDataHolderBase implements Disposable, Mod
    * @param activity the activity
    */
   public void setActivity(@Nullable String activity) {
-    if (!StringUtil.equals(myActivity, activity)) {
+    if (!Objects.equals(myActivity, activity)) {
       myActivity = activity;
 
       updated(CFG_ACTIVITY);
@@ -714,7 +713,7 @@ public class Configuration extends UserDataHolderBase implements Disposable, Mod
       }
     }
 
-    if (!Objects.equal(stateName, myStateName)) {
+    if (!Objects.equals(stateName, myStateName)) {
       myStateName = stateName;
       myState = null;
 
@@ -728,7 +727,7 @@ public class Configuration extends UserDataHolderBase implements Disposable, Mod
    * @param locale the locale
    */
   public void setLocale(@NotNull Locale locale) {
-    if (!Objects.equal(myLocale, locale)) {
+    if (!Objects.equals(myLocale, locale)) {
       myLocale = locale;
 
       updated(CFG_LOCALE);
@@ -753,7 +752,7 @@ public class Configuration extends UserDataHolderBase implements Disposable, Mod
    * @param displayName the new display name
    */
   public void setDisplayName(@Nullable String displayName) {
-    if (!StringUtil.equals(myDisplayName, displayName)) {
+    if (!Objects.equals(myDisplayName, displayName)) {
       myDisplayName = displayName;
       updated(CFG_NAME);
     }
@@ -849,7 +848,7 @@ public class Configuration extends UserDataHolderBase implements Disposable, Mod
    * @param theme the theme
    */
   public void setTheme(@Nullable String theme) {
-    if (!StringUtil.equals(myTheme, theme)) {
+    if (!Objects.equals(myTheme, theme)) {
       myTheme = theme;
       checkThemePrefix();
       updated(CFG_THEME);
@@ -898,7 +897,7 @@ public class Configuration extends UserDataHolderBase implements Disposable, Mod
   }
 
   public void setWallpaper(@Nullable Wallpaper wallpaper) {
-    if (!Objects.equal(myWallpaper, wallpaper)) {
+    if (!Objects.equals(myWallpaper, wallpaper)) {
       myWallpaper = wallpaper;
       myUseThemedIcon = wallpaper != null;
       updated(CFG_THEME);

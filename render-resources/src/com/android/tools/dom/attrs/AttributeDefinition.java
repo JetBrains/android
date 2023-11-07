@@ -19,8 +19,8 @@ import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
+import kotlin.text.StringsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -145,12 +145,12 @@ public final class AttributeDefinition implements Cloneable {
    * Checks whether attribute is deprecated by looking up "deprecated" in its description.
    */
   public boolean isAttributeDeprecated() {
-    return myGlobalDescription != null && StringUtil.containsIgnoreCase(myGlobalDescription, "deprecated");
+    return myGlobalDescription != null && StringsKt.contains(myGlobalDescription, "deprecated", true);
   }
 
   public boolean isValueDeprecated(@NotNull String value) {
     String description = getValueDescription(value);
-    return description != null && StringUtil.containsIgnoreCase(description, "deprecated");
+    return description != null && StringsKt.contains(description, "deprecated", true);
   }
 
   void addFormats(@NotNull Collection<AttributeFormat> formats) {
