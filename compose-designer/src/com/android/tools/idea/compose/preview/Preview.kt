@@ -612,14 +612,12 @@ class ComposePreviewRepresentation(
       }
     }
     uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
-    invalidateAndRefresh()
   }
 
   private suspend fun onInteractivePreviewStop() {
     requestVisibilityAndNotificationsUpdate()
     interactiveManager.stop()
     composePreviewFlowManager.setSingleFilter(null)
-    invalidateAndRefresh()
   }
 
   private fun updateAnimationPanelVisibility() {
