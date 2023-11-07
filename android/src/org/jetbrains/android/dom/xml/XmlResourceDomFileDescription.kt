@@ -17,7 +17,6 @@ package org.jetbrains.android.dom.xml
 
 import com.android.SdkConstants
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.dom.xml.PathsDomFileDescription
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription
@@ -64,8 +63,6 @@ class XmlResourceDomFileDescription :
         DEVICE_ADMIN_TAG_NAME,
         ACCOUNT_AUTHENTICATOR_TAG_NAME,
         PREFERENCE_HEADERS_TAG_NAME,
-        PathsDomFileDescription.TAG_NAME,
-        AppRestrictionsDomFileDescription.ROOT_TAG_NAME
       )
   }
 }

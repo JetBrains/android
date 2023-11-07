@@ -18,6 +18,7 @@ package org.jetbrains.android.dom.xml
 import com.android.AndroidXConstants.PreferenceAndroidX
 import com.android.SdkConstants
 import com.android.SdkConstants.PreferenceClasses
+import com.android.tools.idea.dom.xml.PathsDomFileDescription
 import com.android.tools.idea.psi.TagToClassMapper
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaPsiFacade
@@ -27,6 +28,7 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.dom.AndroidDomUtil
+import org.jetbrains.android.dom.motion.MotionDomFileDescription
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.findClassValidInXMLByName
 
@@ -45,6 +47,14 @@ object AndroidXmlResourcesUtil {
       XmlResourceDomFileDescription.ACCOUNT_AUTHENTICATOR_TAG_NAME to "AccountAuthenticator",
       "header" to "PreferenceHeader"
     )
+
+  @JvmField
+  val KNOWN_ROOT_TAGS = buildSet {
+    addAll(XmlResourceDomFileDescription.Util.SUPPORTED_TAGS)
+    add(AppRestrictionsDomFileDescription.ROOT_TAG_NAME)
+    add(PathsDomFileDescription.TAG_NAME)
+    add(MotionDomFileDescription.ROOT_TAG_NAME)
+  }
 
   @JvmStatic
   fun getPossibleRoots(facet: AndroidFacet): List<String> {
@@ -67,13 +77,13 @@ object AndroidXmlResourcesUtil {
 
     return buildList {
       addAll(AndroidDomUtil.removeUnambiguousNames(classMap))
-      addAll(XmlResourceDomFileDescription.Util.SUPPORTED_TAGS)
+      addAll(KNOWN_ROOT_TAGS)
     }
   }
 
   @JvmStatic
   fun isSupportedRootTag(facet: AndroidFacet, rootTagName: String): Boolean {
-    return XmlResourceDomFileDescription.Util.SUPPORTED_TAGS.contains(rootTagName) ||
+    return KNOWN_ROOT_TAGS.contains(rootTagName) ||
       findClassValidInXMLByName(facet, rootTagName, PreferenceClasses.CLASS_PREFERENCE) != null
   }
 

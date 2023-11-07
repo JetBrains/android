@@ -35,20 +35,16 @@ class PreferenceClassDomFileDescription :
     fun isPreferenceClassFile(file: XmlFile): Boolean {
       val rootTag = file.rootTag ?: return false
 
-      /**
-       * If the root tag uses a custom namespace, leave it alone and don't provide any schema. See
-       * IDEA-105294.
-       */
+      // If the root tag uses a custom namespace, leave it alone and don't provide any schema. See
+      // IDEA-105294.
       if (rootTag.attributes.any { it.name == SdkConstants.XMLNS }) {
         return false
       }
-      /**
-       * If we know parent tag (tag hardcoded in AS, one of [AndroidXmlResourcesUtil.ROOT_TAGS]) ->
-       * we use [XmlResourceDomFileDescription]. If we don't, we assume it's a class name that we
-       * need to resolve.
-       */
-      return rootTag.name == AppRestrictionsDomFileDescription.ROOT_TAG_NAME ||
-        rootTag.name !in XmlResourceDomFileDescription.Util.SUPPORTED_TAGS
+
+      // If we know parent tag then it should use [XmlResourceDomFileDescription] or another
+      // specific description class. If we don't, we assume it's a class name that we need to
+      // resolve.
+      return rootTag.name !in AndroidXmlResourcesUtil.KNOWN_ROOT_TAGS
     }
   }
 
