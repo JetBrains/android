@@ -19,13 +19,26 @@ import com.android.ddmlib.ClientData
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
+import com.android.tools.idea.execution.common.debug.RunConfigurationWithDebugger
+import com.intellij.execution.RunManager
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.diagnostic.thisLogger
 import javax.swing.Icon
 
-class DebugMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
+class DebugMenuItem(
+  listener: DeviceMonitorActionsListener,
+  private val context: MenuContext,
+  private val runManager: RunManager) : TreeMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
-    return "Attach debugger"
+    val config = runManager.selectedConfiguration?.configuration as? RunConfigurationWithDebugger
+    // Prioritize number of selected processes first.
+    return if (numOfNodes == 0) {
+      "Attach debugger"
+    } else if (config?.androidDebuggerContext?.androidDebugger == null) {
+      "Selected run configuration doesn't support debuggers"
+    } else {
+      "Attach debugger"
+    }
   }
 
   override val icon: Icon
@@ -57,6 +70,9 @@ class DebugMenuItem(listener: DeviceMonitorActionsListener, private val context:
       if (selectedInfoList.isEmpty()) {
         return false
       }
+
+      val config = runManager.selectedConfiguration?.configuration as? RunConfigurationWithDebugger
+      config?.androidDebuggerContext?.androidDebugger ?: return false
 
       for (info in selectedInfoList) {
         if (info.debuggerStatus == ClientData.DebuggerStatus.DEFAULT) {

@@ -83,7 +83,7 @@ class DeviceMonitorControllerImplTest {
     )
     packageNameProvider = MockProjectApplicationIdsProvider(project)
     model = DeviceMonitorModel(processService, packageNameProvider)
-    mockView = MockDeviceMonitorView(model)
+    mockView = MockDeviceMonitorView(project, model)
     mockView.setup()
     testDevice1 = fakeAdbRule.attachDevice("test_device_01", "Google", "Pix3l", "versionX", "29")
     testDeviceHandle1 = MockDeviceHandle(mock(CoroutineScope::class.java), testDevice1.deviceId)
