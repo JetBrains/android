@@ -1456,7 +1456,6 @@ public final class StudioFlags {
   // region Firebase Test Lab
   private static final FlagGroup FIREBASE_TEST_LAB = new FlagGroup(FLAGS, "firebasetestlab", "Firebase Test Lab");
 
-  // TODO(b/304622231) deprecate StudioFlags.DIRECT_ACCESS
   public static final Flag<Boolean> DIRECT_ACCESS =
     Flag.create(
       FIREBASE_TEST_LAB,

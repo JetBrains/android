@@ -51,8 +51,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @NotNull private final GradleExperimentalSettings mySettings;
   @NotNull private final RenderSettings myRenderSettings;
 
-  @NotNull private final ExternalSettings myExternalSettings;
-
   private JPanel myPanel;
   private JCheckBox myUseMultiVariantExtraArtifacts;
   private JSlider myLayoutEditorQualitySlider;
@@ -68,25 +66,20 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myEnableDeviceApiOptimization;
   private JCheckBox myDeriveRuntimeClasspathsForLibraries;
 
-  private JCheckBox myEnableDeviceStreaming;
-  private DeviceStreamingSignUpPanel myEnableDeviceStreamingSignUpPanel;
-
   private final boolean forAndroidStudio;
 
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project, boolean studio) {
-    this(GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project), ExternalSettings.getInstance(), studio);
+    this(GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project), studio);
   }
 
   @VisibleForTesting
   ExperimentalSettingsConfigurable(@NotNull GradleExperimentalSettings settings,
                                    @NotNull RenderSettings renderSettings,
-                                   @NotNull ExternalSettings externalSettings,
                                    boolean studio) {
     forAndroidStudio = studio;
     mySettings = settings;
     myRenderSettings = renderSettings;
-    myExternalSettings = externalSettings;
 
     myEnableParallelSync.setVisible(StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get());
     myDeriveRuntimeClasspathsForLibraries.setVisible(StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get());
@@ -152,7 +145,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimizationEnabled() ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
-           myExternalSettings.getEnableDeviceStreaming() != isDeviceStreamingEnabled() ||
            mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries();
   }
 
@@ -172,7 +164,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
     applyTraceSettings();
     ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
-    applyDeviceStreamingSettings();
   }
 
   @VisibleForTesting
@@ -237,15 +228,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   }
 
   @TestOnly
-  void enableDeviceStreaming(boolean value) {
-    myEnableDeviceStreaming.setSelected(value);
-  }
-
-  boolean isDeviceStreamingEnabled() {
-    return myEnableDeviceStreaming.isSelected();
-  }
-
-  @TestOnly
   void enableGradleApiOptimization(boolean value) {
     myEnableDeviceApiOptimization.setSelected(value);
   }
@@ -276,6 +258,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myTraceProfileComboBox.addItem(DEFAULT);
     myTraceProfileComboBox.addItem(SPECIFIED_LOCATION);
   }
+
 
   private void updateTraceComponents() {
     myTraceProfileComboBox.setEnabled(myTraceGradleSyncCheckBox.isSelected());
@@ -320,26 +303,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     }
   }
 
-  private void applyDeviceStreamingSettings() {
-    if (myExternalSettings.getEnableDeviceStreaming() != isDeviceStreamingEnabled()) {
-      final Application app = ApplicationManager.getApplication();
-      if (app.isUnitTestMode()) {
-        myExternalSettings.setEnableDeviceStreaming(isDeviceStreamingEnabled());
-        return;
-      }
-      boolean canRestart = app.isRestartCapable();
-      String okText = canRestart ? "Restart" : "Exit";
-      String message = "A restart of Android Studio is required to apply changes related to Device Streaming.\n\n" +
-                       "Do you want to proceed?";
-      int result = Messages.showOkCancelDialog(message, "Restart", okText, "Cancel", Messages.getQuestionIcon());
-
-      if (result == Messages.OK) {
-        myExternalSettings.setEnableDeviceStreaming(isDeviceStreamingEnabled());
-        app.exit(false, true, true);
-      }
-    }
-  }
-
   private void saveTraceSettings() {
     mySettings.TRACE_GRADLE_SYNC = isTraceGradleSyncEnabled();
     mySettings.TRACE_PROFILE_SELECTION = getTraceProfileSelection();
@@ -368,7 +331,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myEnableParallelSync.setSelected(mySettings.ENABLE_PARALLEL_SYNC);
     myEnableDeviceApiOptimization.setSelected(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     myDeriveRuntimeClasspathsForLibraries.setSelected(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
-    myEnableDeviceStreaming.setSelected(myExternalSettings.getEnableDeviceStreaming());
     updateTraceComponents();
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
   }

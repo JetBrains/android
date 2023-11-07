@@ -1560,14 +1560,9 @@
     <option name="libraries" hit="Derive runtime classpaths for libraries from application modules" />
     <option name="modules" hit="Derive runtime classpaths for libraries from application modules" />
     <option name="runtime" hit="Derive runtime classpaths for libraries from application modules" />
-    <option name="device" hit="Device Streaming" />
-    <option name="streaming" hit="Device Streaming" />
     <option name="enable" hit="Enable @Preview picker" />
     <option name="picker" hit="Enable @Preview picker" />
     <option name="preview" hit="Enable @Preview picker" />
-    <option name="device" hit="Enable Device Streaming" />
-    <option name="enable" hit="Enable Device Streaming" />
-    <option name="streaming" hit="Enable Device Streaming" />
     <option name="enable" hit="Enable parallel Gradle Sync" />
     <option name="gradle" hit="Enable parallel Gradle Sync" />
     <option name="parallel" hit="Enable parallel Gradle Sync" />

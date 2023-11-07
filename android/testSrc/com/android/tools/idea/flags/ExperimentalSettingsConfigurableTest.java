@@ -19,6 +19,7 @@ import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.Trac
 import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.SPECIFIED_LOCATION;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.gradle.dsl.model.GradleDslModelExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.intellij.openapi.options.ConfigurationException;
@@ -32,15 +33,12 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
   @Mock private GradleExperimentalSettings mySettings;
   private ExperimentalSettingsConfigurable myConfigurable;
 
-  private ExternalSettings myExternalSettings;
-
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
     mySettings.TRACE_PROFILE_LOCATION = "";
-    myExternalSettings = new ExternalSettings();
-    myConfigurable = new ExperimentalSettingsConfigurable(mySettings, new RenderSettings(), myExternalSettings, true);
+    myConfigurable = new ExperimentalSettingsConfigurable(mySettings, new RenderSettings(), true);
   }
 
   public void testIsModified() {
@@ -91,12 +89,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertTrue(myConfigurable.isModified());
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true;
     assertFalse(myConfigurable.isModified());
-
-    myConfigurable.enableDeviceStreaming(true);
-    myExternalSettings.setEnableDeviceStreaming(false);
-    assertTrue(myConfigurable.isModified());
-    myExternalSettings.setEnableDeviceStreaming(true);
-    assertFalse(myConfigurable.isModified());
   }
 
   public void testApply() throws ConfigurationException {
@@ -108,7 +100,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     myConfigurable.enableParallelSync(true);
     myConfigurable.enableGradleApiOptimization(true);
     myConfigurable.enableDeriveRuntimeClasspathsForLibraries(true);
-    myConfigurable.enableDeviceStreaming(true);
 
     myConfigurable.apply();
 
@@ -120,7 +111,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertTrue(mySettings.SKIP_GRADLE_TASKS_LIST);
     assertTrue(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     assertTrue(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
-    assertTrue(myExternalSettings.getEnableDeviceStreaming());
 
     myConfigurable.enableUseMultiVariantExtraArtifacts(false);
     myConfigurable.enableConfigureAllGradleTasks(true);
@@ -130,7 +120,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     myConfigurable.enableParallelSync(false);
     myConfigurable.enableGradleApiOptimization(false);
     myConfigurable.enableDeriveRuntimeClasspathsForLibraries(false);
-    myConfigurable.enableDeviceStreaming(false);
 
     myConfigurable.apply();
 
@@ -142,7 +131,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertFalse(mySettings.ENABLE_PARALLEL_SYNC);
     assertFalse(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     assertFalse(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
-    assertFalse(myExternalSettings.getEnableDeviceStreaming());
   }
 
   public void testReset() {
@@ -154,7 +142,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     mySettings.ENABLE_PARALLEL_SYNC = true;
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = true;
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true;
-    myExternalSettings.setEnableDeviceStreaming(true);
 
     myConfigurable.reset();
 
@@ -166,7 +153,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertTrue(myConfigurable.isParallelSyncEnabled());
     assertTrue(myConfigurable.isGradleApiOptimizationEnabled());
     assertTrue(myConfigurable.isDeriveRuntimeClasspathsForLibraries());
-    assertTrue(myConfigurable.isDeviceStreamingEnabled());
 
     mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = false;
     mySettings.SKIP_GRADLE_TASKS_LIST = false;
@@ -176,7 +162,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     mySettings.ENABLE_PARALLEL_SYNC = false;
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = false;
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = false;
-    myExternalSettings.setEnableDeviceStreaming(false);
 
     myConfigurable.reset();
 
@@ -188,7 +173,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertFalse(myConfigurable.isParallelSyncEnabled());
     assertFalse(myConfigurable.isGradleApiOptimizationEnabled());
     assertFalse(myConfigurable.isDeriveRuntimeClasspathsForLibraries());
-    assertFalse(myConfigurable.isDeviceStreamingEnabled());
   }
 
   public void testIsTraceProfileValid() {
