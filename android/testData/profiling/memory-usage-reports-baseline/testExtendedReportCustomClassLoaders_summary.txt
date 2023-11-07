@@ -1,0 +1,3 @@
+Root 1:
+      472B/1 objects          (root): [Ljava.lang.Object;
+     320B/20 objects          []: com.android.tools.idea.diagnostics.heap.SampleClass

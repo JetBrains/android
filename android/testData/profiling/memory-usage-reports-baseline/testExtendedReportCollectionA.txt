@@ -1,0 +1,61 @@
+========== CATEGORY ANDROID:UNCATEGORIZED =========
+Owned: 0B/0 objects
+      Histogram:
+      Studio objects histogram:
+      Category roots histogram:
+Platform object: 0B/0 objects[0B/0 objects]
+=============== CATEGORY DIAGNOSTICS ==============
+Owned: 56B/3 objects
+      Histogram:
+        24B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+        16B/1 objects: java.lang.Integer
+      Studio objects histogram:
+        24B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+      Category roots histogram:
+        24B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+Platform object: 0B/0 objects[0B/0 objects]
+=========== COMPONENT UNCATEGORIZED_MAIN ==========
+Owned: 0B/0 objects
+      Histogram:
+      Studio objects histogram:
+      Component roots histogram:
+Platform object: 0B/0 objects[0B/0 objects]
+=================== COMPONENT A ===================
+Owned: 40B/2 objects
+      Histogram:
+        24B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+        16B/1 objects: java.lang.Integer
+      Studio objects histogram:
+        24B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+      Component roots histogram:
+        24B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+Number of instances of tracked classes:
+      com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A:1
+Platform object: 0B/0 objects[0B/0 objects]
+=================== COMPONENT B ===================
+Owned: 16B/1 objects
+      Histogram:
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+      Studio objects histogram:
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+      Component roots histogram:
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+Number of instances of tracked classes:
+      com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B:1
+Platform object: 0B/0 objects[0B/0 objects]
+================ EXCEEDED CLUSTER A ===============
+======== INSTANCES OF EACH NOMINATED CLASS ========
+Nominated classes:
+ --> [24B/1 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+ --> [16B/1 objects] java.lang.Integer
+
+CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A (1 objects)
+Root 1:
+[    1/100%/   24B]       56B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+CLASS: java.lang.Integer (1 objects)
+Root 1:
+[    1/100%/   16B]       56B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+[    1/100%/   16B]       16B/1 objects *        myInt: java.lang.Integer

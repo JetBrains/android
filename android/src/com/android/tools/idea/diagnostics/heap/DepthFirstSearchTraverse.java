@@ -231,8 +231,14 @@ abstract class DepthFirstSearchTraverse {
 
       RootPathTree.RootPathElement element = pathToRoot.pop();
       if (!pathToRoot.empty() && !element.extendedStackNode.equals(pathToRoot.peek().extendedStackNode)) {
+        element.update();
         pathToRoot.peek().addSubtreeSize(element.getSubtreeSize());
       }
+      // update root
+      if (pathToRoot.empty()) {
+        element.update();
+      }
+
       MemoryReportJniHelper.setObjectTag(stackNode.getObject(), 0);
     }
 

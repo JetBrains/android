@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics.heap;
 
 import static com.android.tools.idea.diagnostics.heap.RootPathTree.DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE;
+import static com.android.tools.idea.diagnostics.heap.RootPathTree.HEAP_SUMMARY_NODE_TYPE;
 import static com.android.tools.idea.diagnostics.heap.RootPathTree.NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION;
 import static com.android.tools.idea.diagnostics.heap.RootPathTree.OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE;
 import static com.google.common.base.Strings.padStart;
@@ -277,6 +278,42 @@ public abstract class RootPathTreePrinter {
         writer.accept(" --> " + classNameAndNumberOfInstances.first + ": " + classNameAndNumberOfInstances.second);
       }
       printPathTreeForComponentAndNominatedType(writer);
+    }
+  }
+
+  static class RootPathTreeSummaryPrinter extends RootPathTreePrinter {
+    private final Comparator<RootPathTreeNode> childrenOrderingComparator;
+    private static final long SUMMARY_SUBTREE_MAX_DEPTH = 40;
+    private final long summaryRequiredSubtreeSize;
+
+    RootPathTreeSummaryPrinter(@NotNull final ExtendedReportStatistics extendedReportStatistics,
+                               @NotNull final ExceededClusterStatistics exceededClusterStatistics,
+                               long summaryRequiredSubtreeSize) {
+      super(extendedReportStatistics, HEAP_SUMMARY_NODE_TYPE, exceededClusterStatistics.exceededClusterIndex);
+      this.summaryRequiredSubtreeSize = summaryRequiredSubtreeSize;
+
+      childrenOrderingComparator =
+        Comparator.comparingLong(
+          (RootPathTreeNode c) -> c.instancesStatistics[exceededClusterId][HEAP_SUMMARY_NODE_TYPE].getTotalSizeInBytes()).reversed();
+    }
+
+    @Override
+    boolean shouldPrintNodeSubtree(@NotNull RootPathTreeNode node, int depth) {
+      return node.instancesStatistics[exceededClusterId][nominatedNodeTypeId] != null &&
+             node.instancesStatistics[exceededClusterId][nominatedNodeTypeId].getObjectsCount() > 0 &&
+             node.instancesStatistics[exceededClusterId][nominatedNodeTypeId].getTotalSizeInBytes() >
+             summaryRequiredSubtreeSize && depth < SUMMARY_SUBTREE_MAX_DEPTH;
+    }
+
+    @Override
+    void print(@NotNull Consumer<String> writer) {
+      printPathTreeForComponentAndNominatedType(writer);
+    }
+
+    @NotNull
+    @Override
+    Comparator<RootPathTreeNode> getChildrenOrderingComparator() {
+      return childrenOrderingComparator;
     }
   }
 }

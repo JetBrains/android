@@ -32,9 +32,11 @@ public class RootPathTree {
   // 1) all the nominated classes are separate types (3 sections, NOMINATED_CLASSES_NUMBER_IN_SECTION nominated classes in each at max)
   // 2) disposed but referenced objects
   // 3) Objects that were loaded with a regular ClassLoader but refer to objects loaded with `StudioModuleClassLoader`
-  static final int MAX_NUMBER_OF_NOMINATED_NODE_TYPES = NOMINATED_CLASSES_NUMBER_IN_SECTION * 3 + 2;
-  static final int DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE = 9;
-  static final int OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE = 10;
+  // 4) Heap Summary node type that contains total number of object and subtree sizes for objects in paths of the all above types
+  static final int MAX_NUMBER_OF_NOMINATED_NODE_TYPES = NOMINATED_CLASSES_NUMBER_IN_SECTION * 3 + 3;
+  static final int DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE = NOMINATED_CLASSES_NUMBER_IN_SECTION * 3;
+  static final int OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE = NOMINATED_CLASSES_NUMBER_IN_SECTION * 3 + 1;
+  static final int HEAP_SUMMARY_NODE_TYPE = NOMINATED_CLASSES_NUMBER_IN_SECTION * 3 + 2;
   static final IntSet NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION =
     IntSet.of(DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE, OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE);
   @NotNull final Map<ExtendedStackNode, RootPathTreeNode> roots = Maps.newHashMap();
@@ -203,6 +205,20 @@ public class RootPathTree {
       for (int i = 0; i < rootPathTreeNodeWasPropagated.length; i++) {
         int finalI = i;
         processMask(rootPathTreeNodeWasPropagated[i], j -> rootPathTreeNode.instancesStatistics[finalI][j].addStats(0, size));
+      }
+    }
+
+    public void update() {
+      if (rootPathTreeNode == null) {
+        return;
+      }
+      for (int i = 0; i < rootPathTreeNodeWasPropagated.length; i++) {
+        if (rootPathTreeNodeWasPropagated[i] == 0) continue;
+
+        if (rootPathTreeNode.instancesStatistics[i][HEAP_SUMMARY_NODE_TYPE] == null) {
+          rootPathTreeNode.instancesStatistics[i][HEAP_SUMMARY_NODE_TYPE] = new ObjectsStatistics();
+        }
+        rootPathTreeNode.instancesStatistics[i][HEAP_SUMMARY_NODE_TYPE].addObject(subtreeSize);
       }
     }
   }

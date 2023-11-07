@@ -25,6 +25,7 @@ import com.android.tools.idea.diagnostics.report.DiagnosticCrashReport;
 import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties;
 import com.google.common.base.Ascii;
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
+import com.intellij.diagnostic.hprof.util.HeapReportUtils;
 import com.intellij.ide.PowerSaveMode;
 import com.intellij.util.containers.WeakList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +50,8 @@ public final class HeapSnapshotStatistics {
 
   // 1.2mb is a Crash file size limit. If the size of the crash report field value exceeds 250kb it will be wrapped into a file. This file
   // should not be more than 1.2mb to be processes by Crash.
-  private static final int MAX_BYTES_FOR_COMPONENT_REPORT = 1228 * 1024;
+  private static final int MAX_BYTES_FOR_REPORT_ATTACHMENT_FILE = 1228 * 1024;
+  private static final int MAX_BYTES_FOR_HEAP_SUMMARY_FIELD = 250 * 1024;
 
   @NotNull final ClusterObjectsStatistics.ObjectsStatisticsWithPlatformTracking totalStats =
     new ClusterObjectsStatistics.ObjectsStatisticsWithPlatformTracking();
@@ -190,7 +193,9 @@ public final class HeapSnapshotStatistics {
   }
 
   @NotNull
-  CrashReport asCrashReport(@NotNull final List<ComponentsSet.Component> exceededComponents) {
+  CrashReport asCrashReport(@NotNull final List<ComponentsSet.Component> exceededComponents,
+                            @NotNull final ComponentsSet.Component targetExceededComponent,
+                            @NotNull final StatusCode statusCode) {
     if (extendedReportStatistics == null) {
       throw new IllegalStateException("Extended memory report required for sending a Crash report was not calculated.");
     }
@@ -200,6 +205,10 @@ public final class HeapSnapshotStatistics {
         super.serialize(builder);
         String exceededComponentsPresentation = exceededComponents.stream().map(
           ComponentsSet.Component::getLabel).collect(Collectors.joining(","));
+        GoogleCrashReporter.addBodyToBuilder(builder, "signature",
+                                             "Cluster that exceeded the memory usage threshold:" +
+                                             targetExceededComponent.getLabel());
+
         GoogleCrashReporter.addBodyToBuilder(builder, "Total used memory",
                                              getOptimalUnitsStatisticsPresentation(totalStats.getObjectsStatistics()));
         String totalPlatformObjectsPresentation =
@@ -207,81 +216,108 @@ public final class HeapSnapshotStatistics {
                         getOptimalUnitsStatisticsPresentation(
                           totalStats.platformRetainedObjectsStats));
         GoogleCrashReporter.addBodyToBuilder(builder, "Total platform objects memory", totalPlatformObjectsPresentation);
-        GoogleCrashReporter.addBodyToBuilder(builder, "signature",
-                                             "Clusters that exceeded the memory usage threshold:" + exceededComponentsPresentation);
-        GoogleCrashReporter.addBodyToBuilder(builder, "Clusters that exceeded the memory usage threshold",
+
+        GoogleCrashReporter.addBodyToBuilder(builder, "Target exceeded cluster",
+                                             targetExceededComponent.getLabel());
+        GoogleCrashReporter.addBodyToBuilder(builder, "Target exceeded cluster owned memory", getOptimalUnitsStatisticsPresentation(
+          componentStats.get(targetExceededComponent.getId()).getOwnedClusterStat().objectsStat));
+        GoogleCrashReporter.addBodyToBuilder(builder, "All clusters that exceeded the memory usage threshold",
                                              exceededComponentsPresentation);
-        for (CategoryClusterObjectsStatistics stat : categoryComponentStats) {
-          StringBuilder categoryReportBuilder = new StringBuilder();
-          categoryReportBuilder.append(
-            String.format(Locale.US, "Owned: %s\n",
-                          getOptimalUnitsStatisticsPresentation(stat.getOwnedClusterStat().getObjectsStatistics())));
-          extendedReportStatistics.logCategoryHistogram((String s) -> categoryReportBuilder.append(s).append("\n"),
-                                                        stat.getCluster());
-          if (!stat.getTrackedFQNInstanceCounter().isEmpty()) {
-            categoryReportBuilder.append("Number of instances of tracked classes:\n");
-            for (String s : stat.getTrackedFQNInstanceCounter().keySet()) {
-              categoryReportBuilder.append(String.format(Locale.US, "      %s:%d\n", s, stat.getTrackedFQNInstanceCounter().getInt(s)));
-            }
-          }
-          categoryReportBuilder.append(String.format(Locale.US, "Platform object: %s[%s]\n",
-                                                     getOptimalUnitsStatisticsPresentation(
-                                                       stat.getOwnedClusterStat().platformObjectsSelfStats),
-                                                     getOptimalUnitsStatisticsPresentation(
-                                                       stat.getOwnedClusterStat().platformRetainedObjectsStats)));
-          GoogleCrashReporter.addBodyToBuilder(builder, "Category " + stat.getCluster().getLabel(),
-                                               categoryReportBuilder.toString());
-        }
-
-        for (ComponentClusterObjectsStatistics stat : componentStats) {
-          StringBuilder componentReportBuilder = new StringBuilder();
-          componentReportBuilder.append(
-            String.format(Locale.US, "Owned: %s\n",
-                          getOptimalUnitsStatisticsPresentation(stat.getOwnedClusterStat().getObjectsStatistics())));
-          extendedReportStatistics.logComponentHistogram((String s) -> componentReportBuilder.append(s).append("\n"), stat.getCluster());
-          if (!stat.getTrackedFQNInstanceCounter().isEmpty()) {
-            componentReportBuilder.append("Number of instances of tracked classes:\n");
-            for (String s : stat.getTrackedFQNInstanceCounter().keySet()) {
-              componentReportBuilder.append(String.format(Locale.US, "      %s:%d\n", s, stat.getTrackedFQNInstanceCounter().getInt(s)));
-            }
-          }
-          componentReportBuilder.append(String.format(Locale.US, "Platform object: %s[%s]\n",
-                                                      getOptimalUnitsStatisticsPresentation(
-                                                        stat.getOwnedClusterStat().platformObjectsSelfStats),
-                                                      getOptimalUnitsStatisticsPresentation(
-                                                        stat.getOwnedClusterStat().platformRetainedObjectsStats)));
-          if (extendedReportStatistics.componentToExceededClustersStatistics.containsKey(stat.getCluster())) {
-            extendedReportStatistics.printExceededClusterStatisticsIfNeeded((String s) -> componentReportBuilder.append(s).append("\n"),
-                                                                            stat.getCluster());
-          }
-
-          // truncate by 1.2mb
-          GoogleCrashReporter.addBodyToBuilder(builder, "Component " + stat.getCluster().getLabel(),
-                                               Ascii.truncate(componentReportBuilder.toString(), MAX_BYTES_FOR_COMPONENT_REPORT,
-                                                              "[truncated]"));
-        }
-
-        maskToSharedComponentStats.values().stream()
-          .sorted(Comparator.comparingLong((SharedClusterStatistics a) -> a.getStatistics().getObjectsStatistics().getTotalSizeInBytes())
-                    .reversed()).limit(10)
-          .forEach((SharedClusterStatistics stat) -> {
-            StringBuilder sharedClusterReportBuilder = new StringBuilder();
-            sharedClusterReportBuilder.append(
-              String.format(Locale.US, "Owned: %s\n", getOptimalUnitsStatisticsPresentation(stat.getStatistics().getObjectsStatistics())));
-            extendedReportStatistics.logSharedClusterHistogram((String s) -> sharedClusterReportBuilder.append(s).append("\n"), stat);
-
-            GoogleCrashReporter.addBodyToBuilder(builder,
-                                                 "Shared cluster " + getSharedClusterPresentationLabel(stat, HeapSnapshotStatistics.this),
-                                                 sharedClusterReportBuilder.toString());
-          });
-
-        StringBuilder disposerTreeInfoBuilder = new StringBuilder();
-        extendedReportStatistics.logDisposerTreeReport((String s) -> disposerTreeInfoBuilder.append(s).append("\n"));
-        GoogleCrashReporter.addBodyToBuilder(builder, "Disposer tree information", disposerTreeInfoBuilder.toString());
         GoogleCrashReporter.addBodyToBuilder(builder, "Number of nodes in GC root paths trees",
                                              String.valueOf(extendedReportStatistics.rootPathTree.getNumberOfRootPathTreeNodes()));
+        GoogleCrashReporter.addBodyToBuilder(builder, "Status code", statusCode.name());
+
+        GoogleCrashReporter.addBodyToBuilder(builder, "heapSummary", collectHeapSummary(targetExceededComponent));
+
+        builder.addBinaryBody("extendedMemoryReport", collectExtendedReport(targetExceededComponent).getBytes(), ContentType.TEXT_PLAIN,
+                              "extendedMemoryReport.txt");
       }
     };
+  }
+
+  @NotNull
+  private String collectHeapSummary(@NotNull final ComponentsSet.Component targetExceededComponent) {
+    StringBuilder builder = new StringBuilder();
+    assert extendedReportStatistics != null;
+    new RootPathTreePrinter.RootPathTreeSummaryPrinter(extendedReportStatistics,
+                                                       extendedReportStatistics.componentToExceededClustersStatistics.get(
+                                                         targetExceededComponent), config.summaryRequiredSubtreeSize).print(
+      (String s) -> appendLine(builder, s));
+    return Ascii.truncate(builder.toString(), MAX_BYTES_FOR_HEAP_SUMMARY_FIELD, "[truncated]");
+  }
+
+  private static void appendLine(@NotNull final StringBuilder builder, @NotNull final String text) {
+    builder.append(text).append("\n");
+  }
+
+  private void addClusterHistograms(@NotNull final StringBuilder builder,
+                                    @NotNull final String clusterLabel,
+                                    @NotNull final ClusterObjectsStatistics<?> stat,
+                                    @NotNull final ExtendedReportStatistics.ClusterHistogram.ClusterType clusterType) {
+    appendLine(builder, HeapReportUtils.INSTANCE.sectionHeader(clusterLabel));
+
+    appendLine(builder,
+               String.format(Locale.US, "Owned: %s",
+                             getOptimalUnitsStatisticsPresentation(stat.getOwnedClusterStat().getObjectsStatistics())));
+
+    if (extendedReportStatistics != null) {
+      extendedReportStatistics.logClusterHistogram((String s) -> appendLine(builder, s), stat.getCluster(), clusterType);
+    }
+
+    if (!stat.getTrackedFQNInstanceCounter().isEmpty()) {
+      appendLine(builder, "Number of instances of tracked classes:");
+      for (String s : stat.getTrackedFQNInstanceCounter().keySet()) {
+        appendLine(builder, String.format(Locale.US, "      %s:%d", s, stat.getTrackedFQNInstanceCounter().getInt(s)));
+      }
+    }
+    appendLine(builder, String.format(Locale.US, "Platform object: %s[%s]",
+                                      getOptimalUnitsStatisticsPresentation(
+                                        stat.getOwnedClusterStat().platformObjectsSelfStats),
+                                      getOptimalUnitsStatisticsPresentation(
+                                        stat.getOwnedClusterStat().platformRetainedObjectsStats)));
+  }
+
+  @NotNull
+  private String collectExtendedReport(@NotNull final ComponentsSet.Component targetExceededComponent) {
+    StringBuilder extendedReportBuilder = new StringBuilder();
+
+    for (CategoryClusterObjectsStatistics stat : categoryComponentStats) {
+      addClusterHistograms(extendedReportBuilder, "Category " + stat.getCluster().getLabel(), stat,
+                           ExtendedReportStatistics.ClusterHistogram.ClusterType.CATEGORY);
+    }
+
+    for (ComponentClusterObjectsStatistics stat : componentStats) {
+      addClusterHistograms(extendedReportBuilder, "Component " + stat.getCluster().getLabel(), stat,
+                           ExtendedReportStatistics.ClusterHistogram.ClusterType.COMPONENT);
+    }
+
+    maskToSharedComponentStats.values().stream()
+      .sorted(Comparator.comparingLong((SharedClusterStatistics a) -> a.getStatistics().getObjectsStatistics().getTotalSizeInBytes())
+                .reversed()).limit(10)
+      .forEach((SharedClusterStatistics stat) -> {
+        appendLine(extendedReportBuilder,
+                   HeapReportUtils.INSTANCE.sectionHeader(
+                     "Shared cluster " + getSharedClusterPresentationLabel(stat, HeapSnapshotStatistics.this)));
+        appendLine(extendedReportBuilder,
+                   String.format(Locale.US, "Owned: %s\n",
+                                 getOptimalUnitsStatisticsPresentation(stat.getStatistics().getObjectsStatistics())));
+        if (extendedReportStatistics != null) {
+          extendedReportStatistics.logSharedClusterHistogram((String s) -> appendLine(extendedReportBuilder, s), stat);
+        }
+      });
+
+    if (extendedReportStatistics != null) {
+      appendLine(extendedReportBuilder,
+                 HeapReportUtils.INSTANCE.sectionHeader("Exceeded cluster " + targetExceededComponent.getLabel()));
+      extendedReportStatistics.printExceededClusterStatisticsIfNeeded((String s) -> appendLine(extendedReportBuilder, s),
+                                                                      targetExceededComponent);
+
+      appendLine(extendedReportBuilder,
+                 HeapReportUtils.INSTANCE.sectionHeader("Disposer tree report"));
+      extendedReportStatistics.logDisposerTreeReport((String s) -> appendLine(extendedReportBuilder, s));
+    }
+
+    return Ascii.truncate(extendedReportBuilder.toString(), MAX_BYTES_FOR_REPORT_ATTACHMENT_FILE, "[truncated]");
   }
 
   void print(@NotNull final Consumer<String> writer, @NotNull final Function<ObjectsStatistics, String> objectsStatsPresentation,
@@ -513,7 +549,7 @@ public final class HeapSnapshotStatistics {
     }
   }
 
-  public static abstract class ClusterObjectsStatistics <T extends ComponentsSet.Cluster> {
+  public static abstract class ClusterObjectsStatistics<T extends ComponentsSet.Cluster> {
     @NotNull
     private final ObjectsStatisticsWithPlatformTracking retainedClusterStat = new ObjectsStatisticsWithPlatformTracking();
     @NotNull

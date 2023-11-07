@@ -67,8 +67,10 @@ public class ExtendedReportStatistics {
 
   @NotNull
   private final Map<String, ObjectsStatistics> disposedButReferencedObjectsClasses = Maps.newHashMap();
-  @NotNull final RootPathTree rootPathTree = new RootPathTree(this);
-  @NotNull final HeapTraverseConfig myConfig;
+  @NotNull
+  final RootPathTree rootPathTree = new RootPathTree(this);
+  @NotNull
+  final HeapTraverseConfig myConfig;
 
   public ExtendedReportStatistics(@NotNull final HeapTraverseConfig config) {
     myConfig = config;
@@ -122,6 +124,15 @@ public class ExtendedReportStatistics {
                                          new ClusterHistogram(ClusterHistogram.ClusterType.SHARED_CLUSTER));
     sharedClustersHistograms.get(sharedClusterStatistics.componentsMask)
       .addObjectClassName(className, size, isMergePoint, isDisposedButReferenced);
+  }
+
+  public void logClusterHistogram(@NotNull Consumer<String> writer,
+                                  @NotNull final ComponentsSet.Cluster cluster,
+                                  @NotNull final ExtendedReportStatistics.ClusterHistogram.ClusterType clusterType) {
+    switch (clusterType) {
+      case COMPONENT -> logComponentHistogram(writer, (ComponentsSet.Component)cluster);
+      case CATEGORY -> logCategoryHistogram(writer, (ComponentsSet.ComponentCategory)cluster);
+    }
   }
 
   public void logCategoryHistogram(@NotNull Consumer<String> writer, @NotNull final ComponentsSet.ComponentCategory componentCategory) {
@@ -203,10 +214,9 @@ public class ExtendedReportStatistics {
         continue;
       }
       ClassLoader cl;
-      if (root instanceof Class) {
+      if(root instanceof Class) {
         cl = ((Class<?>)root).getClassLoader();
-      }
-      else if (root instanceof ClassLoader) {
+      } else if (root instanceof ClassLoader) {
         cl = (ClassLoader)root;
       }
       else {
@@ -229,8 +239,8 @@ public class ExtendedReportStatistics {
   }
 
   /**
-   * Sort classes from the histogram using the specified {@param extractorForComparator} and register top
-   * {@code NOMINATED_CLASSES_NUMBER_IN_SECTION} of them as nominated classes.
+   *  Sort classes from the histogram using the specified {@param extractorForComparator} and register top
+   *  {@code NOMINATED_CLASSES_NUMBER_IN_SECTION} of them as nominated classes.
    */
   private void addNominatedClassesFromHistogram(@NotNull final ExceededClusterStatistics exceededClusterStatistics,
                                                 @NotNull final Map<String, ObjectsStatistics> histogram,
@@ -242,9 +252,6 @@ public class ExtendedReportStatistics {
 
   public void printExceededClusterStatisticsIfNeeded(@NotNull final Consumer<String> writer,
                                                      @NotNull final ComponentsSet.Component component) {
-    if (!componentToExceededClustersStatistics.containsKey(component)) {
-      return;
-    }
     ExceededClusterStatistics statistics = componentToExceededClustersStatistics.get(component);
     List<Pair<String, ObjectsStatistics>> nominatedClassesInOrder = statistics.nominatedClassesTotalStatistics.entrySet().stream()
       .sorted(Comparator.comparingInt((Map.Entry<String, ObjectsStatistics> e) -> e.getValue().getObjectsCount()).reversed())
@@ -256,7 +263,6 @@ public class ExtendedReportStatistics {
     }
     new RootPathTreePrinter.RootPathTreeDisposedObjectsPrinter(totalDisposedButReferencedObjectsStatistics, this,
                                                                statistics).print(writer);
-
 
     writer.accept("======== INSTANCES OF EACH NOMINATED CLASS ========");
     writer.accept("Nominated classes:");

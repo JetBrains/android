@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import static com.android.tools.idea.diagnostics.heap.HeapTraverseConfig.DEFAULT_SUMMARY_REQUIRED_SUBTREE_SIZE;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseNode.minDepthKindFromByte;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.isPrimitive;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMask;
@@ -581,7 +582,7 @@ public final class MemoryReportCollector implements Disposable {
                                                              .getSharedComponentsLimit())));
     List<ComponentsSet.Component> exceededComponents = getComponentsThatExceededThreshold(stats);
     if (!exceededComponents.isEmpty()) {
-      collectAndSendExtendedMemoryReport(stats.getConfig().getComponentsSet(), exceededComponents, rootsComputable);
+      collectAndSendExtendedMemoryReport(stats.getConfig().getComponentsSet(), exceededComponents, rootsComputable, DEFAULT_SUMMARY_REQUIRED_SUBTREE_SIZE);
     }
 
     return statusCode;
@@ -606,14 +607,17 @@ public final class MemoryReportCollector implements Disposable {
 
   public static void collectAndSendExtendedMemoryReport(@NotNull final ComponentsSet componentsSet,
                                                         @NotNull final List<ComponentsSet.Component> exceededClusters,
-                                                        @NotNull final Computable<WeakList<Object>> rootsComputable) {
+                                                        @NotNull final Computable<WeakList<Object>> rootsComputable,
+                                                        long summaryRequiredSubtreeSize) {
     HeapSnapshotStatistics extendedReportStats =
       new HeapSnapshotStatistics(
         new HeapTraverseConfig(componentsSet, /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/true, 10, /*collectObjectTreesData=*/
-                               true, exceededClusters));
-    new MemoryReportCollector(extendedReportStats).walkObjects(rootsComputable);
+                               true, summaryRequiredSubtreeSize, exceededClusters));
+    StatusCode statusCode = new MemoryReportCollector(extendedReportStats).walkObjects(rootsComputable);
 
-    StudioCrashReporter.getInstance().submit(extendedReportStats.asCrashReport(exceededClusters), true);
+    for (ComponentsSet.Component cluster : exceededClusters) {
+      StudioCrashReporter.getInstance().submit(extendedReportStats.asCrashReport(exceededClusters, cluster, statusCode), true);
+    }
   }
 
   private static short getNextIterationId() {
