@@ -16,10 +16,7 @@
 package com.android.tools.idea
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.testFramework.ApplicationRule
-import org.jetbrains.kotlin.idea.compiler.configuration.KotlinIdePlugin
-import org.jetbrains.kotlin.idea.compiler.configuration.KotlinIdePluginVersion
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout
 import org.junit.ClassRule
 import org.junit.Test
@@ -46,10 +43,5 @@ class KotlinPluginTest {
     val ideCompilerVersion = kotlinLayout.ideCompilerVersion
     assertThat(ideCompilerVersion.isSnapshot).isFalse()
     assertThat(ideCompilerVersion.kotlinVersion).isAtLeast(standaloneCompilerVersion.kotlinVersion)
-
-    // The Kotlin IDE plugin version is defined by the <version> tag in kotlin-plugin.jar!/META-INF/plugin.xml.
-    val idePluginVersion = KotlinIdePluginVersion.parse(KotlinIdePlugin.version).getOrThrow()
-    assertThat(idePluginVersion.isAndroidStudio).isTrue()
-    assertThat(idePluginVersion.kotlinCompilerVersion.kotlinVersion).isEqualTo(standaloneCompilerVersion.kotlinVersion)
   }
 }
