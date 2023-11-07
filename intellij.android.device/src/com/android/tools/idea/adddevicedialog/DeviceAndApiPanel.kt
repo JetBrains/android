@@ -16,6 +16,13 @@
 package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.getApiNameAndDetails
+import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 
@@ -23,4 +30,45 @@ import org.jetbrains.jewel.ui.component.TextField
 internal fun DeviceAndApiPanel(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
   Text("Name")
   TextField(device.name, { onDeviceChange(device.copy(name = it)) })
+
+  Text("API level")
+  ApiLevelDropdown()
+}
+
+@Composable
+private fun ApiLevelDropdown() {
+  val levels = remember {
+    listOf(
+      AndroidVersion(34, "UpsideDownCakePrivacySandbox", 7, true),
+      AndroidVersion(34, null, 7, true),
+      AndroidVersion(33, null, null, true)
+    )
+  }
+
+  var selectedLevel by remember { mutableStateOf(levels.first()) }
+
+  Dropdown(
+    menuContent = {
+      levels.forEach {
+        selectableItem(selectedLevel == it, { selectedLevel = it }, content = { ApiLevelText(it) })
+      }
+    },
+    content = { ApiLevelText(selectedLevel) }
+  )
+}
+
+@Composable
+private fun ApiLevelText(level: AndroidVersion) {
+  val nameAndDetails = level.getApiNameAndDetails(includeReleaseName = true, includeCodeName = true)
+
+  val string = buildString {
+    append(nameAndDetails.name)
+
+    nameAndDetails.details?.let {
+      append(' ')
+      append(it)
+    }
+  }
+
+  Text(string)
 }
