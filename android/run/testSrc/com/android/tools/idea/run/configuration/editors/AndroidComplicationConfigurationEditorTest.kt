@@ -239,6 +239,7 @@ class AndroidComplicationConfigurationEditorTest {
     assertThat(runConfiguration.componentLaunchOptions.componentName).isEqualTo(null)
 
     modulesComboBox.selectedItem = module
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     componentComboBox.item = "com.example.MyLongShortTextComplication"
     configurationConfigurable.apply()
 
@@ -448,6 +449,7 @@ class AndroidComplicationConfigurationEditorTest {
     configurationConfigurable.reset()
     runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     assertThat(modulesComboBox.item).isEqualTo(module)
+    assertThat(componentComboBox.item).isEqualTo("com.example.MyLongShortTextComplication")
 
     // runConfiguration doesn't have chosen components.
     assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
