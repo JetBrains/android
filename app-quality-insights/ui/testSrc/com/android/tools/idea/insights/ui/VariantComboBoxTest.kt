@@ -150,4 +150,38 @@ class VariantComboBoxTest {
       assertThat(comboBox.model.getElementAt(3)).isEqualTo(variant2.toVariantRow())
       assertThat(comboBox.selectedIndex).isEqualTo(3)
     }
+
+  @Test
+  fun `combo box title is shortened`() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val flow = MutableSharedFlow<AppInsightsState>(1)
+      val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
+
+      val variant1 = ISSUE_VARIANT
+      val variant2 = ISSUE_VARIANT.copy(id = "variant2")
+
+      flow.emit(
+        AppInsightsState(
+          connections = Selection.emptySelection(),
+          filters = TEST_FILTERS,
+          issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+          currentIssueVariants = LoadingState.Ready(Selection(null, listOf(variant1)))
+        )
+      )
+
+      delayUntilCondition(200) { (comboBox.model.selectedItem as? VariantRow)?.name == "All" }
+
+      flow.emit(
+        AppInsightsState(
+          connections = Selection.emptySelection(),
+          filters = TEST_FILTERS,
+          issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+          currentIssueVariants = LoadingState.Ready(Selection(null, listOf(variant1, variant2)))
+        )
+      )
+
+      delayUntilCondition(200) {
+        (comboBox.model.selectedItem as? VariantRow)?.name == "All (2 variants)"
+      }
+    }
 }

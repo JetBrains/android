@@ -63,7 +63,6 @@ class DetailsPanelHeader(
 
   init {
     if (variantComboBox != null) {
-      variantComboBox.renderer = variantComboBoxListCellRenderer
       variantComboBox.addItemListener { itemEvent ->
         if (itemEvent.stateChange == ItemEvent.SELECTED) {
           (itemEvent.item as? VariantRow)?.let { onVariantSelected(it.issueVariant) }

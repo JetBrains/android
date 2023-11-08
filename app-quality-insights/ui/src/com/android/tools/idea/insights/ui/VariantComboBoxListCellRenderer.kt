@@ -22,10 +22,8 @@ import java.awt.BorderLayout
 import java.awt.Component
 import javax.swing.Box
 import javax.swing.BoxLayout
-import javax.swing.DefaultListCellRenderer
 import javax.swing.Icon
 import javax.swing.JPanel
-import javax.swing.ListCellRenderer
 import javax.swing.SwingConstants
 
 /** Represents a row to be rendered in the variants dropdown. */
@@ -118,13 +116,3 @@ object HeaderRow : Row {
 
   override fun getRendererComponent() = rendererComponent
 }
-
-private val defaultRenderer = DefaultListCellRenderer()
-
-val variantComboBoxListCellRenderer =
-  ListCellRenderer<Row> { _, value, _, _, _ ->
-    when (value) {
-      is Row -> value.getRendererComponent()
-      else -> defaultRenderer
-    }
-  }

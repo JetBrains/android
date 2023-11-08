@@ -26,6 +26,10 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import java.awt.Component
+import java.awt.Dimension
+import javax.swing.DefaultListCellRenderer
+import javax.swing.JList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
@@ -91,6 +95,34 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
         }
       }
       .launchIn(scope)
+    preferredSize = Dimension(200, 20)
+    renderer =
+      object : DefaultListCellRenderer() {
+        override fun getListCellRendererComponent(
+          list: JList<*>,
+          value: Any,
+          index: Int,
+          isSelected: Boolean,
+          cellHasFocus: Boolean
+        ): Component {
+          // index == -1 means it's trying to render the title of the combo box
+          if (index == -1 && value is VariantRow) {
+            return super.getListCellRendererComponent(
+              list,
+              value.name,
+              index,
+              isSelected,
+              cellHasFocus
+            )
+          }
+          return when (value) {
+            is Row -> {
+              value.getRendererComponent()
+            }
+            else -> super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+          }
+        }
+      }
   }
 
   // Disable selection on header row
@@ -132,7 +164,7 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
 @VisibleForTesting
 fun AppInsightsIssue.toVariantRow(size: Int) =
   VariantRow(
-    "All ($size variant${if (size > 1) "s" else ""})",
+    "All${if (size > 1) " ($size variants)" else ""}",
     issueDetails.eventsCount,
     issueDetails.impactedDevicesCount,
     null
