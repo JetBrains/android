@@ -36,6 +36,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Duration.Companion.seconds
 
 private const val NUMBER_OF_SAMPLES = 5
 
@@ -137,7 +138,7 @@ class PerfgateComposeGradleTest {
    * Then, perform a new full refresh under all [measurements] (see [measureOperation]).
    */
   private fun addPreviewsAndMeasure(nPreviewsToAdd: Int, nExpectedPreviewInstances: Int, measurements: List<MetricMeasurement<Unit>>) = runBlocking {
-    projectRule.runAndWaitForRefresh {
+    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds) {
       runWriteActionAndWait {
         fixture.openFileInEditor(psiMainFile.virtualFile)
         fixture.moveCaret("|@Preview")
@@ -153,7 +154,7 @@ class PerfgateComposeGradleTest {
 
     composeGradleTimeBenchmark.measureOperation(measurements, samplesCount = NUMBER_OF_SAMPLES, printSamples = true) {
       runBlocking {
-        projectRule.runAndWaitForRefresh {
+        projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds) {
           composePreviewRepresentation.invalidate()
           composePreviewRepresentation.requestRefreshForTest()
         }
