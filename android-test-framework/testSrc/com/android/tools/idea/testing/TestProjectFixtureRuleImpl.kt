@@ -17,23 +17,30 @@
 
 package com.android.tools.idea.testing
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.AndroidSdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.tests.AdtTestProjectDescriptor
 import com.android.tools.tests.AdtTestProjectDescriptors
+import com.android.tools.idea.sdk.Jdks
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.io.File
+import java.nio.file.Path
 
 internal class TestProjectFixtureRuleImpl(
   private val testProject: TestProjectDefinition
@@ -95,11 +102,38 @@ internal class TestProjectFixtureRuleImpl(
   }
 }
 
-private inline fun AggregateAndThrowIfAnyContext.withSdksHandled(testRootDisposable: Disposable, body: () -> Unit) {
-  val jdk = IdeSdks.getInstance().jdk ?: error("Failed to set JDK")
-  Disposer.register(testRootDisposable) {
-    runWriteAction { runCatchingAndRecord { ProjectJdkTable.getInstance().removeJdk(jdk) } }
+private fun cleanJdkTable() {
+  for (jdk in ProjectJdkTable.getInstance().getAllJdks()) {
+    ProjectJdkTable.getInstance().removeJdk(jdk)
   }
+}
+
+private fun setupJdk(path: Path, testRootDisposable: Disposable): Sdk? {
+  VfsRootAccess.allowRootAccess(testRootDisposable, path.toString())
+  val addedSdk = Jdks.getInstance().createAndAddJdk(path.toString())
+  if (addedSdk != null) {
+    Disposer.register(testRootDisposable) {
+      WriteAction.runAndWait<Throwable> { ProjectJdkTable.getInstance().removeJdk(addedSdk) }
+    }
+  }
+  return addedSdk
+}
+
+private inline fun AggregateAndThrowIfAnyContext.withSdksHandled(testRootDisposable: Disposable, body: () -> Unit) {
+  val jdkPath = EmbeddedDistributionPaths.getInstance().embeddedJdkPath
+  WriteAction.runAndWait<Throwable> {
+    // drop any discovered SDKs to not leak them
+    cleanJdkTable()
+    setupJdk(jdkPath, testRootDisposable)
+  }
+
+  val jdk = IdeSdks.getInstance().jdk ?: error("Failed to set JDK")
+  if (jdk.homePath != jdkPath.toAbsolutePath().toString()) {
+    Disposer.register(testRootDisposable) {
+      runWriteAction { runCatchingAndRecord { ProjectJdkTable.getInstance().removeJdk(jdk) } }
+    }
+  }
+
   val oldAndroidSdkPath = IdeSdks.getInstance().androidSdkPath
   Disposer.register(testRootDisposable) {
     runWriteAction { runCatchingAndRecord { AndroidSdkPathStore.getInstance().androidSdkPath = oldAndroidSdkPath?.toPath() } }
