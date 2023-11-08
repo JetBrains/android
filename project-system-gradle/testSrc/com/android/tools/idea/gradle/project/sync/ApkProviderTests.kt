@@ -676,7 +676,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
-           project.app -> project/app/build/intermediates/extracted_sdk_apks/debug/extractApksFromSdkSplitsForDebug/splits/comexamplerubidumconsumer-injected-privacy-sandbox-compat.apk
+           project.app -> project/app/build/intermediates/extracted_sdk_apks/debug/extractApksFromSdkSplitsForDebug/splits/app-debug-injected-privacy-sandbox-compat.apk
            project.app -> project/app/build/intermediates/extracted_sdk_apks/debug/extractApksFromSdkSplitsForDebug/splits/commyrbsdk-master.apk
          RequiredInstallationOptions: []
       """.trimIndent())
@@ -698,7 +698,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
-           project.app -> project/app/build/intermediates/extracted_sdk_apks/debug/extractApksFromSdkSplitsForDebug/splits/comexamplerubidumconsumer-injected-privacy-sandbox-compat.apk
+           project.app -> project/app/build/intermediates/extracted_sdk_apks/debug/extractApksFromSdkSplitsForDebug/splits/app-debug-injected-privacy-sandbox-compat.apk
            project.app -> project/app/build/intermediates/extracted_sdk_apks/debug/extractApksFromSdkSplitsForDebug/splits/commyrbsdk-master.apk
          RequiredInstallationOptions: []
       """.trimIndent())
@@ -733,7 +733,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
-           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/extractApksFromSdkSplitsForDebug/splits/comexamplerubidumconsumer-injected-privacy-sandbox-compat.apk
+           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/extractApksFromSdkSplitsForDebug/splits/app-with-dynamic-feature-debug-injected-privacy-sandbox-compat.apk
            project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/extractApksFromSdkSplitsForDebug/splits/commyrbsdk-master.apk
            project.feature -> project/feature/build/intermediates/apk/debug/feature-debug.apk
          RequiredInstallationOptions: []
@@ -756,7 +756,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
-           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/extractApksFromSdkSplitsForDebug/splits/comexamplerubidumconsumer-injected-privacy-sandbox-compat.apk
+           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/extractApksFromSdkSplitsForDebug/splits/app-with-dynamic-feature-debug-injected-privacy-sandbox-compat.apk
            project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/extractApksFromSdkSplitsForDebug/splits/commyrbsdk-master.apk
            project.feature -> project/feature/build/intermediates/apk/debug/feature-debug.apk
          RequiredInstallationOptions: []
@@ -793,7 +793,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
-           project.app -> project/app/build/intermediates/extracted_sdk_apks/debug/splits/comexamplerubidumconsumer-injected-privacy-sandbox-compat.apk
+           project.app -> project/app/build/intermediates/extracted_sdk_apks/debug/splits/app-debug-injected-privacy-sandbox-compat.apk
            project.app -> project/app/build/intermediates/extracted_sdk_apks/debug/splits/commyrbsdk-master.apk
          RequiredInstallationOptions: []
       """.trimIndent())
@@ -833,7 +833,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
-           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/splits/comexamplerubidumconsumer-injected-privacy-sandbox-compat.apk
+           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/splits/app-with-dynamic-feature-debug-injected-privacy-sandbox-compat.apk
            project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/splits/commyrbsdk-master.apk
            project.feature -> project/feature/build/intermediates/apk/debug/feature-debug.apk
          RequiredInstallationOptions: []
