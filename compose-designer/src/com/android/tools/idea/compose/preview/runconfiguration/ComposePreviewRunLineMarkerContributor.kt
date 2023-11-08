@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
-import com.android.tools.idea.compose.preview.isValidComposePreview
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.util.isValidComposePreview
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.psi.PsiElement

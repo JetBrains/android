@@ -19,11 +19,11 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.kotlin.evaluateConstant
 import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
-import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.layoutlib.isLayoutLibTarget
@@ -55,12 +55,8 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtVisitorVoid
-import org.jetbrains.kotlin.psi.allConstructors
-import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.uast.UAnnotation
-import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElement
-import org.jetbrains.uast.toUElementOfType
 
 /**
  * Base class for inspection that depend on methods and annotation classes annotated with
@@ -304,50 +300,6 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
 
   override fun getStaticDescription() = message("inspection.no.composable.description")
 }
-
-private fun KtClass.hasDefaultConstructor() =
-  allConstructors.isEmpty().or(allConstructors.any { it.valueParameters.isEmpty() })
-
-/**
- * Returns whether a `@Composable` [COMPOSE_PREVIEW_ANNOTATION_FQN] is defined in a valid location,
- * which can be either:
- * 1. Top-level functions
- * 2. Non-nested functions defined in top-level classes that have a default (no parameter)
- *    constructor
- */
-private fun KtNamedFunction.isValidPreviewLocation(): Boolean {
-  if (isTopLevel) {
-    return true
-  }
-
-  if (parentOfType<KtNamedFunction>() == null) {
-    // This is not a nested method
-    val containingClass = containingClass()
-    if (containingClass != null) {
-      // We allow functions that are not top level defined in top level classes that have a default
-      // (no parameter) constructor.
-      if (containingClass.isTopLevel() && containingClass.hasDefaultConstructor()) {
-        return true
-      }
-    }
-  }
-  return false
-}
-
-private fun KtNamedFunction.isInTestFile() =
-  isTestFile(this.project, this.containingFile.virtualFile)
-
-/**
- * Whether this function is not in a test file and is properly annotated with
- * [COMPOSE_PREVIEW_ANNOTATION_FQN], considering indirect annotations when the Multipreview flag is
- * enabled, and validating the location of Previews
- *
- * @see [isValidPreviewLocation]
- */
-internal fun KtNamedFunction.isValidComposePreview() =
-  !isInTestFile() &&
-    isValidPreviewLocation() &&
-    this.toUElementOfType<UMethod>()?.let { it.hasPreviewElements() } == true
 
 /**
  * Inspection that checks that any function annotated with `@Preview`, or with a MultiPreview, is a

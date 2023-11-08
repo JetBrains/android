@@ -16,12 +16,15 @@
 package com.android.tools.idea.compose.preview.util
 
 import com.android.tools.adtui.util.ActionToolbarUtil
+import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
+import com.android.tools.idea.compose.preview.hasPreviewElements
 import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -31,7 +34,14 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Segment
+import com.intellij.psi.util.parentOfType
 import javax.swing.JComponent
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.allConstructors
+import org.jetbrains.kotlin.psi.psiUtil.containingClass
+import org.jetbrains.uast.UMethod
+import org.jetbrains.uast.toUElementOfType
 
 fun Segment?.containsOffset(offset: Int) =
   this?.let { it.startOffset <= offset && offset <= it.endOffset } ?: false
@@ -76,3 +86,47 @@ fun isFastPreviewAvailable(project: Project) =
 
 fun DataContext.previewElement(): ComposePreviewElementInstance? =
   getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
+
+/**
+ * Whether this function is not in a test file and is properly annotated with
+ * [COMPOSE_PREVIEW_ANNOTATION_FQN], considering indirect annotations when the Multipreview flag is
+ * enabled, and validating the location of Previews
+ *
+ * @see [isValidPreviewLocation]
+ */
+internal fun KtNamedFunction.isValidComposePreview() =
+  !isInTestFile() &&
+    isValidPreviewLocation() &&
+    this.toUElementOfType<UMethod>()?.let { it.hasPreviewElements() } == true
+
+/**
+ * Returns whether a `@Composable` [COMPOSE_PREVIEW_ANNOTATION_FQN] is defined in a valid location,
+ * which can be either:
+ * 1. Top-level functions
+ * 2. Non-nested functions defined in top-level classes that have a default (no parameter)
+ *    constructor
+ */
+internal fun KtNamedFunction.isValidPreviewLocation(): Boolean {
+  if (isTopLevel) {
+    return true
+  }
+
+  if (parentOfType<KtNamedFunction>() == null) {
+    // This is not a nested method
+    val containingClass = containingClass()
+    if (containingClass != null) {
+      // We allow functions that are not top level defined in top level classes that have a default
+      // (no parameter) constructor.
+      if (containingClass.isTopLevel() && containingClass.hasDefaultConstructor()) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
+private fun KtClass.hasDefaultConstructor() =
+  allConstructors.isEmpty().or(allConstructors.any { it.valueParameters.isEmpty() })
+
+private fun KtNamedFunction.isInTestFile() =
+  isTestFile(this.project, this.containingFile.virtualFile)
