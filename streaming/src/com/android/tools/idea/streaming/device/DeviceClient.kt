@@ -32,7 +32,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.util.StudioPathManager
-import com.android.utils.TraceUtils
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceMirroringAbnormalAgentTermination
 import com.intellij.openapi.Disposable
@@ -139,7 +138,6 @@ internal class DeviceClient(
    * maximum video resolutions requested by different video stream consumers
    */
   @GuardedBy("itself") private val videoStreams = Int2ObjectOpenHashMap<VideoStreamArbiter>()
-  private val logger = thisLogger()
 
   /**
    * Asynchronously establishes connection to the screen sharing agent without activating the video stream.
@@ -164,7 +162,8 @@ internal class DeviceClient(
       }
       catch (e: Throwable) {
         connectionState.set(null)
-        connection.completeExceptionally(adjustException(e, project))
+        throwIfCancellationOrDeviceDisconnected(e, project)
+        connection.completeExceptionally(e)
       }
     }
     connection.await()
@@ -271,12 +270,11 @@ internal class DeviceClient(
     return count
   }
 
-  /** Returns the original exception if the device is still connected, or a CancellationException otherwise. */
-  private suspend fun adjustException(e: Throwable, project: Project): Throwable {
-    return when {
-      e is CancellationException -> e
-      isDeviceConnected(project) == false -> CancellationException()
-      else -> e
+  /** Throws [CancellationException] if [throwable] is [CancellationException] or the device is disconnected. */
+  private suspend fun throwIfCancellationOrDeviceDisconnected(throwable: Throwable, project: Project) {
+    when {
+      throwable is CancellationException -> throw throwable
+      isDeviceConnected(project) == false -> throw CancellationException()
     }
   }
 
@@ -390,9 +388,9 @@ internal class DeviceClient(
       }
       val permissions = RemoteFileMode.fromPosixPermissions(PosixFilePermission.OWNER_READ)
       val nativeLibraryPushed = async {
-        adb.syncSend(deviceSelector, soFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME", permissions)
+        adb.pushFile(deviceSelector, soFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME", permissions, project)
       }
-      adb.syncSend(deviceSelector, jarFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME", permissions)
+      adb.pushFile(deviceSelector, jarFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME", permissions, project)
       nativeLibraryPushed.await()
     }
     streamingSessionTracker.agentPushEnded()
@@ -464,7 +462,8 @@ internal class DeviceClient(
         }
       }
       catch (e: Throwable) {
-        throw adjustException(e, project)
+        throwIfCancellationOrDeviceDisconnected(e, project)
+        throw RuntimeException("Command \"$command\" failed", e)
       }
     }
   }
@@ -517,6 +516,20 @@ internal class DeviceClient(
     videoDecoder?.closeChannel()
     videoDecoder = null
     connectionState.set(null)
+  }
+
+  private suspend fun AdbDeviceServices.pushFile(device: DeviceSelector,
+                                                 file: Path,
+                                                 remoteFilePath: String,
+                                                 permissions: RemoteFileMode,
+                                                 project: Project) {
+    try {
+      syncSend(device, file, remoteFilePath, permissions)
+    }
+    catch (e: Throwable) {
+      throwIfCancellationOrDeviceDisconnected(e, project)
+      throw RuntimeException("Failed to push ${file.fileName} to $device", e)
+    }
   }
 
   private suspend fun SuspendingServerSocketChannel.acceptAndEnsureClosing(parentDisposable: Disposable): SuspendingSocketChannel =
@@ -671,5 +684,7 @@ internal class DeviceClient(
         requestedVideoResolutions.isEmpty()
   }
 }
+
+private val logger = Logger.getInstance(DeviceClient::class.java)
 
 internal class AgentTerminatedException(val exitCode: Int) : RuntimeException("Exit code $exitCode")
