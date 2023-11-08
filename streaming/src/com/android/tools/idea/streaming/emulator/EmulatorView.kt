@@ -589,7 +589,6 @@ class EmulatorView(
         maxSize.height = maxSize.height.scaledDown(layout.displaySize.height, layout.frameRectangle.height)
       }
 
-      // TODO: Remove the following three lines when b/238205075 is fixed.
       // Limit by the display resolution.
       maxSize.width = maxSize.width.coerceAtMost(displaySize.width)
       maxSize.height = maxSize.height.coerceAtMost(displaySize.height)
