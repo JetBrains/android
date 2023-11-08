@@ -118,6 +118,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Predicate
 import javax.imageio.ImageIO
+import kotlin.math.min
 import kotlin.math.roundToInt
 import com.android.emulator.control.DisplayMode as DisplayModeMessage
 import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
@@ -491,8 +492,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
     val aspectRatio = displayHeight.toDouble() / displayWidth
-    val w = if (width == 0) displayWidth else width
-    val h = if (height == 0) displayHeight else height
+    val w = if (width == 0) displayWidth else min(width, displayWidth)
+    val h = if (height == 0) displayHeight else min(height, displayHeight)
     return if (displayRotation.number % 2 == 0) {
       Dimension(w.coerceAtMost((h / aspectRatio).toInt()), h.coerceAtMost((w * aspectRatio).toInt()))
     }
