@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.annotations.concurrency.Slow
+import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.EmulatorConsole
@@ -489,7 +490,8 @@ class WearPairingManager(
     }
   }
 
-  object WearPairingManagerStartupActivity : AndroidStartupActivity {
+  class WearPairingManagerStartupActivity : AndroidStartupActivity {
+    @UiThread
     override fun runActivity(project: Project, disposable: Disposable) {
       val wearPairingManager = getInstance()
       NonUrgentExecutor.getInstance().execute {
