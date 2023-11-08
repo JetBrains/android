@@ -56,11 +56,11 @@
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-graphics-desktop/1.5.10/ui-graphics-desktop-1.5.10.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-geometry-desktop/1.5.10/ui-geometry-desktop-1.5.10.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/ui/ui-desktop/1.5.10/ui-desktop-1.5.10.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt/0.7.77/skiko-awt-0.7.77.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-linux-x64/0.7.77/skiko-awt-runtime-linux-x64-0.7.77.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-macos-arm64/0.7.77/skiko-awt-runtime-macos-arm64-0.7.77.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-macos-x64/0.7.77/skiko-awt-runtime-macos-x64-0.7.77.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-windows-x64/0.7.77/skiko-awt-runtime-windows-x64-0.7.77.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt/0.7.85/skiko-awt-0.7.85.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-linux-x64/0.7.85/skiko-awt-runtime-linux-x64-0.7.85.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-macos-arm64/0.7.85/skiko-awt-runtime-macos-arm64-0.7.85.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-macos-x64/0.7.85/skiko-awt-runtime-macos-x64-0.7.85.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/skiko/skiko-awt-runtime-windows-x64/0.7.85/skiko-awt-runtime-windows-x64-0.7.85.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>

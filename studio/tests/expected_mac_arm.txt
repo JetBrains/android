@@ -2099,11 +2099,11 @@ Android Studio Preview.app/Contents/plugins/android/lib/sdk-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sdk-tools.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sdklib.jar
 Android Studio Preview.app/Contents/plugins/android/lib/shared.jar
-Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-0.7.77.jar
-Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-linux-x64-0.7.77.jar
-Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-macos-arm64-0.7.77.jar
-Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-macos-x64-0.7.77.jar
-Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-windows-x64-0.7.77.jar
+Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-0.7.85.jar
+Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-linux-x64-0.7.85.jar
+Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-macos-arm64-0.7.85.jar
+Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-macos-x64-0.7.85.jar
+Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-windows-x64-0.7.85.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-baksmali-3.0.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-dexlib2-3.0.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-util-3.0.3.jar

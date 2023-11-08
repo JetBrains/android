@@ -6,17 +6,6 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.adt.ui.compose.iml"],
     kotlin_use_compose = True,
-    split_test_targets = {
-        "SampleComposeComponentTest": {
-            "tags": [
-                "no_test_windows",  # b/303472682
-            ],
-            "test_filter": "sample.SampleComposeComponentTest",
-        },
-        "other": {
-        },
-    },
-    tags = [],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
