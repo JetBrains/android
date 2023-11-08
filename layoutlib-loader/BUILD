@@ -27,7 +27,6 @@ java_library(
     resources = glob(["resources/**"]),
     visibility = ["//visibility:public"],
     deps = [
-        "//prebuilts/tools/common/lint-psi/intellij-core",
         "//tools/base/common:tools.common",
         "//tools/base/environment-services:tools.environment-services",
         "//tools/base/layoutlib-api:tools.layoutlib-api",
