@@ -449,10 +449,11 @@ internal class VideoDecoder(
       val startY = (frameHeight - imageHeight) / 2
       framePixels.position(startY * frameWidth) // Skip the potential black strip at the top of the frame.
 
+      val displayIsRound = header.isDisplayRound && header.displaySize.width == header.displaySize.height
       synchronized(imageLock) {
         var image = displayFrame?.image
         if (image?.width == frameWidth && image.height == imageHeight &&
-            displayFrame?.orientationCorrection == 0 && header.displayOrientationCorrection == 0 && !header.isDisplayRound) {
+            displayFrame?.orientationCorrection == 0 && header.displayOrientationCorrection == 0 && !displayIsRound) {
           val imagePixels = (image.raster.dataBuffer as DataBufferInt).data
           framePixels.get(imagePixels, 0, imageHeight * frameWidth)
         }
@@ -463,13 +464,13 @@ internal class VideoDecoder(
           val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, frameWidth, imageHeight, SAMPLE_MODEL_BIT_MASKS)
           val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
           image = ImageUtils.rotateByQuadrants(BufferedImage(COLOR_MODEL, raster, false, null), header.displayOrientationCorrection)
-          if (header.isDisplayRound) {
+          if (displayIsRound) {
             image = ellipticalClip(image, null)
           }
         }
 
         displayFrame = VideoFrame(image, header.displaySize, header.displayOrientation, header.displayOrientationCorrection,
-                                  header.isDisplayRound, header.frameNumber, header.originationTimestampUs / 1000)
+                                  displayIsRound, header.frameNumber, header.originationTimestampUs / 1000)
       }
 
       onNewFrameAvailable()
