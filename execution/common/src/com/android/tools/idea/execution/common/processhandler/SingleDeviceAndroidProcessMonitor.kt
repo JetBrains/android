@@ -101,13 +101,15 @@ class SingleDeviceAndroidProcessMonitor(
 
   private var myTimeoutScheduledFuture: ScheduledFuture<*>? = null
 
+  @Synchronized
   fun start() {
-    assert(myState == INIT)
+    assert(myState == INIT) { "State: $myState" }
     myState = WAITING_FOR_PROCESS
     myStateUpdaterScheduledFuture = stateUpdaterExecutor.scheduleWithFixedDelay(
       this::updateState, 0, POLLING_INTERVAL_MILLIS, TimeUnit.MILLISECONDS)
     myTimeoutScheduledFuture = stateUpdaterExecutor.schedule(
       this::timeout, APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
+
   }
 
   /**

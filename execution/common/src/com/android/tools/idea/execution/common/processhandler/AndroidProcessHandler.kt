@@ -22,6 +22,8 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.intellij.execution.process.AnsiEscapeDecoder
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
@@ -82,15 +84,18 @@ class AndroidProcessHandler @JvmOverloads constructor(
       }
     })
 
+  init {
+    addProcessListener(object : ProcessAdapter() {
+      override fun startNotified(event: ProcessEvent) {
+        myMonitorManager.start()
+      }
+    })
+  }
+
   override fun notifyTextAvailable(text: String, outputType: Key<*>) {
     ansiEscapeDecoder.escapeText(text, outputType) { processedText, attributes ->
       super.notifyTextAvailable(processedText, attributes)
     }
-  }
-
-  override fun startNotify() {
-    super.startNotify()
-    myMonitorManager.start()
   }
 
   /**

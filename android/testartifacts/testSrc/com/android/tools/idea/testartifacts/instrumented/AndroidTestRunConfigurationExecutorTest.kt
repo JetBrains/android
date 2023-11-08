@@ -181,7 +181,13 @@ class AndroidTestRunConfigurationExecutorTest {
 
   @Test
   fun androidProcessHandlerMonitorsMasterProcessId() {
-    fakeAdb.connectAndWaitForDevice()
+    val deviceState = fakeAdb.connectAndWaitForDevice()
+    val startDownLatch = CountDownLatch(3)
+    deviceState.setActivityManager { args, _ ->
+      if (args[0] == "instrument") {
+        startDownLatch.await()
+      }
+    }
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
     var executionOptions = TestExecutionOption.HOST
 
@@ -202,8 +208,8 @@ class AndroidTestRunConfigurationExecutorTest {
     }
     val executor = AndroidTestRunConfigurationExecutor(
       env,
-
-      DeviceFutures.forDevices(listOf(device))) { NoApksProvider() }
+      DeviceFutures.forDevices(listOf(device))
+    ) { NoApksProvider() }
     val historyLatch = CountDownLatch(3)
     val testHistoryConfiguration = mock<TestHistoryConfiguration>()
     whenever(testHistoryConfiguration.registerHistoryItem(any(), any(), any())).then {
@@ -214,6 +220,7 @@ class AndroidTestRunConfigurationExecutorTest {
       executionOptions = TestExecutionOption.HOST
       val runContentDescriptor = ProgressManager.getInstance()
         .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
+      startDownLatch.countDown()
       assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo("testApplicationId")
     }
 
@@ -221,6 +228,7 @@ class AndroidTestRunConfigurationExecutorTest {
       executionOptions = TestExecutionOption.ANDROID_TEST_ORCHESTRATOR
       val runContentDescriptor = ProgressManager.getInstance()
         .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
+      startDownLatch.countDown()
       assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
         ORCHESTRATOR_APP_ID)
     }
@@ -229,6 +237,7 @@ class AndroidTestRunConfigurationExecutorTest {
       executionOptions = TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR
       val runContentDescriptor = ProgressManager.getInstance()
         .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
+      startDownLatch.countDown()
       assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
         ANDROIDX_ORCHESTRATOR_APP_ID)
     }
