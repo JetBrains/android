@@ -59,10 +59,10 @@ class AtfAnalyzerComposeTest {
   }
 
   @Test
-  fun testNoColorBlindIssuesFeatureFlagOff() {
+  fun testNoColorBlindIssuesWhenFeatureFlagOff() {
     val elementInstanceTest =
       SingleComposePreviewElementInstance.forTesting(
-        "google.simpleapplication.VisualLintPreviewKt.ColorBlindErrorPreview",
+        "google.simpleapplication.VisualLintPreviewKt.ThreeColorBlindErrorPreview",
       )
 
     val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
@@ -74,12 +74,83 @@ class AtfAnalyzerComposeTest {
   }
 
   @Test
-  fun testColorBlindIssuesFeatureFlagOn() {
+  fun testOneColorblindProblemFound() {
     StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
 
     val elementInstanceTest =
       SingleComposePreviewElementInstance.forTesting(
-        "google.simpleapplication.VisualLintPreviewKt.ColorBlindErrorPreview",
+        "google.simpleapplication.VisualLintPreviewKt.OneColorBlindErrorPreview",
+      )
+
+    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
+
+    val facet = projectRule.androidFacet(":app")
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
+
+    Assert.assertEquals(1, issues.size)
+
+    val selectedIssueToShowInProblems = issues.first()
+
+    Assert.assertEquals(
+      "Insufficient color contrast for color blind users",
+      selectedIssueToShowInProblems.message,
+    )
+
+    val problemDescriptionHtml =
+      selectedIssueToShowInProblems.descriptionProvider(issues.size).stringBuilder.toString()
+
+    // Don't test the whole problemDescriptionHtml string because part of the content is provided
+    // from ATF
+    Assert.assertTrue(
+      "Color contrast check fails for Tritanopes colorblind configuration" in
+        problemDescriptionHtml,
+    )
+  }
+
+  @Test
+  fun testTwoColorblindProblemsFound() {
+    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
+
+    val elementInstanceTest =
+      SingleComposePreviewElementInstance.forTesting(
+        "google.simpleapplication.VisualLintPreviewKt.TwoColorBlindErrorsPreview",
+      )
+
+    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
+
+    val facet = projectRule.androidFacet(":app")
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
+
+    Assert.assertEquals(2, issues.size)
+
+    // All the problems have the same message but different descriptions
+    issues.forEach {
+      Assert.assertEquals(
+        "Insufficient color contrast for color blind users",
+        it.message,
+      )
+    }
+
+    val selectedIssueToShowInProblems = issues.first()
+
+    val problemDescriptionHtml =
+      selectedIssueToShowInProblems.descriptionProvider(issues.size).stringBuilder.toString()
+
+    // Don't test the whole problemDescriptionHtml string because part of the content is provided
+    // from ATF
+    Assert.assertTrue(
+      "Color contrast check fails for Deuteranopes and 1 other colorblind configuration" in
+        problemDescriptionHtml,
+    )
+  }
+
+  @Test
+  fun testThreeColorblindProblemsFound() {
+    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
+
+    val elementInstanceTest =
+      SingleComposePreviewElementInstance.forTesting(
+        "google.simpleapplication.VisualLintPreviewKt.ThreeColorBlindErrorPreview",
       )
 
     val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
@@ -88,17 +159,25 @@ class AtfAnalyzerComposeTest {
     val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
 
     Assert.assertEquals(3, issues.size)
-    Assert.assertEquals(
-      "Insufficient color contrast ratio applying Deuteranopes filter",
-      issues[0].message,
-    )
-    Assert.assertEquals(
-      "Insufficient color contrast ratio applying Deuteranomaly filter",
-      issues[1].message,
-    )
-    Assert.assertEquals(
-      "Insufficient color contrast ratio applying Tritanopes filter",
-      issues[2].message,
+
+    // All the problems have the same message but different descriptions
+    issues.forEach {
+      Assert.assertEquals(
+        "Insufficient color contrast for color blind users",
+        it.message,
+      )
+    }
+
+    val selectedIssueToShowInProblems = issues.first()
+
+    val problemDescriptionHtml =
+      selectedIssueToShowInProblems.descriptionProvider(issues.size).stringBuilder.toString()
+
+    // Don't test the whole problemDescriptionHtml string because part of the content is provided
+    // from ATF
+    Assert.assertTrue(
+      "Color contrast check fails for Deuteranopes and 2 other colorblind configurations" in
+        problemDescriptionHtml,
     )
   }
 

@@ -74,8 +74,36 @@ fun ColorContrastIssuePreview() {
 
 @Preview
 @Composable
-fun ColorBlindErrorPreview() {
+fun OneColorBlindErrorPreview() {
+  val backgroundColor = Color(0xFF833901)
+  val foregroundColor = Color(0xFFFDE300)
+  Text(
+    color = foregroundColor,
+    text = "Hello Android",
+    modifier = Modifier.background(backgroundColor)
+  )
+}
+
+@Preview
+@Composable
+fun TwoColorBlindErrorsPreview() {
+  val backgroundColor = Color(0xFF994200)
+  val foregroundColor = Color(0xFF06FF61)
+  Text(
+    color = foregroundColor,
+    text = "Hello Android",
+    modifier = Modifier.background(backgroundColor),
+  )
+}
+
+@Preview
+@Composable
+fun ThreeColorBlindErrorPreview() {
   val purpleColor = Color(0xFFB3003D)
   val veryLightColor = Color(0xFFBCD5E2)
-  Text(color = purpleColor, text = "Hello Android!", modifier = Modifier.background(veryLightColor))
+  Text(
+    color = purpleColor,
+    text = "Hello Android!",
+    modifier = Modifier.background(veryLightColor),
+  )
 }

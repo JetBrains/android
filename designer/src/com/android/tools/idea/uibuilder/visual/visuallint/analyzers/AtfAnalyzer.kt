@@ -44,17 +44,16 @@ object AtfAnalyzer : VisualLintAnalyzer() {
     return atfIssues.map { createVisualLintIssueContent(it) }.toList()
   }
 
-  private fun createVisualLintIssueContent(issue: VisualLintAtfIssue): VisualLintIssueContent {
-    var issueDescription = issue.description
-    var issueSummary = issue.summary
+  private fun createVisualLintIssueContent(issue: VisualLintAtfIssue) =
     if (issue.appliedColorBlindFilter() != ColorBlindMode.NONE) {
-      issueDescription =
-        colorBLindModeDescriptionFirstLine(issue.appliedColorBlindFilter(), issueDescription)
-      issueSummary = colorBlindModeSummaryMessage(issue.appliedColorBlindFilter())
+      VisualLintIssueContent(issue.component.viewInfo, COLOR_BLIND_ISSUE_SUMMARY) { count: Int ->
+        colorBLindModeDescriptionProvider(issue, count)
+      }
+    } else {
+      VisualLintIssueContent(issue.component.viewInfo, issue.summary) { _: Int ->
+        HtmlBuilder().addHtml(issue.description)
+      }
     }
-    val content = { _: Int -> HtmlBuilder().addHtml(issueDescription) }
-    return VisualLintIssueContent(issue.component.viewInfo, issueSummary, content)
-  }
 }
 
 class AtfAnalyzerInspection : VisualLintInspection(VisualLintErrorType.ATF, "atfBackground") {
@@ -63,13 +62,25 @@ class AtfAnalyzerInspection : VisualLintInspection(VisualLintErrorType.ATF, "atf
   }
 }
 
-private val colorBlindModeSummaryMessage =
-  { colorBlindFilter: ColorBlindMode,
-    ->
-    "Insufficient color contrast ratio applying ${colorBlindFilter.displayName} filter"
-  }
+private const val COLOR_BLIND_ISSUE_SUMMARY = "Insufficient color contrast for color blind users"
 
-private val colorBLindModeDescriptionFirstLine =
-  { colorBlindFilter: ColorBlindMode, description: String ->
-    "Colorblind filter ${colorBlindFilter.displayName} have some contrast issues.\n\n$description\""
+private val colorBLindModeDescriptionProvider: (VisualLintAtfIssue, Int) -> HtmlBuilder =
+  { issue, count ->
+    val colorBlindFilter = issue.appliedColorBlindFilter().displayName
+    val description = issue.description
+    val contentDescription =
+      StringBuilder()
+        .append("Color contrast check fails for $colorBlindFilter ")
+        .append(
+          when (count) {
+            0,
+            1 -> "colorblind configuration"
+            2 -> "and 1 other colorblind configuration"
+            else -> "and ${count - 1} other colorblind configurations"
+          },
+        )
+        .append(".<br>")
+        .append(description)
+        .toString()
+    HtmlBuilder().addHtml(contentDescription)
   }
