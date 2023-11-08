@@ -24,6 +24,7 @@ import java.net.URI
 import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 import studio.network.inspection.NetworkInspectorProtocol
+import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.HttpTransport
 
 const val APPLICATION_FORM_MIME_TYPE = "application/x-www-form-urlencoded"
 
@@ -43,11 +44,12 @@ data class HttpData(
   val threads: List<JavaThread>,
   val url: String,
   val method: String,
+  val transport: HttpTransport,
   val trace: String,
   val requestFields: String,
   val requestPayload: ByteString,
   val responseFields: String,
-  private val rawResponsePayload: ByteString
+  private val rawResponsePayload: ByteString,
 ) {
 
   /**
@@ -85,13 +87,15 @@ data class HttpData(
 
   internal fun withRequestStarted(event: NetworkInspectorProtocol.Event): HttpData {
     val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
+    val requestStarted = event.httpConnectionEvent.httpRequestStarted
     return copy(
       updateTimeUs = timestamp,
       requestStartTimeUs = timestamp,
-      url = event.httpConnectionEvent.httpRequestStarted.url,
-      method = event.httpConnectionEvent.httpRequestStarted.method,
-      trace = event.httpConnectionEvent.httpRequestStarted.trace,
-      requestFields = event.httpConnectionEvent.httpRequestStarted.fields,
+      url = requestStarted.url,
+      method = requestStarted.method,
+      transport = requestStarted.transport,
+      trace = requestStarted.trace,
+      requestFields = requestStarted.fields,
     )
   }
 
@@ -182,11 +186,12 @@ data class HttpData(
       threads: List<JavaThread> = emptyList(),
       url: String = "",
       method: String = "",
+      transport: HttpTransport = HttpTransport.UNDEFINED,
       trace: String = "",
       requestFields: String = "",
       requestPayload: ByteString = ByteString.EMPTY,
       responseFields: String = "",
-      responsePayload: ByteString = ByteString.EMPTY
+      responsePayload: ByteString = ByteString.EMPTY,
     ): HttpData {
       return HttpData(
         id,
@@ -199,11 +204,12 @@ data class HttpData(
         threads.distinctBy { it.id },
         url,
         method,
+        transport,
         trace,
         requestFields,
         requestPayload,
         responseFields,
-        responsePayload
+        responsePayload,
       )
     }
   }

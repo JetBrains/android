@@ -16,13 +16,14 @@
 package com.android.tools.idea.appinspection.inspectors.network.view.connectionsview
 
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.HttpTransport
 
 class ConnectionColumnTest {
   @Test
   fun getValueFrom_name_withQuery() {
-    Truth.assertThat(
+    assertThat(
         ConnectionColumn.NAME.getValueFrom(
           httpData("www.google.com/l1/l2/test?query=1&other_query=2")
         )
@@ -32,31 +33,25 @@ class ConnectionColumnTest {
 
   @Test
   fun getValueFrom_name_withEndingSlash() {
-    Truth.assertThat(
-        ConnectionColumn.NAME.getValueFrom(httpData("https://www.google.com/l1/l2/test/"))
-      )
+    assertThat(ConnectionColumn.NAME.getValueFrom(httpData("https://www.google.com/l1/l2/test/")))
       .isEqualTo("test")
   }
 
   @Test
   fun getValueFrom_name_withEmptyPath() {
-    Truth.assertThat(ConnectionColumn.NAME.getValueFrom(httpData("https://www.google.com")))
+    assertThat(ConnectionColumn.NAME.getValueFrom(httpData("https://www.google.com")))
       .isEqualTo("www.google.com")
-    Truth.assertThat(ConnectionColumn.NAME.getValueFrom(httpData("https://www.google.com/")))
+    assertThat(ConnectionColumn.NAME.getValueFrom(httpData("https://www.google.com/")))
       .isEqualTo("www.google.com")
   }
 
   @Test
   fun getValueFrom_name_pathWithSpaces() {
-    Truth.assertThat(
-        ConnectionColumn.NAME.getValueFrom(httpData("https://www.google.com/test test"))
-      )
+    assertThat(ConnectionColumn.NAME.getValueFrom(httpData("https://www.google.com/test test")))
       .isEqualTo("test test")
-    Truth.assertThat(
-        ConnectionColumn.NAME.getValueFrom(httpData("https://www.google.com/test%20test"))
-      )
+    assertThat(ConnectionColumn.NAME.getValueFrom(httpData("https://www.google.com/test%20test")))
       .isEqualTo("test test")
-    Truth.assertThat(
+    assertThat(
         ConnectionColumn.NAME.getValueFrom(httpData("https://www.google.com/test%252520test"))
       )
       .isEqualTo("test test")
@@ -66,7 +61,7 @@ class ConnectionColumnTest {
   fun getValueFrom_name_queryWithSpaces() {
     val url =
       "https://www.google.com/test?query1%25253DHello%252520World%252526query2%25253D%252523Goodbye%252523"
-    Truth.assertThat(ConnectionColumn.NAME.getValueFrom(httpData(url)))
+    assertThat(ConnectionColumn.NAME.getValueFrom(httpData(url)))
       .isEqualTo("test?query1=Hello World&query2=#Goodbye#")
   }
 
@@ -75,32 +70,47 @@ class ConnectionColumnTest {
     // "%25-2" doesn't decode correctly
     // 1. test%25-2test -> test%-2test
     // 2. test%-2test -> can't decode -2 so throws an exception
-    Truth.assertThat(
+    assertThat(
         ConnectionColumn.NAME.getValueFrom(httpData("https://www.google.com/a/b/c/test%25-2test"))
       )
       .isEqualTo("test%-2test")
-    Truth.assertThat(
+    assertThat(
         ConnectionColumn.NAME.getValueFrom(httpData("https://www.google.com/a/b/c/test%25-2test/"))
       )
       .isEqualTo("test%-2test")
-    Truth.assertThat(ConnectionColumn.NAME.getValueFrom(httpData(("this.is.an.invalid.url/test"))))
+    assertThat(ConnectionColumn.NAME.getValueFrom(httpData(("this.is.an.invalid.url/test"))))
       .isEqualTo("test")
   }
 
   @Test
   fun getValueFrom_name_queryWithSpaces_invalidUrlsReturnedInFullUrl() {
-    Truth.assertThat(ConnectionColumn.NAME.getValueFrom(httpData("this.is.an.invalid.url")))
+    assertThat(ConnectionColumn.NAME.getValueFrom(httpData("this.is.an.invalid.url")))
       .isEqualTo("this.is.an.invalid.url")
   }
 
   // If it wasn't handled properly, the | character would cause a URI syntax exception
   @Test
   fun getValueFrom_name_urlNameCanHandlePipeCharacter() {
-    Truth.assertThat(
+    assertThat(
         ConnectionColumn.NAME.getValueFrom(httpData("https://www.google.com/q?prop=hello|world"))
       )
       .isEqualTo("q?prop=hello|world")
   }
+
+  @Test
+  fun getValueFrom_transport() {
+    assertThat(ConnectionColumn.TRANSPORT.getValueFrom(httpData("", HttpTransport.JAVA_NET)))
+      .isEqualTo("Java Native")
+    assertThat(ConnectionColumn.TRANSPORT.getValueFrom(httpData("", HttpTransport.OKHTTP2)))
+      .isEqualTo("OkHttp 2")
+    assertThat(ConnectionColumn.TRANSPORT.getValueFrom(httpData("", HttpTransport.OKHTTP3)))
+      .isEqualTo("OkHttp 3")
+    assertThat(ConnectionColumn.TRANSPORT.getValueFrom(httpData("", HttpTransport.UNRECOGNIZED)))
+      .isEqualTo("Unknown")
+    assertThat(ConnectionColumn.TRANSPORT.getValueFrom(httpData("", HttpTransport.UNDEFINED)))
+      .isEqualTo("Unknown")
+  }
 }
 
-private fun httpData(url: String) = HttpData.createHttpData(id = 1, url = url)
+private fun httpData(url: String, transport: HttpTransport = HttpTransport.UNDEFINED) =
+  HttpData.createHttpData(id = 1, url = url, transport = transport)

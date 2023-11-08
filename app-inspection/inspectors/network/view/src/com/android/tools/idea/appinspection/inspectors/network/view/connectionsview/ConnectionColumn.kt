@@ -26,6 +26,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.ge
 import com.intellij.openapi.util.NlsContexts.ColumnName
 import javax.swing.JTable
 import javax.swing.table.TableCellRenderer
+import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.HttpTransport
 
 private val simpleRenderer = BorderlessTableCellRenderer()
 private val sizeRenderer = SizeRenderer()
@@ -65,6 +66,11 @@ internal enum class ConnectionColumn(
   },
   SCHEME("Scheme", 0.05, String::class.java, visible = false) {
     override fun getValueFrom(data: HttpData) = data.getUrlScheme()
+
+    override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = simpleRenderer
+  },
+  TRANSPORT("Transport", 0.05, String::class.java, visible = false) {
+    override fun getValueFrom(data: HttpData) = data.transport.toDisplayText()
 
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = simpleRenderer
   },
@@ -127,3 +133,12 @@ internal enum class ConnectionColumn(
 
   abstract fun getCellRenderer(table: JTable, model: NetworkInspectorModel): TableCellRenderer
 }
+
+private fun HttpTransport.toDisplayText() =
+  when (this) {
+    HttpTransport.JAVA_NET -> "Java Native"
+    HttpTransport.OKHTTP2 -> "OkHttp 2"
+    HttpTransport.OKHTTP3 -> "OkHttp 3"
+    HttpTransport.UNDEFINED,
+    HttpTransport.UNRECOGNIZED -> "Unknown"
+  }

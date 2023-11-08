@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
 import com.android.tools.idea.protobuf.ByteString
+import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.HttpTransport
 
 const val FAKE_RESPONSE_CODE = 302
 const val FAKE_RESPONSE_DESCRIPTION = "Found"
@@ -57,6 +58,7 @@ fun createFakeHttpData(
   threads: List<JavaThread> = FAKE_THREAD_LIST,
   url: String = fakeUrl(id),
   method: String = "",
+  transport: HttpTransport = HttpTransport.UNDEFINED,
   trace: String = fakeStackTrace(id),
   requestFields: String = "",
   requestPayload: ByteString = FAKE_REQUEST,
@@ -74,6 +76,7 @@ fun createFakeHttpData(
     threads,
     url,
     method,
+    transport,
     trace,
     requestFields,
     requestPayload,
