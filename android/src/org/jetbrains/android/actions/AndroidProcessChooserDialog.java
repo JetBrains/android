@@ -440,7 +440,6 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
         if (debugBridge != null && isDdmsCorrupted(debugBridge)) {
           ApplicationManager.getApplication().invokeLater(() -> {
             Messages.showErrorDialog(myContentPanel, AndroidBundle.message("ddms.corrupted.error"));
-            AndroidProcessChooserDialog.this.close(1);
           });
           return;
         }
