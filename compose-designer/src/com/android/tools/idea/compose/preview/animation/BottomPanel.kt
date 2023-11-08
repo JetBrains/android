@@ -85,10 +85,6 @@ class BottomPanel(
       val presentation = e.presentation
       presentation.text = "$clockTimeMs ${message("animation.inspector.transition.ms")}"
     }
-
-    override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT
-    }
   }
 
   private inner class ResetTimelineAction :
@@ -114,10 +110,6 @@ class BottomPanel(
             else -> message("animation.inspector.coordination.unavailable.reset.timeline")
           }
       }
-    }
-
-    override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT
     }
   }
 }

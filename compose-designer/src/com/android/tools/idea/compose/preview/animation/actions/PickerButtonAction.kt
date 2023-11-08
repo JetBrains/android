@@ -23,7 +23,6 @@ import com.android.tools.idea.compose.preview.animation.picker.AnimatedPropertie
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -77,10 +76,6 @@ class PickerButtonAction(val tracker: AnimationTracker, private val onClick: () 
         }
     )
     tracker.openPicker()
-  }
-
-  override fun getActionUpdateThread(): ActionUpdateThread {
-    return ActionUpdateThread.BGT
   }
 
   private lateinit var initialState: ComposeUnit.Unit<*>

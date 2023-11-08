@@ -20,7 +20,6 @@ import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.createToolbarWithNavigation
-import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
@@ -147,10 +146,6 @@ class AnimationCard(
           text = message("animation.inspector.action.expand")
         }
       }
-    }
-
-    override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT
     }
   }
 }
