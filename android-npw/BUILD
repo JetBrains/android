@@ -72,10 +72,13 @@ iml_module(
             # b/192269906 flaky on windows, taking longer than 15 minutes
             "tags": ["no_windows"],
         },
-        "other": {
-            # b/291605661 flaky on Windows, taking longer than 30 minutes
+        "ConfigureBaselineProfilesModuleStepTest": {
+            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
+            "test_filter": "com.android.tools.idea.npw.module.ConfigureBaselineProfilesModuleStepTest",
+            # b/309976473 may be flaky on Windows
             "tags": ["no_windows"],
         },
+        "other": {},
     },
     test_class = "com.android.tools.idea.npw.NewProjectWizardTestSuite",
     # keep sorted
