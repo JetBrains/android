@@ -492,7 +492,8 @@ class KotlinModelConverter {
       codeShrinker = CodeShrinker.R8.takeIf { mainAndroidCompilation.mainInfo.minificationEnabled },
       privacySandboxSdkInfo = null,
       desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate(),
-      generatedClassPaths = emptyMap()
+      generatedClassPaths = emptyMap(),
+      bytecodeTransforms = null,
     )
 
     val unitTestArtifact = unitTestAndroidCompilation?.let {
@@ -514,7 +515,8 @@ class KotlinModelConverter {
         ),
         unresolvedDependencies = emptyList(),
         mockablePlatformJar = unitTestAndroidCompilation.unitTestInfo.mockablePlatformJar.convertAndDeduplicate(),
-        generatedClassPaths = emptyMap()
+        generatedClassPaths = emptyMap(),
+        bytecodeTransforms = null,
       )
     }
 
@@ -554,7 +556,8 @@ class KotlinModelConverter {
         codeShrinker = mainArtifact.codeShrinker,
         privacySandboxSdkInfo = null,
         desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate(),
-        generatedClassPaths = emptyMap()
+        generatedClassPaths = emptyMap(),
+        bytecodeTransforms = null,
       )
     }
 

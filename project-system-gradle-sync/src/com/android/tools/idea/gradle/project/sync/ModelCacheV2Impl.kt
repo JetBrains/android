@@ -24,9 +24,9 @@ import com.android.builder.model.v2.ide.AaptOptions
 import com.android.builder.model.v2.ide.AndroidArtifact
 import com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags
 import com.android.builder.model.v2.ide.ApiVersion
-import com.android.builder.model.v2.ide.ArtifactDependencies
 import com.android.builder.model.v2.ide.BasicArtifact
 import com.android.builder.model.v2.ide.BasicVariant
+import com.android.builder.model.v2.ide.BytecodeTransformation
 import com.android.builder.model.v2.ide.Edge
 import com.android.builder.model.v2.ide.GraphItem
 import com.android.builder.model.v2.ide.JavaArtifact
@@ -60,7 +60,7 @@ import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeDependencies
+import com.android.tools.idea.gradle.model.IdeBytecodeTransformation
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_DEFAULT_ENABLED
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_ERROR
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_FATAL
@@ -83,6 +83,7 @@ import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
+import com.android.tools.idea.gradle.model.impl.IdeBytecodeTransformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeClassFieldImpl
 import com.android.tools.idea.gradle.model.impl.IdeCustomSourceDirectoryImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
@@ -765,7 +766,8 @@ internal fun modelCacheV2Impl(
         null,
       desugaredMethodsFiles = getDesugaredMethodsList(artifact, fallbackDesugaredMethodsFiles),
       generatedClassPaths = if (agpVersion.isAtLeast(8, 2, 0, "alpha", 7, false))
-        artifact.generatedClassPaths else emptyMap()
+        artifact.generatedClassPaths else emptyMap(),
+      bytecodeTransforms = if (agpVersion.isAtLeast(8, 3, 0, "alpha", 14, false)) artifact.bytecodeTransformations.toIdeModels() else null,
     )
   }
 
@@ -839,7 +841,8 @@ internal fun modelCacheV2Impl(
       mockablePlatformJar = artifact.mockablePlatformJar,
       isTestArtifact = name == IdeArtifactName.UNIT_TEST,
       generatedClassPaths = if (agpVersion.isAtLeast(8, 2, 0, "alpha", 7, false))
-        artifact.generatedClassPaths else emptyMap()
+        artifact.generatedClassPaths else emptyMap(),
+      bytecodeTransforms = if (agpVersion.isAtLeast(8, 3, 0, "alpha", 14, false)) artifact.bytecodeTransformations.toIdeModels() else null,
     )
   }
 
@@ -1426,3 +1429,23 @@ val ProjectInfo.buildTreePath
 
 val ProjectInfo.displayName
   get() = "$projectPath ($buildTreePath)"
+
+private fun Collection<BytecodeTransformation>.toIdeModels(): Collection<IdeBytecodeTransformation> {
+  return this.map { transform ->
+    when (transform) {
+      BytecodeTransformation.ASM_API_ALL -> IdeBytecodeTransformationImpl(IdeBytecodeTransformation.Type.ASM_API_ALL, transform.description)
+      BytecodeTransformation.ASM_API_PROJECT -> IdeBytecodeTransformationImpl(IdeBytecodeTransformation.Type.ASM_API_PROJECT,
+                                                                              transform.description)
+
+      BytecodeTransformation.JACOCO_INSTRUMENTATION -> IdeBytecodeTransformationImpl(IdeBytecodeTransformation.Type.JACOCO_INSTRUMENTATION,
+                                                                                     transform.description)
+
+      BytecodeTransformation.MODIFIES_PROJECT_CLASS_FILES -> IdeBytecodeTransformationImpl(
+        IdeBytecodeTransformation.Type.MODIFIES_PROJECT_CLASS_FILES, transform.description)
+
+      BytecodeTransformation.MODIFIES_ALL_CLASS_FILES -> IdeBytecodeTransformationImpl(
+        IdeBytecodeTransformation.Type.MODIFIES_ALL_CLASS_FILES, transform.description)
+
+    }
+  }
+}

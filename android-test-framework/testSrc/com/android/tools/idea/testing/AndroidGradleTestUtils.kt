@@ -875,7 +875,8 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     codeShrinker = null,
     privacySandboxSdkInfo = null,
     desugaredMethodsFiles = emptyList(),
-    generatedClassPaths = emptyMap()
+    generatedClassPaths = emptyMap(),
+    bytecodeTransforms = null,
   )
 }
 
@@ -938,7 +939,8 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     codeShrinker = null,
     privacySandboxSdkInfo = null,
     desugaredMethodsFiles = emptyList(),
-    generatedClassPaths = emptyMap()
+    generatedClassPaths = emptyMap(),
+    bytecodeTransforms = null,
   )
 }
 
@@ -977,7 +979,8 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
     runtimeClasspathCore = dependencies,
     unresolvedDependencies = emptyList(),
     mockablePlatformJar = mockablePlatformJar,
-    generatedClassPaths = emptyMap()
+    generatedClassPaths = emptyMap(),
+    bytecodeTransforms = null,
   )
 }
 
@@ -1047,7 +1050,8 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
     codeShrinker = null,
     privacySandboxSdkInfo = null,
     desugaredMethodsFiles = emptyList(),
-    generatedClassPaths = emptyMap()
+    generatedClassPaths = emptyMap(),
+    bytecodeTransforms = null,
   )
 }
 
