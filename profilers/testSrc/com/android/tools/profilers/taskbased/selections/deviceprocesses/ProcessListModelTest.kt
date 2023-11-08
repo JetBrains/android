@@ -237,4 +237,28 @@ class ProcessListModelTest {
     assertThat(deviceProcessesSorted[4].name).isEqualTo("FakeProcess2:X")
     assertThat(deviceProcessesSorted[5].name).isEqualTo("FakeProcess2:Y")
   }
+
+  companion object {
+    fun addDeviceWithProcess(device: Common.Device,
+                                     process: Common.Process,
+                                     transportService: FakeTransportService,
+                                     timer: FakeTimer) {
+      transportService.addDevice(device)
+      transportService.addProcess(device, process)
+      timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    }
+
+    fun createDevice(deviceName: String,
+                     deviceState: Common.Device.State,
+                     version: String,
+                     apilevel: Int) = Common.Device.newBuilder().setDeviceId(deviceName.hashCode().toLong()).setSerial(deviceName).setState(
+      deviceState).setModel(deviceName).setVersion(version).setApiLevel(apilevel).build()
+
+    fun createProcess(pid: Int,
+                      processName: String,
+                      processState: Common.Process.State,
+                      deviceId: Long,
+                      exposureLevel: ExposureLevel = ExposureLevel.DEBUGGABLE) = Common.Process.newBuilder().setDeviceId(deviceId).setPid(
+      pid).setName(processName).setState(processState).setExposureLevel(exposureLevel).build()
+  }
 }

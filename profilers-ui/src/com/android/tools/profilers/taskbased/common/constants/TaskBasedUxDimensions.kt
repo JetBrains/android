@@ -22,4 +22,12 @@ object TaskBasedUxDimensions {
   val TASK_WIDTH_DP = 150.dp
   // Size of the task grid item icon.
   const val ICON_SIZE_PX = 75
+
+  // Process table dimensions
+  val PID_COL_WIDTH_DP = 55.dp
+  val MANIFEST_CONFIG_COL_WIDTH_DP = 175.dp
+
+  // Device selection dropdown and restart buttons content padding
+  val DEVICE_SELECTION_DROPDOWN_CONTENT_PADDING_DP = 5.dp
+  val RESTART_ACTION_CONTENT_PADDING_DP = 5.dp
 }

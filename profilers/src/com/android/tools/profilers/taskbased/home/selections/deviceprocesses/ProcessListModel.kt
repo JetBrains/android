@@ -28,6 +28,8 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
   private val _deviceToProcesses = MutableStateFlow(mapOf<Common.Device, List<Common.Process>>())
   val deviceToProcesses = _deviceToProcesses.asStateFlow()
 
+  private val _deviceList = MutableStateFlow(listOf<Common.Device>())
+  val deviceList = _deviceList.asStateFlow()
   private val _selectedDevice = MutableStateFlow(Common.Device.getDefaultInstance())
   val selectedDevice = _selectedDevice.asStateFlow()
   private val _selectedProcess = MutableStateFlow(Common.Process.getDefaultInstance())
@@ -60,6 +62,7 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
     }
 
     _deviceToProcesses.value = newDeviceToProcesses
+    _deviceList.value = newDeviceToProcesses.keys.toList()
     reorderProcessList()
   }
 

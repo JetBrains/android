@@ -22,4 +22,10 @@ object TaskBasedUxColors {
   val TASK_SELECTION_BACKGROUND_COLOR get() = retrieveColorOrUnspecified("TabbedPane.focusColor")
   // Background color of a task grid item on hover.
   val TASK_HOVER_BACKGROUND_COLOR get() = retrieveColorOrUnspecified("TabbedPane.hoverColor")
+
+  // Process and past recording table colors.
+  val TABLE_ROW_SELECTION_BACKGROUND_COLOR get() = retrieveColorOrUnspecified("Table.selectionBackground")
+  val TABLE_ROW_BACKGROUND_COLOR get() = retrieveColorOrUnspecified("Table.selectionInactiveBackground")
+  val TABLE_HEADER_BACKGROUND_COLOR get() = retrieveColorOrUnspecified("TableHeader.background")
+  val TABLE_SEPARATOR_COLOR get() = retrieveColorOrUnspecified("TableHeader.separatorColor")
 }
