@@ -54,11 +54,12 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
 
   override fun customize(notificationData: NotificationData, project: Project, externalProjectPath: String, error: Throwable?) {
     super.customize(notificationData, project, externalProjectPath, error)
-    val expectedPrefix = GradleBundle.message("gradle.jvm.is.invalid")
-    if (notificationData.message.startsWith(expectedPrefix)) {
+    val expectedJvmInvalidPrefix = GradleBundle.message("gradle.jvm.is.invalid")
+    val expectedJvmIsJrePrefix = GradleBundle.message("gradle.jvm.is.jre")
+    if (notificationData.message.startsWith(expectedJvmInvalidPrefix) || notificationData.message.startsWith(expectedJvmIsJrePrefix)) {
       val ideSdks = IdeSdks.getInstance()
       val messageBuilder = StringBuilder()
-      messageBuilder.appendLine(expectedPrefix)
+      messageBuilder.appendLine(expectedJvmInvalidPrefix)
       // Add more information on why it is not valid
       GradleJdkValidationManager.getInstance(project).validateProjectGradleJvmPath(project, externalProjectPath)?.let { exception ->
         messageBuilder.appendLine(exception.message)

@@ -21,6 +21,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
+import static com.intellij.openapi.projectRoots.JdkUtil.checkForJre;
 import static com.intellij.openapi.projectRoots.JdkUtil.isModularRuntime;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.android.tools.sdk.AndroidSdkData.getSdkData;
@@ -326,7 +327,7 @@ public class IdeSdks {
    * @return the JDK in the given path if valid, null otherwise.
    */
   public Sdk setJdkPath(@NotNull Path path) {
-    if (checkForJdk(path)) {
+    if (isValidJdkPath(path)) {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
       Path canonicalPath = resolvePath(path);
       Sdk chosenJdk = null;
@@ -632,12 +633,12 @@ public class IdeSdks {
 
   @Nullable
   private static String doGetJdkFromPath(@NotNull Path file) {
-    if (checkForJdk(file)) {
+    if (isValidJdkPath(file)) {
       return file.toString();
     }
     if (SystemInfo.isMac) {
       Path potentialPath = file.resolve(MAC_JDK_CONTENT_PATH);
-      if (Files.isDirectory(potentialPath) && checkForJdk(potentialPath)) {
+      if (Files.isDirectory(potentialPath) && isValidJdkPath(potentialPath)) {
         return potentialPath.toString();
       }
     }
@@ -708,7 +709,7 @@ public class IdeSdks {
         continue; // already checked: didn't fit
       }
 
-      if (checkForJdk(jdkPath.toPath())) {
+      if (isValidJdkPath(jdkPath.toPath())) {
         Sdk jdk = getOrCreateJdk(jdkPath.toPath()); // TODO-ank: this adds JDK to the project even if the JDK is not compatibile and will be skipped
         if (isJdkCompatible(jdk, preferredVersion) ) {
           return jdk;
@@ -717,7 +718,7 @@ public class IdeSdks {
       // On Linux, the returned path is the folder that contains all JDKs, instead of a specific JDK.
       if (SystemInfo.isLinux) {
         for (File child : notNullize(jdkPath.listFiles())) {
-          if (child.isDirectory() && checkForJdk(child.toPath())) {
+          if (child.isDirectory() && isValidJdkPath(child.toPath())) {
             Sdk jdk = myJdks.createAndAddJdk(child.getPath());
             if (isJdkCompatible(jdk, preferredVersion)) {
               return jdk;
@@ -870,12 +871,12 @@ public class IdeSdks {
   @Nullable
   public Path validateJdkPath(@NotNull Path path) {
     Path possiblePath = null;
-    if (checkForJdk(path)) {
+    if (isValidJdkPath(path)) {
       possiblePath = path;
     }
     else if (SystemInfo.isMac) {
       Path macPath = path.resolve(MAC_JDK_CONTENT_PATH);
-      if (Files.isDirectory(macPath) && checkForJdk(macPath)) {
+      if (Files.isDirectory(macPath) && isValidJdkPath(macPath)) {
         possiblePath = macPath;
       }
     }
@@ -902,6 +903,15 @@ public class IdeSdks {
     LOG.warn("  Apple JDK: " + new File(homePath, "../Classes/classes.jar").exists());
     LOG.warn("  IBM JDK: " + new File(homePath, "jre/lib/vm.jar").exists());
     LOG.warn("  Custom build: " + new File(homePath, "classes").isDirectory());
+  }
+
+  /**
+   * Checks if the specified path contains a valid JDK structure
+   * @param path the JDK path to validate
+   * @return true if the path contains a valid JDK
+   */
+  private static boolean isValidJdkPath(@NotNull Path path) {
+    return checkForJdk(path) && checkForJre(path);
   }
 
   /**
