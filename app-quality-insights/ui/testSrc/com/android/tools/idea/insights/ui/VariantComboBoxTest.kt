@@ -106,6 +106,26 @@ class VariantComboBoxTest {
     }
 
   @Test
+  fun `combo box shows offline text when AQI is offline`() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val flow = MutableSharedFlow<AppInsightsState>(1)
+      val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
+
+      flow.emit(
+        AppInsightsState(
+          connections = Selection.emptySelection(),
+          filters = TEST_FILTERS,
+          issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+          currentIssueVariants = LoadingState.NetworkFailure("offline")
+        )
+      )
+
+      delayUntilCondition(200) {
+        comboBox.selectedItem == DisabledTextRow("Not available offline.")
+      }
+    }
+
+  @Test
   fun `combo box shows loading text when in between requests`() =
     runBlocking(AndroidDispatchers.uiThread) {
       val flow = MutableSharedFlow<AppInsightsState>(1)

@@ -37,9 +37,10 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import org.jetbrains.annotations.VisibleForTesting
 
-const val LOADING_COMBOBOX_MESSAGE = "Loading variants..."
-const val EMPTY_COMBOBOX_MESSAGE = "No variants available."
-const val FAILURE_COMBOBOX_MESSAGE = "Failed to load variants."
+private const val LOADING_COMBOBOX_MESSAGE = "Loading variants..."
+private const val EMPTY_COMBOBOX_MESSAGE = "No variants available."
+private const val FAILURE_COMBOBOX_MESSAGE = "Failed to load variants."
+private const val OFFLINE_COMBOBOX_MESSAGE = "Not available offline."
 
 class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable) :
   CommonComboBox<Row, DefaultCommonComboBoxModel<Row>>(
@@ -85,6 +86,9 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
               currentVariantSelection = variants
               model.enabled = true
             }
+          }
+          is LoadingState.NetworkFailure -> {
+            setDisableText(OFFLINE_COMBOBOX_MESSAGE)
           }
           is LoadingState.Failure -> {
             setDisableText(FAILURE_COMBOBOX_MESSAGE)
