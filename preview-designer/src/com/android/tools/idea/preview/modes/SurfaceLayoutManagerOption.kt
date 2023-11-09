@@ -16,7 +16,6 @@
 package com.android.tools.idea.preview.modes
 
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.LayoutMode
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.uibuilder.graphics.NlConstants
@@ -73,7 +72,7 @@ private val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<P
       listOf(PositionableGroup(singles.values.flatten()))
   }
 
-/** Toolbar option to select [LayoutMode.Gallery] layout. */
+/** Toolbar option to select [PreviewMode.Gallery] layout. */
 val PREVIEW_LAYOUT_GALLERY_OPTION =
   SurfaceLayoutManagerOption(
     message("gallery.mode.title"),

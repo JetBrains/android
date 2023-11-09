@@ -722,26 +722,6 @@ class ComposePreviewRepresentation(
   private val psiCodeFileChangeDetectorService =
     PsiCodeFileChangeDetectorService.getInstance(project)
 
-  /**
-   * Currently selected [LayoutMode]. If [LayoutMode] has changed - hierarchy of the components will
-   * be rearranged and for [LayoutMode.Gallery] tab component will be added.
-   */
-  private var currentLayoutMode: LayoutMode = LayoutMode.Default
-    set(value) {
-      // Switching layout from toolbar.
-      if (field == value) return
-      field = value
-
-      when (value) {
-        LayoutMode.Gallery -> {
-          composeWorkBench.galleryMode = ComposeGalleryMode(composeWorkBench.mainSurface)
-        }
-        LayoutMode.Default -> {
-          composeWorkBench.galleryMode = null
-        }
-      }
-    }
-
   private val previewModeManager: PreviewModeManager = CommonPreviewModeManager()
 
   init {
@@ -1472,7 +1452,11 @@ class ComposePreviewRepresentation(
         }
         invalidateAndRefresh()
       }
-      is PreviewMode.Gallery -> {}
+      is PreviewMode.Gallery -> {
+        withContext(uiThread) {
+          composeWorkBench.galleryMode = ComposeGalleryMode(composeWorkBench.mainSurface)
+        }
+      }
     }
     surface.background = mode.backgroundColor
     withContext(uiThread) {
@@ -1481,7 +1465,6 @@ class ComposePreviewRepresentation(
         mode.layoutOption.layoutManager,
         mode.layoutOption.sceneViewAlignment
       )
-      currentLayoutMode = mode.layoutMode
     }
   }
 
@@ -1507,7 +1490,9 @@ class ComposePreviewRepresentation(
         // Swap the components back
         updateAnimationPanelVisibility()
       }
-      is PreviewMode.Gallery -> {}
+      is PreviewMode.Gallery -> {
+        withContext(uiThread) { composeWorkBench.galleryMode = null }
+      }
     }
   }
 }
