@@ -581,8 +581,16 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
   }
 
   private void setupRecordingOptions() {
-    // Add default configs
-    for (ProfilingConfiguration configuration : myProfilerConfigModel.getDefaultProfilingConfigurations()) {
+    List<ProfilingConfiguration> configurations;
+    // Add task configs if task-based ux flag is enabled, and default configs if disabled.
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      configurations = myProfilerConfigModel.getTaskProfilingConfigurations();
+    }
+    else {
+      configurations = myProfilerConfigModel.getDefaultProfilingConfigurations();
+    }
+
+    for (ProfilingConfiguration configuration : configurations) {
       ProfilingTechnology tech = ProfilingTechnology.fromConfig(configuration);
       myRecordingOptionsModel.addBuiltInOptions(
         new RecordingOption(configuration.getName(), tech.getDescription(), () -> startRecordingConfig(configuration),

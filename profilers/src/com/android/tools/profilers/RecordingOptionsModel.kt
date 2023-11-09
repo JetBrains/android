@@ -38,6 +38,7 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
       }
     }
 
+  // 'builtInOptionList' contains task configurations when task-based ux is enabled and default configurations when disabled.
   private val builtInOptionList = mutableListOf<RecordingOption>()
   val builtInOptions: List<RecordingOption> get() = Collections.unmodifiableList(builtInOptionList)
   val customConfigurationModel: MutableComboBoxModel<RecordingOption> = ConfigModel(emptyArray())
