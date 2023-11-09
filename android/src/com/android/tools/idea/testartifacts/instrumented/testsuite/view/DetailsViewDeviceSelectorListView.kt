@@ -205,6 +205,7 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
       myDeviceLabel.border = myEmptyBorder
       myDeviceLabel.background = list.background
       myDeviceLabel.foreground = list.foreground
+      myDeviceLabel.font = list.font
       if (value is AndroidDevice) {
         myTestResultLabel.icon  = myTestResults?.getTestCaseResult(value)?.let { getIconFor(it) }
       }
@@ -214,6 +215,7 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
       myTestResultLabel.border = myEmptyBorder
       myTestResultLabel.background = list.background
       myTestResultLabel.foreground = list.foreground
+      myTestResultLabel.font = list.font
       return myCellRendererComponent
     }
   }
