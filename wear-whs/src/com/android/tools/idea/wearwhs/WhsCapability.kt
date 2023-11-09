@@ -24,7 +24,8 @@ import org.jetbrains.annotations.PropertyKey
  */
 data class WhsCapability(@PropertyKey(resourceBundle = BUNDLE_NAME) val labelKey: String,
                          @PropertyKey(resourceBundle = BUNDLE_NAME) val unitKey: String,
-                         val isOverrideable: Boolean)
+                         val isOverrideable: Boolean,
+                         val isStandardCapability: Boolean)
 
 /**
  * Ordered list of all capabilities as displayed in the WHS panel.
@@ -33,46 +34,55 @@ val WHS_CAPABILITIES = listOf(
   WhsCapability(
     "wear.whs.capability.heart.rate.label",
     "wear.whs.capability.heart.rate.unit",
-    true,
+    isOverrideable = true,
+    isStandardCapability = true,
   ),
   WhsCapability(
     "wear.whs.capability.location.label",
     "wear.whs.capability.unit.none",
-    false,
+    isOverrideable = false,
+    isStandardCapability = true,
   ),
   WhsCapability(
     "wear.whs.capability.steps.label",
     "wear.whs.capability.steps.unit",
-    true,
+    isOverrideable = true,
+    isStandardCapability = true,
   ),
   WhsCapability(
     "wear.whs.capability.distance.label",
     "wear.whs.capability.distance.unit",
-    true,
+    isOverrideable = true,
+    isStandardCapability = true,
   ),
   WhsCapability(
     "wear.whs.capability.speed.label",
     "wear.whs.capability.speed.unit",
-    true,
+    isOverrideable = true,
+    isStandardCapability = true,
   ),
   WhsCapability(
     "wear.whs.capability.duration.label",
     "wear.whs.capability.duration.unit",
-    true,
+    isOverrideable = true,
+    isStandardCapability = true,
   ),
   WhsCapability(
     "wear.whs.capability.elevation.gain.label",
     "wear.whs.capability.elevation.gain.unit",
-    true,
+    isOverrideable = true,
+    isStandardCapability = false,
   ),
   WhsCapability(
     "wear.whs.capability.total.calories.label",
     "wear.whs.capability.total.calories.unit",
-    true,
+    isOverrideable = true,
+    isStandardCapability = false,
   ),
   WhsCapability(
     "wear.whs.capability.absolute.elevation.label",
     "wear.whs.capability.unit.none",
-    false,
+    isOverrideable = false,
+    isStandardCapability = false,
   ),
 )

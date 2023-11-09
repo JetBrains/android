@@ -17,28 +17,86 @@ package com.android.tools.idea.wearwhs.view
 
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
+import kotlinx.coroutines.runBlocking
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
 import java.nio.file.Path
+import java.util.concurrent.TimeUnit
+import javax.swing.JCheckBox
 
 
 class WearHealthServicesToolWindowTest : LightPlatformTestCase() {
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory()
 
   private val testDataPath: Path
     get() = TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/wear-whs/testData")
 
+  private val deviceManager by lazy { FakeDeviceManager() }
+  private val stateManager by lazy { WearHealthServicesToolWindowStateManagerImpl(deviceManager) }
+  private val toolWindow by lazy { WearHealthServicesToolWindow(stateManager) }
+
+  @Before
+  public override fun setUp() {
+    super.setUp()
+    disposeOnTearDown(stateManager)
+    disposeOnTearDown(toolWindow)
+  }
+
   @Test
-  fun `test panel screenshot matches expectation for current platform`() {
-    val fakeUi = FakeUi(WearHealthServicesToolWindow())
-    fakeUi.root.size = Dimension(500, 400)
+  fun `test panel screenshot matches expectation for current platform`() = runBlocking {
+    val fakeUi = FakeUi(toolWindow)
+
+    fakeUi.waitForCheckbox("Heart rate", true)
+    fakeUi.waitForCheckbox("Location", true)
+    fakeUi.waitForCheckbox("Steps", true)
+
+    fakeUi.root.size = Dimension(400, 400)
     fakeUi.layoutAndDispatchEvents()
 
     ImageDiffUtil.assertImageSimilarPerPlatform(
       testDataPath = testDataPath,
-      fileNameBase = "screens/whs-panel",
+      fileNameBase = "screens/whs-panel-default",
       actual = fakeUi.render(),
       maxPercentDifferent = 3.0)
+  }
+
+  @Test
+  fun `test panel screenshot matches expectation with modified state manager values`() = runBlocking {
+    stateManager.setPreset(Preset.CUSTOM)
+    stateManager.setCapabilityEnabled(deviceManager.capabilities[0], true)
+    stateManager.setCapabilityEnabled(deviceManager.capabilities[1], false)
+    stateManager.setCapabilityEnabled(deviceManager.capabilities[2], false)
+    stateManager.setOverrideValue(deviceManager.capabilities[0], 2f)
+    stateManager.setOverrideValue(deviceManager.capabilities[2], 5f)
+
+    val fakeUi = FakeUi(toolWindow)
+
+    fakeUi.waitForCheckbox("Heart rate", true)
+    fakeUi.waitForCheckbox("Location", false)
+    fakeUi.waitForCheckbox("Steps", false)
+
+    fakeUi.root.size = Dimension(400, 400)
+    fakeUi.layoutAndDispatchEvents()
+
+    ImageDiffUtil.assertImageSimilarPerPlatform(
+      testDataPath = testDataPath,
+      fileNameBase = "screens/whs-panel-state-manager-modified",
+      actual = fakeUi.render(),
+      maxPercentDifferent = 3.0)
+  }
+
+  // The UI loads on asynchronous coroutine, we need to wait
+  private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) = waitForCondition(10, TimeUnit.SECONDS) {
+    root.findDescendant<JCheckBox> { it.text.contains(text) && it.isSelected == selected } != null
   }
 }

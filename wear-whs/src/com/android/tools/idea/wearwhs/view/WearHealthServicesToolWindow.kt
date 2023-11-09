@@ -15,81 +15,76 @@
  */
 package com.android.tools.idea.wearwhs.view
 
-import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
+import com.android.tools.idea.wearwhs.WhsCapability
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.ui.VerticalFlowLayout
+import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.layout.selected
 import com.intellij.util.ui.JBUI
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
+import javax.swing.DefaultComboBoxModel
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
+import javax.swing.event.DocumentEvent
 
 private const val PADDING = 15
 
-private val HORIZONTAL_BORDERS = JBUI.Borders.empty(0, PADDING)
+private val horizontalBorders = JBUI.Borders.empty(0, PADDING)
 
-internal class WearHealthServicesToolWindow : SimpleToolWindowPanel(true, true) {
+internal class WearHealthServicesToolWindow(private val stateManager: WearHealthServicesToolWindowStateManager) : SimpleToolWindowPanel(
+  true, true), Disposable {
+  private val uiScope: CoroutineScope = AndroidCoroutineScope(this, uiThread)
+
+  private fun getLogger() = Logger.getInstance(this::class.java)
 
   private val contentPanel = run {
     val header = JPanel(BorderLayout()).apply {
-      border = HORIZONTAL_BORDERS
-      add(ComboBox(arrayOf(message("wear.whs.panel.capabilities.standard"), message("wear.whs.panel.capabilities.all"))),
-          BorderLayout.WEST)
+      border = horizontalBorders
+      val capabilitiesComboBox = ComboBox<Preset>().apply {
+        model = DefaultComboBoxModel(Preset.values())
+      }
+      capabilitiesComboBox.addActionListener {
+        stateManager.setPreset(capabilitiesComboBox.selectedItem as Preset)
+      }
+      stateManager.getPreset().onEach {
+        capabilitiesComboBox.selectedItem = it
+      }.launchIn(uiScope)
+      add(capabilitiesComboBox, BorderLayout.WEST)
       add(JLabel(message("wear.whs.panel.test.data.inactive")), BorderLayout.EAST)
     }
     val content = JBScrollPane().apply {
-      setViewportView(JPanel(VerticalFlowLayout()).apply {
-        border = HORIZONTAL_BORDERS
-        add(JPanel(BorderLayout()).apply {
-          add(JLabel(message("wear.whs.panel.sensor")).apply {
-            font = font.deriveFont(Font.BOLD)
-          }, BorderLayout.CENTER)
-          add(JPanel(FlowLayout()).apply {
-            add(JLabel(message("wear.whs.panel.override")).apply {
-              font = font.deriveFont(Font.BOLD)
-            })
-            add(JLabel(message("wear.whs.panel.unit")).apply {
-              font = font.deriveFont(Font.BOLD)
-              preferredSize = Dimension(50, preferredSize.height)
-            })
-          }, BorderLayout.EAST)
-        })
-        WHS_CAPABILITIES.forEach {
-          add(JPanel(BorderLayout()).apply {
-            preferredSize = Dimension(0, 35)
-            val checkBox = JCheckBox(message(it.labelKey))
-            add(checkBox, BorderLayout.CENTER)
-            add(JPanel(FlowLayout()).apply {
-              add(JTextField().apply {
-                preferredSize = Dimension(50, preferredSize.height)
-                isEnabled = checkBox.isSelected
-                checkBox.selected.addListener {
-                  isEnabled = it
-                }
-                isVisible = it.isOverrideable
-              })
-              add(JLabel(message(it.unitKey)).apply {
-                isVisible = it.isOverrideable
-                preferredSize = Dimension(50, preferredSize.height)
-              })
-            }, BorderLayout.EAST)
-          })
-        }
-      })
+      stateManager.getCapabilitiesList().onEach { capabilities ->
+        setViewportView(createCenterPanel(capabilities))
+      }.launchIn(uiScope)
     }
     val footer = JPanel(FlowLayout(FlowLayout.TRAILING)).apply {
-      border = HORIZONTAL_BORDERS
-      add(JButton(message("wear.whs.panel.reset")))
-      add(JButton(message("wear.whs.panel.apply")))
+      border = horizontalBorders
+      add(JButton(message("wear.whs.panel.reset")).apply {
+        addActionListener {
+          stateManager.reset()
+        }
+      })
+      add(JButton(message("wear.whs.panel.apply")).apply {
+        addActionListener {
+          stateManager.applyChanges()
+        }
+      })
     }
     JPanel(BorderLayout()).apply {
       add(header, BorderLayout.NORTH)
@@ -98,7 +93,73 @@ internal class WearHealthServicesToolWindow : SimpleToolWindowPanel(true, true) 
     }
   }
 
+  private fun createCenterPanel(capabilities: List<WhsCapability>): JPanel {
+    return JPanel(VerticalFlowLayout()).apply {
+      border = horizontalBorders
+      add(JPanel(BorderLayout()).apply {
+        add(JLabel(message("wear.whs.panel.sensor")).apply {
+          font = font.deriveFont(Font.BOLD)
+        }, BorderLayout.CENTER)
+        add(JPanel(FlowLayout()).apply {
+          add(JLabel(message("wear.whs.panel.override")).apply {
+            font = font.deriveFont(Font.BOLD)
+          })
+          add(JLabel(message("wear.whs.panel.unit")).apply {
+            font = font.deriveFont(Font.BOLD)
+            preferredSize = Dimension(50, preferredSize.height)
+          })
+        }, BorderLayout.EAST)
+      })
+      capabilities.forEach { capability ->
+        add(JPanel(BorderLayout()).apply {
+          preferredSize = Dimension(0, 35)
+          val checkBox = JCheckBox(message(capability.labelKey)).also { checkBox ->
+            stateManager.getCapabilityEnabled(capability).onEach { enabled ->
+              checkBox.isSelected = enabled
+            }.launchIn(uiScope)
+            checkBox.addActionListener {
+              stateManager.setCapabilityEnabled(capability, checkBox.isSelected)
+              stateManager.setPreset(Preset.CUSTOM)
+            }
+          }
+          add(checkBox, BorderLayout.CENTER)
+          add(JPanel(FlowLayout()).apply {
+            add(JTextField().also { textField ->
+              textField.document.addDocumentListener(object : DocumentAdapter() {
+                override fun textChanged(e: DocumentEvent) {
+                  try {
+                    stateManager.setOverrideValue(capability, textField.text.toFloat())
+                  }
+                  catch (exception: NumberFormatException) { // TODO(b/309931192): Show a tooltip to the user that the value is not a float
+                    getLogger().warn("String is not a float")
+                  }
+                }
+              })
+              stateManager.getOverrideValue(capability).onEach {
+                if (!textField.isFocusOwner) {
+                  textField.text = it?.toString() ?: ""
+                }
+              }.launchIn(uiScope)
+              textField.preferredSize = Dimension(50, preferredSize.height)
+              textField.isEnabled = checkBox.isSelected
+              checkBox.selected.addListener {
+                textField.isEnabled = it
+              }
+              textField.isVisible = capability.isOverrideable
+            })
+            add(JLabel(message(capability.unitKey)).apply {
+              isVisible = capability.isOverrideable
+              preferredSize = Dimension(50, preferredSize.height)
+            })
+          }, BorderLayout.EAST)
+        })
+      }
+    }
+  }
+
   init {
     add(contentPanel)
   }
+
+  override fun dispose() {}
 }

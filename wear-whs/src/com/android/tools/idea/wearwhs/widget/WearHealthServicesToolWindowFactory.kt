@@ -18,8 +18,10 @@ package com.android.tools.idea.wearwhs.widget
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.view.WearHealthServicesToolWindow
+import com.android.tools.idea.wearwhs.view.WearHealthServicesToolWindowStateManagerImpl
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.util.ui.components.BorderLayoutPanel
@@ -48,7 +50,11 @@ class WearHealthServicesToolWindowFactory : DumbAware, ToolWindowFactory {
  */
 private fun ToolWindow.displayWearHealthServices() {
   contentManager.removeAllContents(true)
-  val view: JComponent = WearHealthServicesToolWindow()
+  val stateManager = WearHealthServicesToolWindowStateManagerImpl()
+  val view = WearHealthServicesToolWindow(stateManager)
+
+  Disposer.register(disposable, stateManager)
+  Disposer.register(disposable, view)
 
   val container = BorderLayoutPanel()
   container.addToCenter(view)
