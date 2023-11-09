@@ -464,7 +464,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   override fun restorePrevious() = previewModeManager.restorePrevious()
 
   override fun setMode(mode: PreviewMode) {
-    previewModeManager.restorePrevious()
+    previewModeManager.setMode(mode)
   }
 
   private suspend fun onExit(mode: PreviewMode) {
