@@ -149,8 +149,8 @@ class CpuProfilingConfigurationsDialogTest {
     project = spy(MockProjectEx(disposableRule.disposable))
     configurations = getCpuProfilingDialogConfiguration(project)
 
-    // Contains task configurations SAMPLED_NATIVE, SAMPLED_JAVA, INSTRUMENTED_JAVA
-    assertThat(configurations.configurationModel.size()).isEqualTo(3)
+    // Contains task configurations SAMPLED_NATIVE, SAMPLED_JAVA, INSTRUMENTED_JAVA, NATIVE_ALLOCATIONS
+    assertThat(configurations.configurationModel.size()).isEqualTo(4)
   }
 
   @Test

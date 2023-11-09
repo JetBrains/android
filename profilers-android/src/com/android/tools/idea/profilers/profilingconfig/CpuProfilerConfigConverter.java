@@ -23,7 +23,8 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.AtraceConfiguration;
-import com.android.tools.profilers.cpu.config.PerfettoConfiguration;
+import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfiguration;
+import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
@@ -65,9 +66,17 @@ public class CpuProfilerConfigConverter {
         cpuProfilerConfig.setBufferSizeMb(SYSTEM_TRACE_BUFFER_SIZE_MB);
         break;
       case PERFETTO:
-        PerfettoConfiguration perfettoConfiguration = (PerfettoConfiguration)config;
-        cpuProfilerConfig = new CpuProfilerConfig(perfettoConfiguration.getName(), CpuProfilerConfig.Technology.SYSTEM_TRACE);
-        cpuProfilerConfig.setBufferSizeMb(SYSTEM_TRACE_BUFFER_SIZE_MB);
+        if (config instanceof PerfettoNativeAllocationsConfiguration) {
+          PerfettoNativeAllocationsConfiguration perfettoNativeAllocationsConfiguration = (PerfettoNativeAllocationsConfiguration)config;
+          cpuProfilerConfig =
+            new CpuProfilerConfig(perfettoNativeAllocationsConfiguration.getName(), CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS);
+          cpuProfilerConfig.setSamplingRateBytes(perfettoNativeAllocationsConfiguration.getMemorySamplingIntervalBytes());
+        }
+        else {
+          PerfettoSystemTraceConfiguration perfettoSystemTraceConfiguration = (PerfettoSystemTraceConfiguration)config;
+          cpuProfilerConfig = new CpuProfilerConfig(perfettoSystemTraceConfiguration.getName(), CpuProfilerConfig.Technology.SYSTEM_TRACE);
+          cpuProfilerConfig.setBufferSizeMb(SYSTEM_TRACE_BUFFER_SIZE_MB);
+        }
         break;
       case UNSPECIFIED:
         UnspecifiedConfiguration unspecifiedConfiguration = (UnspecifiedConfiguration)config;
@@ -103,17 +112,20 @@ public class CpuProfilerConfigConverter {
       case SYSTEM_TRACE:
         if (StudioFlags.PROFILER_TRACEBOX.get()) {
           if (deviceApi >= AndroidVersion.VersionCodes.M) {
-            configuration = new PerfettoConfiguration(name, true);
+            configuration = new PerfettoSystemTraceConfiguration(name, true);
             break;
           }
         }
         if (deviceApi >= AndroidVersion.VersionCodes.P) {
-          configuration = new PerfettoConfiguration(name, false);
+          configuration = new PerfettoSystemTraceConfiguration(name, false);
         }
         else {
           configuration = new AtraceConfiguration(name);
         }
         break;
+      case NATIVE_ALLOCATIONS:
+        configuration = new PerfettoNativeAllocationsConfiguration(name);
+        ((PerfettoNativeAllocationsConfiguration)configuration).setMemorySamplingIntervalBytes(config.getSamplingRateBytes());
     }
 
     return configuration;

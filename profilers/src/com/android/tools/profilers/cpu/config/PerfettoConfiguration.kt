@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,17 @@
  */
 package com.android.tools.profilers.cpu.config
 
-import com.android.sdklib.AndroidVersion
 import com.android.tools.profiler.proto.Trace
-import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders
-import perfetto.protos.PerfettoConfig.TraceConfig
+import perfetto.protos.PerfettoConfig
 
 /**
  * Configuration for Perfetto traces.
  */
-class PerfettoConfiguration(name: String, private val isTraceboxEnabled: Boolean) : ProfilingConfiguration(name) {
-  override fun getOptions(): TraceConfig {
-    return PerfettoTraceConfigBuilders.getCpuTraceConfig(SYSTEM_TRACE_BUFFER_SIZE_MB)
-  }
+abstract class PerfettoConfiguration(name: String) : ProfilingConfiguration(name) {
 
-  private fun setAppPkgName(optionsBuilder: TraceConfig.Builder, appPkgName: String) {
+  abstract override fun getOptions(): PerfettoConfig.TraceConfig
+
+  private fun setAppPkgName(optionsBuilder: PerfettoConfig.TraceConfig.Builder, appPkgName: String) {
     val ftraceDataSourceIndex = optionsBuilder.dataSourcesList.indexOfFirst { it.config.name.equals("linux.ftrace") }
 
     if (ftraceDataSourceIndex == -1) {
@@ -50,6 +47,4 @@ class PerfettoConfiguration(name: String, private val isTraceboxEnabled: Boolean
   override fun getTraceType(): TraceType {
     return TraceType.PERFETTO
   }
-
-  override fun getRequiredDeviceLevel(): Int = if (isTraceboxEnabled) AndroidVersion.VersionCodes.M else AndroidVersion.VersionCodes.P
 }

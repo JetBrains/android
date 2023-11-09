@@ -32,6 +32,7 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   public static final int SYSTEM_TRACE_BUFFER_SIZE_MB = 4;
   public static final int DEFAULT_SAMPLING_INTERVAL_US = 1000;
   public static final String TRACE_CONFIG_GROUP = "Trace config";
+  public static final int DEFAULT_MEMORY_SAMPLING_INTERVAL_BYTES = 2048;
 
   public enum AdditionalOptions {
     SYMBOL_DIRS,
@@ -125,7 +126,7 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
           return artInstrumented;
         }
       case PERFETTO_OPTIONS:
-        PerfettoConfiguration perfetto = new PerfettoConfiguration("", isTraceboxEnabled);
+        PerfettoSystemTraceConfiguration perfetto = new PerfettoSystemTraceConfiguration("", isTraceboxEnabled);
         return perfetto;
       case ATRACE_OPTIONS:
         AtraceConfiguration atrace = new AtraceConfiguration("");

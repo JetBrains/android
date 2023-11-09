@@ -35,6 +35,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -67,6 +68,7 @@ class IntellijProfilerServicesTest {
     @AfterClass
     fun tearDown() {
       StudioFlags.PROFILER_TRACEBOX.clearOverride()
+      StudioFlags.PROFILER_TASK_BASED_UX.clearOverride()
     }
   }
 
@@ -85,19 +87,21 @@ class IntellijProfilerServicesTest {
   @Test
   fun testGetTaskCpuProfilerConfigs() {
     val result = intellijProfilerServices.getTaskCpuProfilerConfigs(8)
-    assertThat(result.size).isEqualTo(3)
+    assertThat(result.size).isEqualTo(4)
     assertThat(result[0].name).isEqualTo("Callstack Sample")
     assertThat(result[1].name).isEqualTo("Java/Kotlin Method Trace")
     assertThat(result[2].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
+    assertThat(result[3].name).isEqualTo("Native Allocations")
   }
 
   @Test
   fun testGetTaskCpuProfilerConfigsWhenProjectStateChanged() {
     val result = intellijProfilerServices.getTaskCpuProfilerConfigs(9)
-    assertThat(result.size).isEqualTo(3)
+    assertThat(result.size).isEqualTo(4)
     assertThat(result[0].name).isEqualTo("Callstack Sample")
     assertThat(result[1].name).isEqualTo("Java/Kotlin Method Trace")
     assertThat(result[2].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
+    assertThat(result[3].name).isEqualTo("Native Allocations")
 
     val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
     configsToSave.add(CpuProfilerConfig("HelloTest1", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
@@ -110,6 +114,29 @@ class IntellijProfilerServicesTest {
     assertThat(resultNew.size).isEqualTo(2)
     assertThat(resultNew[0].name).isEqualTo("HelloTest1")
     assertThat(resultNew[1].name).isEqualTo("HelloTest2")
+  }
+
+  @Test
+  fun testGetNativeMemorySamplingRateForCurrentConfigForTaskBased() {
+    StudioFlags.PROFILER_TASK_BASED_UX.override(true)
+    project = Mockito.spy(MockProjectEx(disposableRule.disposable))
+    mockProjectAttributes(project)
+    val intellijProfilerServicesNow = IntellijProfilerServices(project, Mockito.mock(SymbolFilesLocator::class.java))
+    Disposer.register(disposableRule.disposable, intellijProfilerServicesNow)
+    try {
+      val result = intellijProfilerServicesNow.getTaskCpuProfilerConfigs(9)
+      assertThat(result.size).isEqualTo(4)
+      assertThat(result[0].name).isEqualTo("Callstack Sample")
+      assertThat(result[1].name).isEqualTo("Java/Kotlin Method Trace")
+      assertThat(result[2].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
+      assertThat(result[3].name).isEqualTo("Native Allocations")
+
+      // 2048 is default samplingRateBytes value for native memory
+      assertEquals(intellijProfilerServicesNow.nativeAllocationsMemorySamplingRate, 2048)
+    }
+    finally {
+      Disposer.dispose(intellijProfilerServicesNow)
+    }
   }
 
   private fun mockProjectAttributes(project: Project) {

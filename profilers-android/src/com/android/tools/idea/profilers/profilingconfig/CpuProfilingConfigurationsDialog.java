@@ -15,24 +15,21 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
-import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.menu.CommonMenuItem;
 import com.android.tools.adtui.stdui.menu.CommonPopupMenu;
 import com.android.tools.adtui.ui.options.OptionsPanel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
-import com.android.tools.idea.profilers.IntellijProfilerServices;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
-import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
-import com.android.tools.profilers.cpu.config.PerfettoConfiguration;
+import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.intellij.openapi.actionSystem.ActionToolbarPosition;
@@ -52,7 +49,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBList;
-import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
@@ -409,7 +405,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
       private CommonMenuItem buildPopupMenuItemPerfetto(String name) {
         CommonAction action = new CommonAction(name, null);
-        action.setAction(() -> addConfiguration(new PerfettoConfiguration(UNNAMED, StudioFlags.PROFILER_TRACEBOX.get())));
+        action.setAction(() -> addConfiguration(new PerfettoSystemTraceConfiguration(UNNAMED, StudioFlags.PROFILER_TRACEBOX.get())));
         return new CommonMenuItem(action);
       }
 

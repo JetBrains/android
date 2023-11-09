@@ -174,9 +174,9 @@ interface IdeProfilerServices {
   val isNativeProfilingConfigurationPreferred: Boolean
 
   /**
-   * Get the native memory sampling rate based on the current configuration.
+   * Get the native allocations memory sampling rate.
    */
-  val nativeMemorySamplingRateForCurrentConfig: Int
+  val nativeAllocationsMemorySamplingRate: Int
 
   /**
    * Pops up a toast that contains information contained in the notification,

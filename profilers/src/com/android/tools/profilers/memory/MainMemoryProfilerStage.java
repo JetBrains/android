@@ -282,8 +282,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
         TransportFileManager.getShortAbiName(getStudioProfilers().getDevice().getCpuAbi()))
       .setTempPath(traceFilePath)
       .setAppName(process.getName())
-      .setPerfettoOptions(PerfettoTraceConfigBuilders.INSTANCE.getMemoryTraceConfig(process.getName(),
-                                                                                    ide.getNativeMemorySamplingRateForCurrentConfig()))
+      .setPerfettoOptions(
+        PerfettoTraceConfigBuilders.INSTANCE.getMemoryTraceConfig(process.getName(), ide.getNativeAllocationsMemorySamplingRate()))
       .build();
 
     Commands.Command dumpCommand = Commands.Command.newBuilder()

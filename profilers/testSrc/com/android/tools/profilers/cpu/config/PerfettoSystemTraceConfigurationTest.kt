@@ -5,19 +5,19 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 
-class PerfettoConfigurationTest {
+class PerfettoSystemTraceConfigurationTest {
 
   @Test
   fun getRequiredDeviceLevelTraceBoxEnabled() {
-     val perfettoConfiguration = PerfettoConfiguration("SampleFromUnitTest", true);
-     val result = perfettoConfiguration.requiredDeviceLevel;
+     val perfettoSystemTraceConfiguration = PerfettoSystemTraceConfiguration("SampleFromUnitTest", true);
+     val result = perfettoSystemTraceConfiguration.requiredDeviceLevel;
      assertThat(result).isEqualTo(AndroidVersion.VersionCodes.M);
   }
 
   @Test
   fun getRequiredDeviceLevelTraceBoxDisabled() {
-    val perfettoConfiguration = PerfettoConfiguration("SampleFromUnitTest", false);
-    val result = perfettoConfiguration.requiredDeviceLevel;
+    val perfettoSystemTraceConfiguration = PerfettoSystemTraceConfiguration("SampleFromUnitTest", false);
+    val result = perfettoSystemTraceConfiguration.requiredDeviceLevel;
     assertThat(result).isEqualTo(AndroidVersion.VersionCodes.P);
   }
 }
