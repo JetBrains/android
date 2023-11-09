@@ -1150,8 +1150,8 @@ class EmulatorView(
         val latency = arrivalTime - frameOriginationTime
         val foldedState = if (imageFormat.hasFoldedDisplay()) " foldedDisplay={${shortDebugString(imageFormat.foldedDisplay)}}" else ""
         val mode = if (emulatorConfig.displayModes.size > 1) " ${imageFormat.displayMode}" else ""
-        LOG.info("Screenshot ${response.seq} ${imageFormat.width}x${imageFormat.height}$mode$foldedState ${imageRotation * 90}°" +
-                 " $latency ms latency")
+        LOG.info("Screenshot for display ${imageFormat.display}: ${response.seq} ${imageFormat.width}x${imageFormat.height}" +
+                 "$mode$foldedState ${imageRotation * 90}° $latency ms latency")
       }
       if (screenshotReceiver != this) {
         expectedFrameNumber++
@@ -1161,14 +1161,14 @@ class EmulatorView(
       if (imageFormat.width == 0 || imageFormat.height == 0) {
         expectedFrameNumber++
         if (imageFormat.width != 0 || imageFormat.height != 0) {
-          LOG.error("Invalid ImageMessage: degenerate ${imageFormat.width}x${imageFormat.height} image")
+          LOG.error("Invalid ImageMessage for display ${imageFormat.display}: degenerate ${imageFormat.width}x${imageFormat.height} image")
         }
         return // Ignore empty screenshot.
       }
 
       if (response.image.size() != imageFormat.width * imageFormat.height * 3) {
-        LOG.error("Inconsistent ImageMessage: ${imageFormat.width}x${imageFormat.height} image contains ${response.image.size()} bytes" +
-                  " instead of ${imageFormat.width * imageFormat.height * 3}")
+        LOG.error("Inconsistent ImageMessage for display ${imageFormat.display}: ${imageFormat.width}x${imageFormat.height}" +
+                  " image contains ${response.image.size()} bytes instead of ${imageFormat.width * imageFormat.height * 3}")
         return
       }
 
@@ -1243,13 +1243,22 @@ class EmulatorView(
     private fun checkAspectRatioConsistency(imageFormat: ImageFormat, displayMode: DisplayMode): Boolean {
       val imageAspectRatio = if (imageFormat.rotation.rotationValue % 2 == 0) imageFormat.width.toDouble() / imageFormat.height
                              else imageFormat.height.toDouble() / imageFormat.width
-      val displayAspectRatio = displayMode.width.toDouble() / displayMode.height
+      val displayAspectRatio = when {
+        displayMode.hasPostures && imageFormat.hasFoldedDisplay() ->
+            imageFormat.foldedDisplay.width.toDouble() / imageFormat.foldedDisplay.height
+        else -> displayMode.width.toDouble() / displayMode.height
+      }
       val tolerance = 1.0 / imageFormat.width + 1.0 / imageFormat.height
       if (abs(imageAspectRatio / displayAspectRatio - 1) > tolerance) {
         val imageDimensions = if (imageFormat.rotation.rotationValue % 2 == 0) "${imageFormat.width}x${imageFormat.height}"
                               else "${imageFormat.height}x${imageFormat.width}"
-        LOG.error("Inconsistent ImageMessage: the $imageDimensions display image has different aspect ratio than" +
-                  " the ${displayMode.width}x${displayMode.height} display in the ${displayMode.displayModeId} mode")
+        val foldedState = when {
+          displayMode.hasPostures && imageFormat.hasFoldedDisplay() -> ", foldedDisplay={${shortDebugString(imageFormat.foldedDisplay)}}"
+          displayMode.hasPostures -> ", foldedDisplay is not set"
+          else -> ""
+        }
+        LOG.error("Inconsistent ImageMessage for display ${imageFormat.display}: the $imageDimensions display image has different aspect" +
+                  " ratio than the ${displayMode.width}x${displayMode.height} display in the ${displayMode.displayModeId} mode$foldedState")
         return false
       }
       return true
