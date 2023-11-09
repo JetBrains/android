@@ -68,6 +68,7 @@ iml_module(
     name = "intellij.android.projectSystem.gradle.upgrade",
     srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.gradle.upgrade.iml"],
+    lint_baseline = "lint_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

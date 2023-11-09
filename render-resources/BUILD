@@ -6,6 +6,7 @@ iml_module(
     name = "intellij.android.render-resources",
     srcs = ["src"],
     iml_files = ["intellij.android.render-resources.iml"],
+    lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -25,6 +26,7 @@ iml_module(
 # Build target to verify that render-resources builds for tools/base
 kotlin_library(
     name = "tools.render-resources",
+    # buildifier: disable=bad-recursive-glob
     srcs = glob([
         "src/**/*.java",
         "src/**/*.kt",
@@ -77,6 +79,7 @@ iml_module(
 # Build target to verify that render-resources tests succeed for tools/base
 kotlin_test(
     name = "tools.render-resources.tests",
+    # buildifier: disable=bad-recursive-glob
     srcs = glob([
         "testSrc/**/*.kt",
         "testSrc/**/*.java",

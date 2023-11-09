@@ -1,10 +1,12 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.debuggers",
     srcs = ["src"],
     iml_files = ["intellij.android.debuggers.iml"],
+    lint_baseline = "lint_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -59,8 +61,6 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
     ],
 )
-
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(

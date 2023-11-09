@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.device-manager-v2",
     srcs = ["src"],
     iml_files = ["intellij.android.device-manager-v2.iml"],
+    lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     test_agents = ["//tools/base/threading-agent:threading_agent.jar"],
     test_class = "com.android.tools.idea.devicemanagerv2.DeviceManagerTestSuite",

@@ -5,6 +5,7 @@ iml_module(
     name = "app-inspection.inspectors.network.model",
     srcs = ["src"],
     iml_files = ["app-inspection.inspectors.network.model.iml"],
+    lint_baseline = "lint_baseline.xml",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
