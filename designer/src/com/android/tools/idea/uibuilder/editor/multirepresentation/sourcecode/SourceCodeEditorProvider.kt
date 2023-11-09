@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
 import com.android.tools.idea.editors.sourcecode.isSourceFileType
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MULTI_PREVIEW_STATE_TAG
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreviewFileEditorState
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
@@ -82,8 +81,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
     val projectFacetManager = ProjectFacetManager.getInstance(project)
     return !LightEdit.owns(project) &&
       file.isSourceFileType() &&
-      (projectFacetManager.hasFacets(AndroidFacet.ID) ||
-        projectFacetManager.hasFacets(GradleFacet.getFacetTypeId()))
+      projectFacetManager.hasFacets(AndroidFacet.ID)
   }
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
