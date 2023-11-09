@@ -746,7 +746,7 @@ class ComposePreviewRepresentationTest {
 
       // Re-run UI check with the problems panel action
       launch(uiThread) { rerunAction.actionPerformed(TestActionEvent.createTestEvent()) }
-      delayUntilCondition(250) { preview.isUiCheckPreview }
+      delayUntilCondition(250) { preview.mode.value is PreviewMode.UiCheck }
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
         5.seconds

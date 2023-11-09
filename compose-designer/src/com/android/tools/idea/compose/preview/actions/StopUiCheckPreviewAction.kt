@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.compose.preview.findComposePreviewManagerForContext
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.preview.actions.navigateBack
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
@@ -34,7 +35,7 @@ class StopUiCheckPreviewAction :
   override fun updateButton(e: AnActionEvent) {
     val composePreviewManagers = findComposePreviewManagerForContext(e.dataContext)
     e.presentation.isEnabled = composePreviewManagers?.status()?.isRefreshing != true
-    e.presentation.isVisible = composePreviewManagers?.isUiCheckPreview == true
+    e.presentation.isVisible = composePreviewManagers?.mode?.value is PreviewMode.UiCheck
   }
 
   override fun actionPerformed(e: AnActionEvent) {

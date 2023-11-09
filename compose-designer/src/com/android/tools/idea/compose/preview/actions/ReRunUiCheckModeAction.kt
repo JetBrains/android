@@ -40,7 +40,7 @@ class ReRunUiCheckModeAction : AnAction() {
     val manager = dataContext.getData(COMPOSE_PREVIEW_MANAGER.name) as? ComposePreviewManager
     e.presentation.isVisible = manager != null
     manager?.let {
-      if (it.isUiCheckPreview) {
+      if (it.mode.value is PreviewMode.UiCheck) {
         e.presentation.isEnabled = false
         e.presentation.text = DISABLED_TEXT
       } else {
@@ -48,7 +48,7 @@ class ReRunUiCheckModeAction : AnAction() {
         e.presentation.text = ENABLED_TEXT
       }
     }
-    e.presentation.isEnabled = manager?.isUiCheckPreview?.not() ?: false
+    e.presentation.isEnabled = manager?.mode?.value !is PreviewMode.UiCheck
 
     super.update(e)
   }

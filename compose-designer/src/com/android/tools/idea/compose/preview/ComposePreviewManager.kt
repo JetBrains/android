@@ -90,9 +90,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
   val visualLintingEnabled: Boolean
     get() = (mode.value as? PreviewMode.UiCheck)?.visualLintingEnabled ?: false
 
-  val isUiCheckPreview: Boolean
-    get() = mode.value is PreviewMode.UiCheck
-
   /**
    * Invalidates the cached preview status. This ensures that the @Preview annotations lookup
    * happens again to find any possible new annotations.

@@ -24,6 +24,7 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.util.isRootComponentSelected
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
@@ -68,7 +69,8 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
               SceneLayer(surface, it, false).apply {
                 isShowOnHover = true
                 setShowOnHoverFilter { sceneView ->
-                  (previewManager.mode.value.isNormal || previewManager.isUiCheckPreview) &&
+                  (previewManager.mode.value.isNormal ||
+                    previewManager.mode.value is PreviewMode.UiCheck) &&
                     (!StudioFlags.COMPOSE_PREVIEW_SELECTION.get() ||
                       sceneView.isRootComponentSelected())
                 }
@@ -76,7 +78,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
             )
             add(
               UiCheckWarningLayer(it) {
-                previewManager.isUiCheckPreview && surface.isIssueTabSelected
+                previewManager.mode.value is PreviewMode.UiCheck && surface.isIssueTabSelected
               }
             )
             StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {

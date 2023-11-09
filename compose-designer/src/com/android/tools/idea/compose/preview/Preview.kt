@@ -1186,7 +1186,8 @@ class ComposePreviewRepresentation(
               composePreviewFlowManager.filteredPreviewElementsInstancesFlow.value
                 .sortByDisplayAndSourcePosition()
             }
-          composeWorkBench.hasContent = previewsToRender.isNotEmpty() || isUiCheckPreview
+          composeWorkBench.hasContent =
+            previewsToRender.isNotEmpty() || mode.value is PreviewMode.UiCheck
           if (!needsFullRefresh) {
             requestLogger.debug(
               "No updates on the PreviewElements, just refreshing the existing ones"
