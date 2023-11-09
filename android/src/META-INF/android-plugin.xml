@@ -360,8 +360,6 @@
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.facet.java.DoNotUseLegacyJavaFacetRemover" />
 
     <facetType implementation="com.android.tools.idea.apk.ApkFacetType"/>
-    <projectService serviceImplementation="com.android.tools.idea.apk.ApkFacetCheckerImpl"
-                    serviceInterface="com.android.tools.idea.ApkFacetChecker" />
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>
     <postStartupActivity implementation="com.android.tools.idea.stats.CompletionStats$MyStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.project.LibraryToolWindowInitializer"/>
