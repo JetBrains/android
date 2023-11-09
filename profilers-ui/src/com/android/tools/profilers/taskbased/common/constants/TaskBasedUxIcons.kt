@@ -21,13 +21,16 @@ import icons.StudioIcons
 object TaskBasedUxIcons {
   data class TaskBasedUxIcon(val path: String, val iconClass: Class<*>)
 
-  // The following are the StudioIcons used in the Task-Based UX Profiler.
+  /** The following are the StudioIcons used in the Task-Based UX Profiler. **/
   private const val TOOLBAR_ICON_BASE_PATH = "studio/icons/shell/toolbar"
 
   // Profiler icons for buttons used for rebuilding and relaunching the main process.
   val PROFILEABLE_PROFILER_ICON = TaskBasedUxIcon("$TOOLBAR_ICON_BASE_PATH/profiler-low-overhead.svg", StudioIcons::class.java)
   val DEBUGGABLE_PROFILER_ICON = TaskBasedUxIcon("$TOOLBAR_ICON_BASE_PATH/profiler-detailed.svg", StudioIcons::class.java)
+  // The arrow down and arrow up icons are used for the import and export button respectively button.
+  val IMPORT_RECORDING_ICON = TaskBasedUxIcon("studio/icons/layout-editor/toolbar/arrow-down.svg", StudioIcons::class.java)
+  val EXPORT_RECORDING_ICON = TaskBasedUxIcon("studio/icons/layout-editor/toolbar/arrow-up.svg", StudioIcons::class.java)
 
-  // The following are the AllIcons used in the Task-Based UX Profiler.
+  /** The following are the AllIcons used in the Task-Based UX Profiler. **/
   val RESTART_ICON = TaskBasedUxIcon("actions/restart.svg", AllIcons::class.java)
 }

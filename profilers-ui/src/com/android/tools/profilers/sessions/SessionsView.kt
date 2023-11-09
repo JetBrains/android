@@ -302,15 +302,7 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
   private fun commonAction(text: String) = CommonAction(text, null)
   private fun disabledAction(text: String) = commonAction(text).apply { isEnabled = false }
   private fun importAction() = commonAction("Load from file...").apply {
-    setAction {
-      val supportedExtensions = listOf("trace", "pftrace", "perfetto-trace", "alloc", "hprof", "heapprofd")
-      ideProfilerComponents.createImportDialog().open({ "Open" }, supportedExtensions) { file ->
-        if (!profilers.sessionsManager.importSessionFromFile(File(file.path))) {
-          ideProfilerComponents.createUiMessageHandler()
-            .displayErrorMessage(component, "File Open Error", "Unknown file type: ${file.path}" )
-        }
-      }
-    }
+    setAction(getImportAction(ideProfilerComponents, profilers, component))
   }
 
   private fun confirm(prefKey: String, title: String, msg: String): Boolean =
@@ -359,5 +351,17 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
     @JvmStatic
     fun getComponentMinimizeSize(isExpanded: Boolean) =
       Dimension(if (isExpanded) sessionsExpandedMinWidth else sessionsCollapsedMinWidth, 0)
+
+    fun getImportAction(ideProfilerComponents: IdeProfilerComponents, profilers: StudioProfilers, component: JComponent?): Runnable {
+      return Runnable {
+        val supportedExtensions = listOf("trace", "pftrace", "perfetto-trace", "alloc", "hprof", "heapprofd")
+        ideProfilerComponents.createImportDialog().open({ "Open" }, supportedExtensions) { file ->
+          if (!profilers.sessionsManager.importSessionFromFile(File(file.path))) {
+            ideProfilerComponents.createUiMessageHandler()
+              .displayErrorMessage(component, "File Open Error", "Unknown file type: ${file.path}" )
+          }
+        }
+      }
+    }
   }
 }

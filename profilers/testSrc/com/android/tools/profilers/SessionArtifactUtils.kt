@@ -97,7 +97,15 @@ object SessionArtifactUtils {
                         initialSession: Common.Session,
                         sessionId: Long,
                         childArtifacts: List<SessionArtifact<*>>): SessionItem {
-    val sessionMetadata = Common.SessionMetaData.newBuilder().setSessionId(sessionId).build()
+    return createSessionItem(profilers, initialSession, sessionId, "", childArtifacts)
+  }
+
+  fun createSessionItem(profilers: StudioProfilers,
+                        initialSession: Common.Session,
+                        sessionId: Long,
+                        sessionName: String,
+                        childArtifacts: List<SessionArtifact<*>>): SessionItem {
+    val sessionMetadata = Common.SessionMetaData.newBuilder().setSessionId(sessionId).setSessionName(sessionName).build()
     return SessionItem(profilers, initialSession, sessionMetadata).apply {
       setChildArtifacts(childArtifacts)
     }

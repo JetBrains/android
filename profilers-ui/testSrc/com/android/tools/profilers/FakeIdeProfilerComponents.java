@@ -166,7 +166,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   public UiMessageHandler createUiMessageHandler() {
     return new UiMessageHandler() {
       @Override
-      public void displayErrorMessage(@NotNull JComponent parent, @NotNull String title, @NotNull String message) {
+      public void displayErrorMessage(@Nullable JComponent parent, @NotNull String title, @NotNull String message) {
         parent.add(new JLabel(message));
       }
 

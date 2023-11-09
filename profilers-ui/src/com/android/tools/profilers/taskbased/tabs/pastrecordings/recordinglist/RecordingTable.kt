@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.taskbased.tabs.home.processlist
+package com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.VerticalScrollbar
@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -34,16 +33,16 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.ProcessUtils.isProfileable
+import com.android.tools.adtui.model.formatter.TimeFormatter
+import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_HEADER_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_ROW_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_ROW_SELECTION_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TABLE_SEPARATOR_COLOR
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.RECORDING_TASKS_COL_WIDTH_DP
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.RECORDING_TIME_COL_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TABLE_ROW_HEIGHT_DP
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP
 import com.android.tools.profilers.taskbased.common.table.leftAlignedColumnText
@@ -52,44 +51,38 @@ import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 
 @Composable
-private fun ProcessListRow(selectedProcess: Common.Process,
-                   onProcessSelection: (Common.Process) -> Unit,
-                   process: Common.Process) {
-  val processName = process.name
-  val pid = process.pid
-
-  if (process == Common.Process.getDefaultInstance()) {
-    return
-  }
-
+fun RecordingListRow(selectedRecording: SessionItem?,
+                     onRecordingSelection: (SessionItem?) -> Unit,
+                     recording: SessionItem,
+                     supportedTasks: String) {
   Row(
     modifier = Modifier
       .fillMaxWidth()
       .height(TABLE_ROW_HEIGHT_DP)
       .background(
-        if (process == selectedProcess)
+        if (recording == selectedRecording)
           TABLE_ROW_SELECTION_BACKGROUND_COLOR
         else
           TABLE_ROW_BACKGROUND_COLOR
       )
       .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
       .selectable(
-        selected = process == selectedProcess,
+        selected = recording == selectedRecording,
         onClick = {
-          val newSelectedDeviceProcess = if (process != selectedProcess) process else Common.Process.getDefaultInstance()
-          onProcessSelection(newSelectedDeviceProcess)
+          val newSelectedRecording = if (recording != selectedRecording) recording else null
+          onRecordingSelection(newSelectedRecording)
         })
-      .testTag("ProcessListRow")
+      .testTag("RecordingListRow")
   ) {
-    leftAlignedColumnText(processName, rowScope = this)
-    rightAlignedColumnText(text = pid.toString(), colWidth = TaskBasedUxDimensions.PID_COL_WIDTH_DP)
-    rightAlignedColumnText(text = if (process.isProfileable()) "Profileable" else "Debuggable",
-                           colWidth = TaskBasedUxDimensions.MANIFEST_CONFIG_COL_WIDTH_DP)
+    leftAlignedColumnText(recording.name, rowScope = this)
+    rightAlignedColumnText(text = TimeFormatter.getLocalizedDateTime(recording.sessionMetaData.startTimestampEpochMs),
+                           colWidth = RECORDING_TIME_COL_WIDTH_DP)
+    rightAlignedColumnText(text = supportedTasks, colWidth = RECORDING_TASKS_COL_WIDTH_DP)
   }
 }
 
 @Composable
-private fun ProcessListHeader() {
+fun RecordingListHeader() {
   Row(
     modifier = Modifier
       .fillMaxWidth()
@@ -97,19 +90,18 @@ private fun ProcessListHeader() {
       .background(TABLE_HEADER_BACKGROUND_COLOR)
       .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
   ) {
-    leftAlignedColumnText(text = "Process name", rowScope = this)
-    Divider(thickness = 1.dp, modifier = Modifier.fillMaxHeight(), orientation = Orientation.Vertical)
-    rightAlignedColumnText(text = "PID", colWidth = TaskBasedUxDimensions.PID_COL_WIDTH_DP)
-    Divider(thickness = 1.dp, modifier = Modifier.fillMaxHeight(), orientation = Orientation.Vertical)
-    rightAlignedColumnText(text = "Manifest Configuration", colWidth = TaskBasedUxDimensions.MANIFEST_CONFIG_COL_WIDTH_DP)
+    leftAlignedColumnText(text = "Recording name", rowScope = this)
+    Divider(thickness = 1.dp, orientation = Orientation.Vertical)
+    rightAlignedColumnText(text = "Recording time", colWidth = RECORDING_TIME_COL_WIDTH_DP)
+    Divider(thickness = 1.dp, orientation = Orientation.Vertical)
+    rightAlignedColumnText(text = "Recorded tasks", colWidth = RECORDING_TASKS_COL_WIDTH_DP)
   }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ProcessTable(processList: List<Common.Process>,
-                 selectedProcess: Common.Process,
-                 onProcessSelection: (Common.Process) -> Unit) {
+fun RecordingTable(recordingList: List<SessionItem>, selectedRecording: SessionItem?, onRecordingSelection: (SessionItem?) -> Unit,
+                   createStringOfSupportedTasks: (SessionItem) -> String) {
   val listState = rememberLazyListState()
 
   Box(modifier = Modifier.fillMaxSize().background(TABLE_ROW_BACKGROUND_COLOR)) {
@@ -117,11 +109,11 @@ fun ProcessTable(processList: List<Common.Process>,
       state = listState
     ) {
       stickyHeader {
-        ProcessListHeader()
+        RecordingListHeader()
         Divider(color = TABLE_SEPARATOR_COLOR, modifier = Modifier.fillMaxWidth(), thickness = 1.dp, orientation = Orientation.Horizontal)
       }
-      items(items = processList) { process ->
-        ProcessListRow(selectedProcess = selectedProcess, onProcessSelection = onProcessSelection, process = process)
+      items(items = recordingList) { recording ->
+        RecordingListRow(selectedRecording, onRecordingSelection, recording, createStringOfSupportedTasks(recording))
       }
     }
 

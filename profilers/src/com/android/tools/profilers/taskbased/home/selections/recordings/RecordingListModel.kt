@@ -22,6 +22,7 @@ import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskSupportUtils
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
+import com.google.common.annotations.VisibleForTesting
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -48,10 +49,11 @@ class RecordingListModel(val profilers: StudioProfilers,
     _selectedRecording.value = newRecording
   }
 
-  fun isSelectedRecordingExportable(): Boolean {
-    val recording = selectedRecording.value
-    return recording != null && recording.containsExactlyOneArtifact() && (recording.getChildArtifacts().firstOrNull()?.canExport ?: false)
+  fun isSelectedRecordingExportable() = selectedRecording.value.let {
+    it != null && it.containsExactlyOneArtifact() && (it.getChildArtifacts().firstOrNull()?.canExport ?: false)
   }
+
+  val exportableArtifact get() = if (isSelectedRecordingExportable()) selectedRecording.value!!.getChildArtifacts().first() else null
 
   private fun sessionItemsUpdated() {
     val sessionItems = profilers.sessionsManager.sessionArtifacts.filterIsInstance<SessionItem>()
@@ -69,5 +71,10 @@ class RecordingListModel(val profilers: StudioProfilers,
     }.keys
 
     return if (supportedTaskTypes.isEmpty()) "No tasks available" else supportedTaskTypes.joinToString(separator = ", ") { it.description }
+  }
+
+  @VisibleForTesting
+  fun setRecordingList(recordingList: List<SessionItem>) {
+    _recordingList.value = recordingList
   }
 }
