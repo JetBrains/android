@@ -67,7 +67,7 @@ object DebugSessionStarter {
     indicator: ProgressIndicator,
     consoleView: ConsoleView? = null,
     timeout: Long = 15
-  ): XDebugSessionImpl = indicatorRunBlockingCancellable(indicator) {
+  ): XDebugSessionImpl = RunStats.from(environment).track(START_DEBUGGER_SESSION) {
     val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
 
     val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
@@ -135,7 +135,7 @@ object DebugSessionStarter {
     indicator: ProgressIndicator,
     consoleView: ConsoleView? = null,
     timeout: Long = 300
-  ): XDebugSessionImpl = indicatorRunBlockingCancellable(indicator) {
+  ): XDebugSessionImpl = RunStats.from(environment).track(START_REATTACHING_DEBUGGER_SESSION) {
     val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
     val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
       environment.project, client,
