@@ -94,13 +94,16 @@ sealed class PreviewMode {
 
   class Default(
     override val layoutOption: SurfaceLayoutManagerOption = LIST_LAYOUT_MANAGER_OPTION
-  ) : PreviewMode() {
+  ) : RestorePreviewMode() {
     override fun deriveWithLayout(layoutOption: SurfaceLayoutManagerOption): PreviewMode {
       return Default(layoutOption)
     }
   }
 
   sealed class Focus<T : PreviewElement>(override val selected: T) : PreviewMode()
+
+  /** Represents a mode that can be restored when clicking on "Stop" when inside a mode. */
+  sealed class RestorePreviewMode : PreviewMode()
 
   class UiCheck(
     val baseElement: PreviewElement,
@@ -123,7 +126,7 @@ sealed class PreviewMode {
     }
   }
 
-  class Gallery(override val selected: PreviewElement?) : PreviewMode() {
+  class Gallery(override val selected: PreviewElement?) : RestorePreviewMode() {
     override val layoutOption: SurfaceLayoutManagerOption = PREVIEW_LAYOUT_GALLERY_OPTION
 
     /**

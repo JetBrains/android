@@ -40,10 +40,13 @@ class CommonPreviewModeManager : PreviewModeManager {
   override fun setMode(mode: PreviewMode) {
     synchronized(lock) {
       val currentMode = this._mode.value
+      // We only change the restore mode when we change mode type. That way we can go back
+      // to the latest state of the previous type of mode.
       if (PreviewModeManager.areModesOfDifferentType(currentMode, mode)) {
-        // We only change the restore mode when we change mode type. That way we can go back
-        // to the latest state of the previous type of mode.
-        restoreMode = currentMode
+        // Only set the restore mode for modes that can be used as such. Otherwise, set the restore
+        // mode to Default.
+        restoreMode =
+          if (currentMode is PreviewMode.RestorePreviewMode) currentMode else PreviewMode.Default()
       }
       this._mode.value = mode
     }
