@@ -128,7 +128,6 @@ sealed class PreviewMode {
     }
   }
 
-  // TODO(b/290579083): extract Essential mode outside of PreviewMode
   class Gallery(override val selected: PreviewElement?) : PreviewMode() {
     override val layoutMode: LayoutMode = LayoutMode.Gallery
     override val layoutOption: SurfaceLayoutManagerOption = PREVIEW_LAYOUT_GALLERY_OPTION
