@@ -283,6 +283,7 @@ class ParametrizedPreviewTest {
     Disposer.register(projectRule.fixture.testRootDisposable, preview)
     preview.onActivate()
 
+    preview.waitForAnyPendingRefresh()
     val uiCheckElement = elements.first() as ParametrizedComposePreviewElementInstance
     run {
       var refreshCompleted = false
