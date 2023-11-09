@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.gradle.ComposePreviewFakeUiGradleRule
 import com.android.tools.idea.compose.gradle.preview.TestComposePreviewView
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
@@ -168,6 +169,7 @@ class PerfgateComposeGradleTest {
         AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = true
         composePreviewRepresentation.updateGalleryModeForTest()
       }
+      delayUntilCondition(500, 5.seconds) { previewView.galleryMode != null }
       previewView.galleryMode!!.triggerTabChange(MapDataContext().also {
         it.put(getComposePreviewManagerKeyForTests(), composePreviewRepresentation)
       }, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.first())
