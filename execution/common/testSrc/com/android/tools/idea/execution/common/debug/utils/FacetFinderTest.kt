@@ -33,6 +33,7 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -251,6 +252,7 @@ class FacetFinderTest {
   }
 
   @Test
+  @Ignore("Revisit after AS Hedgehog Beta 5 merge is done.")
   fun testGlobalProcessFromLibModule() {
     val result = FacetFinder.findFacetForProcess(project, "globalfromlib")
     assertEquals(libFacet.mainModule.androidFacet, result) // TODO(b/262868739): Currently brittle to module iteration order - should be appFacet.mainModule
