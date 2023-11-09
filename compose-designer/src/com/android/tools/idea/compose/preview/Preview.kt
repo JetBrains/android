@@ -106,7 +106,6 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.rd.util.withUiContext
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
@@ -759,7 +758,7 @@ class ComposePreviewRepresentation(
         (it.selected as? ComposePreviewElementInstance).let { element ->
           composePreviewFlowManager.setSingleFilter(element)
         }
-        withUiContext {
+        withContext(uiThread) {
           val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
           layoutManager.setLayoutManager(
             it.layoutOption.layoutManager,
@@ -1476,7 +1475,7 @@ class ComposePreviewRepresentation(
       is PreviewMode.Gallery -> {}
     }
     surface.background = mode.backgroundColor
-    withUiContext {
+    withContext(uiThread) {
       val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
       layoutManager.setLayoutManager(
         mode.layoutOption.layoutManager,
