@@ -32,8 +32,9 @@ import org.junit.Test;
 
 public class DeepLinkChooserDialogTest {
 
-  private static final String ANDROID_MANIFEST =
-    TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/deeplink/launch/AndroidManifest.xml").toString();
+  private static final String ANDROID_MANIFEST = "AndroidManifest.xml";
+  private static final String TEST_DATA_PATH =
+    TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/deeplink/launch").toString();
 
   @Rule
   public AndroidProjectRule myProjectRule = AndroidProjectRule.onDisk();
@@ -43,6 +44,7 @@ public class DeepLinkChooserDialogTest {
 
   @Before
   public void setUp() throws Exception {
+    myProjectRule.getFixture().setTestDataPath(TEST_DATA_PATH);
     TemplateManagerImpl.setTemplateTesting(myProjectRule.getTestRootDisposable());
   }
 
