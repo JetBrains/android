@@ -37,7 +37,10 @@ public class RootPathTree {
   static final int DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE = NOMINATED_CLASSES_NUMBER_IN_SECTION * 3;
   static final int OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE = NOMINATED_CLASSES_NUMBER_IN_SECTION * 3 + 1;
   static final int HEAP_SUMMARY_NODE_TYPE = NOMINATED_CLASSES_NUMBER_IN_SECTION * 3 + 2;
-  static final IntSet NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION =
+
+  // Nodes of essential nominated types will be included in the memory reports with no reduction. Also the top-most nodes of the essential
+  // nominated types will be included in the heapSummary trees.
+  static final IntSet ESSENTIAL_NOMINATED_NODE_TYPES =
     IntSet.of(DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE, OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE);
   @NotNull final Map<ExtendedStackNode, RootPathTreeNode> roots = Maps.newHashMap();
   @NotNull final ObjectsStatistics totalNominatedLoadersReferringObjectsStatistics = new ObjectsStatistics();
@@ -64,7 +67,7 @@ public class RootPathTree {
   public void addObjectWithPathToRoot(@NotNull final Stack<RootPathElement> rootPath,
                                       @NotNull final ExceededClusterStatistics exceededClusterStatistics,
                                       int nominatedNodeTypeId) {
-    if (rootPath.size() > ROOT_PATH_TREE_MAX_OBJECT_DEPTH && !NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION.contains(nominatedNodeTypeId)) {
+    if (rootPath.size() > ROOT_PATH_TREE_MAX_OBJECT_DEPTH && !ESSENTIAL_NOMINATED_NODE_TYPES.contains(nominatedNodeTypeId)) {
       return;
     }
 

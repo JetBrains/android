@@ -759,6 +759,41 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
   }
 
   @Test
+  public void testEssentialNominatedTypesInSummary() throws IOException {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("D",
+                                                        1,
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
+                                                        Collections.emptyList());
+    FakeCrushReporter crushReporter = new FakeCrushReporter();
+    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+
+    WeakList<Object> roots = new WeakList<>();
+    B b = new B();
+    D d = new D(b, new B());
+
+    roots.add(List.of(d, "test"));
+
+    Disposer.dispose(b);
+
+    MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots,
+                                                             200);
+    assertSize(1, crushReporter.crashReports);
+    CrashReport report = crushReporter.crashReports.get(0);
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
+    serializedExtendedReport = replaceNewlines(serializedExtendedReport);
+    assertExtendedMemoryReport("testEssentialNominatedTypesInSummary", serializedExtendedReport);
+    assertExtendedMemoryReportSummary("testEssentialNominatedTypesInSummary", serializedExtendedReport);
+  }
+
+  @Test
   public void testCustomClassLoaderInNonExceedingComponent() throws
                                                       IOException,
                                                       ClassNotFoundException,

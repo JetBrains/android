@@ -17,7 +17,7 @@ package com.android.tools.idea.diagnostics.heap;
 
 import static com.android.tools.idea.diagnostics.heap.RootPathTree.DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE;
 import static com.android.tools.idea.diagnostics.heap.RootPathTree.HEAP_SUMMARY_NODE_TYPE;
-import static com.android.tools.idea.diagnostics.heap.RootPathTree.NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION;
+import static com.android.tools.idea.diagnostics.heap.RootPathTree.ESSENTIAL_NOMINATED_NODE_TYPES;
 import static com.android.tools.idea.diagnostics.heap.RootPathTree.OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE;
 import static com.google.common.base.Strings.padStart;
 
@@ -52,7 +52,7 @@ public abstract class RootPathTreePrinter {
     this.exceededClusterId = exceededClusterId;
   }
 
-  abstract boolean shouldPrintNodeSubtree(@NotNull final RootPathTreeNode node, int depth);
+  abstract boolean shouldPrintNodeSubtree(@NotNull final RootPathTreeNode node, int depth, short visitedEssentialNominatedNodeTypesMask);
 
   abstract void print(@NotNull final Consumer<String> writer);
 
@@ -61,10 +61,10 @@ public abstract class RootPathTreePrinter {
 
   protected void printPathTreeForComponentAndNominatedType(@NotNull final Consumer<String> writer) {
     AtomicInteger rootIndex = new AtomicInteger(1);
-    extendedReportStatistics.rootPathTree.roots.values().stream().filter(r -> shouldPrintNodeSubtree(r, 0))
+    extendedReportStatistics.rootPathTree.roots.values().stream().filter(r -> shouldPrintNodeSubtree(r, 0, (short)0))
       .sorted(getChildrenOrderingComparator()).forEach(r -> {
         writer.accept(String.format(Locale.US, "Root %d:", rootIndex.getAndIncrement()));
-        printRootPathIteration(writer, r, " ", true, false, 0);
+        printRootPathIteration(writer, r, " ", true, false, 0, (short)0);
       });
   }
 
@@ -73,13 +73,21 @@ public abstract class RootPathTreePrinter {
                                         @NotNull final String prefix,
                                         boolean isOnlyChild,
                                         boolean isLastChild,
-                                        int depth) {
+                                        int depth,
+                                        short visitedEssentialNominatedNodeTypesMask) {
     writer.accept(constructRootPathLine(node, prefix, isOnlyChild, isLastChild));
 
+    for (Integer type : ESSENTIAL_NOMINATED_NODE_TYPES) {
+      if (node.selfSizes[exceededClusterId][type] != null) {
+        visitedEssentialNominatedNodeTypesMask |= 1 << type;
+      }
+    }
+
+    short finalVisitedEssentialNominatedNodeTypesMask = visitedEssentialNominatedNodeTypesMask;
     List<RootPathTreeNode> children = node.children.values().stream().filter(
         c -> (c.instancesStatistics[exceededClusterId][nominatedNodeTypeId] != null &&
               c.instancesStatistics[exceededClusterId][nominatedNodeTypeId].getObjectsCount() > 0) &&
-             shouldPrintNodeSubtree(c, depth + 1))
+             shouldPrintNodeSubtree(c, depth + 1, finalVisitedEssentialNominatedNodeTypesMask))
       .sorted(getChildrenOrderingComparator()).toList();
 
     if (children.size() > 1) {
@@ -93,13 +101,14 @@ public abstract class RootPathTreePrinter {
         else {
           childPrefix += " |";
         }
-        printRootPathIteration(writer, childNode, childPrefix, false, i == children.size() - 1, depth + 1);
+        printRootPathIteration(writer, childNode, childPrefix, false, i == children.size() - 1, depth + 1,
+                               visitedEssentialNominatedNodeTypesMask);
         i++;
       }
       return;
     }
     for (RootPathTreeNode childNode : children) {
-      printRootPathIteration(writer, childNode, prefix, true, false, depth + 1);
+      printRootPathIteration(writer, childNode, prefix, true, false, depth + 1, visitedEssentialNominatedNodeTypesMask);
     }
   }
 
@@ -195,7 +204,7 @@ public abstract class RootPathTreePrinter {
     }
 
     @Override
-    boolean shouldPrintNodeSubtree(@NotNull RootPathTreeNode node, int depth) {
+    boolean shouldPrintNodeSubtree(@NotNull RootPathTreeNode node, int depth, short visitedEssentialNominatedNodeTypesMask) {
       ObjectsStatistics rootSubtreeStatistics = nominatedObjectsStatsInTheNodeSubtree.get(node);
 
       return rootSubtreeStatistics != null &&
@@ -204,7 +213,7 @@ public abstract class RootPathTreePrinter {
               (100 * rootSubtreeStatistics.getObjectsCount() >=
                totalNominatedTypeStatistics.getObjectsCount() * NODE_SUBTREE_SIZE_PERCENTAGE_REQUIREMENT) ||
               (rootSubtreeStatistics.getTotalSizeInBytes() >= NODE_SUBTREE_OBJECTS_SIZE_REQUIREMENT_BYTES) ||
-              NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION.contains(nominatedNodeTypeId));
+              ESSENTIAL_NOMINATED_NODE_TYPES.contains(nominatedNodeTypeId));
     }
 
     @NotNull
@@ -298,7 +307,16 @@ public abstract class RootPathTreePrinter {
     }
 
     @Override
-    boolean shouldPrintNodeSubtree(@NotNull RootPathTreeNode node, int depth) {
+    boolean shouldPrintNodeSubtree(@NotNull RootPathTreeNode node, int depth, short visitedEssentialNominatedNodeTypesMask) {
+      for (Integer type : ESSENTIAL_NOMINATED_NODE_TYPES) {
+        if (node.instancesStatistics[exceededClusterId][type] != null &&
+            node.instancesStatistics[exceededClusterId][type].getObjectsCount() > 0) {
+          if ((visitedEssentialNominatedNodeTypesMask & (1 << type)) == 0) {
+            return true;
+          }
+        }
+      }
+
       return node.instancesStatistics[exceededClusterId][nominatedNodeTypeId] != null &&
              node.instancesStatistics[exceededClusterId][nominatedNodeTypeId].getObjectsCount() > 0 &&
              node.instancesStatistics[exceededClusterId][nominatedNodeTypeId].getTotalSizeInBytes() >
