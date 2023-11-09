@@ -16,13 +16,22 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.idea.execution.common.DeployableToDevice
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ProgramRunner
+import com.intellij.facet.Facet
+import com.intellij.facet.FacetConfiguration
+import com.intellij.facet.FacetType
+import com.intellij.facet.FacetTypeId
+import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.replaceService
+import com.intellij.util.containers.ContainerUtil
 import org.junit.Rule
 import org.junit.Test
 
@@ -34,8 +43,12 @@ class AndroidComplicationConfigurationTest {
   val project: Project
     get() = projectRule.project
 
+  private val projectFacetManager = newProjectFacetManager()
+
   @Test
   fun testProgramRunnerAvailable() {
+    project.replaceService(ProjectFacetManager::class.java, projectFacetManager, projectRule.disposable)
+
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
 
@@ -52,5 +65,32 @@ class AndroidComplicationConfigurationTest {
       "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
 
     assertThat(DeployableToDevice.deploysToLocalDevice(configSettings.configuration)).isTrue()
+  }
+
+  private fun newProjectFacetManager(): ProjectFacetManager {
+    return object : ProjectFacetManager() {
+      override fun hasFacets(typeId: FacetTypeId<*>): Boolean {
+        return true
+      }
+
+      override fun <F : Facet<*>?> getFacets(typeId: FacetTypeId<F>, modules: Array<Module>): List<F> {
+        return emptyList()
+      }
+
+      override fun <F : Facet<*>?> getFacets(typeId: FacetTypeId<F>): List<F> {
+        return emptyList()
+      }
+
+      override fun getModulesWithFacet(typeId: FacetTypeId<*>): List<Module> {
+        return emptyList()
+      }
+
+      override fun <C : FacetConfiguration?> createDefaultConfiguration(facetType: FacetType<*, C>): C? {
+        return null
+      }
+
+      override fun <C : FacetConfiguration?> setDefaultConfiguration(facetType: FacetType<*, C>, configuration: C & Any) {
+      }
+    }
   }
 }
