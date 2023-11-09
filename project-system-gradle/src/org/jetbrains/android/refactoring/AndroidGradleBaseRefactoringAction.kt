@@ -15,13 +15,11 @@
  */
 package org.jetbrains.android.refactoring
 
-import com.android.tools.idea.hasAndroidOrApkFacet
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.refactoring.actions.BaseRefactoringAction
-import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.android.util.AndroidUtils.hasAndroidFacets
 
 /**
  * This class ensures that Gradle-based actions are disabled and invisible in non-Gradle-based projects.
@@ -30,7 +28,7 @@ abstract class AndroidGradleBaseRefactoringAction: BaseRefactoringAction() {
   override fun update(e: AnActionEvent) {
     val presentation = e.presentation
     val project = e.project
-    if (project == null || !project.hasAndroidOrApkFacet()) {
+    if (project == null || !hasAndroidFacets(project)) {
       presentation.isEnabledAndVisible = false
       return
     }
