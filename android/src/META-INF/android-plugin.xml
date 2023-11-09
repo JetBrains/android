@@ -344,7 +344,6 @@
 
     <facetType implementation="com.android.tools.idea.apk.ApkFacetType"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>
-    <postStartupActivity implementation="com.android.tools.idea.project.LibraryToolWindowInitializer"/>
     <completion.contributor language="JAVA"
                             id="AndroidJavaCompletionContributor"
                             implementationClass="org.jetbrains.android.AndroidJavaCompletionContributor"
