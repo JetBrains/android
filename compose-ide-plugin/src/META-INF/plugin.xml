@@ -33,10 +33,8 @@
 
     <annotator language="kotlin" implementationClass="com.android.tools.compose.code.state.ComposeStateReadAnnotator"/>
 
-    <additionalTextAttributes scheme="Default" file="colorschemes/ComposableHighlighterExtensionColorSchemeDefault.xml"/>
-    <additionalTextAttributes scheme="Darcula" file="colorschemes/ComposableHighlighterExtensionColorSchemeDarcula.xml"/>
-    <additionalTextAttributes scheme="Default" file="colorschemes/ComposeStateReadAnnotatorColorSchemeDefault.xml"/>
-    <additionalTextAttributes scheme="Darcula" file="colorschemes/ComposeStateReadAnnotatorColorSchemeDarcula.xml"/>
+    <additionalTextAttributes scheme="Default" file="colorschemes/ComposeColorSchemeDefault.xml"/>
+    <additionalTextAttributes scheme="Darcula" file="colorschemes/ComposeColorSchemeDarcula.xml"/>
 
     <colorSettingsPage implementation="com.android.tools.compose.ComposeColorSettingsPage"/>
 
