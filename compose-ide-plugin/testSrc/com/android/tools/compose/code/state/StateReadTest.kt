@@ -18,11 +18,11 @@ package com.android.tools.compose.code.state
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.getEnclosing
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.onEdt
 import com.android.utils.associateWithNotNull
 import com.google.common.truth.Truth.assertThat
-import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -34,8 +34,6 @@ import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
-import org.jetbrains.kotlin.psi.psiUtil.endOffset
-import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -296,48 +294,12 @@ class StateReadTest {
     collectDescendantsOfType<KtNameReferenceExpression>()
       .associateWithNotNull(KtNameReferenceExpression::getStateRead)
 
-  private inline fun <reified T> PsiFile.getSmallestEnclosing(window: String): T {
-    val windowStart = window.reversed().replaceFirst("|", "").reversed()
-    val windowEnd = window.replaceFirst("|", "")
-    return getSmallestEnclosing(windowStart to windowEnd)
-  }
+  private fun PsiFile.lambda(window: String): KtLambdaExpression = getEnclosing(window)
 
-  private fun PsiFile.lambda(window: String) = getSmallestEnclosing<KtLambdaExpression>(window)
+  private fun PsiFile.expression(window: String): KtExpression = getEnclosing(window)
 
-  private fun PsiFile.expression(window: String) = getSmallestEnclosing<KtExpression>(window)
-
-  private fun PsiFile.stateVar(): KtNameReferenceExpression = getSmallestEnclosing("= |stateVar|")
+  private fun PsiFile.stateVar(): KtNameReferenceExpression = getEnclosing("= |stateVar|")
 
   private fun PsiFile.outerFunction(): KtNamedFunction =
-    getSmallestEnclosing("|fun $OUTER_FUNCTION" to "\n}|")
-
-  private inline fun <reified T> PsiFile.getSmallestEnclosing(window: Pair<String, String>): T {
-    val startOffset = offsetForWindow(window.first)
-    val endOffset = offsetForWindow(window.second, startOffset)
-    var candidate = findElementAt(startOffset)
-    // Climb up until we find something
-    while (
-      candidate != null &&
-        (candidate !is T || candidate.startOffset > startOffset || candidate.endOffset < endOffset)
-    ) {
-      candidate = candidate.parent
-    }
-    assertWithMessage(
-        "Did not find an enclosing ${T::class} in $this between ${window.first} and ${window.second}"
-      )
-      .that(candidate)
-      .isNotNull()
-    return checkNotNull(candidate as T)
-  }
-
-  private fun PsiFile.offsetForWindow(window: String, startIndex: Int = 0): Int {
-    val delta = window.indexOf("|")
-    require(delta >= 0) { "No '|' character found in window: \"$window\"" }
-    val target = window.substring(0, delta) + window.substring(delta + 1)
-    val start = text.indexOf(target, startIndex - delta)
-    assertWithMessage("Didn't find the string $target in the source of $this")
-      .that(start)
-      .isAtLeast(0)
-    return start + delta
-  }
+    getEnclosing("|fun $OUTER_FUNCTION" to "\n}|")
 }

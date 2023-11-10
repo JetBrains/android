@@ -20,7 +20,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.findParentElement
+import com.android.tools.idea.testing.getEnclosing
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
@@ -35,6 +35,7 @@ import com.intellij.usages.rules.PsiElementUsage
 import com.intellij.usages.rules.UsageGroupingRuleEx
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
+import org.jetbrains.kotlin.psi.KtExpression
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -250,9 +251,9 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(
 
     val file = addFileToProject("/src/the/regrettes/LaDiDa.kt", contents)
     openFileInEditor(file.virtualFile)
-    val element = findParentElement<PsiElement>(elementWindow)
+    val element = getEnclosing<KtExpression>(elementWindow)
     val targets =
-      targetWindows.map { findParentElement<PsiElement>(it) }.map(::TestUsageTarget).toTypedArray()
+      targetWindows.map { getEnclosing<KtExpression>(it) }.map(::TestUsageTarget).toTypedArray()
 
     return TestUsage(element) to targets
   }
