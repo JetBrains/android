@@ -6,6 +6,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.SdkConstants;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.idea.IgnoreJUnit3;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -578,6 +579,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
   */
 
+  @IgnoreJUnit3(reason = "Needs to be run with Android platforms;android-34")
   public void testIntentActionCompletion1() throws Throwable {
     doTestCompletionVariants(getTestName(false) + ".xml",
                              "android.intent.action.CALL",
