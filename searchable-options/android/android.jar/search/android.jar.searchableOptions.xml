@@ -461,9 +461,6 @@
     <option name="gradle" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
     <option name="migrate" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
     <option name="to" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
-    <option name="appcompat" path="ActionManager" hit="Migrate to AppCompat..." />
-    <option name="migrate" path="ActionManager" hit="Migrate to AppCompat..." />
-    <option name="to" path="ActionManager" hit="Migrate to AppCompat..." />
     <option name="classes" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
     <option name="migrate" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
     <option name="non-transitive" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
@@ -473,10 +470,6 @@
     <option name="namespaces" path="ActionManager" hit="Migrate to Resource Namespaces..." />
     <option name="resource" path="ActionManager" hit="Migrate to Resource Namespaces..." />
     <option name="to" path="ActionManager" hit="Migrate to Resource Namespaces..." />
-    <option name="app" path="ActionManager" hit="Migrates app to AppCompat" />
-    <option name="appcompat" path="ActionManager" hit="Migrates app to AppCompat" />
-    <option name="migrates" path="ActionManager" hit="Migrates app to AppCompat" />
-    <option name="to" path="ActionManager" hit="Migrates app to AppCompat" />
     <option name="classes" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="migrates" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="non-transitive" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
