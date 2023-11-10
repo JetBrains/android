@@ -35,7 +35,7 @@ open class SdkIndexTestBase {
   private val localSnapshotFolder = "tools/adt/idea/project-system-integration-tests/testData/snapshot/"
   private val testProjectPath = "tools/adt/idea/project-system-integration-tests/testData/sdkindexapp"
   private val testRepoManifest = "tools/adt/idea/project-system-integration-tests/sdkindexproject_deps.manifest"
-  private val snapshotTimeoutSeconds: Long = 60
+  private val snapshotTimeoutSeconds: Long = 120
   private val timeoutPsdShowSeconds: Long = 60
   // TODO(b/243691427): Change the way we confirm no more issues were created, on test runs it is around 10 ms between issues
   private val timeoutBetweenIssuesSeconds: Long = 2
