@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 package com.android.tools.idea.gradle.project;
-
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -31,7 +29,6 @@ import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 /**
  * Tests for {@link AndroidGradleProjectStartupActivity}.
  */
@@ -40,7 +37,6 @@ public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCa
   private AndroidGradleProjectStartupActivity myStartupActivity;
   private GradleSyncInvoker mySyncInvoker;
   private GradleSyncInvoker.Request myRequest;
-
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -58,52 +54,37 @@ public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCa
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleSyncInvoker.class, mySyncInvoker, project);
     myGradleProjectInfo = mock(GradleProjectInfo.class);
     ServiceContainerUtil.replaceService(myProject, GradleProjectInfo.class, myGradleProjectInfo, project);
-
     myStartupActivity = new AndroidGradleProjectStartupActivity();
   }
-
   @Override
   protected void tearDown() throws Exception {
     try {
       myGradleProjectInfo = null;
     }
-    catch (Throwable e) {
-      addSuppressedException(e);
-    }
     finally {
       super.tearDown();
     }
   }
-
   public void testRunActivityWithImportedProject() {
     // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
     if (!IdeInfo.getInstance().isAndroidStudio()) return;
-
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
-
     Project project = getProject();
     myStartupActivity.runActivity(project);
-
     assertThat(myRequest).isNotNull();
   }
-
   public void testRunActivityWithExistingGradleProject() {
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
     when(myGradleProjectInfo.getAndroidModules()).thenReturn(Collections.singletonList(new MockModule(getTestRootDisposable())));
-
     Project project = getProject();
     myStartupActivity.runActivity(project);
-
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN);
     assertThat(myRequest).isNotNull();
   }
-
   public void testRunActivityWithNonGradleProject() {
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(false);
-
     Project project = getProject();
     myStartupActivity.runActivity(project);
-
     assertThat(myRequest).isNull();
   }
 }
