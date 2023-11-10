@@ -18,8 +18,8 @@
 package com.android.tools.idea.testing
 
 import com.android.testutils.waitForCondition
-import com.android.tools.res.LocalResourceRepository
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.res.LocalResourceRepository
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionDelegate
 import com.intellij.lang.annotation.HighlightSeverity
@@ -48,6 +48,12 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.concurrency.SameThreadExecutor
 import com.intellij.util.ui.EDT
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.swing.SwingUtilities
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -56,22 +62,14 @@ import org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler
 import org.jetbrains.android.refactoring.renaming.ResourceRenameHandler
 import org.junit.Assert.assertTrue
 import org.junit.runner.Description
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.swing.SwingUtilities
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
-/**
- * Finds an [IntentionAction] with given name, if present.
- */
-fun CodeInsightTestFixture.getIntentionAction(message: String) = availableIntentions.firstOrNull { it.text == message }
+/** Finds an [IntentionAction] with given name, if present. */
+fun CodeInsightTestFixture.getIntentionAction(message: String) =
+  availableIntentions.firstOrNull { it.text == message }
 
-/**
- * Finds an intention action with given name and class, if present.
- */
-fun <T> CodeInsightTestFixture.getIntentionAction(aClass: Class<T>, message: String): T? where T : IntentionAction {
+/** Finds an intention action with given name and class, if present. */
+fun <T> CodeInsightTestFixture.getIntentionAction(aClass: Class<T>, message: String): T? where
+T : IntentionAction {
   return availableIntentions
     .asSequence()
     .filter { it.text == message }
@@ -83,8 +81,9 @@ fun <T> CodeInsightTestFixture.getIntentionAction(aClass: Class<T>, message: Str
 /**
  * Moves caret in the currently open editor to position indicated by the [window] string.
  *
- * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be found in the file. The file is searched
- * for the concatenation of prefix and suffix strings and the caret is placed at the first matching offset, between the prefix and suffix.
+ * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be
+ * found in the file. The file is searched for the concatenation of prefix and suffix strings and
+ * the caret is placed at the first matching offset, between the prefix and suffix.
  */
 fun CodeInsightTestFixture.moveCaret(window: String): PsiElement {
   val offset = offsetForWindow(window)
@@ -94,13 +93,16 @@ fun CodeInsightTestFixture.moveCaret(window: String): PsiElement {
 }
 
 /**
- * Returns the parent [PsiElement] in the currently open editor of the given type as indicated by the [window] string.
+ * Returns the parent [PsiElement] in the currently open editor of the given type as indicated by
+ * the [window] string.
  *
- * [com.intellij.psi.util.parentOfType] is used to find the parent. This is useful since [PsiElement.findElementAt] returns a leaf node, but
- * quite often we are looking for an element that is a bit higher up the PSI tree.
+ * [com.intellij.psi.util.parentOfType] is used to find the parent. This is useful since
+ * [PsiElement.findElementAt] returns a leaf node, but quite often we are looking for an element
+ * that is a bit higher up the PSI tree.
  *
- * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be found in the file. The file is searched
- * for the concatenation of prefix and suffix strings and the caret is placed at the first matching offset, between the prefix and suffix.
+ * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be
+ * found in the file. The file is searched for the concatenation of prefix and suffix strings and
+ * the caret is placed at the first matching offset, between the prefix and suffix.
  *
  * This method will throw if a parent of the given type cannot be found.
  */
@@ -111,8 +113,9 @@ inline fun <reified T : PsiElement> CodeInsightTestFixture.findParentElement(win
 /**
  * Returns the offset of the caret in the currently open editor as indicated by the [window] string.
  *
- * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be found in the file. The file is searched
- * for the concatenation of prefix and suffix strings and the caret is placed at the first matching offset, between the prefix and suffix.
+ * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be
+ * found in the file. The file is searched for the concatenation of prefix and suffix strings and
+ * the caret is placed at the first matching offset, between the prefix and suffix.
  */
 fun CodeInsightTestFixture.offsetForWindow(window: String): Int {
   val text = editor.document.text
@@ -128,13 +131,17 @@ fun CodeInsightTestFixture.offsetForWindow(window: String): Int {
  * Renames element at caret using injected [RenameHandler]s only when Android handler is available.
  * Returns true if Android handler is available.
  *
- * We can either invoke the processor directly or go through the handler layer. Unfortunately [MemberInplaceRenameHandler] won't work in
- * unit test mode, the default handler fails for light elements and some tests depend on the logic from ResourceRenameHandler. To handle
- * that mess, rename the element only when Android handler is available.
+ * We can either invoke the processor directly or go through the handler layer. Unfortunately
+ * [MemberInplaceRenameHandler] won't work in unit test mode, the default handler fails for light
+ * elements and some tests depend on the logic from ResourceRenameHandler. To handle that mess,
+ * rename the element only when Android handler is available.
  */
 fun CodeInsightTestFixture.renameElementAtCaretUsingAndroidHandler(newName: String): Boolean {
   val context = (editor as EditorEx).dataContext
-  if (ResourceRenameHandler().isAvailableOnDataContext(context) || KotlinResourceRenameHandler().isAvailableOnDataContext(context)) {
+  if (
+    ResourceRenameHandler().isAvailableOnDataContext(context) ||
+      KotlinResourceRenameHandler().isAvailableOnDataContext(context)
+  ) {
     renameElementAtCaretUsingHandler(newName)
     return true
   }
@@ -142,8 +149,8 @@ fun CodeInsightTestFixture.renameElementAtCaretUsingAndroidHandler(newName: Stri
 }
 
 /**
- * Creates a new file with the given contents under the given path, treated as relative to the project root. Opens the file in the
- * in-memory editor and returns the corresponding [PsiFile].
+ * Creates a new file with the given contents under the given path, treated as relative to the
+ * project root. Opens the file in the in-memory editor and returns the corresponding [PsiFile].
  */
 fun CodeInsightTestFixture.loadNewFile(path: String, contents: String): PsiFile {
   val virtualFile = VfsTestUtil.createFile(project.guessProjectDir()!!, path, contents)
@@ -152,30 +159,35 @@ fun CodeInsightTestFixture.loadNewFile(path: String, contents: String): PsiFile 
 }
 
 /**
- * Marker used for caret position by [com.intellij.testFramework.EditorTestUtil.extractCaretAndSelectionMarkers]. This top-level value is
- * meant to be used in a Kotlin string template to stand out from the surrounding XML.
+ * Marker used for caret position by
+ * [com.intellij.testFramework.EditorTestUtil.extractCaretAndSelectionMarkers]. This top-level value
+ * is meant to be used in a Kotlin string template to stand out from the surrounding XML.
  */
 const val caret = EditorTestUtil.CARET_TAG
 
 /**
- * Helper function for constructing strings understood by [com.intellij.testFramework.ExpectedHighlightingData].
+ * Helper function for constructing strings understood by
+ * [com.intellij.testFramework.ExpectedHighlightingData].
  *
  * Meant to be used in a Kotlin string template to stand out from the surrounding XML.
  */
 fun String.highlightedAs(level: HighlightSeverity, message: String?): String {
   // See com.intellij.testFramework.ExpectedHighlightingData
-  val marker = when (level) {
-    HighlightSeverity.ERROR -> "error"
-    HighlightSeverity.WARNING -> "warning"
-    HighlightSeverity.WEAK_WARNING -> "weak_warning"
-    else -> error("Don't know how to handle $level.")
-  }
+  val marker =
+    when (level) {
+      HighlightSeverity.ERROR -> "error"
+      HighlightSeverity.WARNING -> "warning"
+      HighlightSeverity.WEAK_WARNING -> "weak_warning"
+      else -> error("Don't know how to handle $level.")
+    }
 
-  return if (message != null) "<$marker descr=\"$message\">$this</$marker>" else "<$marker>$this</$marker>"
+  return if (message != null) "<$marker descr=\"$message\">$this</$marker>"
+  else "<$marker>$this</$marker>"
 }
 
 /**
- * Helper function for constructing strings understood by [com.intellij.testFramework.ExpectedHighlightingData].
+ * Helper function for constructing strings understood by
+ * [com.intellij.testFramework.ExpectedHighlightingData].
  *
  * Meant to be used in a Kotlin string template to stand out from the surrounding XML.
  */
@@ -188,8 +200,8 @@ fun CodeInsightTestFixture.goToElementAtCaret() {
 /**
  * Finds class with the given name in the [PsiElement.getResolveScope] of the context element.
  *
- * This means using the same scope as the real code editor will use and also makes this method work with light classes, since
- * [PsiElement.getResolveScope] is subject to [ResolveScopeEnlarger]s.
+ * This means using the same scope as the real code editor will use and also makes this method work
+ * with light classes, since [PsiElement.getResolveScope] is subject to [ResolveScopeEnlarger]s.
  *
  * @see JavaCodeInsightTestFixture.findClass
  * @see PsiElement.getResolveScope
@@ -199,13 +211,19 @@ fun JavaCodeInsightTestFixture.findClass(name: String, context: PsiElement): Psi
 }
 
 /**
- * Schedules the suspending [block] to run on the UI thread and "busy waits" for it to finish by draining the event queue.
+ * Schedules the suspending [block] to run on the UI thread and "busy waits" for it to finish by
+ * draining the event queue.
  *
- * This is an alternative to [runBlocking] that avoids deadlocks if the current thread is the UI thread and the suspending [block] needs to
- * schedule work on the UI thread.
+ * This is an alternative to [runBlocking] that avoids deadlocks if the current thread is the UI
+ * thread and the suspending [block] needs to schedule work on the UI thread.
  */
-fun <T> runDispatching(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.() -> T): T {
-  require(SwingUtilities.isEventDispatchThread()) // That's the thread dispatchAllEventsInIdeEventQueue requires.
+fun <T> runDispatching(
+  context: CoroutineContext = EmptyCoroutineContext,
+  block: suspend CoroutineScope.() -> T
+): T {
+  require(
+    SwingUtilities.isEventDispatchThread()
+  ) // That's the thread dispatchAllEventsInIdeEventQueue requires.
 
   val result = CoroutineScope(context).async(block = block)
   while (!result.isCompleted) {
@@ -220,21 +238,37 @@ fun <T> runDispatching(context: CoroutineContext = EmptyCoroutineContext, block:
 /** Waits for the app resource repository to finish currently pending updates. */
 @Throws(InterruptedException::class, TimeoutException::class)
 @JvmOverloads
-fun waitForResourceRepositoryUpdates(facet: AndroidFacet, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
+fun waitForResourceRepositoryUpdates(
+  facet: AndroidFacet,
+  timeout: Long = 2,
+  unit: TimeUnit = TimeUnit.SECONDS
+) {
   waitForUpdates(StudioResourceRepositoryManager.getInstance(facet).projectResources, timeout, unit)
 }
 
 /** Waits for the app resource repository to finish currently pending updates. */
 @Throws(InterruptedException::class, TimeoutException::class)
 @JvmOverloads
-fun waitForResourceRepositoryUpdates(module: Module, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
-  waitForUpdates(StudioResourceRepositoryManager.getInstance(module)!!.projectResources, timeout, unit)
+fun waitForResourceRepositoryUpdates(
+  module: Module,
+  timeout: Long = 2,
+  unit: TimeUnit = TimeUnit.SECONDS
+) {
+  waitForUpdates(
+    StudioResourceRepositoryManager.getInstance(module)!!.projectResources,
+    timeout,
+    unit
+  )
 }
 
 /** Waits for the app resource repository to finish currently pending updates. */
 @Throws(InterruptedException::class, TimeoutException::class)
 @JvmOverloads
-fun waitForUpdates(repository: LocalResourceRepository, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
+fun waitForUpdates(
+  repository: LocalResourceRepository,
+  timeout: Long = 2,
+  unit: TimeUnit = TimeUnit.SECONDS
+) {
   if (EDT.isCurrentThreadEdt()) {
     EDT.dispatchAllInvocationEvents()
   }
@@ -244,36 +278,41 @@ fun waitForUpdates(repository: LocalResourceRepository, timeout: Long = 2, unit:
 }
 
 /**
- * Invalidates the file document to ensure it is reloaded from scratch. This will ensure that we run the code path that requires
- * the read lock and we ensure that the handling of files is correctly done in the right thread.
+ * Invalidates the file document to ensure it is reloaded from scratch. This will ensure that we run
+ * the code path that requires the read lock and we ensure that the handling of files is correctly
+ * done in the right thread.
  */
-private fun PsiFile.invalidateDocumentCache() = ApplicationManager.getApplication().invokeAndWait {
-  val cachedDocument = PsiDocumentManager.getInstance(project).getCachedDocument(this) ?: return@invokeAndWait
-  // Make sure it is invalidated
-  cachedDocument.putUserData(FileDocumentManagerImpl.NOT_RELOADABLE_DOCUMENT_KEY, true)
-  ApplicationManager.getApplication().runWriteAction {
-    FileDocumentManager.getInstance().reloadFiles(virtualFile)
+private fun PsiFile.invalidateDocumentCache() =
+  ApplicationManager.getApplication().invokeAndWait {
+    val cachedDocument =
+      PsiDocumentManager.getInstance(project).getCachedDocument(this) ?: return@invokeAndWait
+    // Make sure it is invalidated
+    cachedDocument.putUserData(FileDocumentManagerImpl.NOT_RELOADABLE_DOCUMENT_KEY, true)
+    ApplicationManager.getApplication().runWriteAction {
+      FileDocumentManager.getInstance().reloadFiles(virtualFile)
+    }
   }
-}
 
 /**
- * Same as [CodeInsightTestFixture.addFileToProject] but invalidates immediately the cached document.
- * This ensures that the code immediately after this does not work with a cached version and reloads it from disk. This
- * ensures that the loading from disk is executed and the code path that needs the read lock will be executed.
- * The idea is to help detecting code paths that require the [ReadAction] during testing.
+ * Same as [CodeInsightTestFixture.addFileToProject] but invalidates immediately the cached
+ * document. This ensures that the code immediately after this does not work with a cached version
+ * and reloads it from disk. This ensures that the loading from disk is executed and the code path
+ * that needs the read lock will be executed. The idea is to help detecting code paths that require
+ * the [ReadAction] during testing.
  */
-fun CodeInsightTestFixture.addFileToProjectAndInvalidate(relativePath: String, fileText: String): PsiFile =
-  addFileToProject(relativePath, fileText).also {
-    it.invalidateDocumentCache()
-  }
+fun CodeInsightTestFixture.addFileToProjectAndInvalidate(
+  relativePath: String,
+  fileText: String
+): PsiFile = addFileToProject(relativePath, fileText).also { it.invalidateDocumentCache() }
 
 @Suppress("UnstableApiUsage")
 val ProjectRule.disposable: Disposable
   get() = project.earlyDisposable
 
 /** A shorter version of [Description.getDisplayName], suitable as a file name. */
-val Description.shortDisplayName: String get() {
-  val className = testClass.simpleName
-  val methodName = methodName?.substringBefore('[') // Truncate parameterized tests.
-  return if (methodName != null) "${className}.${methodName}" else className
-}
+val Description.shortDisplayName: String
+  get() {
+    val className = testClass.simpleName
+    val methodName = methodName?.substringBefore('[') // Truncate parameterized tests.
+    return if (methodName != null) "${className}.${methodName}" else className
+  }
