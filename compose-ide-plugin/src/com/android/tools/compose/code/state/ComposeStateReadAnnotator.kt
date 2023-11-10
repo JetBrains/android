@@ -37,21 +37,19 @@ val COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
  * Annotator that highlights reads of `androidx.compose.runtime.State` variables inside
  * `@Composable` functions.
  *
- * TODO(b/225218822): Before productionizing this, we must determine whether to change this to use
- *   `KotlinHighlightingVisitorExtension` (to avoid race conditions). This may be non-trivial as
- *   that class does not have the ability to highlight anything other than the element being
- *   visited.
+ * TODO(b/225218822): Before productionizing this, we must determine whether to remove the ability
+ *   to highlight or change this to use `KotlinHighlightingVisitorExtension` (to avoid race
+ *   conditions). This may be non-trivial as that class does not have the ability to highlight
+ *   anything other than the element being visited.
  */
 class ComposeStateReadAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     if (!StudioFlags.COMPOSE_STATE_READ_HIGHLIGHTING_ENABLED.get()) return
     if (element !is KtNameReferenceExpression) return
     element.getStateRead()?.let {
+      val msg = ComposeBundle.message("state.read.message.titled", it.stateVar.text, it.scopeName)
       holder
-        .newAnnotation(
-          HighlightSeverity.INFORMATION,
-          ComposeBundle.message("compose.state.read.message", it.stateVar.text, it.scopeName)
-        )
+        .newAnnotation(HighlightSeverity.INFORMATION, msg)
         .textAttributes(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
         .create()
     }

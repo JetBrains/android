@@ -61,7 +61,7 @@ internal data class StateRead(
       val scopeName =
         when (scope) {
           is KtLambdaExpression ->
-            ComposeBundle.message("compose.state.read.recompose.target.enclosing.lambda")
+            ComposeBundle.message("state.read.recompose.target.enclosing.lambda")
           else -> scope.name ?: return null
         }
       return StateRead(stateVar, scope, scopeName)
