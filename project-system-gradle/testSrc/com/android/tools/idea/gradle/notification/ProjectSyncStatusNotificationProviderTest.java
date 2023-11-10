@@ -25,6 +25,7 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.NotificationPanel.Type;
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
+import com.android.tools.idea.gradle.project.sync.GradleSyncNeededReason;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.project.DefaultProjectSystem;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
@@ -74,6 +75,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
       { "README.md", false, false },
       { "src/main/com/example/MyClass.java", false, false },
       { "gradle/libs.versions.toml", false, true },
+      { ".gradle/config.properties", false, false }
     });
   }
   @Parameter(0)
@@ -105,7 +107,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.SYNC_NEEDED, type);
-    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type, GradleSyncNeededReason.GRADLE_BUILD_FILES_CHANGED);
     assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
     Boolean refreshExternalNativeModels = myProject.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
     assertNull(refreshExternalNativeModels);
@@ -114,11 +116,12 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
   @Test
   public void testNotificationPanelTypeWithSyncNeededWithExternalFileChanged() {
     when(mySyncState.isSyncNeeded()).thenReturn(YES);
+    when(myGradleFiles.areGradleFilesModified()).thenReturn(false);
     when(myGradleFiles.areExternalBuildFilesModified()).thenReturn(true);
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.SYNC_NEEDED, type);
-    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type, GradleSyncNeededReason.EXTERNAL_BUILD_FILES_CHANGED);
     assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
     Boolean refreshExternalNativeModels = myProject.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
     assertTrue(refreshExternalNativeModels);
@@ -176,6 +179,16 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
   }
 
   @Test
+  public void testNotificationPanelTypeWithModifiedGradleJvmConfiguration() {
+    when(mySyncState.isSyncNeeded()).thenReturn(YES);
+
+    Type type = myNotificationProvider.notificationPanelType();
+    assertEquals(Type.SYNC_NEEDED, type);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type, GradleSyncNeededReason.GRADLE_JVM_CONFIG_CHANGED);
+    assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
+  }
+
+  @Test
   public void testVersionCatalogNotificationPanelTypeWithoutBanners() {
     when(mySyncState.lastSyncFailed()).thenReturn(false);
     when(myVersionCatalogDetector.isVersionCatalogProject()).thenReturn(true);
@@ -208,7 +221,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.SYNC_NEEDED, type);
-    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type, GradleSyncNeededReason.GRADLE_BUILD_FILES_CHANGED);
     assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
   }
 
@@ -218,7 +231,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.SYNC_NEEDED, type);
-    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type, GradleSyncNeededReason.GRADLE_BUILD_FILES_CHANGED);
 
     EditorColorsScheme colorsSchemeSupplier = EditorColorsManager.getInstance().getGlobalScheme();
     ColorKey panelColorKey = panel.getBackgroundColorKey();
@@ -234,7 +247,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.SYNC_NEEDED, type);
-    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type, GradleSyncNeededReason.GRADLE_BUILD_FILES_CHANGED);
     assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
     PropertiesComponent.getInstance().setValue(
       "PROJECT_STRUCTURE_NOTIFICATION_HIDE_ACTION_TIMESTAMP",
@@ -245,12 +258,16 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     assertEquals(Type.NONE, type);
   }
 
-  private ProjectSyncStatusNotificationProvider.NotificationPanel createPanel(Type type) {
+  private ProjectSyncStatusNotificationProvider.NotificationPanel createPanel(Type type, GradleSyncNeededReason reason) {
     Function<? super FileEditor, ProjectSyncStatusNotificationProvider.NotificationPanel> panelFunction =
-      type.getProvider(myProject, myFile);
+      type.getProvider(myProject, myFile, reason);
     if (panelFunction == null) {
       return null;
     }
     return panelFunction.apply(null);
+  }
+
+  private ProjectSyncStatusNotificationProvider.NotificationPanel createPanel(Type type) {
+    return createPanel(type, null);
   }
 }

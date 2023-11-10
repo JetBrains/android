@@ -285,6 +285,19 @@ public class GradleSyncTest {
     // @formatter:on
   }
 
+  // Verifies that after making a change in a .grade/config.properties file, the editor notification saying that gradle files have changes
+  @Test
+  public void editorNotificationWhenModifyGradleConfigPropertiesFile() throws IOException {
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    // @formatter:off
+    ideFrame.getEditor()
+      .open(".gradle/config.properties")
+      .waitUntilErrorAnalysisFinishes()
+      .enterText("Hello World")
+      .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
+    // @formatter:on
+  }
+
   @Test
   public void withModuleLanguageLevelEqualTo8() throws IOException {
     Sdk jdk = IdeSdks.getInstance().getJdk();

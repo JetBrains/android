@@ -70,13 +70,16 @@ import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.PlatformProjectOpenProcessor
 import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
+import org.jetbrains.android.AndroidStartupManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.base.util.isAndroidModule
+import org.jetbrains.plugins.gradle.config.GradleSettingsListenerAdapter
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.settings.GradleSettings
+import org.jetbrains.plugins.gradle.settings.GradleSettingsListener
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
 /**
@@ -106,6 +109,7 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
         invokeAndWaitIfNeeded {
           removePointlessModules(project)
           attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
+          subscribeToGradleSettingChanges(project)
         }
       }
     }
@@ -115,6 +119,16 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
 }
 
 private val LOG = Logger.getInstance(AndroidGradleProjectStartupActivity::class.java)
+
+private fun subscribeToGradleSettingChanges(project: Project) {
+  val disposable = project.getService(AndroidStartupManager.ProjectDisposableScope::class.java)
+  val connection = project.messageBus.connect(disposable)
+  connection.subscribe(GradleSettingsListener.TOPIC, object : GradleSettingsListenerAdapter() {
+    override fun onGradleJvmChange(oldGradleJvm: String?, newGradleJvm: String?, linkedProjectPath: String) {
+      GradleSyncStateHolder.getInstance(project).recordGradleJvmConfigurationChanged()
+    }
+  })
+}
 
 private fun whenAllModulesLoaded(project: Project, callback: () -> Unit) {
   if (project.getUserData(PlatformProjectOpenProcessor.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES) == true) {

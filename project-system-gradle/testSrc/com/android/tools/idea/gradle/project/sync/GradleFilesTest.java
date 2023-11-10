@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
+import static com.android.SdkConstants.FN_GRADLE_CONFIG_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
@@ -208,6 +209,20 @@ public class GradleFilesTest extends AndroidGradleTestCase {
 
     VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(FN_GRADLE_PROPERTIES);
     runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
+                            virtualFile);
+  }
+
+  public void testModifiedWhenAddingTextInGradleConfigPropertiesFile() throws Exception {
+    loadSimpleApplication();
+    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(".gradle", FN_GRADLE_CONFIG_PROPERTIES);
+    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("test.property=true")), true,
+                            virtualFile);
+  }
+
+  public void testNotModifiedWhenAddingTextInGradleConfigPropertiesFileOutsideOfCacheDir() throws Exception {
+    loadSimpleApplication();
+    VirtualFile virtualFile = findOrCreateFileRelativeToProjectRootFolder(".not-gradle", FN_GRADLE_CONFIG_PROPERTIES);
+    runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("test.property=true")), false,
                             virtualFile);
   }
 

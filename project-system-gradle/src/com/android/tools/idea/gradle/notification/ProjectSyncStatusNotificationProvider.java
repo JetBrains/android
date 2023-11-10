@@ -25,9 +25,10 @@ import static com.intellij.util.ThreeState.YES;
 
 import com.android.annotations.concurrency.AnyThread;
 import com.android.tools.idea.actions.HideAndroidBannerAction;
-import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncNeededReason;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder;
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
@@ -86,7 +87,7 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
   @Nullable
   public Function<? super FileEditor, ? extends JComponent> collectNotificationData(@NotNull Project project, @NotNull VirtualFile file) {
     NotificationPanel.Type newPanelType = notificationPanelType();
-    return newPanelType.getProvider(project, file);
+    return newPanelType.getProvider(project, file, mySyncState.getSyncNeededReason());
   }
 
   @VisibleForTesting
@@ -101,9 +102,7 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
     if (mySyncState.lastSyncFailed()) {
       return NotificationPanel.Type.FAILED;
     }
-
-    ThreeState gradleSyncNeeded = mySyncState.isSyncNeeded();
-    if (gradleSyncNeeded == YES) {
+    if (mySyncState.isSyncNeeded() == YES) {
       return NotificationPanel.Type.SYNC_NEEDED;
     }
 
@@ -129,14 +128,16 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
         @Override
         @Nullable
         Function<? super FileEditor, NotificationPanel> getProvider(@NotNull Project project,
-                                                                    @NotNull VirtualFile file) {
+                                                                    @NotNull VirtualFile file,
+                                                                    @Nullable GradleSyncNeededReason gradleSyncReason) {
           return null;
         }
       }, PROJECT_STRUCTURE() {
         @Override
         @Nullable
         Function<? super FileEditor, NotificationPanel> getProvider(@NotNull Project project,
-                                                                    @NotNull VirtualFile file) {
+                                                                    @NotNull VirtualFile file,
+                                                                    @Nullable GradleSyncNeededReason gradleSyncReason) {
           if (ProjectStructureNotificationPanel.userAllowsShow()) {
             File ioFile = virtualToIoFile(file);
             if (!isDefaultGradleBuildFile(ioFile) && !isGradleSettingsFile(ioFile)) {
@@ -161,37 +162,50 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
         @Override
         @NotNull
         Function<? super FileEditor, NotificationPanel> getProvider(@NotNull Project project,
-                                                                    @NotNull VirtualFile file) {
+                                                                    @NotNull VirtualFile file,
+                                                                    @Nullable GradleSyncNeededReason gradleSyncReason) {
           return (editor) -> new NotificationPanel("Gradle project sync in progress...");
         }
       }, FAILED() {
         @Override
         @NotNull
         Function<? super FileEditor, NotificationPanel> getProvider(@NotNull Project project,
-                                                                    @NotNull VirtualFile file) {
+                                                                    @NotNull VirtualFile file,
+                                                                    @Nullable GradleSyncNeededReason gradleSyncReason) {
           String text = "Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.";
           return (editor) -> new SyncProblemNotificationPanel(project, text);
         }
       }, SYNC_NEEDED() {
         @Override
-        @NotNull
+        @Nullable
         Function<? super FileEditor, NotificationPanel> getProvider(@NotNull Project project,
-                                                                    @NotNull VirtualFile file) {
-          boolean buildFilesModified = GradleFiles.getInstance(project).areExternalBuildFilesModified();
-          String text = (buildFilesModified ? "External build files" : "Gradle files") +
-                        " have changed since last project sync. A project sync may be necessary for the IDE to work properly.";
-          if (buildFilesModified) {
-            // Set this to true so that the request sent to gradle daemon contains arg -Pandroid.injected.refresh.external.native.model=true,
-            // which would refresh the C++ project. See com.android.tools.idea.gradle.project.sync.common.CommandLineArgs for related logic.
-            project.putUserData(AndroidGradleProjectResolverKeys.REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
+                                                                    @NotNull VirtualFile file,
+                                                                    @Nullable GradleSyncNeededReason gradleSyncReason) {
+          if (gradleSyncReason == null) return null;
+
+          String text = null;
+          switch (gradleSyncReason) {
+            case GRADLE_JVM_CONFIG_CHANGED ->
+              text = "Gradle JDK configuration has changed. A project sync may be necessary for the IDE to apply those changes.";
+            case GRADLE_BUILD_FILES_CHANGED ->
+              text = "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.";
+            case EXTERNAL_BUILD_FILES_CHANGED -> {
+              // Set this to true so that the request sent to gradle daemon contains arg -Pandroid.injected.refresh.external.native.model=true,
+              // which would refresh the C++ project. See com.android.tools.idea.gradle.project.sync.common.CommandLineArgs for related logic.
+              project.putUserData(AndroidGradleProjectResolverKeys.REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
+
+              text = "External build files have changed since last project sync. A project sync may be necessary for the IDE to work properly.";
+            }
           }
-          return (editor) -> new StaleGradleModelNotificationPanel(project, text);
+          String finalText = text;
+          return (editor) -> new StaleGradleModelNotificationPanel(project, finalText);
         }
       };
 
       @Nullable
       abstract Function<? super FileEditor, NotificationPanel> getProvider(@NotNull Project project,
-                                                                           @NotNull VirtualFile file);
+                                                                           @NotNull VirtualFile file,
+                                                                           @Nullable GradleSyncNeededReason gradleSyncReason);
     }
 
     NotificationPanel(@NotNull String text) {
@@ -207,7 +221,7 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
       createActionLabel("Sync Now", () -> GradleSyncInvoker.getInstance()
         .requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_USER_STALE_CHANGES), null));
       createActionLabel("Ignore these changes", () -> {
-        GradleFiles.getInstance(project).removeChangedFiles();
+        GradleSyncStateHolder.getInstance(project).ignoreChangedFiles();
         this.setVisible(false);
       });
     }

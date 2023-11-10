@@ -24,6 +24,12 @@ import com.intellij.util.ThreeState
 import com.intellij.util.messages.MessageBusConnection
 import org.gradle.util.GradleVersion
 
+enum class GradleSyncNeededReason {
+  EXTERNAL_BUILD_FILES_CHANGED,
+  GRADLE_BUILD_FILES_CHANGED,
+  GRADLE_JVM_CONFIG_CHANGED
+}
+
 /**
  * NOTE: non-Gradle-specific users should probably use `ProjectSystemSyncManager` instead.
  */
@@ -45,6 +51,8 @@ interface GradleSyncState {
   fun lastSyncFailed(): Boolean
 
   fun isSyncNeeded(): ThreeState
+
+  fun getSyncNeededReason(): GradleSyncNeededReason?
 
   fun subscribe(project: Project, listener: GradleSyncListenerWithRoot, disposable: Disposable): MessageBusConnection
 
@@ -84,6 +92,7 @@ interface GradleSyncState {
           override val lastSyncedGradleVersion: GradleVersion? = null
           override fun lastSyncFailed(): Boolean = false
           override fun isSyncNeeded(): ThreeState = ThreeState.NO
+          override fun getSyncNeededReason(): GradleSyncNeededReason? = null
           override fun subscribe(project: Project, listener: GradleSyncListenerWithRoot, disposable: Disposable): MessageBusConnection {
             error("Not supported in unit test mode")
           }

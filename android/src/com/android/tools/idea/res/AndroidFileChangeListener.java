@@ -17,7 +17,9 @@ package com.android.tools.idea.res;
 
 import static com.android.SdkConstants.DOT_VERSIONS_DOT_TOML;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
+import static com.android.SdkConstants.FD_GRADLE_CACHE;
 import static com.android.SdkConstants.FD_RES_RAW;
+import static com.android.SdkConstants.FN_GRADLE_CONFIG_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 
@@ -250,6 +252,18 @@ public class AndroidFileChangeListener implements Disposable {
     if (fileType == PropertiesFileType.INSTANCE &&
         (FN_GRADLE_PROPERTIES.equals(psiFile.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFile.getName()))) {
       return true;
+    }
+
+    if (fileType == PropertiesFileType.INSTANCE) {
+      String psiFileName = psiFile.getName();
+      if (FN_GRADLE_PROPERTIES.equals(psiFileName) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFileName)) {
+        return true;
+      }
+
+      PsiDirectory psiParent = psiFile.getParent();
+      if (FN_GRADLE_CONFIG_PROPERTIES.equals(psiFileName) && psiParent != null && FD_GRADLE_CACHE.equals(psiParent.getName())) {
+        return true;
+      }
     }
 
     return false;

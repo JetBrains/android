@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.SdkConstants.FN_GRADLE_CONFIG_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
@@ -381,6 +382,15 @@ public class GradleFiles implements Disposable.Default {
           }
         }
       }
+      ProgressManager.checkCanceled();
+      File gradleCachePath = new File(rootFolderPath, ".gradle");
+      if (gradleCachePath.isDirectory()) {
+        File gradleConfigProperties = new File(gradleCachePath, FN_GRADLE_CONFIG_PROPERTIES);
+        VirtualFile virtualFile = findFileByIoFile(gradleConfigProperties, false);
+        if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
+          application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
+        }
+      }
     };
     if (rootFolder != null) {
       Future<?> projectWideFilesFuture = executorService.submit(
@@ -549,8 +559,7 @@ public class GradleFiles implements Disposable.Default {
         return;
       }
 
-      // This code may be run before the project is initialized, and we need the project to be initialized to get the PsiManager.
-      if (!myGradleFiles.myProject.isInitialized() || !PsiManager.getInstance(myGradleFiles.myProject).isInProject(psiFile)) {
+      if (myGradleFiles.myProject != psiFile.getProject()) {
         return;
       }
 
