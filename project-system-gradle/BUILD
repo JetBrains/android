@@ -91,6 +91,7 @@ iml_module(
         "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-33",
         # TODO: Update and use platforms/latest-preview instead
         "//prebuilts/studio/sdk:platforms/android-TiramisuPrivacySandbox",
         "//tools/adt/idea/android/annotations",
