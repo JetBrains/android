@@ -264,7 +264,7 @@ public class LiveEditProjectMonitor implements Disposable {
       return;
     }
 
-    if (ProjectSystemUtil.getProjectSystem(project).getSyncManager().isSyncNeeded() || intermediateSyncs.get()) {
+    if (isGradleSyncNeeded()) {
       updateEditStatus(LiveEditStatus.SyncNeeded.INSTANCE);
       return;
     }
@@ -717,6 +717,11 @@ public class LiveEditProjectMonitor implements Disposable {
       }
     }
     return result;
+  }
+
+  @VisibleForTesting
+  boolean isGradleSyncNeeded(){
+    return ProjectSystemUtil.getProjectSystem(project).getSyncManager().isSyncNeeded() || intermediateSyncs.get();
   }
 
 

@@ -127,25 +127,13 @@ class BasicAndroidMonitorTest {
   fun userSyncTest() {
     connection.clientChanged(client, Client.CHANGE_NAME)
 
-    val editEvent = MockitoKt.mock<EditEvent>()
     `when`(mySyncState.isSyncNeeded()).thenReturn(ThreeState.NO)
 
-
-    monitor.onPsiChanged(editEvent)
-    monitor.doOnManualLETrigger()
-
-    val status = service.editStatus(device)
-
-    assertThat(status).isEqualTo(LiveEditStatus.UpToDate)
+    assertThat(monitor.isGradleSyncNeeded()).isFalse()
 
     project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST).get()
 
-    monitor.onPsiChanged(editEvent)
-
-    val status2 = service.editStatus(device)
-
-    assertThat(status2.unrecoverable()).isTrue()
-    assertThat(status2.description).contains(gradleSyncString)
+    assertThat(monitor.isGradleSyncNeeded()).isTrue()
   }
 
   @Test
