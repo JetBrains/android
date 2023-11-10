@@ -201,6 +201,7 @@ maven_repository(
         "@maven//:com.google.android.horologist.horologist-compose-tools_0.4.8",
         "@maven//:com.google.android.horologist.horologist-tiles_0.4.8",
         "@maven//:com.google.android.libraries.mapsplatform.secrets-gradle-plugin.secrets-gradle-plugin_2.0.1",
+        "@maven//:com.google.android.material.material_1.10.0",
         "@maven//:com.google.android.material.material_1.5.0",
         "@maven//:com.google.android.material.material_1.9.0",
         "@maven//:com.google.android.support.wearable_2.9.0",
@@ -219,6 +220,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.7.20",  # Needed for KotlinBomPlatformDependencyTest
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.8.10",  # Needed for KotlinBomPlatformDependencyTest
         "@maven//:org.jetbrains.kotlin.kotlin-bom_1.8.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-bom_1.8.22",
         "@maven//:org.jetbrains.kotlin.kotlin-compiler-embeddable_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-compiler-embeddable_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
@@ -236,6 +238,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.22",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.6.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",
