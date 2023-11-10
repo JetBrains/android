@@ -21,7 +21,6 @@ import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
-import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -40,9 +39,9 @@ fun RecipeExecutor.androidProjectRecipe(
   val topOut = data.rootDir
 
   if (useGradleKts) {
-    save(androidProjectBuildGradle(isKts = true), topOut.resolve(FN_BUILD_GRADLE_KTS))
+    save(androidProjectBuildGradle(), topOut.resolve(FN_BUILD_GRADLE_KTS))
   } else {
-    save(androidProjectBuildGradle(isKts = false), topOut.resolve(FN_BUILD_GRADLE))
+    save(androidProjectBuildGradle(), topOut.resolve(FN_BUILD_GRADLE))
   }
 
   if (makeIgnore) {

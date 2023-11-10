@@ -15,13 +15,9 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidProject
 
-import com.android.tools.idea.wizard.template.renderIf
-
 // Each plugin is requested from module recipe. Only the empty plugins block is needed from the project recipe
-fun androidProjectBuildGradle(isKts: Boolean) = """
+fun androidProjectBuildGradle() = """
     // Top-level build file where you can add configuration options common to all sub-projects/modules.
-    ${renderIf(isKts) { "@Suppress(\"DSL_SCOPE_VIOLATION\") // TODO: Remove once KTIJ-19369 is fixed\n" }}
     plugins {
     }
-    ${renderIf(isKts) { "true // Needed to make the Suppress annotation work for the plugins block\n" }}
 """

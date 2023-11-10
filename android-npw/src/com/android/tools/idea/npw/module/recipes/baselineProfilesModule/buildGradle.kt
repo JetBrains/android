@@ -89,7 +89,7 @@ fun baselineProfilesBuildGradle(
 
   return """
 ${renderIf(useGmd != null) { "import com.android.build.api.dsl.ManagedVirtualDevice" }}
-${emptyPluginsBlock(isKts = useGradleKts, useVersionCatalog = useVersionCatalog)}
+${emptyPluginsBlock()}
 
 android {
   namespace '$packageName'

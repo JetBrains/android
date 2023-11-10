@@ -19,7 +19,7 @@ import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 
 fun buildGradle(javaVersion: String, isKts: Boolean, useVersionCatalog: Boolean): String =
   """
-${emptyPluginsBlock(isKts = isKts, useVersionCatalog = useVersionCatalog)}
+${emptyPluginsBlock()}
 
 java {
   sourceCompatibility = $javaVersion

@@ -262,8 +262,7 @@ fun RecipeExecutor.addInstrumentedTests(
 /**
  * Plugin block placeholder. Used to introduce an extra space at the bottom of the block.
  */
-fun emptyPluginsBlock(isKts: Boolean, useVersionCatalog: Boolean) = """
-${renderIf(isKts && useVersionCatalog) { "@Suppress(\"DSL_SCOPE_VIOLATION\") // TODO: Remove once KTIJ-19369 is fixed\n" }}
+fun emptyPluginsBlock() = """
 plugins {
 }
 """
