@@ -40,6 +40,12 @@
     <resolveScopeEnlarger implementation="com.android.tools.idea.nav.safeargs.finder.SafeArgsKotlinScopeEnlarger" />
   </extensions>
 
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.nav.safeargs.module.safeArgsModeToken"
+                    interface="com.android.tools.idea.nav.safeargs.module.SafeArgsModeToken"
+                    area="IDEA_PROJECT"/>
+  </extensionPoints>
+
   <projectListeners>
     <listener class="com.android.tools.idea.nav.safeargs.tracker.SafeArgsTrackerSyncListener"
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>

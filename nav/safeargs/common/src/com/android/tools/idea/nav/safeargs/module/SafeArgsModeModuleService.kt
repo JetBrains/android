@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.nav.safeargs.module
 
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.project.SafeArgsModeTrackerProjectService
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.Token
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.util.messages.Topic
 import java.util.concurrent.atomic.AtomicReference
@@ -67,15 +70,19 @@ class SafeArgsModeModuleService(val module: Module) : Disposable.Default {
   }
 
   private fun updateSafeArgsMode() {
-    val gradleFacet = GradleFacet.getInstance(module)
-    this.safeArgsMode = gradleFacet?.gradleModuleModel?.toSafeArgsMode() ?: SafeArgsMode.NONE
+    val projectSystem = module.project.getProjectSystem()
+    val token = projectSystem.getTokenOrNull(SafeArgsModeToken.EP_NAME)
+    this.safeArgsMode = token?.getSafeArgsMode(projectSystem, module) ?: SafeArgsMode.NONE
   }
+}
 
-  private fun GradleModuleModel.toSafeArgsMode(): SafeArgsMode {
-    return when {
-      hasSafeArgsKotlinPlugin() -> SafeArgsMode.KOTLIN
-      hasSafeArgsJavaPlugin() -> SafeArgsMode.JAVA
-      else -> SafeArgsMode.NONE
-    }
+interface SafeArgsModeToken<P : AndroidProjectSystem> : Token {
+  fun getSafeArgsMode(projectSystem: P, module: Module): SafeArgsMode
+
+  companion object {
+    val EP_NAME =
+      ExtensionPointName<SafeArgsModeToken<AndroidProjectSystem>>(
+        "com.android.tools.idea.nav.safeargs.module.safeArgsModeToken"
+      )
   }
 }

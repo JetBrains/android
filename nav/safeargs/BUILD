@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.nav.safeargs.iml"],
     visibility = ["//visibility:public"],
+    runtime_deps = ["//tools/adt/idea/nav/safeargs/common/gradle:intellij.android.nav.safeargs.common.gradle"],
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/nav/safeargs/common:intellij.android.nav.safeargs.common[module]",

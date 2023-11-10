@@ -210,6 +210,7 @@ studio_plugin(
             "//tools/adt/idea/mlkit:intellij.android.mlkit",
             "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs",
             "//tools/adt/idea/nav/safeargs/common:intellij.android.nav.safeargs.common",
+            "//tools/adt/idea/nav/safeargs/common/gradle:intellij.android.nav.safeargs.common.gradle",
             "//tools/adt/idea/nav/safeargs/k1:intellij.android.nav.safeargs.k1",
             "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
             "//tools/adt/idea/android-material:intellij.android.android-material",

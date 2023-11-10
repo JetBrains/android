@@ -62,5 +62,6 @@
     <orderEntry type="module" module-name="intellij.android.profilersAndroid.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="app-inspection.ide.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="samples-browser" />
+    <orderEntry type="module" module-name="intellij.android.nav.safeargs.common.gradle" scope="RUNTIME" />
   </component>
 </module>
