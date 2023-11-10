@@ -35,7 +35,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.contextOfType
 import com.intellij.psi.util.parentOfType
-//import org.jetbrains.kotlin.analysis.api.fir.utils.addImportToFile
+import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.base.util.allScope
@@ -122,11 +122,7 @@ private data class ClassWithDeclarationsToSuggest(
         val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
         val ktFile = context.file as KtFile
         if (isK2Plugin()) {
-          // TODO(jaebaek): The visibility of `addImportToFile` is `public` but we have to double-check if it is ok to use it
-          //                outside of the module. Revisit here after checking it with JB.
-
-          //TODO CHECK the proper replacement with Kotlin Team
-          //addImportToFile(context.project, ktFile, FqName(classToImport))
+          ktFile.addImport(FqName(classToImport))
           psiDocumentManager.commitAllDocuments()
           psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
         } else {
