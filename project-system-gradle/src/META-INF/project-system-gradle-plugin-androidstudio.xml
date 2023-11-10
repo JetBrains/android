@@ -16,8 +16,6 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <extensions defaultExtensionNs="com.intellij">
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension"/>
-    <applicationInitializedListener id="Startup.AndroidGradleDisableAutoImportInitializer"
-                                    implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleDisableAutoImportInitializer"/>
     <applicationInitializedListener id="Startup.AndroidGradleOpenProjectProcessorInitializer"
                                     implementation="com.android.tools.idea.projectsystem.gradle.DisableGradleProjectOpenProcessor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState"/>
@@ -42,6 +40,8 @@
     <registryKey key="unknown.sdk.auto" defaultValue="false" description="Checks and resolves unknown SDKs automatically on start"/>
     <registryKey key="unknown.sdk.modal.jps" defaultValue="false" description="Run unknown JDK test before JPS build is started"/>
     <registryKey key="unknown.sdk.show.editor.actions" defaultValue="false" description="Show editor suggestions to fix missing SKDs"/>
+    <!-- Disable Gradle auto-import by overriding the corresponding registry flag. -->
+    <registryKey key="external.system.auto.import.disabled" defaultValue="true" description="Disable build system auto-import"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
