@@ -58,10 +58,7 @@ class LongTextAnalyzerComposeTest {
       )
     val issues = LongTextAnalyzer.findIssues(renderResult, nlModel)
     Assert.assertEquals(1, issues.size)
-    Assert.assertEquals(
-      "<android.widget.TextView> has lines containing more than 120 characters",
-      issues[0].message
-    )
+    Assert.assertEquals("TextView has lines containing more than 120 characters", issues[0].message)
   }
 
   @Test

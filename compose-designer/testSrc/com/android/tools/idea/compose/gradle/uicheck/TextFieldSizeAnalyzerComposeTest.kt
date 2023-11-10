@@ -58,7 +58,7 @@ class TextFieldSizeAnalyzerComposeTest {
       )
     val issues = TextFieldSizeAnalyzer.findIssues(renderResult, nlModel)
     assertEquals(1, issues.size)
-    assertEquals("The text field <android.widget.EditText> is too wide", issues[0].message)
+    assertEquals("The text field EditText is too wide", issues[0].message)
   }
 
   @Test

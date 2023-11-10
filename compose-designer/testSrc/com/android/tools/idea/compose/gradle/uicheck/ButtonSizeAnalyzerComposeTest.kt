@@ -58,7 +58,7 @@ class ButtonSizeAnalyzerComposeTest {
       )
     val issues = ButtonSizeAnalyzer.findIssues(renderResult, nlModel)
     Assert.assertEquals(1, issues.size)
-    Assert.assertEquals("The button <android.widget.Button> is too wide", issues[0].message)
+    Assert.assertEquals("The button Button is too wide", issues[0].message)
   }
 
   @Test

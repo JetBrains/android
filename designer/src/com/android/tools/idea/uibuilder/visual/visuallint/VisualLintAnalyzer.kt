@@ -89,18 +89,24 @@ abstract class VisualLintAnalyzer {
   }
 
   protected fun simpleName(view: ViewInfo): String {
-    val tagName = (view.cookie as? TagSnapshot)?.tagName ?: view.className
-    return tagName.substringAfterLast('.')
+    if (view.cookie is TagSnapshot) {
+      return (view.cookie as TagSnapshot).tagName.substringAfterLast('.')
+    } else if (
+      view.accessibilityObject is AccessibilityNodeInfo && view.className == "android.view.View"
+    ) {
+      return "Composable"
+    }
+    return view.className.substringAfterLast('.')
   }
 
   protected fun nameWithId(viewInfo: ViewInfo): String {
     val tagSnapshot = (viewInfo.cookie as? TagSnapshot)
-    val name = tagSnapshot?.tagName?.substringAfterLast('.') ?: viewInfo.className
+    val name = simpleName(viewInfo)
     val id =
       tagSnapshot?.getAttribute(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI)?.let {
         ResourceUrl.parse(it)?.name
       }
-    return id?.let { "$id <$name>" } ?: "<$name>"
+    return id?.let { "$id <$name>" } ?: name
   }
 
   protected fun componentFromViewInfo(viewInfo: ViewInfo?, model: NlModel): NlComponent? {

@@ -50,10 +50,7 @@ class OverlapAnalyzerComposeTest {
       )
     val issues = OverlapAnalyzer.findIssues(renderResult, nlModel)
     Assert.assertEquals(1, issues.size)
-    Assert.assertEquals(
-      "<android.widget.TextView> is covered by <android.view.View>",
-      issues[0].message
-    )
+    Assert.assertEquals("TextView is covered by Composable", issues[0].message)
   }
 
   @Test
