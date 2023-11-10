@@ -104,7 +104,7 @@ class HttpDataComponentFactory(
   private fun getPayload(type: ConnectionType) =
     when (type) {
       ConnectionType.REQUEST -> httpData.requestPayload
-      ConnectionType.RESPONSE -> httpData.responsePayload
+      ConnectionType.RESPONSE -> httpData.getReadableResponsePayload()
     }
 
   private fun getHeader(type: ConnectionType) =

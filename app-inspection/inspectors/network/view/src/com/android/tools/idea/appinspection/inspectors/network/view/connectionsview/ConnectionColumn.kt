@@ -80,7 +80,7 @@ internal enum class ConnectionColumn(
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = sizeRenderer
   },
   SIZE("Size", 0.05, java.lang.Integer::class.java, visible = true) {
-    override fun getValueFrom(data: HttpData) = data.responsePayload.size()
+    override fun getValueFrom(data: HttpData) = data.getReadableResponsePayload().size()
 
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = sizeRenderer
   },

@@ -172,7 +172,7 @@ class HttpDataTest {
           "content-length = 10000 \n  response-status-code = 200 \n content-encoding = gzip",
         responsePayload = ByteString.copyFrom(byteOutput.toByteArray())
       )
-    assertThat(data.responsePayload.toStringUtf8()).isEqualTo("test")
+    assertThat(data.getReadableResponsePayload().toStringUtf8()).isEqualTo("test")
   }
 
   @Test
@@ -185,7 +185,7 @@ class HttpDataTest {
           "content-length = 10000 \n  response-status-code = 200 \n content-encoding = gzip",
         responsePayload = ByteString.copyFrom(malformedBytes)
       )
-    assertThat(data.responsePayload.toByteArray()).isEqualTo(malformedBytes)
+    assertThat(data.getReadableResponsePayload().toByteArray()).isEqualTo(malformedBytes)
   }
 
   @Test

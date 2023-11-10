@@ -49,37 +49,25 @@ data class HttpData(
   val requestFields: String,
   val requestPayload: ByteString,
   val responseFields: String,
-  private val rawResponsePayload: ByteString,
+  val responsePayload: ByteString,
 ) {
 
   val requestHeader = RequestHeader(requestFields)
   val responseHeader = ResponseHeader(responseFields)
 
-  // The unzipped version of the response payload. Note not all response payloads are zipped,
-  // so this could be the same as the rawResponsePayload.
-  private lateinit var unzippedResponsePayload: ByteString
-  val responsePayload: ByteString
-    get() {
-      if (this::unzippedResponsePayload.isInitialized) {
-        return unzippedResponsePayload
-      } else {
-        if (responseHeader.getField("content-encoding").lowercase().contains("gzip")) {
-          try {
-            GZIPInputStream(ByteArrayInputStream(rawResponsePayload.toByteArray())).use {
-              inputStream ->
-              unzippedResponsePayload = ByteString.copyFrom(inputStream.readBytes())
-            }
-          } catch (ignored: IOException) {
-            // If we got here, it means we failed to unzip data that was supposedly zipped. Just
-            // fallback and return the content directly.
-            unzippedResponsePayload = rawResponsePayload
-          }
-        } else {
-          unzippedResponsePayload = rawResponsePayload
+  fun getReadableResponsePayload(): ByteString {
+    return if (responseHeader.getField("content-encoding").lowercase().contains("gzip")) {
+      try {
+        GZIPInputStream(ByteArrayInputStream(responsePayload.toByteArray())).use {
+          ByteString.copyFrom(it.readBytes())
         }
-        return unzippedResponsePayload
+      } catch (ignored: IOException) {
+        responsePayload
       }
+    } else {
+      responsePayload
     }
+  }
 
   internal fun withRequestStarted(event: NetworkInspectorProtocol.Event): HttpData {
     val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
@@ -127,7 +115,7 @@ data class HttpData(
   internal fun withResponsePayload(event: NetworkInspectorProtocol.Event) =
     copy(
       updateTimeUs = TimeUnit.NANOSECONDS.toMicros(event.timestamp),
-      rawResponsePayload = event.httpConnectionEvent.responsePayload.payload,
+      responsePayload = event.httpConnectionEvent.responsePayload.payload,
     )
 
   internal fun withResponseCompleted(event: NetworkInspectorProtocol.Event): HttpData {

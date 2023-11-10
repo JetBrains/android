@@ -64,7 +64,7 @@ class DataHandlerTest {
 
     handler.handleHttpConnectionEvent(responsePayload(id, 15.secondsInNanos, "response-payload"))
     expected =
-      expected.copy(updateTimeUs = 15000000, rawResponsePayload = "response-payload".toByteString())
+      expected.copy(updateTimeUs = 15000000, responsePayload = "response-payload".toByteString())
     assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
     handler.handleHttpConnectionEvent(responseCompleted(id, 16.secondsInNanos))

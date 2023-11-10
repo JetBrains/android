@@ -77,7 +77,8 @@ class HttpDataModelTest {
     assertThat(httpData.url).isEqualTo(fakeUrl)
     assertThat(httpData.trace).isEqualTo(faceTrace)
     assertThat(httpData.requestPayload).isEqualTo(ByteString.copyFromUtf8("REQUEST_CONTENT"))
-    assertThat(httpData.responsePayload).isEqualTo(ByteString.copyFromUtf8("RESPONSE_CONTENT"))
+    assertThat(httpData.getReadableResponsePayload())
+      .isEqualTo(ByteString.copyFromUtf8("RESPONSE_CONTENT"))
     assertThat(httpData.responseHeader.getField("connId")).isEqualTo("1")
   }
 
