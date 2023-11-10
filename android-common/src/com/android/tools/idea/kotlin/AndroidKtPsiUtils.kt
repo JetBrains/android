@@ -22,6 +22,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
@@ -34,6 +35,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtClassKind
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.analysis.api.calls.singleConstructorCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
@@ -290,9 +292,12 @@ private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? =
 @OptIn(KtAllowAnalysisOnEdt::class)
 private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KtAnalysisSession.(KtDeclarationSymbol) -> T?): T? =
   allowAnalysisOnEdt {
-    analyze(this) {
-      val declaration = this@mapOnDeclarationSymbol as? KtDeclaration
-      declaration?.getSymbol()?.let { block(it) }
+    @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+    allowAnalysisFromWriteAction {
+      analyze(this) {
+        val declaration = this@mapOnDeclarationSymbol as? KtDeclaration
+        declaration?.getSymbol()?.let { block(it) }
+      }
     }
   }
 
@@ -304,10 +309,13 @@ private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KtAnalysisSessi
 @OptIn(KtAllowAnalysisOnEdt::class)
 private inline fun KtAnnotated.findAnnotationEntryByClassId(classId: ClassId): KtAnnotationEntry? =
   allowAnalysisOnEdt {
-    analyze(this) {
-      annotationEntries.find { annotationEntry ->
-        val annotationConstructorCall = annotationEntry.resolveCall()?.singleConstructorCallOrNull() ?: return null
-        annotationConstructorCall.symbol.containingClassIdIfNonLocal == classId
+    @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+    allowAnalysisFromWriteAction {
+      analyze(this) {
+        annotationEntries.find { annotationEntry ->
+          val annotationConstructorCall = annotationEntry.resolveCall()?.singleConstructorCallOrNull() ?: return null
+          annotationConstructorCall.symbol.containingClassIdIfNonLocal == classId
+        }
       }
     }
   }
