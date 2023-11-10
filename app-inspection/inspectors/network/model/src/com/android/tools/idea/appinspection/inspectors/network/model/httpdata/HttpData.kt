@@ -52,10 +52,6 @@ data class HttpData(
   private val rawResponsePayload: ByteString,
 ) {
 
-  /**
-   * Threads that access a connection. The first thread is the thread that creates the connection.
-   */
-  val javaThreads = threads
   val requestHeader = RequestHeader(requestFields)
   val responseHeader = ResponseHeader(responseFields)
 

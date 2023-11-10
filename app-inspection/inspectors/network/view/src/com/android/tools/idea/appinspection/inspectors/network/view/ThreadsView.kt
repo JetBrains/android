@@ -148,13 +148,12 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
         fireTableDataChanged()
         return
       }
-      val groupedThreads =
-        dataList.filter { it.javaThreads.isNotEmpty() }.groupBy { it.javaThreads[0].id }
+      val groupedThreads = dataList.filter { it.threads.isNotEmpty() }.groupBy { it.threads[0].id }
 
       // Sort by thread name, so that they're consistently displayed in alphabetical order.
       threads.addAll(
         groupedThreads.values.sortedWith(
-          compareBy({ it[0].javaThreads[0].name }, { it[0].javaThreads[0].id })
+          compareBy({ it[0].threads[0].name }, { it[0].threads[0].id })
         )
       )
       fireTableDataChanged()
@@ -168,7 +167,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
 
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
       return if (columnIndex == Column.NAME.ordinal) {
-        threads[rowIndex][0].javaThreads[0].name
+        threads[rowIndex][0].threads[0].name
       } else {
         threads[rowIndex]
       }
@@ -348,7 +347,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       val durationLabel = newTooltipLabel(TimeFormatter.getSingleUnitDurationString(duration))
       durationLabel.foreground = TOOLTIP_TEXT
       addToContent(durationLabel)
-      if (data.javaThreads.size > 1) {
+      if (data.threads.size > 1) {
         val divider = JPanel()
         divider.preferredSize = Dimension(0, 5)
         divider.border = JBUI.Borders.customLineBottom(NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER)
@@ -360,10 +359,10 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
             mapOf(TextAttribute.WEIGHT to TextAttribute.WEIGHT_BOLD)
           )
         addToContent(alsoAccessedByLabel)
-        for (i in 1 until data.javaThreads.size) {
-          val label = newTooltipLabel(data.javaThreads[i].name)
+        for (i in 1 until data.threads.size) {
+          val label = newTooltipLabel(data.threads[i].name)
           addToContent(label)
-          if (i == data.javaThreads.size - 1) {
+          if (i == data.threads.size - 1) {
             label.border = JBUI.Borders.empty(5, 0)
           }
         }

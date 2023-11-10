@@ -252,16 +252,16 @@ class OverviewTabContent : TabContent() {
 
       row++
       myFieldsPanel.add(NoWrapBoldLabel("Initiating thread"), TabularLayout.Constraint(row, 0))
-      val initiatingThreadLabel = JLabel(httpData.javaThreads[0].name)
+      val initiatingThreadLabel = JLabel(httpData.threads[0].name)
       initiatingThreadLabel.name = ID_INITIATING_THREAD
       myFieldsPanel.add(initiatingThreadLabel, TabularLayout.Constraint(row, 2))
-      if (httpData.javaThreads.size > 1) {
+      if (httpData.threads.size > 1) {
         val otherThreadsBuilder = StringBuilder()
-        for (i in 1 until httpData.javaThreads.size) {
+        for (i in 1 until httpData.threads.size) {
           if (otherThreadsBuilder.isNotEmpty()) {
             otherThreadsBuilder.append(", ")
           }
-          otherThreadsBuilder.append(httpData.javaThreads[i].name)
+          otherThreadsBuilder.append(httpData.threads[i].name)
         }
         row++
         myFieldsPanel.add(NoWrapBoldLabel("Other threads"), TabularLayout.Constraint(row, 0))

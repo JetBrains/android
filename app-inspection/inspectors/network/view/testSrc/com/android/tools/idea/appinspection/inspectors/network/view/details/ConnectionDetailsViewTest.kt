@@ -257,7 +257,7 @@ class ConnectionDetailsViewTest {
   @Test
   fun initiatingThreadFieldIsPresent() {
     detailsView.setHttpData(DEFAULT_DATA)
-    assertThat(DEFAULT_DATA.javaThreads).hasSize(1)
+    assertThat(DEFAULT_DATA.threads).hasSize(1)
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findInitiatingThreadValue())
       .isNotNull()
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findOtherThreadsValue())
@@ -267,7 +267,7 @@ class ConnectionDetailsViewTest {
   @Test
   fun otherThreadsFieldIsPresent() {
     val data = DEFAULT_DATA.copy(threads = FAKE_THREAD_LIST + listOf(JavaThread(2, "thread2")))
-    assertThat(data.javaThreads).hasSize(2)
+    assertThat(data.threads).hasSize(2)
     detailsView.setHttpData(data)
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findOtherThreadsValue())
       .isNotNull()
