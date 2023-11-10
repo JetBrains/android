@@ -141,6 +141,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable private final Object myCredential;
   private final boolean myHasLegacyAppCompat;
   private final boolean myHasAndroidXAppCompat;
+  private final boolean myShouldUseCustomInflater;
   private final ResourceNamespacing myNamespacing;
   private final ModuleClassLoader myClassLoader;
   @NotNull private IRenderLogger myLogger;
@@ -187,7 +188,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @Nullable Object credential,
                                @Nullable ActionBarHandler actionBarHandler,
                                @Nullable ILayoutPullParserFactory parserFactory,
-                               @NotNull ModuleClassLoader moduleClassLoader) {
+                               @NotNull ModuleClassLoader moduleClassLoader,
+                               boolean shouldUseCustomInflater) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myRenderModule = renderModule;
@@ -199,6 +201,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myLayoutPullParserFactory = parserFactory;
     myHasLegacyAppCompat = renderModule.getDependencies().dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7);
     myHasAndroidXAppCompat = renderModule.getDependencies().dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
+    myShouldUseCustomInflater = shouldUseCustomInflater;
 
     myNamespacing = renderModule.getResourceRepositoryManager().getNamespacing();
     if (myNamespacing == ResourceNamespacing.DISABLED) {
@@ -845,6 +848,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Override
   public boolean isResourceNamespacingRequired() {
     return myNamespacing == ResourceNamespacing.REQUIRED;
+  }
+
+  @Override
+  public boolean shouldUseCustomInflater() {
+    return myShouldUseCustomInflater;
   }
 
   @Override

@@ -220,7 +220,8 @@ public class RenderTask {
              @NotNull Runnable onNewModuleClassLoader,
              @NotNull Collection<String> classesToPreload,
              boolean reportOutOfDateUserClasses,
-             @NotNull RenderAsyncActionExecutor.RenderingTopic topic) throws NoDeviceException {
+             @NotNull RenderAsyncActionExecutor.RenderingTopic topic,
+             boolean useCustomInflater) throws NoDeviceException {
     myTracker = tracker;
     myImagePool = imagePool;
     myContext = renderContext;
@@ -274,7 +275,8 @@ public class RenderTask {
           myCredential,
           actionBarHandler,
           parserFactory,
-          moduleClassLoader);
+          moduleClassLoader,
+          useCustomInflater);
       if (renderContext.getModule().getResourceIdManager().getFinalIdsUsed()) {
         myLayoutlibCallback.loadAndParseRClass();
       }

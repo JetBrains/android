@@ -320,6 +320,15 @@ final public class RenderService implements Disposable {
      */
     @NotNull private RenderingTopic myTopic = RenderingTopic.NOT_SPECIFIED;
 
+    /**
+     * When true, layoutlib will try to create views using the viewInflaterClass
+     * defined in the project's theme, or, if not defined, it will try to use the
+     * android.support.v7.app.AppCompatViewInflater.
+     *
+     * Material themes, for example, usually contain a viewInflaterClass attribute.
+     */
+    private boolean useCustomInflater = true;
+
     private RenderTaskBuilder(@NotNull RenderModelModule module,
                               @NotNull Configuration configuration,
                               @NotNull ImagePool defaultImagePool,
@@ -490,6 +499,16 @@ final public class RenderService implements Disposable {
     }
 
     /**
+     * Sets whether layoutlib should try to use a custom inflater when rendering.
+     * By default, this value is true.
+     */
+    @NotNull
+    public RenderTaskBuilder setUseCustomInflater(boolean useCustomInflater) {
+      this.useCustomInflater = useCustomInflater;
+      return this;
+    }
+
+    /**
      * Sets a custom parser for creating the {@link ViewInfo} hierarchy from the layout root view.
      */
     @NotNull
@@ -553,7 +572,7 @@ final public class RenderService implements Disposable {
                            myCredential, myContext.getModule().getEnvironment().getCrashReporter(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, tracker,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
-                           classesToPreload, reportOutOfDateUserClasses, myTopic);
+                           classesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater);
 
           if (myXmlFile != null) {
             task.setXmlFile(myXmlFile);
