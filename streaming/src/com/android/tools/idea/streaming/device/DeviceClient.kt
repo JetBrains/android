@@ -430,6 +430,7 @@ internal class DeviceClient(
       val agentStartTime = System.currentTimeMillis()
       val errors = OutputAccumulator(MAX_TOTAL_AGENT_MESSAGE_LENGTH, MAX_ERROR_MESSAGE_AGE_MILLIS)
       try {
+        logger.info("Executing adb shell $command")
         adb.shellAsLines(deviceSelector, command).collect {
           when (it) {
             is ShellCommandOutputElement.StdoutLine -> if (it.contents.isNotBlank()) log.info(it.contents)
