@@ -15,10 +15,12 @@
  */
 package com.android.tools.compose.code.state
 
+import com.android.tools.compose.ComposeBundle
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.hints.declarative.InlayHintsCollector
 import com.intellij.codeInsight.hints.declarative.InlayHintsProvider
 import com.intellij.codeInsight.hints.declarative.InlayTreeSink
+import com.intellij.codeInsight.hints.declarative.InlineInlayPosition
 import com.intellij.codeInsight.hints.declarative.SharedBypassCollector
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.Editor
@@ -26,6 +28,8 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.psiUtil.endOffset
 
 const val COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_NAME =
   "ComposeStateReadScopeHighlightingTextAttributes"
@@ -48,8 +52,16 @@ class ComposeStateReadInlayHintsProvider : InlayHintsProvider {
   }
 }
 
+/** Hints collector that adds a simple "State read" inlay hint after a `State` read. */
 object ComposeStateReadInlayHintsCollector : SharedBypassCollector {
   override fun collectFromElement(element: PsiElement, sink: InlayTreeSink) {
-    // Does nothing yet
+    if (element !is KtNameReferenceExpression) return
+    val stateRead = element.getStateRead() ?: return
+    val position = InlineInlayPosition(element.endOffset, relatedToPrevious = true)
+    val tooltip =
+      ComposeBundle.message("state.read.message", stateRead.stateVar.text, stateRead.scopeName)
+    sink.addPresentation(position, tooltip = tooltip, hasBackground = true) {
+      text(ComposeBundle.message("state.read"))
+    }
   }
 }
