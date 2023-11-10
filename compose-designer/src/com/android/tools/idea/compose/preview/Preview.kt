@@ -730,14 +730,16 @@ class ComposePreviewRepresentation(
       var lastMode: PreviewMode? = null
 
       previewModeManager.mode.collect {
+        (it.selected as? ComposePreviewElementInstance).let { element ->
+          composePreviewFlowManager.setSingleFilter(element)
+        }
+
         if (PreviewModeManager.areModesOfDifferentType(lastMode, it)) {
           lastMode?.let { last -> onExit(last) }
           onEnter(it)
         }
         lastMode = it
-        (it.selected as? ComposePreviewElementInstance).let { element ->
-          composePreviewFlowManager.setSingleFilter(element)
-        }
+
         withContext(uiThread) {
           val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
           layoutManager.setLayoutManager(
