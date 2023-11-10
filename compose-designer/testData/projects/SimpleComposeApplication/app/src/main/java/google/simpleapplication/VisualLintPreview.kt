@@ -16,6 +16,7 @@
 package google.simpleapplication
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.Button
@@ -46,6 +47,10 @@ fun VisualLintErrorPreview() {
       text =
         "This is a very very very very\n\nvery very very very very very very very very very very very very very very very very long text that has a line with more than 120 characters."
     )
+    Box {
+      Text(text = "This is a background text")
+      Button(onClick = {}) { Text(text = "Button") }
+    }
   }
 }
 
