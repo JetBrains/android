@@ -4,7 +4,7 @@
     <facet type="kotlin-language" name="Kotlin">
       <configuration version="3" platform="11" allPlatforms="JVM [11]" useProjectSettings="false">
         <compilerSettings>
-          <option name="additionalArguments" value="-version -verbose -P plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true -Xplugin=$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/compiler/compiler-hosted/1.4.5/compiler-hosted-1.4.5.jar" />
+          <option name="additionalArguments" value="-version -verbose -P plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true -Xplugin=$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/compose/compiler/compiler-hosted/1.4.8.1-dev03/compiler-hosted-1.4.8.1-dev03.jar" />
         </compilerSettings>
       </configuration>
     </facet>
