@@ -22,4 +22,9 @@
   </option>
   <option name="ComposeStateReadTextAttributes">
   </option>
+  <option name="ComposeStateReadScopeHighlightingTextAttributes">
+    <value>
+      <option name="BACKGROUND" value="222288"/>
+    </value>
+  </option>
 </list>
