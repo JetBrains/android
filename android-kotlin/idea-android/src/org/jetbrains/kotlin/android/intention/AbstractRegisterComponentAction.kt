@@ -28,8 +28,10 @@ import org.jetbrains.android.dom.manifest.Application
 import org.jetbrains.android.dom.manifest.ApplicationComponent
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.android.isSubclassOf
 import org.jetbrains.kotlin.asJava.toLightClass
@@ -72,12 +74,15 @@ abstract class AbstractRegisterComponentAction<T : ApplicationComponent>(
     private fun KtClass.isSubclassOfComponentType(): Boolean =
         if (isK2Plugin()) {
             allowAnalysisOnEdt {
-                analyze(this@isSubclassOfComponentType) {
-                    isSubclassOf(
-                        this@isSubclassOfComponentType,
-                        ClassId.topLevel(FqName(componentClassName)),
-                        strict = true
-                    )
+                @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+                allowAnalysisFromWriteAction {
+                    analyze(this@isSubclassOfComponentType) {
+                        isSubclassOf(
+                            this@isSubclassOfComponentType,
+                            ClassId.topLevel(FqName(componentClassName)),
+                            strict = true
+                        )
+                    }
                 }
             }
         }

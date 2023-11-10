@@ -15,8 +15,10 @@
  */
 package org.jetbrains.kotlin.android.intention
 
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
@@ -30,10 +32,13 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
     @OptIn(KtAllowAnalysisOnEdt::class)
     override fun KtFunction.isReceiverSubclassOfAnyOf(baseClassIds: Collection<ClassId>): Boolean {
         allowAnalysisOnEdt {
-            analyze(this) {
-                val functionSymbol = getSymbol() as? KtFunctionLikeSymbol ?: return false
-                val receiverType = functionSymbol.receiverParameter?.type ?: return false
-                return baseClassIds.any { isSubclassOf(receiverType, it, strict = false) }
+            @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+            allowAnalysisFromWriteAction {
+                analyze(this) {
+                    val functionSymbol = getSymbol() as? KtFunctionLikeSymbol ?: return false
+                    val receiverType = functionSymbol.receiverParameter?.type ?: return false
+                    return baseClassIds.any { isSubclassOf(receiverType, it, strict = false) }
+                }
             }
         }
     }
@@ -41,10 +46,13 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
     @OptIn(KtAllowAnalysisOnEdt::class)
     override fun KtLambdaExpression.isReceiverSubclassOfAnyOf(baseClassIds: Collection<ClassId>): Boolean {
         allowAnalysisOnEdt {
-            analyze(this) {
-                val type = getKtType() as? KtFunctionalType ?: return false
-                val extendedType = type.receiverType ?: return false
-                return baseClassIds.any { isSubclassOf(extendedType, it, strict = false) }
+            @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+            allowAnalysisFromWriteAction {
+                analyze(this) {
+                    val type = getKtType() as? KtFunctionalType ?: return false
+                    val extendedType = type.receiverType ?: return false
+                    return baseClassIds.any { isSubclassOf(extendedType, it, strict = false) }
+                }
             }
         }
     }
@@ -52,9 +60,12 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
     @OptIn(KtAllowAnalysisOnEdt::class)
     override fun KtClassOrObject.isSubclassOfAnyOf(baseClassIds: Collection<ClassId>): Boolean {
         allowAnalysisOnEdt {
-            analyze(this) {
-                val classOrObjectSymbol = getClassOrObjectSymbol() ?: return false
-                return baseClassIds.any { isSubclassOf(classOrObjectSymbol, it, strict = false) }
+            @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+            allowAnalysisFromWriteAction {
+                analyze(this) {
+                    val classOrObjectSymbol = getClassOrObjectSymbol() ?: return false
+                    return baseClassIds.any { isSubclassOf(classOrObjectSymbol, it, strict = false) }
+                }
             }
         }
     }

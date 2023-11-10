@@ -23,10 +23,12 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated as KtAnnotatedSymbol
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
@@ -59,10 +61,13 @@ fun Context.getPsiFile(): PsiFile? {
 @OptIn(KtAllowAnalysisOnEdt::class)
 internal fun KtProperty.hasBackingField(): Boolean {
   allowAnalysisOnEdt {
-    analyze(this) {
-      val propertySymbol =
-        this@hasBackingField.getVariableSymbol() as? KtPropertySymbol ?: return false
-      return propertySymbol.hasBackingField
+    @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+    allowAnalysisFromWriteAction {
+      analyze(this) {
+        val propertySymbol =
+          this@hasBackingField.getVariableSymbol() as? KtPropertySymbol ?: return false
+        return propertySymbol.hasBackingField
+      }
     }
   }
 }
@@ -135,11 +140,14 @@ fun KtModifierListOwner.addAnnotation(
 fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
   if (isK2Plugin()) {
     allowAnalysisOnEdt {
-      analyze(this) {
-        val annotatedSymbol =
-          (this@findAnnotation as? KtDeclaration)?.getSymbol() as? KtAnnotatedSymbol
-        val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(fqName))
-        annotations?.singleOrNull()?.psi as? KtAnnotationEntry
+      @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+      allowAnalysisFromWriteAction {
+        analyze(this) {
+          val annotatedSymbol =
+            (this@findAnnotation as? KtDeclaration)?.getSymbol() as? KtAnnotatedSymbol
+          val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(fqName))
+          annotations?.singleOrNull()?.psi as? KtAnnotationEntry
+        }
       }
     }
   } else {
