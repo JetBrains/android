@@ -22,12 +22,15 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.TestCase.assertNull
 import org.jetbrains.kotlin.analysis.api.KtAnalysisApiInternals
 import org.jetbrains.kotlin.analysis.api.lifetime.KtReadActionConfinementLifetimeToken
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
+import org.jetbrains.kotlin.psi.stubs.elements.KtClassElementType
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -106,7 +109,7 @@ class KtBaselineProfileRunLineMarkerContributorTest {
         }
       """.trimIndent())
 
-    assertContributorInfoNull(sourceFile.classNamed("BaselineProfileGenerator"))
+    assertContributorInfoNull(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
     assertContributorInfoNull(sourceFile.funNamed("generate"))
   }
 
@@ -125,7 +128,7 @@ class KtBaselineProfileRunLineMarkerContributorTest {
         }
       """.trimIndent())
 
-    assertContributorInfo(sourceFile.classNamed("BaselineProfileGenerator"))
+    assertContributorInfo(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
     // Only class should have contributor info, but not functions
     assertContributorInfoNull(sourceFile.funNamed("generate"))
   }
@@ -148,11 +151,11 @@ class KtBaselineProfileRunLineMarkerContributorTest {
       """.trimIndent())
 
     // Outer class
-    assertContributorInfoNull(sourceFile.classNamed("BaselineProfileGenerator"))
+    assertContributorInfoNull(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
     assertContributorInfoNull(sourceFile.funNamed("test"))
 
     // Inner class
-    assertContributorInfo(sourceFile.classNamed("SomeInnerClass"))
+    assertContributorInfo(sourceFile.classIdentifierNamed("SomeInnerClass"))
   }
 
   @Test
@@ -173,10 +176,10 @@ class KtBaselineProfileRunLineMarkerContributorTest {
       """.trimIndent())
 
     // Outer class
-    assertContributorInfo(sourceFile.classNamed("BaselineProfileGenerator"))
+    assertContributorInfo(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
 
     // Inner class
-    assertContributorInfoNull(sourceFile.classNamed("SomeInnerClass"))
+    assertContributorInfoNull(sourceFile.classIdentifierNamed("SomeInnerClass"))
     assertContributorInfoNull(sourceFile.funNamed("test"))
   }
 
@@ -206,18 +209,6 @@ class KtBaselineProfileRunLineMarkerContributorTest {
     )
 
   private class KtBaselineProfileGeneratorSourceFile(private val psiFile: PsiFile) {
-
-    fun classNamed(name: String): PsiElement {
-      // Note that the parsing here works only for the pattern `class ClassName`.
-      // First we find a node with text `ClassName` and then go back skipping white spaces to find the keyword `class`.
-      val el = psiFile
-        .collectDescendantsOfType<PsiElement> { it.node.text == name }
-        .mapNotNull { it.prevSibling(skip = KtTokens.WHITE_SPACE) }
-        .firstOrNull { it.node.elementType == KtTokens.CLASS_KEYWORD }
-      assertNotNull(el) { "No class named `$name` was found." }
-      return el
-    }
-
     fun funNamed(name: String): PsiElement {
       // Note that the parsing here works only for the pattern `fun FunctionName`.
       // First we find a node with text `FunctionName` and then go back skipping white spaces to find the keyword `fun`.
@@ -227,6 +218,19 @@ class KtBaselineProfileRunLineMarkerContributorTest {
         .firstOrNull { it.node.elementType == KtTokens.FUN_KEYWORD }
       assertNotNull(el) { "No fun named `$name` was found." }
       return el
+    }
+
+    fun classIdentifierNamed(name: String): PsiElement {
+      // Note that the parsing here works only for the pattern `class ClassName`.
+      // We find a node with text `ClassName` while making sure the previous node is 'class'.
+      val el = PsiTreeUtil.collectElements(psiFile) { it.node.elementType is KtClassElementType }
+        .toList()
+        .map { it as KtClass }
+        .firstOrNull { it.getClassId()?.shortClassName?.identifier == name }
+      assertNotNull(el) { "No class named `$name` was found." }
+      val identifier = el.collectDescendantsOfType<PsiElement> { it.node.elementType == KtTokens.IDENTIFIER }.firstOrNull()
+      assertNotNull(identifier) { "Identifier PsiElement `$name` was not found." }
+      return identifier
     }
   }
 }

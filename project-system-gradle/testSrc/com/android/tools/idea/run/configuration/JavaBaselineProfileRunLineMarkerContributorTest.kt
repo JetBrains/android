@@ -19,9 +19,12 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.psi.JavaTokenType
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiIdentifier
+import com.intellij.psi.impl.java.stubs.JavaClassElementType
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.TestCase.assertNull
 import org.jetbrains.kotlin.analysis.api.KtAnalysisApiInternals
@@ -105,7 +108,7 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
         }
       """.trimIndent())
 
-    assertContributorInfoNull(sourceFile.classNamed("BaselineProfileGenerator"))
+    assertContributorInfoNull(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
   }
 
   @Test
@@ -123,7 +126,7 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
         }
       """.trimIndent())
 
-    assertContributorInfo(sourceFile.classNamed("BaselineProfileGenerator"))
+    assertContributorInfo(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
   }
 
   @Test
@@ -144,10 +147,10 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
       """.trimIndent())
 
     // Outer class
-    assertContributorInfoNull(sourceFile.classNamed("BaselineProfileGenerator"))
+    assertContributorInfoNull(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
 
     // Inner class
-    assertContributorInfo(sourceFile.classNamed("SomeInnerClass"))
+    assertContributorInfo(sourceFile.classIdentifierNamed("SomeInnerClass"))
   }
 
   @Test
@@ -168,10 +171,10 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
       """.trimIndent())
 
     // Outer class
-    assertContributorInfo(sourceFile.classNamed("BaselineProfileGenerator"))
+    assertContributorInfo(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
 
     // Inner class
-    assertContributorInfoNull(sourceFile.classNamed("SomeInnerClass"))
+    assertContributorInfoNull(sourceFile.classIdentifierNamed("SomeInnerClass"))
   }
 
   private fun assertContributorInfo(psiElement: PsiElement) {
@@ -200,15 +203,14 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
     )
 
   private class JavaBaselineProfileGeneratorSourceFile(private val psiFile: PsiFile) {
-
-    fun classNamed(name: String): PsiElement {
-
-      val el = psiFile
-        .collectDescendantsOfType<PsiElement> { it.node.text == name }
-        .mapNotNull { it.prevSibling(skip = JavaTokenType.WHITE_SPACE) }
-        .firstOrNull { it.node.elementType == JavaTokenType.CLASS_KEYWORD }
+    fun classIdentifierNamed(name: String): PsiElement {
+      val el = PsiTreeUtil.collectElements(psiFile) { it.node.elementType is JavaClassElementType }
+        .toList()
+        .firstOrNull { (it as PsiClass).name == name }
       assertNotNull(el) { "No class named `$name` was found." }
-      return el
+      val identifier = el.collectDescendantsOfType<PsiElement> { it is PsiIdentifier }.firstOrNull()
+      assertNotNull(identifier) { "Identifier PsiElement `$name` was not found." }
+      return identifier
     }
   }
 }

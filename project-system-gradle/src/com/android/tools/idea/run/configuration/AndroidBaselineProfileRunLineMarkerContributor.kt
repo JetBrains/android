@@ -25,20 +25,24 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.psi.JavaTokenType
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
+import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.PsiMember
 import com.intellij.psi.PsiNewExpression
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.idea.base.util.isUnderKotlinSourceRootTypes
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 import org.jetbrains.plugins.groovy.intentions.style.inference.resolve
 
 class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
@@ -59,25 +63,41 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
     // If the studio flag is not enabled, skip entirely.
     if (!StudioFlags.GENERATE_BASELINE_PROFILE_GUTTER_ICON.get()) return null
 
-    return when (e.node.elementType) {
-      KtTokens.CLASS_KEYWORD -> {
-        if (e.parent is KtClass && doesKtClassHaveBaselineProfileRule(e)) {
-          Info(AllIcons.RunConfigurations.TestState.Run_run, actions) {
-            AndroidBundle.message("android.run.configuration.generate.baseline.profile")
-          }
-        }
-        else null
-      }
-      JavaTokenType.CLASS_KEYWORD -> {
-        if (e.parent is PsiClass && doesJavaClassHaveBaselineProfileRule(e)) {
-          Info(AllIcons.RunConfigurations.TestState.Run_run, actions) {
-            AndroidBundle.message("android.run.configuration.generate.baseline.profile")
-          }
-        }
-        else null
-      }
-      else -> null
+    if (e.node.elementType == KtTokens.IDENTIFIER) {
+      return getKotlinMarkers(e)
     }
+    else if (e is PsiIdentifier) {
+      return getJavaLineMarkers(e)
+    }
+    return null
+  }
+
+  private fun getKotlinMarkers(e: PsiElement): Info? {
+    // Code based on {@class KotlinTestRunLineMarkerContributor#calculateIcon}.
+    val declaration = e.getStrictParentOfType<KtNamedDeclaration>()?.takeIf { it.nameIdentifier == e } ?: return null
+
+    if (declaration !is KtClassOrObject ||
+        !declaration.isUnderKotlinSourceRootTypes() ||
+        e.parent !is KtClass ||
+        !doesKtClassHaveBaselineProfileRule(e)) {
+      return null
+    }
+
+    return Info(
+      AllIcons.RunConfigurations.TestState.Run_run,
+      actions
+    ) { AndroidBundle.message("android.run.configuration.generate.baseline.profile") }
+  }
+
+  private fun getJavaLineMarkers(e: PsiElement): Info? {
+    if (e.parent !is PsiClass || !doesJavaClassHaveBaselineProfileRule(e)) {
+      return null
+    }
+
+    return Info(
+      AllIcons.RunConfigurations.TestState.Run_run,
+      actions
+    ) { AndroidBundle.message("android.run.configuration.generate.baseline.profile") }
   }
 
   private fun doesKtClassHaveBaselineProfileRule(psiElement: PsiElement): Boolean {

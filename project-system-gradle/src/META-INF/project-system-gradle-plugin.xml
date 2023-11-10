@@ -158,8 +158,8 @@
       <className>org.jetbrains.android.intentions.AndroidAddLibraryDependencyAction</className>
       <category>Android</category>
     </intentionAction>
-    <runLineMarkerContributor language="JAVA" implementationClass="com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor"/>
-    <runLineMarkerContributor language="kotlin" implementationClass="com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor"/>
+    <runLineMarkerContributor language="JAVA" implementationClass="com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor" order="first"/>
+    <runLineMarkerContributor language="kotlin" implementationClass="com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor" order="first"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidBaselineProfileRunConfigurationType"/>
     <programRunner implementation="com.android.tools.idea.run.AndroidBaselineProfileProgramRunner" order="after DefaultStudioProgramRunner"/>
   </extensions>
