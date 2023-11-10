@@ -19,6 +19,10 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.gradle.plugin.AgpVersions
+import com.android.tools.idea.gradle.project.build.BuildContext
+import com.android.tools.idea.gradle.project.build.BuildStatus
+import com.android.tools.idea.gradle.project.build.GradleBuildListener
+import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
@@ -87,8 +91,9 @@ class UpgradeAssistantWindowModel(
   val latestKnownVersion : AgpVersion = AgpVersions.latestKnown,
   val newProjectVersion : AgpVersion = AgpVersions.newProject,
   val knownVersionsRequester: () -> Set<AgpVersion> = { AgpVersions.getAvailableVersions() }
-) : GradleSyncListener, Disposable {
+) : GradleSyncListener, GradleBuildListener, Disposable {
 
+  private var stateBeforeBuild: UIState = UIState.Loading
   var current: AgpVersion? = currentVersionProvider()
     private set
   private var _selectedVersion: AgpVersion? = recommended ?: latestKnownVersion
@@ -210,6 +215,12 @@ class UpgradeAssistantWindowModel(
       override val runTooltip = "Press enter to commit selected version for upgrade."
 
     }
+    object RunningBuild : UIState() {
+      override val controlsEnabledState = ControlsEnabledState.NEITHER
+      override val layoutState = LayoutState.LOADING
+      override val runTooltip = ""
+      override val loadingText = "Running Gradle Build"
+    }
     class InvalidVersionError(
       override val statusMessage: StatusMessage
     ) : UIState() {
@@ -307,6 +318,7 @@ class UpgradeAssistantWindowModel(
     refresh()
 
     GradleSyncState.subscribe(project, this, this)
+    GradleBuildState.subscribe(project, this, this)
     // Initialize known versions (e.g. in case of offline work with no cache)
     suggestedVersions.value = suggestedVersionsList(setOf())
 
@@ -335,6 +347,15 @@ class UpgradeAssistantWindowModel(
       success -> uiState.set(UIState.UpgradeSyncSucceeded).also { processorRequestedSync = false }
       else -> uiState.set(UIState.UpgradeSyncFailed(errorMessage)).also { processorRequestedSync = false }
     }
+  }
+
+  override fun buildStarted(context: BuildContext) {
+    stateBeforeBuild = uiState.get()
+    uiState.set(UIState.RunningBuild)
+  }
+
+  override fun buildFinished(status: BuildStatus, context: BuildContext?) {
+    uiState.set(stateBeforeBuild).also { refresh(true) }
   }
 
   override fun dispose() {
