@@ -157,6 +157,15 @@
                                     implementationClass="com.android.tools.compose.ComposeColorLineMarkerProviderDescriptor" />
 
     <usageGroupingRuleProvider implementation="com.android.tools.compose.ComposeUsageGroupingRuleProvider" />
+
+    <codeInsight.declarativeInlayProvider language="kotlin"
+                                          implementationClass="com.android.tools.compose.code.state.ComposeStateReadInlayHintsProvider"
+                                          isEnabledByDefault="false"
+                                          group="OTHER_GROUP"
+                                          providerId="compose.state.read"
+                                          bundle="messages.ComposeBundle"
+                                          nameKey="state.read.inlay.provider.name"
+                                          descriptionKey="state.read.inlay.provider.description"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">

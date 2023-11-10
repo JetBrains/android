@@ -16,6 +16,7 @@
 
 package com.android.tools.compose
 
+import com.android.tools.compose.code.state.COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_KEY
 import com.android.tools.compose.code.state.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.options.colors.AttributesDescriptor
@@ -33,14 +34,21 @@ private val COMPOSABLE_CALL_DESCRIPTOR =
 
 private val STATE_READ_DESCRIPTOR =
   AttributesDescriptor(
-    ComposeBundle.message("compose.state.read.text.attributes.description"),
+    ComposeBundle.message("state.read.text.attributes.description"),
     COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY
+  )
+
+private val STATE_READ_SCOPE_DESCRIPTOR =
+  AttributesDescriptor(
+    ComposeBundle.message("state.read.scope.highlighting.text.attributes.description"),
+    COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_KEY
   )
 
 private val TAG_TO_DESCRIPTOR =
   mapOf(
     "CC" to COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY,
     "CSR" to COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY,
+    "CSRS" to COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_KEY,
     "A" to KotlinHighlightingColors.ANNOTATION,
     "K" to KotlinHighlightingColors.KEYWORD,
     "FD" to KotlinHighlightingColors.FUNCTION_DECLARATION,
@@ -61,10 +69,10 @@ private val DEMO_TEXT =
 
 private val STATE_READ_DEMO_TEXT =
   """
-  <A>@Composable</A>
+  <CSRS><A>@Composable</A>
   <K>fun</K> <FD>ReadsState</FD>(<FP>textState</FP>: <FP>State<String></FP>) {
     <CC>Text</CC>(<FP>textState.<CSR>value</CSR></FP>)
-  }
+  }</CSRS>
   """
     .trimIndent()
 
@@ -81,6 +89,7 @@ class ComposeColorSettingsPage : ColorSettingsPage {
         add(COMPOSABLE_CALL_DESCRIPTOR)
         if (StudioFlags.COMPOSE_STATE_READ_HIGHLIGHTING_ENABLED.get()) {
           add(STATE_READ_DESCRIPTOR)
+          add(STATE_READ_SCOPE_DESCRIPTOR)
         }
       }
       .toTypedArray<AttributesDescriptor>()
