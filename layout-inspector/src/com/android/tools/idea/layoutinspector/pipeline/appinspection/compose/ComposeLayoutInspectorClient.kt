@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
+import com.android.tools.idea.appinspection.api.checkVersion
+import com.android.tools.idea.appinspection.ide.InspectorArtifactService
+import com.android.tools.idea.appinspection.ide.getOrResolveInspectorJar
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
@@ -35,7 +41,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AttachErrorInfo
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.toAttachErrorInfo
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.toInfo
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.Token
@@ -49,6 +54,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.Att
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.text.nullize
 import java.nio.file.Paths
@@ -56,6 +62,7 @@ import java.util.EnumSet
 import kotlin.io.path.name
 import kotlin.io.path.pathString
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
@@ -74,6 +81,10 @@ const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
 val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate("androidx.compose.ui", "ui", "1.0.0-beta02")
 val MINIMUM_COMPOSE_ANDROID_COORDINATE =
   ArtifactCoordinate("androidx.compose.ui", "ui-android", "1.5.0-beta01")
+const val EXPECTED_CLASS_IN_COMPOSE_LIBRARY = "androidx.compose.ui.Modifier"
+val COMPOSE_INSPECTION_COMPATIBILITY =
+  LibraryCompatibility(MINIMUM_COMPOSE_COORDINATE, listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY))
+private val KMP_MIGRATION_VERSION = Version.parse("1.5.0-beta01")
 
 @VisibleForTesting const val INCOMPATIBLE_LIBRARY_MESSAGE_KEY = "incompatible.library.message"
 
@@ -127,6 +138,100 @@ class ComposeLayoutInspectorClient(
 
   companion object {
     /**
+     * Check for problems with the specified compose version, and display banners if appropriate.
+     */
+    private fun checkComposeVersion(notificationModel: NotificationModel, versionString: String) {
+      val version = Version.parse(versionString)
+      // b/237987764 App crash while fetching parameters with empty lambda was fixed in
+      // 1.3.0-alpha03 and in 1.2.1
+      // b/235526153 App crash while fetching component tree with certain Borders was fixed in
+      // 1.3.0-alpha03 and in 1.2.1
+      if (
+        version >= Version.parse("1.3.0-alpha03") ||
+          version.minor == 2 && version >= Version.parse("1.2.1")
+      )
+        return
+      val versionUpgrade = if (version.minor == 3) "1.3.0" else "1.2.1"
+      val message =
+        LayoutInspectorBundle.message(
+          COMPOSE_MAY_CAUSE_APP_CRASH_KEY,
+          versionString,
+          versionUpgrade
+        )
+      logDiagnostics(
+        ComposeLayoutInspectorClient::class.java,
+        "Compose version warning, message: %s",
+        message
+      )
+      notificationModel.addNotification(
+        COMPOSE_MAY_CAUSE_APP_CRASH_KEY,
+        message,
+        EditorNotificationPanel.Status.Warning
+      )
+      // Allow the user to connect and inspect compose elements because:
+      // - b/235526153 is uncommon
+      // - b/237987764 only happens if the kotlin compiler version is at least 1.6.20 (which we
+      // cannot reliably detect)
+    }
+
+    fun determineArtifactId(versionIdentifier: String) =
+      Version.parse(versionIdentifier).let {
+        if (it < KMP_MIGRATION_VERSION) "ui" else "ui-android"
+      }
+
+    fun handleCompatibilityAndComputeVersion(
+      notificationModel: NotificationModel,
+      compatibility: LibraryCompatibilityInfo?,
+      logErrorToMetrics: (AttachErrorCode) -> Unit,
+      isRunningFromSourcesInTests: Boolean?
+    ): String? {
+      val version =
+        compatibility?.version?.takeIf {
+          compatibility.status == LibraryCompatibilityInfo.Status.COMPATIBLE && it.isNotBlank()
+        }
+          ?: return ComposeLayoutInspectorClient.handleError(
+            notificationModel,
+            logErrorToMetrics,
+            isRunningFromSourcesInTests,
+            compatibility?.status.toAttachErrorInfo()
+          )
+
+      checkComposeVersion(notificationModel, version)
+      return version
+    }
+
+    fun getAppInspectorJar(
+      project: Project,
+      version: String?,
+      notificationModel: NotificationModel,
+      logErrorToMetrics: (AttachErrorCode) -> Unit,
+      isRunningFromSourcesInTests: Boolean?
+    ): AppInspectorJar? {
+      if (version == null) return null
+
+      return try {
+        runBlocking {
+          InspectorArtifactService.instance.getOrResolveInspectorJar(
+            project,
+            MINIMUM_COMPOSE_COORDINATE.copy(
+              // TODO: workaround for kmp migration at 1.5.0-beta01 where the artifact id became
+              // "ui-android"
+              artifactId = determineArtifactId(version),
+              version = version
+            )
+          )
+        }
+      } catch (exception: AppInspectionArtifactNotFoundException) {
+        handleError(
+          notificationModel,
+          logErrorToMetrics,
+          isRunningFromSourcesInTests,
+          exception.toAttachErrorInfo()
+        )
+      }
+    }
+
+    /**
      * Helper function for launching the compose layout inspector and creating a client to interact
      * with it.
      */
@@ -167,24 +272,58 @@ class ComposeLayoutInspectorClient(
           )
         } else {
           val projectSystem = project.getProjectSystem()
-          val token =
-            projectSystem.getTokenOrNull(GetComposeLayoutInspectorJarToken.EP_NAME)
-              // TODO(xof): We need an APP_INSPECTION_UNSUPPORTED_BUILD_SYSTEM here, theoretically
-              ?: return handleError(
-                notificationModel,
-                logErrorToMetrics,
-                isRunningFromSourcesInTests,
-                AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR.toInfo()
-              )
-          requiredCompatibility = token.getRequiredCompatibility()
-          token.getAppInspectorJar(
-            projectSystem,
-            notificationModel,
-            apiServices,
-            process,
-            logErrorToMetrics,
-            isRunningFromSourcesInTests
-          ) ?: return null
+          val token = projectSystem.getTokenOrNull(GetComposeLayoutInspectorJarToken.EP_NAME)
+
+          val compatibility =
+            apiServices.checkVersion(
+              project.name,
+              process,
+              MINIMUM_COMPOSE_COORDINATE.groupId,
+              MINIMUM_COMPOSE_COORDINATE.artifactId,
+              listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY)
+            )
+
+          val version =
+            when (token) {
+              null ->
+                handleCompatibilityAndComputeVersion(
+                  notificationModel,
+                  compatibility,
+                  logErrorToMetrics,
+                  isRunningFromSourcesInTests
+                )
+              else ->
+                token.handleCompatibilityAndComputeVersion(
+                  notificationModel,
+                  compatibility,
+                  logErrorToMetrics,
+                  isRunningFromSourcesInTests
+                )
+            }
+
+          val appInspectorJar =
+            when (token) {
+              null ->
+                getAppInspectorJar(
+                  project,
+                  version,
+                  notificationModel,
+                  logErrorToMetrics,
+                  isRunningFromSourcesInTests
+                )
+              else ->
+                token.getAppInspectorJar(
+                  projectSystem,
+                  version,
+                  notificationModel,
+                  logErrorToMetrics,
+                  isRunningFromSourcesInTests
+                )
+            } ?: return null
+
+          requiredCompatibility =
+            token?.getRequiredCompatibility() ?: COMPOSE_INSPECTION_COMPATIBILITY
+          appInspectorJar
         }
 
       // Set force = true, to be more aggressive about connecting the layout inspector if an old
@@ -532,12 +671,24 @@ interface GetComposeLayoutInspectorJarToken<P : AndroidProjectSystem> : Token {
 
   fun getAppInspectorJar(
     projectSystem: P,
+    version: String?,
     notificationModel: NotificationModel,
-    apiServices: AppInspectionApiServices,
-    process: ProcessDescriptor,
     logErrorToMetrics: (AttachErrorCode) -> Unit,
     isRunningFromSourcesInTests: Boolean?
   ): AppInspectorJar?
+
+  /**
+   * Use [compatibility], resulting from a call to [checkVersion], to inform the user through the
+   * [notificationModel] of any issues, and return a [String] representing the version of the
+   * AppInspector jar to get. The return value is nullable to allow this method to indicate that no
+   * compatible version of the library has been found from the call to [checkVersion].
+   */
+  fun handleCompatibilityAndComputeVersion(
+    notificationModel: NotificationModel,
+    compatibility: LibraryCompatibilityInfo?,
+    logErrorToMetrics: (AttachErrorCode) -> Unit,
+    isRunningFromSourcesInTests: Boolean?
+  ): String?
 
   fun getRequiredCompatibility(): LibraryCompatibility
 }
