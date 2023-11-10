@@ -117,5 +117,6 @@
     <orderEntry type="module" module-name="kotlin.code-insight.utils" />
     <orderEntry type="module" module-name="kotlin.formatter" />
     <orderEntry type="module" module-name="kotlin.jvm-debugger.core-fe10" />
+    <orderEntry type="module" module-name="kotlin.base.analysis-api.utils" />
   </component>
 </module>
