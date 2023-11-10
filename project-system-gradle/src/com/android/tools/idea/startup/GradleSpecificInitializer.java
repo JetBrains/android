@@ -73,10 +73,6 @@ public class GradleSpecificInitializer extends ApplicationInitializedListenerJav
     GradleOperationHelperExtension.EP_NAME.getPoint().unregisterExtension(GradleExecutionMeasuringExtension.class);
 
     useIdeGooglePlaySdkIndexInGradleDetector();
-
-    //Switch on Idea native navigation/suggestion for version catalog/gradle
-    Registry.get(CommonGradleProjectResolverExtension.GRADLE_VERSION_CATALOGS_DYNAMIC_SUPPORT)
-      .setValue(true);
   }
 
   /**
