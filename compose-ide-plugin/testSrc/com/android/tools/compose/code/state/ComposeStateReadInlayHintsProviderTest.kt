@@ -29,14 +29,22 @@ import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.offsetForWindow
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
+import com.intellij.codeInsight.hints.declarative.InlayActionData
 import com.intellij.codeInsight.hints.declarative.InlayTreeSink
 import com.intellij.codeInsight.hints.declarative.InlineInlayPosition
 import com.intellij.codeInsight.hints.declarative.PresentationTreeBuilder
+import com.intellij.codeInsight.hints.declarative.PsiPointerInlayActionPayload
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPointerManager
+import com.intellij.refactoring.suggested.range
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubComposeRuntime
 import org.jetbrains.android.compose.stubKotlinStdlib
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.junit.Before
 import org.junit.Rule
@@ -166,19 +174,20 @@ class ComposeStateReadInlayHintsProviderTest {
       "com/example/Foo.kt",
       // language=kotlin
       """
-        package com.example
-        import androidx.compose.runtime.Composable
-        import androidx.compose.runtime.MutableState
-        import androidx.compose.runtime.mutableStateOf
-        import androidx.compose.runtime.saveable.rememberSaveable
-        @Composable
-        fun Bar(arg: String, onNameChange: (String) -> Unit)
-        @Composable
-        fun Foo {
-          var stateVar = rememberSaveable { mutableStateOf("foo") }
-          Bar(arg = stateVar.value) { stateVar.value = it }
-        }
-        """
+      package com.example
+      import androidx.compose.runtime.Composable
+      import androidx.compose.runtime.MutableState
+      import androidx.compose.runtime.mutableStateOf
+      import androidx.compose.runtime.saveable.rememberSaveable
+      @Composable
+      fun Bar(arg: String, onNameChange: (String) -> Unit)
+      @Composable
+      fun Foo {
+        var stateVar = rememberSaveable { mutableStateOf("foo") }
+        Bar(arg = stateVar.value) { stateVar.value = it }
+      }
+      """
+        .trimIndent()
     )
     val element = fixture.findParentElement<KtNameReferenceExpression>("= stateVar.va|lue)")
 
@@ -201,8 +210,70 @@ class ComposeStateReadInlayHintsProviderTest {
       assertThat(priority).isEqualTo(0)
     }
     builderCaptor.value.invoke(treeBuilder)
-    verify(treeBuilder).text(ComposeBundle.message("state.read"))
+    val actionDataCaptor: ArgumentCaptor<InlayActionData> = argumentCaptor()
+    verify(treeBuilder).text(eq(ComposeBundle.message("state.read")), actionDataCaptor.capture())
+    with(actionDataCaptor.value) {
+      assertThat(payload).isInstanceOf(PsiPointerInlayActionPayload::class.java)
+      val expectedScope = fixture.findParentElement<KtFunction>("stateVar |= rememberSaveable")
+      assertThat((payload as PsiPointerInlayActionPayload).pointer.element).isEqualTo(expectedScope)
+      assertThat(handlerId).isEqualTo(ComposeStateReadInlayActionHandler.HANDLER_NAME)
+    }
     verifyNoMoreInteractions(sink, treeBuilder)
+  }
+
+  @Test
+  fun handleClick_highlightsCorrectRange() {
+    fixture.loadNewFile(
+      "com/example/Foo.kt",
+      // language=kotlin
+      """
+      package com.example
+      class Foo
+      """
+        .trimIndent()
+    )
+    val foo = fixture.findParentElement<KtClass>("F|o")
+    val payload = PsiPointerInlayActionPayload(SmartPointerManager.createPointer(foo))
+    val handler = ComposeStateReadInlayActionHandler()
+    handler.handleClick(fixture.editor, payload)
+    assertHighlighted(foo)
+  }
+
+  @Test
+  fun handleClick_noHighlightAfterCaretMovement() {
+    fixture.loadNewFile(
+      "com/example/Foo.kt",
+      // language=kotlin
+      """
+      package com.example
+      class Foo
+      """
+        .trimIndent()
+    )
+    val foo = fixture.findParentElement<KtClass>("F|o")
+    val payload = PsiPointerInlayActionPayload(SmartPointerManager.createPointer(foo))
+    val handler = ComposeStateReadInlayActionHandler()
+    handler.handleClick(fixture.editor, payload)
+    fixture.editor.caretModel.run { moveToOffset(currentCaret.offset + 1) }
+    assertNotHighlighted(foo)
+  }
+
+  private fun highlightersFor(element: PsiElement) =
+    fixture.editor.markupModel.allHighlighters.filter {
+      it.range == element.textRange &&
+        it.textAttributesKey == COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_KEY
+    }
+
+  private fun assertHighlighted(element: PsiElement) {
+    assertWithMessage("Expected $element to be highlighted.")
+      .that(highlightersFor(element))
+      .hasSize(1)
+  }
+
+  private fun assertNotHighlighted(element: PsiElement) {
+    assertWithMessage("Expected $element not to be highlighted.")
+      .that(highlightersFor(element))
+      .isEmpty()
   }
 }
 

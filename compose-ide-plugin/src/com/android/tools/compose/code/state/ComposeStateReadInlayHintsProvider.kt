@@ -17,16 +17,29 @@ package com.android.tools.compose.code.state
 
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.idea.flags.StudioFlags
+import com.google.common.base.Suppliers
+import com.intellij.codeInsight.hints.declarative.InlayActionData
+import com.intellij.codeInsight.hints.declarative.InlayActionHandler
+import com.intellij.codeInsight.hints.declarative.InlayActionPayload
 import com.intellij.codeInsight.hints.declarative.InlayHintsCollector
 import com.intellij.codeInsight.hints.declarative.InlayHintsProvider
 import com.intellij.codeInsight.hints.declarative.InlayTreeSink
 import com.intellij.codeInsight.hints.declarative.InlineInlayPosition
+import com.intellij.codeInsight.hints.declarative.PsiPointerInlayActionPayload
 import com.intellij.codeInsight.hints.declarative.SharedBypassCollector
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.TextAttributesKey
+import com.intellij.openapi.editor.event.CaretEvent
+import com.intellij.openapi.editor.event.CaretListener
+import com.intellij.openapi.editor.markup.HighlighterLayer
+import com.intellij.openapi.editor.markup.HighlighterTargetArea
+import com.intellij.openapi.editor.markup.MarkupModel
+import com.intellij.openapi.editor.markup.RangeHighlighter
+import com.intellij.openapi.util.Segment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPointerManager
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
@@ -61,7 +74,66 @@ object ComposeStateReadInlayHintsCollector : SharedBypassCollector {
     val tooltip =
       ComposeBundle.message("state.read.message", stateRead.stateVar.text, stateRead.scopeName)
     sink.addPresentation(position, tooltip = tooltip, hasBackground = true) {
-      text(ComposeBundle.message("state.read"))
+      val actionData =
+        InlayActionData(
+          PsiPointerInlayActionPayload(SmartPointerManager.createPointer(stateRead.scope)),
+          ComposeStateReadInlayActionHandler.HANDLER_NAME
+        )
+      text(ComposeBundle.message("state.read"), actionData)
     }
+  }
+}
+
+/** Applies scope highlighting to [segment], returning the [RangeHighlighter] created. */
+private fun MarkupModel.highlight(segment: Segment): RangeHighlighter =
+  addRangeHighlighter(
+    COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_KEY,
+    segment.startOffset,
+    segment.endOffset,
+    HighlighterLayer.ELEMENT_UNDER_CARET - 1,
+    HighlighterTargetArea.EXACT_RANGE
+  )
+
+/** Runs [block] the next time this [Editor] has a caret added/moved/removed. */
+private fun Editor.runAtNextCaretChange(block: () -> Unit) {
+  with(caretModel) {
+    addCaretListener(
+      object : CaretListener {
+        private val payload =
+          Suppliers.memoize {
+            removeCaretListener(this)
+            block.invoke()
+          }
+
+        override fun caretPositionChanged(event: CaretEvent) {
+          payload.get()
+        }
+
+        override fun caretAdded(event: CaretEvent) {
+          payload.get()
+        }
+
+        override fun caretRemoved(event: CaretEvent) {
+          payload.get()
+        }
+      }
+    )
+  }
+}
+
+/** Applies scope highlighting to [range] until the next time the caret moves. */
+private fun Editor.highlightUntilCaretMovement(range: Segment) {
+  with(markupModel) { highlight(range).also { runAtNextCaretChange { removeHighlighter(it) } } }
+}
+
+/** Handler invoked when users click on the `State` read inlay hints. */
+class ComposeStateReadInlayActionHandler() : InlayActionHandler {
+  override fun handleClick(editor: Editor, payload: InlayActionPayload) {
+    val range = (payload as? PsiPointerInlayActionPayload)?.pointer?.range ?: return
+    editor.highlightUntilCaretMovement(range)
+  }
+
+  companion object {
+    const val HANDLER_NAME = ComposeStateReadInlayHintsProvider.PROVIDER_ID
   }
 }
