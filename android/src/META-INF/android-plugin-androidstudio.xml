@@ -17,6 +17,8 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
+    <!-- TODO(b/310242349): enable slow operations assertions. They are disabled only temporarily during the IntelliJ 2023.3 update. -->
+    <registryKey key="ide.slow.operations.assertion" defaultValue="false" description="Log errors for slow operations on the EDT"/>
     <applicationInitializedListener id="Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.startup.AndroidStudioInitializer" />
     <actionConfigurationCustomizer id="Startup.AndroidStudioActionCustomizer" implementation="com.android.tools.idea.startup.AndroidStudioActionCustomizer"/>
     <applicationInitializedListener implementation="com.android.tools.idea.startup.AndroidSdkInitializer" order="last"/>
