@@ -19,11 +19,16 @@ import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtTypeReference
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -32,8 +37,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class PsiUtilsTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
@@ -55,7 +59,8 @@ class PsiUtilsTest {
 
       @Composable
       fun Greet${caret}ing() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     runReadAction {
@@ -73,7 +78,8 @@ class PsiUtilsTest {
       package com.example
 
       fun Greet${caret}ing() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     runReadAction {
@@ -91,7 +97,8 @@ class PsiUtilsTest {
       package com.example
 
       val greet${caret}ing = ""
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     runReadAction {
@@ -110,12 +117,11 @@ class PsiUtilsTest {
 
       @Deprecated
       fun Greet${caret}ing() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    runReadAction {
-      assertThat(fixture.elementAtCaret.isDeprecated()).isTrue()
-    }
+    runReadAction { assertThat(fixture.elementAtCaret.isDeprecated()).isTrue() }
   }
 
   @Test
@@ -127,12 +133,11 @@ class PsiUtilsTest {
       package com.example
 
       fun Greet${caret}ing() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    runReadAction {
-      assertThat(fixture.elementAtCaret.isDeprecated()).isFalse()
-    }
+    runReadAction { assertThat(fixture.elementAtCaret.isDeprecated()).isFalse() }
   }
 
   @Test
@@ -144,18 +149,19 @@ class PsiUtilsTest {
       package com.exa${caret}mple
 
       fun Greeting() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    runReadAction {
-      assertThat(fixture.elementAtCaret.isDeprecated()).isFalse()
-    }
+    runReadAction { assertThat(fixture.elementAtCaret.isDeprecated()).isFalse() }
   }
 
   @Test
   fun isDeprecatedAndIsComposableFunctionCaching() {
-    // These utility methods both utilize caching internally, and if they use the incorrect method (with a default key), their cached values
-    // can collide. This test validates that a single method with different values for each is still correctly returned.
+    // These utility methods both utilize caching internally, and if they use the incorrect method
+    // (with a default key), their cached values
+    // can collide. This test validates that a single method with different values for each is still
+    // correctly returned.
     fixture.loadNewFile(
       "src/com/example/Test.kt",
       // language=kotlin
@@ -164,7 +170,8 @@ class PsiUtilsTest {
 
       @Deprecated
       fun Gree${caret}ting() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     runReadAction {
@@ -183,13 +190,294 @@ class PsiUtilsTest {
 
       @Composable
       fun Gree${caret}ting() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     runReadAction {
       assertThat(fixture.elementAtCaret.isComposableFunction()).isTrue()
       assertThat(fixture.elementAtCaret.getComposableAnnotation()).isNotNull()
       assertThat(fixture.elementAtCaret.isDeprecated()).isFalse()
+    }
+  }
+
+  @Test
+  fun composableScope_function() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun Greeting() {
+        val a = 35
+      }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.findParentElement("3|5")
+      val scope = element.composableScope()
+      assertThat(scope).isNotNull()
+      val function: KtNamedFunction = fixture.findParentElement("Gre|eting")
+      assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun composableScope_lambda() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      fun repeat(times: Int, action: @Composable (Int) -> Unit) {
+        for (index in 0 until times) {
+          action(index)
+        }
+      }
+
+      @Composable
+      fun Greeting() {
+        repeat(2) { val a = 35 }
+      }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.findParentElement("3|5")
+      val scope = element.composableScope()
+      assertThat(scope).isNotNull()
+      val function: KtLambdaExpression = fixture.findParentElement("3|5")
+      assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun composableScope_inlineLambda() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      inline fun repeat(times: Int, action: (Int) -> Unit) {
+        for (index in 0 until times) {
+          action(index)
+        }
+      }
+
+      @Composable
+      fun Greeting() {
+        repeat(2) { val a = 35 }
+      }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.findParentElement("3|5")
+      val scope = element.composableScope()
+      assertThat(scope).isNotNull()
+      val function: KtNamedFunction = fixture.findParentElement("Gre|eting")
+      assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun composableScope_inlineLambda_noinline() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      inline fun repeat(times: Int, noinline action: @Composable (Int) -> Unit) {
+        for (index in 0 until times) {
+          action(index)
+        }
+      }
+
+      @Composable
+      fun Greeting() {
+        repeat(2) { val a = 35 }
+      }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.findParentElement("3|5")
+      val scope = element.composableScope()
+      assertThat(scope).isNotNull()
+      val function: KtLambdaExpression = fixture.findParentElement("3|5")
+      assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun expectedComposableAnnotationHolder_variable() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun Greeting() {
+        val a: () -> Int = { 35 }
+      }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.findParentElement("3|5")
+      val scope = element.expectedComposableAnnotationHolder()
+      assertThat(scope).isNotNull()
+      val function: KtTypeReference = fixture.findParentElement("() -|> Int")
+      assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun expectedComposableAnnotationHolder_function() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun Greeting() { val a = 35 }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.findParentElement("3|5")
+      val scope = element.expectedComposableAnnotationHolder()
+      assertThat(scope).isNotNull()
+      val function: KtNamedFunction = fixture.findParentElement("Gre|eting")
+      assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun expectedComposableAnnotationHolder_inlineLambda() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      inline fun repeat(times: Int, action: (Int) -> Unit) {
+        for (index in 0 until times) {
+          action(index)
+        }
+      }
+
+      @Composable
+      fun Greeting() {
+        repeat(2) {  val a = 35 }
+      }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.findParentElement("3|5")
+      val scope = element.expectedComposableAnnotationHolder()
+      assertThat(scope).isNotNull()
+      val function: KtNamedFunction = fixture.findParentElement("Gre|eting")
+      assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun expectedComposableAnnotationHolder_inlineLambda_noinline() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      inline fun repeat(times: Int, noinline action: (Int) -> Unit) {
+        for (index in 0 until times) {
+          action(index)
+        }
+      }
+
+      @Composable
+      fun Greeting() {
+        repeat(2) { val a = 35 }
+      }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.findParentElement("3|5")
+      val scope = element.expectedComposableAnnotationHolder()
+      assertThat(scope).isNotNull()
+      val function: KtTypeReference = fixture.findParentElement("(Int) -|> Unit")
+      assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun expectedComposableAnnotationHolder_lambda() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      fun repeat(times: Int, action: (Int) -> Unit) {
+        for (index in 0 until times) {
+          action(index)
+        }
+      }
+
+      @Composable
+      fun Greeting() {
+        repeat(2) {
+          val a = 35
+        }
+      }
+
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.findParentElement("3|5")
+      val scope = element.expectedComposableAnnotationHolder()
+      assertThat(scope).isNotNull()
+      val function: KtTypeReference = fixture.findParentElement("(Int) -|> Unit")
+      assertThat(scope).isEqualTo(function)
     }
   }
 }

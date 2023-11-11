@@ -50,6 +50,7 @@ import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
@@ -141,6 +142,35 @@ tailrec fun KtElement.composableScope(): KtExpression? {
         argument.composableScope()
       } else {
         nextParent.takeIf { param.typeReference?.hasComposableAnnotation() == true }
+      }
+    }
+    else -> null
+  }
+}
+
+/**
+ * Returns the [KtAnnotated] that should hold the `@Composable` annotation for this [KtElement],
+ * irrespective of whether it actually has the annotation.
+ */
+tailrec fun KtElement.expectedComposableAnnotationHolder(): KtAnnotated? {
+  return when (val nextParent = parentOfTypes(KtNamedFunction::class, KtLambdaExpression::class)) {
+    // Always stop at a named function.
+    is KtNamedFunction -> nextParent
+    // A lambda that is a function argument
+    is KtLambdaExpression -> {
+      when (val lambdaParent = nextParent.parent) {
+        is KtValueArgument -> {
+          val function = lambdaParent.toFunction() ?: return null
+          val param = function.getParameterForArgument(lambdaParent) ?: return null
+          if (function.hasInlineModifier() && !param.hasModifier(KtTokens.NOINLINE_KEYWORD)) {
+            // If it's inlined then continue up to the enclosing function (i.e. recurse).
+            lambdaParent.expectedComposableAnnotationHolder()
+          } else {
+            param.typeReference
+          }
+        }
+        is KtProperty -> lambdaParent.typeReference
+        else -> return null
       }
     }
     else -> null
