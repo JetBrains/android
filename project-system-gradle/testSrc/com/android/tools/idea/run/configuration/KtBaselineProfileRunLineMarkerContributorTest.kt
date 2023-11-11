@@ -188,7 +188,7 @@ class KtBaselineProfileRunLineMarkerContributorTest {
     assertNotNull(info) {
       "No line marker contributor was produced for psi element."
     }
-    assert(info.actions.size == 1) {
+    assert(info.actions.size == 5) {
       "Unexpected number of actions for line marker contributor."
     }
     assert(info.actions[0].equals(expectedGenerateBaselineProfileAction)) {

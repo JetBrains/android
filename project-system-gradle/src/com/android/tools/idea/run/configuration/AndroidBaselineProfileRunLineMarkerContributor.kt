@@ -19,12 +19,16 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManagerEx
+import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
+import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionGroupWrapper
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -51,53 +55,61 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
     private const val FQ_NAME_ORG_JUNIT_RULE = "org.junit.Rule"
     private const val NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE = "androidx/benchmark/macro/junit4/BaselineProfileRule"
     private const val FQ_NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE = "androidx.benchmark.macro.junit4.BaselineProfileRule"
-  }
 
-  private val actions by lazy(LazyThreadSafetyMode.PUBLICATION) {
-    arrayOf(
-      ActionManager.getInstance().getAction("AndroidX.BaselineProfile.RunGenerate"))
+    private val generateAction = ActionManager.getInstance().getAction("AndroidX.BaselineProfile.RunGenerate")
+
+    private val executorActions = ExecutorAction.getActionList()
+      .mapNotNull { it as? ExecutorAction }
+      .filter { it.executor == DefaultRunExecutor.getRunExecutorInstance() ||
+                it.executor == DefaultDebugExecutor.getDebugExecutorInstance() }
+
+    private val createRunConfigAction = ExecutorAction.getActionList()
+      .mapNotNull { it as? ActionGroupWrapper }
+      .firstOrNull { it.delegate == ActionManager.getInstance().getAction("CreateRunConfiguration") }
+
+    private val allActions = mutableListOf(generateAction).apply {
+      if (executorActions.isNotEmpty()) {
+        add(Separator.getInstance())
+        addAll(executorActions)
+        createRunConfigAction?.let { add(createRunConfigAction) }
+      }
+    }.toTypedArray()
   }
 
   override fun getInfo(e: PsiElement): Info? {
-
     // If the studio flag is not enabled, skip entirely.
     if (!StudioFlags.GENERATE_BASELINE_PROFILE_GUTTER_ICON.get()) return null
 
-    if (e.node.elementType == KtTokens.IDENTIFIER) {
-      return getKotlinMarkers(e)
-    }
-    else if (e is PsiIdentifier) {
-      return getJavaLineMarkers(e)
-    }
-    return null
-  }
-
-  private fun getKotlinMarkers(e: PsiElement): Info? {
-    // Code based on {@class KotlinTestRunLineMarkerContributor#calculateIcon}.
-    val declaration = e.getStrictParentOfType<KtNamedDeclaration>()?.takeIf { it.nameIdentifier == e } ?: return null
-
-    if (declaration !is KtClassOrObject ||
-        !declaration.isUnderKotlinSourceRootTypes() ||
-        e.parent !is KtClass ||
-        !doesKtClassHaveBaselineProfileRule(e)) {
+    if (!isKtTestClassIdentifier(e) && !isJavaTestClassIdentifier(e)) {
       return null
     }
 
-    return Info(
+    return object: Info(
       AllIcons.RunConfigurations.TestState.Run_run,
-      actions
-    ) { AndroidBundle.message("android.run.configuration.generate.baseline.profile") }
+      allActions,
+      { AndroidBundle.message("android.run.configuration.generate.baseline.profile") }
+    ) {
+      override fun shouldReplace(other: Info): Boolean {
+        return other.actions.intersect(executorActions.toSet()).isNotEmpty()
+      }
+    }
   }
 
-  private fun getJavaLineMarkers(e: PsiElement): Info? {
-    if (e.parent !is PsiClass || !doesJavaClassHaveBaselineProfileRule(e)) {
-      return null
+  private fun isKtTestClassIdentifier(e: PsiElement): Boolean {
+    if (e.node.elementType != KtTokens.IDENTIFIER) {
+      return false
     }
 
-    return Info(
-      AllIcons.RunConfigurations.TestState.Run_run,
-      actions
-    ) { AndroidBundle.message("android.run.configuration.generate.baseline.profile") }
+    val declaration = e.getStrictParentOfType<KtNamedDeclaration>()?.takeIf { it.nameIdentifier == e } ?: return false
+
+    return declaration is KtClassOrObject &&
+        declaration.isUnderKotlinSourceRootTypes() &&
+        e.parent is KtClass &&
+        doesKtClassHaveBaselineProfileRule(e)
+  }
+
+  private fun isJavaTestClassIdentifier(e: PsiElement): Boolean {
+    return e is PsiIdentifier && e.parent is PsiClass && doesJavaClassHaveBaselineProfileRule(e)
   }
 
   private fun doesKtClassHaveBaselineProfileRule(psiElement: PsiElement): Boolean {
