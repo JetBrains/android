@@ -70,7 +70,7 @@ VM_OPTIONS_FILE=""
 USER_VM_OPTIONS_FILE=""
 
 STUDIO_VERSION=$(cat ../Resources/product-info.json | grep AndroidStudio | awk '{ print $2}' | sed 's/"//' | sed 's/"//' | sed 's/,//')
-STUDIO_CONFIG_DIR=${CONFIG_HOME}/Google/${STUDIO_VERSION}
+STUDIO_CONFIG_DIR="${CONFIG_HOME}/Google/${STUDIO_VERSION}"
 if [ ! -d "${STUDIO_CONFIG_DIR}" ]; then
   # Android Studio config is not set up
   echo "Android Studio config doesn't exist ${STUDIO_CONFIG_DIR} "
@@ -78,9 +78,9 @@ if [ ! -d "${STUDIO_CONFIG_DIR}" ]; then
   exit
 fi
 
-STUDIO_SAFE_CONFIG_DIR=${CONFIG_HOME}/Google/${STUDIO_VERSION}.safe
-if [ ! -d ${STUDIO_SAFE_CONFIG_DIR} ]; then
-  mkdir ${STUDIO_SAFE_CONFIG_DIR}
+STUDIO_SAFE_CONFIG_DIR="${STUDIO_CONFIG_DIR}.safe"
+if [ ! -d "${STUDIO_SAFE_CONFIG_DIR}" ]; then
+  mkdir "${STUDIO_SAFE_CONFIG_DIR}"
 fi
 
 cp -R "${STUDIO_CONFIG_DIR}" "${STUDIO_SAFE_CONFIG_DIR}"
@@ -102,7 +102,7 @@ CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/util.jar"
 CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/externalProcess-rt.jar"
 CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/annotations-java5.jar"
 CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/intellij-coverage-agent-1.0.723.jar"
-CLASS_PATH="$IDE_HOME/lib/platform-loader.jar"
+CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/platform-loader.jar"
 CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/bouncy-castle.jar"
 CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/ant/lib/ant.jar"
 CLASS_PATH="$CLASS_PATH:$IDE_HOME/lib/lib.jar"
