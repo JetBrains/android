@@ -24,7 +24,7 @@ class DataHandlerTest {
     val id = 1L
 
     handler.handleHttpConnectionEvent(
-      requestStarted(id, 10.secondsInNanos, "url", "method", "field=1", "trace")
+      requestStarted(id, 10.secondsInNanos, "url", "method", listOf(header("field", "1")), "trace")
     )
     var expected =
       createHttpData(
@@ -33,7 +33,7 @@ class DataHandlerTest {
         requestStartTimeUs = 10000000,
         url = "url",
         method = "method",
-        requestFields = "field=1",
+        requestHeaders = listOf(header("field", "1")),
         trace = "trace",
       )
     assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
@@ -53,12 +53,15 @@ class DataHandlerTest {
     expected = expected.copy(updateTimeUs = 13000000, requestCompleteTimeUs = 13000000)
     assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
-    handler.handleHttpConnectionEvent(responseStarted(id, 14.secondsInNanos, "null=HTTP/1.1 200"))
+    handler.handleHttpConnectionEvent(
+      responseStarted(id, 14.secondsInNanos, 200, listOf(header("null", "HTTP/1.1 200")))
+    )
     expected =
       expected.copy(
         updateTimeUs = 14000000,
         responseStartTimeUs = 14000000,
-        responseFields = "null=HTTP/1.1 200"
+        responseHeaders = mapOf("null" to listOf("HTTP/1.1 200")),
+        responseCode = 200,
       )
     assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
+import com.android.tools.idea.appinspection.inspectors.network.model.header
 import com.android.tools.idea.protobuf.ByteString
+import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Header
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.HttpTransport
 
 const val FAKE_RESPONSE_CODE = 302
@@ -43,9 +45,13 @@ fun fakeStackTrace(id: Long): String {
     .trimIndent()
 }
 
-fun fakeResponseFields(id: Long, contentType: String? = FAKE_CONTENT_TYPE): String {
-  return "status line = HTTP/1.1 $FAKE_RESPONSE_CODE $FAKE_RESPONSE_DESCRIPTION" +
-    "\nContent-Type = $contentType;\nconnId = $id\n Content-Length = ${fakeContentSize(id)}\n"
+fun fakeResponseHeaders(id: Long, contentType: String? = FAKE_CONTENT_TYPE): List<Header> {
+  return listOf(
+    header("status line", "HTTP/1.1 $FAKE_RESPONSE_CODE $FAKE_RESPONSE_DESCRIPTION"),
+    header("Content-Type", contentType.toString()),
+    header("connId", id.toString()),
+    header("Content-Length", "${fakeContentSize(id)}"),
+  )
 }
 
 fun createFakeHttpData(
@@ -60,10 +66,11 @@ fun createFakeHttpData(
   method: String = "",
   transport: HttpTransport = HttpTransport.UNDEFINED,
   trace: String = fakeStackTrace(id),
-  requestFields: String = "",
+  requestHeaders: List<Header> = emptyList(),
   requestPayload: ByteString = FAKE_REQUEST,
-  responseFields: String = fakeResponseFields(id),
-  responsePayload: ByteString = FAKE_RESPONSE
+  responseHeaders: List<Header> = fakeResponseHeaders(id),
+  responsePayload: ByteString = FAKE_RESPONSE,
+  responseCode: Int = FAKE_RESPONSE_CODE,
 ) =
   HttpData.createHttpData(
     id,
@@ -78,8 +85,9 @@ fun createFakeHttpData(
     method,
     transport,
     trace,
-    requestFields,
+    requestHeaders,
     requestPayload,
-    responseFields,
-    responsePayload
+    responseHeaders,
+    responsePayload,
+    responseCode,
   )

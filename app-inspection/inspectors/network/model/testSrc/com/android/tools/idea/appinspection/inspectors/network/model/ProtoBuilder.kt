@@ -19,6 +19,7 @@ import com.android.tools.idea.protobuf.ByteString
 import studio.network.inspection.NetworkInspectorProtocol
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Closed
+import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Header
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Payload
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.RequestCompleted
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.RequestStarted
@@ -32,12 +33,16 @@ internal fun requestStarted(
   timestampNanos: Long,
   url: String = "",
   method: String = "",
-  fields: String = "",
+  headers: List<Header> = emptyList(),
   trace: String = "",
 ) =
   httpConnectionEvent(id, timestampNanos) {
       setHttpRequestStarted(
-        RequestStarted.newBuilder().setUrl(url).setMethod(method).setTrace(trace).setFields(fields)
+        RequestStarted.newBuilder()
+          .setUrl(url)
+          .setMethod(method)
+          .setTrace(trace)
+          .addAllHeaders(headers)
       )
     }
     .build()
@@ -55,9 +60,16 @@ internal fun requestCompleted(id: Long, timestampNanos: Long) =
     .build()
 
 @Suppress("SameParameterValue")
-internal fun responseStarted(id: Long, timestampNanos: Long, fields: String) =
+internal fun responseStarted(
+  id: Long,
+  timestampNanos: Long,
+  responseCode: Int,
+  headers: List<Header>
+) =
   httpConnectionEvent(id, timestampNanos) {
-      setHttpResponseStarted(ResponseStarted.newBuilder().setFields(fields))
+      setHttpResponseStarted(
+        ResponseStarted.newBuilder().setResponseCode(responseCode).addAllHeaders(headers)
+      )
     }
     .build()
 
@@ -105,3 +117,6 @@ private fun httpConnectionEvent(
   NetworkInspectorProtocol.Event.newBuilder()
     .setTimestamp(timestampNanos)
     .setHttpConnectionEvent(HttpConnectionEvent.newBuilder().setConnectionId(id).block())
+
+internal fun header(key: String, vararg values: String) =
+  Header.newBuilder().setKey(key).addAllValues(values.asList()).build()

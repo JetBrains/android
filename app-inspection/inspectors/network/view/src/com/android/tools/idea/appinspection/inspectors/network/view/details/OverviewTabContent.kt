@@ -22,7 +22,6 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.legend.FixedLegend
 import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.NO_STATUS_CODE
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.getUrlName
 import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionsStateChart
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkState
@@ -216,13 +215,11 @@ class OverviewTabContent : TabContent() {
       myFieldsPanel.add(NoWrapBoldLabel("Method"), TabularLayout.Constraint(row, 0))
       myFieldsPanel.add(JLabel(httpData.method), TabularLayout.Constraint(row, 2))
 
-      val responseHeader = httpData.responseHeader
-      if (responseHeader.statusCode != NO_STATUS_CODE) {
-        row++
-        myFieldsPanel.add(NoWrapBoldLabel("Status"), TabularLayout.Constraint(row, 0))
-        val statusCode = JLabel(java.lang.String.valueOf(responseHeader.statusCode))
-        myFieldsPanel.add(statusCode, TabularLayout.Constraint(row, 2))
-      }
+      val responseHeader = httpData.responseHeaders
+      row++
+      myFieldsPanel.add(NoWrapBoldLabel("Status"), TabularLayout.Constraint(row, 0))
+      val statusCode = JLabel(java.lang.String.valueOf(httpData.responseCode))
+      myFieldsPanel.add(statusCode, TabularLayout.Constraint(row, 2))
 
       if (image != null) {
         row++
@@ -231,15 +228,16 @@ class OverviewTabContent : TabContent() {
         myFieldsPanel.add(dimension, TabularLayout.Constraint(row, 2))
       }
 
-      if (!responseHeader.contentType.isEmpty) {
+      val responseContentType = httpData.getResponseContentType()
+      if (!responseContentType.isEmpty) {
         row++
         myFieldsPanel.add(NoWrapBoldLabel("Content type"), TabularLayout.Constraint(row, 0))
-        val contentTypeLabel = JLabel(responseHeader.contentType.mimeType)
+        val contentTypeLabel = JLabel(responseContentType.mimeType)
         contentTypeLabel.name = ID_CONTENT_TYPE
         myFieldsPanel.add(contentTypeLabel, TabularLayout.Constraint(row, 2))
       }
 
-      val contentLength = responseHeader.contentLength
+      val contentLength = httpData.getResponseContentLength()
       if (contentLength != -1) {
         try {
           row++

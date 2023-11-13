@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
+import com.android.tools.idea.appinspection.inspectors.network.model.header
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import java.io.ByteArrayOutputStream
@@ -27,62 +28,40 @@ class HttpDataTest {
     val data =
       createFakeHttpData(
         1,
-        responseFields =
-          """status line =  HTTP/1.1 302 Found
-    first=1
-    second  = 2
-    equation=x+y=10"""
+        responseHeaders =
+          listOf(
+            header("status line", "HTTP/1.1 302 Found"),
+            header("first", "1"),
+            header("second", "2"),
+            header("equation", "x+y=10"),
+          ),
       )
 
-    val header = data.responseHeader
-    assertThat(header.getField("first")).isEqualTo("1")
-    assertThat(header.getField("second")).isEqualTo("2")
-    assertThat(header.getField("equation")).isEqualTo("x+y=10")
+    val header = data.responseHeaders
+    assertThat(header["first"]).containsExactly("1")
+    assertThat(header["second"]).containsExactly("2")
+    assertThat(header["equation"]).containsExactly("x+y=10")
   }
 
   @Test
-  fun testResponseStatusLine() {
+  fun testResponseCode() {
     val data =
       createFakeHttpData(
         1,
-        responseFields =
-          """
-    null  =  HTTP/1.1 302 Found
-    Content-Type =  text/html; charset=UTF-8;  """
+        responseHeaders =
+          listOf(
+            header("Content-Type", "text/html; charset=UTF-8"),
+          ),
+        responseCode = 302,
       )
-    assertThat(data.responseHeader.statusCode).isEqualTo(302)
-    assertThat(data.responseHeader.getField("content-type")).isEqualTo("text/html; charset=UTF-8")
-  }
-
-  @Test
-  fun testResponseStatusLineWithoutKey() {
-    val data =
-      createFakeHttpData(
-        1,
-        responseFields = """  HTTP/1.1 200 Found
-
-
-    Content-Type =  text/html; charset=UTF-8  """
-      )
-    assertThat(data.responseHeader.statusCode).isEqualTo(200)
-    assertThat(data.responseHeader.getField("content-type")).isEqualTo("text/html; charset=UTF-8")
+    assertThat(data.responseCode).isEqualTo(302)
+    assertThat(data.responseHeaders["content-type"]).containsExactly("text/html; charset=UTF-8")
   }
 
   @Test
   fun emptyResponseFields() {
-    val data = createFakeHttpData(1, responseFields = "")
-    assertThat(data.responseHeader.statusCode).isEqualTo(-1)
-  }
-
-  @Test
-  fun emptyResponseFields2() {
-    val data = createFakeHttpData(1, responseFields = "   \n  \n  \n\n   \n  ")
-    assertThat(data.responseHeader.statusCode).isEqualTo(-1)
-  }
-
-  @Test(expected = AssertionError::class)
-  fun invalidResponseFields() {
-    createFakeHttpData(1, responseFields = "Invalid response fields")
+    val data = createFakeHttpData(1, responseCode = 200, responseHeaders = emptyList())
+    assertThat(data.responseCode).isEqualTo(200)
   }
 
   @Test
@@ -90,34 +69,38 @@ class HttpDataTest {
     val data =
       createFakeHttpData(
         1,
-        responseFields =
-          """status line =  HTTP/1.1 302 Found
-    first=1
-    second  = 2
-    equation=x+y=10
-    second =5"""
+        responseHeaders =
+          listOf(
+            header("status line", "HTTP/1.1 302 Found"),
+            header("first", "1"),
+            header("second", "2", "5"),
+            header("equation", "x+y=10"),
+          ),
       )
 
-    val header = data.responseHeader
-    assertThat(header.getField("first")).isEqualTo("1")
-    assertThat(header.getField("second")).isEqualTo("2;5")
-    assertThat(header.getField("equation")).isEqualTo("x+y=10")
-  }
-
-  @Test
-  fun emptyRequestFields() {
-    val data = createFakeHttpData(1, requestFields = "")
-    assertThat(data.requestHeader.fields).isEmpty()
+    val header = data.responseHeaders
+    assertThat(header["first"]).containsExactly("1")
+    assertThat(header["second"]).containsExactly("2", "5").inOrder()
+    assertThat(header["equation"]).containsExactly("x+y=10")
   }
 
   @Test
   fun testSetRequestFields() {
-    val data = createFakeHttpData(1, requestFields = "\nfirst=1 \n  second  = 2\n equation=x+y=10")
-    val requestFields = data.requestHeader.fields
-    assertThat(requestFields.size).isEqualTo(3)
-    assertThat(requestFields["first"]).isEqualTo("1")
-    assertThat(requestFields["second"]).isEqualTo("2")
-    assertThat(requestFields["equation"]).isEqualTo("x+y=10")
+    val data =
+      createFakeHttpData(
+        1,
+        requestHeaders =
+          listOf(
+            header("first", "1"),
+            header("second", "2"),
+            header("equation", "x+y=10"),
+          ),
+      )
+    val headers = data.requestHeaders
+    assertThat(headers.size).isEqualTo(3)
+    assertThat(headers["first"]).containsExactly("1")
+    assertThat(headers["second"]).containsExactly("2")
+    assertThat(headers["equation"]).containsExactly("x+y=10")
   }
 
   @Test
@@ -144,20 +127,29 @@ class HttpDataTest {
     val data =
       createFakeHttpData(
         1,
-        responseFields = "CoNtEnt-LEngtH = 10000 \n  response-status-code = 200"
+        responseHeaders =
+          listOf(
+            header("CoNtEnt-LEngtH", "10000"),
+            header("response-status-code", "200"),
+          )
       )
-    assertThat(data.responseHeader.getField("content-length")).isEqualTo("10000")
-    assertThat(data.responseHeader.getField("cOnTenT-leNGth")).isEqualTo("10000")
+    assertThat(data.responseHeaders["content-length"]).containsExactly("10000")
+    assertThat(data.responseHeaders["cOnTenT-leNGth"]).containsExactly("10000")
   }
 
   @Test
-  fun statusCodeFromFields() {
+  fun statusCodeFromProtoField() {
     val data =
       createFakeHttpData(
         1,
-        responseFields = "content-length = 10000 \n  response-status-code = 200"
+        responseHeaders =
+          listOf(
+            header("content-length", "10000"),
+            header("response-status-code", "404"),
+          ),
+        responseCode = 200,
       )
-    assertThat(data.responseHeader.statusCode).isEqualTo(200)
+    assertThat(data.responseCode).isEqualTo(200)
   }
 
   @Test
@@ -168,8 +160,12 @@ class HttpDataTest {
     val data =
       createFakeHttpData(
         1,
-        responseFields =
-          "content-length = 10000 \n  response-status-code = 200 \n content-encoding = gzip",
+        responseHeaders =
+          listOf(
+            header("content-length", "10000"),
+            header("response-status-code", "200"),
+            header("content-encoding", "gzip"),
+          ),
         responsePayload = ByteString.copyFrom(byteOutput.toByteArray())
       )
     assertThat(data.getReadableResponsePayload().toStringUtf8()).isEqualTo("test")
@@ -181,8 +177,12 @@ class HttpDataTest {
     val data =
       createFakeHttpData(
         1,
-        responseFields =
-          "content-length = 10000 \n  response-status-code = 200 \n content-encoding = gzip",
+        responseHeaders =
+          listOf(
+            header("content-length", "10000"),
+            header("response-status-code", "200"),
+            header("content-encoding", "gzip"),
+          ),
         responsePayload = ByteString.copyFrom(malformedBytes)
       )
     assertThat(data.getReadableResponsePayload().toByteArray()).isEqualTo(malformedBytes)
@@ -191,10 +191,10 @@ class HttpDataTest {
   @Test
   fun keyInMapEntriesIsStoredAsIs() {
     val header = "RESPONSE-status-CoDe"
-    val data = createFakeHttpData(1, responseFields = "$header = 200")
-    assertThat(data.responseHeader.fields.keys.size).isEqualTo(1)
-    assertThat(data.responseHeader.fields.firstKey()).isEqualTo(header)
-    assertThat(data.responseHeader.fields.firstKey()).isNotEqualTo(header.lowercase())
-    assertThat(data.responseHeader.fields[header.lowercase()]).isEqualTo("200")
+    val data = createFakeHttpData(1, responseHeaders = listOf(header(header, "200")))
+    assertThat(data.responseHeaders.size).isEqualTo(1)
+    assertThat(data.responseHeaders.keys.first()).isEqualTo(header)
+    assertThat(data.responseHeaders.keys.first()).isNotEqualTo(header.lowercase())
+    assertThat(data.responseHeaders[header.lowercase()]).containsExactly("200")
   }
 }

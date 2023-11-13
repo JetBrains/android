@@ -21,12 +21,17 @@ import com.intellij.util.io.URLUtil
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.net.URI
+import java.util.TreeMap
 import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 import studio.network.inspection.NetworkInspectorProtocol
+import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Header
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.HttpTransport
 
 const val APPLICATION_FORM_MIME_TYPE = "application/x-www-form-urlencoded"
+private const val CONTENT_ENCODING = "content-encoding"
+private const val CONTENT_LENGTH = "content-length"
+private const val CONTENT_TYPE = "content-type"
 
 /**
  * Data of http url connection. Each [HttpData] object matches a http connection with a unique id,
@@ -46,17 +51,15 @@ data class HttpData(
   val method: String,
   val transport: HttpTransport,
   val trace: String,
-  val requestFields: String,
+  val requestHeaders: Map<String, List<String>>,
   val requestPayload: ByteString,
-  val responseFields: String,
+  val responseHeaders: Map<String, List<String>>,
   val responsePayload: ByteString,
+  val responseCode: Int,
 ) {
 
-  val requestHeader = RequestHeader(requestFields)
-  val responseHeader = ResponseHeader(responseFields)
-
   fun getReadableResponsePayload(): ByteString {
-    return if (responseHeader.getField("content-encoding").lowercase().contains("gzip")) {
+    return if (getContentEncodings().find { it.lowercase() == "gzip" } != null) {
       try {
         GZIPInputStream(ByteArrayInputStream(responsePayload.toByteArray())).use {
           ByteString.copyFrom(it.readBytes())
@@ -79,7 +82,7 @@ data class HttpData(
       method = requestStarted.method,
       transport = requestStarted.transport,
       trace = requestStarted.trace,
-      requestFields = requestStarted.fields,
+      requestHeaders = requestStarted.headersList.toMap(),
     )
   }
 
@@ -105,10 +108,12 @@ data class HttpData(
 
   internal fun withResponseStarted(event: NetworkInspectorProtocol.Event): HttpData {
     val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
+    val responseStarted = event.httpConnectionEvent.httpResponseStarted
     return copy(
       updateTimeUs = timestamp,
       responseStartTimeUs = timestamp,
-      responseFields = event.httpConnectionEvent.httpResponseStarted.fields,
+      responseCode = responseStarted.responseCode,
+      responseHeaders = responseStarted.headersList.toMap(),
     )
   }
 
@@ -142,6 +147,13 @@ data class HttpData(
     return start <= max && end >= min
   }
 
+  fun getRequestContentType() = ContentType(requestHeaders[CONTENT_TYPE]?.firstOrNull() ?: "")
+
+  fun getResponseContentType() = ContentType(responseHeaders[CONTENT_TYPE]?.firstOrNull() ?: "")
+
+  fun getResponseContentLength() =
+    responseHeaders[CONTENT_LENGTH]?.firstOrNull()?.toIntOrNull() ?: -1
+
   class ContentType(private val contentType: String) {
     val isEmpty = contentType.isEmpty()
 
@@ -172,10 +184,11 @@ data class HttpData(
       method: String = "",
       transport: HttpTransport = HttpTransport.UNDEFINED,
       trace: String = "",
-      requestFields: String = "",
+      requestHeaders: List<Header> = emptyList(),
       requestPayload: ByteString = ByteString.EMPTY,
-      responseFields: String = "",
+      responseHeaders: List<Header> = emptyList(),
       responsePayload: ByteString = ByteString.EMPTY,
+      responseCode: Int = -1,
     ): HttpData {
       return HttpData(
         id,
@@ -190,10 +203,11 @@ data class HttpData(
         method,
         transport,
         trace,
-        requestFields,
+        requestHeaders.toMap(),
         requestPayload,
-        responseFields,
+        responseHeaders.toMap(),
         responsePayload,
+        responseCode,
       )
     }
   }
@@ -215,7 +229,7 @@ fun HttpData.getUrlName(): String {
       when {
         path == null -> uri.host
         uri.query != null -> "$path?${uri.query}"
-        path.isBlank() -> uri.host
+        path.isBlank() -> uri.host ?: "unknown"
         else -> path
       }
     } catch (ignored: IllegalArgumentException) {
@@ -230,7 +244,9 @@ fun HttpData.getUrlHost() = runCatching { URI.create(url)?.host }.getOrNull() ?:
 
 fun HttpData.getUrlScheme() = runCatching { URI.create(url)?.scheme }.getOrNull() ?: "Unknown"
 
-fun HttpData.getMimeType() = responseHeader.contentType.mimeType.split("/").last()
+fun HttpData.getMimeType() = getResponseContentType().mimeType.split("/").last()
+
+fun HttpData.getContentEncodings() = responseHeaders[CONTENT_ENCODING] ?: emptyList()
 
 private fun String.lastComponent() = trimEnd('/').substringAfterLast('/')
 
@@ -263,3 +279,6 @@ data class JavaThread(val id: Long, val name: String)
 
 private fun NetworkInspectorProtocol.Event.toJavaThread() =
   JavaThread(httpConnectionEvent.httpThread.threadId, httpConnectionEvent.httpThread.threadName)
+
+private fun List<Header>.toMap() =
+  associateTo(TreeMap(String.CASE_INSENSITIVE_ORDER)) { it.key to it.valuesList }

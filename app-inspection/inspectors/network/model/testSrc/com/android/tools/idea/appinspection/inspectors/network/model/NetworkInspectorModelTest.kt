@@ -153,7 +153,8 @@ class NetworkInspectorModelTest {
     val data =
       createFakeHttpData(
         1,
-        responseFields = "null  =  HTTP/1.1 302 Found \n Content-Type = image/jpeg; ",
+        responseHeaders =
+          listOf(header("null", "HTTP/1.1 302 Found"), header("Content-Type", "image/jpeg")),
         responsePayload = ByteString.copyFromUtf8("Content")
       )
     val observer = AspectObserver()

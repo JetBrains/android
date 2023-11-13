@@ -59,10 +59,15 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol
+import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Header
 
 private const val FAKE_TRACE = "com.google.downloadUrlToStream(ImageFetcher.java:274)"
-private const val FAKE_RESPONSE_HEADERS =
-  "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n"
+private val FAKE_RESPONSE_HEADERS =
+  listOf(
+    header("null", "HTTP/1.1 302 Found"),
+    header("Content-Type", "111"),
+    header("Content-Length", "222"),
+  )
 
 val DEFAULT_DATA =
   createFakeHttpData(
@@ -72,7 +77,7 @@ val DEFAULT_DATA =
     50000,
     100000,
     100000,
-    responseFields = FAKE_RESPONSE_HEADERS,
+    responseHeaders = FAKE_RESPONSE_HEADERS,
     url = "dumbUrl",
     trace = FAKE_TRACE,
     method = "GET"
@@ -82,8 +87,13 @@ val DEFAULT_DATA =
  * Header names chosen and intentionally unsorted, to make sure that they are shown in the UI in
  * sorted order.
  */
-private const val TEST_HEADERS =
-  "car = car-value \n border = border-value \n apple = apple-value \n 123 = numeric-value \n"
+private val TEST_HEADERS =
+  mapOf(
+    "car" to listOf("car-value"),
+    "border" to listOf("border-value"),
+    "apple" to listOf("apple-value"),
+    "123" to listOf("numeric-value"),
+  )
 
 /** Will throw an exception if no match is found. */
 private fun <C : Component> firstDescendantWithType(root: Component, type: Class<C>): C {
@@ -207,7 +217,11 @@ class ConnectionDetailsViewTest {
 
   @Test
   fun requestPayloadHasBothParsedViewAndRawDataView() {
-    val data = DEFAULT_DATA.copy(requestFields = "Content-Type = application/x-www-form-urlencoded")
+    val data =
+      createFakeHttpData(
+        1,
+        requestHeaders = listOf(header("Content-Type", "application/x-www-form-urlencoded"))
+      )
     detailsView.setHttpData(data)
     val payloadBody = detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody()!!
     assertThat(TreeWalker(payloadBody).descendants().any { c -> c.name == "View Parsed" }).isTrue()
@@ -217,9 +231,13 @@ class ConnectionDetailsViewTest {
   @Test
   fun responsePayloadHasBothParsedViewAndRawDataView() {
     val data =
-      DEFAULT_DATA.copy(
-        responseFields =
-          "null =  HTTP/1.1 302 Found\n Content-Type = application/x-www-form-urlencoded"
+      createFakeHttpData(
+        1,
+        responseHeaders =
+          listOf(
+            header("null", "HTTP/1.1 302 Found"),
+            header("Content-Type", "application/x-www-form-urlencoded"),
+          )
       )
     detailsView.setHttpData(data)
     val payloadBody = detailsView.findTab(ResponseTabContent::class.java)!!.findPayloadBody()!!
@@ -229,7 +247,7 @@ class ConnectionDetailsViewTest {
 
   @Test
   fun viewerExistsWhenPayloadIsPresent() {
-    val data = DEFAULT_DATA.copy(responseFields = FAKE_RESPONSE_HEADERS)
+    val data = DEFAULT_DATA
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findResponsePayloadViewer())
       .isNull()
     detailsView.setHttpData(data)
@@ -241,7 +259,7 @@ class ConnectionDetailsViewTest {
   fun contentTypeHasProperValueFromData() {
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findContentTypeValue())
       .isNull()
-    val data = DEFAULT_DATA.copy(responseFields = FAKE_RESPONSE_HEADERS)
+    val data = DEFAULT_DATA
     detailsView.setHttpData(data)
     val value = detailsView.findTab(OverviewTabContent::class.java)!!.findContentTypeValue()!!
     assertThat(value.text).isEqualTo("111")
@@ -249,7 +267,7 @@ class ConnectionDetailsViewTest {
 
   @Test
   fun contentTypeIsAbsentWhenDataHasNoContentTypeValue() {
-    detailsView.setHttpData(DEFAULT_DATA.copy(responseFields = ""))
+    detailsView.setHttpData(DEFAULT_DATA.copy(responseHeaders = emptyMap()))
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findContentTypeValue())
       .isNull()
   }
@@ -298,7 +316,7 @@ class ConnectionDetailsViewTest {
 
   @Test
   fun headerSectionIsSorted() {
-    val data: HttpData = DEFAULT_DATA.copy(requestFields = TEST_HEADERS)
+    val data: HttpData = DEFAULT_DATA.copy(requestHeaders = TEST_HEADERS)
     detailsView.setHttpData(data)
     val tabContent = detailsView.findTab(RequestTabContent::class.java)!!
     val labels =
@@ -461,3 +479,9 @@ class ConnectionDetailsViewTest {
     assertThat(legends[1].value).isEqualTo(receivedLegend)
   }
 }
+
+private fun header(key: String, vararg values: String) =
+  NetworkInspectorProtocol.HttpConnectionEvent.Header.newBuilder()
+    .setKey(key)
+    .addAllValues(values.asList())
+    .build()

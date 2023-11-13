@@ -29,18 +29,19 @@ import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import java.util.concurrent.TimeUnit.SECONDS
 import org.junit.Test
+import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Header
 
 private const val CONNECTION_ID = 1L
 private val fakeUrl = fakeUrl(CONNECTION_ID)
-private const val fields = ""
+private val headers = emptyList<Header>()
 private val faceTrace = fakeStackTrace(CONNECTION_ID)
 
 private val HTTP_DATA =
   listOf(
-    requestStarted(CONNECTION_ID, SECONDS.toNanos(0), fakeUrl, method = "", fields, faceTrace),
+    requestStarted(CONNECTION_ID, SECONDS.toNanos(0), fakeUrl, method = "", headers, faceTrace),
     requestPayload(CONNECTION_ID, SECONDS.toNanos(1), payload = "REQUEST_CONTENT"),
     requestCompleted(CONNECTION_ID, SECONDS.toNanos(1)),
-    responseStarted(CONNECTION_ID, SECONDS.toNanos(2), fields = fakeResponseFields(CONNECTION_ID)),
+    responseStarted(CONNECTION_ID, SECONDS.toNanos(2), 200, fakeResponseHeaders(CONNECTION_ID)),
     responsePayload(CONNECTION_ID, SECONDS.toNanos(3), payload = "RESPONSE_CONTENT"),
     responseCompleted(CONNECTION_ID, SECONDS.toNanos(3)),
     httpClosed(CONNECTION_ID, SECONDS.toNanos(3), completed = true),
@@ -48,10 +49,10 @@ private val HTTP_DATA =
 
 private val HTTP_DATA_WITH_THREAD =
   listOf(
-    requestStarted(CONNECTION_ID, SECONDS.toNanos(0), fakeUrl, method = "", fields, faceTrace),
+    requestStarted(CONNECTION_ID, SECONDS.toNanos(0), fakeUrl, method = "", headers, faceTrace),
     requestPayload(CONNECTION_ID, SECONDS.toNanos(1), payload = "REQUEST_CONTENT"),
     requestCompleted(CONNECTION_ID, SECONDS.toNanos(1)),
-    responseStarted(CONNECTION_ID, SECONDS.toNanos(2), fields = fakeResponseFields(CONNECTION_ID)),
+    responseStarted(CONNECTION_ID, SECONDS.toNanos(2), 200, fakeResponseHeaders(CONNECTION_ID)),
     responsePayload(CONNECTION_ID, SECONDS.toNanos(3), payload = "RESPONSE_CONTENT"),
     responseCompleted(CONNECTION_ID, SECONDS.toNanos(3)),
     httpClosed(CONNECTION_ID, SECONDS.toNanos(3), completed = true),
@@ -79,7 +80,7 @@ class HttpDataModelTest {
     assertThat(httpData.requestPayload).isEqualTo(ByteString.copyFromUtf8("REQUEST_CONTENT"))
     assertThat(httpData.getReadableResponsePayload())
       .isEqualTo(ByteString.copyFromUtf8("RESPONSE_CONTENT"))
-    assertThat(httpData.responseHeader.getField("connId")).isEqualTo("1")
+    assertThat(httpData.responseHeaders["connId"]).containsExactly("1")
   }
 
   @Test

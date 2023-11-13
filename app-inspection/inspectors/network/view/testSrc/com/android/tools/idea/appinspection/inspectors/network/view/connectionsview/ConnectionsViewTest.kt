@@ -28,7 +28,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.FA
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.fakeResponseFields
+import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.fakeResponseHeaders
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.android.tools.idea.protobuf.ByteString
@@ -50,14 +50,14 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Header
 
 private val FAKE_DATA =
   listOf(
     createHttpData(1, 1, 2, ByteString.copyFromUtf8("1")),
     createHttpData(2, 3, 5, ByteString.copyFromUtf8("12")),
     createHttpData(3, 8, 13, ByteString.copyFromUtf8("1234")),
-    createHttpData(4, 21, 34, ByteString.copyFromUtf8("123"))
-      .copy(responseFields = fakeResponseFields(4, "bmp"))
+    createHttpData(4, 21, 34, ByteString.copyFromUtf8("123"), fakeResponseHeaders(4, "bmp"))
   )
 
 @RunsInEdt
@@ -274,7 +274,13 @@ class ConnectionsViewTest {
   }
 }
 
-private fun createHttpData(id: Long, startS: Long, endS: Long, responsePayload: ByteString) =
+private fun createHttpData(
+  id: Long,
+  startS: Long,
+  endS: Long,
+  responsePayload: ByteString,
+  responseHeaders: List<Header> = fakeResponseHeaders(id)
+) =
   createFakeHttpData(
     id,
     TimeUnit.SECONDS.toMicros(startS),
@@ -282,5 +288,6 @@ private fun createHttpData(id: Long, startS: Long, endS: Long, responsePayload: 
     TimeUnit.SECONDS.toMicros(endS),
     TimeUnit.SECONDS.toMicros(endS),
     TimeUnit.SECONDS.toMicros(endS),
-    responsePayload = responsePayload
+    responsePayload = responsePayload,
+    responseHeaders = responseHeaders,
   )

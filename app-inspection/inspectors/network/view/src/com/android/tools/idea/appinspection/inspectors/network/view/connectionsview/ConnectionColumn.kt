@@ -85,12 +85,12 @@ internal enum class ConnectionColumn(
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = sizeRenderer
   },
   REQUEST_HEADERS("Request Headers", 0.05, java.lang.Integer::class.java, visible = false) {
-    override fun getValueFrom(data: HttpData) = data.requestHeader.fields.size
+    override fun getValueFrom(data: HttpData) = data.requestHeaders.size
 
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = simpleRenderer
   },
   RESPONSE_HEADERS("Response Headers", 0.05, java.lang.Integer::class.java, visible = false) {
-    override fun getValueFrom(data: HttpData) = data.responseHeader.fields.size
+    override fun getValueFrom(data: HttpData) = data.responseHeaders.size
 
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = simpleRenderer
   },
@@ -100,7 +100,7 @@ internal enum class ConnectionColumn(
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = simpleRenderer
   },
   STATUS("Status", 0.05, java.lang.Integer::class.java, visible = true) {
-    override fun getValueFrom(data: HttpData) = data.responseHeader.statusCode
+    override fun getValueFrom(data: HttpData) = data.responseCode
 
     override fun getCellRenderer(table: JTable, model: NetworkInspectorModel) = StatusRenderer()
   },
