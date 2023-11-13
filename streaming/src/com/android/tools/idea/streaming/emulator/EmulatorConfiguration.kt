@@ -85,7 +85,7 @@ class EmulatorConfiguration private constructor(
       val isWearOs = configIni["tag.id"]?.equals("android-wear", ignoreCase = true) ?: false
       val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
       val postureMode = if (StudioFlags.EMBEDDED_EMULATOR_RESIZABLE_FOLDING.get())
-          parseInt(hardwareIni["hw.sensor.hinge.resizable.config"], guessResizableConfig(configIni)) else -1
+          parseInt(hardwareIni["hw.sensor.hinge.resizable.config"], -1) else -1
       val displayModes = try {
         configIni["hw.resizable.configs"]?.let { parseDisplayModes(it, postureMode) } ?: emptyList()
       }
@@ -145,10 +145,6 @@ class EmulatorConfiguration private constructor(
                                    postures = postures,
                                    api = api)
     }
-
-    // TODO: Temporary workaround for b/280105731. Remove after 4/1/2024 and replace by -1.
-    private fun guessResizableConfig(configIni: Map<String, String>): Int =
-        if ("hw.resizable.configs" in configIni && "hw.sensor.posture_list" in configIni) 1 else -1
 
     private fun getSkinPath(configIni: Map<String, String>, androidSdkRoot: Path): Path? {
       if ("no".equals(configIni["showDeviceFrame"], ignoreCase = true)) {
