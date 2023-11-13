@@ -165,6 +165,7 @@
     <runLineMarkerContributor language="kotlin" implementationClass="com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor" order="first"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidBaselineProfileRunConfigurationType"/>
     <programRunner implementation="com.android.tools.idea.run.AndroidBaselineProfileProgramRunner" order="after DefaultStudioProgramRunner"/>
+    <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.GradleManifestEditorProvider"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.actions">
     <exportProjectZipExcludesContributor implementation="com.android.tools.idea.actions.ExportProjectZipExcludesGradleContributor"/>
