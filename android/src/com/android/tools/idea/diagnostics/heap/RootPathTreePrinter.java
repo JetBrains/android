@@ -135,10 +135,7 @@ public abstract class RootPathTreePrinter {
            ' ' + (node.selfSizes[exceededClusterId][nominatedNodeTypeId] != null ? '*' : ' ') +
            ' ' + (node.isRepeated ? "(rep)" : "     ") +
            transformPrefix(prefix, isOnlyChild, isLastChild) +
-           node.label +
-           ": " +
-           node.className +
-           (node.isDisposedButReferenced ? "(disposed)" : "");
+           node.getPresentation(exceededClusterId, nominatedNodeTypeId);
   }
 
   static class RootPathTreeNominatedTypePrinter extends RootPathTreePrinter {

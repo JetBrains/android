@@ -105,6 +105,11 @@ public class RootPathTree {
   private RootPathTreeNode createRootPathTreeNode(@NotNull final RootPathElement rootPathElement,
                                                   @NotNull final ExtendedReportStatistics extendedReportStatistics) {
     numberOfRootPathTreeNodes++;
+    if (rootPathElement.isArray) {
+      return new RootPathTreeNode.RootPathArrayTreeNode(rootPathElement.getLabel(), rootPathElement.getClassName(),
+                                                        rootPathElement.isDisposedButReferenced(),
+                                                        extendedReportStatistics);
+    }
     return new RootPathTreeNode(rootPathElement.getLabel(), rootPathElement.getClassName(), rootPathElement.isDisposedButReferenced(),
                                 extendedReportStatistics);
   }
@@ -151,17 +156,22 @@ public class RootPathTree {
     final ExtendedStackNode extendedStackNode;
     private final long size;
     private long subtreeSize;
+    private final boolean isArray;
 
     @Nullable
     private RootPathTreeNode rootPathTreeNode;
     private final short[] rootPathTreeNodeWasPropagated;
 
 
-    public RootPathElement(@NotNull ExtendedStackNode node, long size, @NotNull final ExtendedReportStatistics extendedReportStatistics) {
+    public RootPathElement(@NotNull ExtendedStackNode node,
+                           long size,
+                           @NotNull final ExtendedReportStatistics extendedReportStatistics,
+                           boolean isArray) {
       extendedStackNode = node;
       rootPathTreeNodeWasPropagated = new short[extendedReportStatistics.componentToExceededClustersStatistics.size()];
       this.size = size;
       this.subtreeSize = size;
+      this.isArray = isArray;
     }
 
     boolean isRootPathTreeNodeWasPropagated(int exceededClusterId,

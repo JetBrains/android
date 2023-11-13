@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import static com.android.tools.idea.diagnostics.heap.RootPathTree.DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE;
 import static com.android.tools.idea.diagnostics.heap.RootPathTree.MAX_NUMBER_OF_NOMINATED_NODE_TYPES;
 
 import com.google.common.collect.Maps;
@@ -60,5 +61,62 @@ public class RootPathTreeNode {
       selfSizes[exceededClusterId][nominatedNodeTypeId] = 0L;
     }
     selfSizes[exceededClusterId][nominatedNodeTypeId] += size;
+  }
+
+  @NotNull
+  public String getPresentation(int exceededClusterId, int nominatedNodeTypeId) {
+    return label + ": " + className + (isDisposedButReferenced ? "(disposed)" : "");
+  }
+
+  static class RootPathArrayTreeNode extends RootPathTreeNode {
+
+    @NotNull
+    private static final int[] SCALE_VALUES = new int[]{250000, 1000000, 5000000, 10000000, 50000000};
+    @NotNull
+    private static final String[] SCALE_LABELS = new String[]{"0-250KB", "250KB-1MB", "1MB-5MB", "5MB-10MB", "10MB-50MB", "50MB+"};
+    int[] sizeDistributionMap = null;
+
+    public RootPathArrayTreeNode(@NotNull final String label,
+                                 @NotNull final String className,
+                                 boolean isDisposedButReferenced,
+                                 @NotNull final ExtendedReportStatistics extendedReportStatistics) {
+      super(label, className, isDisposedButReferenced, extendedReportStatistics);
+    }
+
+    void markNodeAsNominated(int exceededClusterId, int nominatedNodeTypeId, long size) {
+      super.markNodeAsNominated(exceededClusterId, nominatedNodeTypeId, size);
+
+      if (nominatedNodeTypeId >= DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE) {
+        return;
+      }
+
+      if (sizeDistributionMap == null) {
+        sizeDistributionMap = new int[SCALE_LABELS.length];
+      }
+      int i = 0;
+      for (int scaleValue : SCALE_VALUES) {
+        if (size < scaleValue) {
+          sizeDistributionMap[i]++;
+          return;
+        }
+        i++;
+      }
+      sizeDistributionMap[i]++;
+    }
+
+    @NotNull
+    @Override
+    public String getPresentation(int exceededClusterId, int nominatedNodeTypeId) {
+      if (sizeDistributionMap == null || selfSizes[exceededClusterId][nominatedNodeTypeId] == null) {
+        return super.getPresentation(exceededClusterId, nominatedNodeTypeId);
+      }
+      StringBuilder builder = new StringBuilder();
+      for (int i = 0; i < SCALE_LABELS.length; i++) {
+        if (sizeDistributionMap[i] > 0) {
+          builder.append(SCALE_LABELS[i]).append("->").append(sizeDistributionMap[i]).append(';');
+        }
+      }
+      return super.getPresentation(exceededClusterId, nominatedNodeTypeId) + " {" + builder + "}";
+    }
   }
 }

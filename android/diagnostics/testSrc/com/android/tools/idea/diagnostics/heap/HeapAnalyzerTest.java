@@ -612,7 +612,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     strings.add("hello1");
     strings.add("hello2");
     strings.add("hello3");
-    strings.add("hello4");
+    strings.add(String.join("", Collections.nCopies(100000, "hello4")));
     strings.add("hello5");
     WeakList<Object> roots = new WeakList<>();
     roots.add(strings);
@@ -682,9 +682,10 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
     WeakList<Object> roots = new WeakList<>();
     B b = new B();
+    B b2 = new B();
     D d1 = new D(b);
     D d2 = new D(b);
-    D d3 = new D(new B());
+    D d3 = new D(b2);
 
     roots.add(d1);
     roots.add(List.of(d2));
@@ -692,6 +693,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
     Disposer.register(d1, b);
     Disposer.register(d1, d3);
+    Disposer.register(d1, b2);
     Disposer.dispose(d1);
 
     MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots, 0);

@@ -274,7 +274,9 @@ abstract class DepthFirstSearchTraverse {
       pathToRoot.add(new RootPathTree.RootPathElement(extendedStackNode, stackNode.getObject() == null
                                                                          ? 0
                                                                          : MemoryReportJniHelper.getObjectSize(stackNode.getObject()),
-                                                      extendedReportStatistics));
+                                                      extendedReportStatistics,
+                                                      stackNode.getObject() != null &&
+                                                      stackNode.getObject().getClass().isArray()));
     }
 
     private void checkReferenceIsHoldingNominatedClassLoader(@NotNull final Object childObject,
@@ -296,7 +298,7 @@ abstract class DepthFirstSearchTraverse {
       pathToRoot.add(new RootPathTree.RootPathElement(
         new ExtendedStackNode(getObjectClassNameLabel(childObject), label, isDisposedButReferenced(childObject)),
         MemoryReportJniHelper.getObjectSize(childObject),
-        extendedReportStatistics));
+        extendedReportStatistics, childObject.getClass().isArray()));
       statistics.forEach(c -> extendedReportStatistics.rootPathTree.addClassLoaderPath(pathToRoot, c));
       pathToRoot.pop();
     }

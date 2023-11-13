@@ -62,7 +62,7 @@ Nominated classes:
 CLASS: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B; (4 objects)
 Root 1:
 [    4/100%/   96B]      192B/4 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-[    4/100%/   96B]      128B/4 objects *        myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+[    4/100%/   96B]      128B/4 objects *        myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B; {0-250KB->4;}
 CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D (4 objects)
 Root 1:
 [    4/100%/   64B]      192B/4 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
