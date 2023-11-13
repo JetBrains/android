@@ -40,6 +40,12 @@ import com.intellij.openapi.util.Segment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
@@ -51,6 +57,9 @@ val COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_KEY: TextAttributesKey
     COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_NAME,
     DefaultLanguageHighlighterColors.HIGHLIGHTED_REFERENCE
   )
+
+@VisibleForTesting internal val HIGHLIGHT_FLASH_DURATION = 100.milliseconds
+@VisibleForTesting internal const val HIGHLIGHT_FLASH_COUNT = 2
 
 /** [InlayHintsProvider] for `State` reads in Compose. */
 class ComposeStateReadInlayHintsProvider : InlayHintsProvider {
@@ -126,11 +135,23 @@ private fun Editor.highlightUntilCaretMovement(range: Segment) {
   with(markupModel) { highlight(range).also { runAtNextCaretChange { removeHighlighter(it) } } }
 }
 
+private suspend fun Editor.highlightForDuration(range: Segment, duration: Duration) {
+  val highlighter = markupModel.highlight(range)
+  delay(duration)
+  markupModel.removeHighlighter(highlighter)
+}
+
 /** Handler invoked when users click on the `State` read inlay hints. */
-class ComposeStateReadInlayActionHandler() : InlayActionHandler {
+class ComposeStateReadInlayActionHandler(private val scope: CoroutineScope) : InlayActionHandler {
   override fun handleClick(editor: Editor, payload: InlayActionPayload) {
     val range = (payload as? PsiPointerInlayActionPayload)?.pointer?.range ?: return
-    editor.highlightUntilCaretMovement(range)
+    scope.launch {
+      repeat(HIGHLIGHT_FLASH_COUNT) {
+        editor.highlightForDuration(range, HIGHLIGHT_FLASH_DURATION)
+        delay(HIGHLIGHT_FLASH_DURATION)
+      }
+      editor.highlightUntilCaretMovement(range)
+    }
   }
 
   companion object {

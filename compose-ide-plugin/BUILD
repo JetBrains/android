@@ -71,6 +71,7 @@ iml_module(
         "//tools/adt/idea/compose-ide-plugin:compiler-hosted",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/android-material:intellij.android.android-material[module, test]",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
     ],
 )
 

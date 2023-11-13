@@ -23,7 +23,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.findParentElement
+import com.android.tools.idea.testing.getEnclosing
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.offsetForWindow
@@ -40,6 +40,10 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.refactoring.suggested.range
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubComposeRuntime
 import org.jetbrains.android.compose.stubKotlinStdlib
@@ -56,10 +60,15 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.verifyNoMoreInteractions
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunsInEdt
 @RunWith(JUnit4::class)
 class ComposeStateReadInlayHintsProviderTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
+
+  private val scheduler = TestCoroutineScheduler()
+  private val dispatcher = StandardTestDispatcher(scheduler)
+  private val testScope = TestScope(dispatcher)
 
   private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
   private val provider = ComposeStateReadInlayHintsProvider()
@@ -161,7 +170,7 @@ class ComposeStateReadInlayHintsProviderTest {
       """
         .trimIndent()
     )
-    val element = fixture.findParentElement<KtNameReferenceExpression>("(ST|R)")
+    val element = fixture.getEnclosing<KtNameReferenceExpression>("(|STR|)")
 
     ComposeStateReadInlayHintsCollector.collectFromElement(element, sink)
 
@@ -189,7 +198,7 @@ class ComposeStateReadInlayHintsProviderTest {
       """
         .trimIndent()
     )
-    val element = fixture.findParentElement<KtNameReferenceExpression>("= stateVar.va|lue)")
+    val element = fixture.getEnclosing<KtNameReferenceExpression>("= stateVar.|value|)")
 
     ComposeStateReadInlayHintsCollector.collectFromElement(element, sink)
 
@@ -214,7 +223,7 @@ class ComposeStateReadInlayHintsProviderTest {
     verify(treeBuilder).text(eq(ComposeBundle.message("state.read")), actionDataCaptor.capture())
     with(actionDataCaptor.value) {
       assertThat(payload).isInstanceOf(PsiPointerInlayActionPayload::class.java)
-      val expectedScope = fixture.findParentElement<KtFunction>("stateVar |= rememberSaveable")
+      val expectedScope = fixture.getEnclosing<KtFunction>("stateVar = rememberSaveable")
       assertThat((payload as PsiPointerInlayActionPayload).pointer.element).isEqualTo(expectedScope)
       assertThat(handlerId).isEqualTo(ComposeStateReadInlayActionHandler.HANDLER_NAME)
     }
@@ -232,10 +241,12 @@ class ComposeStateReadInlayHintsProviderTest {
       """
         .trimIndent()
     )
-    val foo = fixture.findParentElement<KtClass>("F|o")
+    val foo = fixture.getEnclosing<KtClass>("F")
     val payload = PsiPointerInlayActionPayload(SmartPointerManager.createPointer(foo))
-    val handler = ComposeStateReadInlayActionHandler()
+    val handler = ComposeStateReadInlayActionHandler(testScope)
     handler.handleClick(fixture.editor, payload)
+    scheduler.advanceUntilIdle()
+
     assertHighlighted(foo)
   }
 
@@ -250,12 +261,45 @@ class ComposeStateReadInlayHintsProviderTest {
       """
         .trimIndent()
     )
-    val foo = fixture.findParentElement<KtClass>("F|o")
+    val foo = fixture.getEnclosing<KtClass>("F")
     val payload = PsiPointerInlayActionPayload(SmartPointerManager.createPointer(foo))
-    val handler = ComposeStateReadInlayActionHandler()
+    val handler = ComposeStateReadInlayActionHandler(testScope)
     handler.handleClick(fixture.editor, payload)
+    scheduler.advanceUntilIdle()
+
     fixture.editor.caretModel.run { moveToOffset(currentCaret.offset + 1) }
     assertNotHighlighted(foo)
+  }
+
+  @Test
+  fun handleClick_highlightFlash() {
+    fixture.loadNewFile(
+      "com/example/Foo.kt",
+      // language=kotlin
+      """
+      package com.example
+      class Foo
+      """
+        .trimIndent()
+    )
+    val foo = fixture.getEnclosing<KtClass>("F")
+    val payload = PsiPointerInlayActionPayload(SmartPointerManager.createPointer(foo))
+    val handler = ComposeStateReadInlayActionHandler(testScope)
+    handler.handleClick(fixture.editor, payload)
+    // Nothing yet.
+    assertNotHighlighted(foo)
+    repeat(HIGHLIGHT_FLASH_COUNT) {
+      scheduler.advanceTimeBy(HIGHLIGHT_FLASH_DURATION.inWholeMilliseconds)
+      assertHighlighted(foo)
+      scheduler.advanceTimeBy(HIGHLIGHT_FLASH_DURATION.inWholeMilliseconds)
+      assertNotHighlighted(foo)
+    }
+    scheduler.runCurrent()
+    assertHighlighted(foo)
+
+    // Now go to the steady state.
+    scheduler.advanceUntilIdle()
+    assertHighlighted(foo)
   }
 
   private fun highlightersFor(element: PsiElement) =
