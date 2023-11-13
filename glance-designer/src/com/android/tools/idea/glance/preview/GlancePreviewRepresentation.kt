@@ -41,7 +41,8 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
     previewElementModelAdapterDelegate,
     ::CommonNlDesignSurfacePreviewView,
     ::GlancePreviewViewModel,
-    NlDesignSurface.Builder::configureDesignSurface
+    NlDesignSurface.Builder::configureDesignSurface,
+    useCustomInflater = false
   )
 
 private fun NlDesignSurface.Builder.configureDesignSurface() {

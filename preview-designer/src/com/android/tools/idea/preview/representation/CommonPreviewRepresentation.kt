@@ -104,7 +104,8 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       psiFilePointer: SmartPsiElementPointer<PsiFile>,
       hasRenderErrors: () -> Boolean
     ) -> CommonPreviewViewModel,
-  configureDesignSurface: NlDesignSurface.Builder.() -> Unit
+  configureDesignSurface: NlDesignSurface.Builder.() -> Unit,
+  useCustomInflater: Boolean = true,
 ) :
   PreviewRepresentation,
   AndroidCoroutinesAware,
@@ -161,6 +162,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       NlDesignSurface.builder(project, this)
         .setSceneManagerProvider { surface, model ->
           NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+            setUseCustomInflater(useCustomInflater)
             setShrinkRendering(true)
           }
         }

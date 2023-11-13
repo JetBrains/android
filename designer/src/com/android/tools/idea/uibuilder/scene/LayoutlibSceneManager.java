@@ -274,6 +274,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private final RenderingQueue myRenderingQueue;
   @NotNull
   private RenderAsyncActionExecutor.RenderingTopic myRenderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED;
+  private boolean myUseCustomInflater = true;
   @GuardedBy("myRenderingTaskLock")
   private RenderTask myRenderTask;
   @GuardedBy("myRenderingTaskLock")
@@ -997,6 +998,10 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     myRenderingTopic = topic;
   }
 
+  public void setUseCustomInflater(boolean useCustomInflater) {
+    myUseCustomInflater = useCustomInflater;
+  }
+
   public void setUpdateAndRenderWhenActivated(boolean enable) {
     myUpdateAndRenderWhenActivated = enable;
   }
@@ -1173,7 +1178,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(renderModule, configuration, logger)
       .withPsiFile(new PsiXmlFile(getModel().getFile()))
       .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled())
-      .withTopic(myRenderingTopic);
+      .withTopic(myRenderingTopic)
+      .setUseCustomInflater(myUseCustomInflater);
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
         if (newTask != null) {
