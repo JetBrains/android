@@ -326,11 +326,9 @@ final class MergedManifestInfo {
     manifestMergerInvoker.addNavigationFiles(VfsUtilCore.virtualToIoFiles(navigationFiles));
     manifestMergerInvoker.withProcessCancellationChecker(ProgressManager::checkCanceled);
 
-    List<Pair<String, File>> libraryManifests = new ArrayList<>();
     for (VirtualFile file : libManifests) {
-      libraryManifests.add(Pair.of(file.getName(), VfsUtilCore.virtualToIoFile(file)));
+      manifestMergerInvoker.addLibraryManifest(file.getName(), VfsUtilCore.virtualToIoFile(file));
     }
-    manifestMergerInvoker.addBundleManifests(libraryManifests);
 
     AndroidModuleSystem androidModuleSystem = ProjectSystemUtil.getModuleSystem(facet.getModule());
     String packageName = androidModuleSystem.getPackageName();
