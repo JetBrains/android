@@ -74,32 +74,32 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
@@ -175,32 +175,32 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
@@ -272,32 +272,32 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
@@ -372,32 +372,32 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateDebugAndroidTestSources, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugAndroidTestSources, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:clean, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileDebugSources
                 SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
@@ -449,25 +449,25 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :benchmark:generateBenchmarkSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark, :benchmark:clean
                 COMPILE_JAVA                  : :benchmark:compileBenchmarkSources
                 SOURCE_GEN                    : :benchmark:generateBenchmarkSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :benchmark:generateBenchmarkSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark, :benchmark:clean
                 COMPILE_JAVA                  : :benchmark:compileBenchmarkSources
                 SOURCE_GEN                    : :benchmark:generateBenchmarkSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :benchmark:generateBenchmarkSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark, :benchmark:clean
                 SOURCE_GEN                    : :benchmark:generateBenchmarkSources
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :benchmark:generateBenchmarkSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark, :benchmark:clean
                 COMPILE_JAVA                  : :benchmark:compileBenchmarkSources
                 SOURCE_GEN                    : :benchmark:generateBenchmarkSources
     MODULE                        : project.benchmark.main
@@ -581,25 +581,25 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :benchmark:generateBenchmarkSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark, :benchmark:clean
                 COMPILE_JAVA                  : :benchmark:compileBenchmarkSources
                 SOURCE_GEN                    : :benchmark:generateBenchmarkSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :benchmark:generateBenchmarkSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark, :benchmark:clean
                 COMPILE_JAVA                  : :benchmark:compileBenchmarkSources
                 SOURCE_GEN                    : :benchmark:generateBenchmarkSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :benchmark:generateBenchmarkSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark, :benchmark:clean
                 SOURCE_GEN                    : :benchmark:generateBenchmarkSources
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :benchmark:generateBenchmarkSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :benchmark:assembleBenchmark, :benchmark:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :benchmark:assembleBenchmark, :benchmark:clean
                 COMPILE_JAVA                  : :benchmark:compileBenchmarkSources
                 SOURCE_GEN                    : :benchmark:generateBenchmarkSources
     MODULE                        : project.test
@@ -649,25 +649,25 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :test:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug, :test:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug, :test:clean
                 COMPILE_JAVA                  : :test:compileDebugSources
                 SOURCE_GEN                    : :test:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :test:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug, :test:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug, :test:clean
                 COMPILE_JAVA                  : :test:compileDebugSources
                 SOURCE_GEN                    : :test:generateDebugSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :test:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug, :test:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug, :test:clean
                 SOURCE_GEN                    : :test:generateDebugSources
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :test:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug, :test:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug, :test:clean
                 COMPILE_JAVA                  : :test:compileDebugSources
                 SOURCE_GEN                    : :test:generateDebugSources
     MODULE                        : project.test.main
@@ -781,25 +781,25 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :test:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug, :test:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug, :test:clean
                 COMPILE_JAVA                  : :test:compileDebugSources
                 SOURCE_GEN                    : :test:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :test:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug, :test:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug, :test:clean
                 COMPILE_JAVA                  : :test:compileDebugSources
                 SOURCE_GEN                    : :test:generateDebugSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :test:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug, :test:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug, :test:clean
                 SOURCE_GEN                    : :test:generateDebugSources
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :test:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test:assembleDebug, :test:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test:assembleDebug, :test:clean
                 COMPILE_JAVA                  : :test:compileDebugSources
                 SOURCE_GEN                    : :test:generateDebugSources
     MODULE                        : project.test2
@@ -849,25 +849,25 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :test2:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug, :test2:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug, :test2:clean
                 COMPILE_JAVA                  : :test2:compileDebugSources
                 SOURCE_GEN                    : :test2:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :test2:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug, :test2:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug, :test2:clean
                 COMPILE_JAVA                  : :test2:compileDebugSources
                 SOURCE_GEN                    : :test2:generateDebugSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :test2:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug, :test2:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug, :test2:clean
                 SOURCE_GEN                    : :test2:generateDebugSources
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :test2:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug, :test2:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug, :test2:clean
                 COMPILE_JAVA                  : :test2:compileDebugSources
                 SOURCE_GEN                    : :test2:generateDebugSources
     MODULE                        : project.test2.main
@@ -981,25 +981,25 @@ PROJECT                       : project
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :test2:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug, :test2:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug, :test2:clean
                 COMPILE_JAVA                  : :test2:compileDebugSources
                 SOURCE_GEN                    : :test2:generateDebugSources
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :test2:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug, :test2:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug, :test2:clean
                 COMPILE_JAVA                  : :test2:compileDebugSources
                 SOURCE_GEN                    : :test2:generateDebugSources
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :test2:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug, :test2:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug, :test2:clean
                 SOURCE_GEN                    : :test2:generateDebugSources
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :test2:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :test2:assembleDebug, :test2:clean
+                ASSEMBLE                      : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksFromSdkSplitsForDebug, :app:generateDebugAdditionalSplitForPrivacySandboxDeployment, :test2:assembleDebug, :test2:clean
                 COMPILE_JAVA                  : :test2:compileDebugSources
                 SOURCE_GEN                    : :test2:generateDebugSources
     RUN_CONFIGURATION             : app
@@ -1134,32 +1134,32 @@ PROJECT                       : project
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::benchmark:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::app:generateDebugAdditionalSplitForPrivacySandboxDeployment, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::app:generateDebugAdditionalSplitForPrivacySandboxDeployment, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::benchmark:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::benchmark:compileBenchmarkSources, <PROJECT>::test2:compileDebugSources, <PROJECT>::test:compileDebugSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
             BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
             APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::benchmark:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::app:generateDebugAdditionalSplitForPrivacySandboxDeployment, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::app:generateDebugAdditionalSplitForPrivacySandboxDeployment, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::benchmark:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::benchmark:compileBenchmarkSources, <PROJECT>::test2:compileDebugSources, <PROJECT>::test:compileDebugSources
             SOURCE_GEN                    : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
             BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
             APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::benchmark:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::app:generateDebugAdditionalSplitForPrivacySandboxDeployment, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::app:generateDebugAdditionalSplitForPrivacySandboxDeployment, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::benchmark:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
             BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug
             APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForDebug, :app:extractApksForDebug, :app:extractApksFromSdkSplitsForDebug
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::benchmark:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::app:generateDebugAdditionalSplitForPrivacySandboxDeployment, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::test2:assembleDebug, <PROJECT>::test:assembleDebug
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForDebug, <PROJECT>::app:generateDebugAdditionalSplitForPrivacySandboxDeployment, <PROJECT>::benchmark:assembleBenchmark, <PROJECT>::benchmark:clean, <PROJECT>::test2:assembleDebug, <PROJECT>::test2:clean, <PROJECT>::test:assembleDebug, <PROJECT>::test:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::benchmark:compileBenchmarkSources, <PROJECT>::test2:compileDebugSources, <PROJECT>::test:compileDebugSources
             SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::benchmark:generateBenchmarkSources, <PROJECT>::test2:generateDebugSources, <PROJECT>::test:generateDebugSources
             BUNDLE                        : :app:buildPrivacySandboxSdkApksForDebug, :app:bundleDebug, :app:extractApksFromSdkSplitsForDebug

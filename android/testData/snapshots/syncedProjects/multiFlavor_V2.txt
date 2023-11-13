@@ -74,32 +74,32 @@ PROJECT                       : MultiFlavor
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources, :app:compileFirstAbcSecondAbcDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
@@ -295,32 +295,32 @@ PROJECT                       : MultiFlavor
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources, :app:compileFirstAbcSecondAbcDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
@@ -460,32 +460,32 @@ PROJECT                       : MultiFlavor
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources, :app:compileFirstAbcSecondAbcDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
@@ -646,32 +646,32 @@ PROJECT                       : MultiFlavor
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources, :app:compileFirstAbcSecondAbcDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             TEST_COMPILE_MODE             : Android tests
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugAndroidTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugAndroidTestSources, :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugAndroidTestSources, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             TEST_COMPILE_MODE             : Unit tests
                 CLEAN                         : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:assembleFirstAbcSecondAbcDebugUnitTest, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugUnitTestSources
                 SOURCE_GEN                    : :app:createMockableJar, :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
                 APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             TEST_COMPILE_MODE             : None
                 CLEAN                         : :app:generateFirstAbcSecondAbcDebugSources
-                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+                ASSEMBLE                      : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+                REBUILD                       : :app:assembleFirstAbcSecondAbcDebug, :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:clean, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, :app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
                 COMPILE_JAVA                  : :app:compileFirstAbcSecondAbcDebugSources
                 SOURCE_GEN                    : :app:generateFirstAbcSecondAbcDebugSources
                 BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
@@ -799,32 +799,32 @@ PROJECT                       : MultiFlavor
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateFirstAbcSecondAbcDebugAndroidTestSources, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugAndroidTest, <PROJECT>::app:assembleFirstAbcSecondAbcDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-            REBUILD                       : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugAndroidTest, <PROJECT>::app:assembleFirstAbcSecondAbcDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+            ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugAndroidTest, <PROJECT>::app:assembleFirstAbcSecondAbcDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, <PROJECT>::app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+            REBUILD                       : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugAndroidTest, <PROJECT>::app:assembleFirstAbcSecondAbcDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, <PROJECT>::app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
             COMPILE_JAVA                  : <PROJECT>::app:compileFirstAbcSecondAbcDebugAndroidTestSources, <PROJECT>::app:compileFirstAbcSecondAbcDebugSources, <PROJECT>::app:compileFirstAbcSecondAbcDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateFirstAbcSecondAbcDebugAndroidTestSources, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
             BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::app:generateFirstAbcSecondAbcDebugAndroidTestSources, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugAndroidTest, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-            REBUILD                       : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugAndroidTest, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+            ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugAndroidTest, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, <PROJECT>::app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+            REBUILD                       : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugAndroidTest, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, <PROJECT>::app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
             COMPILE_JAVA                  : <PROJECT>::app:compileFirstAbcSecondAbcDebugAndroidTestSources, <PROJECT>::app:compileFirstAbcSecondAbcDebugSources
             SOURCE_GEN                    : <PROJECT>::app:generateFirstAbcSecondAbcDebugAndroidTestSources, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
             BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-            REBUILD                       : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+            ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, <PROJECT>::app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+            REBUILD                       : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:assembleFirstAbcSecondAbcDebugUnitTest, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, <PROJECT>::app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
             COMPILE_JAVA                  : <PROJECT>::app:compileFirstAbcSecondAbcDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
             BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
             APK_FROM_BUNDLE               : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:extractApksForFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
-            REBUILD                       : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
+            ASSEMBLE                      : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, <PROJECT>::app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
+            REBUILD                       : <PROJECT>::app:assembleFirstAbcSecondAbcDebug, <PROJECT>::app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, <PROJECT>::app:clean, <PROJECT>::app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug, <PROJECT>::app:generateFirstAbcSecondAbcDebugAdditionalSplitForPrivacySandboxDeployment
             COMPILE_JAVA                  : <PROJECT>::app:compileFirstAbcSecondAbcDebugSources
             SOURCE_GEN                    : <PROJECT>::app:generateFirstAbcSecondAbcDebugSources
             BUNDLE                        : :app:buildPrivacySandboxSdkApksForFirstAbcSecondAbcDebug, :app:bundleFirstAbcSecondAbcDebug, :app:extractApksFromSdkSplitsForFirstAbcSecondAbcDebug
