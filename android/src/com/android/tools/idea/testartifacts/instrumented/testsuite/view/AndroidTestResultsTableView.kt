@@ -50,6 +50,7 @@ import com.intellij.ide.DataManager
 import com.intellij.ide.DefaultTreeExpander
 import com.intellij.ide.OccurenceNavigator
 import com.intellij.ide.actions.EditSourceAction
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -307,6 +308,8 @@ interface AndroidTestResultsTableListener {
 }
 
 private class FailedTestsNavigator(private val treetableView: AndroidTestResultsTableViewComponent) : OccurenceNavigator {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
   override fun getNextOccurenceActionName(): String = ExecutionBundle.message("next.faled.test.action.name")
   override fun getPreviousOccurenceActionName(): String = ExecutionBundle.message("prev.faled.test.action.name")
 
