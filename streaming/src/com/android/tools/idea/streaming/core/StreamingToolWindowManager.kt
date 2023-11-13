@@ -447,6 +447,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     contentShown = false
 
     RunningEmulatorCatalog.getInstance().removeListener(this)
+    for (emulator in emulators) {
+      emulator.removeConnectionStateListener(connectionStateListener)
+    }
     emulators.clear()
     recentAttentionRequests.invalidateAll()
     recentEmulatorLaunches.invalidateAll()
