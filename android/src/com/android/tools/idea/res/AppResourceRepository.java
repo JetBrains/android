@@ -18,7 +18,6 @@ package com.android.tools.idea.res;
 import com.android.resources.aar.AarResourceRepository;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.res.LocalResourceRepository;
-import com.android.tools.res.MultiResourceRepository;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -35,7 +34,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * @see StudioResourceRepositoryManager#getAppResources()
  */
-class AppResourceRepository extends MultiResourceRepository {
+class AppResourceRepository extends MemoryTrackingMultiResourceRepository {
   private final AndroidFacet myFacet;
   private final Object RESOURCE_MAP_LOCK = new Object();
 

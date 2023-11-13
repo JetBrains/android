@@ -36,9 +36,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SmartList;
 import com.intellij.util.concurrency.SameThreadExecutor;
@@ -73,7 +71,7 @@ import org.jetbrains.annotations.VisibleForTesting;
  * <p>In the resource repository hierarchy, MultiResourceRepository is an internal node, never a leaf.
  */
 @SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
-public abstract class MultiResourceRepository extends LocalResourceRepository implements Disposable {
+public abstract class MultiResourceRepository extends LocalResourceRepository {
   private static final Logger LOG = Logger.getInstance(MultiResourceRepository.class);
 
   @GuardedBy("ITEM_MAP_LOCK")
@@ -112,16 +110,13 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   protected MultiResourceRepository(@NotNull String displayName) {
     super(displayName);
-    LowMemoryWatcher.register(this::onLowMemory, this);
   }
 
   protected void setChildren(@NotNull List<? extends LocalResourceRepository> localResources,
                              @NotNull Collection<? extends AarResourceRepository> libraryResources,
                              @NotNull Collection<? extends ResourceRepository> otherResources) {
     synchronized (ITEM_MAP_LOCK) {
-      for (LocalResourceRepository child : myLocalResources) {
-        child.removeParent(this);
-      }
+      release();
       setModificationCount(ourModificationCounter.incrementAndGet());
       myLocalResources = ImmutableList.copyOf(localResources);
       int size = myLocalResources.size() + libraryResources.size() + otherResources.size();
@@ -376,8 +371,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
     return repository.getResources(namespace, type);
   }
 
-  @Override
-  public void dispose() {
+  protected final void release() {
     synchronized (ITEM_MAP_LOCK) {
       for (LocalResourceRepository child : myLocalResources) {
         child.removeParent(this);
@@ -403,7 +397,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
     myUnreconciledResources.clear();
   }
 
-  private void onLowMemory() {
+  protected final void onLowMemory() {
     synchronized (ITEM_MAP_LOCK) {
       clearCachedData();
     }

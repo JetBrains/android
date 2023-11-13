@@ -16,7 +16,6 @@
 package com.android.tools.idea.res;
 
 import com.android.tools.res.LocalResourceRepository;
-import com.android.tools.res.MultiResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import java.util.ArrayList;
@@ -29,7 +28,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * @see StudioResourceRepositoryManager#getProjectResources()
  */
-final class ProjectResourceRepository extends MultiResourceRepository {
+final class ProjectResourceRepository extends MemoryTrackingMultiResourceRepository {
   private final AndroidFacet myFacet;
 
   private ProjectResourceRepository(@NotNull AndroidFacet facet, @NotNull List<LocalResourceRepository> localResources) {

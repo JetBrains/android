@@ -47,7 +47,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * @see StudioResourceRepositoryManager#getModuleResources()
  */
-final class ModuleResourceRepository extends MultiResourceRepository implements SingleNamespaceResourceRepository {
+final class ModuleResourceRepository extends MemoryTrackingMultiResourceRepository implements SingleNamespaceResourceRepository {
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final ResourceNamespace myNamespace;
   @NotNull private final ResourceFolderRegistry myRegistry;
