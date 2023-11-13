@@ -17,12 +17,12 @@ package com.android.tools.idea.profilers
 
 import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.StudioProfilersHomeTabView
-import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
+import com.android.tools.profilers.StudioProfilersPastRecordingsTabView
+import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
 
 /**
- * A tab in the Profiler tool window, wrapping a [StudioProfilersHomeTabView].
+ * A tab in the Profiler tool window, wrapping a [StudioProfilersPastRecordingsTabView].
  */
-class StudioProfilersHomeTab(profilers: StudioProfilers, ideProfilerComponents: IdeProfilerComponents) {
-  val view = StudioProfilersHomeTabView(TaskHomeTabModel(profilers), ideProfilerComponents)
+class StudioProfilersPastRecordingsTab(profilers: StudioProfilers, ideProfilerComponents: IdeProfilerComponents) {
+  val view = StudioProfilersPastRecordingsTabView(PastRecordingsTabModel(profilers), ideProfilerComponents)
 }

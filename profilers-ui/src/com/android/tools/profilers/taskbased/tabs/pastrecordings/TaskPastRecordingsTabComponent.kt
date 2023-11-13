@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.taskbased.tabs.home
+package com.android.tools.profilers.taskbased.tabs.pastrecordings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,12 +24,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
+import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
 import com.android.tools.profilers.taskbased.tabs.TaskTabComponent
 import org.jetbrains.jewel.ui.component.DefaultButton
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
-fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) {
+fun TaskPastRecordingsTab(pastRecordingsTabModel: PastRecordingsTabModel, ideProfilerComponents: IdeProfilerComponents) {
   // TODO(b/277797248): Replace sample Compose UI with real UI content.
   Column(
     modifier = Modifier.fillMaxWidth().fillMaxHeight(),
@@ -37,10 +38,11 @@ fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdePr
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
     DefaultButton(onClick = {}) {
-      Text("Task-Based UX Profiler Home Tab")
+      Text("Task-Based UX Profiler Past Recordings Tab")
     }
   }
 }
 
-class TaskHomeTabComponent(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) : TaskTabComponent(
-  { TaskHomeTab(taskHomeTabModel, ideProfilerComponents) })
+class TaskPastRecordingsTabComponent(pastRecordingsTabModel: PastRecordingsTabModel,
+                                     ideProfilerComponents: IdeProfilerComponents) : TaskTabComponent(
+  { TaskPastRecordingsTab(pastRecordingsTabModel, ideProfilerComponents) })

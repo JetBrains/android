@@ -35,13 +35,6 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.CallstackSampleTaskHandler
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.JavaKotlinMethodSampleTaskHandler
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.JavaKotlinMethodTraceTaskHandler
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemTraceTaskHandler
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.HeapDumpTaskHandler
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.JavaKotlinAllocationsTaskHandler
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.NativeAllocationsTaskHandler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -68,6 +61,8 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
 
   private lateinit var homeTab: StudioProfilersHomeTab
   private lateinit var homePanel: JPanel
+  private lateinit var pastRecordingsTab: StudioProfilersPastRecordingsTab
+  private lateinit var pastRecordingsPanel: JPanel
   private lateinit var profilersTab: StudioProfilersTab
   lateinit var profilersPanel: JPanel
     private set
@@ -110,12 +105,19 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     initializeTaskHandlers()
 
     if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) {
+      // Initialize the two static/un-closable tabs: home and past recordings tabs.
       homeTab = StudioProfilersHomeTab(profilers, ideProfilerComponents)
       homePanel = JPanel(BorderLayout())
       homePanel.removeAll()
       homePanel.add(homeTab.view.panel)
       homePanel.revalidate()
       homePanel.repaint()
+      pastRecordingsTab = StudioProfilersPastRecordingsTab(profilers, ideProfilerComponents)
+      pastRecordingsPanel = JPanel(BorderLayout())
+      pastRecordingsPanel.removeAll()
+      pastRecordingsPanel.add(pastRecordingsTab.view.panel)
+      pastRecordingsPanel.revalidate()
+      pastRecordingsPanel.repaint()
     }
     // The Profiler tab is initialized here with the home tab so that the view bindings will be ready in the case the user imports a file
     // from a fresh/un-opened Profiler tool window state. While entering a stage from an uninitialized Profiler state after importing is
@@ -144,13 +146,19 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     return if (contentManager.contentCount == 0) null else contentManager.getContent(0)
   }
 
+  private fun findPastRecordingsTab(): Content? {
+    val contentManager = window.getContentManager()
+    return if (contentManager.contentCount <= 1) null else contentManager.getContent(1)
+  }
+
   private fun findTaskTab(): Content? {
     val contentManager = window.getContentManager()
     return when (contentManager.contentCount) {
       0 -> null
       1 -> null
-      2 -> contentManager.getContent(1)
-      else -> throw RuntimeException("Profiler window has more than 2 tabs")
+      2 -> null
+      3 -> contentManager.getContent(2)
+      else -> throw RuntimeException("Profiler window has more than 3 tabs")
     }
   }
 
@@ -173,6 +181,16 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     }
     else {
       createNewTab(homePanel, PROFILER_HOME_TAB_NAME, false)
+    }
+  }
+
+  fun openPastRecordingsTab() {
+    val pastRecordingsTab = findPastRecordingsTab()
+    if (pastRecordingsTab != null) {
+      window.getContentManager().setSelectedContent(pastRecordingsTab)
+    }
+    else {
+      createNewTab(pastRecordingsPanel, PROFILER_PAST_RECORDINGS_TAB_NAME, false)
     }
   }
 
@@ -230,6 +248,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   companion object {
 
     private const val PROFILER_HOME_TAB_NAME = "Home"
+    private const val PROFILER_PAST_RECORDINGS_TAB_NAME = "Past Recordings"
 
     /**
      * Key for storing the last app that was run when the profiler window was not opened. This allows the Profilers to start auto-profiling

@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.profilers.taskbased.home.OpenHomeTabListener
+import com.android.tools.profilers.taskbased.pastrecordings.OpenPastRecordingsTabListener
 import com.android.tools.profilers.tasks.OpenProfilerTaskListener
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -43,6 +44,9 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
 
       // Create the home tab.
       profilerToolWindow.openHomeTab()
+      profilerToolWindow.openPastRecordingsTab()
+      // Reselect the home tab as the default open tab.
+      profilerToolWindow.openHomeTab()
       toolWindow.isAvailable = true
 
       // If the window is re-opened after all tabs were manually closed, re-create the home tab.
@@ -51,6 +55,9 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
         object : ToolWindowManagerListener {
           override fun toolWindowShown(shownToolWindow: ToolWindow) {
             if (toolWindow === shownToolWindow && toolWindow.isVisible && toolWindow.contentManager.isEmpty) {
+              profilerToolWindow.openHomeTab()
+              profilerToolWindow.openPastRecordingsTab()
+              // Reselect the home tab as the default open tab.
               profilerToolWindow.openHomeTab()
             }
           }
@@ -72,6 +79,16 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
         AndroidCoroutineScope(toolWindow.disposable).launch {
           withContext(AndroidDispatchers.uiThread) {
             profilerToolWindow.openHomeTab()
+            toolWindow.activate(null)
+          }
+        }
+      })
+
+      // Listen for events requesting that the past recordings tab be opened.
+      project.messageBus.connect(toolWindow.disposable).subscribe(OpenPastRecordingsTabListener.TOPIC, OpenPastRecordingsTabListener {
+        AndroidCoroutineScope(toolWindow.disposable).launch {
+          withContext(AndroidDispatchers.uiThread) {
+            profilerToolWindow.openPastRecordingsTab()
             toolWindow.activate(null)
           }
         }

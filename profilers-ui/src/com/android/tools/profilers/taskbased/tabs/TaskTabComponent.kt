@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.taskbased.tabs.home
+package com.android.tools.profilers.taskbased.tabs
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.awt.ComposePanel

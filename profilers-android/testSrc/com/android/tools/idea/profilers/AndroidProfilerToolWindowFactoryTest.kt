@@ -10,6 +10,7 @@ import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.taskbased.home.OpenHomeTabListener
+import com.android.tools.profilers.taskbased.pastrecordings.OpenPastRecordingsTabListener
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
@@ -61,22 +62,30 @@ class AndroidProfilerToolWindowFactoryTest {
   }
 
   @Test
-  fun `createToolWindowContent implicitly opens the home tab`() {
+  fun `createToolWindowContent implicitly opens the home and past recordings tab, with home tab selected`() {
     val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
     val toolWindowFactory = AndroidProfilerToolWindowFactory()
     toolWindowFactory.init(toolWindow)
-    // The following method call will call openHomeTab().
+    // The following method call will call openHomeTab() and openPastRecordingsTab(), and then openHomeTab() again to reselect it.
     toolWindowFactory.createToolWindowContent(project, toolWindow)
 
     // Waiting for the home tab to be auto-opened via the createToolWindowContent.
     waitForCondition(5L, TimeUnit.SECONDS) {
-      toolWindow.contentManager.contentCount == 1
+      toolWindow.contentManager.contentCount == 2
     }
 
-    val homeTabContent = toolWindow.contentManager.contents.first()!!
+    val homeTabContent = toolWindow.contentManager.contents[0]
     assertThat(homeTabContent.tabName).isEqualTo("Home")
     assertThat(homeTabContent.displayName).isEqualTo("Home")
     assertThat(homeTabContent.toolwindowTitle).isEqualTo("Home")
+
+    val pastRecordingsTabContent = toolWindow.contentManager.contents[1]
+    assertThat(pastRecordingsTabContent.tabName).isEqualTo("Past Recordings")
+    assertThat(pastRecordingsTabContent.displayName).isEqualTo("Past Recordings")
+    assertThat(pastRecordingsTabContent.toolwindowTitle).isEqualTo("Past Recordings")
+
+    // Assert that the home tab (first tab) was re-selected.
+    assertThat(toolWindow.contentManager.selectedContent).isEqualTo(homeTabContent)
   }
 
   @Test
@@ -102,7 +111,7 @@ class AndroidProfilerToolWindowFactoryTest {
     profilerToolWindow!!.createNewTab(JPanel(), "FakeTab", true)
     // Make sure new tab is open and is selected.
     waitForCondition(5L, TimeUnit.SECONDS) {
-      toolWindow.contentManager.contentCount == 2 &&
+      toolWindow.contentManager.contentCount == 3 &&
       toolWindow.contentManager.selectedContent != null &&
       toolWindow.contentManager.selectedContent!!.displayName == "FakeTab"
     }
@@ -110,7 +119,43 @@ class AndroidProfilerToolWindowFactoryTest {
     // Re-open the home tab explicitly, should find already present home tab and re-select it.
     project.messageBus.syncPublisher(OpenHomeTabListener.TOPIC).openHomeTab()
     waitForCondition(5L, TimeUnit.SECONDS) {
-      toolWindow.contentManager.contentCount == 2 && toolWindow.contentManager.selectedContent == homeTabContent
+      toolWindow.contentManager.contentCount == 3 && toolWindow.contentManager.selectedContent == homeTabContent
+    }
+  }
+
+  @Test
+  fun `explicitly opening the past recordings tab reselects existing past recordings tab`() {
+    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+    val toolWindowFactory = AndroidProfilerToolWindowFactory()
+    toolWindowFactory.init(toolWindow)
+    toolWindowFactory.createToolWindowContent(project, toolWindow)
+
+    // Wait for the home and past recordings tab to be created, with the home tab being selected.
+    waitForCondition(5L, TimeUnit.SECONDS) {
+      toolWindow.contentManager.contents.size == 2 &&
+      toolWindow.contentManager.selectedContent != null &&
+      toolWindow.contentManager.selectedContent!!.displayName == "Home"
+    }
+
+    // Store past recordings tab content to be used to make sure the re-opened past recordings tab is the same as the original tab.
+    val pastRecordingsTabContent = toolWindow.contentManager.contents[1]!!
+
+    val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]
+    assertThat(profilerToolWindow).isNotNull()
+
+    // Open a fake tab.
+    profilerToolWindow!!.createNewTab(JPanel(), "FakeTab", true)
+    // Make sure new tab is open and is selected.
+    waitForCondition(5L, TimeUnit.SECONDS) {
+      toolWindow.contentManager.contentCount == 3 &&
+      toolWindow.contentManager.selectedContent != null &&
+      toolWindow.contentManager.selectedContent!!.displayName == "FakeTab"
+    }
+
+    // Re-open the home tab explicitly, should find already present home tab and re-select it.
+    project.messageBus.syncPublisher(OpenPastRecordingsTabListener.TOPIC).openPastRecordingsTab()
+    waitForCondition(5L, TimeUnit.SECONDS) {
+      toolWindow.contentManager.contentCount == 3 && toolWindow.contentManager.selectedContent == pastRecordingsTabContent
     }
   }
 

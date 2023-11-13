@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers
+package com.android.tools.profilers.taskbased.pastrecordings
 
-import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
-import com.android.tools.profilers.taskbased.tabs.home.TaskHomeTabComponent
-import javax.swing.JPanel
+import com.intellij.util.messages.Topic
 
 /**
- * The top-level view of the home tab in the Profiler tool window.
+ * Listener of events requesting that the Profiler past recordings tab be open.
  */
-class StudioProfilersHomeView(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) {
-  val panel: JPanel = TaskHomeTabComponent(taskHomeTabModel, ideProfilerComponents)
+fun interface OpenPastRecordingsTabListener {
+
+  /**
+   * Opens the Profiler past recordings tab.
+   */
+  fun openPastRecordingsTab()
+
+  companion object {
+    @JvmField
+    val TOPIC = Topic("Command to open the Profiler home tab", OpenPastRecordingsTabListener::class.java)
+  }
 }
