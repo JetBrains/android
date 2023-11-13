@@ -21,9 +21,9 @@ import com.android.ide.common.resources.ResourceRepository
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
-import com.android.tools.res.ResourceClassRegistry
 import com.android.tools.res.ResourceNamespacing
 import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.application.runReadAction

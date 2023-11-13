@@ -19,7 +19,6 @@ import com.android.resources.aar.AarResourceRepository;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.res.MultiResourceRepository;
-import com.android.tools.res.ResourceClassRegistry;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;

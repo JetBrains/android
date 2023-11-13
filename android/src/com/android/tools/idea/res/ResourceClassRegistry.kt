@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.res
+package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceRepository
+import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.res.ids.ResourceClassGenerator
 import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.Disposable

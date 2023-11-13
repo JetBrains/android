@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.res;
+package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceRepository
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.res.ResourceNamespacing
+import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.res.ids.ResourceIdManagerBase
 import com.android.tools.res.ids.ResourceIdManagerModelModule
 import com.google.common.truth.Truth.assertThat

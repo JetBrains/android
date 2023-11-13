@@ -20,8 +20,8 @@ import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.res.ResourceClassRegistry
 import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.android.tools.res.ResourceClassRegistry
 import com.android.tools.res.ids.ResourceIdManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
