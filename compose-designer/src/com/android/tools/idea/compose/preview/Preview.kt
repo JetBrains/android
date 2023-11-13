@@ -113,6 +113,7 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
+import com.intellij.ui.AncestorListenerAdapter
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.io.File
@@ -124,6 +125,7 @@ import javax.swing.JLabel
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import javax.swing.event.AncestorEvent
 import kotlin.properties.Delegates
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -462,14 +464,32 @@ class ComposePreviewRepresentation(
 
   private val emptyUiCheckPanel =
     object : JPanel() {
+      val label =
+        JLabel(message("ui.check.mode.empty.message"), SwingConstants.CENTER).apply {
+          isVisible = false
+        }
+
       init {
         layout = BorderLayout()
-        isOpaque = false
-        isVisible = false
-        add(
-          JLabel(message("ui.check.mode.empty.message"), SwingConstants.CENTER),
-          BorderLayout.CENTER
+        isOpaque = true
+        isVisible = true
+        add(label, BorderLayout.CENTER)
+        addAncestorListener(
+          object : AncestorListenerAdapter() {
+            override fun ancestorAdded(event: AncestorEvent?) {
+              background = mode.value.backgroundColor
+            }
+
+            override fun ancestorRemoved(event: AncestorEvent?) {
+              label.isVisible = false
+            }
+          }
         )
+      }
+
+      fun setHasErrors(hasErrors: Boolean) {
+        label.isVisible = !hasErrors
+        isVisible = !hasErrors
       }
     }
 
@@ -488,32 +508,39 @@ class ComposePreviewRepresentation(
           hasVisiblePreviews = true
           surface.updateSceneViewVisibilities { true }
         }
-        emptyUiCheckPanel.isVisible = !hasVisiblePreviews
+        emptyUiCheckPanel.setHasErrors(hasVisiblePreviews)
       }
     }
 
-  private val postIssueUpdateListenerForUiCheck = {
-    val models = mutableSetOf<NlModel>()
-    val facet = surface.models.firstOrNull()?.facet
-    surface.visualLintIssueProvider
-      .getUnsuppressedIssues()
-      .map { it.source }
-      .forEach { models.addAll(it.models) }
-    uiCheckFilterFlow.value.modelsWithErrors = models
-    if (isUiCheckFilterEnabled) {
-      ApplicationManager.getApplication().invokeLater {
-        var count = 0
-        surface.updateSceneViewVisibilities {
-          (it.sceneManager.model in models).also { visible -> if (visible) count++ }
+  private val postIssueUpdateListenerForUiCheck =
+    object : Runnable {
+      var activated = false
+
+      override fun run() {
+        if (!activated) {
+          return
         }
-        emptyUiCheckPanel.isVisible = count == 0
-        VisualLintUsageTracker.getInstance().trackVisiblePreviews(count, facet)
-        surface.zoomToFit()
-        surface.repaint()
+        val models = mutableSetOf<NlModel>()
+        val facet = surface.models.firstOrNull()?.facet
+        surface.visualLintIssueProvider
+          .getUnsuppressedIssues()
+          .map { it.source }
+          .forEach { models.addAll(it.models) }
+        uiCheckFilterFlow.value.modelsWithErrors = models
+        if (isUiCheckFilterEnabled) {
+          ApplicationManager.getApplication().invokeLater {
+            var count = 0
+            surface.updateSceneViewVisibilities {
+              (it.sceneManager.model in models).also { visible -> if (visible) count++ }
+            }
+            emptyUiCheckPanel.setHasErrors(count > 0)
+            VisualLintUsageTracker.getInstance().trackVisiblePreviews(count, facet)
+            surface.zoomToFit()
+            surface.repaint()
+          }
+        }
       }
     }
-    uiCheckFilterFlow.value.trackTimeOfFirstRun(System.currentTimeMillis(), facet)
-  }
 
   private val previewElementModelAdapter =
     object : ComposePreviewElementModelAdapter() {
@@ -558,15 +585,30 @@ class ComposePreviewRepresentation(
     log.debug(
       "Starting UI check. ATF checks enabled: $atfChecksEnabled, Visual Linting enabled: $visualLintingEnabled"
     )
+    val startTime = System.currentTimeMillis()
     qualityManager.pause()
     uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance, surface.scale)
     withContext(uiThread) {
       emptyUiCheckPanel.apply {
-        isVisible = false
+        isVisible = true
         surface.layeredPane.add(this, JLayeredPane.POPUP_LAYER, 0)
       }
       createUiCheckTab(instance)
     }
+    val completableDeferred =
+      CompletableDeferred<Unit>().apply {
+        invokeOnCompletion {
+          postIssueUpdateListenerForUiCheck.activated = true
+          VisualLintUsageTracker.getInstance()
+            .trackFirstRunTime(
+              System.currentTimeMillis() - startTime,
+              surface.models.firstOrNull()?.facet
+            )
+        }
+      }
+    invalidate()
+    requestRefresh(completableDeferred = completableDeferred)
+    completableDeferred.join()
   }
 
   fun createUiCheckTab(instance: ComposePreviewElementInstance) {
@@ -589,6 +631,7 @@ class ComposePreviewRepresentation(
 
   private suspend fun onUiCheckPreviewStop() {
     qualityManager.resume()
+    postIssueUpdateListenerForUiCheck.activated = false
     uiCheckFilterFlow.value.basePreviewInstance?.let {
       IssuePanelService.getInstance(project)
         .stopUiCheck(it.instanceId, surface, postIssueUpdateListenerForUiCheck)

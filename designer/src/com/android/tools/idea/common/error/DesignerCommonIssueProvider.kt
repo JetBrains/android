@@ -32,9 +32,9 @@ interface DesignerCommonIssueProvider<T> : Disposable {
 
   fun getFilteredIssues(): List<Issue>
 
-  fun registerUpdateListener(listener: () -> Unit)
+  fun registerUpdateListener(listener: Runnable)
 
-  fun removeUpdateListener(listener: () -> Unit)
+  fun removeUpdateListener(listener: Runnable)
 
   fun update()
 
@@ -80,7 +80,7 @@ class DesignToolsIssueProvider(
 
   @GuardedBy("mapLock") private val sourceToIssueMap = mutableMapOf<Any, List<Issue>>()
 
-  private val listeners = mutableListOf<() -> Unit>()
+  private val listeners = mutableListOf<Runnable>()
   private val messageBusConnection = project.messageBus.connect(parentDisposable)
 
   private var _viewOptionFilter: DesignerCommonIssueProvider.Filter = EmptyFilter
@@ -88,7 +88,7 @@ class DesignToolsIssueProvider(
     get() = _viewOptionFilter
     set(value) {
       _viewOptionFilter = value
-      listeners.forEach { it() }
+      listeners.forEach { it.run() }
     }
 
   init {
@@ -112,7 +112,7 @@ class DesignToolsIssueProvider(
             sourceToIssueMap[source] = issues
           }
         }
-        listeners.forEach { it() }
+        listeners.forEach { it.run() }
       }
     )
 
@@ -124,11 +124,11 @@ class DesignToolsIssueProvider(
       FileEditorManagerListener.FILE_EDITOR_MANAGER,
       object : FileEditorManagerListener {
         override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
-          listeners.forEach { it() }
+          listeners.forEach { it.run() }
         }
 
         override fun selectionChanged(event: FileEditorManagerEvent) {
-          listeners.forEach { it() }
+          listeners.forEach { it.run() }
         }
       }
     )
@@ -139,16 +139,16 @@ class DesignToolsIssueProvider(
     return values.flatten().filter(issueFilter).filter(viewOptionFilter)
   }
 
-  override fun registerUpdateListener(listener: () -> Unit) {
+  override fun registerUpdateListener(listener: Runnable) {
     listeners.add(listener)
   }
 
-  override fun removeUpdateListener(listener: () -> Unit) {
+  override fun removeUpdateListener(listener: Runnable) {
     listeners.remove(listener)
   }
 
   override fun update() {
-    listeners.forEach { it() }
+    listeners.forEach { it.run() }
   }
 
   override fun dispose() {

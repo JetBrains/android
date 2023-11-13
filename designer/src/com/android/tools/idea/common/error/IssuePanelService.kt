@@ -523,7 +523,7 @@ class IssuePanelService(private val project: Project) {
     name: String,
     displayName: String,
     surface: NlDesignSurface,
-    postIssueUpdateListener: () -> Unit,
+    postIssueUpdateListener: Runnable,
     additionalDataProvider: DataProvider
   ) {
     val contentManager =
@@ -582,7 +582,7 @@ class IssuePanelService(private val project: Project) {
     surface.visualLintIssueProvider.uiCheckInstanceId = name
   }
 
-  fun stopUiCheck(name: String, surface: NlDesignSurface, postIssueUpdateListener: () -> Unit) {
+  fun stopUiCheck(name: String, surface: NlDesignSurface, postIssueUpdateListener: Runnable) {
     val panel = nameToTabMap[name]?.get()?.let { tabToPanelMap[it]?.get() }
     panel?.removeIssueSelectionListener(surface.issueListener)
     panel?.issueProvider?.removeUpdateListener(postIssueUpdateListener)
