@@ -40,12 +40,10 @@ class ModuleCompileTest {
       var dir1 = projectRule.fixture.tempDirFixture.findOrCreateDir(libModule1Name);
       var lib1 = PsiTestUtil.addModule(projectRule.project, JavaModuleType.getModuleType(), libModule1Name, dir1)
       PsiTestUtil.addContentRoot(lib1, dir1)
-      lib1.loadComposeRuntimeInClassPath()
 
       var dir2 = projectRule.fixture.tempDirFixture.findOrCreateDir(libModule2Name);
       var lib2 = PsiTestUtil.addModule(projectRule.project, JavaModuleType.getModuleType(), libModule2Name, dir2)
       PsiTestUtil.addContentRoot(lib2, dir2)
-      lib2.loadComposeRuntimeInClassPath()
     }
     setUpComposeInProjectFixture(projectRule)
 

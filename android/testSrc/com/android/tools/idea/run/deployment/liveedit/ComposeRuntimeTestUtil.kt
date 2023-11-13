@@ -18,8 +18,10 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.testutils.TestUtils
 import com.android.tools.compose.ComposePluginIrGenerationExtension
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.project.modules
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PsiTestUtil
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 
 /**
@@ -34,20 +36,18 @@ import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 val composeRuntimePath = TestUtils.resolveWorkspacePath(
   "tools/adt/idea/compose-ide-plugin/testData/lib/compose-runtime-1.4.0-SNAPSHOT.jar").toString()
 
-fun setUpComposeInProjectFixture(projectRule: AndroidProjectRule) {
-  projectRule.module.loadComposeRuntimeInClassPath()
-  // Register the compose compiler plugin much like what Intellij would normally do.
-  if (IrGenerationExtension.getInstances(projectRule.project).find { it is ComposePluginIrGenerationExtension } == null) {
-    IrGenerationExtension.registerExtension(projectRule.project, ComposePluginIrGenerationExtension())
-  }
-}
-
 /**
  * Loads the Compose runtime into the project class path. This allows for tests using the compiler (Live Edit/FastPreview)
  * to correctly invoke the compiler as they would do in prod.
  */
-fun com.intellij.openapi.module.Module.loadComposeRuntimeInClassPath() {
+fun <T : CodeInsightTestFixture> setUpComposeInProjectFixture(projectRule: AndroidProjectRule.Typed<T, Nothing>) {
   // Load the compose runtime into the main module's library dependency.
   LocalFileSystem.getInstance().refreshAndFindFileByPath(composeRuntimePath)
-  PsiTestUtil.addLibrary(this, composeRuntimePath)
+  projectRule.project.modules.forEach {
+    PsiTestUtil.addLibrary(it, composeRuntimePath)
+  }
+  // Register the compose compiler plugin much like what Intellij would normally do.
+  if (IrGenerationExtension.getInstances(projectRule.project).find { it is ComposePluginIrGenerationExtension } == null) {
+    IrGenerationExtension.registerExtension(projectRule.project, ComposePluginIrGenerationExtension())
+  }
 }

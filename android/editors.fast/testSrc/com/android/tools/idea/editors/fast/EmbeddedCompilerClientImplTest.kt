@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.fast
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
-import com.android.tools.idea.run.deployment.liveedit.loadComposeRuntimeInClassPath
+import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.Logger
@@ -47,7 +47,7 @@ internal class EmbeddedCompilerClientImplTest {
 
   @Before
   fun setUp() {
-    projectRule.module.loadComposeRuntimeInClassPath()
+    setUpComposeInProjectFixture(projectRule)
   }
 
   @Test
