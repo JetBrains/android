@@ -29,12 +29,20 @@ import java.util.concurrent.TimeUnit
 import org.jetbrains.android.facet.AndroidFacet
 
 interface VisualLintUsageTracker {
-  fun trackIssueCreation(issueType: VisualLintErrorType, facet: AndroidFacet) {
-    track(VisualLintEvent.IssueEvent.CREATE_ISSUE, issueType, facet)
+  fun trackIssueCreation(
+    issueType: VisualLintErrorType,
+    origin: VisualLintOrigin,
+    facet: AndroidFacet
+  ) {
+    track(VisualLintEvent.IssueEvent.CREATE_ISSUE, issueType, facet, origin)
   }
 
-  fun trackIssueIgnored(issueType: VisualLintErrorType, facet: AndroidFacet) {
-    track(VisualLintEvent.IssueEvent.IGNORE_ISSUE, issueType, facet)
+  fun trackIssueIgnored(
+    issueType: VisualLintErrorType,
+    origin: VisualLintOrigin,
+    facet: AndroidFacet
+  ) {
+    track(VisualLintEvent.IssueEvent.IGNORE_ISSUE, issueType, facet, origin)
   }
 
   fun trackBackgroundRuleStatusChanged(issueType: VisualLintErrorType, enabled: Boolean) {
@@ -55,8 +63,8 @@ interface VisualLintUsageTracker {
     track(VisualLintEvent.IssueEvent.CANCEL_BACKGROUND_ANALYSIS, null, null)
   }
 
-  fun trackClickHyperLink(issueType: VisualLintErrorType) {
-    track(VisualLintEvent.IssueEvent.CLICK_DOCUMENTATION_LINK, issueType, null)
+  fun trackClickHyperLink(issueType: VisualLintErrorType, origin: VisualLintOrigin) {
+    track(VisualLintEvent.IssueEvent.CLICK_DOCUMENTATION_LINK, issueType, null, origin)
   }
 
   fun trackFirstRunTime(timeMs: Long, facet: AndroidFacet?) {
@@ -70,7 +78,8 @@ interface VisualLintUsageTracker {
   fun track(
     issueEvent: VisualLintEvent.IssueEvent,
     issueType: VisualLintErrorType?,
-    facet: AndroidFacet?
+    facet: AndroidFacet?,
+    origin: VisualLintOrigin? = null,
   ) {
     val metricsIssueType =
       when (issueType) {
@@ -87,7 +96,17 @@ interface VisualLintUsageTracker {
         else -> VisualLintEvent.IssueType.UNKNOWN_TYPE
       }
     logEvent(facet) {
-      VisualLintEvent.newBuilder().setIssueType(metricsIssueType).setIssueEvent(issueEvent).build()
+      VisualLintEvent.newBuilder()
+        .setIssueType(metricsIssueType)
+        .setIssueEvent(issueEvent)
+        .setEventOrigin(
+          when (origin) {
+            VisualLintOrigin.UI_CHECK -> VisualLintEvent.EventOrigin.UI_CHECK
+            VisualLintOrigin.XML_LINTING -> VisualLintEvent.EventOrigin.XML_LINTING
+            null -> VisualLintEvent.EventOrigin.UNKNOWN_ORIGIN
+          }
+        )
+        .build()
     }
   }
 
@@ -127,4 +146,9 @@ private object VisualLintUsageTrackerImpl : VisualLintUsageTracker {
 
 private object VisualLintNoOpUsageTracker : VisualLintUsageTracker {
   override fun logEvent(facet: AndroidFacet?, visualLintEventProvider: () -> VisualLintEvent) = Unit
+}
+
+enum class VisualLintOrigin {
+  XML_LINTING,
+  UI_CHECK
 }

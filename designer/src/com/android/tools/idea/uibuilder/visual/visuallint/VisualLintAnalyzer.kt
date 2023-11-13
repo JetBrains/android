@@ -20,9 +20,11 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlComponentBackendEmpty
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.parsers.PsiXmlTag
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
+import com.android.tools.idea.uibuilder.visual.analytics.VisualLintOrigin
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.parsers.TagSnapshot
@@ -55,12 +57,12 @@ abstract class VisualLintAnalyzer {
 
   abstract fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent>
 
-  private fun getHyperlinkListener(): HyperlinkListener {
+  private fun getHyperlinkListener(issueOrigin: VisualLintOrigin): HyperlinkListener {
     val listener = createDefaultHyperLinkListener()
     return HyperlinkListener {
       listener.hyperlinkUpdate(it)
       if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-        VisualLintUsageTracker.getInstance().trackClickHyperLink(type)
+        VisualLintUsageTracker.getInstance().trackClickHyperLink(type, issueOrigin)
       }
     }
   }
@@ -72,14 +74,17 @@ abstract class VisualLintAnalyzer {
     severity: HighlightSeverity
   ): VisualLintRenderIssue {
     val component = componentFromViewInfo(content.view, model)
-    VisualLintUsageTracker.getInstance().trackIssueCreation(type, model.facet)
+    val issueOrigin =
+      if (component?.backend is NlComponentBackendEmpty) VisualLintOrigin.UI_CHECK
+      else VisualLintOrigin.XML_LINTING
+    VisualLintUsageTracker.getInstance().trackIssueCreation(type, issueOrigin, model.facet)
     return VisualLintRenderIssue.builder()
       .summary(content.message)
       .severity(severity)
       .model(model)
       .components(if (component == null) mutableListOf() else mutableListOf(component))
       .contentDescriptionProvider(content.descriptionProvider)
-      .hyperlinkListener(getHyperlinkListener())
+      .hyperlinkListener(getHyperlinkListener(issueOrigin))
       .type(type)
       .build()
   }

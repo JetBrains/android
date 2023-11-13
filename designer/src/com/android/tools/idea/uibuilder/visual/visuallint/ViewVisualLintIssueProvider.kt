@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 import com.android.SdkConstants
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.uibuilder.visual.analytics.VisualLintOrigin
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
@@ -90,7 +91,11 @@ class ViewVisualLintSuppressTask(
       val project = transactions.first().component.model.project
       val files = transactions.map { it.component.model.file }.toTypedArray()
       VisualLintUsageTracker.getInstance()
-        .trackIssueIgnored(typeToSuppress, transactions.first().component.model.facet)
+        .trackIssueIgnored(
+          typeToSuppress,
+          VisualLintOrigin.XML_LINTING,
+          transactions.first().component.model.facet
+        )
       // All suppresses should in the same undo/redo action.
       WriteCommandAction.runWriteCommandAction(
         project,

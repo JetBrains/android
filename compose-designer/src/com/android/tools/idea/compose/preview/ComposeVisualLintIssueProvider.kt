@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.kotlin.fqNameMatches
+import com.android.tools.idea.uibuilder.visual.analytics.VisualLintOrigin
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
@@ -83,7 +84,8 @@ class ComposeVisualLintSuppressTask(
 ) : Runnable {
 
   override fun run() {
-    VisualLintUsageTracker.getInstance().trackIssueIgnored(issueType, model.facet)
+    VisualLintUsageTracker.getInstance()
+      .trackIssueIgnored(issueType, VisualLintOrigin.UI_CHECK, model.facet)
     WriteCommandAction.runWriteCommandAction(
       model.project,
       issueType.toSuppressActionDescription(),
