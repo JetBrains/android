@@ -71,6 +71,7 @@ class NetworkInspectorDataSourceImpl(
             when {
               event.hasSpeedEvent() -> dataHandler.handleSpeedEvent(event)
               event.hasHttpConnectionEvent() -> dataHandler.handleHttpConnectionEvent(event)
+              event.hasGrpcEvent() -> dataHandler.handleGrpcEvent(event)
               else -> null
             }
           if (result?.updateTimeline == true) {

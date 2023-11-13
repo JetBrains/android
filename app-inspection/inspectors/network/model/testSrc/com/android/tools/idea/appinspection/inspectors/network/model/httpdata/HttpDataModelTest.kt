@@ -18,13 +18,13 @@ package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.httpClosed
+import com.android.tools.idea.appinspection.inspectors.network.model.httpRequestCompleted
+import com.android.tools.idea.appinspection.inspectors.network.model.httpRequestPayload
+import com.android.tools.idea.appinspection.inspectors.network.model.httpRequestStarted
+import com.android.tools.idea.appinspection.inspectors.network.model.httpResponseCompleted
+import com.android.tools.idea.appinspection.inspectors.network.model.httpResponsePayload
+import com.android.tools.idea.appinspection.inspectors.network.model.httpResponseStarted
 import com.android.tools.idea.appinspection.inspectors.network.model.httpThread
-import com.android.tools.idea.appinspection.inspectors.network.model.requestCompleted
-import com.android.tools.idea.appinspection.inspectors.network.model.requestPayload
-import com.android.tools.idea.appinspection.inspectors.network.model.requestStarted
-import com.android.tools.idea.appinspection.inspectors.network.model.responseCompleted
-import com.android.tools.idea.appinspection.inspectors.network.model.responsePayload
-import com.android.tools.idea.appinspection.inspectors.network.model.responseStarted
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import java.util.concurrent.TimeUnit.SECONDS
@@ -38,23 +38,23 @@ private val faceTrace = fakeStackTrace(CONNECTION_ID)
 
 private val HTTP_DATA =
   listOf(
-    requestStarted(CONNECTION_ID, SECONDS.toNanos(0), fakeUrl, method = "", headers, faceTrace),
-    requestPayload(CONNECTION_ID, SECONDS.toNanos(1), payload = "REQUEST_CONTENT"),
-    requestCompleted(CONNECTION_ID, SECONDS.toNanos(1)),
-    responseStarted(CONNECTION_ID, SECONDS.toNanos(2), 200, fakeResponseHeaders(CONNECTION_ID)),
-    responsePayload(CONNECTION_ID, SECONDS.toNanos(3), payload = "RESPONSE_CONTENT"),
-    responseCompleted(CONNECTION_ID, SECONDS.toNanos(3)),
+    httpRequestStarted(CONNECTION_ID, SECONDS.toNanos(0), fakeUrl, method = "", headers, faceTrace),
+    httpRequestPayload(CONNECTION_ID, SECONDS.toNanos(1), payload = "REQUEST_CONTENT"),
+    httpRequestCompleted(CONNECTION_ID, SECONDS.toNanos(1)),
+    httpResponseStarted(CONNECTION_ID, SECONDS.toNanos(2), 200, fakeResponseHeaders(CONNECTION_ID)),
+    httpResponsePayload(CONNECTION_ID, SECONDS.toNanos(3), payload = "RESPONSE_CONTENT"),
+    httpResponseCompleted(CONNECTION_ID, SECONDS.toNanos(3)),
     httpClosed(CONNECTION_ID, SECONDS.toNanos(3), completed = true),
   )
 
 private val HTTP_DATA_WITH_THREAD =
   listOf(
-    requestStarted(CONNECTION_ID, SECONDS.toNanos(0), fakeUrl, method = "", headers, faceTrace),
-    requestPayload(CONNECTION_ID, SECONDS.toNanos(1), payload = "REQUEST_CONTENT"),
-    requestCompleted(CONNECTION_ID, SECONDS.toNanos(1)),
-    responseStarted(CONNECTION_ID, SECONDS.toNanos(2), 200, fakeResponseHeaders(CONNECTION_ID)),
-    responsePayload(CONNECTION_ID, SECONDS.toNanos(3), payload = "RESPONSE_CONTENT"),
-    responseCompleted(CONNECTION_ID, SECONDS.toNanos(3)),
+    httpRequestStarted(CONNECTION_ID, SECONDS.toNanos(0), fakeUrl, method = "", headers, faceTrace),
+    httpRequestPayload(CONNECTION_ID, SECONDS.toNanos(1), payload = "REQUEST_CONTENT"),
+    httpRequestCompleted(CONNECTION_ID, SECONDS.toNanos(1)),
+    httpResponseStarted(CONNECTION_ID, SECONDS.toNanos(2), 200, fakeResponseHeaders(CONNECTION_ID)),
+    httpResponsePayload(CONNECTION_ID, SECONDS.toNanos(3), payload = "RESPONSE_CONTENT"),
+    httpResponseCompleted(CONNECTION_ID, SECONDS.toNanos(3)),
     httpClosed(CONNECTION_ID, SECONDS.toNanos(3), completed = true),
     httpThread(CONNECTION_ID, SECONDS.toNanos(4), 1, "thread"),
   )

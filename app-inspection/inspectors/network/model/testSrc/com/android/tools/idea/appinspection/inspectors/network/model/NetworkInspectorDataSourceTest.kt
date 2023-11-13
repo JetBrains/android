@@ -38,7 +38,7 @@ class NetworkInspectorDataSourceTest {
   @Test
   fun basicSearch(): Unit = runBlocking {
     val speedEvent = speedEvent(timestampNanos = 1000, rxSpeed = 10, txSpeed = 20)
-    val httpEvent = requestStarted(id = 1, timestampNanos = 1002, url = "www.google.com")
+    val httpEvent = httpRequestStarted(id = 1, timestampNanos = 1002, url = "www.google.com")
     val testMessenger =
       TestMessenger(scope, flowOf(speedEvent.toByteArray(), httpEvent.toByteArray()))
     val dataSource =
@@ -140,20 +140,20 @@ class NetworkInspectorDataSourceTest {
   @Test
   fun searchHttpData(): Unit = runBlocking {
     // Request that starts in the selection range but ends outside of it.
-    val srart1 = requestStarted(id = 1, timestampNanos = 1002, url = "www.url1.com")
-    val end1 = requestCompleted(id = 1, timestampNanos = 3000)
+    val srart1 = httpRequestStarted(id = 1, timestampNanos = 1002, url = "www.url1.com")
+    val end1 = httpRequestCompleted(id = 1, timestampNanos = 3000)
 
     // Request that starts outside the range, but ends inside of it.
-    val start2 = requestStarted(id = 2, timestampNanos = 44, url = "www.url2.com")
-    val end2 = requestCompleted(id = 2, timestampNanos = 1534)
+    val start2 = httpRequestStarted(id = 2, timestampNanos = 44, url = "www.url2.com")
+    val end2 = httpRequestCompleted(id = 2, timestampNanos = 1534)
 
     // Request that starts and ends outside the range, but spans over it.
-    val start3 = requestStarted(id = 3, timestampNanos = 55, url = "www.url3.com")
-    val end3 = requestCompleted(id = 3, timestampNanos = 4500)
+    val start3 = httpRequestStarted(id = 3, timestampNanos = 55, url = "www.url3.com")
+    val end3 = httpRequestCompleted(id = 3, timestampNanos = 4500)
 
     // Request that starts and ends outside and not overlap the range.
-    val start4 = requestStarted(id = 4, timestampNanos = 58, url = "www.url4.com")
-    val end4 = requestCompleted(id = 4, timestampNanos = 67)
+    val start4 = httpRequestStarted(id = 4, timestampNanos = 58, url = "www.url4.com")
+    val end4 = httpRequestCompleted(id = 4, timestampNanos = 67)
 
     val testMessenger =
       TestMessenger(

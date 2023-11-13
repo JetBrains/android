@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
-import com.android.tools.idea.appinspection.inspectors.network.model.header
+import com.android.tools.idea.appinspection.inspectors.network.model.httpHeader
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import java.io.ByteArrayOutputStream
@@ -30,10 +30,10 @@ class HttpDataTest {
         1,
         responseHeaders =
           listOf(
-            header("status line", "HTTP/1.1 302 Found"),
-            header("first", "1"),
-            header("second", "2"),
-            header("equation", "x+y=10"),
+            httpHeader("status line", "HTTP/1.1 302 Found"),
+            httpHeader("first", "1"),
+            httpHeader("second", "2"),
+            httpHeader("equation", "x+y=10"),
           ),
       )
 
@@ -50,7 +50,7 @@ class HttpDataTest {
         1,
         responseHeaders =
           listOf(
-            header("Content-Type", "text/html; charset=UTF-8"),
+            httpHeader("Content-Type", "text/html; charset=UTF-8"),
           ),
         responseCode = 302,
       )
@@ -71,10 +71,10 @@ class HttpDataTest {
         1,
         responseHeaders =
           listOf(
-            header("status line", "HTTP/1.1 302 Found"),
-            header("first", "1"),
-            header("second", "2", "5"),
-            header("equation", "x+y=10"),
+            httpHeader("status line", "HTTP/1.1 302 Found"),
+            httpHeader("first", "1"),
+            httpHeader("second", "2", "5"),
+            httpHeader("equation", "x+y=10"),
           ),
       )
 
@@ -91,9 +91,9 @@ class HttpDataTest {
         1,
         requestHeaders =
           listOf(
-            header("first", "1"),
-            header("second", "2"),
-            header("equation", "x+y=10"),
+            httpHeader("first", "1"),
+            httpHeader("second", "2"),
+            httpHeader("equation", "x+y=10"),
           ),
       )
     val headers = data.requestHeaders
@@ -129,8 +129,8 @@ class HttpDataTest {
         1,
         responseHeaders =
           listOf(
-            header("CoNtEnt-LEngtH", "10000"),
-            header("response-status-code", "200"),
+            httpHeader("CoNtEnt-LEngtH", "10000"),
+            httpHeader("response-status-code", "200"),
           )
       )
     assertThat(data.responseHeaders["content-length"]).containsExactly("10000")
@@ -144,8 +144,8 @@ class HttpDataTest {
         1,
         responseHeaders =
           listOf(
-            header("content-length", "10000"),
-            header("response-status-code", "404"),
+            httpHeader("content-length", "10000"),
+            httpHeader("response-status-code", "404"),
           ),
         responseCode = 200,
       )
@@ -162,9 +162,9 @@ class HttpDataTest {
         1,
         responseHeaders =
           listOf(
-            header("content-length", "10000"),
-            header("response-status-code", "200"),
-            header("content-encoding", "gzip"),
+            httpHeader("content-length", "10000"),
+            httpHeader("response-status-code", "200"),
+            httpHeader("content-encoding", "gzip"),
           ),
         responsePayload = ByteString.copyFrom(byteOutput.toByteArray())
       )
@@ -179,9 +179,9 @@ class HttpDataTest {
         1,
         responseHeaders =
           listOf(
-            header("content-length", "10000"),
-            header("response-status-code", "200"),
-            header("content-encoding", "gzip"),
+            httpHeader("content-length", "10000"),
+            httpHeader("response-status-code", "200"),
+            httpHeader("content-encoding", "gzip"),
           ),
         responsePayload = ByteString.copyFrom(malformedBytes)
       )
@@ -191,7 +191,7 @@ class HttpDataTest {
   @Test
   fun keyInMapEntriesIsStoredAsIs() {
     val header = "RESPONSE-status-CoDe"
-    val data = createFakeHttpData(1, responseHeaders = listOf(header(header, "200")))
+    val data = createFakeHttpData(1, responseHeaders = listOf(httpHeader(header, "200")))
     assertThat(data.responseHeaders.size).isEqualTo(1)
     assertThat(data.responseHeaders.keys.first()).isEqualTo(header)
     assertThat(data.responseHeaders.keys.first()).isNotEqualTo(header.lowercase())

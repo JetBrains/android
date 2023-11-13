@@ -1402,6 +1402,11 @@ public final class StudioFlags {
     "Use static timeline in Network Inspector",
     true
   );
+  public static final Flag<Boolean> NETWORK_INSPECTOR_GRPC = Flag.create(
+    NETWORK_INSPECTOR, "grpc", "Track gRPC Connections",
+    "Track gRPC Connections",
+    true
+  );
   // endregion
 
   // region BackgroundTask Inspector

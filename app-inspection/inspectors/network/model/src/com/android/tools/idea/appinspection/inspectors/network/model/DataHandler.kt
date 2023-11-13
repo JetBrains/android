@@ -17,15 +17,27 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.model.Range
+import com.android.tools.idea.appinspection.inspectors.network.model.DataHandler.Result
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
+import com.android.tools.idea.appinspection.inspectors.network.model.grpc.GrpcData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit.NANOSECONDS
+import kotlin.Boolean
+import kotlin.Long
+import kotlin.synchronized
 import studio.network.inspection.NetworkInspectorProtocol.Event
+import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.UnionCase.GRPC_CALL_ENDED
+import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.UnionCase.GRPC_CALL_STARTED
+import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.UnionCase.GRPC_MESSAGE_RECEIVED
+import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.UnionCase.GRPC_MESSAGE_SENT
+import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.UnionCase.GRPC_STREAM_CREATED
+import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.UnionCase.GRPC_THREAD
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.UnionCase.HTTP_CLOSED
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.UnionCase.HTTP_REQUEST_COMPLETED
@@ -52,6 +64,7 @@ internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
 
   private val speedData = CopyOnWriteArrayList<Event>()
   @GuardedBy("itself") private val httpDataMap = Long2ObjectLinkedOpenHashMap<HttpData>()
+  @GuardedBy("itself") private val grpcDataMap = Long2ObjectLinkedOpenHashMap<GrpcData>()
 
   /**
    * A collection of all the currently active connections. This is used to determine if a
@@ -84,7 +97,7 @@ internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
       synchronized(httpDataMap) {
         httpDataMap.getOrPut(id) {
           activeConnections[id] = ActiveConnection(event.timestamp)
-          logger.debug { "Connection added: id=$id time=${event.timestamp.nanosToSeconds()}" }
+          logger.debug { "HTTP Connection added: id=$id time=${event.timestamp.nanosToSeconds()}" }
           HttpData.createHttpData(id)
         }
       }
@@ -113,10 +126,54 @@ internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
     return Result(updateTimeline = true)
   }
 
+  fun handleGrpcEvent(event: Event): Result {
+    if (!StudioFlags.NETWORK_INSPECTOR_GRPC.get()) {
+      return Result(updateTimeline = false)
+    }
+
+    val grpcEvent = event.grpcEvent
+
+    // TODO(aalbert): Track gRPC data?
+
+    val id = grpcEvent.connectionId
+    val data =
+      synchronized(grpcDataMap) {
+        grpcDataMap.getOrPut(id) {
+          activeConnections[id] = ActiveConnection(event.timestamp)
+          logger.debug { "gRPC Connection added: id=$id time=${event.timestamp.nanosToSeconds()}" }
+          GrpcData.createGrpcData(id)
+        }
+      }
+
+    val newData =
+      when (grpcEvent.unionCase) {
+        GRPC_CALL_STARTED -> data.withGrpcCallStarted(event)
+        GRPC_MESSAGE_SENT -> data.withGrpcMessageSent(event)
+        GRPC_STREAM_CREATED -> data.withGrpcStreamCreated(event)
+        GRPC_MESSAGE_RECEIVED -> data.withGrpcMessageReceived(event)
+        GRPC_CALL_ENDED -> data.withGrpcCallEnded(event)
+        GRPC_THREAD -> data.withGrpcThread(event)
+        else -> {
+          logger.warn("Unexpected event: ${grpcEvent.unionCase}")
+          return Result(updateTimeline = false)
+        }
+      }
+    if (newData.connectionEndTimeUs > 0) {
+      activeConnections.getValue(id).endNs = event.timestamp
+      logger.debug { "Connection ended: id=$id time=${event.timestamp.nanosToSeconds()}" }
+    }
+    synchronized(grpcDataMap) { grpcDataMap[id] = newData }
+    return Result(updateTimeline = true)
+  }
+
   fun getSpeedForRange(range: Range) = speedData.searchRange(range)
 
   fun getHttpDataForRange(range: Range) =
     synchronized(httpDataMap) { httpDataMap.values.filter { it.intersectsRange(range) } }
+      .sortedBy { it.requestStartTimeUs }
+
+  fun getGrpcDataForRange(range: Range) =
+    synchronized(grpcDataMap) { grpcDataMap.values.filter { it.intersectsRange(range) } }
       .sortedBy { it.requestStartTimeUs }
 
   private fun shouldUpdateTimeline(event: Event): Boolean {

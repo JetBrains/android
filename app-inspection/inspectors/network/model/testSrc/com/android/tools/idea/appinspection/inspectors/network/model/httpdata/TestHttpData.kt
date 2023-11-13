@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
-import com.android.tools.idea.appinspection.inspectors.network.model.header
+import com.android.tools.idea.appinspection.inspectors.network.model.httpHeader
 import com.android.tools.idea.protobuf.ByteString
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Header
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.HttpTransport
@@ -47,10 +47,10 @@ fun fakeStackTrace(id: Long): String {
 
 fun fakeResponseHeaders(id: Long, contentType: String? = FAKE_CONTENT_TYPE): List<Header> {
   return listOf(
-    header("status line", "HTTP/1.1 $FAKE_RESPONSE_CODE $FAKE_RESPONSE_DESCRIPTION"),
-    header("Content-Type", contentType.toString()),
-    header("connId", id.toString()),
-    header("Content-Length", "${fakeContentSize(id)}"),
+    httpHeader("status line", "HTTP/1.1 $FAKE_RESPONSE_CODE $FAKE_RESPONSE_DESCRIPTION"),
+    httpHeader("Content-Type", contentType.toString()),
+    httpHeader("connId", id.toString()),
+    httpHeader("Content-Length", "${fakeContentSize(id)}"),
   )
 }
 
