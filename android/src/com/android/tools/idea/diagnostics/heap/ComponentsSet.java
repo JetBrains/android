@@ -228,7 +228,7 @@ public final class ComponentsSet {
   private Component getClassComponent(@NotNull final Class<?> aClass) {
     String objClassName = aClass.getName();
 
-    if ((aClass.isSynthetic() || aClass.isMemberClass() || aClass.isAnonymousClass()) && Strings.containsChar(objClassName, '$')) {
+    if (Strings.containsChar(objClassName, '$')) {
       String outerClassName = objClassName.substring(0, Strings.indexOf(objClassName, '$'));
       if (classNameToComponent.containsKey(outerClassName)) {
         return classNameToComponent.get(outerClassName);
