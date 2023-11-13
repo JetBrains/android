@@ -67,7 +67,7 @@ class StringResourceViewPanelFakeUiTest {
   private lateinit var stringResourceViewPanel: StringResourceViewPanel
   private lateinit var fakeUi: FakeUi
   private lateinit var resourceDirectory: VirtualFile
-  private lateinit var localResourceRepository: LocalResourceRepository
+  private lateinit var localResourceRepository: LocalResourceRepository<*>
   private lateinit var facet: AndroidFacet
 
   @Before
@@ -205,7 +205,7 @@ class StringResourceViewPanelFakeUiTest {
     assertThat(getResourceItem(DEFAULT_KEYS[row], locale)?.resourceValue?.value).isEqualTo("new_value")
   }
 
-  private fun LocalResourceRepository.waitForPendingUpdates() {
+  private fun <T> LocalResourceRepository<T>.waitForPendingUpdates() {
     val latch = CountDownLatch(1)
     invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) {
       latch.countDown()

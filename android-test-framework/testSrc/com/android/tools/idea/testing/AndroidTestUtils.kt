@@ -375,7 +375,7 @@ fun waitForResourceRepositoryUpdates(
 @Throws(InterruptedException::class, TimeoutException::class)
 @JvmOverloads
 fun waitForUpdates(
-  repository: LocalResourceRepository,
+  repository: LocalResourceRepository<*>,
   timeout: Long = 2,
   unit: TimeUnit = TimeUnit.SECONDS
 ) {

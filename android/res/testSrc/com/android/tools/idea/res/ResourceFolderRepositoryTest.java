@@ -298,7 +298,7 @@ public class ResourceFolderRepositoryTest {
   }
 
   /** Commits all documents and waits for the given resource repository to finish currently pending updates. */
-  private void commitAndWaitForUpdates(@NotNull LocalResourceRepository repository) throws InterruptedException, TimeoutException {
+  private void commitAndWaitForUpdates(@NotNull LocalResourceRepository<VirtualFile> repository) throws InterruptedException, TimeoutException {
     PsiDocumentManager.getInstance(myProject).commitAllDocuments();
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     waitForUpdates(repository);

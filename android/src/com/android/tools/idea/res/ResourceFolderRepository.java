@@ -176,7 +176,7 @@ import org.jetbrains.annotations.VisibleForTesting;
  * <li>Register the PSI project listener as a project service instead.</li>
  * </ul>
  */
-public final class ResourceFolderRepository extends LocalResourceRepository implements LoadableResourceRepository {
+public final class ResourceFolderRepository extends LocalResourceRepository<VirtualFile> implements LoadableResourceRepository {
   /**
    * Increment when making changes that may affect content of repository cache files.
    * Used together with CachingData.codeVersion. Important for developer builds.

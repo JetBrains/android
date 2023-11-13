@@ -55,7 +55,7 @@ class StringResourceRepositoryTest {
   private lateinit var resourceDirectory: VirtualFile
   private lateinit var key1: StringResourceKey
   private lateinit var invalidKey: StringResourceKey
-  private lateinit var localResourceRepository: LocalResourceRepository
+  private lateinit var localResourceRepository: LocalResourceRepository<VirtualFile>
   private lateinit var stringResourceRepository: StringResourceRepository
 
   @Before

@@ -38,7 +38,6 @@ import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SmartList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -71,11 +70,11 @@ import org.jetbrains.annotations.VisibleForTesting;
  * <p>In the resource repository hierarchy, MultiResourceRepository is an internal node, never a leaf.
  */
 @SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
-public abstract class MultiResourceRepository extends LocalResourceRepository {
+public abstract class MultiResourceRepository<T> extends LocalResourceRepository<T> {
   private static final Logger LOG = Logger.getInstance(MultiResourceRepository.class);
 
   @GuardedBy("ITEM_MAP_LOCK")
-  @NotNull private ImmutableList<LocalResourceRepository> myLocalResources = ImmutableList.of();
+  @NotNull private ImmutableList<LocalResourceRepository<T>> myLocalResources = ImmutableList.of();
   /** A concatenation of {@link #myLocalResources} and library resources. */
   @GuardedBy("ITEM_MAP_LOCK")
   @NotNull private ImmutableList<ResourceRepository> myChildren = ImmutableList.of();
@@ -112,7 +111,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     super(displayName);
   }
 
-  protected void setChildren(@NotNull List<? extends LocalResourceRepository> localResources,
+  protected void setChildren(@NotNull List<? extends LocalResourceRepository<T>> localResources,
                              @NotNull Collection<? extends AarResourceRepository> libraryResources,
                              @NotNull Collection<? extends ResourceRepository> otherResources) {
     synchronized (ITEM_MAP_LOCK) {
@@ -137,11 +136,11 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       if (localResources.size() == 1) {
         // Make sure that the modification count of the child and the parent are same. This is
         // done so that we can return child's modification count, instead of ours.
-        LocalResourceRepository child = localResources.get(0);
+        LocalResourceRepository<T> child = localResources.get(0);
         child.setModificationCount(getModificationCount());
       }
       int i = 0;
-      for (LocalResourceRepository child : myLocalResources) {
+      for (LocalResourceRepository<T> child : myLocalResources) {
         child.addParent(this);
         myModificationCounts[i++] = child.getModificationCount();
       }
@@ -152,10 +151,10 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   }
 
   @GuardedBy("ITEM_MAP_LOCK")
-  private static void computeLeafs(@NotNull ResourceRepository repository,
+  private static <T> void computeLeafs(@NotNull ResourceRepository repository,
                                    @NotNull ImmutableListMultimap.Builder<ResourceNamespace, SingleNamespaceResourceRepository> result) {
     if (repository instanceof MultiResourceRepository) {
-      for (ResourceRepository child : ((MultiResourceRepository)repository).myChildren) {
+      for (ResourceRepository child : ((MultiResourceRepository<T>)repository).myChildren) {
         computeLeafs(child, result);
       }
     } else {
@@ -166,7 +165,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   }
 
   @GuardedBy("ITEM_MAP_LOCK")
-  private static void computeNamespaceMap(
+  private static <T> void computeNamespaceMap(
       @NotNull ResourceRepository repository,
       @NotNull ImmutableListMultimap.Builder<ResourceNamespace, SingleNamespaceResourceRepository> result) {
     if (repository instanceof SingleNamespaceResourceRepository) {
@@ -175,13 +174,13 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       result.put(namespace, singleNamespaceRepository);
     }
     else if (repository instanceof MultiResourceRepository) {
-      for (ResourceRepository child : ((MultiResourceRepository)repository).myChildren) {
+      for (ResourceRepository child : ((MultiResourceRepository<T>)repository).myChildren) {
         computeNamespaceMap(child, result);
       }
     }
   }
 
-  public ImmutableList<LocalResourceRepository> getLocalResources() {
+  public ImmutableList<LocalResourceRepository<T>> getLocalResources() {
     synchronized (ITEM_MAP_LOCK) {
       return myLocalResources;
     }
@@ -219,7 +218,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       // See if any of the delegates have changed.
       boolean changed = false;
       for (int i = 0; i < myLocalResources.size(); i++) {
-        LocalResourceRepository child = myLocalResources.get(i);
+        LocalResourceRepository<T> child = myLocalResources.get(i);
         long rev = child.getModificationCount();
         if (rev != myModificationCounts[i]) {
           myModificationCounts[i] = rev;
@@ -360,12 +359,12 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   @GuardedBy("ITEM_MAP_LOCK")
   @NotNull
-  private static ListMultimap<String, ResourceItem> getResourcesUnderLock(@NotNull SingleNamespaceResourceRepository repository,
-                                                                          @NotNull ResourceNamespace namespace,
-                                                                          @NotNull ResourceType type) {
+  private static <T> ListMultimap<String, ResourceItem> getResourcesUnderLock(@NotNull SingleNamespaceResourceRepository repository,
+                                                                              @NotNull ResourceNamespace namespace,
+                                                                              @NotNull ResourceType type) {
     ListMultimap<String, ResourceItem> map;
     if (repository instanceof LocalResourceRepository) {
-      map = ((LocalResourceRepository)repository).getMapPackageAccessible(namespace, type);
+      map = ((LocalResourceRepository<T>)repository).getMapPackageAccessible(namespace, type);
       return map == null ? ImmutableListMultimap.of() : map;
     }
     return repository.getResources(namespace, type);
@@ -373,7 +372,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   protected final void release() {
     synchronized (ITEM_MAP_LOCK) {
-      for (LocalResourceRepository child : myLocalResources) {
+      for (LocalResourceRepository<T> child : myLocalResources) {
         child.removeParent(this);
       }
     }
@@ -439,9 +438,9 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   @Override
   public void invokeAfterPendingUpdatesFinish(@NotNull Executor executor, @NotNull Runnable callback) {
-    List<LocalResourceRepository> repositories = getLocalResources();
+    List<LocalResourceRepository<T>> repositories = getLocalResources();
     AtomicInteger count = new AtomicInteger(repositories.size());
-    for (LocalResourceRepository childRepository : repositories) {
+    for (LocalResourceRepository<T> childRepository : repositories) {
       childRepository.invokeAfterPendingUpdatesFinish(MoreExecutors.directExecutor(), () -> {
         if (count.decrementAndGet() == 0) {
           executor.execute(callback);
@@ -452,10 +451,10 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   @Override
   @NotNull
-  protected Set<VirtualFile> computeResourceDirs() {
+  protected Set<T> computeResourceDirs() {
     synchronized (ITEM_MAP_LOCK) {
-      Set<VirtualFile> result = new HashSet<>();
-      for (LocalResourceRepository resourceRepository : myLocalResources) {
+      Set<T> result = new HashSet<>();
+      for (LocalResourceRepository<T> resourceRepository : myLocalResources) {
         result.addAll(resourceRepository.computeResourceDirs());
       }
       return result;
@@ -475,7 +474,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   public int getFileRescans() {
     synchronized (ITEM_MAP_LOCK) {
       int count = 0;
-      for (LocalResourceRepository resourceRepository : myLocalResources) {
+      for (LocalResourceRepository<T> resourceRepository : myLocalResources) {
         count += resourceRepository.getFileRescans();
       }
       return count;

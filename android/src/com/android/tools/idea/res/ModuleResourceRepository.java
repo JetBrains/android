@@ -62,16 +62,16 @@ final class ModuleResourceRepository extends MemoryTrackingMultiResourceReposito
    * @return the resource repository
    */
   @NotNull
-  static LocalResourceRepository forMainResources(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
+  static LocalResourceRepository<VirtualFile> forMainResources(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
     List<VirtualFile> resourceDirectories = folderManager.getFolders();
 
     if (!AndroidModel.isRequired(facet)) {
       if (resourceDirectories.isEmpty()) {
-        return new EmptyRepository(namespace);
+        return new EmptyRepository<>(namespace);
       }
-      List<LocalResourceRepository> childRepositories = new ArrayList<>(resourceDirectories.size());
+      List<LocalResourceRepository<VirtualFile>> childRepositories = new ArrayList<>(resourceDirectories.size());
       addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry);
       return new ModuleResourceRepository(facet,
                                           namespace,
@@ -83,7 +83,7 @@ final class ModuleResourceRepository extends MemoryTrackingMultiResourceReposito
     ModuleResourceRepository moduleRepository;
 
     try {
-      List<LocalResourceRepository> childRepositories = new ArrayList<>(1 + resourceDirectories.size());
+      List<LocalResourceRepository<VirtualFile>> childRepositories = new ArrayList<>(1 + resourceDirectories.size());
       childRepositories.add(dynamicResources);
       addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry);
       moduleRepository = new ModuleResourceRepository(facet, namespace, childRepositories);
@@ -107,16 +107,16 @@ final class ModuleResourceRepository extends MemoryTrackingMultiResourceReposito
    * @return the resource repository
    */
   @NotNull
-  static LocalResourceRepository forTestResources(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
+  static LocalResourceRepository<VirtualFile> forTestResources(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
     List<VirtualFile> resourceDirectories = folderManager.getFolders();
 
     if (!AndroidModel.isRequired(facet) && resourceDirectories.isEmpty()) {
-      return new EmptyRepository(namespace);
+      return new EmptyRepository<>(namespace);
     }
 
-    List<LocalResourceRepository> childRepositories = new ArrayList<>(resourceDirectories.size());
+    List<LocalResourceRepository<VirtualFile>> childRepositories = new ArrayList<>(resourceDirectories.size());
     addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry);
 
     return new ModuleResourceRepository(facet, namespace, childRepositories);
@@ -136,7 +136,7 @@ final class ModuleResourceRepository extends MemoryTrackingMultiResourceReposito
    * @param resourceFolderRegistry {@link ResourceFolderRegistry} used to construct the repositories
    */
   private static void addRepositoriesInReverseOverlayOrder(@NotNull List<VirtualFile> resourceDirectories,
-                                                           @NotNull List<LocalResourceRepository> childRepositories,
+                                                           @NotNull List<LocalResourceRepository<VirtualFile>> childRepositories,
                                                            @NotNull AndroidFacet facet,
                                                            @NotNull ResourceFolderRegistry resourceFolderRegistry) {
     for (int i = resourceDirectories.size(); --i >= 0;) {
@@ -148,7 +148,7 @@ final class ModuleResourceRepository extends MemoryTrackingMultiResourceReposito
 
   private ModuleResourceRepository(@NotNull AndroidFacet facet,
                                    @NotNull ResourceNamespace namespace,
-                                   @NotNull List<? extends LocalResourceRepository> delegates) {
+                                   @NotNull List<? extends LocalResourceRepository<VirtualFile>> delegates) {
     super(facet.getModule().getName());
     myFacet = facet;
     myNamespace = namespace;
@@ -173,12 +173,12 @@ final class ModuleResourceRepository extends MemoryTrackingMultiResourceReposito
       TraceUtils.getSimpleId(this) + ".updateRoots(" + pathsForLogging(resourceDirectories, myFacet.getModule().getProject()) + ")"
     );
     // Non-folder repositories to put in front of the list.
-    List<LocalResourceRepository> other = null;
+    List<LocalResourceRepository<VirtualFile>> other = null;
 
     // Compute current roots.
     Map<VirtualFile, ResourceFolderRepository> map = new HashMap<>();
-    ImmutableList<LocalResourceRepository> children = getLocalResources();
-    for (LocalResourceRepository repository : children) {
+    ImmutableList<LocalResourceRepository<VirtualFile>> children = getLocalResources();
+    for (LocalResourceRepository<VirtualFile> repository : children) {
       if (repository instanceof ResourceFolderRepository) {
         ResourceFolderRepository folderRepository = (ResourceFolderRepository)repository;
         VirtualFile resourceDir = folderRepository.getResourceDir();
@@ -196,7 +196,7 @@ final class ModuleResourceRepository extends MemoryTrackingMultiResourceReposito
     // Compute new resource directories (it's possible for just the order to differ, or
     // for resource dirs to have been added and/or removed).
     Set<VirtualFile> newDirs = new HashSet<>(resourceDirectories);
-    List<LocalResourceRepository> resources = new ArrayList<>(newDirs.size() + (other != null ? other.size() : 0));
+    List<LocalResourceRepository<VirtualFile>> resources = new ArrayList<>(newDirs.size() + (other != null ? other.size() : 0));
     if (other != null) {
       resources.addAll(other);
     }
@@ -250,7 +250,7 @@ final class ModuleResourceRepository extends MemoryTrackingMultiResourceReposito
                                                        @NotNull ResourceNamespace namespace,
                                                        @Nullable DynamicValueResourceRepository dynamicResourceValueRepository) {
     assert ApplicationManager.getApplication().isUnitTestMode();
-    List<LocalResourceRepository> delegates =
+    List<LocalResourceRepository<VirtualFile>> delegates =
         new ArrayList<>(resourceDirectories.size() + (dynamicResourceValueRepository == null ? 0 : 1));
 
     if (dynamicResourceValueRepository != null) {

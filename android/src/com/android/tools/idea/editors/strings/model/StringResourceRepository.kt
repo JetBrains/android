@@ -85,7 +85,7 @@ interface StringResourceRepository {
      * finish.
      */
     @JvmStatic
-    fun create(repository: LocalResourceRepository): StringResourceRepository =
+    fun create(repository: LocalResourceRepository<VirtualFile>): StringResourceRepository =
         StringResourceRepositoryImpl(repository)
   }
 }
@@ -94,13 +94,13 @@ interface StringResourceRepository {
  * Implementation class of [StringResourceRepository] interface based on [VirtualFile],
  * [ResourceFolderRepository], and [LocalResourceRepository].
  */
-private class StringResourceRepositoryImpl(repository: LocalResourceRepository) :
+private class StringResourceRepositoryImpl(repository: LocalResourceRepository<VirtualFile>) :
     StringResourceRepository {
   private val resourceDirectoryRepositoryMap: Map<VirtualFile, ResourceFolderRepository>
-  private val dynamicResourceRepository: LocalResourceRepository
+  private val dynamicResourceRepository: LocalResourceRepository<VirtualFile>
 
   init {
-    val repositories: List<LocalResourceRepository> =
+    val repositories: List<LocalResourceRepository<VirtualFile>> =
         when (repository) {
           is MultiResourceRepository -> repository.localResources
           else -> listOf(repository)
@@ -108,7 +108,7 @@ private class StringResourceRepositoryImpl(repository: LocalResourceRepository) 
     val repositoryMap: MutableMap<VirtualFile, ResourceFolderRepository> =
         LinkedHashMap(repositories.size)
 
-    var dynamicRepository: LocalResourceRepository? = null
+    var dynamicRepository: LocalResourceRepository<VirtualFile>? = null
 
     // Convert resource items to PsiResourceItem to know their locations in files.
     for (localRepository in repositories) {
@@ -179,7 +179,7 @@ private class StringResourceRepositoryImpl(repository: LocalResourceRepository) 
   }
 
   /** Returns the [LocalResourceRepository] for `this` [StringResourceKey]. */
-  private fun StringResourceKey.getRepository(): LocalResourceRepository =
+  private fun StringResourceKey.getRepository(): LocalResourceRepository<VirtualFile> =
       if (directory == null) dynamicResourceRepository
       else requireNotNull(resourceDirectoryRepositoryMap[directory])
 

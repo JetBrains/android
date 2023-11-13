@@ -61,7 +61,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li><b>Directories</b>: Folders that contain a list of images
  * </ul>
  */
-final class SampleDataResourceRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository, Disposable {
+final class SampleDataResourceRepository extends LocalResourceRepository<VirtualFile> implements SingleNamespaceResourceRepository, Disposable {
   private static final Logger LOG = Logger.getInstance(SampleDataResourceRepository.class);
 
   @NotNull private final AndroidFacet myAndroidFacet;
@@ -80,7 +80,7 @@ final class SampleDataResourceRepository extends LocalResourceRepository impleme
   }
 
   @Override
-  public void addParent(@NotNull MultiResourceRepository parent) {
+  public void addParent(@NotNull MultiResourceRepository<VirtualFile> parent) {
     if (!myAndroidFacet.isDisposed()) {
       super.addParent(parent);
     }

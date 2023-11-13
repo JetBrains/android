@@ -45,7 +45,7 @@ class AppResourceRepository extends MemoryTrackingMultiResourceRepository {
 
   @NotNull
   static AppResourceRepository create(@NotNull AndroidFacet facet, @NotNull Collection<AarResourceRepository> libraryRepositories,
-                                      @NotNull LocalResourceRepository sampleDataResourceRepository) {
+                                      @NotNull LocalResourceRepository<VirtualFile> sampleDataResourceRepository) {
     AppResourceRepository repository =
         new AppResourceRepository(facet, computeLocalRepositories(facet, sampleDataResourceRepository), libraryRepositories);
     AndroidProjectRootListener.ensureSubscribed(facet.getModule().getProject());
@@ -58,7 +58,7 @@ class AppResourceRepository extends MemoryTrackingMultiResourceRepository {
     synchronized (RESOURCE_MAP_LOCK) {
       if (myResourceDirs == null) {
         ImmutableList.Builder<VirtualFile> result = ImmutableList.builder();
-        for (LocalResourceRepository resourceRepository : getLocalResources()) {
+        for (LocalResourceRepository<VirtualFile> resourceRepository : getLocalResources()) {
           result.addAll(resourceRepository.getResourceDirs());
         }
         myResourceDirs = result.build();
@@ -67,13 +67,13 @@ class AppResourceRepository extends MemoryTrackingMultiResourceRepository {
     }
   }
 
-  private static List<LocalResourceRepository> computeLocalRepositories(
-      @NotNull AndroidFacet facet, @NotNull LocalResourceRepository sampleDataResourceRepository) {
+  private static List<LocalResourceRepository<VirtualFile>> computeLocalRepositories(
+      @NotNull AndroidFacet facet, @NotNull LocalResourceRepository<VirtualFile> sampleDataResourceRepository) {
     return ImmutableList.of(StudioResourceRepositoryManager.getProjectResources(facet), sampleDataResourceRepository);
   }
 
   private AppResourceRepository(@NotNull AndroidFacet facet,
-                                @NotNull List<LocalResourceRepository> localResources,
+                                @NotNull List<LocalResourceRepository<VirtualFile>> localResources,
                                 @NotNull Collection<AarResourceRepository> libraryResources) {
     super(facet.getModule().getName() + " with modules and libraries");
     myFacet = facet;
@@ -81,13 +81,13 @@ class AppResourceRepository extends MemoryTrackingMultiResourceRepository {
   }
 
   void updateRoots(@NotNull Collection<? extends AarResourceRepository> libraryResources,
-                   @NotNull LocalResourceRepository sampleDataResourceRepository) {
-    List<LocalResourceRepository> localResources = computeLocalRepositories(myFacet, sampleDataResourceRepository);
+                   @NotNull LocalResourceRepository<VirtualFile> sampleDataResourceRepository) {
+    List<LocalResourceRepository<VirtualFile>> localResources = computeLocalRepositories(myFacet, sampleDataResourceRepository);
     updateRoots(localResources, libraryResources);
   }
 
   @VisibleForTesting
-  void updateRoots(@NotNull List<? extends LocalResourceRepository> localResources,
+  void updateRoots(@NotNull List<? extends LocalResourceRepository<VirtualFile>> localResources,
                    @NotNull Collection<? extends AarResourceRepository> libraryResources) {
     synchronized (RESOURCE_MAP_LOCK) {
       myResourceDirs = null;
@@ -105,7 +105,7 @@ class AppResourceRepository extends MemoryTrackingMultiResourceRepository {
   @TestOnly
   @NotNull
   static AppResourceRepository createForTest(@NotNull AndroidFacet facet,
-                                             @NotNull List<LocalResourceRepository> modules,
+                                             @NotNull List<LocalResourceRepository<VirtualFile>> modules,
                                              @NotNull Collection<AarResourceRepository> libraries) {
     AppResourceRepository repository = new AppResourceRepository(facet, modules, libraries);
     Disposer.register(facet, repository);

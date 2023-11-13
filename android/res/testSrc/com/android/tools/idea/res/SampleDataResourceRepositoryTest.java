@@ -382,7 +382,7 @@ public class SampleDataResourceRepositoryTest {
     PsiFile rootImagePsiFile = myProjectRule.getFixture().addFileToProject("sampledata/root_image.png", "\n");
 
 
-    LocalResourceRepository repository = StudioResourceRepositoryManager.getAppResources(myFacet);
+    LocalResourceRepository<VirtualFile> repository = StudioResourceRepositoryManager.getAppResources(myFacet);
     Collection<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.SAMPLE_DATA).values();
     assertSize(2, items);
     SampleDataResourceItem item =

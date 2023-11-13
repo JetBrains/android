@@ -94,13 +94,13 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   private ProjectResourceRepository myProjectResources;
 
   @GuardedBy("MODULE_RESOURCES_LOCK")
-  private LocalResourceRepository myModuleResources;
+  private LocalResourceRepository<VirtualFile> myModuleResources;
 
   @GuardedBy("TEST_RESOURCES_LOCK")
-  private LocalResourceRepository myTestAppResources;
+  private LocalResourceRepository<VirtualFile> myTestAppResources;
 
   @GuardedBy("TEST_RESOURCES_LOCK")
-  private LocalResourceRepository myTestModuleResources;
+  private LocalResourceRepository<VirtualFile> myTestModuleResources;
 
   @GuardedBy("mySampleDataLock")
   private SampleDataResourceRepository mySampleDataResources;
@@ -172,7 +172,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    */
   @Slow
   @Nullable
-  public static LocalResourceRepository getAppResources(@NotNull Module module) {
+  public static LocalResourceRepository<VirtualFile> getAppResources(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     return facet != null ? getAppResources(facet) : null;
   }
@@ -187,7 +187,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    */
   @Slow
   @NotNull
-  public static LocalResourceRepository getAppResources(@NotNull AndroidFacet facet) {
+  public static LocalResourceRepository<VirtualFile> getAppResources(@NotNull AndroidFacet facet) {
     return getInstance(facet).getAppResources();
   }
 
@@ -202,7 +202,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    */
   @Slow
   @Nullable
-  public static LocalResourceRepository getProjectResources(@NotNull Module module) {
+  public static LocalResourceRepository<VirtualFile> getProjectResources(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     return facet != null ? getProjectResources(facet) : null;
   }
@@ -217,7 +217,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    */
   @Slow
   @NotNull
-  public static LocalResourceRepository getProjectResources(@NotNull AndroidFacet facet) {
+  public static LocalResourceRepository<VirtualFile> getProjectResources(@NotNull AndroidFacet facet) {
     return getInstance(facet).getProjectResources();
   }
 
@@ -232,7 +232,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    */
   @Slow
   @Nullable
-  public static LocalResourceRepository getModuleResources(@NotNull Module module) {
+  public static LocalResourceRepository<VirtualFile> getModuleResources(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     return facet != null ? getModuleResources(facet) : null;
   }
@@ -247,7 +247,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    */
   @Slow
   @NotNull
-  public static LocalResourceRepository getModuleResources(@NotNull AndroidFacet facet) {
+  public static LocalResourceRepository<VirtualFile> getModuleResources(@NotNull AndroidFacet facet) {
     return getInstance(facet).getModuleResources();
   }
 
@@ -295,19 +295,19 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   @Override
   @Slow
   @NotNull
-  public LocalResourceRepository getAppResources() {
-    LocalResourceRepository appResources = getCachedAppResources();
+  public LocalResourceRepository<VirtualFile> getAppResources() {
+    LocalResourceRepository<VirtualFile> appResources = getCachedAppResources();
     if (appResources != null) {
       return appResources;
     }
 
     getLibraryResources(); // Precompute library resources to do less work inside the read action below.
 
-    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
+    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository<VirtualFile>>)() -> {
       synchronized (APP_RESOURCES_LOCK) {
         if (myAppResources == null) {
           if (myFacet.isDisposed()) {
-            return new EmptyRepository(getNamespace());
+            return new EmptyRepository<>(getNamespace());
           }
           myAppResources = AppResourceRepository.create(myFacet, getLibraryResources(), getSampleDataResources());
           Disposer.register(this, myAppResources);
@@ -327,7 +327,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    * @see #getAppResources()
    */
   @Nullable
-  public LocalResourceRepository getCachedAppResources() {
+  public LocalResourceRepository<VirtualFile> getCachedAppResources() {
     synchronized (APP_RESOURCES_LOCK) {
       return myAppResources;
     }
@@ -346,17 +346,17 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   @Override
   @Slow
   @NotNull
-  public LocalResourceRepository getProjectResources() {
-    LocalResourceRepository projectResources = getCachedProjectResources();
+  public LocalResourceRepository<VirtualFile> getProjectResources() {
+    LocalResourceRepository<VirtualFile> projectResources = getCachedProjectResources();
     if (projectResources != null) {
       return projectResources;
     }
 
-    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
+    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository<VirtualFile>>)() -> {
       synchronized (PROJECT_RESOURCES_LOCK) {
         if (myProjectResources == null) {
           if (myFacet.isDisposed()) {
-            return new EmptyRepository(getNamespace());
+            return new EmptyRepository<>(getNamespace());
           }
           myProjectResources = ProjectResourceRepository.create(myFacet);
           Disposer.register(this, myProjectResources);
@@ -374,7 +374,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    * @see #getProjectResources()
    */
   @Nullable
-  public LocalResourceRepository getCachedProjectResources() {
+  public LocalResourceRepository<VirtualFile> getCachedProjectResources() {
     synchronized (PROJECT_RESOURCES_LOCK) {
       return myProjectResources;
     }
@@ -393,17 +393,17 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   @Slow
   @NotNull
   @Override
-  public LocalResourceRepository getModuleResources() {
-    LocalResourceRepository moduleResources = getCachedModuleResources();
+  public LocalResourceRepository<VirtualFile> getModuleResources() {
+    LocalResourceRepository<VirtualFile> moduleResources = getCachedModuleResources();
     if (moduleResources != null) {
       return moduleResources;
     }
 
-    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
+    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository<VirtualFile>>)() -> {
       synchronized (MODULE_RESOURCES_LOCK) {
         if (myModuleResources == null) {
           if (myFacet.isDisposed()) {
-            return new EmptyRepository(getNamespace());
+            return new EmptyRepository<VirtualFile>(getNamespace());
           }
           myModuleResources = ModuleResourceRepository.forMainResources(myFacet, getNamespace());
           registerIfDisposable(this, myModuleResources);
@@ -421,7 +421,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    * @see #getModuleResources()
    */
   @Nullable
-  public LocalResourceRepository getCachedModuleResources() {
+  public LocalResourceRepository<VirtualFile> getCachedModuleResources() {
     synchronized (MODULE_RESOURCES_LOCK) {
       return myModuleResources;
     }
@@ -431,12 +431,12 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    * Returns the resource repository with all non-framework test resources available to a given module.
    */
   @NotNull
-  public LocalResourceRepository getTestAppResources() {
-    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
+  public LocalResourceRepository<VirtualFile> getTestAppResources() {
+    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository<VirtualFile>>)() -> {
       synchronized (TEST_RESOURCES_LOCK) {
         if (myTestAppResources == null) {
           if (myFacet.isDisposed()) {
-            return new EmptyRepository(getTestNamespace());
+            return new EmptyRepository<>(getTestNamespace());
           }
           myTestAppResources = computeTestAppResources();
           registerIfDisposable(this, myTestAppResources);
@@ -447,7 +447,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   }
 
   @Nullable
-  private LocalResourceRepository getCachedTestAppResources() {
+  private LocalResourceRepository<VirtualFile> getCachedTestAppResources() {
     synchronized (TEST_RESOURCES_LOCK) {
       return myTestAppResources;
     }
@@ -457,12 +457,12 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    * Returns the resource repository with test resources defined in the given module.
    */
   @NotNull
-  public LocalResourceRepository getTestModuleResources() {
-    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
+  public LocalResourceRepository<VirtualFile> getTestModuleResources() {
+    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository<VirtualFile>>)() -> {
       synchronized (TEST_RESOURCES_LOCK) {
         if (myTestModuleResources == null) {
           if (myFacet.isDisposed()) {
-            return new EmptyRepository(getTestNamespace());
+            return new EmptyRepository<>(getTestNamespace());
           }
           myTestModuleResources = ModuleResourceRepository.forTestResources(myFacet, getTestNamespace());
           registerIfDisposable(this, myTestModuleResources);
@@ -473,24 +473,24 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   }
 
   @NotNull
-  private LocalResourceRepository computeTestAppResources() {
-    LocalResourceRepository moduleTestResources = getTestModuleResources();
+  private LocalResourceRepository<VirtualFile> computeTestAppResources() {
+    LocalResourceRepository<VirtualFile> moduleTestResources = getTestModuleResources();
     return TestAppResourceRepository.create(myFacet, moduleTestResources);
   }
 
   @Slow
   @NotNull
-  public LocalResourceRepository getSampleDataResources() {
-    LocalResourceRepository sampleDataResources = getCachedSampleDataResources();
+  public LocalResourceRepository<VirtualFile> getSampleDataResources() {
+    LocalResourceRepository<VirtualFile> sampleDataResources = getCachedSampleDataResources();
     if (sampleDataResources != null) {
       return sampleDataResources;
     }
 
-    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
+    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository<VirtualFile>>)() -> {
       synchronized (mySampleDataLock) {
         if (mySampleDataResources == null) {
           if (myFacet.isDisposed()) {
-            return new EmptyRepository(getNamespace());
+            return new EmptyRepository<>(getNamespace());
           }
           mySampleDataResources = new SampleDataResourceRepository(myFacet);
           Disposer.register(this, mySampleDataResources);
@@ -501,7 +501,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   }
 
   @Nullable
-  public LocalResourceRepository getCachedSampleDataResources() {
+  public LocalResourceRepository<VirtualFile> getCachedSampleDataResources() {
     synchronized (mySampleDataLock) {
       return mySampleDataResources;
     }

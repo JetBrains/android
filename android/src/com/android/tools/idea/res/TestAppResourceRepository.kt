@@ -23,12 +23,13 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.res.LocalResourceRepository
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 
 class TestAppResourceRepository
 private constructor(
   facet: AndroidFacet,
-  localResources: List<LocalResourceRepository>,
+  localResources: List<LocalResourceRepository<VirtualFile>>,
   libraryResources: Collection<AarResourceRepository>
 ) : MemoryTrackingMultiResourceRepository(facet.module.name) {
 
@@ -36,7 +37,7 @@ private constructor(
     setChildren(localResources, libraryResources, ImmutableList.of())
   }
 
-  fun updateRoots(facet: AndroidFacet, moduleTestResources: LocalResourceRepository) {
+  fun updateRoots(facet: AndroidFacet, moduleTestResources: LocalResourceRepository<VirtualFile>) {
     invalidateResourceDirs()
     setChildren(
       computeLocalRepositories(facet, moduleTestResources),
@@ -48,7 +49,7 @@ private constructor(
   companion object {
     @JvmStatic
     @Slow
-    fun create(facet: AndroidFacet, moduleTestResources: LocalResourceRepository) =
+    fun create(facet: AndroidFacet, moduleTestResources: LocalResourceRepository<VirtualFile>) =
       TestAppResourceRepository(
         facet,
         computeLocalRepositories(facet, moduleTestResources),
@@ -57,8 +58,8 @@ private constructor(
 
     private fun computeLocalRepositories(
       facet: AndroidFacet,
-      moduleTestResources: LocalResourceRepository
-    ): List<LocalResourceRepository> {
+      moduleTestResources: LocalResourceRepository<VirtualFile>
+    ): List<LocalResourceRepository<VirtualFile>> {
       val localRepositories = mutableListOf(moduleTestResources)
       val androidModuleSystem = facet.getModuleSystem()
       localRepositories.addAll(
