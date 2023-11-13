@@ -16,7 +16,58 @@
 package org.jetbrains.android.dom
 
 import com.android.AndroidXConstants
-import com.android.SdkConstants
+import com.android.SdkConstants.ANDROIDX_PKG_PREFIX
+import com.android.SdkConstants.ANDROID_ARCH_PKG_PREFIX
+import com.android.SdkConstants.ANDROID_PKG
+import com.android.SdkConstants.ANDROID_PKG_PREFIX
+import com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ACTION_BAR_NAV_MODE
+import com.android.SdkConstants.ATTR_COMPOSABLE_NAME
+import com.android.SdkConstants.ATTR_CONTEXT
+import com.android.SdkConstants.ATTR_DISCARD
+import com.android.SdkConstants.ATTR_IGNORE
+import com.android.SdkConstants.ATTR_ITEM_COUNT
+import com.android.SdkConstants.ATTR_KEEP
+import com.android.SdkConstants.ATTR_LAYOUT
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.ATTR_LISTFOOTER
+import com.android.SdkConstants.ATTR_LISTHEADER
+import com.android.SdkConstants.ATTR_LISTITEM
+import com.android.SdkConstants.ATTR_MENU
+import com.android.SdkConstants.ATTR_OPEN_DRAWER
+import com.android.SdkConstants.ATTR_PARENT_TAG
+import com.android.SdkConstants.ATTR_SHOW_AS_ACTION
+import com.android.SdkConstants.ATTR_SHOW_IN
+import com.android.SdkConstants.ATTR_SHRINK_MODE
+import com.android.SdkConstants.ATTR_STYLE
+import com.android.SdkConstants.ATTR_TARGET_API
+import com.android.SdkConstants.ATTR_VIEW_BINDING_IGNORE
+import com.android.SdkConstants.ATTR_VIEW_BINDING_TYPE
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.CLASS_COMPOSE_VIEW
+import com.android.SdkConstants.CLASS_PERCENT_FRAME_LAYOUT
+import com.android.SdkConstants.CLASS_PERCENT_RELATIVE_LAYOUT
+import com.android.SdkConstants.CLASS_VIEWGROUP
+import com.android.SdkConstants.FQCN_ADAPTER_VIEW
+import com.android.SdkConstants.GRID_LAYOUT
+import com.android.SdkConstants.REQUEST_FOCUS
+import com.android.SdkConstants.SCROLL_VIEW
+import com.android.SdkConstants.TABLE_LAYOUT
+import com.android.SdkConstants.TABLE_ROW
+import com.android.SdkConstants.TAG
+import com.android.SdkConstants.TAG_DATA
+import com.android.SdkConstants.TAG_IMPORT
+import com.android.SdkConstants.TAG_LAYOUT
+import com.android.SdkConstants.TAG_RESOURCES
+import com.android.SdkConstants.TOOLS_URI
+import com.android.SdkConstants.URI_PREFIX
+import com.android.SdkConstants.VIEW_FRAGMENT
+import com.android.SdkConstants.VIEW_GROUP
+import com.android.SdkConstants.VIEW_INCLUDE
+import com.android.SdkConstants.VIEW_MERGE
+import com.android.SdkConstants.VIEW_TAG
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.repository.GoogleMavenArtifactId
@@ -25,18 +76,14 @@ import com.android.resources.ResourceType
 import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.dom.attrs.AttributeDefinitions
 import com.android.tools.dom.attrs.StyleableDefinition
-import com.android.tools.idea.AndroidTextUtils
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.psi.TagToClassMapper
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.util.dependsOn
-import com.google.common.collect.ImmutableSet
 import com.intellij.codeInsight.completion.CompletionUtil
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.DumbService.isDumb
-import com.intellij.openapi.util.Computable
-import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.project.DumbService
 import com.intellij.psi.PsiClass
 import com.intellij.psi.util.InheritanceUtil
 import com.intellij.psi.xml.XmlTag
@@ -74,7 +121,7 @@ import org.jetbrains.android.facet.TagFromClassDescriptor
 import org.jetbrains.android.facet.findViewClassByName
 import org.jetbrains.android.facet.findViewValidInXMLByName
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
-import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE
 
 /**
  * Utility functions for enumerating available children attribute types in the context of a given
@@ -84,81 +131,56 @@ import org.jetbrains.android.util.AndroidUtils
  */
 object AttributeProcessingUtil {
   private const val PREFERENCE_TAG_NAME = "Preference"
+
   private val SIZE_NOT_REQUIRED_TAG_NAMES =
-    ImmutableSet.of(
-      SdkConstants.VIEW_MERGE,
-      SdkConstants.TABLE_ROW,
-      SdkConstants.VIEW_INCLUDE,
-      SdkConstants.REQUEST_FOCUS,
-      SdkConstants.TAG_LAYOUT,
-      SdkConstants.TAG_DATA,
-      SdkConstants.TAG_IMPORT,
-      SdkConstants.TAG
-    )
+    setOf(VIEW_MERGE, TABLE_ROW, VIEW_INCLUDE, REQUEST_FOCUS, TAG_LAYOUT, TAG_DATA, TAG_IMPORT, TAG)
   private val SIZE_NOT_REQUIRED_PARENT_TAG_NAMES =
-    ImmutableSet.of(
-      SdkConstants.TABLE_ROW,
-      SdkConstants.TABLE_LAYOUT,
-      SdkConstants.VIEW_MERGE,
-      SdkConstants.GRID_LAYOUT,
+    setOf(
+      TABLE_ROW,
+      TABLE_LAYOUT,
+      VIEW_MERGE,
+      GRID_LAYOUT,
       AndroidXConstants.FQCN_GRID_LAYOUT_V7.oldName(),
       AndroidXConstants.FQCN_GRID_LAYOUT_V7.newName(),
-      SdkConstants.CLASS_PERCENT_RELATIVE_LAYOUT,
-      SdkConstants.CLASS_PERCENT_FRAME_LAYOUT
+      CLASS_PERCENT_RELATIVE_LAYOUT,
+      CLASS_PERCENT_FRAME_LAYOUT
     )
-  private val log: Logger
-    private get() = Logger.getInstance(AttributeProcessingUtil::class.java)
+  private val REQUIRED_LAYOUT_ATTRIBUTE_LOCAL_NAMES = setOf(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT)
 
   /**
    * Check whether layout tag attribute with given name should be marked as required. Currently,
    * tests for layout_width and layout_height attribute and marks them as required in appropriate
    * context.
    */
-  fun isLayoutAttributeRequired(attributeName: XmlName, element: DomElement): Boolean {
+  private fun isLayoutAttributeRequired(attributeName: XmlName, element: DomElement): Boolean {
     // Mark layout_width and layout_height required - if the context calls for it
-    val localName = attributeName.localName
-    if (
-      !(SdkConstants.ATTR_LAYOUT_WIDTH == localName || SdkConstants.ATTR_LAYOUT_HEIGHT == localName)
-    ) {
-      return false
-    }
+    if (attributeName.localName !in REQUIRED_LAYOUT_ATTRIBUTE_LOCAL_NAMES) return false
+
     if (
       (element is LayoutViewElement || element is Fragment) &&
-        SdkConstants.ANDROID_URI == attributeName.namespaceKey
+        attributeName.namespaceKey == ANDROID_URI
     ) {
-      val xmlElement = element.xmlElement
-      val tag = if (xmlElement is XmlTag) xmlElement else null
-      val tagName = tag?.name
-      if (
-        !SIZE_NOT_REQUIRED_TAG_NAMES.contains(tagName) &&
-          (tag == null || tag.getAttribute(SdkConstants.ATTR_STYLE) == null)
-      ) {
-        val parentTag = tag?.parentTag
-        val parentTagName = parentTag?.name
-        if (!SIZE_NOT_REQUIRED_PARENT_TAG_NAMES.contains(parentTagName)) {
-          return true
-        }
-      }
+      val tag = element.xmlElement as? XmlTag
+      return tag?.name !in SIZE_NOT_REQUIRED_TAG_NAMES &&
+        tag?.getAttribute(ATTR_STYLE) == null &&
+        tag?.parentTag?.name !in SIZE_NOT_REQUIRED_PARENT_TAG_NAMES
     }
+
     return false
   }
 
   private fun getNamespaceUriByResourcePackage(facet: AndroidFacet, resPackage: String?): String? {
-    if (resPackage == null) {
-      if (!facet.configuration.isAppProject() || AndroidModel.isRequired(facet)) {
-        return SdkConstants.AUTO_URI
-      }
-      val manifest = Manifest.getMainManifest(facet)
-      if (manifest != null) {
-        val aPackage = manifest.getPackage().value
-        if (aPackage != null && !aPackage.isEmpty()) {
-          return SdkConstants.URI_PREFIX + aPackage
-        }
-      }
-    } else if (resPackage == AndroidUtils.SYSTEM_RESOURCE_PACKAGE) {
-      return SdkConstants.ANDROID_URI
-    }
-    return null
+    if (resPackage == SYSTEM_RESOURCE_PACKAGE) return ANDROID_URI
+
+    if (resPackage != null) return null
+
+    if (!facet.configuration.isAppProject() || AndroidModel.isRequired(facet)) return AUTO_URI
+
+    return Manifest.getMainManifest(facet)
+      ?.getPackage()
+      ?.value
+      ?.takeUnless { it.isEmpty() }
+      ?.let { URI_PREFIX + it }
   }
 
   private fun registerStyleableAttributes(
@@ -176,11 +198,8 @@ object AttributeProcessingUtil {
     }
   }
 
-  private fun mustBeSoft(converter: Converter<*>, formats: Collection<AttributeFormat>): Boolean {
-    return if (converter is CompositeConverter || converter is ResourceReferenceConverter) {
-      false
-    } else formats.size > 1
-  }
+  private fun mustBeSoft(converter: Converter<*>, formats: Collection<AttributeFormat>) =
+    converter !is CompositeConverter && converter !is ResourceReferenceConverter && formats.size > 1
 
   private fun registerAttribute(
     attrDef: AttributeDefinition,
@@ -190,30 +209,37 @@ object AttributeProcessingUtil {
     callback: AttributeProcessor
   ) {
     val extension = callback.processAttribute(xmlName, attrDef, parentStyleableName) ?: return
-    var converter = AndroidDomUtil.getSpecificConverter(xmlName, element)
-    if (converter == null) {
-      if (SdkConstants.TOOLS_URI == xmlName.namespaceKey) {
-        converter = ToolsAttributeUtil.getConverter(attrDef)
-      } else {
-        converter = AndroidDomUtil.getConverter(attrDef)
-        if (converter != null && element.getParentOfType(Manifest::class.java, true) != null) {
-          converter = ManifestPlaceholderConverter(converter)
-        }
-      }
-    }
-    if (converter != null) {
-      extension.setConverter(converter, mustBeSoft(converter, attrDef.formats))
+
+    getSpecificConverter(xmlName, attrDef, element)?.let {
+      extension.setConverter(it, mustBeSoft(it, attrDef.formats))
     }
 
     // Check whether attribute is required. If it is, add an annotation to let
     // IntelliJ know about it so it would be, e.g. inserted automatically on
     // tag completion. If attribute is not required, no additional action is needed.
     if (
-      element is LayoutElement && isLayoutAttributeRequired(xmlName, element) ||
-        element is ManifestElement && isRequiredAttribute(xmlName, element)
+      (element is LayoutElement && isLayoutAttributeRequired(xmlName, element)) ||
+        (element is ManifestElement && isRequiredAttribute(xmlName, element))
     ) {
       extension.addCustomAnnotation(RequiredImpl())
     }
+  }
+
+  private fun getSpecificConverter(
+    xmlName: XmlName,
+    attrDef: AttributeDefinition,
+    element: DomElement
+  ): Converter<Any>? {
+    val specificConverter = AndroidDomUtil.getSpecificConverter(xmlName, element)
+    if (specificConverter != null) return specificConverter
+
+    if (xmlName.namespaceKey == TOOLS_URI) return ToolsAttributeUtil.getConverter(attrDef)
+
+    val attrConverter = AndroidDomUtil.getConverter(attrDef)
+    if (attrConverter != null && element.getParentOfType(Manifest::class.java, true) != null)
+      return ManifestPlaceholderConverter(attrConverter)
+
+    return attrConverter
   }
 
   private fun registerAttributes(
@@ -224,13 +250,16 @@ object AttributeProcessingUtil {
     callback: AttributeProcessor,
     skipNames: MutableSet<XmlName>
   ) {
-    val manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resPackage) ?: return
-    val attrDefs = manager.getAttributeDefinitions() ?: return
+    val attrDefs =
+      ModuleResourceManagers.getInstance(facet)
+        .getResourceManager(resPackage)
+        ?.getAttributeDefinitions() ?: return
+
     val namespace = getNamespaceUriByResourcePackage(facet, resPackage)
-    val styleable = attrDefs.getStyleableByName(styleableName)
-    if (styleable != null) {
-      registerStyleableAttributes(element, styleable, namespace, callback, skipNames)
-    }
+    val styleable = attrDefs.getStyleableByName(styleableName) ?: return
+
+    registerStyleableAttributes(element, styleable, namespace, callback, skipNames)
+
     // It's a good idea to add a warning when styleable not found, to make sure that code doesn't
     // try to use attributes that don't exist. However, current AndroidDomExtender code relies on
     // a lot of "heuristics" that fail quite a lot (like adding a bunch of suffixes to short class
@@ -238,42 +267,49 @@ object AttributeProcessingUtil {
     // TODO: add a warning when rest of the code of AndroidDomExtender is cleaned up
   }
 
-  private fun registerAttributesForClassAndSuperclasses(
+  private tailrec fun registerAttributesForClassAndSuperclasses(
     facet: AndroidFacet,
     element: DomElement,
-    c: PsiClass?,
+    clazz: PsiClass?,
     callback: AttributeProcessor,
     skipNames: MutableSet<XmlName>
   ) {
-    var c = c
-    while (c != null) {
-      val styleableName = c.name
-      if (styleableName != null) {
+    if (clazz == null) return
+
+    val styleableName = clazz.name
+    if (styleableName != null) {
+      registerAttributes(
+        facet,
+        element,
+        styleableName,
+        getResourcePackage(clazz),
+        callback,
+        skipNames
+      )
+    }
+
+    val additional = getAdditionalAttributesClass(facet, clazz)
+    if (additional != null) {
+      val additionalStyleableName = additional.name
+      if (additionalStyleableName != null) {
         registerAttributes(
           facet,
           element,
-          styleableName,
-          getResourcePackage(c),
+          additionalStyleableName,
+          getResourcePackage(additional),
           callback,
           skipNames
         )
       }
-      val additional = getAdditionalAttributesClass(facet, c)
-      if (additional != null) {
-        val additionalStyleableName = additional.name
-        if (additionalStyleableName != null) {
-          registerAttributes(
-            facet,
-            element,
-            additionalStyleableName,
-            getResourcePackage(additional),
-            callback,
-            skipNames
-          )
-        }
-      }
-      c = getSuperclass(c)
     }
+
+    registerAttributesForClassAndSuperclasses(
+      facet,
+      element,
+      getSuperclass(clazz),
+      callback,
+      skipNames
+    )
   }
 
   /**
@@ -281,31 +317,29 @@ object AttributeProcessingUtil {
    * support libraries without attrs.xml like support lib v4.
    */
   private fun getAdditionalAttributesClass(facet: AndroidFacet, c: PsiClass): PsiClass? {
-    return if (
-      AndroidXConstants.CLASS_NESTED_SCROLL_VIEW.isEquals(StringUtil.notNullize(c.qualifiedName))
-    ) {
-      findViewValidInXMLByName(facet, SdkConstants.SCROLL_VIEW)
-    } else null
+    if (AndroidXConstants.CLASS_NESTED_SCROLL_VIEW.isEquals(c.qualifiedName ?: ""))
+      return findViewValidInXMLByName(facet, SCROLL_VIEW)
+
+    return null
   }
 
   private fun getResourcePackage(psiClass: PsiClass): String? {
     // TODO: Replace this with the namespace of the styleableName when that is available.
     val qualifiedName = psiClass.qualifiedName
-    return if (
+    if (
       qualifiedName != null &&
-        qualifiedName.startsWith(SdkConstants.ANDROID_PKG_PREFIX) &&
-        !qualifiedName.startsWith(SdkConstants.ANDROID_SUPPORT_PKG_PREFIX) &&
-        !qualifiedName.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX) &&
-        !qualifiedName.startsWith(SdkConstants.ANDROID_ARCH_PKG_PREFIX)
-    )
-      AndroidUtils.SYSTEM_RESOURCE_PACKAGE
-    else null
+        qualifiedName.startsWith(ANDROID_PKG_PREFIX) &&
+        !qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX) &&
+        !qualifiedName.startsWith(ANDROIDX_PKG_PREFIX) &&
+        !qualifiedName.startsWith(ANDROID_ARCH_PKG_PREFIX)
+    ) {
+      return SYSTEM_RESOURCE_PACKAGE
+    }
+
+    return null
   }
 
-  private fun getSuperclass(c: PsiClass): PsiClass? {
-    return ApplicationManager.getApplication()
-      .runReadAction(Computable { if (c.isValid) c.superClass else null })
-  }
+  private fun getSuperclass(c: PsiClass) = runReadAction { c.takeIf(PsiClass::isValid)?.superClass }
 
   /** Yield attributes for resources in xml/ folder */
   fun processXmlAttributes(
@@ -318,34 +352,32 @@ object AttributeProcessingUtil {
     val tagName = tag.name
     val styleableName = AndroidXmlResourcesUtil.SPECIAL_STYLEABLE_NAMES[tagName]
     if (styleableName != null) {
-      val newSkipAttrNames: MutableSet<XmlName> = HashSet()
-      if (element is Intent) {
-        newSkipAttrNames.add(XmlName("action", SdkConstants.ANDROID_URI))
-      }
+      val newSkipAttrNames: MutableSet<XmlName> = mutableSetOf()
+      if (element is Intent) newSkipAttrNames.add(XmlName("action", ANDROID_URI))
+
       registerAttributes(
         facet,
         element,
         styleableName,
-        AndroidUtils.SYSTEM_RESOURCE_PACKAGE,
+        SYSTEM_RESOURCE_PACKAGE,
         callback,
         newSkipAttrNames
       )
     }
 
     // Handle preferences:
-    val prefClassMap: Map<String, PsiClass>
     val preferenceSource = getPreferencesSource(tag, facet)
-    prefClassMap =
+    val prefClassMap =
       TagToClassMapper.getInstance(facet.module).getClassMap(preferenceSource.qualifiedBaseClass)
     val psiClass = prefClassMap[tagName] ?: return
 
     // Register attributes by preference class:
     registerAttributesForClassAndSuperclasses(facet, element, psiClass, callback, skipAttrNames)
-    if (StringUtil.notNullize(psiClass.qualifiedName).startsWith("android.preference.")) {
+    if (psiClass.qualifiedName?.startsWith("android.preference.") == true) {
       // Register attributes from the corresponding widget. This was a convention used in framework
-      // preferences, but no longer used in
-      // AndroidX.
-      val widgetClassName = AndroidTextUtils.trimEndOrNullize(tagName, PREFERENCE_TAG_NAME)
+      // preferences, but no longer used in AndroidX.
+      val widgetClassName =
+        tagName.takeIf { it.endsWith(PREFERENCE_TAG_NAME) }?.removeSuffix(PREFERENCE_TAG_NAME)
       if (widgetClassName != null) {
         val widgetClass = findViewValidInXMLByName(facet, widgetClassName)
         if (widgetClass != null) {
@@ -368,9 +400,9 @@ object AttributeProcessingUtil {
   fun getLayoutStyleablePrimary(psiLayoutClass: PsiClass): String? {
     val viewName = psiLayoutClass.name ?: return null
     return when (viewName) {
-      SdkConstants.VIEW_GROUP -> "ViewGroup_MarginLayout"
-      SdkConstants.TABLE_ROW -> "TableRow_Cell"
-      else -> viewName + "_Layout"
+      VIEW_GROUP -> "ViewGroup_MarginLayout"
+      TABLE_ROW -> "TableRow_Cell"
+      else -> "${viewName}_Layout"
     }
   }
 
@@ -380,7 +412,7 @@ object AttributeProcessingUtil {
    */
   fun getLayoutStyleableSecondary(psiLayoutClass: PsiClass): String? {
     val viewName = psiLayoutClass.name ?: return null
-    return viewName + "_LayoutParams"
+    return "${viewName}_LayoutParams"
   }
 
   private fun registerAttributesFromSuffixedStyleables(
@@ -401,6 +433,7 @@ object AttributeProcessingUtil {
         skipAttrNames
       )
     }
+
     val secondary = getLayoutStyleableSecondary(psiClass)
     if (secondary != null) {
       registerAttributes(facet, element, secondary, null, callback, skipAttrNames)
@@ -450,12 +483,12 @@ object AttributeProcessingUtil {
           name == "ViewGroup_MarginLayout" ||
           name == "TableRow_Cell"
       }
+
     for (item in layoutStyleablesPrimary) {
       val name = item.getName()
       val indexOfLastUnderscore = name.lastIndexOf('_')
       val viewName = name.substring(0, indexOfLastUnderscore)
-      val psiClass = findViewClassByName(facet, viewName)
-      if (psiClass != null) {
+      findViewClassByName(facet, viewName)?.let { psiClass ->
         registerAttributes(
           facet,
           element,
@@ -469,7 +502,7 @@ object AttributeProcessingUtil {
   }
 
   /** Entry point for XML elements in navigation XMLs. */
-  fun processNavAttributes(
+  private fun processNavAttributes(
     facet: AndroidFacet,
     tag: XmlTag,
     element: NavDestinationElement,
@@ -482,6 +515,7 @@ object AttributeProcessingUtil {
       // The nav dependency wasn't added yet. Give up.
       return
     }
+
     val schema = NavigationSchema.get(facet.module)
     for (psiClass in schema.getStyleablesForTag(tag.name)) {
       registerAttributesForClassAndSuperclasses(facet, element, psiClass, callback, skipAttrNames)
@@ -501,49 +535,55 @@ object AttributeProcessingUtil {
     // Add tools namespace attributes to layout tags, but not those that are databinding-specific
     // ones.
     if (element !is DataBindingElement) {
-      registerToolsAttribute(SdkConstants.ATTR_TARGET_API, callback)
-      registerToolsAttribute(SdkConstants.ATTR_IGNORE, callback)
+      registerToolsAttribute(ATTR_TARGET_API, callback)
+      registerToolsAttribute(ATTR_IGNORE, callback)
       if (tag.parentTag == null) {
-        registerToolsAttribute(SdkConstants.ATTR_CONTEXT, callback)
-        registerToolsAttribute(SdkConstants.ATTR_MENU, callback)
-        registerToolsAttribute(SdkConstants.ATTR_ACTION_BAR_NAV_MODE, callback)
-        registerToolsAttribute(SdkConstants.ATTR_SHOW_IN, callback)
-        registerToolsAttribute(SdkConstants.ATTR_VIEW_BINDING_IGNORE, callback)
+        registerToolsAttribute(ATTR_CONTEXT, callback)
+        registerToolsAttribute(ATTR_MENU, callback)
+        registerToolsAttribute(ATTR_ACTION_BAR_NAV_MODE, callback)
+        registerToolsAttribute(ATTR_SHOW_IN, callback)
+        registerToolsAttribute(ATTR_VIEW_BINDING_IGNORE, callback)
       }
+
       val descriptor = tag.descriptor
       if (descriptor is LayoutViewElementDescriptor && descriptor.clazz != null) {
         val viewClass = descriptor.clazz
-        registerToolsAttribute(SdkConstants.ATTR_VIEW_BINDING_TYPE, callback)
-        if (InheritanceUtil.isInheritor(viewClass, SdkConstants.FQCN_ADAPTER_VIEW)) {
-          registerToolsAttribute(SdkConstants.ATTR_LISTITEM, callback)
-          registerToolsAttribute(SdkConstants.ATTR_LISTHEADER, callback)
-          registerToolsAttribute(SdkConstants.ATTR_LISTFOOTER, callback)
+
+        registerToolsAttribute(ATTR_VIEW_BINDING_TYPE, callback)
+
+        if (InheritanceUtil.isInheritor(viewClass, FQCN_ADAPTER_VIEW)) {
+          registerToolsAttribute(ATTR_LISTITEM, callback)
+          registerToolsAttribute(ATTR_LISTHEADER, callback)
+          registerToolsAttribute(ATTR_LISTFOOTER, callback)
         }
+
         if (
           InheritanceUtil.isInheritor(viewClass, AndroidXConstants.CLASS_DRAWER_LAYOUT.newName()) ||
             InheritanceUtil.isInheritor(viewClass, AndroidXConstants.CLASS_DRAWER_LAYOUT.oldName())
         ) {
-          registerToolsAttribute(SdkConstants.ATTR_OPEN_DRAWER, callback)
+          registerToolsAttribute(ATTR_OPEN_DRAWER, callback)
         }
+
         if (
           InheritanceUtil.isInheritor(viewClass, AndroidXConstants.RECYCLER_VIEW.newName()) ||
             InheritanceUtil.isInheritor(viewClass, AndroidXConstants.RECYCLER_VIEW.oldName())
         ) {
-          registerToolsAttribute(SdkConstants.ATTR_ITEM_COUNT, callback)
-          registerToolsAttribute(SdkConstants.ATTR_LISTITEM, callback)
+          registerToolsAttribute(ATTR_ITEM_COUNT, callback)
+          registerToolsAttribute(ATTR_LISTITEM, callback)
         }
       }
     }
+
     if (element is Tag || element is Data) {
       // don't want view attributes inside these tags
       return
     }
+
     val tagName = tag.name
     when (tagName) {
-      SdkConstants.CLASS_COMPOSE_VIEW ->
-        registerToolsAttribute(SdkConstants.ATTR_COMPOSABLE_NAME, callback)
-      SdkConstants.VIEW_FRAGMENT -> registerToolsAttribute(SdkConstants.ATTR_LAYOUT, callback)
-      SdkConstants.VIEW_TAG -> {
+      CLASS_COMPOSE_VIEW -> registerToolsAttribute(ATTR_COMPOSABLE_NAME, callback)
+      VIEW_FRAGMENT -> registerToolsAttribute(ATTR_LAYOUT, callback)
+      VIEW_TAG -> {
         // In Android layout XMLs, one can write, e.g.
         //   <view class="LinearLayout" />
         //
@@ -553,6 +593,7 @@ object AttributeProcessingUtil {
         // In this case code adds styleables corresponding to the tag-value of "class" attributes
         //
         // See LayoutInflater#createViewFromTag in Android framework for inflating code
+
         val name = tag.getAttributeValue("class")
         if (name != null) {
           val aClass = findViewValidInXMLByName(facet, name)
@@ -567,19 +608,18 @@ object AttributeProcessingUtil {
           }
         }
       }
-      SdkConstants.VIEW_MERGE -> {
+      VIEW_MERGE -> {
         if (tag.parentTag == null) {
-          registerToolsAttribute(SdkConstants.ATTR_PARENT_TAG, callback)
+          registerToolsAttribute(ATTR_PARENT_TAG, callback)
         }
         registerAttributesForClassAndSuperclasses(
           facet,
           element,
-          findViewValidInXMLByName(facet, SdkConstants.VIEW_MERGE),
+          findViewValidInXMLByName(facet, VIEW_MERGE),
           callback,
           skipAttrNames
         )
-        val parentTagName =
-          tag.getAttributeValue(SdkConstants.ATTR_PARENT_TAG, SdkConstants.TOOLS_URI)
+        val parentTagName = tag.getAttributeValue(ATTR_PARENT_TAG, TOOLS_URI)
         if (parentTagName != null) {
           registerAttributesForClassAndSuperclasses(
             facet,
@@ -595,26 +635,30 @@ object AttributeProcessingUtil {
         registerAttributesForClassAndSuperclasses(facet, element, c, callback, skipAttrNames)
       }
     }
-    if (tagName == SdkConstants.VIEW_MERGE) {
+
+    if (tagName == VIEW_MERGE) {
       // A <merge> does not have layout attributes.
-      // Instead the children of the merge tag are considered the top elements.
+      // Instead, the children of the merge tag are considered the top elements.
       return
     }
+
     val parentTag = tag.parentTag
-    var parentViewClass: PsiClass? = null
     if (parentTag != null) {
-      var parentTagName: String? = parentTag.name
-      if (SdkConstants.VIEW_MERGE == parentTagName) {
-        parentTagName =
-          parentTag.getAttributeValue(SdkConstants.ATTR_PARENT_TAG, SdkConstants.TOOLS_URI)
-      }
-      if (SdkConstants.TAG_LAYOUT == parentTagName) {
-        // Data binding: ensure that the children of the <layout> tag
-        // pick up layout params from ViewGroup (layout_width and layout_height)
-        parentViewClass = findViewClassByName(facet, SdkConstants.CLASS_VIEWGROUP)
-      } else if (parentTagName != null) {
-        parentViewClass = findViewValidInXMLByName(facet, parentTagName)
-      }
+      val parentTagName =
+        parentTag.name.takeUnless { it == VIEW_MERGE }
+          ?: parentTag.getAttributeValue(ATTR_PARENT_TAG, TOOLS_URI)
+
+      var parentViewClass: PsiClass? =
+        when (parentTagName) {
+          null -> null
+          TAG_LAYOUT -> {
+            // Data binding: ensure that the children of the <layout> tag
+            // pick up layout params from ViewGroup (layout_width and layout_height)
+            findViewClassByName(facet, CLASS_VIEWGROUP)
+          }
+          else -> findViewValidInXMLByName(facet, parentTagName)
+        }
+
       if (parentTagName != null) {
         while (parentViewClass != null) {
           registerAttributesFromSuffixedStyleables(
@@ -655,54 +699,48 @@ object AttributeProcessingUtil {
     processAllExistingAttrsFirst: Boolean,
     callback: AttributeProcessor
   ) {
-    if (getInstance.getInstance(facet.module.project).isDumb) {
-      return
-    }
-    val tag = element.xmlTag!!
+    if (DumbService.getInstance(facet.module.project).isDumb) return
+
+    val tag = requireNotNull(element.xmlTag)
+
     val skippedAttributes =
       if (processAllExistingAttrsFirst) registerExistingAttributes(facet, tag, element, callback)
-      else HashSet()
+      else mutableSetOf()
+
+    // Don't register attributes for unresolved classes.
     val descriptor = tag.descriptor
-    if (
-      descriptor is TagFromClassDescriptor && (descriptor as TagFromClassDescriptor).clazz == null
-    ) {
-      // Don't register attributes for unresolved classes.
-      return
-    }
-    if (element is ManifestElement) {
-      processManifestAttributes(tag, element, callback)
-    } else if (element is LayoutElement) {
-      processLayoutAttributes(facet, tag, element, skippedAttributes, callback)
-    } else if (element is XmlResourceElement) {
-      processXmlAttributes(facet, tag, element, skippedAttributes, callback)
-    } else if (element is XmlRawResourceElement) {
-      processRawAttributes(tag, callback)
-    } else if (element is NavDestinationElement) {
-      processNavAttributes(facet, tag, element, skippedAttributes, callback)
+    if (descriptor is TagFromClassDescriptor && descriptor.clazz == null) return
+
+    when (element) {
+      is ManifestElement -> processManifestAttributes(tag, element, callback)
+      is LayoutElement -> processLayoutAttributes(facet, tag, element, skippedAttributes, callback)
+      is XmlResourceElement ->
+        processXmlAttributes(facet, tag, element, skippedAttributes, callback)
+      is XmlRawResourceElement -> processRawAttributes(tag, callback)
+      is NavDestinationElement ->
+        processNavAttributes(facet, tag, element, skippedAttributes, callback)
     }
 
-    // If DOM element is annotated with @Styleable annotation, load a styleable definition
-    // from Android framework or a library with the name provided in annotation and register all
-    // attributes
-    // from it for code highlighting and completion.
+    // If DOM element is annotated with @Styleable annotation, load a styleable definition from
+    // Android framework or a library with the name provided in annotation and register all
+    // attributes from it for code highlighting and completion.
     val styleableAnnotation = element.getAnnotation(Styleable::class.java) ?: return
-    val isSystem = styleableAnnotation.packageName == SdkConstants.ANDROID_PKG
-    val definitions: AttributeDefinitions
-    if (isSystem) {
-      val manager =
-        ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager() ?: return
-      definitions = manager.getAttributeDefinitions()
-      if (definitions == null) {
-        return
-      }
-    } else {
-      definitions =
+    val isSystem = styleableAnnotation.packageName == ANDROID_PKG
+
+    val definitions: AttributeDefinitions =
+      if (isSystem) {
+        ModuleResourceManagers.getInstance(facet)
+          .getFrameworkResourceManager()
+          ?.getAttributeDefinitions() ?: return
+      } else {
         ModuleResourceManagers.getInstance(facet).getLocalResourceManager().attributeDefinitions
-    }
+      }
+
     if (element is MenuItem) {
       processMenuItemAttributes(facet, element, skippedAttributes, callback)
       return
     }
+
     for (styleableName in styleableAnnotation.value) {
       val styleable = definitions.getStyleableByName(styleableName)
       if (styleable != null) {
@@ -711,7 +749,7 @@ object AttributeProcessingUtil {
         registerStyleableAttributes(
           element,
           styleable,
-          if (isSystem) SdkConstants.ANDROID_URI else SdkConstants.AUTO_URI,
+          if (isSystem) ANDROID_URI else AUTO_URI,
           callback,
           skippedAttributes
         )
@@ -719,57 +757,43 @@ object AttributeProcessingUtil {
         // DOM element is annotated with @Styleable annotation, but styleable definition with
         // provided name is not there in Android framework. This is a bug, so logging it as a
         // warning.
-        log.warn(
-          String.format(
-            "@Styleable(%s) annotation doesn't point to existing styleable",
-            styleableName
-          )
-        )
+        thisLogger()
+          .warn("@Styleable($styleableName) annotation doesn't point to existing styleable")
       }
     }
 
     // Handle interpolator XML tags: they don't have their own DomElement interfaces, and all use
-    // InterpolatorElement at the moment.
-    // Thus, they can't use @Styleable annotation and there is a mapping from tag name to styleable
-    // name that's used below.
+    // InterpolatorElement at the moment. Thus, they can't use @Styleable annotation and there is a
+    // mapping from tag name to styleable name that's used below.
 
     // This snippet doesn't look much different from lines above for handling @Styleable annotations
-    // above,
-    // but is used to provide customized warning message
+    // above, but is used to provide customized warning message
     // TODO: figure it out how to make it DRY without introducing new method with lots of arguments
     if (element is InterpolatorElement) {
       val styleableName = InterpolatorDomFileDescription.getInterpolatorStyleableByTagName(tag.name)
       if (styleableName != null) {
         val styleable = definitions.getStyleableByName(styleableName)
         if (styleable == null) {
-          log.warn(
-            String.format("%s doesn't point to existing styleable for interpolator", styleableName)
-          )
+          thisLogger().warn("$styleableName doesn't point to existing styleable for interpolator")
         } else {
-          registerStyleableAttributes(
-            element,
-            styleable,
-            SdkConstants.ANDROID_URI,
-            callback,
-            skippedAttributes
-          )
+          registerStyleableAttributes(element, styleable, ANDROID_URI, callback, skippedAttributes)
         }
       }
     }
   }
 
   /** Handle attributes for XML elements in raw/ resource folder */
-  fun processRawAttributes(tag: XmlTag, callback: AttributeProcessor) {
+  private fun processRawAttributes(tag: XmlTag, callback: AttributeProcessor) {
     // For Resource Shrinking
-    if (SdkConstants.TAG_RESOURCES == tag.name) {
-      registerToolsAttribute(SdkConstants.ATTR_SHRINK_MODE, callback)
-      registerToolsAttribute(SdkConstants.ATTR_KEEP, callback)
-      registerToolsAttribute(SdkConstants.ATTR_DISCARD, callback)
+    if (tag.name == TAG_RESOURCES) {
+      registerToolsAttribute(ATTR_SHRINK_MODE, callback)
+      registerToolsAttribute(ATTR_KEEP, callback)
+      registerToolsAttribute(ATTR_DISCARD, callback)
     }
   }
 
   /** Handle attributes for XML elements from AndroidManifest.xml */
-  fun processManifestAttributes(
+  private fun processManifestAttributes(
     tag: XmlTag,
     element: AndroidDomElement,
     callback: AttributeProcessor
@@ -792,33 +816,37 @@ object AttributeProcessingUtil {
     skippedAttributes: MutableCollection<XmlName>,
     callback: AttributeProcessor
   ) {
-    val manager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager() ?: return
-    val styleables = manager.getAttributeDefinitions() ?: return
+    val styleables =
+      ModuleResourceManagers.getInstance(facet)
+        .getFrameworkResourceManager()
+        ?.getAttributeDefinitions() ?: return
     val styleable = styleables.getStyleableByName("MenuItem")
     if (styleable == null) {
-      log.warn("No StyleableDefinition for MenuItem")
+      thisLogger().warn("No StyleableDefinition for MenuItem")
       return
     }
+
     for (attribute in styleable.getAttributes()) {
       val name = attribute.name
 
       // android:showAsAction was introduced in API Level 11. Use the app: one if the project
-      // depends on appcompat.
-      // See com.android.tools.lint.checks.AppCompatResourceDetector.
-      if (name == SdkConstants.ATTR_SHOW_AS_ACTION) {
+      // depends on appcompat. See com.android.tools.lint.checks.AppCompatResourceDetector.
+      if (name == ATTR_SHOW_AS_ACTION) {
         val hasAppCompat =
           facet.module.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7) ||
             facet.module.dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)
         if (hasAppCompat) {
           // TODO(namespaces): Replace AUTO_URI with the URI of the correct namespace.
-          val xmlName = XmlName(name, SdkConstants.AUTO_URI)
+          val xmlName = XmlName(name, AUTO_URI)
           if (skippedAttributes.add(xmlName)) {
             registerAttribute(attribute, xmlName, "MenuItem", element, callback)
           }
+
           continue
         }
       }
-      val xmlName = XmlName(name, SdkConstants.ANDROID_URI)
+
+      val xmlName = XmlName(name, ANDROID_URI)
       if (skippedAttributes.add(xmlName)) {
         registerAttribute(attribute, xmlName, "MenuItem", element, callback)
       }
@@ -828,14 +856,14 @@ object AttributeProcessingUtil {
   private fun registerToolsAttribute(attributeName: String, callback: AttributeProcessor) {
     val definition = ToolsAttributeUtil.getAttrDefByName(attributeName)
     if (definition != null) {
-      val name = XmlName(attributeName, SdkConstants.TOOLS_URI)
+      val name = XmlName(attributeName, TOOLS_URI)
       val domExtension = callback.processAttribute(name, definition, null)
       val converter = ToolsAttributeUtil.getConverter(definition)
       if (domExtension != null && converter != null) {
         domExtension.setConverter(converter)
       }
     } else {
-      log.warn("No attribute definition for tools attribute $attributeName")
+      thisLogger().warn("No attribute definition for tools attribute $attributeName")
     }
   }
 
@@ -845,22 +873,25 @@ object AttributeProcessingUtil {
     element: AndroidDomElement,
     callback: AttributeProcessor
   ): MutableSet<XmlName> {
-    val result: MutableSet<XmlName> = HashSet()
-    val attrs = tag.attributes
-    for (attr in attrs) {
+    val result: MutableSet<XmlName> = mutableSetOf()
+
+    for (attr in tag.attributes) {
       val localName = attr.localName
-      if (!localName.endsWith(CompletionUtil.DUMMY_IDENTIFIER_TRIMMED)) {
-        if ("xmlns" != attr.namespacePrefix) {
-          val attrDef = AndroidDomUtil.getAttributeDefinition(facet, attr)
-          if (attrDef != null) {
-            val xmlName = getXmlName(attrDef, attr.namespace)
-            result.add(xmlName)
-            val namespaceUri = attr.namespace
-            registerAttribute(attrDef, xmlName, null, element, callback)
-          }
+
+      if (
+        !localName.endsWith(CompletionUtil.DUMMY_IDENTIFIER_TRIMMED) &&
+          attr.namespacePrefix != "xmlns"
+      ) {
+        val attrDef = AndroidDomUtil.getAttributeDefinition(facet, attr)
+
+        if (attrDef != null) {
+          val xmlName = getXmlName(attrDef, attr.namespace)
+          result.add(xmlName)
+          registerAttribute(attrDef, xmlName, null, element, callback)
         }
       }
     }
+
     return result
   }
 
@@ -869,11 +900,11 @@ object AttributeProcessingUtil {
     val attrNamespaceUri = attrReference.namespace.xmlNamespaceUri
     return XmlName(
       attrReference.name,
-      if (SdkConstants.TOOLS_URI == namespaceUri) SdkConstants.TOOLS_URI else attrNamespaceUri
+      if (namespaceUri == TOOLS_URI) TOOLS_URI else attrNamespaceUri
     )
   }
 
-  interface AttributeProcessor {
+  fun interface AttributeProcessor {
     fun processAttribute(
       xmlName: XmlName,
       attrDef: AttributeDefinition,
