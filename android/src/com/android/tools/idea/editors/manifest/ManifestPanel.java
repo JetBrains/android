@@ -30,6 +30,8 @@ import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlNode;
 import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
@@ -45,6 +47,7 @@ import com.android.utils.SdkUtils.FileLineColumnUrlData;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.openapi.Disposable;
@@ -342,6 +345,18 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     setManifestSnapshot(manifest, selectedManifest);
     myLoadingPanel.stopLoading();
     mySplitter.setVisible(true);
+    logManifestPanelEvent();
+  }
+
+  private void logManifestPanelEvent() {
+    UsageTracker.log(
+      UsageTrackerUtils.withProjectId(
+        AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.MANIFEST_PANEL_EVENT)
+          .setCategory(AndroidStudioEvent.EventCategory.STUDIO_UI),
+        myProject
+      )
+    );
   }
 
   private void setManifestSnapshot(@NotNull MergedManifestSnapshot manifest, @NotNull VirtualFile selectedManifest) {
