@@ -44,6 +44,7 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.FlowLayout
+import java.awt.FlowLayout.CENTER
 import java.awt.Font
 import java.awt.Graphics
 import javax.swing.CellRendererPane
@@ -74,7 +75,7 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
   val descriptor: ListItemDescriptor<PlaceData> = object : ListItemDescriptor<PlaceData> {
     override fun getTextFor(place: PlaceData): String? = place.presentation.text
     override fun getTooltipFor(place: PlaceData): String? = null
-    override fun getIconFor(place: PlaceData): Icon? = JBUIScale.scaleIcon(EmptyIcon.create(16, 20))
+    override fun getIconFor(place: PlaceData): Icon = JBUIScale.scaleIcon(EmptyIcon.create(16, 20))
     override fun hasSeparatorAboveOf(value: PlaceData): Boolean = value.separator != null
     override fun getCaptionAboveOf(value: PlaceData): String? = value.separator
   }
@@ -140,7 +141,7 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
 
     override fun createItemComponent(): JComponent {
       extraPanel = NonOpaquePanel(BorderLayout())
-      eastPanel = NonOpaquePanel(FlowLayout())
+      eastPanel = NonOpaquePanel(FlowLayout(CENTER, 0, 0))
       validationError = JLabel().apply {
         icon = AllIcons.General.BalloonError
       }

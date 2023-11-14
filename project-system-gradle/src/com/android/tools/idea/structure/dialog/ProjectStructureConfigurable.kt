@@ -275,7 +275,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     val left = object : JPanel(BorderLayout()) {
       override fun getMinimumSize(): Dimension {
         val original = super.getMinimumSize()
-        return Dimension(Math.max(original.width, JBUI.scale(150)), original.height)
+        return Dimension(Math.max(original.width, JBUI.scale(170)), original.height)
       }
     }
 
