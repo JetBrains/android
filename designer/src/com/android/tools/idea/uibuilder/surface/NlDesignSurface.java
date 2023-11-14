@@ -163,7 +163,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     private Function<DesignSurface<LayoutlibSceneManager>, DesignSurfaceActionHandler> myActionHandlerProvider = NlDesignSurface::defaultActionHandlerProvider;
     @Nullable private SelectionModel mySelectionModel = null;
     private ZoomControlsPolicy myZoomControlsPolicy = ZoomControlsPolicy.AUTO_HIDE;
-    @NotNull private Supplier<ImmutableSet<NlSupportedActions>> mySupportedActionsProvider = () -> ImmutableSet.of();
+    @NotNull private Supplier<ImmutableSet<NlSupportedActions>> mySupportedActionsProvider = ImmutableSet::of;
 
     private boolean myShouldRenderErrorsPanel = false;
 
@@ -317,18 +317,19 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
      * TODO(b/183243031): These mechanism should be integrated into {@link ActionManager}.
      */
     @NotNull
-    public Builder setSupportedActions(@NotNull ImmutableSet<NlSupportedActions> supportedActions) {
-      mySupportedActionsProvider = () -> supportedActions;
+    public Builder setSupportedActionsProvider(@NotNull Supplier<ImmutableSet<NlSupportedActions>> supportedActionsProvider) {
+      mySupportedActionsProvider = supportedActionsProvider;
       return this;
     }
 
     /**
-     * See {@link #setSupportedActions(ImmutableSet)}.
+     * See {@link #setSupportedActionsProvider(Supplier)}.
      * This method will create a copy of the given set.
      */
     @NotNull
     public Builder setSupportedActions(@NotNull Set<NlSupportedActions> supportedActions) {
-      setSupportedActions(ImmutableSet.copyOf(supportedActions));
+      final ImmutableSet<NlSupportedActions> supportedActionsCopy = ImmutableSet.copyOf(supportedActions);
+      setSupportedActionsProvider(() -> supportedActionsCopy);
       return this;
     }
 

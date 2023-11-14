@@ -33,6 +33,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.rendering.RenderAsyncActionExecutor
+import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
@@ -48,11 +49,13 @@ internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
 internal val DEFAULT_PREVIEW_LAYOUT_MANAGER = PREVIEW_LAYOUT_MANAGER_OPTIONS.first().layoutManager
 
 private val COMPOSE_SUPPORTED_ACTIONS =
-  setOf(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
+  ImmutableSet.of(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 /**
  * Creates a [NlDesignSurface.Builder] with a common setup for the design surfaces in Compose
- * preview.
+ * preview. [isInteractive] should return when the Preview is in interactive mode. When it is, the
+ * [NlDesignSurface] will disable the interception of global shortcuts like refresh ("R") or toggle
+ * issue panel ("E").
  */
 private fun createPreviewDesignSurfaceBuilder(
   project: Project,
@@ -61,7 +64,8 @@ private fun createPreviewDesignSurfaceBuilder(
   dataProvider: DataProvider,
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider,
-  screenViewProvider: ScreenViewProvider
+  screenViewProvider: ScreenViewProvider,
+  isInteractive: () -> Boolean
 ): NlDesignSurface.Builder =
   NlDesignSurface.builder(project, parentDisposable)
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
@@ -90,14 +94,21 @@ private fun createPreviewDesignSurfaceBuilder(
       else NopSelectionModel
     )
     .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.AUTO_HIDE)
-    .setSupportedActions(COMPOSE_SUPPORTED_ACTIONS)
+    .setSupportedActionsProvider {
+      if (!isInteractive()) COMPOSE_SUPPORTED_ACTIONS else ImmutableSet.of()
+    }
     .setShouldRenderErrorsPanel(true)
     .setScreenViewProvider(screenViewProvider, false)
     .setMaxFitIntoZoomLevel(2.0) // Set fit into limit to 200%
     .setMinScale(0.01) // Allow down to 1% zoom level
     .setVisualLintIssueProvider { ComposeVisualLintIssueProvider(it) }
 
-/** Creates a [NlDesignSurface.Builder] for the main design surface in the Compose preview. */
+/**
+ * Creates a [NlDesignSurface.Builder] for the main design surface in the Compose preview.
+ * [isInteractive] should return when the Preview is in interactive mode. When it is, the
+ * [NlDesignSurface] will disable the interception of global shortcuts like refresh ("R") or toggle
+ * issue panel ("E").
+ */
 internal fun createMainDesignSurfaceBuilder(
   project: Project,
   navigationHandler: NavigationHandler,
@@ -105,7 +116,8 @@ internal fun createMainDesignSurfaceBuilder(
   dataProvider: DataProvider,
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider,
-  screenViewProvider: ScreenViewProvider
+  screenViewProvider: ScreenViewProvider,
+  isInteractive: () -> Boolean
 ) =
   createPreviewDesignSurfaceBuilder(
       project,
@@ -114,6 +126,7 @@ internal fun createMainDesignSurfaceBuilder(
       dataProvider, // Will be overridden by the preview provider
       parentDisposable,
       sceneComponentProvider,
-      screenViewProvider
+      screenViewProvider,
+      isInteractive
     )
     .setLayoutManager(DEFAULT_PREVIEW_LAYOUT_MANAGER)

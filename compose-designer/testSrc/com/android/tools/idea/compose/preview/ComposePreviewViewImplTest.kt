@@ -189,7 +189,8 @@ class ComposePreviewViewImplTest {
         nopDataProvider,
         fixture.testRootDisposable,
         sceneComponentProvider,
-        ComposeScreenViewProvider(NopComposePreviewManager())
+        ComposeScreenViewProvider(NopComposePreviewManager()),
+        { false }
       )
     val composePreviewViewImpl =
       ComposePreviewViewImpl(

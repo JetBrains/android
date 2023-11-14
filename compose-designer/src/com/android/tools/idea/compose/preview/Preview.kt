@@ -714,7 +714,9 @@ class ComposePreviewRepresentation(
               this,
               sceneComponentProvider,
               ComposeScreenViewProvider(this)
-            ),
+            ) {
+              mode.value is PreviewMode.Interactive
+            },
             this
           )
         }
