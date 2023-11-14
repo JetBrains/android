@@ -42,12 +42,12 @@ class AndroidRemoteDebugProcessHandlerTest {
   fun setUpDebugSession() {
     client = Mockito.mock(Client::class.java)
     device = createDevice()
+    whenever(client.device).thenReturn(device)
     val clientData = object : ClientData(client, 111) {
       override fun getPackageName() = "MyApp"
       override fun getClientDescription() = "MyApp"
     }
     whenever(client.clientData).thenReturn(clientData)
-    whenever(client.device).thenReturn(device)
     debugProcess = Mockito.mock(DebugProcess::class.java)
     val debugManager = projectRule.mockProjectService(DebuggerManager::class.java)
     whenever(debugManager.getDebugProcess(MockitoKt.any(AndroidRemoteDebugProcessHandler::class.java))).thenReturn(debugProcess)

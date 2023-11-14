@@ -17,6 +17,9 @@ package com.android.tools.idea.execution.common.debug.utils
 
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
+import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getAndroidFacets
@@ -47,7 +50,7 @@ import kotlin.test.assertFailsWith
 class FacetFinderTest {
 
   private class FakeClientData(private val applicationId: String?, private val processName: String?) :
-    ClientData(Mockito.mock(Client::class.java), -1) {
+    ClientData(Mockito.mock(Client::class.java).also { whenever(it.device).thenReturn(mock<IDevice>()) }, -1) {
     override fun getPackageName(): String? = applicationId ?: processName?.removeSuffix(":") // See behaviour in overridden method
     override fun getClientDescription(): String? = processName
   }
