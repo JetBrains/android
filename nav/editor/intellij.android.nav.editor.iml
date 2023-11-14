@@ -20,7 +20,7 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module-library">
       <library name="eclipse-layout-kernel" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.eclipse.elk:org.eclipse.elk.alg.layered:0.3.0">
+        <properties maven-id="org.eclipse.elk:org.eclipse.elk.alg.layered:0.3.0">
           <verification>
             <artifact url="file://$MAVEN_REPOSITORY$/org/eclipse/elk/org.eclipse.elk.alg.layered/0.3.0/org.eclipse.elk.alg.layered-0.3.0.jar">
               <sha256sum>08267d824581f81af8a196d4551decae1256a454e618409a363e3e1574b06520</sha256sum>
@@ -37,7 +37,14 @@
             <artifact url="file://$MAVEN_REPOSITORY$/org/eclipse/emf/org.eclipse.emf.ecore/2.12.0/org.eclipse.emf.ecore-2.12.0.jar">
               <sha256sum>2ac691cc4fa09fdf18beef6bdd457b7bdfe4d301f9707a8c89c6cb209139f4f9</sha256sum>
             </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/eclipse/elk/org.eclipse.elk.alg.common.compaction/0.3.0/org.eclipse.elk.alg.common.compaction-0.3.0.jar">
+              <sha256sum>7b5a2c04f1c942af3d8b891a9a535e74cfa45b4151b7835c3e9f63e96ec0332f</sha256sum>
+            </artifact>
           </verification>
+          <exclude>
+            <dependency maven-id="com.google.guava:guava" />
+            <dependency maven-id="org.eclipse.emf:org.eclipse.emf.ecore.xmi" />
+          </exclude>
         </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/elk/org.eclipse.elk.alg.layered/0.3.0/org.eclipse.elk.alg.layered-0.3.0.jar!/" />
@@ -45,6 +52,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/elk/org.eclipse.elk.graph/0.3.0/org.eclipse.elk.graph-0.3.0.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/emf/org.eclipse.emf.common/2.12.0/org.eclipse.emf.common-2.12.0.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/emf/org.eclipse.emf.ecore/2.12.0/org.eclipse.emf.ecore-2.12.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/elk/org.eclipse.elk.alg.common.compaction/0.3.0/org.eclipse.elk.alg.common.compaction-0.3.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
