@@ -1589,6 +1589,14 @@ public final class StudioFlags {
       "Use transport security",
       "Set Play Vitals gRpc channel to use transport security",
       true);
+
+  public static final Flag<Boolean> PLAY_VITALS_VCS_INTEGRATION_ENABLED =
+    Flag.create(
+      APP_INSIGHTS,
+      "play.vitals.vcs.integration",
+      "Enable VCS integration for Play Vitals.",
+      "Enhance code navigation in the Play Vitals tab to aid crash investigation with the recorded VCS info",
+      true);
   // endregion App Insights
 
   // region App Links Assistant

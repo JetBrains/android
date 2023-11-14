@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.vitals.datamodel
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.Event
@@ -57,7 +58,10 @@ internal fun ErrorReport.toSampleEvent(): Event {
         eventTime = eventTime.toJavaInstant()
       ),
     stacktraceGroup = reportText.extract(),
-    appVcsInfo = AppVcsInfo.fromProto(vcsInformation),
+    appVcsInfo =
+      if (StudioFlags.PLAY_VITALS_VCS_INTEGRATION_ENABLED.get())
+        AppVcsInfo.fromProto(vcsInformation)
+      else AppVcsInfo.NONE,
   )
 }
 
