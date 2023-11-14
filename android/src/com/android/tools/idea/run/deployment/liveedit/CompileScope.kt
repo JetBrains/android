@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -152,7 +153,9 @@ private object CompileScopeImpl : CompileScope {
       var exception: LiveEditUpdateException? = null
       val analysisResult = resolution.analyzeWithAllCompilerChecks(input) {
         if (it.severity == Severity.ERROR) {
-          exception = LiveEditUpdateException.analysisError("Analyze Error. $it", it.psiFile)
+          if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS.get() || input.contains(it.psiFile)) {
+            exception = LiveEditUpdateException.analysisError("Analyze Error. $it", it.psiFile)
+          }
         }
       }
       if (exception != null) {
@@ -165,7 +168,9 @@ private object CompileScopeImpl : CompileScope {
 
       for (diagnostic in analysisResult.bindingContext.diagnostics) {
         if (diagnostic.severity == Severity.ERROR) {
-          throw LiveEditUpdateException.analysisError("Binding Context Error. $diagnostic", diagnostic.psiFile)
+          if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS.get() || input.contains(diagnostic.psiFile)) {
+            throw LiveEditUpdateException.analysisError("Binding Context Error. $diagnostic", diagnostic.psiFile)
+          }
         }
       }
 

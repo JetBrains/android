@@ -533,10 +533,15 @@ public class LiveEditProjectMonitor implements Disposable {
     }
 
     if (mode == LiveEditEvent.Mode.AUTO && !filesWithCompilationErrors.isEmpty()) {
-      Optional<String> errorFilename = filesWithCompilationErrors.stream().findFirst();
-      String errorMsg = ErrorReporterKt.leErrorMessage(LiveEditUpdateException.Error.COMPILATION_ERROR, errorFilename.get());
-      updateEditStatus(LiveEditStatus.createPausedStatus(errorMsg));
-      return true;
+
+      // When we are only confined to the current file, we are not going to check of there
+      // are errors in other files.
+      if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS.get()) {
+        Optional<String> errorFilename = filesWithCompilationErrors.stream().findFirst();
+        String errorMsg = ErrorReporterKt.leErrorMessage(LiveEditUpdateException.Error.COMPILATION_ERROR, errorFilename.get());
+        updateEditStatus(LiveEditStatus.createPausedStatus(errorMsg));
+        return true;
+      }
     }
 
     final LiveEditDesugarResponse desugaredResponse = compiled.get();
@@ -699,7 +704,7 @@ public class LiveEditProjectMonitor implements Disposable {
       result = deployer.updateLiveEdit(installer, adb, applicationId, param);
     }
 
-    if (filesWithCompilationErrors.isEmpty()) {
+    if (filesWithCompilationErrors.isEmpty() || StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS.get()) {
       updateEditStatus(device, LiveEditStatus.UpToDate.INSTANCE);
     } else {
       Optional<String> errorFilename = filesWithCompilationErrors.stream().sequential().findFirst();

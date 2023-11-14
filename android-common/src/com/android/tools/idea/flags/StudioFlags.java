@@ -1186,6 +1186,14 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS = Flag.create(
+    COMPOSE, "deploy.live.edit.deploy.confined.analysis",
+    "LiveEdit: Limit compilation error analysis to only the current file",
+    "If enabled, Live Edit will aggressively live update even if there are analysis errors " +
+      "provided that the current file is error-free.",
+    false
+  );
+
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR = Flag.create(
     COMPOSE, "deploy.live.edit.deploy.desugar.r8",
     "LiveEdit: Desugar kotlinc outputs with R8",
