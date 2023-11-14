@@ -30,9 +30,9 @@ import java.util.List;
 /**
  * Basic codec information and a static method to select a video encoder.
  * This code is in Java because NDK doesn't provide access to {@link MediaCodecList} and
- * {@link MediaCodecInfo}. Used from native code.
- * @noinspection unused
+ * {@link MediaCodecInfo}.
  */
+@SuppressWarnings("unused") // Called through JNI.
 public class CodecInfo {
   public final String name;
   public final int maxWidth;

@@ -21,10 +21,10 @@ import android.view.IRotationWatcher;
  * Simple implementation of the {@link IRotationWatcher} interface delegating to the native code
  * in window_manager.cc.
  */
+@SuppressWarnings("unused") // Called through JNI.
 public class RotationWatcher extends IRotationWatcher.Stub {
   private final int displayId;
 
-  // Called through JNI.
   public RotationWatcher(int displayId) {
     this.displayId = displayId;
   }

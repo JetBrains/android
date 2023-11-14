@@ -17,6 +17,7 @@ package com.android.tools.screensharing;
 
 import android.hardware.display.DisplayManager;
 
+@SuppressWarnings("unused") // Called through JNI.
 public class DisplayListener implements DisplayManager.DisplayListener {
   @Override
   public native void onDisplayAdded(int displayId);
