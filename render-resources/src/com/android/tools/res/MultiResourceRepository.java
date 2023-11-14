@@ -36,10 +36,10 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SmartList;
-import com.intellij.util.concurrency.SameThreadExecutor;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.AbstractCollection;
@@ -442,7 +442,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     List<LocalResourceRepository> repositories = getLocalResources();
     AtomicInteger count = new AtomicInteger(repositories.size());
     for (LocalResourceRepository childRepository : repositories) {
-      childRepository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE, () -> {
+      childRepository.invokeAfterPendingUpdatesFinish(MoreExecutors.directExecutor(), () -> {
         if (count.decrementAndGet() == 0) {
           executor.execute(callback);
         }
