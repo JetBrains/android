@@ -51,6 +51,7 @@ class ComposeStateReadAnnotator : Annotator {
       holder
         .newAnnotation(HighlightSeverity.INFORMATION, msg)
         .textAttributes(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
+        .withFix(EnableComposeStateReadInlayHintsAction)
         .create()
     }
   }

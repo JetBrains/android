@@ -271,6 +271,8 @@ class ComposeStateReadAnnotatorTest {
       assertThat(textAttributes).isEqualTo(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
       assertThat(startOffset).isEqualTo(fixture.offsetForWindow(windowStart))
       assertThat(endOffset).isEqualTo(fixture.offsetForWindow(windowEnd))
+      assertThat(quickFixes?.map { it.quickFix })
+        .containsExactly(EnableComposeStateReadInlayHintsAction)
     }
   }
 }

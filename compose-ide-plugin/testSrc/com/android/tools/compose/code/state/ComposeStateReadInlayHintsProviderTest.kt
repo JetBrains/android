@@ -39,7 +39,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
 import com.intellij.refactoring.suggested.range
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
@@ -70,7 +69,7 @@ class ComposeStateReadInlayHintsProviderTest {
   private val dispatcher = StandardTestDispatcher(scheduler)
   private val testScope = TestScope(dispatcher)
 
-  private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
+  private val fixture by lazy { projectRule.fixture }
   private val provider = ComposeStateReadInlayHintsProvider()
   private val sink: InlayTreeSink = mock()
   private val treeBuilder: PresentationTreeBuilder = mock()
