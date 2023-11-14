@@ -1,5 +1,6 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
+import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.grpc.GrpcData
@@ -10,7 +11,6 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.testing.DebugLoggerRule
 import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.DisposableRule
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import org.junit.Rule
@@ -20,7 +20,7 @@ import studio.network.inspection.NetworkInspectorProtocol.Event
 /** Tests for [DataHandler] */
 class DataHandlerTest {
   @get:Rule val debugLoggerRule = DebugLoggerRule()
-  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val flagRule = FlagRule(StudioFlags.NETWORK_INSPECTOR_GRPC, true)
 
   @Test
   fun handleHttpConnectionEvent_incrementalUpdates() {
@@ -431,7 +431,7 @@ class DataHandlerTest {
 
   @Test
   fun handleGrpcEvent_flagDisabled() {
-    StudioFlags.NETWORK_INSPECTOR_GRPC.override(false, disposableRule.disposable)
+    StudioFlags.NETWORK_INSPECTOR_GRPC.override(false)
     val handler = DataHandler(StubNetworkInspectorTracker())
 
     handler.handleGrpcEvent(grpcCallStarted(1, 10.secondsInNanos))
