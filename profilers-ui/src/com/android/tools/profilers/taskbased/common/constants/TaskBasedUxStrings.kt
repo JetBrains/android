@@ -17,6 +17,6 @@ package com.android.tools.profilers.taskbased.common.constants
 
 object TaskBasedUxStrings {
   // EnterTaskButton strings
-  const val OPEN_PROFILER_TASK = "Open Profiler Task"
-  const val START_PROFILER_TASK = "Start Profiler Task"
+  const val OPEN_PROFILER_TASK = "Open profiler task"
+  const val START_PROFILER_TASK = "Start profiler task"
 }
