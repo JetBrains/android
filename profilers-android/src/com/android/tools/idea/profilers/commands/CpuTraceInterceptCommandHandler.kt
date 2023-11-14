@@ -35,6 +35,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
+import com.google.common.annotations.VisibleForTesting
 import com.google.gson.stream.JsonReader
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -42,7 +43,6 @@ import com.google.wireless.android.sdk.stats.PerfettoSdkHandshakeMetadata
 import com.google.wireless.android.sdk.stats.PerfettoSdkHandshakeMetadata.HandshakeResult
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtilRt
-import org.assertj.core.util.VisibleForTesting
 import java.io.File
 import java.io.IOException
 import java.io.StringReader
