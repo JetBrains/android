@@ -134,5 +134,5 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
   @VisibleForTesting
   fun getPreferredProcessName() = preferredProcessName
 
-  private fun isDeviceSelected() = selectedDevice.value != Common.Device.getDefaultInstance()
+  private fun isDeviceSelected() = _selectedDevice.value != Common.Device.getDefaultInstance()
 }
