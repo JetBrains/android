@@ -238,6 +238,37 @@ class ProcessListModelTest {
     assertThat(deviceProcessesSorted[5].name).isEqualTo("FakeProcess2:Y")
   }
 
+  @Test
+  fun `test device selection triggers reorder of process list`() {
+    assertThat(processListModel.deviceToProcesses.value).isEmpty()
+
+    val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
+    // Because the preferred process was set before the processes were updated, and no device selection has been made, no reordering
+    // will be done.
+    myProfilers.setPreferredProcess("FakeDevice", "FakeProcess3", null)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    val process1 = createProcess(10, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId)
+    val process2 = createProcess(20, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId)
+    val process3 = createProcess(30, "FakeProcess3", Common.Process.State.ALIVE, device.deviceId)
+
+    addDeviceWithProcess(device, process1, myTransportService, myTimer)
+    addDeviceWithProcess(device, process2, myTransportService, myTimer)
+    addDeviceWithProcess(device, process3, myTransportService, myTimer)
+
+    // As stated above, because no device selection was made, no process list was reordered using the preferred process name. The explicit
+    // selection of the device, however, should trigger a proper reordering.
+    processListModel.onDeviceSelection(device)
+
+    assertThat(processListModel.getPreferredProcessName()).isEqualTo("FakeProcess3")
+    assertThat(processListModel.deviceToProcesses.value).isNotEmpty()
+    assertThat(processListModel.deviceToProcesses.value.size).isEqualTo(1)
+    assertThat(processListModel.getSelectedDeviceProcesses().size).isEqualTo(3)
+    // Make sure that despite being lexicographically greater than the "FakeProcess1", because it is the preferred process, "FakeProcess3"
+    // is the first device process listed.
+    assertThat(processListModel.getSelectedDeviceProcesses().first().name).isEqualTo("FakeProcess3")
+  }
+
   companion object {
     fun addDeviceWithProcess(device: Common.Device,
                                      process: Common.Process,

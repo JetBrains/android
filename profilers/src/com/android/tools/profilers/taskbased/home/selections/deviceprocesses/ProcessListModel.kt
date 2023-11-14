@@ -119,6 +119,9 @@ class ProcessListModel(val profilers: StudioProfilers, private val resetTaskSele
   fun onDeviceSelection(newDevice: Common.Device) {
     resetTaskSelection()
     _selectedDevice.value = newDevice
+    // Force reordering now that device is selected. This makes sure the process list is reordered correctly using the preferred process
+    // in the case the preferred process was set before a device selection was made.
+    reorderProcessList()
   }
 
   fun onProcessSelection(newProcess: Common.Process) {
