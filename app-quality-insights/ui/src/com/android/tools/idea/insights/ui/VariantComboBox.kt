@@ -176,4 +176,4 @@ fun AppInsightsIssue.toVariantRow(size: Int) =
 
 @VisibleForTesting
 fun IssueVariant.toVariantRow() =
-  VariantRow("Variant ${id.take(4)}", eventsCount, impactedDevicesCount, this)
+  VariantRow("Variant #${id.takeLast(4)}", eventsCount, impactedDevicesCount, this)

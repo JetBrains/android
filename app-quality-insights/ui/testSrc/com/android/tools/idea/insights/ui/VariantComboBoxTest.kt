@@ -166,9 +166,12 @@ class VariantComboBoxTest {
       // Verify list of variants and selected variant.
       assertThat(comboBox.model.getElementAt(0)).isSameAs(HeaderRow)
       assertThat(comboBox.model.getElementAt(1)).isEqualTo(ISSUE1.toVariantRow(2))
-      assertThat(comboBox.model.getElementAt(2)).isEqualTo(variant1.toVariantRow())
-      assertThat(comboBox.model.getElementAt(3)).isEqualTo(variant2.toVariantRow())
-      assertThat(comboBox.selectedIndex).isEqualTo(3)
+      val firstVariantRow = comboBox.model.getElementAt(2) as VariantRow
+      assertThat(firstVariantRow).isEqualTo(variant1.toVariantRow())
+      assertThat(firstVariantRow.name).isEqualTo("Variant #ant1")
+      val secondVariantRow = comboBox.model.getElementAt(3) as VariantRow
+      assertThat(secondVariantRow).isEqualTo(variant2.toVariantRow())
+      assertThat(secondVariantRow.name).isEqualTo("Variant #ant2")
     }
 
   @Test
