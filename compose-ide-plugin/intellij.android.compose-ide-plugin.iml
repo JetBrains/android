@@ -32,7 +32,7 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="module-library">
-      <library name="compiler-hosted" >
+      <library name="compiler-hosted">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.5.1.jar!/" />
         </CLASSES>
