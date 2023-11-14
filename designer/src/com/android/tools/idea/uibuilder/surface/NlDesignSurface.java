@@ -19,6 +19,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCRE
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.actions.LayoutPreviewHandler;
@@ -55,7 +56,6 @@ import com.android.tools.idea.common.surface.layout.ReferencePointScroller;
 import com.android.tools.idea.common.surface.layout.TopBoundCenterScroller;
 import com.android.tools.idea.common.surface.layout.TopLeftCornerScroller;
 import com.android.tools.idea.common.surface.layout.ZoomCenterScroller;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderSettings;
@@ -82,15 +82,15 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvide
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService;
 import com.android.tools.rendering.RenderResult;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
@@ -134,7 +134,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     private final Disposable myParentDisposable;
     private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider =
       NlDesignSurface::defaultSceneManagerProvider;
-    private SurfaceLayoutManager myLayoutManager;
+    @SuppressWarnings("deprecation") private SurfaceLayoutManager myLayoutManager;
     @SurfaceScale private double myMinScale = DEFAULT_MIN_SCALE;
     @SurfaceScale private double myMaxScale = DEFAULT_MAX_SCALE;
     /**
@@ -195,6 +195,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
      * Allows customizing the {@link SurfaceLayoutManager}. Use this method if you need to apply additional settings to it or if you
      * need to completely replace it, for example for tests.
      */
+    @SuppressWarnings("deprecation")
     @NotNull
     public Builder setLayoutManager(@NotNull SurfaceLayoutManager layoutManager) {
       myLayoutManager = layoutManager;
@@ -241,7 +242,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
      * Restrict the minimum zoom level to the given value. The default value is {@link #DEFAULT_MIN_SCALE}.
      * For example, if this value is 0.15 then the zoom level of {@link DesignSurface} can never be lower than 15%.
      * This restriction also effects to zoom-to-fit, if the measured size of zoom-to-fit is 10%, then the zoom level will be cut to 15%.
-     *
+     * <br/>
      * This value should always be larger than 0, otherwise the {@link IllegalStateException} will be thrown.
      *
      * @see #setMaxScale(double)
@@ -258,7 +259,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
      * Restrict the max zoom level to the given value. The default value is {@link #DEFAULT_MAX_SCALE}.
      * For example, if this value is 1.0 then the zoom level of {@link DesignSurface} can never be larger than 100%.
      * This restriction also effects to zoom-to-fit, if the measured size of zoom-to-fit is 120%, then the zoom level will be cut to 100%.
-     *
+     * <br/><br/>
      * This value should always be larger than 0 and larger than min scale which is set by {@link #setMinScale(double)}. otherwise the
      * {@link IllegalStateException} will be thrown when {@link #build()} is called.
      *
@@ -310,8 +311,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
      * Set the supported {@link NlSupportedActions} for the built NlDesignSurface.
      * These actions are registered by xml and can be found globally, we need to assign if the built NlDesignSurface supports it or not.
      * By default, the builder assumes there is no supported {@link NlSupportedActions}.
-     *
-     * Be award the {@link com.intellij.openapi.actionSystem.AnAction}s registered by code are not effected.
+     * <br/><br/>
+     * Be aware the {@link com.intellij.openapi.actionSystem.AnAction}s registered by code are not effected.
      * TODO(b/183243031): These mechanism should be integrated into {@link ActionManager}.
      */
     @NotNull
@@ -347,6 +348,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
     @NotNull
     public NlDesignSurface build() {
+      @SuppressWarnings("deprecation")
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
       if (myMinScale > myMaxScale) {
         throw new IllegalStateException("The max scale (" + myMaxScale + ") is lower than min scale (" + myMinScale +")");
@@ -400,18 +402,18 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   private float myRotateSurfaceDegree = Float.NaN;
 
   private final Dimension myScrollableViewMinSize = new Dimension();
-  @Nullable private LayoutScannerControl myScannerControl;
+  @Nullable private final LayoutScannerControl myScannerControl;
 
   @NotNull private final Set<NlSupportedActions> mySupportedActions;
 
-  private boolean myShouldRenderErrorsPanel;
+  private final boolean myShouldRenderErrorsPanel;
 
   private final VisualLintIssueProvider myVisualLintIssueProvider;
 
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
-                          @NotNull SurfaceLayoutManager defaultLayoutManager,
+                          @SuppressWarnings("deprecation") @NotNull SurfaceLayoutManager defaultLayoutManager,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> actionManagerProvider,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, Interactable> interactableProvider,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, InteractionHandler> interactionHandlerProvider,
@@ -465,6 +467,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     return sceneManager;
   }
 
+  @SuppressWarnings("deprecation")
   @NotNull
   public static SurfaceLayoutManager createDefaultSurfaceLayoutManager() {
     return new SingleDirectionLayoutManager(DEFAULT_SCREEN_OFFSET_X, DEFAULT_SCREEN_OFFSET_Y, SCREEN_DELTA, SCREEN_DELTA,
@@ -645,20 +648,34 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @NotNull
   @Override
   public ActionManager<NlDesignSurface> getActionManager() {
+    //noinspection unchecked
     return (ActionManager<NlDesignSurface>)super.getActionManager();
   }
 
   @Override
   @NotNull
   public ItemTransferable getSelectionAsTransferable() {
-    NlModel model = getModel();
-
     ImmutableList<DnDTransferComponent> components =
       getSelectionModel().getSelection().stream()
-        .map(component -> new DnDTransferComponent(component.getTagName(), component.getTagDeprecated().getText(),
-                                                   NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component)))
+        .filter(component -> component.getTag() != null)
+        .map(component ->
+               new DnDTransferComponent(component.getTagName(), component.getTag().getText(),
+                                        NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component)))
         .collect(toImmutableList());
-    return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
+
+    ImmutableSet<NlModel> selectedModels = getSelectionModel().getSelection()
+      .stream()
+      .map(NlComponent::getModel)
+      .collect(toImmutableSet());
+
+    if (selectedModels.size() != 1) {
+      Logger
+        .getInstance(NlDesignSurface.class)
+        .warn("Elements from multiple models were selected.");
+    }
+
+    NlModel selectedModel = Iterables.getFirst(selectedModels, null);
+    return new ItemTransferable(new DnDTransferItem(selectedModel != null ? selectedModel.getId() : 0, components));
   }
 
   /**
@@ -795,7 +812,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   private void modelRendered() {
     updateErrorDisplay();
     // modelRendered might be called in the Layoutlib Render thread and revalidateScrollArea needs to be called on the UI thread.
-    UIUtil.invokeLaterIfNeeded(() -> revalidateScrollArea());
+    UIUtil.invokeLaterIfNeeded(this::revalidateScrollArea);
   }
 
   @Override
@@ -819,7 +836,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     BackgroundableProcessIndicator refreshProgressIndicator = new BackgroundableProcessIndicator(
       getProject(),
       "Refreshing...",
-      PerformInBackgroundOption.ALWAYS_BACKGROUND,
       "",
       "",
       false
@@ -845,10 +861,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       return false;
     }
 
-    LayoutlibSceneManager manager = getSceneManager();
-    assert manager != null;
-
-    return manager.getRenderResult() != null;
+    return Iterables.any(getSceneManagers(), (sceneManager) -> sceneManager.getRenderResult() != null);
   }
 
   @Override
@@ -894,6 +907,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     if (changed) {
       DesignSurfaceViewport port = getViewport();
       Point scrollPosition = getScrollPosition();
+      @SuppressWarnings("deprecation")
       SurfaceLayoutManager layoutManager = ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
         .getLayoutManager();
 
@@ -980,11 +994,11 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @Override
   public void scrollToCenter(@NotNull List<NlComponent> list) {
-    Scene scene = getScene();
     SceneView view = getFocusedSceneView();
-    if (list.isEmpty() || scene == null || view == null) {
+    if (list.isEmpty() || view == null) {
       return;
     }
+    Scene scene = view.getScene();
     @AndroidDpCoordinate Rectangle componentsArea = new Rectangle(0, 0, -1, -1);
     @AndroidDpCoordinate Rectangle componentRect = new Rectangle();
     list.stream().filter(nlComponent -> !nlComponent.isRoot()).forEach(nlComponent -> {
@@ -1024,17 +1038,11 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @NotNull
   @Override
   public List<NlComponent> getSelectableComponents() {
-    NlModel model = getModel();
-    if (model == null) {
-      return Collections.emptyList();
-    }
-
-    List<NlComponent> roots = model.getComponents();
-    if (roots.isEmpty()) {
-      return Collections.emptyList();
-    }
-
-    NlComponent root = roots.get(0);
+    NlComponent root = getModels()
+      .stream()
+      .flatMap((model) -> model.getComponents().stream())
+      .findFirst()
+      .orElse(null);
     if (root == null) {
       return Collections.emptyList();
     }
