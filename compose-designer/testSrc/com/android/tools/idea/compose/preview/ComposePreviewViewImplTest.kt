@@ -46,7 +46,7 @@ import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
@@ -131,12 +131,13 @@ class ComposePreviewViewImplTest {
   private lateinit var fakeUi: FakeUi
 
   @Before
-  fun setUp() = invokeAndWaitIfNeeded {
-    // Setup a fake manifest so rendering works correctly
-    val manifest =
-      fixture.addFileToProjectAndInvalidate(
-        SdkConstants.FN_ANDROID_MANIFEST_XML,
-        """
+  fun setUp() =
+    ApplicationManager.getApplication().invokeAndWait {
+      // Setup a fake manifest so rendering works correctly
+      val manifest =
+        fixture.addFileToProjectAndInvalidate(
+          SdkConstants.FN_ANDROID_MANIFEST_XML,
+          """
       <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         package="java.google.simpleapplication">
 
@@ -158,66 +159,66 @@ class ComposePreviewViewImplTest {
 
       </manifest>
     """
-          .trimIndent()
+            .trimIndent()
+        )
+      SourceProviderManager.replaceForTest(
+        projectRule.module.androidFacet!!,
+        fixture.projectDisposable,
+        NamedIdeaSourceProviderBuilder.create("main", manifest.virtualFile.url).build()
       )
-    SourceProviderManager.replaceForTest(
-      projectRule.module.androidFacet!!,
-      fixture.projectDisposable,
-      NamedIdeaSourceProviderBuilder.create("main", manifest.virtualFile.url).build()
-    )
 
-    val psiMainFile =
-      fixture.addFileToProject(
-        "src/main/Test.kt",
-        """
+      val psiMainFile =
+        fixture.addFileToProject(
+          "src/main/Test.kt",
+          """
       fun main() {}
     """
-          .trimIndent()
-      )
+            .trimIndent()
+        )
 
-    val navigationHandler = ComposePreviewNavigationHandler()
-    val interactionHandler = NopInteractionHandler
-    val sceneComponentProvider = ComposeSceneComponentProvider()
+      val navigationHandler = ComposePreviewNavigationHandler()
+      val interactionHandler = NopInteractionHandler
+      val sceneComponentProvider = ComposeSceneComponentProvider()
 
-    mainFileSmartPointer = SmartPointerManager.createPointer(psiMainFile)
+      mainFileSmartPointer = SmartPointerManager.createPointer(psiMainFile)
 
-    val mainSurfaceBuilder =
-      createMainDesignSurfaceBuilder(
-        project,
-        navigationHandler,
-        interactionHandler,
-        nopDataProvider,
-        fixture.testRootDisposable,
-        sceneComponentProvider,
-        ComposeScreenViewProvider(NopComposePreviewManager()),
-        { false }
-      )
-    val composePreviewViewImpl =
-      ComposePreviewViewImpl(
-        project,
-        mainFileSmartPointer,
-        statusManager,
-        nopDataProvider,
-        mainSurfaceBuilder,
-        fixture.testRootDisposable,
-      )
+      val mainSurfaceBuilder =
+        createMainDesignSurfaceBuilder(
+          project,
+          navigationHandler,
+          interactionHandler,
+          nopDataProvider,
+          fixture.testRootDisposable,
+          sceneComponentProvider,
+          ComposeScreenViewProvider(NopComposePreviewManager()),
+          { false }
+        )
+      val composePreviewViewImpl =
+        ComposePreviewViewImpl(
+          project,
+          mainFileSmartPointer,
+          statusManager,
+          nopDataProvider,
+          mainSurfaceBuilder,
+          fixture.testRootDisposable,
+        )
 
-    // Create VisualLintService early to avoid it being created at the time of project disposal
-    VisualLintService.getInstance(project)
+      // Create VisualLintService early to avoid it being created at the time of project disposal
+      VisualLintService.getInstance(project)
 
-    previewView = composePreviewViewImpl
-    fakeUi =
-      FakeUi(
-        JPanel().apply {
-          layout = BorderLayout()
-          size = Dimension(1000, 800)
-          add(composePreviewViewImpl.component, BorderLayout.CENTER)
-        },
-        1.0,
-        true
-      )
-    fakeUi.root.validate()
-  }
+      previewView = composePreviewViewImpl
+      fakeUi =
+        FakeUi(
+          JPanel().apply {
+            layout = BorderLayout()
+            size = Dimension(1000, 800)
+            add(composePreviewViewImpl.component, BorderLayout.CENTER)
+          },
+          1.0,
+          true
+        )
+      fakeUi.root.validate()
+    }
 
   /**
    * Updates the [ComposePreviewView] with the preview elements provided by the [previewProvider]. A
@@ -260,7 +261,7 @@ class ComposePreviewViewImplTest {
         ::configureLayoutlibSceneManagerForPreviewElement
       )
     }
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       previewView.updateVisibilityAndNotifications()
       fakeUi.root.validate()
     }
@@ -268,7 +269,7 @@ class ComposePreviewViewImplTest {
 
   @Test
   fun `empty preview state`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       previewView.hasRendered = true
       previewView.hasContent = false
       previewView.updateVisibilityAndNotifications()
@@ -288,7 +289,7 @@ class ComposePreviewViewImplTest {
 
   @Test
   fun `test compilation error state`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       previewView.hasRendered = true
       previewView.hasContent = false
       statusManager.statusFlow.value = ProjectStatus.NeedsBuild
@@ -325,7 +326,7 @@ class ComposePreviewViewImplTest {
           previews.asSequence()
       }
     updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       previewView.mainSurface.zoomToFit()
       fakeUi.root.validate()
     }
@@ -350,7 +351,7 @@ class ComposePreviewViewImplTest {
       }
     updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       previewView.bottomPanel =
         JPanel().apply {
           layout = BorderLayout()
@@ -361,7 +362,7 @@ class ComposePreviewViewImplTest {
     }
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Bottom panel" }!!.isShowing)
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       previewView.bottomPanel = null
       fakeUi.root.validate()
     }
@@ -370,7 +371,7 @@ class ComposePreviewViewImplTest {
 
   @Test
   fun `verify refresh cancellation`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       previewView.onRefreshCancelledByTheUser()
       fakeUi.root.validate()
     }
@@ -398,7 +399,7 @@ class ComposePreviewViewImplTest {
           previews.asSequence()
       }
     updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       previewView.onRefreshCancelledByTheUser()
       fakeUi.root.validate()
     }

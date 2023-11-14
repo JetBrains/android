@@ -36,7 +36,7 @@ import com.android.tools.rendering.classloading.toClassTransform
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
@@ -243,7 +243,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
 
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
       ui.updateToolbars()
       ui.layoutAndDispatchEvents()
@@ -274,7 +274,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animatedVisibilityAnimation)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
       ui.updateToolbars()
       ui.layoutAndDispatchEvents()
@@ -304,7 +304,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
           setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
       }
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
       PlatformTestUtil
         .dispatchAllInvocationEventsInIdeEventQueue() // Wait for the tab to be added on the UI
@@ -343,7 +343,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
           setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
       }
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
       PlatformTestUtil
         .dispatchAllInvocationEventsInIdeEventQueue() // Wait for the tab to be added on the UI
@@ -427,7 +427,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
 
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
       ui.updateToolbars()
       ui.layoutAndDispatchEvents()
@@ -476,23 +476,25 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
 
     assertEquals(5, inspector.tabCount())
 
-    assertEquals("repeatedLabel", inspector.getAnimationTitleAt(0))
-    assertEquals(
-      "repeatedLabel (1)",
-      inspector.getAnimationTitleAt(1)
-    ) // repeated titles get their index incremented
-    assertEquals(
-      "Animated Value",
-      inspector.getAnimationTitleAt(2)
-    ) // null labels use default title
-    assertEquals(
-      "Transition Animation",
-      inspector.getAnimationTitleAt(3)
-    ) // null labels use default title
-    assertEquals(
-      "Animated Visibility",
-      inspector.getAnimationTitleAt(4)
-    ) // null labels use default title
+    ApplicationManager.getApplication().invokeAndWait {
+      assertEquals("repeatedLabel", inspector.getAnimationTitleAt(0))
+      assertEquals(
+        "repeatedLabel (1)",
+        inspector.getAnimationTitleAt(1)
+      ) // repeated titles get their index incremented
+      assertEquals(
+        "Animated Value",
+        inspector.getAnimationTitleAt(2)
+      ) // null labels use default title
+      assertEquals(
+        "Transition Animation",
+        inspector.getAnimationTitleAt(3)
+      ) // null labels use default title
+      assertEquals(
+        "Animated Visibility",
+        inspector.getAnimationTitleAt(4)
+      ) // null labels use default title
+    }
   }
 
   @Test
@@ -501,7 +503,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     val clock = getClock()
     animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it) }
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
       val cards = TestUtils.findAllCards(inspector.component)
       val timeline = TestUtils.findTimeline(inspector.component)
@@ -551,7 +553,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it) }
     UIUtil.pump() // Wait for cards to be added on the UI thread
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(inspector.apply { component.size = Dimension(600, 500) }.component)
       ui.updateToolbars()
       ui.layoutAndDispatchEvents()
@@ -583,7 +585,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     lateinit var psiPointerTwo: SmartPsiElementPointer<PsiFile>
     lateinit var anotherPsiPointer: SmartPsiElementPointer<PsiFile>
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       psiPointerOne = SmartPointerManager.createPointer(psiFile)
       psiPointerTwo = SmartPointerManager.createPointer(psiFile)
       anotherPsiPointer = SmartPointerManager.createPointer(anotherPsiFile)
@@ -704,9 +706,8 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     withContext(uiThread) { animationsCount() }
   }
 
-  private fun AnimationPreview.getAnimationTitleAt(index: Int): String = invokeAndWaitIfNeeded {
+  private fun AnimationPreview.getAnimationTitleAt(index: Int): String =
     TestUtils.findAllCards(this.component)[index].findLabel().text
-  }
 
   private fun AnimationPreview.noAnimationsPanel() =
     TreeWalker(this.component)

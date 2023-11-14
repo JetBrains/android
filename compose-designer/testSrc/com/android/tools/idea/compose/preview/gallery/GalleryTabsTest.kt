@@ -20,7 +20,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
@@ -48,7 +48,7 @@ class GalleryTabsTest {
 
   @Test
   fun `first tab is selected`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val selected = TestKey("First Tab")
       val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
       val tabs = GalleryTabs(rootComponent, { selected }, { keys }, { _, _ -> })
@@ -60,7 +60,7 @@ class GalleryTabsTest {
 
   @Test
   fun `second tab is selected`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val selected = TestKey("Second Tab")
       val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
       val tabs = GalleryTabs(rootComponent, { selected }, { keys }, { _, _ -> })
@@ -72,7 +72,7 @@ class GalleryTabsTest {
 
   @Test
   fun `update selected tab`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       var selected = TestKey("First Tab")
       val providedKeys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
       val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }, { _, _ -> })
@@ -85,7 +85,7 @@ class GalleryTabsTest {
 
   @Test
   fun `update provided tabs`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val keys = setOf(TestKey("Second Tab"), TestKey("Third Tab"))
       var providedKeys = setOf(TestKey("First Tab")) + keys
       val tabs =
@@ -99,7 +99,7 @@ class GalleryTabsTest {
 
   @Test
   fun `new tab is added `() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val newTab = TestKey("newTab")
       val selected = TestKey("Tab")
       val providedKeys = mutableSetOf(TestKey("Tab"), TestKey("Tab2"), TestKey("Tab3"))
@@ -118,7 +118,7 @@ class GalleryTabsTest {
 
   @Test
   fun `order correct after update`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val keyOne = TestKey("First")
       val keyTwo = TestKey("Second")
       val keyThree = TestKey("Third")
@@ -141,7 +141,7 @@ class GalleryTabsTest {
 
   @Test
   fun `toolbar is not updated`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val selected = TestKey("First Tab")
       val providedKeys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
       val tabs = GalleryTabs(rootComponent, { selected }, { providedKeys }) { _, _ -> }
@@ -158,7 +158,7 @@ class GalleryTabsTest {
 
   @Test
   fun `toolbar is updated with new key`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val selected = TestKey("First Tab")
       val providedKeys =
         mutableSetOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
@@ -177,7 +177,7 @@ class GalleryTabsTest {
 
   @Test
   fun `toolbar is updated with removed key`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val keyToRemove = TestKey("Key to remove")
       val selected = TestKey("First Tab")
       val providedKeys =
@@ -204,7 +204,7 @@ class GalleryTabsTest {
    */
   fun `preview tabs`() {
     val selected = TestKey("First Tab")
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val tabs =
         GalleryTabs(
           rootComponent,
@@ -223,7 +223,7 @@ class GalleryTabsTest {
 
   @Test
   fun `click on tabs`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       var selected = TestKey("First Tab")
       val tabs =
         GalleryTabs(
@@ -256,7 +256,7 @@ class GalleryTabsTest {
 
   @Test
   fun `selected tab is always visible`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       var selected = TestKey("First Tab")
       val tabs =
         GalleryTabs(
@@ -300,7 +300,7 @@ class GalleryTabsTest {
 
   @Test
   fun `empty gallery`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       var selected: TestKey? = null
       val tabs =
         GalleryTabs<TestKey>(rootComponent, { null }, { emptySet() }) { _, key -> selected = key }

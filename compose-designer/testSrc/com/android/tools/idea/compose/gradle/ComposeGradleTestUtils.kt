@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.android.tools.rendering.RenderService
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
@@ -36,7 +37,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.util.ui.UIUtil
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.util.concurrent.TimeoutException
 import javax.swing.JLabel
@@ -76,7 +76,7 @@ suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
       while (isActive && sceneViewPeerPanels.isEmpty()) {
         withContext(Dispatchers.Main) {
           delay(250)
-          UIUtil.invokeAndWaitIfNeeded(Runnable { fakeUi.root.validate() })
+          ApplicationManager.getApplication().invokeAndWait { fakeUi.root.validate() }
           sceneViewPeerPanels.addAll(fakeUi.findAllComponents())
 
           if (retryCounter++ % 4 == 0) {

@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.animation
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.tabs.TabInfo
 import javax.swing.JPanel
@@ -47,7 +47,7 @@ class AnimationTabsTest {
 
   @Test
   fun `create tab panel with navigation`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val tabs = AnimationTabs(projectRule.project, parentDisposable)
       tabs.component.setSize(300, 300)
       assertNotNull(tabs.component)
@@ -70,7 +70,7 @@ class AnimationTabsTest {
 
   @Test
   fun `open and close tabs`() {
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val tabs = AnimationTabs(projectRule.project, parentDisposable)
       tabs.component.setSize(300, 300)
       assertNotNull(tabs.component)

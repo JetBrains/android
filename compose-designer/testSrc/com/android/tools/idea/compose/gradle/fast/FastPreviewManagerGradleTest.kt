@@ -36,7 +36,7 @@ import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
@@ -121,7 +121,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
             { version, _, log, scope -> defaultDaemonFactory(version, log, scope) }
           )
           .also { Disposer.register(projectRule.fixture.testRootDisposable, it) }
-    invokeAndWaitIfNeeded { projectRule.buildAndAssertIsSuccessful() }
+    ApplicationManager.getApplication().invokeAndWait { projectRule.buildAndAssertIsSuccessful() }
     runWriteActionAndWait {
       projectRule.fixture.openFileInEditor(mainFile)
       WriteCommandAction.runWriteCommandAction(projectRule.project) {
