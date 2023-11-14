@@ -25,7 +25,7 @@
     <orderEntry type="module" module-name="android.sdktools.builder-model" exported="" />
     <orderEntry type="module" module-name="android.sdktools.common" exported="" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" exported="" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common.gradle" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common.gradle.rt" exported="" />
     <orderEntry type="library" exported="" name="kxml2" level="project" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
