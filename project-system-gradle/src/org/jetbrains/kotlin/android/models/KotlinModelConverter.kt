@@ -71,6 +71,7 @@ import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependencyCoordinates
@@ -376,11 +377,7 @@ class KotlinModelConverter {
       )
     }
 
-    //// TODO(b/288062009): Use the new compiler arguments infra when we migrate to 1.9.0
-    //val mainKotlinCompilerOptions = CachedArgumentsRestoring.restoreExtractedArgs(
-    //  mainKotlinCompilation.cachedArgsInfo as CachedExtractedArgsInfo,
-    //  CompilerArgumentsCacheMergeManager.compilerArgumentsCacheHolder
-    //).currentCompilerArguments as K2JVMCompilerArguments
+    val mainKotlinCompilerOptions = parseCommandLineArguments<K2JVMCompilerArguments>(mainKotlinCompilation.compilerArguments.orEmpty())
 
     val mainBuildInformation = IdeBuildTasksAndOutputInformationImpl(
       assembleTaskName = mainAndroidCompilation.assembleTaskName,
@@ -437,10 +434,8 @@ class KotlinModelConverter {
       lintOptions = IdeLintOptionsImpl(), // TODO(b/269755640): support lint in the IDE
       javaCompileOptions = IdeJavaCompileOptionsImpl(
         encoding = Charset.defaultCharset().name(),
-        //sourceCompatibility = mainKotlinCompilerOptions.jvmTarget ?: "1.8",
-        "1.8",
-        //targetCompatibility = mainKotlinCompilerOptions.jvmTarget ?: "1.8",
-        "1.8",
+        sourceCompatibility = mainKotlinCompilerOptions.jvmTarget ?: "1.8",
+        targetCompatibility = mainKotlinCompilerOptions.jvmTarget ?: "1.8",
         isCoreLibraryDesugaringEnabled = targetInfo.isCoreLibraryDesugaringEnabled,
       ),
       resourcePrefix = null,
