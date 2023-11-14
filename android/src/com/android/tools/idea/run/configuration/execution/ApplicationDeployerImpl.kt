@@ -84,7 +84,7 @@ class ApplicationDeployerImpl(private val project: Project, private val stats: R
   private fun filterDisabledFeatures(apkInfo: ApkInfo, disabledFeatures: List<String>): ApkInfo {
     return if (apkInfo.files.size > 1) {
       val filtered = apkInfo.files.filter { feature: ApkFileUnit -> DynamicAppUtils.isFeatureEnabled(disabledFeatures, feature) }
-      ApkInfo(filtered, apkInfo.applicationId)
+      apkInfo.copy(files = filtered)
     }
     else {
       apkInfo

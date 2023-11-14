@@ -19,6 +19,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.AdbHelper;
 import com.android.ddmlib.IDevice;
+import com.android.ide.common.build.BaselineProfileDetails;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.deploy.proto.Deploy;
 import com.android.tools.deployer.AdbClient;
@@ -31,6 +32,7 @@ import com.android.tools.deployer.DeployerOption;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.deployer.model.App;
+import com.android.tools.deployer.model.BaselineProfile;
 import com.android.tools.deployer.tasks.Canceller;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.StudioFlags.OptimisticInstallSupportLevel;
@@ -54,6 +56,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -235,7 +238,16 @@ public abstract class AbstractDeployTask {
 
   public static App getAppToInstall(@NotNull ApkInfo apkInfo) {
     List<Path> paths = apkInfo.getFiles().stream().map(ApkFileUnit::getApkPath).collect(Collectors.toList());
-    return App.fromPaths(apkInfo.getApplicationId(),paths);
+    List<BaselineProfile> baselineProfiles = convertBaseLinesProfiles(apkInfo.getBaselineProfiles());
+    return App.fromPaths(apkInfo.getApplicationId(),paths, baselineProfiles);
+  }
+
+  private static List<BaselineProfile> convertBaseLinesProfiles(List<BaselineProfileDetails> profiles) {
+    return profiles.stream().map(p -> new BaselineProfile(
+      p.getMinApi(),
+      p.getMaxApi(),
+      p.getBaselineProfiles().stream().map(File::toPath).collect(Collectors.toList()))
+    ).collect(Collectors.toList());
   }
 
   private static AndroidStudioEvent.Builder toStudioEvent(Deploy.AgentExceptionLog log) {

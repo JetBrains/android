@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.run
 
+import com.android.ide.common.build.BaselineProfileDetails
+import com.android.ide.common.build.GenericBuiltArtifacts
 import com.android.sdklib.AndroidVersion
 import com.google.common.base.Preconditions
 import java.io.File
+import java.nio.file.Path
 
 /**
  * The list of files to install for a given application ID.
@@ -35,11 +38,13 @@ import java.io.File
 /** @param applicationId The manifest package name for the APK (the app ID).  */
 /** @param requiredInstallOptions A set of required "pm install" options to install this APK.  */
 /** @param isSandboxApk A flag indicating if the APK is the sandbox APK. */
-class ApkInfo @JvmOverloads constructor (
+/** @param baselineProfiles: List of baseline profile which can be installed along with the apks. */
+data class ApkInfo @JvmOverloads constructor (
   val files: List<ApkFileUnit>,
   val applicationId: String,
   val requiredInstallOptions: Set<AppInstallOption> = emptySet(),
-  val isSandboxApk: Boolean = false
+  val isSandboxApk: Boolean = false,
+  val baselineProfiles: List<BaselineProfileDetails> = emptyList(),
 ) {
   init {
     Preconditions.checkArgument(files.isNotEmpty())
@@ -59,6 +64,12 @@ class ApkInfo @JvmOverloads constructor (
     file: File,
     applicationId: String,
     requiredInstallOptions: Set<AppInstallOption> = emptySet(),
-    isSandboxApk: Boolean = false
-  ) : this(listOf(ApkFileUnit("", file)), applicationId, requiredInstallOptions, isSandboxApk)
+    isSandboxApk: Boolean = false,
+    baselineProfiles: List<BaselineProfileDetails> = emptyList()
+  ) : this(listOf(ApkFileUnit("", file)), applicationId, requiredInstallOptions, isSandboxApk, baselineProfiles)
+
+  constructor(apkFileList: List<ApkFileUnit>, pkgName: String, baselineProfiles: List<BaselineProfileDetails>) :
+    this(files = apkFileList, pkgName, baselineProfiles = baselineProfiles) {
+  }
+
 }
