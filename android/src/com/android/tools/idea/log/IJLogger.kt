@@ -25,4 +25,7 @@ internal class IJLogger(name: String) : Logger {
   override fun error(message: String, throwable: Throwable?) = delegate.error(message, throwable)
 
   override fun debug(message: String, throwable: Throwable?) = delegate.debug(message, throwable)
+
+  override val isDebugEnabled: Boolean
+    get() = delegate.isDebugEnabled
 }
