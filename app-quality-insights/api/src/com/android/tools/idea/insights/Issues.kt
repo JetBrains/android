@@ -123,7 +123,5 @@ data class IssueVariant(
   // Number of unique devices.
   val impactedDevicesCount: Long,
   // number of unique events that occur for this issue
-  val eventsCount: Long,
-  // Event
-  val event: Event
+  val eventsCount: Long
 )

@@ -334,8 +334,7 @@ val ISSUE_VARIANT =
     sampleEvent = "sample_event_1",
     uri = "firebase.google.com",
     impactedDevicesCount = 1,
-    eventsCount = 1,
-    event = ISSUE1.sampleEvent
+    eventsCount = 1
   )
 
 val ISSUE_VARIANT2 =
@@ -344,8 +343,7 @@ val ISSUE_VARIANT2 =
     sampleEvent = "sample_event_2",
     uri = "firebase.google.com",
     impactedDevicesCount = 1,
-    eventsCount = 1,
-    event = ISSUE2.sampleEvent
+    eventsCount = 1
   )
 
 // Used for testing cached issues because their counts are zeroed out.
