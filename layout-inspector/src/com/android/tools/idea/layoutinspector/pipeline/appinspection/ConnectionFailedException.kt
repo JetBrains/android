@@ -39,10 +39,7 @@ const val GMAVEN_HOSTNAME = "maven.google.com"
  * @param message User visible error message.
  * @param code The error code used for analytics.
  */
-class ConnectionFailedException(
-  message: String,
-  val code: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
-) : Exception(message)
+class ConnectionFailedException(message: String, val code: AttachErrorCode) : Exception(message)
 
 /**
  * An error description with an error [code] and optional [args] for generating a message.
@@ -74,7 +71,7 @@ fun Throwable.toAttachErrorInfo(): AttachErrorInfo {
       AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND.toInfo("path" to path)
     is AppInspectionArtifactNotFoundException -> this.toAttachErrorInfo()
     is AppInspectionServiceException -> AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR.toInfo()
-    else -> AttachErrorCode.UNKNOWN_ERROR_CODE.toInfo()
+    else -> AttachErrorCode.UNEXPECTED_ERROR.toInfo()
   }
 }
 

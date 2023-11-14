@@ -267,7 +267,7 @@ class AppInspectionInspectorClient(
     launchMonitor.logAttachErrorToMetrics(errorCode)
 
     return errorCode != AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR &&
-      errorCode != AttachErrorCode.UNKNOWN_ERROR_CODE
+      errorCode != AttachErrorCode.UNEXPECTED_ERROR
   }
 
   private fun logError(throwable: Throwable) {
