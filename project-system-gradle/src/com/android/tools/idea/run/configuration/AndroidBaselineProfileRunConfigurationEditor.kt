@@ -45,78 +45,23 @@ class AndroidBaselineProfileRunConfigurationEditor(
   private val configuration: AndroidBaselineProfileRunConfiguration
 ) : SettingsEditor<AndroidBaselineProfileRunConfiguration>() {
 
-  private val modulesComboBox = ModulesComboBox()
   private var generateAllVariants: Boolean = configuration.generateAllVariants
-
-  private val moduleSelector = object : ConfigurationModuleSelector(project, modulesComboBox) {
-    override fun isModuleAccepted(module: Module?): Boolean {
-      if (module == null || !super.isModuleAccepted(module)) {
-        return false
-      }
-      val facet = AndroidFacet.getInstance(module) ?: return false
-      if (!module.isHolderModule()) return false
-      return when (facet.getModuleSystem().type) {
-        AndroidModuleSystem.Type.TYPE_APP -> true
-
-        AndroidModuleSystem.Type.TYPE_NON_ANDROID,
-        AndroidModuleSystem.Type.TYPE_LIBRARY,
-        AndroidModuleSystem.Type.TYPE_TEST,
-        AndroidModuleSystem.Type.TYPE_ATOM,
-        AndroidModuleSystem.Type.TYPE_INSTANTAPP,
-        AndroidModuleSystem.Type.TYPE_FEATURE,
-        AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE -> false
-      }
-    }
-  }
 
   init {
     Disposer.register(project, this)
-
-    modulesComboBox.addActionListener {
-      object : Task.Modal(project, AndroidBundle.message("android.run.configuration.loading"), true) {
-        override fun run(indicator: ProgressIndicator) {
-          val module = moduleSelector.module
-          if (module == null || DumbService.isDumb(project)) {
-            return
-          }
-        }
-
-        override fun onFinished() {
-          if (project.getProjectSystem().getSyncManager().isSyncInProgress()) {
-            component?.parent?.parent?.apply {
-              removeAll()
-              layout = BorderLayout()
-              add(JBPanelWithEmptyText().withEmptyText("Can't edit configuration while Project is synchronizing"))
-            }
-          }
-        }
-      }.queue()
-    }
   }
 
   override fun resetEditorFrom(runConfiguration: AndroidBaselineProfileRunConfiguration) {
-    moduleSelector.reset(runConfiguration)
     generateAllVariants = runConfiguration.generateAllVariants
     (component as DialogPanel).reset()
   }
 
   override fun applyEditorTo(runConfiguration: AndroidBaselineProfileRunConfiguration) {
     (component as DialogPanel).apply()
-    moduleSelector.applyTo(runConfiguration)
     runConfiguration.generateAllVariants = generateAllVariants
   }
 
   override fun createEditor() = panel {
-
-    row {
-      label(AndroidBundle.message("android.run.configuration.module.label"))
-      cell(modulesComboBox)
-        .align(AlignX.FILL)
-        .applyToComponent {
-          maximumSize = Dimension(400, maximumSize.height)
-        }
-    }.layout(RowLayout.LABEL_ALIGNED)
-
     group(message("android.baseline.profile.run.configuration.group.variants.title"), indent = true) {
       buttonsGroup {
         row {
