@@ -108,7 +108,9 @@ class AppInspectorTabLaunchSupport(
         config.id to
           when (compatibilityResponse[i].status) {
             LibraryCompatibilityInfo.Status.COMPATIBLE ->
-              getInspectorJarTarget(artifactCoordinates[i])
+              getInspectorJarTarget(
+                compatibilityResponse[i].run { libraryCoordinate.copy(version = version) }
+              )
             LibraryCompatibilityInfo.Status.APP_PROGUARDED ->
               InspectorJarTarget.Unresolved(APP_PROGUARDED_MESSAGE, artifactCoordinates[i])
             else -> {
