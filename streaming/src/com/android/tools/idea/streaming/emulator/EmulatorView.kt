@@ -1160,10 +1160,9 @@ class EmulatorView(
 
       if (imageFormat.width == 0 || imageFormat.height == 0) {
         expectedFrameNumber++
-        if (imageFormat.width != 0 || imageFormat.height != 0) {
-          LOG.error("Invalid ImageMessage for display ${imageFormat.display}: degenerate ${imageFormat.width}x${imageFormat.height} image")
-        }
-        return // Ignore empty screenshot.
+        val adjective = if (imageFormat.width == 0 && imageFormat.height == 0) "empty" else "degenerate"
+        LOG.error("Invalid ImageMessage for display ${imageFormat.display}: $adjective ${imageFormat.width}x${imageFormat.height} image")
+        return // Ignore invalid screenshot.
       }
 
       if (response.image.size() != imageFormat.width * imageFormat.height * 3) {
