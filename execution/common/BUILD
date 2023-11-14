@@ -34,6 +34,11 @@ iml_module(
 iml_module(
     name = "intellij.android.execution.common.tests",
     iml_files = ["intellij.android.execution.common.tests.iml"],
+    split_test_targets = {
+        "applychanges": {
+            "test_filter": "com.android.tools.idea.execution.common.applychanges",
+        },
+    },
     test_class = "com.android.tools.idea.execution.common.AndroidExecutionCommonTestSuite",
     # keep sorted
     test_data = [
