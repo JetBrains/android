@@ -35,21 +35,21 @@ iml_module(
     iml_files = ["intellij.android.templates.tests.iml"],
     split_test_targets = {
         "TemplateDiffTest": {
-            "shard_count": 1,
             "data": [
                 "//tools/adt/idea/android/testData",
-                "//prebuilts/studio/sdk:cmake",  # Needed for the C++ templates
-                "//prebuilts/studio/sdk:ndk",  # Needed for the C++ templates
-                "//tools/data-binding:data_binding_runtime.zip",  # Needed for some templates that use view binding
+                "//prebuilts/studio/sdk:cmake",  # Needed for the C++ templates in TemplateDiffTest
+                "//prebuilts/studio/sdk:ndk",  # Needed for the C++ templates in TemplateDiffTest
+                "//tools/data-binding:data_binding_runtime.zip",  # Needed for some templates that use view binding in TemplateDiffTest
             ],
             "test_filter": "com.android.tools.idea.templates.diff.TemplateDiffTest",
+        },
+        "KotlinBomPlatformDependencyTest": {
+            "test_filter": "com.android.tools.idea.templates.KotlinBomPlatformDependencyTest",
         },
         "other": {
             "data": [
                 "//tools/adt/idea/android/testData",
             ],
-            # TODO(b/234749894) restore after fixing flakes
-            "tags": ["no_test_windows"],
         },
     },
     test_class = "com.android.tools.idea.templates.TemplateTestSuite",
