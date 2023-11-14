@@ -48,12 +48,6 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.concurrency.SameThreadExecutor
 import com.intellij.util.ui.EDT
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.swing.SwingUtilities
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -63,6 +57,12 @@ import org.jetbrains.android.refactoring.renaming.ResourceRenameHandler
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.junit.runner.Description
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.swing.SwingUtilities
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /** Finds an [IntentionAction] with given name, if present. */
 fun CodeInsightTestFixture.getIntentionAction(message: String) =
@@ -109,7 +109,7 @@ fun CodeInsightTestFixture.moveCaret(window: String): PsiElement {
   message = "Use getEnclosing instead, which has clearer semantics.",
   replaceWith =
     ReplaceWith(
-      expression = "getEnclosing<T>(window)",
+      expression = "this.getEnclosing<T>(window)",
       imports = ["com.android.tools.idea.testing.getEnclosing"],
     )
 )
