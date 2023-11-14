@@ -25,7 +25,6 @@
     <orderEntry type="module" module-name="targetsdkversion-upgrade-assistant" />
     <orderEntry type="module" module-name="intellij.android.gmd-code-completion" />
     <orderEntry type="module" module-name="ml.sml-android" />
-    <orderEntry type="module" module-name="ml.hallucination-detector" />
     <orderEntry type="module" module-name="studio-sdk-all-plugins" />
   </component>
 </module>
