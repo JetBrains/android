@@ -29,15 +29,15 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvide
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSet
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.TestActionEvent
 import icons.StudioIcons
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -53,7 +53,8 @@ class IssueNotificationActionTest {
     val issueModel = IssueModel(projectRule.testRootDisposable, projectRule.project)
     whenever(surface.issueModel).thenReturn(issueModel)
     whenever(surface.project).thenReturn(projectRule.project)
-    whenever(surface.supportedActions).thenReturn(setOf(NlSupportedActions.TOGGLE_ISSUE_PANEL))
+    whenever(surface.supportedActions)
+      .thenReturn(ImmutableSet.of(NlSupportedActions.TOGGLE_ISSUE_PANEL))
 
     val issueProvider =
       object : VisualLintIssueProvider(projectRule.testRootDisposable) {
@@ -66,27 +67,27 @@ class IssueNotificationActionTest {
     whenever(model.virtualFile).thenReturn(mockedFile)
     whenever(surface.models).thenReturn(ImmutableList.of(model))
 
-    val context = DataContext { dataId ->
-      when {
-        PlatformDataKeys.PROJECT.`is`(dataId) -> projectRule.project
-        DESIGN_SURFACE.`is`(dataId) -> surface
-        else -> null
+    val actionEvent =
+      TestActionEvent.createTestEvent { dataId ->
+        when {
+          PlatformDataKeys.PROJECT.`is`(dataId) -> projectRule.project
+          DESIGN_SURFACE.`is`(dataId) -> surface
+          else -> null
+        }
       }
-    }
-    val presentation = Presentation()
-    val actionEvent = AnActionEvent(null, context, "", presentation, ActionManager.getInstance(), 0)
 
     action.update(actionEvent)
-    assertEquals(IssueNotificationAction.DISABLED_ICON, presentation.icon)
-    assertEquals(IssueNotificationAction.NO_ISSUE, presentation.description)
+    assertTrue(actionEvent.presentation.isEnabled)
+    assertEquals(IssueNotificationAction.DISABLED_ICON, actionEvent.presentation.icon)
+    assertEquals(IssueNotificationAction.NO_ISSUE, actionEvent.presentation.description)
 
     run {
       issueProvider.addAllIssues(
         listOf(createSingleIssueWithSeverity(HighlightSeverity.INFORMATION, model))
       )
       action.update(actionEvent)
-      assertEquals(StudioIcons.Common.INFO_INLINE, presentation.icon)
-      assertEquals(IssueNotificationAction.SHOW_ISSUE, presentation.description)
+      assertEquals(StudioIcons.Common.INFO_INLINE, actionEvent.presentation.icon)
+      assertEquals(IssueNotificationAction.SHOW_ISSUE, actionEvent.presentation.description)
       issueProvider.clear()
     }
 
@@ -95,8 +96,9 @@ class IssueNotificationActionTest {
         listOf(createSingleIssueWithSeverity(HighlightSeverity.WARNING, model))
       )
       action.update(actionEvent)
-      assertEquals(StudioIcons.Common.WARNING_INLINE, presentation.icon)
-      assertEquals(IssueNotificationAction.SHOW_ISSUE, presentation.description)
+      assertTrue(actionEvent.presentation.isEnabled)
+      assertEquals(StudioIcons.Common.WARNING_INLINE, actionEvent.presentation.icon)
+      assertEquals(IssueNotificationAction.SHOW_ISSUE, actionEvent.presentation.description)
       issueProvider.clear()
     }
 
@@ -105,10 +107,31 @@ class IssueNotificationActionTest {
         listOf(createSingleIssueWithSeverity(HighlightSeverity.ERROR, model))
       )
       action.update(actionEvent)
-      assertEquals(StudioIcons.Common.ERROR_INLINE, presentation.icon)
-      assertEquals(IssueNotificationAction.SHOW_ISSUE, presentation.description)
+      assertTrue(actionEvent.presentation.isEnabled)
+      assertEquals(StudioIcons.Common.ERROR_INLINE, actionEvent.presentation.icon)
+      assertEquals(IssueNotificationAction.SHOW_ISSUE, actionEvent.presentation.description)
       issueProvider.clear()
     }
+  }
+
+  @Test
+  fun testActionNotVisibleIfActionIsNotSupported() {
+    val surface = mock<NlDesignSurface>()
+
+    whenever(surface.project).thenReturn(projectRule.project)
+    whenever(surface.supportedActions).thenReturn(ImmutableSet.of())
+
+    val actionEvent =
+      TestActionEvent.createTestEvent { dataId ->
+        when {
+          PlatformDataKeys.PROJECT.`is`(dataId) -> projectRule.project
+          DESIGN_SURFACE.`is`(dataId) -> surface
+          else -> null
+        }
+      }
+    val action = IssueNotificationAction()
+    action.update(actionEvent)
+    assertFalse(actionEvent.presentation.isEnabled)
   }
 
   private fun createSingleIssueWithSeverity(severity: HighlightSeverity, nlModel: NlModel) =

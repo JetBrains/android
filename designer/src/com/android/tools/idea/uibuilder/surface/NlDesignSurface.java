@@ -106,6 +106,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.swing.JScrollPane;
 import org.jetbrains.annotations.NotNull;
@@ -162,7 +163,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     private Function<DesignSurface<LayoutlibSceneManager>, DesignSurfaceActionHandler> myActionHandlerProvider = NlDesignSurface::defaultActionHandlerProvider;
     @Nullable private SelectionModel mySelectionModel = null;
     private ZoomControlsPolicy myZoomControlsPolicy = ZoomControlsPolicy.AUTO_HIDE;
-    @NotNull private Set<NlSupportedActions> mySupportedActions = Collections.emptySet();
+    @NotNull private Supplier<ImmutableSet<NlSupportedActions>> mySupportedActionsProvider = () -> ImmutableSet.of();
 
     private boolean myShouldRenderErrorsPanel = false;
 
@@ -316,8 +317,18 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
      * TODO(b/183243031): These mechanism should be integrated into {@link ActionManager}.
      */
     @NotNull
+    public Builder setSupportedActions(@NotNull ImmutableSet<NlSupportedActions> supportedActions) {
+      mySupportedActionsProvider = () -> supportedActions;
+      return this;
+    }
+
+    /**
+     * See {@link #setSupportedActions(ImmutableSet)}.
+     * This method will create a copy of the given set.
+     */
+    @NotNull
     public Builder setSupportedActions(@NotNull Set<NlSupportedActions> supportedActions) {
-      mySupportedActions = supportedActions;
+      setSupportedActions(ImmutableSet.copyOf(supportedActions));
       return this;
     }
 
@@ -367,7 +378,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         myDelegateDataProvider,
         mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel(),
         myZoomControlsPolicy,
-        mySupportedActions,
+        mySupportedActionsProvider,
         myShouldRenderErrorsPanel,
         myMaxFitIntoZoomLevel,
         myVisualLintIssueProviderFactory);
@@ -404,7 +415,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   private final Dimension myScrollableViewMinSize = new Dimension();
   @Nullable private final LayoutScannerControl myScannerControl;
 
-  @NotNull private final Set<NlSupportedActions> mySupportedActions;
+  @NotNull private final Supplier<ImmutableSet<NlSupportedActions>> mySupportedActionsProvider;
 
   private final boolean myShouldRenderErrorsPanel;
 
@@ -423,7 +434,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
                           @Nullable DataProvider delegateDataProvider,
                           @NotNull SelectionModel selectionModel,
                           ZoomControlsPolicy zoomControlsPolicy,
-                          @NotNull Set<NlSupportedActions> supportedActions,
+                          @NotNull Supplier<ImmutableSet<NlSupportedActions>> supportedActionsProvider,
                           boolean shouldRenderErrorsPanel,
                           double maxFitIntoZoomLevel,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, VisualLintIssueProvider> issueProviderFactory) {
@@ -436,7 +447,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     mySceneManagerProvider = sceneManagerProvider;
-    mySupportedActions = supportedActions;
+    mySupportedActionsProvider = supportedActionsProvider;
     myShouldRenderErrorsPanel = shouldRenderErrorsPanel;
     myVisualLintIssueProvider = issueProviderFactory.apply(this);
     myMinScale = minScale;
@@ -1119,8 +1130,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   }
 
   @NotNull
-  public Set<NlSupportedActions> getSupportedActions() {
-    return mySupportedActions;
+  public ImmutableSet<NlSupportedActions> getSupportedActions() {
+    return mySupportedActionsProvider.get();
   }
 
   @Override
