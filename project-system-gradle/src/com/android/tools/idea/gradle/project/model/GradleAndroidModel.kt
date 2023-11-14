@@ -43,11 +43,11 @@ import com.android.tools.idea.model.TestOptions
 import com.android.tools.lint.client.api.LintClient.Companion.getGradleDesugaring
 import com.android.tools.lint.detector.api.Desugaring
 import com.android.utils.usLocaleCapitalize
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.jetbrains.rd.util.getOrCreate
-import org.assertj.core.util.VisibleForTesting
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.EnumSet
