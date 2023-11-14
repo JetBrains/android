@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose.code.state
 
+import com.android.tools.compose.ComposeBundle
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -29,6 +30,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubComposeRuntime
 import org.jetbrains.android.compose.stubKotlinStdlib
+import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
@@ -257,6 +259,82 @@ class StateReadTest {
         expression("|value|") to
           StateRead.create(expression("{ |stateVar|."), lambda("|MoreInner { stateVar.value }|"))
       }
+  }
+
+  @Test
+  fun create_functionScope() {
+    val psiFile =
+      fixture.addFileToProject(
+        "com/example/Foo.kt",
+        // language=kotlin
+        """
+      package com.example
+      fun foo() {
+        val a = 1
+      }
+      """
+          .trimIndent()
+      )
+
+    val foo = psiFile.getEnclosing<KtNamedFunction>("val")
+    val a = psiFile.getEnclosing<KtExpression>("val")
+    val stateRead = StateRead.create(a, foo)
+    assertThat(stateRead).isNotNull()
+    checkNotNull(stateRead)
+    val scopeBody = psiFile.getEnclosing<KtBlockExpression>("foo() |{" to "\n}|")
+    assertThat(stateRead.stateVar).isEqualTo(a)
+    assertThat(stateRead.scope).isEqualTo(scopeBody)
+    assertThat(stateRead.scopeName).isEqualTo("foo")
+  }
+
+  @Test
+  fun create_lambdaScope() {
+    val psiFile =
+      fixture.addFileToProject(
+        "com/example/Foo.kt",
+        // language=kotlin
+        """
+      package com.example
+      fun foo(val block: () -> Unit) {}
+      fun bar() {
+        foo {
+          val a = 1
+        }
+      }
+      """
+          .trimIndent()
+      )
+
+    val block = psiFile.getEnclosing<KtLambdaExpression>("val a")
+    val a = psiFile.getEnclosing<KtExpression>("val a")
+    val stateRead = StateRead.create(a, block)
+    assertThat(stateRead).isNotNull()
+    checkNotNull(stateRead)
+    assertThat(stateRead.stateVar).isEqualTo(a)
+    assertThat(stateRead.scope).isEqualTo(block)
+    assertThat(stateRead.scopeName)
+      .isEqualTo(ComposeBundle.message("state.read.recompose.target.enclosing.lambda"))
+  }
+
+  @Test
+  fun create_unnamedScope() {
+    val psiFile =
+      fixture.addFileToProject(
+        "com/example/Foo.kt",
+        // language=kotlin
+        """
+      package com.example
+      fun foo() {
+        val a = 1
+      }
+      """
+          .trimIndent()
+      )
+
+    val a = psiFile.getEnclosing<KtExpression>("val a")
+    val unnamedNonLambdaExpression = psiFile.getEnclosing<KtExpression>("1")
+    val stateRead = StateRead.create(a, unnamedNonLambdaExpression)
+    assertThat(stateRead).isNull()
   }
 
   private fun createPsiFile(

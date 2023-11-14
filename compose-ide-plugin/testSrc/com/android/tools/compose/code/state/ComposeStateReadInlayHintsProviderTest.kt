@@ -222,7 +222,8 @@ class ComposeStateReadInlayHintsProviderTest {
     verify(treeBuilder).text(eq(ComposeBundle.message("state.read")), actionDataCaptor.capture())
     with(actionDataCaptor.value) {
       assertThat(payload).isInstanceOf(PsiPointerInlayActionPayload::class.java)
-      val expectedScope = fixture.getEnclosing<KtFunction>("stateVar = rememberSaveable")
+      val expectedScope =
+        fixture.getEnclosing<KtFunction>("stateVar = rememberSaveable").bodyExpression
       assertThat((payload as PsiPointerInlayActionPayload).pointer.element).isEqualTo(expectedScope)
       assertThat(handlerId).isEqualTo(ComposeStateReadInlayActionHandler.HANDLER_NAME)
     }
