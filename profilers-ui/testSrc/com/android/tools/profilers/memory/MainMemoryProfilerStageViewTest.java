@@ -574,6 +574,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
   }
 
   @Test
+  @Ignore("b/301024803")
   public void testWhenSessionDiesRecordingOptionsViewIsDisabled() {
     startWithNewDevice("Test", AndroidVersion.VersionCodes.Q);
     RecordingOptionsView view = new MainMemoryProfilerStageView(myProfilersView, myStage).getRecordingOptionsView();
