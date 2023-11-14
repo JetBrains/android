@@ -24,10 +24,10 @@ import com.android.tools.adtui.model.TooltipModel
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModelImpl
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpDataModel
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpDataModelImpl
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.SelectionRangeDataFetcher
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel

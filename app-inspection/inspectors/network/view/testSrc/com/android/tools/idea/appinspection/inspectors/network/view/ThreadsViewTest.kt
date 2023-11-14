@@ -26,10 +26,10 @@ import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNav
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.JavaThread
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpDataModel
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.JavaThread
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.createFakeHttpData
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors

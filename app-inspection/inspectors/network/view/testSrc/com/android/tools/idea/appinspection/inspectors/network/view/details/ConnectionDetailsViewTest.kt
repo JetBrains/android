@@ -29,11 +29,11 @@ import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetwork
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.FAKE_THREAD_LIST
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.JavaThread
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.FAKE_THREAD_LIST
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpDataModel
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.JavaThread
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.createFakeHttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.android.tools.idea.appinspection.inspectors.network.view.TestNetworkInspectorUsageTracker
@@ -59,7 +59,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol
-import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Header
 
 private const val FAKE_TRACE = "com.google.downloadUrlToStream(ImageFetcher.java:274)"
 private val FAKE_RESPONSE_HEADERS =

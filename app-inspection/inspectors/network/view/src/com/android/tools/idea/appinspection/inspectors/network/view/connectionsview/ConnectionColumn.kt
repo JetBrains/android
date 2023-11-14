@@ -17,12 +17,12 @@ package com.android.tools.idea.appinspection.inspectors.network.view.connections
 
 import com.android.tools.adtui.stdui.BorderlessTableCellRenderer
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.getMimeType
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.getUrlHost
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.getUrlName
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.getUrlPath
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.getUrlScheme
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.getMimeType
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.getUrlHost
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.getUrlName
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.getUrlPath
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.getUrlScheme
 import com.intellij.openapi.util.NlsContexts.ColumnName
 import javax.swing.JTable
 import javax.swing.table.TableCellRenderer

@@ -3,9 +3,9 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
-import com.android.tools.idea.appinspection.inspectors.network.model.grpc.GrpcData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.JavaThread
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.GrpcData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.JavaThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.testing.DebugLoggerRule

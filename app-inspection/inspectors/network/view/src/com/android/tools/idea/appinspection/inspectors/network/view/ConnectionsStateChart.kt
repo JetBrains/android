@@ -22,7 +22,7 @@ import com.android.tools.adtui.model.DefaultDataSeries
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.StateChartModel
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_RECEIVING_COLOR
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_RECEIVING_SELECTED_COLOR
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_SENDING_COLOR

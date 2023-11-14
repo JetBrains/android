@@ -18,7 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.concurrency.createChildScope
 import com.intellij.util.containers.ContainerUtil
 import kotlinx.coroutines.CoroutineScope

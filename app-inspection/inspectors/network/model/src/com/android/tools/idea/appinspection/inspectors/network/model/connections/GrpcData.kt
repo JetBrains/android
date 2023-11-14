@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspectors.network.model.grpc
+package com.android.tools.idea.appinspection.inspectors.network.model.connections
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.JavaThread
 import com.android.tools.idea.protobuf.ByteString
 import java.util.TreeMap
 import java.util.concurrent.TimeUnit

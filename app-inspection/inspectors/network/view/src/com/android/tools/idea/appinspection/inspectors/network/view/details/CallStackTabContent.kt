@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.inspectors.common.api.stacktrace.StackFrameParser
 import com.android.tools.inspectors.common.api.stacktrace.ThreadId

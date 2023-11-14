@@ -27,9 +27,9 @@ import com.android.tools.adtui.stdui.TimelineTable
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.getUrlName
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.SelectionRangeDataFetcher
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.getUrlName
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_RECEIVING_COLOR
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_SENDING_COLOR

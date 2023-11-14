@@ -20,7 +20,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener
 import com.android.tools.adtui.stdui.ContentType
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.UiComponentsProvider
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer

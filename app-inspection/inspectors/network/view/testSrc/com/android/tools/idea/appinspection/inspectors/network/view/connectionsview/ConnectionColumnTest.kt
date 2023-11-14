@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.connectionsview
 
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.HttpTransport

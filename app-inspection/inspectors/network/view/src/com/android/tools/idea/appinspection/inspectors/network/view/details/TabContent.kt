@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import javax.swing.JTabbedPane

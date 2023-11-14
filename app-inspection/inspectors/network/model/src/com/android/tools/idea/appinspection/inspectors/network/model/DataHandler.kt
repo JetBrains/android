@@ -19,8 +19,8 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspectors.network.model.DataHandler.Result
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
-import com.android.tools.idea.appinspection.inspectors.network.model.grpc.GrpcData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.GrpcData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
