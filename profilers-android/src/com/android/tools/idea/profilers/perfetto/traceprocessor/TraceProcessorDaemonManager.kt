@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.nativeSymbolizer.getLlvmSymbolizerPath
 import com.android.tools.profilers.analytics.FeatureTracker
@@ -22,11 +23,13 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.nio.file.Paths
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -94,8 +97,22 @@ class TraceProcessorDaemonManager(
       .setExecutable(true)
       .build()
 
+    private val TPD_BINARY_INTELLIJ = DeployableFile.Builder(TPD_EXECUTABLE)
+      .setReleaseDir(TPD_RELEASE_PATH)
+      .setDevDir(TPD_RELEASE_PATH)
+      .setExecutable(true)
+      .build()
+
     private fun getExecutablePath(): String {
-      return File(TPD_BINARY.dir, TPD_BINARY.fileName).absolutePath
+      if (IdeInfo.getInstance().isAndroidStudio) {
+        return File(TPD_BINARY.dir, TPD_BINARY.fileName).absolutePath
+      } else {
+        val androidPluginPath = Paths.get(PathManager.getSystemPath(), "android/android-plugin-resources/231.0.1.4");
+        val tpdPath = Paths.get(androidPluginPath.toString(), TPD_BINARY_INTELLIJ.dir.toString(), TPD_BINARY_INTELLIJ.fileName);
+        return tpdPath
+          .toAbsolutePath()
+          .toString();
+      }
     }
   }
 
