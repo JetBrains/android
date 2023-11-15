@@ -1706,6 +1706,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_ENABLED =
     Flag.create(STUDIOBOT, "inline.code.completion.enabled", "Enable inline code completion",
                 "When enabled, inline code completion suggestions will be shown.", false);
+
+  public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
+    Flag.create(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",
+                "Enable sending inline code completion metrics to the AIDA CES service",
+                "When enabled, metrics related to inline code completion suggestions will be sent to the CES service for AIDA.", false);
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
