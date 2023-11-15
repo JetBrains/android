@@ -172,7 +172,10 @@ private object ProcessExecutor {
     withContext(dispatcher) {
       val process = ProcessBuilder(listOf(executable)).start()
 
-      val exitCode = async { process.waitFor() }
+      val exitCode = async {
+        @Suppress("UsePlatformProcessAwaitExit")
+        process.waitFor()
+      }
       val errOutput = async {
         consumeProcessOutput(process.errorStream, errWriter, process, dispatcher)
       }
