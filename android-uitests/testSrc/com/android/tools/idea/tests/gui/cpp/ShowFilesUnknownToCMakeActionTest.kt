@@ -44,12 +44,13 @@ class ShowFilesUnknownToCMakeActionTest {
     unusedFile1.writeText("int i1 = 1;")
 
     val ideFrame = guiTest.ideFrame()
-    ideFrame.requestProjectSync()
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     val projectView = ideFrame.projectView
     val androidPane = projectView.selectAndroidPane()
 
-    androidPane.doubleClickPath("app", "cpp")
+    androidPane.clickPath("app", "cpp")
 
     // Turn off show unused files
     projectView.showOptionsMenu()
