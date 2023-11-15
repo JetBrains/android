@@ -45,7 +45,7 @@ import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtTryExpression
 
 /**
- * Quick fix addressing @Composable function invocations from non-@Composable functions.
+ * Quick fix addressing @Composable function invocations from non-@Composable scopes.
  *
  * As an example:
  * ```kotlin
@@ -64,7 +64,7 @@ import org.jetbrains.kotlin.psi.KtTryExpression
  * This quick fix appears on both errors, and offers to add `@Composable` to
  * `NonComposableFunction`.
  */
-class AddComposableToFunctionQuickFix
+class AddComposableAnnotationQuickFix
 private constructor(element: KtModifierListOwner, private val displayName: String) :
   KotlinQuickFixAction<KtModifierListOwner>(element) {
 
@@ -85,7 +85,7 @@ private constructor(element: KtModifierListOwner, private val displayName: Strin
     override fun createAction(diagnostic: Diagnostic): IntentionAction? =
       createAction(diagnostic.psiElement)
 
-    fun createAction(psiElement: PsiElement): AddComposableToFunctionQuickFix? {
+    fun createAction(psiElement: PsiElement): AddComposableAnnotationQuickFix? {
       // Look for the containing function. This logic is based on ComposableCallChecker.check, which
       // walks up the tree and terminates at
       // various places depending on the structure of the code.
@@ -126,14 +126,14 @@ private constructor(element: KtModifierListOwner, private val displayName: Strin
             // Terminate at containing KtFunction.
             if (node !is KtNamedFunction) return null
             val displayName = node.name ?: return null
-            return AddComposableToFunctionQuickFix(node, displayName)
+            return AddComposableAnnotationQuickFix(node, displayName)
           }
           is KtProperty -> return null // Terminate at containing property initializer.
           is KtPropertyAccessor -> {
             // Terminate at containing property accessor.
             if (!node.isGetter) return null
             val displayName = (node.parent as? KtProperty)?.name ?: return null
-            return AddComposableToFunctionQuickFix(node, "$displayName.get()")
+            return AddComposableAnnotationQuickFix(node, "$displayName.get()")
           }
           is KtCallableReferenceExpression,
           is KtFile,
@@ -154,11 +154,11 @@ private constructor(element: KtModifierListOwner, private val displayName: Strin
     override fun createAction(diagnostic: Diagnostic): IntentionAction? =
       createAction(diagnostic.psiElement.parent)
 
-    fun createAction(psiElement: PsiElement): AddComposableToFunctionQuickFix? {
+    fun createAction(psiElement: PsiElement): AddComposableAnnotationQuickFix? {
       val namedFunction = psiElement as? KtNamedFunction ?: return null
       val displayName = namedFunction.name ?: return null
 
-      return AddComposableToFunctionQuickFix(namedFunction, displayName)
+      return AddComposableAnnotationQuickFix(namedFunction, displayName)
     }
   }
 
