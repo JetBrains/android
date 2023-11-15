@@ -538,6 +538,8 @@ class ComposePreviewRepresentation(
             surface.zoomToFit()
             surface.repaint()
           }
+        } else {
+          emptyUiCheckPanel.isVisible = false
         }
       }
     }
