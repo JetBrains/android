@@ -16,9 +16,7 @@
 package com.android.tools.idea;
 
 import java.util.Collection;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Various utilities for generating user-facing text
@@ -56,19 +54,5 @@ public class AndroidTextUtils {
       i++;
     }
     return result.toString();
-  }
-
-  /**
-   * An analogue of StringUtil.trimEnd, but which returns null in case one string is not a suffix of another
-   *
-   * @return {@code haystack}, with suffix of {@code needle} dropped
-   */
-  @Nullable/*when haystack doesn't end with needle*/
-  @Contract(pure = true)
-  public static String trimEndOrNullize(@NotNull String haystack, @NotNull String needle) {
-    if (haystack.endsWith(needle)) {
-      return haystack.substring(0, haystack.length() - needle.length());
-    }
-    return null;
   }
 }
