@@ -51,7 +51,6 @@
   <xi:include href="/META-INF/utp.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/backgroundtask-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-debuggers.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/gradle-dsl-toml.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-device.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/logcat.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android.device-explorer-common.xml" xpointer="xpointer(/idea-plugin/*)"/>
