@@ -475,4 +475,72 @@ class GroupedListSurfaceLayoutManagerTest {
     LayoutTestCase.assertEquals(zoomToFitScale1, zoomToFitScale2)
     LayoutTestCase.assertEquals(zoomToFitScale1, zoomToFitScale3)
   }
+
+  @Test
+  fun testInvisibleContent() {
+    val manager =
+      GroupedListSurfaceLayoutManager(0, { 0 }) { contents ->
+        listOf(PositionableGroup(contents.toList()))
+      }
+    val contents =
+      listOf(
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100)
+      )
+    val width = 1000
+    val height = 300
+
+    run {
+      manager.layout(contents, width, height, false)
+      assertEquals(450, contents[0].x)
+      assertEquals(0, contents[0].y)
+      assertEquals(450, contents[1].x)
+      assertEquals(100, contents[1].y)
+      assertEquals(450, contents[2].x)
+      assertEquals(200, contents[2].y)
+      assertEquals(450, contents[3].x)
+      assertEquals(300, contents[3].y)
+      assertEquals(450, contents[4].x)
+      assertEquals(400, contents[4].y)
+      val size = manager.getRequiredSize(contents, width, 100000, null)
+      assertEquals(Dimension(100, 500), size)
+    }
+
+    contents[1].setVisible(false)
+    run {
+      manager.layout(contents, width, height, false)
+      assertEquals(450, contents[0].x)
+      assertEquals(0, contents[0].y)
+      assertEquals(Integer.MIN_VALUE, contents[1].x)
+      assertEquals(Integer.MIN_VALUE, contents[1].y)
+      assertEquals(450, contents[2].x)
+      assertEquals(100, contents[2].y)
+      assertEquals(450, contents[3].x)
+      assertEquals(200, contents[3].y)
+      assertEquals(450, contents[4].x)
+      assertEquals(300, contents[4].y)
+      val size = manager.getRequiredSize(contents, width, 100000, null)
+      assertEquals(Dimension(100, 400), size)
+    }
+
+    contents[4].setVisible(false)
+    run {
+      manager.layout(contents, width, height, false)
+      assertEquals(450, contents[0].x)
+      assertEquals(0, contents[0].y)
+      assertEquals(Integer.MIN_VALUE, contents[1].x)
+      assertEquals(Integer.MIN_VALUE, contents[1].y)
+      assertEquals(450, contents[2].x)
+      assertEquals(100, contents[2].y)
+      assertEquals(450, contents[3].x)
+      assertEquals(200, contents[3].y)
+      assertEquals(Integer.MIN_VALUE, contents[4].x)
+      assertEquals(Integer.MIN_VALUE, contents[4].y)
+      val size = manager.getRequiredSize(contents, width, 100000, null)
+      assertEquals(Dimension(100, 300), size)
+    }
+  }
 }
