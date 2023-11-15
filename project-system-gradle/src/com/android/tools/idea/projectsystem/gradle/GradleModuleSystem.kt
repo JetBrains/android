@@ -469,7 +469,6 @@ class GradleModuleSystem(
       ScopeType.UNIT_TEST -> unitTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.ANDROID_TEST -> androidTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.TEST_FIXTURES -> fixturesModule?.getModuleWithDependenciesAndLibrariesScope(false)
-      ScopeType.SHARED_TEST -> GlobalSearchScope.EMPTY_SCOPE
     } ?: GlobalSearchScope.EMPTY_SCOPE
   }
 

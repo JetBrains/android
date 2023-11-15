@@ -415,7 +415,6 @@ enum class ScopeType {
   MAIN,
   ANDROID_TEST,
   UNIT_TEST,
-  SHARED_TEST,
   TEST_FIXTURES,
   ;
 
@@ -423,13 +422,13 @@ enum class ScopeType {
   val isForTest
     get() = when (this) {
       MAIN, TEST_FIXTURES -> false
-      ANDROID_TEST, UNIT_TEST, SHARED_TEST -> true
+      ANDROID_TEST, UNIT_TEST -> true
     }
 
   /** Returns true if this [ScopeType] can contain Android resources. */
   val canHaveAndroidResources
     get() = when (this) {
-      TEST_FIXTURES, UNIT_TEST, SHARED_TEST -> false
+      TEST_FIXTURES, UNIT_TEST -> false
       MAIN, ANDROID_TEST -> true
     }
 }
@@ -442,9 +441,10 @@ fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): Scope
   val inUnitTest = testScopes.isUnitTestSource(file)
 
   return when {
-    inUnitTest && inAndroidTest -> ScopeType.SHARED_TEST
+    !inUnitTest && inAndroidTest -> ScopeType.ANDROID_TEST
     inUnitTest && !inAndroidTest -> ScopeType.UNIT_TEST
-    else -> ScopeType.ANDROID_TEST
+    else -> throw IllegalStateException(
+      "Unexpected Test Scope: $file in $project appears to be both in Unit Tests and Android Tests, but should only be part of one.")
   }
 }
 

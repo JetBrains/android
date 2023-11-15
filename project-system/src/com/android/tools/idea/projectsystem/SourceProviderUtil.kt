@@ -75,7 +75,6 @@ private fun String.stripPrefix(scopeType: ScopeType): String {
     ScopeType.ANDROID_TEST -> this.stripPrefix("androidTest")
     ScopeType.TEST_FIXTURES -> this.stripPrefix("testFixtures")
     ScopeType.UNIT_TEST -> this.stripPrefix("test")
-    ScopeType.SHARED_TEST -> throw IllegalStateException("Unexpected source provider scope type: $scopeType")
   }
 }
 
