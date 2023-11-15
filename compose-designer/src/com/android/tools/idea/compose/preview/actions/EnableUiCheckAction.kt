@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.ide.common.rendering.HardwareConfigHelper
+import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.previewElement
@@ -39,11 +41,14 @@ class EnableUiCheckAction :
     super.updateButton(e)
     val isUiCheckModeEnabled = StudioFlags.NELE_COMPOSE_UI_CHECK_MODE.get()
     val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+    val isWearPreview =
+      HardwareConfigHelper.isWear(e.getData(SCENE_VIEW)?.sceneManager?.model?.configuration?.device)
     e.presentation.isVisible = isUiCheckModeEnabled
-    e.presentation.isEnabled = isUiCheckModeEnabled && !isEssentialsModeEnabled
+    e.presentation.isEnabled = isUiCheckModeEnabled && !isEssentialsModeEnabled && !isWearPreview
     e.presentation.text = if (isEssentialsModeEnabled) null else message("action.uicheck.title")
     e.presentation.description =
       if (isEssentialsModeEnabled) message("action.uicheck.essentials.mode.description")
+      else if (isWearPreview) message("action.uicheck.wear.description")
       else message("action.uicheck.description")
   }
 
