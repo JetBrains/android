@@ -38,6 +38,7 @@ import com.android.tools.idea.uibuilder.surface.layer.UiCheckWarningLayer
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.LayoutEditorState
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 
 class ComposeScreenViewProvider(private val previewManager: ComposePreviewManager) :
   ScreenViewProvider {
@@ -78,7 +79,11 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
             )
             add(
               UiCheckWarningLayer(it) {
-                previewManager.mode.value is PreviewMode.UiCheck && surface.isIssueTabSelected
+                previewManager.mode.value is PreviewMode.UiCheck &&
+                  ProblemsView.getToolWindow(surface.project)
+                    ?.contentManager
+                    ?.selectedContent
+                    ?.tabName == surface.visualLintIssueProvider.uiCheckInstanceId
               }
             )
             StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {

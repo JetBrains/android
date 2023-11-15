@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.surface.layer
 
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueListener
+import com.android.tools.idea.common.error.IssueNode
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.Layer
@@ -27,7 +28,12 @@ import com.android.tools.idea.uibuilder.model.x
 import com.android.tools.idea.uibuilder.model.y
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.ui.JBColor
+import com.intellij.ui.content.ContentManagerEvent
+import com.intellij.ui.content.ContentManagerListener
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.Shape
@@ -42,17 +48,27 @@ open class WarningLayer(
   private val issueListener =
     object : IssueListener {
       override fun onIssueSelected(issue: Issue?) {
+        componentsToHighlight = issue?.getComponentsToHighlight() ?: emptyList()
+        screenView.surface.repaint()
+      }
+    }
+
+  private val tabSelectionListener =
+    object : ContentManagerListener {
+      override fun selectionChanged(event: ContentManagerEvent) {
+        val selectedItem =
+          (event.content.component as? DataProvider)?.getData(PlatformDataKeys.SELECTED_ITEM.name)
         componentsToHighlight =
-          (issue?.source as? VisualLintIssueProvider.VisualLintIssueSource)
-            ?.components
-            ?.filter { it.model == screenView.sceneManager.model }
-            ?.toList() ?: emptyList()
+          (selectedItem as? IssueNode)?.issue?.getComponentsToHighlight() ?: emptyList()
         screenView.surface.repaint()
       }
     }
 
   init {
     screenView.surface.addIssueListener(issueListener)
+    ProblemsView.getToolWindow(screenView.surface.project)
+      ?.contentManager
+      ?.addContentManagerListener(tabSelectionListener)
   }
 
   override fun paint(gc: Graphics2D) {
@@ -99,6 +115,16 @@ open class WarningLayer(
 
   override fun dispose() {
     screenView.surface.removeIssueListener(issueListener)
+    ProblemsView.getToolWindow(screenView.surface.project)
+      ?.contentManager
+      ?.removeContentManagerListener(tabSelectionListener)
     super.dispose()
+  }
+
+  private fun Issue.getComponentsToHighlight(): List<NlComponent> {
+    return (source as? VisualLintIssueProvider.VisualLintIssueSource)
+      ?.components
+      ?.filter { it.model == screenView.sceneManager.model }
+      ?.toList() ?: emptyList()
   }
 }

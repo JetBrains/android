@@ -177,6 +177,13 @@ class IssuePanelService(private val project: Project) {
             }
           DesignerCommonIssuePanelUsageTracker.getInstance().trackSelectingTab(selectedTab, project)
         }
+
+        override fun contentRemoved(event: ContentManagerEvent) {
+          event.content.let {
+            nameToTabMap.remove(it.tabName)
+            tabToPanelMap.remove(it)
+          }
+        }
       }
     contentManager.addContentManagerListener(contentManagerListener)
 
@@ -555,27 +562,10 @@ class IssuePanelService(private val project: Project) {
           }
 
       contentManager.addContent(tab)
-      contentManager.addContentManagerListener(
-        object : ContentManagerListener {
-          override fun selectionChanged(event: ContentManagerEvent) {
-            surface.isIssueTabSelected = event.content == tab
-          }
-
-          override fun contentRemoved(event: ContentManagerEvent) {
-            if (tab == event.content) {
-              nameToTabMap.remove(name)
-              tabToPanelMap.remove(tab)
-              surface.isIssueTabSelected = false
-              contentManager.removeContentManagerListener(this)
-            }
-          }
-        }
-      )
       Disposer.register(parentDisposable) { contentManager.removeContent(tab, true) }
       nameToTabMap[name] = WeakReference(tab)
       tabToPanelMap[tab] = WeakReference(uiCheckIssuePanel)
       contentManager.setSelectedContent(tab)
-      surface.isIssueTabSelected = true
     }
     uiCheckIssuePanel.issueProvider.registerUpdateListener(postIssueUpdateListener)
     uiCheckIssuePanel.addIssueSelectionListener(surface.issueListener, surface)

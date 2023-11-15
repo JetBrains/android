@@ -295,8 +295,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull
   private final IssueListener myIssueListener = issue -> myIssueListeners.forEach(listener -> listener.onIssueSelected(issue));
 
-  private boolean myIssueTabSelected = false;
-
   public DesignSurface(
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
@@ -1956,14 +1954,5 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull
   public IssueListener getIssueListener() {
     return myIssueListener;
-  }
-
-  public void setIssueTabSelected(boolean selected) {
-    myIssueTabSelected = selected;
-    repaint();
-  }
-
-  public boolean isIssueTabSelected() {
-    return myIssueTabSelected;
   }
 }
