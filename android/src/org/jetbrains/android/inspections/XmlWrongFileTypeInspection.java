@@ -16,12 +16,17 @@
 package org.jetbrains.android.inspections;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.AndroidTextUtils;
+import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.utils.text.TextUtilsKt;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMultimap;
-import com.intellij.codeInspection.*;
+import com.intellij.codeInspection.InspectionManager;
+import com.intellij.codeInspection.LocalInspectionTool;
+import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
@@ -37,7 +42,6 @@ import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -147,7 +151,8 @@ public class XmlWrongFileTypeInspection extends LocalInspectionTool {
     }
 
     String folderEnumeration =
-      AndroidTextUtils.generateCommaSeparatedList(Collections2.transform(folderTypes, TYPE_NAME_FUNCTION), "or");
+      TextUtilsKt.toCommaSeparatedList(Collections2.transform(folderTypes, TYPE_NAME_FUNCTION), "or");
+
     if (folderTypes.size() > 1) {
       folderEnumeration = "either " + folderEnumeration;
     }
