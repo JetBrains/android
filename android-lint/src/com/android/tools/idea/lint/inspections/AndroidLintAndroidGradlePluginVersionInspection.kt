@@ -22,12 +22,14 @@ import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts.ContextType
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.LintIdeQuickFix
-import com.android.tools.idea.lint.common.LintIdeSupport.Companion.get
+import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.lint.checks.GradleDetector
-import com.android.tools.lint.detector.api.LintFix
-import com.android.tools.lint.detector.api.LintFix.LintFixGroup
+import com.android.tools.lint.detector.api.Incident
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import java.util.ArrayList
+import com.intellij.psi.PsiFile
 
 class AndroidLintAndroidGradlePluginVersionInspection :
   AndroidLintInspectionBase(
@@ -37,27 +39,15 @@ class AndroidLintAndroidGradlePluginVersionInspection :
   override fun getQuickFixes(
     startElement: PsiElement,
     endElement: PsiElement,
-    message: String,
-    fixData: LintFix?
+    incident: Incident
   ): Array<LintIdeQuickFix> {
-    val quickFixes = ArrayList<LintIdeQuickFix>()
-    // Find and add a quick fix corresponding to a "safe" (micro-level change only) AGP upgrade
-    if (fixData is LintFixGroup && fixData.type == LintFix.GroupType.ALTERNATIVES) {
-      fixData.fixes
-        .asSequence()
-        .filter { it.robot }
-        .forEach { fix ->
-          quickFixes.addAll(super.getQuickFixes(startElement, endElement, message, fix))
-        }
-    } else if (fixData != null && fixData.robot) {
-      quickFixes.addAll(super.getQuickFixes(startElement, endElement, message, fixData))
+    val fixes = super.getQuickFixes(startElement, endElement, incident)
+    return if (LintIdeSupport.get().shouldRecommendUpdateAgpToLatest(startElement.project)) {
+      val recommendedVersion = LintIdeSupport.get().recommendedAgpVersion(startElement.project)
+      fixes + InvokeAGPUpgradeAssistantQuickFix(recommendedVersion)
+    } else {
+      fixes
     }
-    if (get().shouldRecommendUpdateAgpToLatest(startElement.project)) {
-      val recommendedVersion = get().recommendedAgpVersion(startElement.project)
-      val auaQuickFix: LintIdeQuickFix = InvokeAGPUpgradeAssistantQuickFix(recommendedVersion)
-      quickFixes.add(auaQuickFix)
-    }
-    return quickFixes.toArray(LintIdeQuickFix.EMPTY_ARRAY)
   }
 
   class InvokeAGPUpgradeAssistantQuickFix(agpVersion: AgpVersion?) :
@@ -70,7 +60,15 @@ class AndroidLintAndroidGradlePluginVersionInspection :
       endElement: PsiElement,
       context: AndroidQuickfixContexts.Context
     ) {
-      get().updateAgpToLatest(startElement.project)
+      LintIdeSupport.get().updateAgpToLatest(startElement.project)
+    }
+
+    override fun generatePreview(
+      project: Project,
+      editor: Editor,
+      file: PsiFile
+    ): IntentionPreviewInfo? {
+      return IntentionPreviewInfo.EMPTY
     }
 
     override fun isApplicable(

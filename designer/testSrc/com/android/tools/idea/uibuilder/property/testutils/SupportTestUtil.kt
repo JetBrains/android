@@ -41,6 +41,7 @@ import com.android.tools.idea.uibuilder.property.NlIdPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
+import com.android.tools.lint.detector.api.Incident
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.intellij.codeHighlighting.HighlightDisplayLevel
@@ -239,6 +240,7 @@ private constructor(
     lintModel.addIssue(
       component,
       AttributeKey(component, property.namespace, property.name),
+      Incident(),
       mock(),
       message,
       mock(),

@@ -23,18 +23,18 @@ public class DefaultLintQuickFix implements LintIdeQuickFix {
   protected final String myName;
   protected final String myFamilyName;
 
-  public DefaultLintQuickFix(String name) {
+  public DefaultLintQuickFix(@Nullable String name) {
     this(name, null);
   }
 
-  public DefaultLintQuickFix(String name, @Nullable String familyName) {
+  public DefaultLintQuickFix(@Nullable String name, @Nullable String familyName) {
+    // Name must not be null unless getName is overridden!
     myName = name;
     myFamilyName = familyName;
   }
 
-  public DefaultLintQuickFix(String name, boolean useAsFamilyNameToo) { // to use as family name, the description must be general
-    myName = name;
-    myFamilyName = useAsFamilyNameToo ? myName : null;
+  public DefaultLintQuickFix(@Nullable String name, boolean useAsFamilyNameToo) { // to use as family name, the description must be general
+    this(name, useAsFamilyNameToo ? name : null);
   }
 
   @Override

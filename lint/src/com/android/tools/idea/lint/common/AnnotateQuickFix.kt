@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint.common
 
+import com.android.tools.lint.detector.api.Location
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.intention.AddAnnotationFix
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnonymousClass
 import com.intellij.psi.PsiClassInitializer
@@ -41,11 +43,14 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtTypeParameter
 
 class AnnotateQuickFix(
+  project: Project,
   displayName: String?,
   familyName: String?,
   private val annotationSource: String,
-  private val replace: Boolean
+  private val replace: Boolean,
+  range: Location?
 ) : DefaultLintQuickFix(displayName ?: "Annotate", familyName) {
+  private val rangePointer = LintIdeFixPerformer.getRangePointer(project, range)
 
   private fun findContainer(element: PsiElement): PsiElement? {
     return when (element.language) {
@@ -60,6 +65,26 @@ class AnnotateQuickFix(
     endElement: PsiElement,
     context: AndroidQuickfixContexts.Context
   ) {
+    val rangeFile = rangePointer?.element?.containingFile
+    @Suppress("NAME_SHADOWING") var element: PsiElement = element
+
+    // Make sure we don't try to use the endElement in any way (if we do,
+    // we also need to look that up from the text range, similar to the startOffset
+    // handling below)
+    @Suppress("NAME_SHADOWING", "UNUSED_VARIABLE") val endElement: PsiElement? = null
+
+    if (
+      rangeFile != null &&
+        !(rangeFile.containingFile != element.containingFile &&
+          element.containingFile.originalFile == rangeFile.containingFile)
+    ) {
+      val range = rangePointer?.range
+      val newStartElement = rangeFile.findElementAt(range!!.startOffset)
+      if (newStartElement != null) {
+        element = newStartElement
+      }
+    }
+
     val language = element.language
     val container = findContainer(element) ?: return
 
@@ -85,7 +110,7 @@ class AnnotateQuickFix(
       }
       KotlinLanguage.INSTANCE -> {
         if (container !is KtModifierListOwner) return
-        val psiFactory = KtPsiFactory(container)
+        val psiFactory = KtPsiFactory(container.project, markGenerated = true)
         val annotationEntry = psiFactory.createAnnotationEntry(annotationSource)
         val fqName =
           FqName(annotationSource.removePrefix("@").substringAfter(':').substringBefore('('))

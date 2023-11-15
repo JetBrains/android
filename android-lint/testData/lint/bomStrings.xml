@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 	<string name="hanping_chinese<error>﻿</error>_lite<error>﻿</error>_app_name">(Translated name)</string>
-	<string tools:ignore='ByteOrderMark' name="something">test<error>﻿</error>test2</string>
+	<string tools:ignore='ByteOrderMark' name="something">test﻿test2</string>
 </resources>

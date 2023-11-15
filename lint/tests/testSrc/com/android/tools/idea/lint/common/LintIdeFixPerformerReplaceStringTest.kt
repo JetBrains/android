@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lint.common
 
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts.BatchContext
+import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.detector.api.LintFix
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiDocumentManager
@@ -23,10 +25,13 @@ import com.intellij.psi.PsiManager
 import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 
-class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
+class LintIdeFixPerformerReplaceStringTest : JavaCodeInsightFixtureAdtTestCase() {
+  init {
+    LintClient.clientName = LintClient.CLIENT_UNIT_TESTS
+  }
 
   fun testImportsJava() {
-    // Unit test for [ReplaceStringQuickFix] import handling of Java files.
+    // Unit test for [LintIdeFixPerformer] import handling of Java files.
     val lintFix =
       LintFix.create()
         .replace()
@@ -42,18 +47,18 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         "src/p1/p2/ImportTest.java",
         // language=Java
         """
-      package p1.p2;
-      public class ImportTest {
-          public void oldName() {
-          }
-      }
-      """
+        package p1.p2;
+        public class ImportTest {
+            public void oldName() {
+            }
+        }
+        """
           .trimIndent()
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val fix = ReplaceStringQuickFix.create(file, lintFix as LintFix.ReplaceString)
-    val context = AndroidQuickfixContexts.BatchContext.getInstance()
+    val fix = lintFix.toIdeFix(file)
+    val context = BatchContext.getInstance()
     val element = (file as PsiJavaFile).classes[0].methods[0].nameIdentifier!!
 
     assertTrue(fix.isApplicable(element, element, context.type))
@@ -62,6 +67,7 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
       .run(ThrowableRunnable { fix.apply(element, element, context) })
 
     assertEquals(
+      // language=Java
       """
       package p1.p2;
 
@@ -132,12 +138,12 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         "/src/p1/p2/ImportTest.kt",
         // language=Kt
         """
-      package p1.p2
-      class ImportTest {
-          fun oldName() {
-          }
-      }
-      """
+        package p1.p2
+        class ImportTest {
+            fun oldName() {
+            }
+        }
+        """
           .trimIndent()
       )
 
@@ -169,13 +175,14 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         .trimIndent()
     )
 
-    val fix = ReplaceStringQuickFix.create(file, lintFix as LintFix.ReplaceString)
-    val context = AndroidQuickfixContexts.BatchContext.getInstance()
+    val fix = lintFix.toIdeFix(file)
+    val context = BatchContext.getInstance()
     assertTrue(fix.isApplicable(file, file, context.type))
     WriteCommandAction.writeCommandAction(myFixture.project)
       .run(ThrowableRunnable { fix.apply(file, file, context) })
 
     assertEquals(
+      // language=kt
       """
       package p1.p2
 
@@ -219,7 +226,7 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
   }
 
   fun testImportEdited() {
-    // Unit test for [ReplaceStringQuickFix]'s support for importing and shortening in the same fix
+    // Unit test for [LintIdeFixPerformer]'s support for importing and shortening in the same fix
     val lintFix =
       LintFix.create()
         .replace()
@@ -237,20 +244,20 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         "src/p1/p2/ShortenTest.java",
         // language=Java
         """
-      package p1.p2;
-      import static System.out.println;
-      public class ShortenTest {
-          public void test() {
-              println();
-          }
-      }
-      """
+        package p1.p2;
+        import static System.out.println;
+        public class ShortenTest {
+            public void test() {
+                println();
+            }
+        }
+        """
           .trimIndent()
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val fix = ReplaceStringQuickFix.create(file, lintFix as LintFix.ReplaceString)
-    val context = AndroidQuickfixContexts.BatchContext.getInstance()
+    val fix = lintFix.toIdeFix(file)
+    val context = BatchContext.getInstance()
     val element = file.findElementAt(file.text.indexOf("println()"))?.parent?.parent!!
     assertEquals("println()", element.text)
 
@@ -262,6 +269,7 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
     // Like the original file, but String replaced with java.util.ArrayList and
     // then ArrayList imported and the fully qualified name replaced with the simple name.
     assertEquals(
+      // language=Java
       """
       package p1.p2;
       import static java.lang.Integer.MAX_VALUE;
@@ -278,7 +286,7 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
   }
 
   fun testShortenJava() {
-    // Unit test for [ReplaceStringQuickFix]'s support for symbol shortening in Java
+    // Unit test for [LintIdeFixPerformer]'s support for symbol shortening in Java
     val lintFix =
       LintFix.create()
         .replace()
@@ -295,19 +303,19 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         "src/p1/p2/ShortenTest.java",
         // language=Java
         """
-      package p1.p2;
-      public class ShortenTest {
-          public void test() {
-              Object o = new String();
-          }
-      }
-      """
+        package p1.p2;
+        public class ShortenTest {
+            public void test() {
+                Object o = new String();
+            }
+        }
+        """
           .trimIndent()
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val fix = ReplaceStringQuickFix.create(file, lintFix as LintFix.ReplaceString)
-    val context = AndroidQuickfixContexts.BatchContext.getInstance()
+    val fix = lintFix.toIdeFix(file)
+    val context = BatchContext.getInstance()
     val element = file.findElementAt(file.text.indexOf("new String"))?.parent!!
     assertEquals("new String()", element.text)
 
@@ -319,6 +327,7 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
     // Like the original file, but String replaced with java.util.ArrayList and
     // then ArrayList imported and the fully qualified name replaced with the simple name.
     assertEquals(
+      // language=Java
       """
       package p1.p2;
 
@@ -336,7 +345,7 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
   }
 
   fun testShortenKotlin() {
-    // Unit test for [ReplaceStringQuickFix]'s support for symbol shortening in Kotlin
+    // Unit test for [LintIdeFixPerformer]'s support for symbol shortening in Kotlin
     val lintFix =
       LintFix.create()
         .replace()
@@ -353,17 +362,17 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         "src/p1/p2/ShortenTest.kt",
         // language=KT
         """
-      package p1.p2
-      fun test() {
-        val o = String()
-      }
-      """
+        package p1.p2
+        fun test() {
+          val o = String()
+        }
+        """
           .trimIndent()
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
-    val fix = ReplaceStringQuickFix.create(file, lintFix as LintFix.ReplaceString)
-    val context = AndroidQuickfixContexts.BatchContext.getInstance()
+    val fix = lintFix.toIdeFix(file)
+    val context = BatchContext.getInstance()
     val element = file.findElementAt(file.text.indexOf("String"))?.parent!!
     assertEquals("String", element.text)
 
@@ -375,6 +384,7 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
     // Like the original file, but String replaced with java.util.ArrayList and
     // then ArrayList imported and the fully qualified name replaced with the simple name.
     assertEquals(
+      // language=Kt
       """
       package p1.p2
 
@@ -432,8 +442,8 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         .trimIndent()
     )
 
-    val fix = ReplaceStringQuickFix.create(file, lintFix as LintFix.ReplaceString)
-    val context = AndroidQuickfixContexts.BatchContext.getInstance()
+    val fix = lintFix.toIdeFix(file)
+    val context = BatchContext.getInstance()
     val element = file.findElementAt(file.text.indexOf("ReplaceMe"))?.parent!!.parent!!
     assertEquals("ReplaceMe()", element.text)
 
@@ -479,14 +489,14 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         "src/p1/p2/ReformatRangeTest.kt",
         // language=KT
         """
-      package p1.p2
+        package p1.p2
 
-      fun test() {
-          val  doNotReformatMe = kotlin.String(  )
-          ReplaceMe()
-          val  doNotReformatMeEither = kotlin.String(  )
-      }
-      """
+        fun test() {
+            val  doNotReformatMe = kotlin.String(  )
+            ReplaceMe()
+            val  doNotReformatMeEither = kotlin.String(  )
+        }
+        """
           .trimIndent()
       )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -502,8 +512,8 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
         .trimIndent()
     )
 
-    val fix = ReplaceStringQuickFix.create(file, lintFix as LintFix.ReplaceString)
-    val context = AndroidQuickfixContexts.BatchContext.getInstance()
+    val fix = lintFix.toIdeFix(file)
+    val context = BatchContext.getInstance()
     val element = file.findElementAt(file.text.indexOf("ReplaceMe"))?.parent!!.parent!!
     assertEquals("ReplaceMe()", element.text)
 

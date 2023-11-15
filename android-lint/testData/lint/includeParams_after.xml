@@ -5,10 +5,10 @@
     android:orientation="vertical">
 
     <include
-            android:id="@+id/myInclude"
-            layout="@layout/myincluded"
-            android:layout_width="fill_parent"
-            android:visibility="visible"
-        android:layout_height="TODO" />
+        android:id="@+id/myInclude"
+        layout="@layout/myincluded"
+        android:layout_width="fill_parent"
+        android:layout_height="TODO"
+        android:visibility="visible" />
 
 </LinearLayout>

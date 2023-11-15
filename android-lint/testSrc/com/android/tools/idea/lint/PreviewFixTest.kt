@@ -16,9 +16,10 @@
 package com.android.tools.idea.lint
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.lint.common.AndroidLintInspectionBase
+import com.android.tools.idea.lint.common.AnnotateQuickFix
 import com.android.tools.idea.lint.common.LintExternalAnnotator
 import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.toIdeFix
 import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix
 import com.android.tools.idea.lint.quickFixes.AddTargetVersionCheckQuickFix
 import com.android.tools.idea.lint.quickFixes.ConvertToDpQuickFix
@@ -118,10 +119,10 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       myFixture.configureByText(
         "layout.xml", /*language=XML */
         """
-      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
-          <Button android:textSize="50px"  />
-      </LinearLayout>
-      """
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
+            <Button android:textSize="50px"  />
+        </LinearLayout>
+        """
           .trimIndent()
       )
     checkPreviewAction(
@@ -142,10 +143,10 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       myFixture.configureByText(
         "layout.xml", /*language=XML */
         """
-      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
-          <Button android:textSize="50px"  />
-      </LinearLayout>
-      """
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
+            <Button android:textSize="50px"  />
+        </LinearLayout>
+        """
           .trimIndent()
       )
     checkPreviewFix(
@@ -166,12 +167,12 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       myFixture.configureByText(
         "states.xml", /*language=XML */
         """
-                <selector xmlns:android="http://schemas.android.com/apk/res/android">
-                    <item android:state_pressed="true"
-                          android:color="#ffff0000"/> <!-- pressed -->
-                    <item android:color="#ff000000"/>
-                </selector>
-      """
+        <selector xmlns:android="http://schemas.android.com/apk/res/android">
+            <item android:state_pressed="true"
+                  android:color="#ffff0000"/> <!-- pressed -->
+            <item android:color="#ff000000"/>
+        </selector>
+        """
           .trimIndent()
       )
     checkPreviewAction(
@@ -192,10 +193,10 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       myFixture.configureByText(
         "foo.kt", /*language=KT */
         """
-      fun test() {
-        val foo = "bar"
-      }
-      """
+        fun test() {
+          val foo = "bar"
+        }
+        """
           .trimIndent()
       )
     checkPreviewFix(
@@ -203,12 +204,94 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       "val f^oo =",
       {
         val fix = fix().replace().pattern("(foo)").with("foo: Foo").build()
-        lintToIdeFix(file, fix)
+        fix.toIdeFix(file)
       },
       """
       @@ -2 +2
       -   val foo = "bar"
       +   val foo: Foo = "bar"
+      """
+    )
+  }
+
+  fun testAnnotatePreviewJava() {
+    // Test that the intention preview for annotate works as expected
+    val file =
+      myFixture.configureByText(
+        "Foo.java", /*language=Java */
+        """
+        class Foo {
+          public void test() {
+          }
+        }
+        """
+          .trimIndent()
+      )
+    val caret = "public ^void"
+    checkPreviewFix(
+      file,
+      caret,
+      {
+        val start = getCaretOffset(file.text, caret)
+        val end = file.text.length
+        val range =
+          Location.create(
+            file.virtualFile.toNioPath().toFile(),
+            DefaultPosition(-1, -1, start),
+            DefaultPosition(-1, -1, end)
+          )
+        @Suppress("DEPRECATION")
+        val fix =
+          fix().annotate("@java.lang.SuppressWarnings(\"something\")", false).range(range).build()
+        fix.toIdeFix(file)
+      },
+      """
+      @@ -2 +2
+      -   public void test() {
+      +   @java.lang.SuppressWarnings("something") public void test() {
+      """
+    )
+  }
+
+  fun testAnnotatePreviewJavaPsi() {
+    // Test that the intention preview for annotate works as expected (using PSI implementation)
+    val file =
+      myFixture.configureByText(
+        "Foo.java", /*language=Java */
+        """
+        class Foo {
+          public void test() {
+          }
+        }
+        """
+          .trimIndent()
+      )
+    val caret = "public ^void"
+    checkPreviewFix(
+      file,
+      caret,
+      {
+        val start = getCaretOffset(file.text, caret)
+        val end = file.text.length
+        val range =
+          Location.create(
+            file.virtualFile.toNioPath().toFile(),
+            DefaultPosition(-1, -1, start),
+            DefaultPosition(-1, -1, end)
+          )
+        AnnotateQuickFix(
+          file.project,
+          "annotate",
+          null,
+          "@java.lang.SuppressWarnings(\"something\")",
+          false,
+          range
+        )
+      },
+      """
+      @@ -2 +2
+      -   public void test() {
+      +   @java.lang.SuppressWarnings("something") public void test() {
       """
     )
   }
@@ -219,10 +302,10 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       myFixture.configureByText(
         "foo.kt", /*language=KT */
         """
-      fun test() {
-        val foo = "bar"
-      }
-      """
+        fun test() {
+          val foo = "bar"
+        }
+        """
           .trimIndent()
       )
 
@@ -242,7 +325,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
             .with("foo:   Foo  ")
             .reformat(true)
             .build()
-        lintToIdeFix(file, fix)
+        fix.toIdeFix(file)
       },
       """
       @@ -2 +2
@@ -259,10 +342,10 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       myFixture.configureByText(
         "foo.kt", /*language=KT */
         """
-      fun test() {
-        val foo = "bar"
-      }
-      """
+        fun test() {
+          val foo = "bar"
+        }
+        """
           .trimIndent()
       )
     val otherFile = myFixture.createFile("other.xml", "<Resources/>")
@@ -279,7 +362,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
               .build(),
             fix().replace().pattern("(foo)").with("foo: Foo").build()
           )
-      lintToIdeFix(file, fix)
+      fix.toIdeFix(file)
     }
 
     checkPreviewFix(
@@ -301,10 +384,10 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       myFixture.configureByText(
         "foo.kt", /*language=KT */
         """
-      fun test() {
-        val foo = "bar"
-      }
-      """
+        fun test() {
+          val foo = "bar"
+        }
+        """
           .trimIndent()
       )
     val otherFile = myFixture.createFile("other.xml", "<Resources/>")
@@ -317,7 +400,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
           .text("Resources")
           .with("resources")
           .build()
-      lintToIdeFix(file, fix)
+      fix.toIdeFix(file)
     }
 
     checkPreviewFix(file, "val f^oo =", createFix, "")
@@ -331,17 +414,17 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       myFixture.configureByText(
         "foo.kt", /*language=KT */
         """
-      fun test() {
-        val foo = "bar"
-      }
-      """
+        fun test() {
+          val foo = "bar"
+        }
+        """
           .trimIndent()
       )
     val otherFile = myFixture.createFile("other.xml", "<Resources/>")
 
     val createFix: (element: PsiElement) -> LintIdeQuickFix = {
       val fix = fix().newFile(File(otherFile.path), "<new>").build()
-      lintToIdeFix(file, fix)
+      fix.toIdeFix(file)
     }
 
     checkPreviewFix(file, "val f^oo =", createFix, "")
@@ -426,7 +509,4 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       TestUtils.getDiff(file.text, psiFileCopy.text).trim()
     )
   }
-
-  private fun lintToIdeFix(file: PsiFile?, fix: LintFix): LintIdeQuickFix =
-    AndroidLintInspectionBase.createFixes(file, fix)[0]
 }

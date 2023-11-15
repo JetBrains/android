@@ -142,6 +142,8 @@ import com.android.tools.lint.checks.TextViewDetector
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.client.api.LintRequest
 import com.android.tools.lint.detector.api.Desugaring
+import com.android.tools.lint.detector.api.Incident
+import com.android.tools.lint.detector.api.Location
 import com.android.tools.lint.detector.api.Severity
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.Lists
@@ -348,6 +350,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
         )
       val data =
         LintProblemData(
+          Incident(HardcodedValuesDetector.ISSUE, "Sample issue", Location.NONE),
           HardcodedValuesDetector.ISSUE,
           "Sample issue",
           TextRange.EMPTY_RANGE,
@@ -388,9 +391,14 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   fun testContentDescription1() {
     doTestNoFix(AndroidLintContentDescriptionInspection(), "/res/layout/layout.xml", "xml")
     // Also test the other lint infrastructure, where we produce an error report instead of
-    // overlaying
-    // XML-like tags for error ranges into an existing XML doc (which makes it syntactically
+    // overlaying XML-like tags for error ranges into an existing XML doc (which makes it
+    // syntactically
     // invalid)
+    //
+    // Note -- we now include the "Set contentDescription" fix here; in the past, it was
+    // suppressed because it's a no-op since the attribute value is already the same,
+    // but we now include it because it *also* has a side effect of opening the file and
+    // pre-selecting the relevant value region.
     myFixture.checkLint(
       myFixture.file,
       AndroidLintContentDescriptionInspection(),
@@ -399,8 +407,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       Warning: Empty `contentDescription` attribute on image
           android:contentDescription="TODO"/>
           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          Fix: Set contentDescription
           Fix: Suppress: Add tools:ignore="ContentDescription" attribute
-    """
+      """
         .trimIndent()
     )
   }
@@ -785,7 +794,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   fun testGridLayoutAttribute() {
     doTestWithFix(
       AndroidLintGridLayoutInspection(),
-      "Update to myns:layout_column",
+      "Update to `myns:layout_column`",
       "/res/layout/grid_layout.xml",
       "xml"
     )
@@ -794,7 +803,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   fun testGridLayoutAttributeMissing() {
     doTestWithFix(
       AndroidLintGridLayoutInspection(),
-      "Update to app:layout_column",
+      "Update to `app:layout_column`",
       "/res/layout/grid_layout.xml",
       "xml"
     )
@@ -1321,7 +1330,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   fun testWrongCase() {
     doTestWithFix(
       AndroidLintWrongCaseInspection(),
-      "Replace with merge",
+      "Replace with `<merge>`",
       "/res/layout/layout.xml",
       "xml"
     )
@@ -1968,7 +1977,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     createManifest()
     doTestWithFix(
       AndroidLintNetworkSecurityConfigInspection(),
-      "Use domain-config",
+      "Replace with `<domain-config>`",
       "res/xml/network-config.xml",
       "xml"
     )
@@ -1979,7 +1988,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     createManifest()
     doTestWithFix(
       AndroidLintNetworkSecurityConfigInspection(),
-      "Use includeSubdomains",
+      "Replace with `includeSubdomains`",
       "res/xml/network-config.xml",
       "xml"
     )

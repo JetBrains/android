@@ -23,6 +23,7 @@ import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
 import com.android.tools.lint.checks.DeprecatedSinceApiDetector
 import com.android.tools.lint.checks.DeprecationDetector
+import com.android.tools.lint.checks.DiscouragedDetector
 import com.android.tools.lint.checks.GradleDetector
 import com.android.tools.lint.checks.WrongIdDetector
 import com.android.tools.lint.client.api.LintClient
@@ -100,13 +101,11 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
           if (context != null) profile.isToolEnabled(key, context) else profile.isToolEnabled(key)
         if (!enabled) continue
         if (!issue.isEnabledByDefault()) {
-          // If an issue is marked as not enabled by default, lint won't run it, even if it's in the
-          // set
-          // of issues provided by an issue registry. Since in the IDE we're enforcing the
-          // enabled-state via
-          // inspection profiles, mark the issue as enabled to allow users to turn on a lint check
-          // directly
-          // via the inspections UI.
+          // If an issue is marked as not enabled by default, lint won't run it, even
+          // if it's in the set of issues provided by an issue registry. Since in the
+          // IDE we're enforcing the enabled-state via inspection profiles, mark the
+          // issue as enabled to allow users to turn on a lint check directly via the
+          // inspections UI.
           issue.setEnabledByDefault(true)
         }
         result.add(issue)
@@ -244,6 +243,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     val fixProviders = LintIdeQuickFixProvider.EP_NAME.extensions
     val ideSupport = LintIdeSupport.get()
     for (problemData in lintResult.problems) {
+      val incident = problemData.incident
       val issue = problemData.issue
       val rawMessage = problemData.message
       val range = problemData.textRange
@@ -274,7 +274,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
           issue === DeprecationDetector.ISSUE ||
             issue === GradleDetector.DEPRECATED ||
             issue === GradleDetector.DEPRECATED_CONFIGURATION ||
-            issue === DeprecatedSinceApiDetector.ISSUE
+            issue === DeprecatedSinceApiDetector.ISSUE ||
+            issue === DiscouragedDetector.ISSUE
         ) {
           ProblemHighlightType.LIKE_DEPRECATED
         } else if (
@@ -323,7 +324,15 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       var builder =
         holder.newAnnotation(severity, message).highlightType(type).range(range).tooltip(tooltip)
       val fixes =
-        inspection.getAllFixes(startElement, endElement, message, quickfixData, fixProviders, issue)
+        inspection.getAllFixes(
+          startElement,
+          endElement,
+          incident,
+          message,
+          quickfixData,
+          fixProviders,
+          issue
+        )
       for (fix in fixes) {
         if (
           fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)

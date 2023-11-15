@@ -5,9 +5,9 @@
     android:orientation="vertical">
 
     <include
-            android:id="@+id/myInclude"
-            layout="@layout/myincluded"
-            <error descr="Layout parameter `layout_width` ignored unless `layout_height` is also specified on `<include>` tag">android:layout_width="<caret>fill_parent"</error>
-            android:visibility="visible" />
+        android:id="@+id/myInclude"
+        layout="@layout/myincluded"
+        <error descr="Layout parameter `layout_width` ignored unless `layout_height` is also specified on `<include>` tag">android:layout_width="<caret>fill_parent"</error>
+        android:visibility="visible" />
 
 </LinearLayout>

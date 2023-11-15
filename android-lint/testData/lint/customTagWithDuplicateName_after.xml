@@ -7,7 +7,6 @@
       <CustomAttribute
           app:customFloatValue=".5"
           app:attributeName="alpha" />
-      
     </Constraint>
   </ConstraintSet>
 </MotionScene>

@@ -110,8 +110,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         val inspection = issue.inspection
         val startElement = issue.startElementPointer.element ?: return emptyList<Fix>().stream()
         val endElement = issue.endElementPointer.element ?: return emptyList<Fix>().stream()
-        val quickFixes =
-          inspection.getQuickFixes(startElement, endElement, issue.message, issue.quickfixData)
+        val quickFixes = inspection.getQuickFixes(startElement, endElement, issue.incident)
         val intentions = inspection.getIntentions(startElement, endElement)
         return quickFixes
           .map { createQuickFixPair(it) }

@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.detector.api.Category;
 import com.android.tools.lint.detector.api.Implementation;
+import com.android.tools.lint.detector.api.Incident;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
@@ -89,6 +90,6 @@ public class IssueDataTest {
   }
 
   void addIssue(LintAnnotationsModel model, HighlightDisplayLevel level, int priority, Severity severity) {
-    model.addIssue(myComponent, null, createIssue(priority, severity), "", myInspection, level, myPsiPointer, myPsiPointer, null);
+    model.addIssue(myComponent, null, new Incident(), createIssue(priority, severity), "", myInspection, level, myPsiPointer, myPsiPointer, null);
   }
 }
