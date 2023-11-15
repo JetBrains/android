@@ -20,7 +20,9 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.testFramework.RunsInEdt
+import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Ignore
@@ -39,6 +41,11 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     // need to make sure that there is no listener triggering sync while running unit tests).
     val ideComponents = IdeComponents(projectRule.fixture)
     ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
+  }
+
+  @After
+  fun tearDown() {
+    JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
   }
 
   private fun everythingDisabledNoEffectOn(filename: String) {

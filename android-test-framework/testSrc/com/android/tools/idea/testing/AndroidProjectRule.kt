@@ -24,8 +24,8 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.flags.override
 import com.android.tools.tests.AdtTestProjectDescriptor
-import com.android.tools.tests.KotlinAdtTestProjectDescriptor
 import com.android.tools.tests.AdtTestProjectDescriptors
+import com.android.tools.tests.KotlinAdtTestProjectDescriptor
 import com.android.utils.FileUtils
 import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet

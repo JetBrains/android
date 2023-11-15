@@ -51,12 +51,6 @@ class AndroidStudioProjectActivity : ProjectActivity {
     // This is not an ideal solution but allows it to work for now.
     if (!ApplicationManager.getApplication().isUnitTestMode) {
       checkForInvalidGradleJdksAndAttemptToRecover(project)
-    } else {
-      // This is only run in tests!
-      // The reason we need this is otherwise we get sporadic un-disposed pointers in tests.
-      // It seems calling this ensures that the tests correctly dispose the internal JDK along with all roots.
-      // This is a temporary solution until we can figure out something better.
-      ExternalSystemJdkUtil.getAvailableJdk(project)
     }
   }
 }
