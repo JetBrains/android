@@ -319,20 +319,22 @@ public final class MemoryReportCollector implements Disposable {
       return;
     }
     Class<?> objClass = obj.getClass();
-    ClassLoader loader = objClass.getClassLoader();
-    if (currentObjectComponent != null) {
-      String currentObjectClassLoader = loader.getClass().getName();
-
-      if (currentObjectComponent.customClassLoaders.contains(currentObjectClassLoader)) {
-        statistics.getExtendedReportStatistics().componentToExceededClustersStatistics.get(currentObjectComponent)
-          .addNominatedClassLoader(loader);
-      }
-    }
-
     nameToClassObjectsStatistics.putIfAbsent(objClass.getName(), new ExtendedReportStatistics.ClassObjectsStatistics());
     ExtendedReportStatistics.ClassObjectsStatistics classObjectsStatistics = nameToClassObjectsStatistics.get(objClass.getName());
     classObjectsStatistics.classLoaders.add(obj.getClass().getClassLoader());
     classObjectsStatistics.classObjects.add(objClass);
+
+    if (currentObjectComponent == null ||
+        !statistics.getExtendedReportStatistics().componentToExceededClustersStatistics.containsKey(currentObjectComponent)) {
+      return;
+    }
+    ClassLoader loader = objClass.getClassLoader();
+    String currentObjectClassLoader = loader.getClass().getName();
+
+    if (currentObjectComponent.customClassLoaders.contains(currentObjectClassLoader)) {
+      statistics.getExtendedReportStatistics().componentToExceededClustersStatistics.get(currentObjectComponent)
+        .addNominatedClassLoader(loader);
+    }
   }
 
   private void processObjectTagPreorderTraverse(@NotNull final Object obj, int currentObjectId, @NotNull final HeapTraverseNode node,

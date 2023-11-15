@@ -759,6 +759,51 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
   }
 
   @Test
+  public void testCustomClassLoaderInNonExceedingComponent() throws
+                                                      IOException,
+                                                      ClassNotFoundException,
+                                                      NoSuchMethodException,
+                                                      InvocationTargetException,
+                                                      InstantiationException,
+                                                      IllegalAccessException {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("B",
+                                                        2,
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.SampleClass"),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.SampleClass"),
+                                                        List.of("com.android.testutils.classloader.MultiClassLoader"));
+    HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
+      /*collectHistograms=*/false, /*collectDisposerTreeInfo=*/false));
+    FakeCrushReporter crushReporter = new FakeCrushReporter();
+    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+
+    WeakList<Object> roots = new WeakList<>();
+    SingleClassLoader sampleClassLoader = new SingleClassLoader(SampleClass.class.getName());
+    Class<?> sampleClass = sampleClassLoader.load();
+
+    Constructor<?> sampleClassConstructor = sampleClass.getDeclaredConstructor();
+    sampleClassConstructor.setAccessible(true);
+    Object sampleClassObject = sampleClassConstructor.newInstance();
+    Object[] objects = new Object[]{sampleClassObject, "test"};
+    roots.add(objects);
+
+
+    MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(0)), () -> roots, 0);
+    assertSize(1, crushReporter.crashReports);
+    CrashReport report = crushReporter.crashReports.get(0);
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
+    serializedExtendedReport = replaceNewlines(serializedExtendedReport);
+    assertRequestContainsField(serializedExtendedReport, "Target exceeded cluster", "uncategorized_main");
+    assertRequestContainsField(serializedExtendedReport, "Total used memory", "88B/4 objects");
+  }
+
+  @Test
   public void testExtendedReportCustomClassLoaders() throws
                                                      IOException,
                                                      ClassNotFoundException,
