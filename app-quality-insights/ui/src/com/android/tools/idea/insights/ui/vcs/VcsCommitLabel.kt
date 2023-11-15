@@ -16,56 +16,87 @@
 package com.android.tools.idea.insights.ui.vcs
 
 import com.android.tools.idea.insights.AppVcsInfo
+import com.android.tools.idea.insights.ui.transparentPanel
 import com.intellij.icons.AllIcons
 import com.intellij.ide.HelpTooltip
+import com.intellij.openapi.project.Project
+import com.intellij.ui.HyperlinkLabel
+import com.intellij.ui.components.JBLabel
 import com.intellij.vcs.log.impl.HashImpl
 import icons.StudioIcons
-import javax.swing.Box
-import javax.swing.BoxLayout
+import java.awt.BorderLayout
+import java.awt.CardLayout
+import java.net.URL
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import javax.swing.event.HyperlinkListener
 
-const val NO_DATA = "No data"
+const val VCS_INTEGRATION_LEARN_MORE_URL = "https://d.android.com/studio/preview/features#aqi-vcs"
+private const val DATA_ABSENT_CARD = "data_absent"
+private const val DATA_PRESENT_CARD = "data_present"
 
 class VcsCommitLabel : JPanel() {
-  private val commitLabel = JLabel(NO_DATA, AllIcons.Vcs.CommitNode, SwingConstants.LEFT)
+  private val commitLabel =
+    HyperlinkLabel().apply {
+      icon = AllIcons.Vcs.CommitNode
+      isFocusable = true
+    }
+
   private val infoIconForCommitLabel = JLabel(StudioIcons.Common.INFO, SwingConstants.LEFT)
+  private val noDataTooltip =
+    HelpTooltip().apply {
+      setTitle("Version control information is missing")
+      setLink("") {} // required due to bug in HelpTooltip
+      setBrowserLink("More info", URL(VCS_INTEGRATION_LEARN_MORE_URL))
+      installOn(infoIconForCommitLabel)
+    }
+  private var listener: HyperlinkListener? = null
+  private val cardPanelLayout = CardLayout()
+  private val cardPanel = transparentPanel(cardPanelLayout)
 
   init {
     isOpaque = false
-    layout = BoxLayout(this, BoxLayout.X_AXIS)
+    layout = BorderLayout()
 
-    infoIconForCommitLabel.isVisible = false
-
-    add(commitLabel)
-    add(Box.createHorizontalStrut(4))
-    add(infoIconForCommitLabel)
+    add(cardPanel)
+    cardPanel.add(commitLabel, DATA_PRESENT_CARD)
+    cardPanel.add(
+      transparentPanel(BorderLayout()).apply {
+        add(
+          transparentPanel().apply {
+            add(JBLabel("No data", AllIcons.Vcs.CommitNode, SwingConstants.LEFT))
+            add(infoIconForCommitLabel)
+          },
+          BorderLayout.WEST
+        )
+      },
+      DATA_ABSENT_CARD
+    )
   }
 
-  fun updateOnIssueChange(vcsInfo: AppVcsInfo) {
+  fun updateOnIssueChange(vcsInfo: AppVcsInfo, project: Project) {
+    if (listener != null) {
+      commitLabel.removeHyperlinkListener(listener)
+      listener = null
+    }
+
     when (vcsInfo) {
       is AppVcsInfo.ValidInfo -> {
-        commitLabel.text = HashImpl.build(vcsInfo.repoInfo.first().revision).toShortString()
+        cardPanelLayout.show(cardPanel, DATA_PRESENT_CARD)
+        val hash = HashImpl.build(vcsInfo.repoInfo.first().revision)
+        commitLabel.setHyperlinkText(hash.toShortString())
 
-        HelpTooltip.dispose(infoIconForCommitLabel)
-        infoIconForCommitLabel.isVisible = false
+        listener = HyperlinkListener { jumpToRevision(project, hash) }
+        commitLabel.addHyperlinkListener(listener)
       }
       is AppVcsInfo.Error -> {
-        commitLabel.text = NO_DATA
-
-        HelpTooltip().apply {
-          setTitle("Version control information is missing")
-          setDescription("<html><div width=\"250\">${vcsInfo.cause.message}</html>")
-          installOn(infoIconForCommitLabel)
-        }
-        infoIconForCommitLabel.isVisible = true
+        cardPanelLayout.show(cardPanel, DATA_ABSENT_CARD)
+        noDataTooltip.setDescription("<html><div width=\"250\">${vcsInfo.cause.message}</html>")
       }
       is AppVcsInfo.NONE -> {
-        commitLabel.text = NO_DATA
-
-        HelpTooltip.dispose(infoIconForCommitLabel)
-        infoIconForCommitLabel.isVisible = false
+        cardPanelLayout.show(cardPanel, DATA_ABSENT_CARD)
+        noDataTooltip.setDescription("") // TODO: will fill it when we have it.
       }
     }
   }

@@ -141,7 +141,7 @@ private val DefaultVitalsDetailsState =
 
 class VitalsIssueDetailsPanel(
   controller: AppInsightsProjectLevelController,
-  project: Project,
+  private val project: Project,
   val headerHeightUpdatedCallback: (Int) -> Unit,
   parentDisposable: Disposable,
   private val tracker: AppInsightsTracker
@@ -362,7 +362,7 @@ class VitalsIssueDetailsPanel(
       )
     timestampLabel.text = dateFormatter.format(issue.sampleEvent.eventData.eventTime)
 
-    commitLabel.updateOnIssueChange(issue.sampleEvent.appVcsInfo)
+    commitLabel.updateOnIssueChange(issue.sampleEvent.appVcsInfo, project)
 
     affectedVersionsLabel.text =
       "Versions affected: ${prettyRangeString(issue.issueDetails.firstSeenVersion, issue.issueDetails.lastSeenVersion)}"

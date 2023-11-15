@@ -202,9 +202,6 @@ class InsightsAttachInlayDiffLinkFilter(
 
   companion object {
     private const val INLAY_DIFF_LINK_DISPLAY_TEXT = "show diff"
-    private const val VCS_INTEGRATION_LEARN_MORE_URL =
-      "https://d.android.com/studio/preview/features#aqi-vcs"
-
     private const val TOOLTIP_TEXT =
       "Show the difference between the historical source from the app version referenced in the issue and the current source."
   }

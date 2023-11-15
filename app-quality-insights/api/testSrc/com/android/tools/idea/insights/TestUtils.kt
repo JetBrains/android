@@ -306,7 +306,8 @@ val ISSUE2 =
                   "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found "
               ),
             )
-        )
+        ),
+      appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO))
     )
   )
 

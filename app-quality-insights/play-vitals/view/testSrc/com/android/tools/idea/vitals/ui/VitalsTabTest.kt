@@ -205,13 +205,14 @@ class VitalsTabTest {
 
       // Device, OS Version, Timestamp, VCS Commit
       with(FakeUi(rows[2])) {
-        assertThat(findAllComponents<JLabel>().filter { it.isVisible }.map { it.text })
+        assertThat(findAllComponents<JLabel>().filter { isShowing(it) }.map { it.text })
           .containsExactly(
             "Google Pixel 4a",
             "Android 3.1 (API 12)",
-            dateFormatter.format(ISSUE1.sampleEvent.eventData.eventTime),
-            "74081e5f"
+            dateFormatter.format(ISSUE1.sampleEvent.eventData.eventTime)
           )
+        assertThat(findAllComponents<HyperlinkLabel>().filter { it.isVisible }.map { it.text })
+          .containsExactly("74081e5f")
       }
 
       // Stack trace
