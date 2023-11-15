@@ -39,24 +39,79 @@ private const val CONTENT_TYPE = "content-type"
  * connection starts. Response data may start empty but filled when connection completes.
  */
 data class HttpData(
-  val id: Long,
-  val updateTimeUs: Long,
-  val requestStartTimeUs: Long,
-  val requestCompleteTimeUs: Long,
-  val responseStartTimeUs: Long,
-  val responseCompleteTimeUs: Long,
-  val connectionEndTimeUs: Long,
-  val threads: List<JavaThread>,
-  val url: String,
-  val method: String,
-  val transport: HttpTransport,
-  val trace: String,
-  val requestHeaders: Map<String, List<String>>,
-  val requestPayload: ByteString,
-  val responseHeaders: Map<String, List<String>>,
-  val responsePayload: ByteString,
+  override val id: Long,
+  override val updateTimeUs: Long,
+  override val requestStartTimeUs: Long,
+  override val requestCompleteTimeUs: Long,
+  override val responseStartTimeUs: Long,
+  override val responseCompleteTimeUs: Long,
+  override val connectionEndTimeUs: Long,
+  override val threads: List<JavaThread>,
+  override val url: String,
+  override val method: String,
+  val httpTransport: HttpTransport,
+  override val trace: String,
+  override val requestHeaders: Map<String, List<String>>,
+  override val requestPayload: ByteString,
+  override val responseHeaders: Map<String, List<String>>,
+  override val responsePayload: ByteString,
   val responseCode: Int,
-) {
+) : ConnectionData {
+  private val uri: URI? = runCatching { URI.create(url) }.getOrNull()
+
+  override val transport: String
+    get() = httpTransport.toDisplayText()
+
+  override val schema: String
+    get() = uri?.scheme ?: "Unknown"
+
+  override val address: String
+    get() = uri?.host ?: "Unknown"
+
+  override val path: String
+    get() = uri?.path ?: "Unknown"
+
+  /**
+   * Return the name of the URL, which is the final complete word in the path portion of the URL.
+   * The query is included as it can be useful to disambiguate requests. Additionally, the returned
+   * value is URL decoded, so that, say, "Hello%2520World" -> "Hello World".
+   *
+   * For example, "www.example.com/demo/" -> "demo" "www.example.com/test.png" -> "test.png"
+   * "www.example.com/test.png?res=2" -> "test.png?res=2" "www.example.com/" -> "www.example.com"
+   */
+  override val name: String =
+    if (uri == null) {
+      url.lastComponent()
+    } else {
+      val path = uri.path?.lastComponent()
+      when {
+        path == null -> uri.host
+        uri.query != null -> "$path?${uri.query}"
+        path.isBlank() -> uri.host ?: "Unknown"
+        else -> path
+      }.decodeUrl()
+    }
+
+  override val requestType: String
+    get() = getRequestContentType().mimeType
+
+  override val requestPayloadText: String
+    get() = "N/A"
+
+  override val status: String
+    get() = if (responseCode < 0) "" else responseCode.toString()
+
+  override val error: String
+    get() = "N/A"
+
+  override val responseType: String
+    get() = getResponseContentType().mimeType
+
+  override val responsePayloadText: String
+    get() = "N/A"
+
+  override val responseTrailers: Map<String, List<String>>
+    get() = emptyMap()
 
   fun getReadableResponsePayload(): ByteString {
     return if (getContentEncodings().find { it.lowercase() == "gzip" } != null) {
@@ -80,7 +135,7 @@ data class HttpData(
       requestStartTimeUs = timestamp,
       url = requestStarted.url,
       method = requestStarted.method,
-      transport = requestStarted.transport,
+      httpTransport = requestStarted.transport,
       trace = requestStarted.trace,
       requestHeaders = requestStarted.headersList.toMap(),
     )
@@ -213,39 +268,6 @@ data class HttpData(
   }
 }
 
-/**
- * Return the name of the URL, which is the final complete word in the path portion of the URL. The
- * query is included as it can be useful to disambiguate requests. Additionally, the returned value
- * is URL decoded, so that, say, "Hello%2520World" -> "Hello World".
- *
- * For example, "www.example.com/demo/" -> "demo" "www.example.com/test.png" -> "test.png"
- * "www.example.com/test.png?res=2" -> "test.png?res=2" "www.example.com/" -> "www.example.com"
- */
-fun HttpData.getUrlName(): String {
-  val name =
-    try {
-      val uri = URI.create(url)
-      val path = uri.path?.lastComponent()
-      when {
-        path == null -> uri.host
-        uri.query != null -> "$path?${uri.query}"
-        path.isBlank() -> uri.host ?: "unknown"
-        else -> path
-      }
-    } catch (ignored: IllegalArgumentException) {
-      url.lastComponent()
-    }
-  return name.decodeUrl()
-}
-
-fun HttpData.getUrlPath() = runCatching { URI.create(url)?.path }.getOrNull() ?: "Unknown"
-
-fun HttpData.getUrlHost() = runCatching { URI.create(url)?.host }.getOrNull() ?: "Unknown"
-
-fun HttpData.getUrlScheme() = runCatching { URI.create(url)?.scheme }.getOrNull() ?: "Unknown"
-
-fun HttpData.getMimeType() = getResponseContentType().mimeType.split("/").last()
-
 fun HttpData.getContentEncodings() = responseHeaders[CONTENT_ENCODING] ?: emptyList()
 
 private fun String.lastComponent() = trimEnd('/').substringAfterLast('/')
@@ -271,14 +293,17 @@ private fun String.decodeUrl(): String {
   return currentValue
 }
 
-/**
- * Thread information fetched from the JVM, as opposed to from native code. See also:
- * https://docs.oracle.com/javase/7/docs/api/java/lang/Thread.html
- */
-data class JavaThread(val id: Long, val name: String)
-
 private fun NetworkInspectorProtocol.Event.toJavaThread() =
   JavaThread(httpConnectionEvent.httpThread.threadId, httpConnectionEvent.httpThread.threadName)
 
 private fun List<Header>.toMap() =
   associateTo(TreeMap(String.CASE_INSENSITIVE_ORDER)) { it.key to it.valuesList }
+
+private fun HttpTransport.toDisplayText() =
+  when (this) {
+    HttpTransport.JAVA_NET -> "Java Native"
+    HttpTransport.OKHTTP2 -> "OkHttp 2"
+    HttpTransport.OKHTTP3 -> "OkHttp 3"
+    HttpTransport.UNDEFINED,
+    HttpTransport.UNRECOGNIZED -> "Unknown"
+  }

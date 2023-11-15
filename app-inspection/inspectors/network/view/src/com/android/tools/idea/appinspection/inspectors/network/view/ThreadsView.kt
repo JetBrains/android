@@ -29,7 +29,6 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.SelectionRangeDataFetcher
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.getUrlName
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_RECEIVING_COLOR
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_SENDING_COLOR
@@ -276,11 +275,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
         else endLimit
       val metrics = getFontMetrics(font)
       val text =
-        AdtUiUtils.shrinkToFit(
-          data.getUrlName(),
-          metrics,
-          (end - start - 2 * NAME_PADDING).toFloat()
-        )
+        AdtUiUtils.shrinkToFit(data.name, metrics, (end - start - 2 * NAME_PADDING).toFloat())
       val availableSpace = end - start - metrics.stringWidth(text)
       g2d.drawString(
         text,
@@ -340,7 +335,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
 
     private fun showTooltip(data: HttpData) {
       tooltipComponent.isVisible = true
-      val urlName = data.getUrlName()
+      val urlName = data.name
       val duration = data.connectionEndTimeUs - data.requestStartTimeUs
       content.removeAll()
       addToContent(newTooltipLabel(urlName))

@@ -30,30 +30,45 @@ import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcMetadata
 @Suppress("DataClassPrivateConstructor")
 data class GrpcData
 private constructor(
-  val id: Long,
-  val updateTimeUs: Long,
-  val requestStartTimeUs: Long,
-  val requestCompleteTimeUs: Long,
-  val responseStartTimeUs: Long,
-  val responseCompleteTimeUs: Long,
-  val connectionEndTimeUs: Long,
-  val threads: List<JavaThread>,
-  val address: String,
+  override val id: Long,
+  override val updateTimeUs: Long,
+  override val requestStartTimeUs: Long,
+  override val requestCompleteTimeUs: Long,
+  override val responseStartTimeUs: Long,
+  override val responseCompleteTimeUs: Long,
+  override val connectionEndTimeUs: Long,
+  override val threads: List<JavaThread>,
+  override val address: String,
   val service: String,
-  val method: String,
-  val trace: String,
-  val requestHeaders: Map<String, List<String>>,
-  val requestPayload: ByteString,
-  val requestType: String,
-  val requestPayloadText: String,
-  val status: String,
-  val error: String,
-  val responseHeaders: Map<String, List<String>>,
-  val responsePayload: ByteString,
-  val responseType: String,
-  val responsePayloadText: String,
-  val responseTrailers: Map<String, List<String>>,
-) {
+  override val method: String,
+  override val trace: String,
+  override val requestHeaders: Map<String, List<String>>,
+  override val requestPayload: ByteString,
+  override val requestType: String,
+  override val requestPayloadText: String,
+  override val status: String,
+  override val error: String,
+  override val responseHeaders: Map<String, List<String>>,
+  override val responsePayload: ByteString,
+  override val responseType: String,
+  override val responsePayloadText: String,
+  override val responseTrailers: Map<String, List<String>>,
+) : ConnectionData {
+  override val transport: String
+    get() = "gRPC"
+
+  override val url: String
+    get() = "$schema://$address/$path"
+
+  override val schema: String
+    get() = "grpc"
+
+  override val path: String
+    get() = "$service/$method"
+
+  override val name: String
+    get() = "$service/$method"
+
   internal fun withGrpcCallStarted(event: NetworkInspectorProtocol.Event): GrpcData {
     val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
     return copy(
