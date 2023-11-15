@@ -165,6 +165,7 @@
     <option name="layout" path="ActionManager" hit="Switch Layout Qualifier" />
     <option name="qualifier" path="ActionManager" hit="Switch Layout Qualifier" />
     <option name="switch" path="ActionManager" hit="Switch Layout Qualifier" />
+    <option name="+" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
     <option name="and" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
     <option name="blueprint" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
     <option name="cycling" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />

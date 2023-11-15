@@ -592,6 +592,7 @@
     <option name="pause" path="ActionManager" hit="Pause Logcat" />
     <option name="phone" path="ActionManager" hit="Phone" />
     <option name="power" path="ActionManager" hit="Power" />
+    <option name="+" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
     <option name="menu" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
     <option name="power" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
     <option name="up" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
@@ -692,7 +693,7 @@
     <option name="the" path="ActionManager" hit="Record a video of the device display" />
     <option name="video" path="ActionManager" hit="Record a video of the device display" />
     <option name="refresh" path="ActionManager" hit="Refresh" />
-    <option name="c" path="ActionManager" hit="Refresh Linked C++ Projects" />
+    <option name="c++" path="ActionManager" hit="Refresh Linked C++ Projects" />
     <option name="linked" path="ActionManager" hit="Refresh Linked C++ Projects" />
     <option name="projects" path="ActionManager" hit="Refresh Linked C++ Projects" />
     <option name="refresh" path="ActionManager" hit="Refresh Linked C++ Projects" />
@@ -1129,16 +1130,15 @@
     <option name="automatically" hit="Push Edits Automatically" />
     <option name="edits" hit="Push Edits Automatically" />
     <option name="push" hit="Push Edits Automatically" />
-    <option name="ctrl" hit="Push Edits Manually (Ctrl+\)" />
+    <option name="ctrl+" hit="Push Edits Manually (Ctrl+\)" />
     <option name="edits" hit="Push Edits Manually (Ctrl+\)" />
     <option name="manually" hit="Push Edits Manually (Ctrl+\)" />
     <option name="push" hit="Push Edits Manually (Ctrl+\)" />
-    <option name="ctrl" hit="Push Edits Manually on Save (Ctrl+S)" />
+    <option name="ctrl+s" hit="Push Edits Manually on Save (Ctrl+S)" />
     <option name="edits" hit="Push Edits Manually on Save (Ctrl+S)" />
     <option name="manually" hit="Push Edits Manually on Save (Ctrl+S)" />
     <option name="on" hit="Push Edits Manually on Save (Ctrl+S)" />
     <option name="push" hit="Push Edits Manually on Save (Ctrl+S)" />
-    <option name="s" hit="Push Edits Manually on Save (Ctrl+S)" />
     <option name="save" hit="Push Edits Manually on Save (Ctrl+S)" />
   </configurable>
   <configurable id="database.inspector" configurable_name="Database Inspector">
