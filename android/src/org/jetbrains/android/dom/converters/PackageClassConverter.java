@@ -17,7 +17,6 @@ package org.jetbrains.android.dom.converters;
 
 import static com.android.tools.idea.projectsystem.SourceProvidersKt.isTestFile;
 
-import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.imports.MavenClassRegistryManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
@@ -305,12 +304,18 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
 
     final CustomConsumer consumer = new CustomConsumer();
 
-    AndroidTextUtils.forEachOccurrence(strValue, '.', consumer);
+    forEachCharIndex(strValue, '.', 0, consumer);
     consumer.myIsPackage = false;
-    AndroidTextUtils.forEachOccurrence(strValue, '$', consumer.myPartStart, consumer);
+    forEachCharIndex(strValue, '$', consumer.myPartStart, consumer);
     consumer.consume(strValue.length());
 
     return result.toArray(PsiReference.EMPTY_ARRAY);
+  }
+
+  private static void forEachCharIndex(String haystack, char needle, int startIndex, Consumer<Integer> consumer) {
+    for(int i = haystack.indexOf(needle, startIndex); i >= 0; i = haystack.indexOf(needle, i + 1)) {
+      consumer.consume(i);
+    }
   }
 
   private boolean getIncludeDynamicFeatures(DomElement domElement) {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea;
 
-import com.intellij.util.Consumer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,24 +59,6 @@ public class AndroidTextUtils {
       i++;
     }
     return result.toString();
-  }
-
-  /**
-   * Invoke callback for every index of {@code needle} occurrence in {@code haystack}
-   */
-  public static void forEachOccurrence(@NotNull String haystack, char needle, @NotNull Consumer<Integer> callback) {
-    forEachOccurrence(haystack, needle, 0, callback);
-  }
-
-  /**
-   * Invoke callback for every index of {@code needle} occurrence in {@code haystack}, starting search from {@code startIndex}
-   */
-  public static void forEachOccurrence(@NotNull String haystack, char needle, int startIndex, @NotNull Consumer<Integer> callback) {
-    int curr = haystack.indexOf(needle, startIndex);
-    while (curr != -1) {
-      callback.consume(curr);
-      curr = haystack.indexOf(needle, curr + 1);
-    }
   }
 
   /**
