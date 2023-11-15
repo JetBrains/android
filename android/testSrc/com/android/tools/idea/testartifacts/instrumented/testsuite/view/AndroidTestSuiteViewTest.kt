@@ -46,6 +46,7 @@ import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
@@ -675,9 +676,9 @@ class AndroidTestSuiteViewTest {
   fun actionButtonsAreFocusable() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
-    UIUtil.uiTraverser(view.component)
-      .filter(ActionToolbarImpl::class.java)
-      .forEach(ActionToolbarImpl::updateActionsImmediately)
+    for (toolbar in UIUtil.uiTraverser(view.component).filter(ActionToolbarImpl::class.java)) {
+      PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync());
+    }
 
     val actionButtons = UIUtil.uiTraverser(view.component)
       .filter(ActionButton::class.java)
