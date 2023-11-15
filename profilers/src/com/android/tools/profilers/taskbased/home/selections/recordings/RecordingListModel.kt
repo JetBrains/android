@@ -68,6 +68,6 @@ class RecordingListModel(val profilers: StudioProfilers,
       TaskSupportUtils.isTaskSupportedByRecording(taskHandler, recording)
     }.keys
 
-    return supportedTaskTypes.joinToString(separator = ", ") { it.description }
+    return if (supportedTaskTypes.isEmpty()) "No tasks available" else supportedTaskTypes.joinToString(separator = ", ") { it.description }
   }
 }

@@ -202,6 +202,15 @@ class RecordingListModelTest {
   }
 
   @Test
+  fun `recording with no artifacts shows no tasks available`() {
+    val sessionId = 1L
+    val session = Common.Session.newBuilder().setSessionId(sessionId).build()
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf())
+    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
+    assertThat(supportedTasksString).isEqualTo("No tasks available")
+  }
+
+  @Test
   fun `recording with one artifact is exportable`() {
     val sessionId = 1L
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
