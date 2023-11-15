@@ -18,10 +18,7 @@ package com.android.tools.idea.welcome.wizard
 import com.android.tools.idea.welcome.wizard.FirstRunModel.InstallationType
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
-import com.intellij.ui.layout.Cell
-import com.intellij.ui.layout.PropertyBinding
-import com.intellij.ui.layout.panel
-import com.intellij.ui.layout.withSelectedBinding
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.uiDesigner.core.Spacer
 import javax.swing.ButtonGroup
 import javax.swing.JComponent
@@ -35,6 +32,8 @@ class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRu
   private lateinit var customRadioBtn : JRadioButton
 
   private val panel = panel {
+    // TODO: supposed to migrate this to Kotlin UI DSL v2 (b/310238109), but this class is not being used (b/311256502)
+    /*
     row {
       label("Choose the type of setup you want for Android Studio:")
     }
@@ -63,6 +62,7 @@ class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRu
       add(standardRadioBtn)
       add(customRadioBtn)
     }
+    */
   }
 
   private val rootPanel = wrapWithVScroll(panel)
@@ -75,9 +75,11 @@ class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRu
 
   override fun getComponent(): JComponent = rootPanel
 
+  /*
   private fun Cell.installationTypeRadioButton(text: String, comment: String, installationType: InstallationType) =
     radioButton(text, comment).withSelectedBinding(PropertyBinding(
       get = { model.installationType.get() == installationType },
       set = { if (it) model.installationType.set(installationType) }
     ))
+  */
 }
