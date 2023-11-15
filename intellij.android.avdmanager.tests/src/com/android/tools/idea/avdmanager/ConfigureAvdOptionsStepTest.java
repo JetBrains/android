@@ -274,7 +274,7 @@ public final class ConfigureAvdOptionsStepTest {
     JBLabel label = optionsStep.getDeviceFrameTitle();
     assertFalse(label.isEnabled());
     label = optionsStep.getSkinDefinitionLabel();
-    assertFalse(label.isEnabled());
+    assertTrue(label.isEnabled());
     JCheckBox box = optionsStep.getDeviceFrameCheckbox();
     assertFalse(box.isEnabled());
     assertFalse(box.isSelected());

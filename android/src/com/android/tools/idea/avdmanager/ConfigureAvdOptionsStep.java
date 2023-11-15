@@ -594,11 +594,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   }
 
   private boolean shouldEnableDeviceFrameCheckbox() {
-    // Don't add a device frame to foldable.
-    if (getModel().device().get().isPresent() && getModel().device().getValue().getDefaultHardware().getScreen().isFoldable()) {
-      return false;
-    }
-
     // Enable the checkbox iff the AVD has the custom skin to use when the checkbox is turned on.
     return !FileUtil.filesEqual(getModel().getAvdDeviceData().customSkinFile().getValueOr(AvdWizardUtils.NO_SKIN), AvdWizardUtils.NO_SKIN);
   }
@@ -656,17 +651,12 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         myDeviceFrameCheckbox.setSelected(!FileUtil.filesEqual(skin, AvdWizardUtils.NO_SKIN));
       }
 
-      final Device device = model.device().getValueOrNull();
-      final boolean comboBoxEnabled = device == null || !device.getDefaultHardware().getScreen().isFoldable();
-      final boolean checkBoxEnabled = shouldEnableDeviceFrameCheckbox();
+      boolean checkBoxEnabled = shouldEnableDeviceFrameCheckbox();
 
-      if (!comboBoxEnabled) {
-        myDeviceFrameCheckbox.setSelected(false);
-      }
       myDeviceFrameCheckbox.setEnabled(checkBoxEnabled);
       myDeviceFrameTitle.setEnabled(checkBoxEnabled);
-      mySkinDefinitionLabel.setEnabled(comboBoxEnabled);
-      mySkinComboBox.setEnabled(comboBoxEnabled);
+      mySkinDefinitionLabel.setEnabled(true);
+      mySkinComboBox.setEnabled(true);
     });
 
     myListeners.listen(getModel().systemImage(), this::updateSystemImageData);

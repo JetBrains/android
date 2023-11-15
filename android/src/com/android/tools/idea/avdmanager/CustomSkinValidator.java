@@ -18,6 +18,8 @@ package com.android.tools.idea.avdmanager;
 import com.android.SdkConstants;
 import com.android.tools.adtui.validation.Validator;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,16 +30,19 @@ final class CustomSkinValidator implements Validator<Optional<File>> {
       return Result.OK;
     }
 
-    File customSkin = optionalCustomSkin.get();
+    Path customSkin = optionalCustomSkin.get().toPath();
 
-    if (customSkin.toPath().equals(SkinUtils.noSkin())) {
+    if (customSkin.equals(SkinUtils.noSkin())) {
       return Result.OK;
     }
 
-    File layout = new File(customSkin, SdkConstants.FN_SKIN_LAYOUT);
+    Path layout = customSkin.resolve(SdkConstants.FN_SKIN_LAYOUT);
 
-    if (!layout.isFile()) {
-      return new Result(Severity.ERROR, "The skin directory does not point to a valid skin.");
+    if (!Files.isRegularFile(layout)) {
+      layout = customSkin.resolve("default").resolve(SdkConstants.FN_SKIN_LAYOUT);
+      if (!Files.isRegularFile(layout)) {
+        return new Result(Severity.ERROR, "The skin directory does not point to a valid skin.");
+      }
     }
 
     return Result.OK;
