@@ -23,20 +23,20 @@ import com.android.tools.adtui.model.Range
  * updated.
  */
 interface SelectionRangeDataListener {
-  fun onUpdate(data: List<HttpData>)
+  fun onUpdate(data: List<ConnectionData>)
 }
 
 /** Listener subscription that only fires when the data in the range selection is changed. */
 abstract class SelectionRangeDataChangedListener : SelectionRangeDataListener {
-  private var previousData: List<HttpData>? = null
+  private var previousData: List<ConnectionData>? = null
 
-  final override fun onUpdate(data: List<HttpData>) {
+  final override fun onUpdate(data: List<ConnectionData>) {
     if (previousData != data) {
       previousData = data.also { onDataChanged(it) }
     }
   }
 
-  abstract fun onDataChanged(data: List<HttpData>)
+  abstract fun onDataChanged(data: List<ConnectionData>)
 }
 
 /**
@@ -46,7 +46,7 @@ abstract class SelectionRangeDataChangedListener : SelectionRangeDataListener {
  * [HttpData] as they arrive.
  */
 class SelectionRangeDataFetcher(
-  private val dataModel: HttpDataModel,
+  private val dataModel: ConnectionDataModel,
   private val selectionRange: Range,
   private val dataRange: Range
 ) {
@@ -57,7 +57,7 @@ class SelectionRangeDataFetcher(
    * The last list of requests polled from the user's device. Initialized to `null` to distinguish
    * that case from the case where a range returns no requests.
    */
-  private var prevDataList: List<HttpData>? = null
+  private var prevDataList: List<ConnectionData>? = null
 
   init {
     selectionRange.addDependency(aspectObserver).onChange(Range.Aspect.RANGE) {
@@ -67,10 +67,10 @@ class SelectionRangeDataFetcher(
     handleRangeUpdated()
   }
 
-  fun addOnChangedListener(callback: (List<HttpData>) -> Unit) {
+  fun addOnChangedListener(callback: (List<ConnectionData>) -> Unit) {
     addListener(
       object : SelectionRangeDataChangedListener() {
-        override fun onDataChanged(data: List<HttpData>) = callback(data)
+        override fun onDataChanged(data: List<ConnectionData>) = callback(data)
       }
     )
   }
@@ -85,7 +85,7 @@ class SelectionRangeDataFetcher(
     prevDataList = dataList.also { fireListeners(it) }
   }
 
-  private fun fireListeners(dataList: List<HttpData>) {
+  private fun fireListeners(dataList: List<ConnectionData>) {
     listeners.forEach { listener -> listener.onUpdate(dataList) }
   }
 }

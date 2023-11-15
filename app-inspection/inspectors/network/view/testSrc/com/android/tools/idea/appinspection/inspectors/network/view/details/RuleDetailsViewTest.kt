@@ -29,8 +29,8 @@ import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetwork
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
@@ -135,7 +135,7 @@ class RuleDetailsViewTest {
         services,
         FakeNetworkInspectorDataSource(),
         scope,
-        object : HttpDataModel {
+        object : ConnectionDataModel {
           override fun getData(timeCurrentRangeUs: Range) = listOf<HttpData>()
         }
       )

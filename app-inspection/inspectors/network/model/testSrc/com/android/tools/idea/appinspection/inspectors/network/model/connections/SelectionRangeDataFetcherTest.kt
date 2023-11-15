@@ -25,7 +25,7 @@ class SelectionRangeDataFetcherTest {
   @Test
   fun listenerFiresOnSelectionRangeChange() {
     val dataModel =
-      object : HttpDataModel {
+      object : ConnectionDataModel {
         val data = mutableListOf<HttpData>()
 
         override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
@@ -50,7 +50,7 @@ class SelectionRangeDataFetcherTest {
     }
     fetcher.addListener(
       object : SelectionRangeDataListener {
-        override fun onUpdate(data: List<HttpData>) {
+        override fun onUpdate(data: List<ConnectionData>) {
           if (allListener.count == 0L) {
             fail()
           }

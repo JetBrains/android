@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.connectionsview
 
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.SelectionRangeDataFetcher
 import javax.swing.table.AbstractTableModel
 
 internal class ConnectionsTableModel(selectionRangeDataFetcher: SelectionRangeDataFetcher) :
   AbstractTableModel() {
-  private lateinit var dataList: List<HttpData>
+  private lateinit var dataList: List<ConnectionData>
 
   init {
-    selectionRangeDataFetcher.addOnChangedListener { httpDataList ->
-      dataList = httpDataList
+    selectionRangeDataFetcher.addOnChangedListener { list ->
+      dataList = list
       fireTableDataChanged()
     }
   }
@@ -41,5 +41,5 @@ internal class ConnectionsTableModel(selectionRangeDataFetcher: SelectionRangeDa
 
   override fun getColumnClass(columnIndex: Int) = ConnectionColumn.values()[columnIndex].type
 
-  fun getHttpData(rowIndex: Int) = dataList[rowIndex]
+  fun getConnectionData(rowIndex: Int) = dataList[rowIndex]
 }

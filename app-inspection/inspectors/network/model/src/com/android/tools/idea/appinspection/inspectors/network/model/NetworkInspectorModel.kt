@@ -24,9 +24,9 @@ import com.android.tools.adtui.model.TooltipModel
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpDataModel
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpDataModelImpl
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModel
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModelImpl
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.SelectionRangeDataFetcher
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.flags.StudioFlags
@@ -47,7 +47,7 @@ class NetworkInspectorModel(
   services: NetworkInspectorServices,
   dataSource: NetworkInspectorDataSource,
   scope: CoroutineScope,
-  connectionsModel: HttpDataModel = HttpDataModelImpl(dataSource),
+  connectionsModel: ConnectionDataModel = ConnectionDataModelImpl(dataSource),
 ) : AspectModel<NetworkInspectorAspect>() {
 
   enum class DetailContent {
@@ -67,7 +67,7 @@ class NetworkInspectorModel(
   val name = "NETWORK"
 
   // If null, means no connection to show in the `details` pane.
-  var selectedConnection: HttpData? = null
+  var selectedConnection: ConnectionData? = null
     private set
 
   // If null, means no rule to show in the `details` pane.
@@ -127,7 +127,7 @@ class NetworkInspectorModel(
    * Sets the active connection, or clears the previously selected active connection if given data
    * is null. Setting a non-null connection will deselect [selectedRule].
    */
-  fun setSelectedConnection(data: HttpData?): Boolean {
+  fun setSelectedConnection(data: ConnectionData?): Boolean {
     if (selectedConnection == data) {
       return false
     }

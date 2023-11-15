@@ -19,17 +19,18 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSource
 import kotlinx.coroutines.runBlocking
 
-/** A model that allows for the querying of [HttpData] based on time range. */
-interface HttpDataModel {
+/** A model that allows for the querying of [ConnectionData] based on time range. */
+interface ConnectionDataModel {
   /**
    * This method will be invoked in each animation cycle of the timeline view.
    *
-   * Returns a list of [HttpData] that fall within the [range].
+   * Returns a list of [ConnectionData] that fall within the [range].
    */
-  fun getData(timeCurrentRangeUs: Range): List<HttpData>
+  fun getData(timeCurrentRangeUs: Range): List<ConnectionData>
 }
 
-class HttpDataModelImpl(private val dataSource: NetworkInspectorDataSource) : HttpDataModel {
+class ConnectionDataModelImpl(private val dataSource: NetworkInspectorDataSource) :
+  ConnectionDataModel {
 
   override fun getData(timeCurrentRangeUs: Range) = runBlocking {
     dataSource.queryForHttpData(timeCurrentRangeUs).filter { events -> events.threads.isNotEmpty() }

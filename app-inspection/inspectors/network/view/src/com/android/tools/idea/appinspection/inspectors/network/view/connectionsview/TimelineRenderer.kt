@@ -47,7 +47,7 @@ internal class TimelineRenderer(private val table: JTable, timeline: Timeline) :
     connectionsCharts.clear()
     val model = table.model as ConnectionsTableModel
     for (i in 0 until model.rowCount) {
-      val chart = ConnectionsStateChart(model.getHttpData(i), activeRange)
+      val chart = ConnectionsStateChart(model.getConnectionData(i), activeRange)
       chart.setHeightGap(0.3f)
       connectionsCharts.add(chart)
     }

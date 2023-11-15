@@ -27,7 +27,7 @@ import com.android.tools.adtui.stdui.TimelineTable
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.SelectionRangeDataFetcher
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_RECEIVING_COLOR
@@ -81,7 +81,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     val timelineRenderer = TimelineRenderer(threadsTable, model)
     threadsTable.getColumnModel().getColumn(Column.NAME.ordinal).cellRenderer =
       BorderlessTableCellRenderer()
-    threadsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal).cellRenderer = timelineRenderer
+    threadsTable.columnModel.getColumn(Column.TIMELINE.ordinal).cellRenderer = timelineRenderer
     threadsTable.setBackground(DEFAULT_BACKGROUND)
     threadsTable.setShowVerticalLines(true)
     threadsTable.setShowHorizontalLines(false)
@@ -105,7 +105,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     sorter.setComparator(Column.NAME.ordinal, Comparator.comparing { obj: String -> obj })
     sorter.setComparator(
       Column.TIMELINE.ordinal,
-      Comparator.comparing { data: List<HttpData> -> data[0].requestStartTimeUs }
+      Comparator.comparing { data: List<ConnectionData> -> data[0].requestStartTimeUs }
     )
     threadsTable.setRowSorter(sorter)
     threadsTable.addMouseListener(
@@ -133,15 +133,13 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
 
   private class ThreadsTableModel(selectionRangeDataFetcher: SelectionRangeDataFetcher) :
     AbstractTableModel() {
-    private val threads = mutableListOf<List<HttpData>>()
+    private val threads = mutableListOf<List<ConnectionData>>()
 
     init {
-      selectionRangeDataFetcher.addOnChangedListener { httpDataList ->
-        httpDataChanged(httpDataList)
-      }
+      selectionRangeDataFetcher.addOnChangedListener { list -> dataChanged(list) }
     }
 
-    private fun httpDataChanged(dataList: List<HttpData>) {
+    private fun dataChanged(dataList: List<ConnectionData>) {
       threads.clear()
       if (dataList.isEmpty()) {
         fireTableDataChanged()
@@ -191,7 +189,8 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     fun updateRows() {
       connectionsInfo.clear()
       for (index in 0 until table.model.rowCount) {
-        val data = table.model.getValueAt(index, 1) as List<HttpData>
+        @Suppress("UNCHECKED_CAST")
+        val data = table.model.getValueAt(index, 1) as List<ConnectionData>
         connectionsInfo.add(ConnectionsInfoComponent(table, data, model, activeRange))
       }
     }
@@ -207,7 +206,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
    */
   private class ConnectionsInfoComponent(
     private val table: JTable,
-    private val dataList: List<HttpData>,
+    private val dataList: List<ConnectionData>,
     private val model: NetworkInspectorModel,
     private val range: Range
   ) : JComponent() {
@@ -241,7 +240,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       g2d.dispose()
     }
 
-    private fun drawState(g2d: Graphics2D, data: HttpData, endLimit: Double) {
+    private fun drawState(g2d: Graphics2D, data: ConnectionData, endLimit: Double) {
       var prev = rangeToPosition(data.requestStartTimeUs.toDouble())
       g2d.color = NETWORK_SENDING_COLOR
       if (data.responseStartTimeUs > 0) {
@@ -266,7 +265,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       )
     }
 
-    private fun drawConnectionName(g2d: Graphics2D, data: HttpData, endLimit: Double) {
+    private fun drawConnectionName(g2d: Graphics2D, data: ConnectionData, endLimit: Double) {
       g2d.font = font
       g2d.color = foreground
       val start = rangeToPosition(data.requestStartTimeUs.toDouble())
@@ -284,7 +283,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       )
     }
 
-    private fun drawSelection(g2d: Graphics2D, data: HttpData, endLimit: Double) {
+    private fun drawSelection(g2d: Graphics2D, data: ConnectionData, endLimit: Double) {
       val start = rangeToPosition(data.requestStartTimeUs.toDouble())
       val end =
         if (data.connectionEndTimeUs > 0) rangeToPosition(data.connectionEndTimeUs.toDouble())
@@ -333,7 +332,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       data?.let { showTooltip(it) }
     }
 
-    private fun showTooltip(data: HttpData) {
+    private fun showTooltip(data: ConnectionData) {
       tooltipComponent.isVisible = true
       val urlName = data.name
       val duration = data.connectionEndTimeUs - data.requestStartTimeUs
@@ -384,7 +383,11 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     private val ROW_HEIGHT =
       STATE_HEIGHT + 2 * (SELECTION_OUTLINE_BORDER + SELECTION_OUTLINE_PADDING)
 
-    private fun findHttpDataUnderCursor(table: JTable, range: Range, e: MouseEvent): HttpData? {
+    private fun findHttpDataUnderCursor(
+      table: JTable,
+      range: Range,
+      e: MouseEvent
+    ): ConnectionData? {
       val p = SwingUtilities.convertPoint(e.component, e.point, table)
       val row = table.rowAtPoint(p)
       val column = table.columnAtPoint(p)
@@ -394,7 +397,8 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       if (column == Column.TIMELINE.ordinal) {
         val cellBounds = table.getCellRect(row, column, false)
         val modelIndex = table.convertRowIndexToModel(row)
-        val dataList = table.model.getValueAt(modelIndex, 1) as List<HttpData>
+        @Suppress("UNCHECKED_CAST")
+        val dataList = table.model.getValueAt(modelIndex, 1) as List<ConnectionData>
         val at = positionToRange((p.x - cellBounds.x).toDouble(), cellBounds.getWidth(), range)
         for (data in dataList) {
           if (data.requestStartTimeUs <= at && at <= data.connectionEndTimeUs) {

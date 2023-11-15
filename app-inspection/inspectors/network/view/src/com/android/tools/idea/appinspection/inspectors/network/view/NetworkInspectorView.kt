@@ -49,7 +49,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorServices
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkTrafficTooltipModel
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.SelectionRangeDataListener
 import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionsView
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
@@ -235,7 +235,7 @@ class NetworkInspectorView(
 
     model.selectionRangeDataFetcher.addListener(
       object : SelectionRangeDataListener {
-        override fun onUpdate(data: List<HttpData>) {
+        override fun onUpdate(data: List<ConnectionData>) {
           val cardLayout = connectionsPanel.layout as CardLayout
           if (data.isEmpty()) {
             val detailedNetworkUsage = model.networkUsage

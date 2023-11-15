@@ -59,12 +59,12 @@ private val HTTP_DATA_WITH_THREAD =
     httpThread(CONNECTION_ID, SECONDS.toNanos(4), 1, "thread"),
   )
 
-class HttpDataModelTest {
+class ConnectionDataModelTest {
 
   @Test
   fun eventsToHttpData() {
     val source = FakeNetworkInspectorDataSource(httpEventList = HTTP_DATA_WITH_THREAD)
-    val model = HttpDataModelImpl(source)
+    val model = ConnectionDataModelImpl(source)
     val httpDataList = model.getData(Range(0.0, SECONDS.toMicros(5).toDouble()))
     assertThat(httpDataList).hasSize(1)
     val httpData = httpDataList[0]
@@ -86,7 +86,7 @@ class HttpDataModelTest {
   @Test
   fun eventsWithoutThreadDataIgnored() {
     val source = FakeNetworkInspectorDataSource(httpEventList = HTTP_DATA)
-    val model = HttpDataModelImpl(source)
+    val model = ConnectionDataModelImpl(source)
     val httpDataList = model.getData(Range(0.0, SECONDS.toMicros(5).toDouble()))
     assertThat(httpDataList).isEmpty()
   }

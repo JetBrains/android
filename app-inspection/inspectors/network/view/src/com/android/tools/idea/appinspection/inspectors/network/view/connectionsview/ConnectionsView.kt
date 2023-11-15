@@ -98,7 +98,7 @@ class ConnectionsView(
       val selectedRow = connectionsTable.selectedRow
       if (0 <= selectedRow && selectedRow < tableModel.rowCount) {
         val modelRow = connectionsTable.convertRowIndexToModel(selectedRow)
-        model.setSelectedConnection(tableModel.getHttpData(modelRow))
+        model.setSelectedConnection(tableModel.getConnectionData(modelRow))
       }
     }
     connectionsTable.background = DEFAULT_BACKGROUND
@@ -135,7 +135,7 @@ class ConnectionsView(
           val row = connectionsTable.rowAtPoint(e.point)
           if (row >= 0) {
             tooltip.isVisible = true
-            val url = tableModel.getHttpData(connectionsTable.convertRowIndexToModel(row)).url
+            val url = tableModel.getConnectionData(connectionsTable.convertRowIndexToModel(row)).url
             textPane.text = url
           } else {
             tooltip.isVisible = false
@@ -149,7 +149,7 @@ class ConnectionsView(
     val selectedData = model.selectedConnection
     if (selectedData != null) {
       for (i in 0 until tableModel.rowCount) {
-        if (tableModel.getHttpData(i).id == selectedData.id) {
+        if (tableModel.getConnectionData(i).id == selectedData.id) {
           val row = connectionsTable.convertRowIndexToView(i)
           connectionsTable.setRowSelectionInterval(row, row)
           return

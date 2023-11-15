@@ -29,9 +29,9 @@ import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetwork
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.FAKE_THREAD_LIST
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.JavaThread
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.createFakeHttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
@@ -151,7 +151,7 @@ class ConnectionDetailsViewTest {
         services,
         FakeNetworkInspectorDataSource(),
         scope,
-        object : HttpDataModel {
+        object : ConnectionDataModel {
           private val dataList = listOf(DEFAULT_DATA)
 
           override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
