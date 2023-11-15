@@ -24,6 +24,7 @@ enum class VisualLintErrorType(val shortName: String) {
   OVERLAP("Overlap"),
   LONG_TEXT("LongText"),
   ATF("AccessibilityTestFramework"),
+  ATF_COLORBLIND("AtfColorblindCheck"),
   LOCALE_TEXT("LocaleText"),
   WEAR_MARGIN("WearMargin");
 
@@ -34,6 +35,8 @@ enum class VisualLintErrorType(val shortName: String) {
   fun toSuppressActionDescription(): String {
     return """Suppress $this rule from Visual Lint analysis""""
   }
+
+  fun isAtfErrorType() = this == ATF || this == ATF_COLORBLIND
 
   companion object {
     private const val ATTRIBUTE_PREFIX = "VisualLint"

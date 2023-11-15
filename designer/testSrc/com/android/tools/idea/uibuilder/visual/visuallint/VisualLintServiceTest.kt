@@ -138,7 +138,7 @@ class VisualLintServiceTest {
     assertEquals(1, atfIssues.size)
     atfIssues.forEach {
       assertEquals("Visual Lint Issue", it.category)
-      assertFalse((it as VisualLintRenderIssue).type == VisualLintErrorType.ATF)
+      assertFalse((it as VisualLintRenderIssue).type.isAtfErrorType())
     }
 
     val wearLayout =
@@ -290,9 +290,7 @@ class VisualLintServiceTest {
         val issues = visualLintIssueModel.issues
         assertEquals(3, issues.size)
         val clickIssue =
-          issues.filterIsInstance<VisualLintRenderIssue>().filter {
-            it.type == VisualLintErrorType.ATF
-          }
+          issues.filterIsInstance<VisualLintRenderIssue>().filter { it.type.isAtfErrorType() }
         assertEquals(2, clickIssue.size)
       } catch (ex: Exception) {
         throw RuntimeException(ex)

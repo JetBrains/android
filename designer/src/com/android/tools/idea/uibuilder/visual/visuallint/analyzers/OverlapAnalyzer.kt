@@ -117,7 +117,11 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
         .newline()
         .add("This may affect text readability. Fix this issue by adjusting widget positioning.")
     }
-    return VisualLintIssueContent(firstView, summary, content)
+    return VisualLintIssueContent(
+      view = firstView,
+      message = summary,
+      descriptionProvider = content
+    )
   }
 
   /**

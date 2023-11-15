@@ -85,7 +85,7 @@ object BoundsAnalyzer : VisualLintAnalyzer() {
         .newline()
         .add("Fix this issue by adjusting the size or position of $viewName.")
     }
-    return VisualLintIssueContent(view, summary, provider)
+    return VisualLintIssueContent(view = view, message = summary, descriptionProvider = provider)
   }
 
   private fun isScrollingView(view: ViewInfo): Boolean {

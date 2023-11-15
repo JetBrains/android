@@ -106,7 +106,7 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
         .addLink("multi-column layout", url)
         .add(" for breakpoints >= 600dp.")
     }
-    return VisualLintIssueContent(view, summary, provider)
+    return VisualLintIssueContent(view = view, message = summary, descriptionProvider = provider)
   }
 }
 

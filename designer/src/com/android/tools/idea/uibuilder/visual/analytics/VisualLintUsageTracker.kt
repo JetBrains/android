@@ -89,6 +89,7 @@ interface VisualLintUsageTracker {
         VisualLintErrorType.OVERLAP -> VisualLintEvent.IssueType.OVERLAP
         VisualLintErrorType.LONG_TEXT -> VisualLintEvent.IssueType.LONG_TEXT
         VisualLintErrorType.ATF -> VisualLintEvent.IssueType.ATF
+        VisualLintErrorType.ATF_COLORBLIND -> VisualLintEvent.IssueType.ATF_COLORBLIND
         VisualLintErrorType.LOCALE_TEXT -> VisualLintEvent.IssueType.LOCALE_TEXT
         VisualLintErrorType.TEXT_FIELD_SIZE -> VisualLintEvent.IssueType.TEXT_FIELD_SIZE
         VisualLintErrorType.BUTTON_SIZE -> VisualLintEvent.IssueType.BUTTON_SIZE

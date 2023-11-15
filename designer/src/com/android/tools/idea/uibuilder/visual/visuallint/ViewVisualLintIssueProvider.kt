@@ -39,7 +39,7 @@ class ViewVisualLintIssueProvider(parentDisposable: Disposable) :
         ?.contains(type) ?: false
     }
 
-    if (type != VisualLintErrorType.ATF && components.isNotEmpty()) {
+    if (!type.isAtfErrorType() && components.isNotEmpty()) {
       issue.addSuppress(
         Issue.Suppress(
           "Suppress",

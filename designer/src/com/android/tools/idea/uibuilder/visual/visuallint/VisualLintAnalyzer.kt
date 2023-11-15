@@ -57,7 +57,10 @@ abstract class VisualLintAnalyzer {
 
   abstract fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent>
 
-  private fun getHyperlinkListener(issueOrigin: VisualLintOrigin): HyperlinkListener {
+  private fun getHyperlinkListener(
+    issueOrigin: VisualLintOrigin,
+    type: VisualLintErrorType
+  ): HyperlinkListener {
     val listener = createDefaultHyperLinkListener()
     return HyperlinkListener {
       listener.hyperlinkUpdate(it)
@@ -77,15 +80,16 @@ abstract class VisualLintAnalyzer {
     val issueOrigin =
       if (component?.backend is NlComponentBackendEmpty) VisualLintOrigin.UI_CHECK
       else VisualLintOrigin.XML_LINTING
-    VisualLintUsageTracker.getInstance().trackIssueCreation(type, issueOrigin, model.facet)
+    val issueType = content.overriddenErrorType ?: type
+    VisualLintUsageTracker.getInstance().trackIssueCreation(issueType, issueOrigin, model.facet)
     return VisualLintRenderIssue.builder()
       .summary(content.message)
       .severity(severity)
       .model(model)
       .components(if (component == null) mutableListOf() else mutableListOf(component))
       .contentDescriptionProvider(content.descriptionProvider)
-      .hyperlinkListener(getHyperlinkListener(issueOrigin))
-      .type(type)
+      .hyperlinkListener(getHyperlinkListener(issueOrigin, issueType))
+      .type(issueType)
       .build()
   }
 
@@ -131,6 +135,9 @@ abstract class VisualLintAnalyzer {
   data class VisualLintIssueContent(
     val view: ViewInfo?,
     val message: String,
+    // Overrides the error type, it is used if we need to specify a type for the error
+    // that is different from the default type provided by the analyzer that created the error.
+    val overriddenErrorType: VisualLintErrorType? = null,
     val descriptionProvider: (Int) -> HtmlBuilder
   )
 }

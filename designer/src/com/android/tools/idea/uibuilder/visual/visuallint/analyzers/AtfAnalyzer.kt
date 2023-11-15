@@ -46,7 +46,11 @@ object AtfAnalyzer : VisualLintAnalyzer() {
 
   private fun createVisualLintIssueContent(issue: VisualLintAtfIssue) =
     if (issue.appliedColorBlindFilter() != ColorBlindMode.NONE && issue.isLowContrast()) {
-      VisualLintIssueContent(issue.component.viewInfo, COLOR_BLIND_ISSUE_SUMMARY) { count: Int ->
+      VisualLintIssueContent(
+        issue.component.viewInfo,
+        COLOR_BLIND_ISSUE_SUMMARY,
+        VisualLintErrorType.ATF_COLORBLIND
+      ) { count: Int ->
         colorBLindModeDescriptionProvider(issue, count)
       }
     } else {

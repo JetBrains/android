@@ -31,7 +31,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzerInspection
@@ -338,7 +337,5 @@ class RenderErrorTest {
     return issues
   }
 
-  private suspend fun accessibilityIssues() = visualLintRenderIssues {
-    it.type == VisualLintErrorType.ATF
-  }
+  private suspend fun accessibilityIssues() = visualLintRenderIssues { it.type.isAtfErrorType() }
 }
