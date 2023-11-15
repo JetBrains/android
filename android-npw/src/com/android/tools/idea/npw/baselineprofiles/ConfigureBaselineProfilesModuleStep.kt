@@ -16,11 +16,13 @@
 package com.android.tools.idea.npw.baselineprofiles
 
 import com.android.AndroidProjectTypes
+import com.android.ide.common.gradle.Version
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
@@ -39,7 +41,9 @@ import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.run.configuration.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
@@ -56,6 +60,9 @@ private val USES_FEATURE_OTHER_FORM_FACTORS = setOf(
   "android.hardware.type.watch",
   "android.software.leanback"
 )
+
+private val ANDROIDX_BENCHMARK_MIN_LIBRARY_VERSION = Version.parse("1.2.0")
+private const val ANDROIDX_BENCHMARK_LIBRARY_GROUP = "androidx.benchmark"
 
 class ConfigureBaselineProfilesModuleStep(
   model: NewBaselineProfilesModuleModel,
@@ -263,9 +270,17 @@ class ConfigureBaselineProfilesModuleStep(
     }
 
     row {
-      topGap(TopGap.MEDIUM)
+      topGap(TopGap.SMALL)
       cell(useGmdCheck)
       rowComment(AndroidBundle.message("android.wizard.module.help.baselineprofiles.usegmd.description"))
+    }
+
+    // Get the benchmark libraries with version less than min
+    if (getBenchmarkLibrariesInTestModulesLessThanMinVersion(model.project).isNotEmpty()) {
+      row {
+        topGap(TopGap.SMALL)
+        comment(AndroidBundle.message("android.wizard.module.help.baselineprofiles.minversionrequired"))
+      }
     }
   }
 
@@ -287,5 +302,19 @@ class ConfigureBaselineProfilesModuleStep(
       ?.let { selectedIndex = it }
   }
 }
+
+fun getBenchmarkLibrariesInTestModulesLessThanMinVersion(project: Project) =
+  AndroidProjectInfo
+    .getInstance(project)
+    .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_TEST)
+    .asSequence()
+    .filter { it.androidFacet != null }
+    .mapNotNull { GradleAndroidModel.get(it) }
+    .flatMap { it.variants }
+    .flatMap { v -> v.mainArtifact.compileClasspath.libraries }
+    .filterIsInstance<IdeArtifactLibrary>()
+    .filter { it.name.startsWith(ANDROIDX_BENCHMARK_LIBRARY_GROUP) }
+    .filter { it.component?.let { c -> c.version <= ANDROIDX_BENCHMARK_MIN_LIBRARY_VERSION } ?: false }
+    .toList()
 
 fun List<UsedFeatureRawText>.usesFeatureAutomotiveOrWearOrTv() = any { it.name in USES_FEATURE_OTHER_FORM_FACTORS && it.required?.toBooleanStrictOrNull() ?: true }

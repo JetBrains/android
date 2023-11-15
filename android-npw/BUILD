@@ -37,6 +37,7 @@ iml_module(
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module]",
         "//tools/adt/idea/android-templates:intellij.android.templates[module]",
         "//tools/adt/idea/analytics[module]",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
     ],
 )
 
