@@ -106,8 +106,17 @@ public class IssueNotificationAction extends ToggleAction {
     if (project == null) {
       return;
     }
+    DesignSurface<?> surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
+    String tabName = null;
+    if (surface instanceof NlDesignSurface) {
+      tabName = ((NlDesignSurface)surface).getVisualLintIssueProvider().getUiCheckInstanceId();
+    }
     IssuePanelService issuePanelService = IssuePanelService.getInstance(project);
-    issuePanelService.setSharedIssuePanelVisibility(state, issuePanelService::focusIssuePanelIfVisible);
+    if (tabName != null) {
+      issuePanelService.setIssuePanelVisibilityByTabName(state, tabName, issuePanelService::focusIssuePanelIfVisible);
+    } else {
+      issuePanelService.setSharedIssuePanelVisibility(state, issuePanelService::focusIssuePanelIfVisible);
+    }
   }
 
   @Override
