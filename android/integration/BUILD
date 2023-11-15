@@ -75,6 +75,7 @@ iml_studio_test(
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
     module = ":intellij.android.core.integration",
+    tags = ["no_windows"],  # b/310660977
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.LanguageHighlightingTest",
