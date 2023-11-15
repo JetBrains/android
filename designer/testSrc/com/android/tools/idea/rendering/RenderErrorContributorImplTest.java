@@ -430,7 +430,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
     final AtomicReference<IAndroidTarget> target = new AtomicReference<>();
     LogOperation operation = (logger, render) -> {
       Throwable throwable = createExceptionFromDesc(
-        "Read access not allowed during rendering (/)\n" +
+        "Read access not allowed during rendering\n" +
         "\tat com.android.ide.common.rendering.RenderSecurityException.create(RenderSecurityException.java:52)\n" +
         "\tat com.android.ide.common.rendering.RenderSecurityManager.checkRead(RenderSecurityManager.java:204)\n" +
         "\tat java.io.File.list(File.java:971)\n" +
@@ -484,7 +484,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
         "\tat java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:895)\n" +
         "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918)\n" +
         "\tat java.lang.Thread.run(Thread.java:695)\n",
-        RenderSecurityException.create("Read access not allowed during rendering (/)"));
+        RenderSecurityException.create("Read", null));
 
       logger.error(null, null, throwable, null, null);
 
@@ -535,7 +535,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
       assertHtmlEquals(
         "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>" +
         "<BR/>" +
-        "Read access not allowed during rendering (/)<BR/>" +
+        "Read access not allowed during rendering<BR/>" +
         "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityException.create(RenderSecurityException.java:52)<BR/>" +
         "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityManager.checkRead(RenderSecurityManager.java:204)<BR/>" +
         "&nbsp;&nbsp;at java.io.File.list(File.java:971)<BR/>" +
