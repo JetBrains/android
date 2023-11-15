@@ -46,7 +46,7 @@ iml_module(
             "tags": ["very_flaky"],
         },
     },
-    test_class = "com.android.tools.idea.debuggers.AndroidDebuggersTestSuite",
+    test_class = "com.android.tools.idea.DatabaseInspectorTestSuite",
     test_data = ["//prebuilts/studio/sdk:platform-tools"],
     test_srcs = ["testSrc"],
     test_tags = [],

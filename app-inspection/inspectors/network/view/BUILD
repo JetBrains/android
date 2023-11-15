@@ -31,7 +31,7 @@ iml_module(
 iml_module(
     name = "app-inspection.inspectors.network.view.tests",
     iml_files = ["app-inspection.inspectors.network.view.tests.iml"],
-    test_class = "com.android.tools.idea.appinspection.inspectors.network.view.NetworkViewTestSuite",
+    test_class = "com.android.tools.idea.appinspection.inspectors.network.NetworkViewTestSuite",
     test_friends = ["//tools/adt/idea/app-inspection/inspectors/network/view:app-inspection.inspectors.network.view"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

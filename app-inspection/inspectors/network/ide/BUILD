@@ -32,7 +32,7 @@ iml_module(
 iml_module(
     name = "app-inspection.inspectors.network.ide.tests",
     iml_files = ["app-inspection.inspectors.network.ide.tests.iml"],
-    test_class = "com.android.tools.idea.appinspection.inspectors.network.ide.NetworkIdeTestSuite",
+    test_class = "com.android.tools.idea.appinspection.inspectors.network.NetworkIdeTestSuite",
     test_data = glob(["testData/**"]),
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

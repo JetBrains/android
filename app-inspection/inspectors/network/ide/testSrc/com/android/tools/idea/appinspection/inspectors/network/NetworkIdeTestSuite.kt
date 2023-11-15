@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
+package com.android.tools.idea.appinspection.inspectors.network
 
 import com.android.testutils.JarTestSuiteRunner
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
 
-@RunWith(JarTestSuiteRunner::class)
-class BackgroundTaskInspectorViewTestSuite : IdeaTestSuiteBase()
+@RunWith(JarTestSuiteRunner::class) class NetworkIdeTestSuite : IdeaTestSuiteBase()
