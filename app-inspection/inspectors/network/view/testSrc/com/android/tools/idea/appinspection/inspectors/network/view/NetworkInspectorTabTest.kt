@@ -38,73 +38,71 @@ class NetworkInspectorTabTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
-  fun pressActionButtons() =
-    runBlocking<Unit> {
-      val scope = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
-      val timer = FakeTimer()
-      timer.start()
-      val services =
-        TestNetworkInspectorServices(
-          FakeCodeNavigationProvider(),
-          timer,
-          NetworkInspectorClientImpl(
-            object : AppInspectorMessenger {
-              override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
-                return NetworkInspectorProtocol.Response.newBuilder()
-                  .apply {
-                    startInspectionResponse =
-                      NetworkInspectorProtocol.StartInspectionResponse.newBuilder()
-                        .apply { timestamp = 12345 }
-                        .build()
-                  }
-                  .build()
-                  .toByteArray()
-              }
-
-              override val eventFlow = emptyFlow<ByteArray>()
-              override val scope = scope
+  fun pressActionButtons() = runBlocking {
+    val scope = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
+    val timer = FakeTimer()
+    timer.start()
+    val services =
+      TestNetworkInspectorServices(
+        FakeCodeNavigationProvider(),
+        timer,
+        NetworkInspectorClientImpl(
+          object : AppInspectorMessenger {
+            override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
+              return NetworkInspectorProtocol.Response.newBuilder()
+                .apply {
+                  startInspectionResponse =
+                    NetworkInspectorProtocol.StartInspectionResponse.newBuilder()
+                      .apply { timestamp = 12345 }
+                      .build()
+                }
+                .build()
+                .toByteArray()
             }
-          )
+
+            override val eventFlow = emptyFlow<ByteArray>()
+            override val scope = scope
+          }
         )
-      val tab =
-        NetworkInspectorTab(
-          projectRule.project,
-          FakeUiComponentsProvider(),
-          FakeNetworkInspectorDataSource(),
-          services,
-          scope,
-          projectRule.fixture.testRootDisposable
-        )
+      )
+    val tab =
+      NetworkInspectorTab(
+        projectRule.project,
+        FakeUiComponentsProvider(),
+        FakeNetworkInspectorDataSource(),
+        services,
+        scope,
+        projectRule.fixture.testRootDisposable
+      )
 
-      tab.launchJob.join()
+    tab.launchJob.join()
 
-      val zoomOut = tab.actionsToolBar.getComponent(0) as CommonButton
-      val zoomIn = tab.actionsToolBar.getComponent(1) as CommonButton
-      val resetZoom = tab.actionsToolBar.getComponent(2) as CommonButton
-      val zoomToSelection = tab.actionsToolBar.getComponent(3) as CommonButton
+    val zoomOut = tab.actionsToolBar.getComponent(0) as CommonButton
+    val zoomIn = tab.actionsToolBar.getComponent(1) as CommonButton
+    val resetZoom = tab.actionsToolBar.getComponent(2) as CommonButton
+    val zoomToSelection = tab.actionsToolBar.getComponent(3) as CommonButton
 
-      tab.model.timeline.dataRange.set(0.0, 10.0)
-      tab.model.timeline.selectionRange.set(0.0, 4.0)
-      zoomToSelection.doClick()
-      timer.step()
-      assertThat(tab.model.timeline.viewRange.isSameAs(Range(0.0, 4.0)))
+    tab.model.timeline.dataRange.set(0.0, 10.0)
+    tab.model.timeline.selectionRange.set(0.0, 4.0)
+    zoomToSelection.doClick()
+    timer.step()
+    assertThat(tab.model.timeline.viewRange.isSameAs(Range(0.0, 4.0)))
 
-      val defaultViewRange =
-        Range(tab.model.timeline.viewRange.min, tab.model.timeline.viewRange.max)
-      zoomIn.doClick()
-      timer.step()
-      val zoomedInViewRange =
-        Range(tab.model.timeline.viewRange.min, tab.model.timeline.viewRange.max)
-      assertThat(zoomedInViewRange.length).isLessThan(defaultViewRange.length)
+    val defaultViewRange = Range(tab.model.timeline.viewRange.min, tab.model.timeline.viewRange.max)
+    zoomIn.doClick()
+    timer.step()
+    val zoomedInViewRange =
+      Range(tab.model.timeline.viewRange.min, tab.model.timeline.viewRange.max)
+    assertThat(zoomedInViewRange.length).isLessThan(defaultViewRange.length)
 
-      zoomOut.doClick()
-      timer.step()
-      val zoomedOutViewRange =
-        Range(tab.model.timeline.viewRange.min, tab.model.timeline.viewRange.max)
-      assertThat(zoomedOutViewRange.length).isGreaterThan(zoomedInViewRange.length)
+    zoomOut.doClick()
+    timer.step()
+    val zoomedOutViewRange =
+      Range(tab.model.timeline.viewRange.min, tab.model.timeline.viewRange.max)
+    assertThat(zoomedOutViewRange.length).isGreaterThan(zoomedInViewRange.length)
 
-      resetZoom.doClick()
-      timer.step()
-      assertThat(tab.model.timeline.viewRange.length).isGreaterThan(defaultViewRange.length)
-    }
+    resetZoom.doClick()
+    timer.step()
+    assertThat(tab.model.timeline.viewRange.length).isGreaterThan(defaultViewRange.length)
+  }
 }

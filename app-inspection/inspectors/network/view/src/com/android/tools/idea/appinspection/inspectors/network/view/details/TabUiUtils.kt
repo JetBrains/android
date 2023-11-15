@@ -92,7 +92,7 @@ fun createHideablePanel(
 ): HideablePanel {
   return HideablePanel.Builder(title, content)
     .setNorthEastComponent(northEastComponent)
-    .setPanelBorder(JBUI.Borders.empty(10, 0, 0, 0))
+    .setPanelBorder(JBUI.Borders.emptyTop(10))
     .setContentBorder(JBUI.Borders.empty(10, 12, 0, 0))
     .setIsTitleBold(true)
     .build()
@@ -187,7 +187,7 @@ fun createCategoryPanel(
   return panel
 }
 
-/** Create a [JBTextField] with preferred [width] and focus lost listener. */
+/** Create a [JBTextField] with preferred `width` and focus lost listener. */
 fun createTextField(
   initialText: String?,
   hintText: String,

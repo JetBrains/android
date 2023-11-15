@@ -24,12 +24,12 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import com.intellij.util.xmlb.annotations.Transient
 import com.intellij.util.xmlb.annotations.XCollection
+import javax.swing.JTable
+import kotlin.properties.Delegates
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria
 import studio.network.inspection.NetworkInspectorProtocol.InterceptRule
 import studio.network.inspection.NetworkInspectorProtocol.MatchingText.Type
 import studio.network.inspection.NetworkInspectorProtocol.Transformation
-import javax.swing.JTable
-import kotlin.properties.Delegates
 
 class RuleData(
   // must be a public var for PersistentStateComponent to set it
@@ -359,6 +359,8 @@ class RuleData(
 fun matchingTextTypeFrom(isRegex: Boolean): Type = if (isRegex) Type.REGEX else Type.PLAIN
 
 private object MyRenderer : ColoredTableCellRenderer() {
+  private fun readResolve(): Any = MyRenderer
+
   override fun customizeCellRenderer(
     table: JTable,
     item: Any?,

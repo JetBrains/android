@@ -121,7 +121,7 @@ class HeaderRuleDialog(
   @VisibleForTesting
   val newHeaderPanel =
     JPanel(VerticalLayout(10)).apply {
-      border = JBUI.Borders.empty(15, 0, 0, 0)
+      border = JBUI.Borders.emptyTop(15)
       add(
         createCategoryPanel(
           null,
@@ -134,7 +134,7 @@ class HeaderRuleDialog(
   @VisibleForTesting
   val editHeaderPanel =
     JPanel(VerticalLayout(10)).apply {
-      border = JBUI.Borders.empty(5, 0, 0, 0)
+      border = JBUI.Borders.emptyTop(5)
       add(
         createCategoryPanel(
           "Find by",

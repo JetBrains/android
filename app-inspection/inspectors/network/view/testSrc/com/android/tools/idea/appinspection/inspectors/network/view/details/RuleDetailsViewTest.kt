@@ -672,7 +672,9 @@ class RuleDetailsViewTest {
     val headerTable = findComponentWithUniqueName(ruleDetailsView, "headerRules") as TableView<*>
 
     val addAction = findAction(headerTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as HeaderRuleDialog
       dialog.tabs.selectedComponent = dialog.editHeaderPanel
 
@@ -713,7 +715,9 @@ class RuleDetailsViewTest {
     assertThat(headerTable.rowCount).isEqualTo(0)
 
     val addAction = findAction(headerTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as HeaderRuleDialog
       dialog.tabs.selectedComponent = dialog.newHeaderPanel
       // Assert that OK button is disabled since the default value is empty

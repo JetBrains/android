@@ -9,7 +9,6 @@ import com.android.tools.idea.appinspection.inspectors.network.model.connections
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.testing.DebugLoggerRule
-import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit

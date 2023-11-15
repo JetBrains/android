@@ -17,7 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model.connection
 
 import com.android.tools.adtui.model.Range
 import java.util.concurrent.CountDownLatch
-import junit.framework.Assert.fail
+import kotlin.test.fail
 import org.junit.Test
 
 class SelectionRangeDataFetcherTest {

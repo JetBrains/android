@@ -119,8 +119,8 @@ class NetworkInspectorView(
   /** Container for the tooltip. */
   private val tooltipPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
 
-  /** View of the active tooltip for stages that contain more than one tooltips. */
-  var activeTooltipView: TooltipView? = null
+  /** View of the active tooltip for stages that contain more than one tooltip. */
+  private var activeTooltipView: TooltipView? = null
 
   /** A common component for showing the current selection range. */
   private val selectionTimeLabel = createSelectionTimeLabel()
@@ -327,7 +327,7 @@ class NetworkInspectorView(
   private fun createSelectionTimeLabel(): JLabel {
     val label = JLabel("")
     label.font = STANDARD_FONT
-    label.border = JBUI.Borders.empty(3, 3, 3, 3)
+    label.border = JBUI.Borders.empty(3)
     label.addMouseListener(
       object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
@@ -353,9 +353,8 @@ class NetworkInspectorView(
     val layout = TabularLayout("*")
     val panel = JBPanel<Nothing>(layout)
     panel.background = DEFAULT_STAGE_BACKGROUND
-    // Order matters, as such we want to put the tooltip component first so we draw the tooltip line
-    // on top of all other
-    // components.
+    // Order matters, as such we want to put the tooltip component first, so we draw the tooltip
+    // line on top of all other components.
     panel.add(tooltip, TabularLayout.Constraint(0, 0, 2, 1))
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer
@@ -377,7 +376,7 @@ class NetworkInspectorView(
     label.verticalAlignment = SwingConstants.TOP
     val lineChartPanel = JBPanel<Nothing>(BorderLayout())
     lineChartPanel.isOpaque = false
-    lineChartPanel.border = JBUI.Borders.empty(Y_AXIS_TOP_MARGIN, 0, 0, 0)
+    lineChartPanel.border = JBUI.Borders.emptyTop(Y_AXIS_TOP_MARGIN)
     val usage = model.networkUsage
     val lineChart = LineChart(usage)
     val receivedConfig =

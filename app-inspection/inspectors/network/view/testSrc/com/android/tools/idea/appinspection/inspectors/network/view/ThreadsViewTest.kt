@@ -145,7 +145,7 @@ class ThreadsViewTest {
     table.setUI(HeadlessTableUI())
     // Normally, when ThreadsView changes size, it updates the size of its table which in turn
     // fires an event that updates the preferred size of its columns. This requires multiple layout
-    // passes, as well as firing a event that happens on another thread, so the timing is not
+    // passes, as well as firing an event that happens on another thread, so the timing is not
     // deterministic. For testing, we short-circuit the process and set the size of the table
     // directly, so when the FakeUi is created below (which performs a layout pass), the table will
     // already be in its final size.

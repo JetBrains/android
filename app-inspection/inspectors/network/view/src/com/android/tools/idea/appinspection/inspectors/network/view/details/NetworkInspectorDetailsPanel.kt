@@ -81,7 +81,7 @@ class NetworkInspectorDetailsPanel(
     // Add a wrapper to move the close button center vertically.
     val closeButtonWrapper = JPanel(BorderLayout())
     closeButtonWrapper.add(closeButton, BorderLayout.CENTER)
-    closeButtonWrapper.border = JBUI.Borders.empty(3, 0, 0, 0)
+    closeButtonWrapper.border = JBUI.Borders.emptyTop(3)
     rootPanel.add(closeButtonWrapper, TabularLayout.Constraint(0, 1))
     rootPanel.add(cardLayoutView, TabularLayout.Constraint(0, 0, 2, 2))
     add(rootPanel)
