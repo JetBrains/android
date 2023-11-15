@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.insights.ISSUE1
+import com.android.tools.idea.insights.ISSUE_VARIANT
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.util.ui.JBFont
@@ -33,11 +34,31 @@ class DetailsPanelHeaderTest {
 
     detailsPanelHeader.size = Dimension(500, 200)
 
-    detailsPanelHeader.updateWithIssue(ISSUE1.issueDetails)
+    detailsPanelHeader.update(DetailsPanelHeaderModel.fromIssueVariant(ISSUE1.issueDetails, null))
 
     assertThat(detailsPanelHeader.titleLabel.text).isEqualTo("<html>crash.<B>Crash</B></html>")
     assertThat(detailsPanelHeader.eventsCountLabel.text).isEqualTo("50,000,000")
     assertThat(detailsPanelHeader.usersCountLabel.text).isEqualTo("3,000")
+
+    detailsPanelHeader.clear()
+
+    assertThat(detailsPanelHeader.titleLabel.text).isNull()
+    assertThat(detailsPanelHeader.titleLabel.icon).isNull()
+  }
+
+  @Test
+  fun `header updates with issue and variant`() {
+    val detailsPanelHeader = DetailsPanelHeader()
+
+    detailsPanelHeader.size = Dimension(500, 200)
+
+    detailsPanelHeader.update(
+      DetailsPanelHeaderModel.fromIssueVariant(ISSUE1.issueDetails, ISSUE_VARIANT)
+    )
+
+    assertThat(detailsPanelHeader.titleLabel.text).isEqualTo("<html>crash.<B>Crash</B></html>")
+    assertThat(detailsPanelHeader.eventsCountLabel.text).isEqualTo("1")
+    assertThat(detailsPanelHeader.usersCountLabel.text).isEqualTo("1")
 
     detailsPanelHeader.clear()
 
@@ -82,7 +103,7 @@ class DetailsPanelHeaderTest {
     val detailsPanelHeader = DetailsPanelHeader()
     assertThat(detailsPanelHeader.variantPanel.isVisible).isFalse()
 
-    detailsPanelHeader.updateWithIssue(ISSUE1.issueDetails)
+    detailsPanelHeader.update(DetailsPanelHeaderModel.fromIssueVariant(ISSUE1.issueDetails, null))
     assertThat(detailsPanelHeader.variantPanel.isVisible).isFalse()
   }
 }

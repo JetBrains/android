@@ -34,6 +34,7 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.DETAIL_PANEL_HORIZONTAL_SPACING
 import com.android.tools.idea.insights.ui.DetailsPanelHeader
+import com.android.tools.idea.insights.ui.DetailsPanelHeaderModel
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
 import com.android.tools.idea.insights.ui.StackTraceConsole
@@ -231,7 +232,7 @@ class VitalsIssueDetailsPanel(
           if (issue == null) {
             header.clear()
           } else {
-            header.updateWithIssue(issue.issueDetails)
+            header.update(DetailsPanelHeaderModel.fromIssueVariant(issue.issueDetails, null))
           }
         }
     }

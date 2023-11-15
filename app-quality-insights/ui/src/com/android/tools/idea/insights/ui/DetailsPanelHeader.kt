@@ -35,12 +35,43 @@ import java.awt.event.ComponentEvent
 import java.awt.event.ItemEvent
 import javax.swing.Box
 import javax.swing.BoxLayout
+import javax.swing.Icon
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.border.CompoundBorder
 import org.jetbrains.annotations.VisibleForTesting
 
 @VisibleForTesting val KEY = Key.create<Pair<String, String>>("android.aqi.details.header")
+
+data class DetailsPanelHeaderModel(
+  val icon: Icon?,
+  val className: String,
+  val methodName: String,
+  val eventCount: Long,
+  val userCount: Long
+) {
+  companion object {
+    fun fromIssueVariant(issue: IssueDetails, variant: IssueVariant?): DetailsPanelHeaderModel {
+      val (className, methodName) = issue.getDisplayTitle()
+      return variant?.let {
+        DetailsPanelHeaderModel(
+          issue.fatality.getIcon(),
+          className,
+          methodName,
+          it.eventsCount,
+          it.impactedDevicesCount
+        )
+      }
+        ?: DetailsPanelHeaderModel(
+          issue.fatality.getIcon(),
+          className,
+          methodName,
+          issue.eventsCount,
+          issue.impactedDevicesCount
+        )
+    }
+  }
+}
 
 class DetailsPanelHeader(
   private val variantComboBox: VariantComboBox? = null,
@@ -114,17 +145,16 @@ class DetailsPanelHeader(
     variantPanel.isVisible = false
   }
 
-  fun updateWithIssue(issueDetails: IssueDetails) {
-    titleLabel.icon = issueDetails.fatality.getIcon()
-    val (className, methodName) = issueDetails.getDisplayTitle()
+  fun update(model: DetailsPanelHeaderModel) {
+    titleLabel.icon = model.icon
     countsPanel.isVisible = true
-    eventsCountLabel.text = issueDetails.eventsCount.formatNumberToPrettyString()
-    usersCountLabel.text = issueDetails.impactedDevicesCount.formatNumberToPrettyString()
+    eventsCountLabel.text = model.eventCount.formatNumberToPrettyString()
+    usersCountLabel.text = model.userCount.formatNumberToPrettyString()
     if (variantComboBox != null) {
       variantPanel.isVisible = true
     }
-    titleLabel.putUserData(KEY, Pair(className, methodName))
-    titleLabel.text = generateTitleLabelText(className, methodName)
+    titleLabel.putUserData(KEY, Pair(model.className, model.methodName))
+    titleLabel.text = generateTitleLabelText(model.className, model.methodName)
   }
 
   private fun generateTitleLabelText(className: String, methodName: String): String {
