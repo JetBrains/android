@@ -48,7 +48,7 @@ class NetworkInspectorDataSourceTest {
 
     assertThat(dataSource.queryForSpeedData(Range(1.0, 2.0))).containsExactly(speedEvent)
 
-    assertThat(dataSource.queryForHttpData(Range(1.0, 2.0)))
+    assertThat(dataSource.queryForConnectionData(Range(1.0, 2.0)))
       .containsExactly(
         HttpData.createHttpData(
           id = 1,
@@ -174,7 +174,7 @@ class NetworkInspectorDataSourceTest {
     dataSource.start()
     testMessenger.await()
 
-    assertThat(dataSource.queryForHttpData(Range(1.0, 2.0)))
+    assertThat(dataSource.queryForConnectionData(Range(1.0, 2.0)))
       .containsExactly(
         HttpData.createHttpData(
           id = 2,

@@ -170,11 +170,9 @@ internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
 
   fun getHttpDataForRange(range: Range) =
     synchronized(httpDataMap) { httpDataMap.values.filter { it.intersectsRange(range) } }
-      .sortedBy { it.requestStartTimeUs }
 
   fun getGrpcDataForRange(range: Range) =
     synchronized(grpcDataMap) { grpcDataMap.values.filter { it.intersectsRange(range) } }
-      .sortedBy { it.requestStartTimeUs }
 
   private fun shouldUpdateTimeline(event: Event): Boolean {
     val endedConnections = findEndedConnections(event)

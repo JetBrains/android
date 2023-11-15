@@ -18,7 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.concurrency.createChildScope
 import com.intellij.util.containers.ContainerUtil
 import kotlinx.coroutines.CoroutineScope
@@ -33,7 +33,7 @@ import studio.network.inspection.NetworkInspectorProtocol.Event
  * time ranges.
  */
 interface NetworkInspectorDataSource {
-  fun queryForHttpData(range: Range): List<HttpData>
+  fun queryForConnectionData(range: Range): List<ConnectionData>
 
   fun queryForSpeedData(range: Range): List<Event>
 
@@ -85,8 +85,10 @@ class NetworkInspectorDataSourceImpl(
     listeners.add(listener)
   }
 
-  override fun queryForHttpData(range: Range): List<HttpData> =
-    dataHandler.getHttpDataForRange(range)
+  override fun queryForConnectionData(range: Range): List<ConnectionData> =
+    (dataHandler.getHttpDataForRange(range) + dataHandler.getGrpcDataForRange(range)).sortedBy {
+      it.requestStartTimeUs
+    }
 
   override fun queryForSpeedData(range: Range): List<Event> = dataHandler.getSpeedForRange(range)
 

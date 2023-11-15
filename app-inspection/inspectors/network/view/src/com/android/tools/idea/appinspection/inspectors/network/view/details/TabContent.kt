@@ -21,8 +21,8 @@ import javax.swing.JComponent
 import javax.swing.JTabbedPane
 
 /**
- * Base class for all tabs shown in the [ConnectionDetailsView]. To use, construct subclass
- * instances and add their title, icon, and component content to a target [JTabbedPane] using
+ * Base class for all tabs shown in the [HttpDataDetailsView]. To use, construct subclass instances
+ * and add their title, icon, and component content to a target [JTabbedPane] using
  * [JTabbedPane.addTab]
  */
 abstract class TabContent {

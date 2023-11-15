@@ -80,14 +80,15 @@ class ConnectionsView(
         override fun mouseClicked(e: MouseEvent) {
           val row = connectionsTable.rowAtPoint(e.point)
           if (row != -1) {
-            model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
+            model.detailContent = tableModel.getConnectionDataDetailContent(row)
           }
         }
       }
     )
     connectionsTable.registerEnterKeyAction {
       if (connectionsTable.selectedRow != -1) {
-        model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
+        model.detailContent =
+          tableModel.getConnectionDataDetailContent(connectionsTable.selectedRow)
       }
     }
     connectionsTable.selectionModel.addListSelectionListener { e: ListSelectionEvent ->

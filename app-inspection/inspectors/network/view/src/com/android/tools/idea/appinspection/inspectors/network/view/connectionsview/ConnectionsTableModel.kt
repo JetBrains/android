@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.connectionsview
 
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.GRPC_DATA
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.HTTP_DATA
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.GrpcData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.SelectionRangeDataFetcher
+import java.lang.IllegalStateException
 import javax.swing.table.AbstractTableModel
 
 internal class ConnectionsTableModel(selectionRangeDataFetcher: SelectionRangeDataFetcher) :
@@ -42,4 +48,12 @@ internal class ConnectionsTableModel(selectionRangeDataFetcher: SelectionRangeDa
   override fun getColumnClass(columnIndex: Int) = ConnectionColumn.values()[columnIndex].type
 
   fun getConnectionData(rowIndex: Int) = dataList[rowIndex]
+
+  fun getConnectionDataDetailContent(rowIndex: Int): NetworkInspectorModel.DetailContent {
+    return when (val data = dataList[rowIndex]) {
+      is HttpData -> HTTP_DATA
+      is GrpcData -> GRPC_DATA
+      else -> throw IllegalStateException("Unknown data: ${data::class.java.name}")
+    }
+  }
 }

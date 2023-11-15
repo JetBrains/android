@@ -27,7 +27,11 @@ import com.android.tools.adtui.stdui.TimelineTable
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.GRPC_DATA
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.HTTP_DATA
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.GrpcData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.SelectionRangeDataFetcher
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_RECEIVING_COLOR
@@ -52,6 +56,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.font.TextAttribute
 import java.awt.geom.Rectangle2D
+import java.lang.IllegalStateException
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -115,7 +120,12 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
           val data = findHttpDataUnderCursor(threadsTable, selection, e)
           if (data != null) {
             model.setSelectedConnection(data)
-            model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
+            model.detailContent =
+              when (data) {
+                is HttpData -> HTTP_DATA
+                is GrpcData -> GRPC_DATA
+                else -> throw IllegalStateException("Unknown data: $data")
+              }
             e.consume()
           }
         }

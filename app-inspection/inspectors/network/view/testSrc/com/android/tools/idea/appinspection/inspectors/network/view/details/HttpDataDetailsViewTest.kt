@@ -99,7 +99,7 @@ private fun <C : Component> firstDescendantWithType(root: Component, type: Class
   return TreeWalker(root).descendants().filterIsInstance(type).first()
 }
 
-private fun <T : TabContent?> ConnectionDetailsView.findTab(tabClass: Class<T>): T? {
+private fun <T : TabContent?> HttpDataDetailsView.findTab(tabClass: Class<T>): T? {
   return tabs.filterIsInstance(tabClass).firstOrNull()
 }
 
@@ -108,7 +108,7 @@ private fun <C : Component> allDescendantsWithType(root: Component, type: Class<
 }
 
 @RunsInEdt
-class ConnectionDetailsViewTest {
+class HttpDataDetailsViewTest {
 
   private class TestNetworkInspectorClient : NetworkInspectorClient {
     override suspend fun getStartTimeStampNs() = 0L
@@ -126,7 +126,7 @@ class ConnectionDetailsViewTest {
   private lateinit var services: TestNetworkInspectorServices
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
-  private lateinit var detailsView: ConnectionDetailsView
+  private lateinit var detailsView: HttpDataDetailsView
   private val timer: FakeTimer = FakeTimer()
   private lateinit var scope: CoroutineScope
   private lateinit var disposable: Disposable
@@ -176,7 +176,7 @@ class ConnectionDetailsViewTest {
         disposable
       )
     parentPanel.add(inspectorView.component)
-    detailsView = inspectorView.detailsPanel.connectionDetailsView
+    detailsView = inspectorView.detailsPanel.myHttpDataDetailsView
   }
 
   @After

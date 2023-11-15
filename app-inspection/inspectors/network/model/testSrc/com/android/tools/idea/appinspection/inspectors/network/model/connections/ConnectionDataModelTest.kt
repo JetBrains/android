@@ -65,9 +65,9 @@ class ConnectionDataModelTest {
   fun eventsToHttpData() {
     val source = FakeNetworkInspectorDataSource(httpEventList = HTTP_DATA_WITH_THREAD)
     val model = ConnectionDataModelImpl(source)
-    val httpDataList = model.getData(Range(0.0, SECONDS.toMicros(5).toDouble()))
-    assertThat(httpDataList).hasSize(1)
-    val httpData = httpDataList[0]
+    val dataList = model.getData(Range(0.0, SECONDS.toMicros(5).toDouble()))
+    assertThat(dataList).hasSize(1)
+    val httpData = dataList[0] as HttpData
 
     assertThat(httpData.requestStartTimeUs).isEqualTo(0)
     assertThat(httpData.requestCompleteTimeUs).isEqualTo(1000000)

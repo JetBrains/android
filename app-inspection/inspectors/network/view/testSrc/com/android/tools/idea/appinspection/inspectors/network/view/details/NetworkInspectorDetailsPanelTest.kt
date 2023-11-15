@@ -117,14 +117,14 @@ class NetworkInspectorDetailsPanelTest {
   @Test
   fun viewIsVisibleWhenDataIsNotNull() {
     detailsPanel.isVisible = false
-    model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
+    model.detailContent = NetworkInspectorModel.DetailContent.HTTP_DATA
     model.setSelectedConnection(DEFAULT_DATA)
     assertThat(detailsPanel.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
+    assertThat(detailsPanel.myHttpDataDetailsView.isVisible).isTrue()
     // Setting a null rule does not matter when we have a non-null connection data.
     model.setSelectedRule(null)
     assertThat(detailsPanel.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
+    assertThat(detailsPanel.myHttpDataDetailsView.isVisible).isTrue()
     assertThat(detailsPanel.ruleDetailsView.isVisible).isFalse()
     model.setSelectedConnection(null)
     assertThat(detailsPanel.isVisible).isFalse()
@@ -133,7 +133,7 @@ class NetworkInspectorDetailsPanelTest {
     model.setSelectedRule(RuleData(1, "NewRule", true))
     assertThat(detailsPanel.isVisible).isTrue()
     assertThat(detailsPanel.ruleDetailsView.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isFalse()
+    assertThat(detailsPanel.myHttpDataDetailsView.isVisible).isFalse()
     // Setting a null connection does not matter when we have a non-null rule data.
     model.setSelectedConnection(null)
     assertThat(detailsPanel.isVisible).isTrue()
@@ -147,15 +147,15 @@ class NetworkInspectorDetailsPanelTest {
     val tabs = inspectorView.connectionsView.component.findParentIsInstance<CommonTabbedPane>()
     assertThat(tabs.selectedIndex == 0)
     detailsPanel.isVisible = false
-    model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
+    model.detailContent = NetworkInspectorModel.DetailContent.HTTP_DATA
     model.setSelectedConnection(DEFAULT_DATA)
     assertThat(detailsPanel.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
+    assertThat(detailsPanel.myHttpDataDetailsView.isVisible).isTrue()
 
     // Switching between connection and threads view does not change details panel.
     tabs.selectedIndex = 1
     assertThat(detailsPanel.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
+    assertThat(detailsPanel.myHttpDataDetailsView.isVisible).isTrue()
 
     // Switch to Rules tab
     tabs.selectedIndex = 2
@@ -166,18 +166,18 @@ class NetworkInspectorDetailsPanelTest {
     model.setSelectedRule(RuleData(1, "NewRule", true))
     assertThat(detailsPanel.isVisible).isTrue()
     assertThat(detailsPanel.ruleDetailsView.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isFalse()
+    assertThat(detailsPanel.myHttpDataDetailsView.isVisible).isFalse()
 
     // Switching back to connections tab opens the selected connection.
     tabs.selectedIndex = 0
     assertThat(detailsPanel.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
+    assertThat(detailsPanel.myHttpDataDetailsView.isVisible).isTrue()
 
     // Switching back to rule tab opens the selected rule.
     tabs.selectedIndex = 2
     assertThat(detailsPanel.isVisible).isTrue()
     assertThat(detailsPanel.ruleDetailsView.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isFalse()
+    assertThat(detailsPanel.myHttpDataDetailsView.isVisible).isFalse()
   }
 
   private inline fun <reified R : Component> Component.findParentIsInstance(): R {

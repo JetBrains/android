@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import java.util.concurrent.TimeUnit
 import studio.network.inspection.NetworkInspectorProtocol.Event
 
@@ -33,7 +34,8 @@ class FakeNetworkInspectorDataSource(
     timestamp >= TimeUnit.MICROSECONDS.toNanos(range.min.toLong()) &&
       timestamp <= TimeUnit.MICROSECONDS.toNanos(range.max.toLong())
 
-  override fun queryForHttpData(range: Range) = dataHandler.getHttpDataForRange(range)
+  override fun queryForConnectionData(range: Range): List<ConnectionData> =
+    dataHandler.getHttpDataForRange(range) + dataHandler.getGrpcDataForRange(range)
 
   override fun queryForSpeedData(range: Range) = speedEventList.filter { it.isInRange(range) }
 

@@ -33,6 +33,8 @@ class ConnectionDataModelImpl(private val dataSource: NetworkInspectorDataSource
   ConnectionDataModel {
 
   override fun getData(timeCurrentRangeUs: Range) = runBlocking {
-    dataSource.queryForHttpData(timeCurrentRangeUs).filter { events -> events.threads.isNotEmpty() }
+    dataSource.queryForConnectionData(timeCurrentRangeUs).filter { events ->
+      events.threads.isNotEmpty()
+    }
   }
 }
