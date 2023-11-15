@@ -73,12 +73,12 @@ class GradleDslVersionCatalogHandlerTest  {
 
     val handler = GradleDslVersionCatalogHandler()
 
-    val accessor1 = handler.getAccessorClass(psiFile, "libs")
+    val accessor1 = handler.getAccessorClass(psiFile, "libs")!!
     val names1 = accessor1.methods.map { it.name }.toSet()
     assertThat(names1).contains("getGuava")
     assertThat(names1).doesNotContain("getJunit") // from libsTest
 
-    val accessor2 = handler.getAccessorClass(psiFile, "libsTest")
+    val accessor2 = handler.getAccessorClass(psiFile, "libsTest")!!
     val names2 = accessor2.methods.map { it.name }.toSet()
     assertThat(names2).contains("getJunit")
     assertThat(names2).doesNotContain("getGuava") // from libs
@@ -96,7 +96,7 @@ class GradleDslVersionCatalogHandlerTest  {
 
     val handler = GradleDslVersionCatalogHandler()
 
-    val accessor: PsiClass = handler.getAccessorClass(psiFile, "libs")
+    val accessor: PsiClass = handler.getAccessorClass(psiFile, "libs")!!
     val dependencies = extractDependenciesInGradleFormat(accessor)
     assertThat(dependencies).containsExactly("constraint.layout", "guava", "androidx.room.ktx",
                                              "plugins.android.application", "plugins.kotlinAndroid",
@@ -202,7 +202,7 @@ class GradleDslVersionCatalogHandlerTest  {
 
     val handler = GradleDslVersionCatalogHandler()
 
-    val accessor: PsiClass = handler.getAccessorClass(psiFile, "libs")
+    val accessor: PsiClass = handler.getAccessorClass(psiFile, "libs")!!
     val dependencies = extractDependenciesInGradleFormat(accessor)
     assertThat(dependencies).containsExactly(*dependencies.toTypedArray())
   }
