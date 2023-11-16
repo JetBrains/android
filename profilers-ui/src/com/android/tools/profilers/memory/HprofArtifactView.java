@@ -15,10 +15,16 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.formatter.TimeFormatter;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionArtifactView;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.util.text.DateFormatUtil;
 import icons.StudioIcons;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A {@link SessionArtifactView} that represents a heap dump object.
@@ -32,8 +38,8 @@ public final class HprofArtifactView extends SessionArtifactView<HprofSessionArt
   @Override
   @NotNull
   protected JComponent buildComponent() {
-    return buildCaptureArtifactView(getArtifact().getName(), getArtifact().getSubtitle(), StudioIcons.Profiler.Sessions.HEAP,
-                                    getArtifact().isOngoing());
+    var artifact = getArtifact();
+    return buildCaptureArtifactView(artifact.getName(), getSubtitle(artifact), StudioIcons.Profiler.Sessions.HEAP, artifact.isOngoing());
   }
 
   @Override
@@ -44,5 +50,18 @@ public final class HprofArtifactView extends SessionArtifactView<HprofSessionArt
       () -> MemoryProfiler.generateCaptureFileName(),
       () -> "hprof",
       file -> getSessionsView().getProfilers().getIdeServices().saveFile(file, outputStream -> getArtifact().export(outputStream), null));
+  }
+
+  @VisibleForTesting
+  public static @NotNull String getSubtitle(MemorySessionArtifact<?> artifact) {
+    if (artifact.getSessionMetaData().getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE) {
+      return DateFormatUtil.formatDateTime(TimeUnit.NANOSECONDS.toMillis(artifact.getSession().getStartTimestamp()));
+    }
+    else if (artifact.isOngoing()) {
+      return SessionArtifact.CAPTURING_SUBTITLE;
+    }
+    else {
+      return TimeFormatter.getFullClockString(TimeUnit.NANOSECONDS.toMicros(artifact.getTimestampNs()));
+    }
   }
 }

@@ -43,6 +43,7 @@ import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.ProfilingTechnology
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HprofArtifactView
+import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsArtifactView
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
@@ -543,7 +544,7 @@ class SessionsViewTest {
     assertThat(cpuCaptureItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.isOngoing).isFalse()
     assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingTechnology.ART_SAMPLED.getName())
-    assertThat(cpuCaptureItem.artifact.subtitle).isEqualTo("00:01:00.000")
+    assertThat(CpuCaptureArtifactView.getArtifactSubtitle(cpuCaptureItem.artifact)).isEqualTo("00:01:00.000")
 
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java) // Makes sure we're in monitor stage
     // Makes sure current selection (before selecting an artifact) is the session we just began
@@ -611,7 +612,7 @@ class SessionsViewTest {
     assertThat(cpuCaptureItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.isOngoing).isTrue()
     assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingTechnology.SYSTEM_TRACE.getName())
-    assertThat(cpuCaptureItem.artifact.subtitle).isEqualTo(SessionArtifact.CAPTURING_SUBTITLE)
+    assertThat(CpuCaptureArtifactView.getArtifactSubtitle(cpuCaptureItem.artifact)).isEqualTo(SessionArtifact.CAPTURING_SUBTITLE)
     assertThat(cpuCaptureItem.exportLabel).isNull()
 
     assertThat(myProfilers.stage).isInstanceOf(StudioMonitorStage::class.java) // Makes sure we're in monitor stage
@@ -814,6 +815,25 @@ class SessionsViewTest {
     ui.mouse.click(allocationItem.bounds.x + 1, allocationItem.bounds.y + 1)
     // Makes sure selected artifact's proto stayed the same
     assertThat(mySessionsManager.selectedArtifactProto).isEqualTo(allocationItem.artifact.artifactProto);
+  }
+
+  @Test
+  fun testHprofSessionSubtitle() {
+    val ongoingInfo = HeapDumpInfo.newBuilder().setStartTime(1).setEndTime(Long.MAX_VALUE).build()
+    val finishedInfo = HeapDumpInfo.newBuilder()
+      .setStartTime(TimeUnit.SECONDS.toNanos(5)).setEndTime(TimeUnit.SECONDS.toNanos(10)).build()
+
+    val ongoingCaptureArtifact = HprofSessionArtifact(myProfilers,
+                                                      Common.Session.getDefaultInstance(),
+                                                      Common.SessionMetaData.getDefaultInstance(),
+                                                      ongoingInfo)
+    assertThat(HprofArtifactView.getSubtitle(ongoingCaptureArtifact)).isEqualTo(SessionArtifact.CAPTURING_SUBTITLE)
+
+    val finishedCaptureArtifact = HprofSessionArtifact(myProfilers,
+                                                       Common.Session.getDefaultInstance(),
+                                                       Common.SessionMetaData.getDefaultInstance(),
+                                                       finishedInfo)
+    assertThat(HprofArtifactView.getSubtitle(finishedCaptureArtifact)).isEqualTo("00:00:05.000")
   }
 
   private fun startSession(device: Common.Device, process: Common.Process) {

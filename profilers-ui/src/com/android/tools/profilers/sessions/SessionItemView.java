@@ -21,7 +21,6 @@ import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_ICON_BORDER;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.adtui.stdui.StandardColors;
@@ -31,6 +30,7 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.text.DateFormatUtil;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
@@ -76,7 +76,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     JPanel panel = new JPanel(new TabularLayout("Fit,Fit,*", "Fit,Fit,Fit"));
 
     boolean isSessionAlive = SessionsManager.isSessionAlive(getArtifact().getSession());
-    JLabel startTime = new JLabel(TimeFormatter.getLocalizedTime(getArtifact().getSessionMetaData().getStartTimestampEpochMs()));
+    JLabel startTime = new JLabel(DateFormatUtil.formatTime(getArtifact().getSessionMetaData().getStartTimestampEpochMs()));
     startTime.setBorder(LABEL_PADDING);
     startTime.setFont(SESSION_TIME_FONT);
     startTime.setForeground(StandardColors.TEXT_COLOR);

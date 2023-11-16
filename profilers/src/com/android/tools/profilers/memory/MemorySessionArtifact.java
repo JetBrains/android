@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.idea.protobuf.GeneratedMessageV3;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.StudioProfilers;
@@ -74,18 +73,6 @@ public abstract class MemorySessionArtifact<T extends GeneratedMessageV3> implem
   @NotNull
   public String getName() {
     return myName;
-  }
-
-  @NotNull
-  public String getSubtitle() {
-    if (mySessionMetaData.getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE) {
-      return TimeFormatter.getLocalizedDateTime(TimeUnit.NANOSECONDS.toMillis(mySession.getStartTimestamp()));
-    }
-    else {
-      return isOngoing()
-             ? CAPTURING_SUBTITLE
-             : TimeFormatter.getFullClockString(TimeUnit.NANOSECONDS.toMicros(getTimestampNs()));
-    }
   }
 
   protected abstract long getStartTime();

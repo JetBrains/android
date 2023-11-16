@@ -32,8 +32,8 @@ public final class HeapProfdArtifactView extends SessionArtifactView<HeapProfdSe
   @Override
   @NotNull
   protected JComponent buildComponent() {
-    return buildCaptureArtifactView(getArtifact().getName(), getArtifact().getSubtitle(), StudioIcons.Profiler.Sessions.HEAP,
-                                    getArtifact().isOngoing());
+    var artifact = getArtifact();
+    return buildCaptureArtifactView(artifact.getName(), HprofArtifactView.getSubtitle(artifact), StudioIcons.Profiler.Sessions.HEAP, artifact.isOngoing());
   }
 
   @Override

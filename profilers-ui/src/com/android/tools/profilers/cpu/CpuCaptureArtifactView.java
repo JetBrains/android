@@ -15,11 +15,16 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
+import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionArtifactView;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.util.text.DateFormatUtil;
 import icons.StudioIcons;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A {@link SessionArtifactView} that represents a CPU capture object.
@@ -33,8 +38,8 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
   @Override
   @NotNull
   protected JComponent buildComponent() {
-    return buildCaptureArtifactView(getArtifact().getName(), getArtifact().getSubtitle(), StudioIcons.Profiler.Sessions.CPU,
-                                    getArtifact().isOngoing());
+    var artifact = getArtifact();
+    return buildCaptureArtifactView(artifact.getName(), getArtifactSubtitle(artifact), StudioIcons.Profiler.Sessions.CPU, artifact.isOngoing());
   }
 
   @Override
@@ -45,5 +50,21 @@ public class CpuCaptureArtifactView extends SessionArtifactView<CpuCaptureSessio
       () -> CpuProfiler.generateCaptureFileName(TraceType.from(getArtifact().getArtifactProto().getConfiguration())),
       () -> "trace",
       file -> getArtifact().getProfilers().getIdeServices().saveFile(file, outputStream -> getArtifact().export(outputStream), null));
+  }
+
+  @VisibleForTesting
+  public static @NotNull String getArtifactSubtitle(CpuCaptureSessionArtifact artifact) {
+    if (artifact.isOngoing()) {
+      return SessionArtifact.CAPTURING_SUBTITLE;
+    }
+    else if (artifact.isImportedSession()) {
+      // For imported sessions, we show the time the file was imported, as it doesn't make sense to show the capture start time within the
+      // session, which is always going to be 00:00:00
+      return DateFormatUtil.formatDateTime(TimeUnit.NANOSECONDS.toMillis(artifact.getSession().getStartTimestamp()));
+    }
+    else {
+      // Otherwise, we show the formatted timestamp of the capture relative to the session start time.
+      return TimeFormatter.getFullClockString(TimeUnit.NANOSECONDS.toMicros(artifact.getTimestampNs()));
+    }
   }
 }

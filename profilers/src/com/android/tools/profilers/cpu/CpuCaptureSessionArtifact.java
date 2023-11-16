@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.StudioProfilers;
@@ -80,21 +79,6 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Trace.TraceInf
     return ProfilingTechnology.fromTraceConfiguration(config).getName();
   }
 
-  public String getSubtitle() {
-    if (myIsOngoingCapture) {
-      return CAPTURING_SUBTITLE;
-    }
-    else if (isImportedSession()) {
-      // For imported sessions, we show the time the file was imported, as it doesn't make sense to show the capture start time within the
-      // session, which is always going to be 00:00:00
-      return TimeFormatter.getLocalizedDateTime(TimeUnit.NANOSECONDS.toMillis(mySession.getStartTimestamp()));
-    }
-    else {
-      // Otherwise, we show the formatted timestamp of the capture relative to the session start time.
-      return TimeFormatter.getFullClockString(TimeUnit.NANOSECONDS.toMicros(getTimestampNs()));
-    }
-  }
-
   @Override
   public long getTimestampNs() {
     // For imported traces, we only have an artifact and it should be aligned with session's start time.
@@ -154,7 +138,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Trace.TraceInf
     CpuProfiler.saveCaptureToFile(myProfilers, getArtifactProto(), outputStream);
   }
 
-  private boolean isImportedSession() {
+  public boolean isImportedSession() {
     return mySessionMetaData.getType() == Common.SessionMetaData.SessionType.CPU_CAPTURE;
   }
 
