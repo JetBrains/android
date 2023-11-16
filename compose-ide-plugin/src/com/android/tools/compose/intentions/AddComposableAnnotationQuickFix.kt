@@ -18,7 +18,9 @@ package com.android.tools.compose.intentions
 import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
 import androidx.compose.compiler.plugins.kotlin.k1.ComposeErrors
 import com.android.tools.compose.ComposeBundle
+import com.android.tools.compose.expectedComposableAnnotationHolder
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -31,18 +33,15 @@ import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
 import org.jetbrains.kotlin.idea.quickfix.QuickFixContributor
 import org.jetbrains.kotlin.idea.quickfix.QuickFixes
 import org.jetbrains.kotlin.idea.util.addAnnotation
-import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
-import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
-import org.jetbrains.kotlin.psi.KtTryExpression
+import org.jetbrains.kotlin.psi.KtTypeReference
 
 /**
  * Quick fix addressing @Composable function invocations from non-@Composable scopes.
@@ -65,100 +64,58 @@ import org.jetbrains.kotlin.psi.KtTryExpression
  * `NonComposableFunction`.
  */
 class AddComposableAnnotationQuickFix
-private constructor(element: KtModifierListOwner, private val displayName: String) :
+private constructor(element: KtModifierListOwner, private val displayText: String) :
   KotlinQuickFixAction<KtModifierListOwner>(element) {
 
-  override fun getFamilyName(): String = ComposeBundle.message("add.composable.to.function")
+  override fun getFamilyName(): String = ComposeBundle.message("add.composable.annotation")
 
-  override fun getText(): String =
-    ComposeBundle.message("add.composable.to.function.with.name", displayName)
+  override fun getText(): String = displayText
 
   override fun invoke(project: Project, editor: Editor?, file: KtFile) {
     element?.addAnnotation(ComposeClassIds.Composable)
   }
 
   /**
-   * Creates a fix for the COMPOSABLE_INVOCATION error, which appears on a non-Composable function
-   * that contains a Composable call.
+   * Creates a fix for the COMPOSABLE_INVOCATION error, which appears on a Composable function call
+   * from within a non-Composable scope.
    */
   object ComposableInvocationFactory : KotlinSingleIntentionActionFactory() {
     override fun createAction(diagnostic: Diagnostic): IntentionAction? =
       createAction(diagnostic.psiElement)
 
     fun createAction(psiElement: PsiElement): AddComposableAnnotationQuickFix? {
-      // Look for the containing function. This logic is based on ComposableCallChecker.check, which
-      // walks up the tree and terminates at
-      // various places depending on the structure of the code.
-      var node: PsiElement? = psiElement as? KtElement
-      while (node != null) {
-        // Order of when statements (and empty statements) are kept, to mimic the behavior in
-        // ComposableCallChecker.check.
-        // In cases where we terminate without returning a fix, it indicates the compiler didn't
-        // identify a containing function that could
-        // be annotated with @Composable to fix the error.
-        when (node) {
-          is KtFunctionLiteral -> {
-            /* keep going */
-          }
-          is KtLambdaExpression -> {
-            // Terminate at containing lambda. There are some scenarios where the compiler may not
-            // terminate (if the lambda is inline) and
-            // therefore may go higher up to a containing named function, and we won't offer the fix
-            // in those scenarios even though it may
-            // apply. This is a tactical decision because (1) the full logic is relatively complex
-            // to reimplement here, and (2) checking for
-            // inline labmdas isn't actually correct (per the TODO in compiler code, it should be
-            // looking for CALLS_IN_PLACE instead).
-            //
-            // This means the quick fix will not fire in some more complicated scenarios where it
-            // could actually be applicable; but that's
-            // preferable to firing in scenarios where it doesn't actually fix a problem and
-            // actually makes things worse. But if there's a
-            // containing function that can/should be annotated, it will also have an error which
-            // *will* have the quick fix, so it's still
-            // available somewhere to the user.
-            return null
-          }
-          is KtTryExpression -> {
-            /* keep going */
-          }
-          is KtFunction -> {
-            // Terminate at containing KtFunction.
-            if (node !is KtNamedFunction) return null
-            val displayName = node.name ?: return null
-            return AddComposableAnnotationQuickFix(node, displayName)
-          }
-          is KtProperty -> return null // Terminate at containing property initializer.
-          is KtPropertyAccessor -> {
-            // Terminate at containing property accessor.
-            if (!node.isGetter) return null
-            val displayName = (node.parent as? KtProperty)?.name ?: return null
-            return AddComposableAnnotationQuickFix(node, "$displayName.get()")
-          }
-          is KtCallableReferenceExpression,
-          is KtFile,
-          is KtClass -> return null
-        }
-        node = node.parent as? KtElement
+      val node = (psiElement as? KtElement)?.expectedComposableAnnotationHolder()
+      return node?.takeIf(PsiElement::isWritable)?.toDisplayText()?.let {
+        AddComposableAnnotationQuickFix(node, it)
       }
-
-      return null
     }
   }
 
   /**
-   * Creates a fix for the COMPOSABLE_EXPECTED error, which appears on a Composable function call
-   * from within a non-Composable function.
+   * Creates a fix for the COMPOSABLE_EXPECTED error, which appears on a non-Composable scope that
+   * contains a Composable function call.
    */
   object ComposableExpectedFactory : KotlinSingleIntentionActionFactory() {
     override fun createAction(diagnostic: Diagnostic): IntentionAction? =
       createAction(diagnostic.psiElement.parent)
 
     fun createAction(psiElement: PsiElement): AddComposableAnnotationQuickFix? {
-      val namedFunction = psiElement as? KtNamedFunction ?: return null
-      val displayName = namedFunction.name ?: return null
-
-      return AddComposableAnnotationQuickFix(namedFunction, displayName)
+      val node: KtModifierListOwner? =
+        when (psiElement) {
+          // If there is only one accessor, and it is a getter, then we can figure out what to
+          // fix.
+          is KtProperty ->
+            psiElement.accessors.singleOrNull()?.takeIf(KtPropertyAccessor::isGetter)
+              ?: (psiElement.initializer as? KtNamedFunction)
+          is KtNamedFunction -> psiElement
+          // These are currently the only cases we handle.
+          else -> {
+            thisLogger()
+              .warn("Saw COMPOSABLE_EXPECTED on unhandled element type: ${psiElement.javaClass}")
+            null
+          }
+        }
+      return node?.toDisplayText()?.let { AddComposableAnnotationQuickFix(node, it) }
     }
   }
 
@@ -174,6 +131,44 @@ private constructor(element: KtModifierListOwner, private val displayName: Strin
           }
         )
       }
+
+    private fun KtModifierListOwner.toDisplayText(): String? =
+      when (this) {
+        is KtTypeReference -> toDisplayText()
+        is KtNamedFunction ->
+          name?.let { ComposeBundle.message("add.composable.to.element.with.name", name) }
+            ?: ComposeBundle.message("add.composable.to.anonymous.function")
+        is KtFunctionLiteral -> ComposeBundle.message("add.composable.to.enclosing.lambda")
+        is KtPropertyAccessor ->
+          takeIf(KtPropertyAccessor::isGetter)?.property?.name?.let {
+            ComposeBundle.message("add.composable.to.element.with.name", "$it.get()")
+          }
+        else -> name?.let { ComposeBundle.message("add.composable.to.element.with.name", it) }
+      }
+
+    private fun KtTypeReference.toDisplayText(): String? {
+      // First case - this is a type for a function's lambda parameter.
+      val param = parent as? KtParameter
+      if (param != null) {
+        // Traversing parents twice: KtParameter -> KtParameterList -> KtNamedFunction
+        val functionName = (param.parent?.parent as? KtNamedFunction)?.name
+        val paramName = param.name ?: return null
+        if (functionName != null) {
+          return ComposeBundle.message(
+            "add.composable.to.lambda.parameter",
+            functionName,
+            paramName
+          )
+        }
+        return ComposeBundle.message(
+          "add.composable.to.lambda.parameter.of.anonymous.function",
+          paramName
+        )
+      }
+      // Second case - this is a type of a property (with a functional type).
+      val propertyName = (parent as? KtProperty)?.name ?: return null
+      return ComposeBundle.message("add.composable.to.property.type", propertyName)
+    }
   }
 
   class Contributor : QuickFixContributor {
