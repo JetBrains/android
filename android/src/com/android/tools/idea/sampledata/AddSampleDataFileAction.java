@@ -60,7 +60,7 @@ public class AddSampleDataFileAction extends AnAction {
   @Override
   @NotNull
   public ActionUpdateThread getActionUpdateThread() {
-    return ActionUpdateThread.EDT;
+    return ActionUpdateThread.BGT;
   }
 
   @Override
