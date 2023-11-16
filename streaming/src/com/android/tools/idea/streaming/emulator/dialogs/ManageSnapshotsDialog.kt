@@ -25,6 +25,7 @@ import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.concurrency.getDoneOrNull
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettings.SnapshotAutoDeletionPolicy
+import com.android.tools.idea.streaming.StreamingBundle.message
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
@@ -50,6 +51,7 @@ import com.intellij.openapi.ui.DialogWrapper.IdeModalityType
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.DimensionService
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.ui.BooleanTableCellEditor
 import com.intellij.ui.BooleanTableCellRenderer
@@ -64,7 +66,10 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.Label
 import com.intellij.ui.components.dialog
 import com.intellij.ui.components.htmlComponent
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.Align
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.AlignY
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.table.TableView
 import com.intellij.util.IconUtil
@@ -77,6 +82,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
+import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.kotlin.utils.SmartSet
 import java.awt.Color
@@ -123,14 +129,11 @@ import kotlin.math.max
 /**
  * Dialog for managing emulator snapshots.
  */
-internal class ManageSnapshotsDialog(
-  private val emulator: EmulatorController,
-  private val emulatorView: EmulatorView
-) {
+internal class ManageSnapshotsDialog(private val emulator: EmulatorController, private val emulatorView: EmulatorView) {
 
   private val snapshotTableModel = SnapshotTableModel()
   private val snapshotTable = SnapshotTable(snapshotTableModel)
-  private val createSnapshotButton = JButton("Create Snapshot").apply {
+  private val createSnapshotButton = JButton(message("manage.snapshots.create.snapshot")).apply {
     addActionListener { createSnapshot() }
   }
   private val runningOperationLabel = JBLabel().apply {
@@ -138,14 +141,14 @@ internal class ManageSnapshotsDialog(
     name = "runningOperationLabel"
   }
   private val snapshotImagePanel = ImagePanel(true)
-  private val selectionStateLabel = Label("No snapshots selected").apply {
+  private val selectionStateLabel = Label(message("manage.snapshots.label.no.snapshots.selected")).apply {
     name = "selectionStateLabel"
     verticalTextPosition = SwingConstants.CENTER
     horizontalAlignment = SwingConstants.CENTER
   }
   private val previewPanel = BorderLayoutPanelWithPreferredSize(270, 100)
   private val snapshotInfoPanel = htmlComponent(lineWrap = true)
-  private val coldBootCheckBox = JBCheckBox("Start without using a snapshot (cold boot)").apply {
+  private val coldBootCheckBox = JBCheckBox(message("manage.snapshots.checkbox.start.cold.boot")).apply {
     addItemListener {
       if (isSelected != snapshotTableModel.isColdBoot) {
         val bootSnapshotRow = if (isSelected) snapshotTableModel.bootSnapshotIndex() else 0
@@ -188,26 +191,19 @@ internal class ManageSnapshotsDialog(
    */
   private fun createPanel(): DialogPanel {
     return panel {
-      row("Snapshots:") {}
+      row { label(message("manage.snapshots.list.title")) }
       row {
-        cell(isVerticalFlow = true) {
-          component(createTablePanel()).constraints(growX, growY, pushX, pushY)
-        }
-
-        cell(isVerticalFlow = true) {
-          component(previewPanel).constraints(growX, growY, pushX)
-          component(snapshotInfoPanel).constraints(growX)
-        }
-      }
+        cell(createTablePanel()).align(AlignY.FILL)
+        panel {
+          row { cell(previewPanel).align(Align.FILL) }.resizableRow()
+          row { cell(snapshotInfoPanel).align(AlignX.FILL) }
+        }.align(Align.FILL)
+      }.resizableRow()
       row {
-        cell {
-          component(createSnapshotButton)
-          component(runningOperationLabel)
-        }
+        cell(createSnapshotButton)
+        cell(runningOperationLabel)
       }
-      row {
-        component(coldBootCheckBox)
-      }
+      row { cell(coldBootCheckBox) }
     }.apply {
       snapshotTable.selectionModel.addListSelectionListener {
         clearError()
@@ -228,7 +224,8 @@ internal class ManageSnapshotsDialog(
     }
     else {
       previewPanel.addToCenter(selectionStateLabel)
-      selectionStateLabel.text = if (count == 0) "No snapshots selected" else "$count snapshots selected"
+      selectionStateLabel.text =
+          if (count == 0) message("manage.snapshots.none.selected") else message("manage.snapshots.multiple.selected", count)
       snapshotInfoPanel.isVisible = false
     }
   }
@@ -247,16 +244,21 @@ internal class ManageSnapshotsDialog(
     val size = getHumanizedSize(snapshot.sizeOnDisk)
     val creationTime = JBDateFormat.getFormatter().formatDateTime(snapshot.creationTime).replace(",", "")
     val folderName = htmlEscaper.escape(snapshot.snapshotFolder.fileName.toString())
-    val attributeSection = if (snapshot.creationTime == 0L) "Not created yet" else "Created $creationTime, $size"
-    val fileSection = if (snapshot.isQuickBoot) "" else "<br>File: $folderName"
-    val errorSection = if (snapshot.isCompatible) ""
-        else "<br><font color = ${JBColor.RED.toHtmlString()}>Incompatible with the current configuration</font>"
+    val attributeSection = when (snapshot.creationTime) {
+      0L -> message("manage.snapshots.create.time.none")
+      else -> message("manage.snapshots.created.info", creationTime, size)
+    }
+    val fileSection = if (snapshot.isQuickBoot) "" else "<br>${message("manage.snapshots.file.name", folderName)}"
+    val errorSection = when {
+      snapshot.isCompatible -> ""
+      else -> "<br><font&nbsp;color=${JBColor.RED.toHtmlString()}>${message("manage.snapshots.incompatible.configuration")}</font>"
+    }
     val descriptionSection = if (snapshot.description.isEmpty()) "" else "<br><br>${htmlEscaper.escape(snapshot.description)}"
     snapshotInfoPanel.apply {
       text = "<html><b>${name}</b><br>${attributeSection}${fileSection}${errorSection}${descriptionSection}</html>"
       val fontMetrics = getFontMetrics(font)
       val wrappedDescriptionLines = if (width == 0) 0 else fontMetrics.stringWidth(snapshot.description) / width
-      preferredSize = Dimension(0, fontMetrics.height * (countLineBreaks(text) + 1 + wrappedDescriptionLines))
+      preferredSize = Dimension(0, fontMetrics.height * (countLineBreaks(text) + 1 + wrappedDescriptionLines.coerceAtMost(5)))
     }
   }
 
@@ -274,6 +276,7 @@ internal class ManageSnapshotsDialog(
     }
   }
 
+  @NlsSafe
   private fun Color.toHtmlString(): String {
     return (rgb and 0xFFFFFF).toString(16)
   }
@@ -298,7 +301,7 @@ internal class ManageSnapshotsDialog(
           }
           .setRemoveActionUpdater { !snapshotTable.selectionModel.isSelectedIndex(QUICK_BOOT_SNAPSHOT_MODEL_ROW) }
           .setToolbarPosition(ActionToolbarPosition.BOTTOM)
-          .setButtonComparator("Load Snapshot", "Edit", "Remove")
+          .setButtonComparator(message("manage.snapshots.load"), message("manage.snapshots.edit"), message("manage.snapshots.remove"))
           .createPanel()
       )
     }
@@ -312,8 +315,8 @@ internal class ManageSnapshotsDialog(
       init {
         createSnapshotButton.transferFocusBackward() // Transfer focus to the table.
         createSnapshotButton.isEnabled = false // Disable the button temporarily.
-        startLongOperation("Saving snapshot...")
-        emulatorView.showLongRunningOperationIndicator("Saving state...")
+        startLongOperation(message("manage.snapshots.label.saving.snapshot"))
+        emulatorView.showLongRunningOperationIndicator(message("manage.snapshots.saving.state"))
       }
 
       override fun onCompleted() {
@@ -350,7 +353,7 @@ internal class ManageSnapshotsDialog(
 
       @UiThread
       private fun showError() {
-        showError("Unable to create a snapshot")
+        showError(message("manage.snapshots.unable.to.create"))
       }
     }
 
@@ -364,8 +367,8 @@ internal class ManageSnapshotsDialog(
     val errorHandler = object : EmptyStreamObserver<SnapshotPackage>() {
 
       init {
-        startLongOperation("Loading snapshot...")
-        emulatorView.showLongRunningOperationIndicator("Loading snapshot...")
+        startLongOperation(message("manage.snapshots.loading.snapshot"))
+        emulatorView.showLongRunningOperationIndicator(message("manage.snapshots.loading.snapshot"))
       }
 
       override fun onNext(response: SnapshotPackage) {
@@ -378,7 +381,7 @@ internal class ManageSnapshotsDialog(
           val error = response.err.toString(UTF_8)
           val detail = if (error.isEmpty()) "" else " - $error"
           invokeLaterIfDialogIsShowing {
-            showError("""Error loading snapshot "${snapshotToLoad.displayName}"$detail""")
+            showError(message("manage.snapshots.error.loading.snapshot", snapshotToLoad.displayName, detail))
           }
         }
       }
@@ -390,7 +393,7 @@ internal class ManageSnapshotsDialog(
       override fun onError(t: Throwable) {
         finished()
         invokeLaterIfDialogIsShowing {
-          showError("""Error loading snapshot. See the error log""")
+          showError(message("manage.snapshots.error.loading.snapshot.with.log"))
         }
       }
 
@@ -482,12 +485,14 @@ internal class ManageSnapshotsDialog(
         invokeLaterIfDialogIsShowing {
           snapshotTableModel.update(snapshots)
           selectionState?.restoreSelection()
-          showError("Some snapshots could not be deleted")
+          showError(message("manage.snapshots.could.not.delete"))
         }
       }
       else if (notifyWhenDone) {
-        val n = foldersToDelete.size
-        val message = if (n == 1) "$n snapshot deleted" else "$n snapshots deleted"
+        val message = when (val n = foldersToDelete.size) {
+          1 -> message("manage.snapshots.one.snapshot.deleted")
+          else -> message("manage.snapshots.multiple.snapshots.deleted", n)
+        }
         invokeLaterIfDialogIsShowing {
           selectionStateLabel.text = message
         }
@@ -495,7 +500,7 @@ internal class ManageSnapshotsDialog(
     }
   }
 
-  private fun startLongOperation(message: String) {
+  private fun startLongOperation(@Nls message: String) {
     runningOperationLabel.text = message
     runningOperationLabel.isVisible = true
   }
@@ -508,7 +513,7 @@ internal class ManageSnapshotsDialog(
   /**
    * Shows a red error message at the bottom of the dialog.
    */
-  private fun showError(message: String) {
+  private fun showError(@Nls message: String) {
     // Unfortunately, DialogWrapper.setErrorInfoAll and the related methods are protected
     // and cannot be called directly since we are not subclassing DialogWrapper. To get
     // around this limitation we take advantage of the existing setErrorInfoAll call in
@@ -533,7 +538,7 @@ internal class ManageSnapshotsDialog(
    */
   fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
     return dialog(
-      title = "Manage Snapshots (${emulator.emulatorId.avdName})",
+      title = message("manage.snapshots.dialog.title", emulator.emulatorId.avdName),
       resizable = true,
       panel = createPanel(),
       project = project,
@@ -566,7 +571,7 @@ internal class ManageSnapshotsDialog(
           dimensionService.setLocation(DIMENSION_SERVICE_KEY, location, project)
           dimensionService.setSize(DIMENSION_SERVICE_KEY, size, project)
 
-          // The dialog is closing but we still need to wait for all background operations to finish.
+          // The dialog is closing, but we still need to wait for all background operations to finish.
           dialogManager = null
           // Cancel unfinished icon loading.
           for (future in snapshotTableModel.snapshotIconMap.values) {
@@ -574,7 +579,8 @@ internal class ManageSnapshotsDialog(
           }
 
           backgroundExecutor.shutdown()
-          ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Saving changes", false) {
+          ProgressManager.getInstance().run(
+              object : Task.Backgroundable(project, message("manage.snapshots.progress.saving.changes"), false) {
             override fun run(indicator: ProgressIndicator) {
               if (!backgroundExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
                 thisLogger().warn("Background activity is still running after 5 seconds")
@@ -724,7 +730,7 @@ internal class ManageSnapshotsDialog(
       }
     }
 
-    private val bootColumn = object : ColumnInfo<SnapshotInfo, Boolean>("Use to Boot") {
+    private val bootColumn = object : ColumnInfo<SnapshotInfo, Boolean>(message("manage.snapshots.column.name.use.to.boot")) {
 
       override fun valueOf(snapshot: SnapshotInfo): Boolean {
         return snapshot == bootSnapshot
@@ -874,7 +880,7 @@ internal class ManageSnapshotsDialog(
       })
     }
 
-    private fun createDecoratedIcon(snapshot: SnapshotInfo, baseIcon: Icon): LayeredIcon {
+    private fun createDecoratedIcon(snapshot: SnapshotInfo, baseIcon: Icon): Icon {
       val decorator = when {
         snapshot.isLoadedLast -> getLiveIndicator(EmptyIcon.ICON_16)
         snapshot.isCompatible -> EmptyIcon.ICON_16
@@ -899,7 +905,10 @@ internal class ManageSnapshotsDialog(
       }
     }
 
-    private fun createDecoratedIcon(baseIcon: Icon, decorator: Icon): LayeredIcon {
+    private fun createDecoratedIcon(baseIcon: Icon, decorator: Icon): Icon {
+      if (baseIcon == EmptyIcon.ICON_16) {
+        return baseIcon
+      }
       val icon = LayeredIcon(2)
       icon.setIcon(baseIcon, 0)
       // Shift the decorator to make it stand out visually.
@@ -908,7 +917,7 @@ internal class ManageSnapshotsDialog(
     }
   }
 
-  private inner class LoadSnapshotAction : AnAction("Load Snapshot", null, StudioIcons.Emulator.Snapshots.LOAD_SNAPSHOT) {
+  private inner class LoadSnapshotAction : AnAction(message("manage.snapshots.load"), null, StudioIcons.Emulator.Snapshots.LOAD_SNAPSHOT) {
 
     override fun getActionUpdateThread(): ActionUpdateThread {
       return ActionUpdateThread.EDT
@@ -1043,7 +1052,7 @@ internal class ManageSnapshotsDialog(
           font = font.deriveFont(Font.ITALIC)
         }
         if (!snapshot.isCompatible) {
-          toolTipText = "The snapshot is incompatible with the current configuration"
+          toolTipText = message("manage.snapshots.incompatible.configuration")
         }
       }
     }
