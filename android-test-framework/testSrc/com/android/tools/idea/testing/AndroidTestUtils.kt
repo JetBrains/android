@@ -20,6 +20,7 @@ package com.android.tools.idea.testing
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.res.LocalResourceRepository
+import com.android.utils.text.ellipsize
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionDelegate
@@ -194,11 +195,9 @@ inline fun <reified T> PsiFile.getEnclosing(windows: Pair<String, String>): T {
   ) {
     candidate = candidate.parent
   }
-  assertWithMessage(
-      "Did not find an enclosing ${T::class.simpleName} in $this between ${windows.first} and ${windows.second}"
-    )
-    .that(candidate)
-    .isNotNull()
+  val foundText = text.substring(startOffset until endOffset).ellipsize(20)
+  val msg = "Did not find an enclosing ${T::class.simpleName} in ${this.name} around $foundText"
+  assertWithMessage(msg).that(candidate).isNotNull()
   return checkNotNull(candidate as T)
 }
 
