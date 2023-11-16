@@ -51,6 +51,7 @@ import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.testFramework.DumbModeTestUtils;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.ui.SearchTextField;
 import java.awt.Component;
 import java.awt.Container;
@@ -812,8 +813,8 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
         }
       }
 
-      if (component instanceof ActionToolbar) {
-        ((ActionToolbar)component).updateActionsImmediately();
+      if (component instanceof ActionToolbar toolbar) {
+        PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync());
       }
 
       if (component instanceof Container) {

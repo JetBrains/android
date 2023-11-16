@@ -286,8 +286,7 @@ class FakeUi @JvmOverloads constructor(
       component.updateIcon()
     }
     if (component is ActionToolbar) {
-      val toolbar = component as ActionToolbar
-      toolbar.updateActionsImmediately()
+      PlatformTestUtil.waitForFuture(component.updateActionsAsync());
     }
     if (component is Container) {
       for (child in component.components) {

@@ -101,6 +101,7 @@ import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
@@ -109,8 +110,6 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import junit.framework.TestCase
-import kotlinx.coroutines.runBlocking
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -190,7 +189,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val banner = InspectorBannerService.getInstance(inspectorRule.project) ?: error("no banner")
     val deviceModel = panel.getData(DEVICE_VIEW_MODEL_KEY.name) as RenderModel
     delegateDataProvider(panel)
-    panel.flatten(false).filterIsInstance<ActionToolbar>().forEach { it.updateActionsImmediately() }
+    panel.flatten(false).filterIsInstance<ActionToolbar>().forEach { PlatformTestUtil.waitForFuture(it.updateActionsAsync()) }
     val toggle = panel.flatten(false).filterIsInstance<ActionButton>().single { it.action is Toggle3dAction }
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isFalse()
