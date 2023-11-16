@@ -53,15 +53,16 @@ private class PsiState(leafNodes: List<LeafPsiElement>) {
 }
 
 class PsiValidator {
-  private var oldVisitor: Visitor? = null
+  private var oldVisitors = mutableMapOf<KtFile, Visitor>()
 
   fun beforeChanges(ktFile: KtFile) {
-    if (oldVisitor != null) {
+    if (ktFile in oldVisitors) {
       return
     }
     val validateMs = measureTimeMillis {
-      oldVisitor = Visitor()
-      ktFile.accept(oldVisitor!!)
+      val visitor = Visitor()
+      ktFile.accept(visitor)
+      oldVisitors[ktFile] = visitor
     }
     logger.info("Live Edit: PSI validator traversed PSI in $validateMs ms")
   }
@@ -69,7 +70,11 @@ class PsiValidator {
   fun validatePsiChanges(ktFile: KtFile): MutableList<LiveEditUpdateException> {
     val errors = mutableListOf<LiveEditUpdateException>()
     val validateMs = measureTimeMillis {
-      val old = oldVisitor ?: throw LiveEditUpdateException.internalError("No old PSI to diff against")
+      val old = oldVisitors[ktFile]
+      if (old == null) {
+        logger.warning("No old PSI to diff against for ${ktFile.name}")
+        return errors
+      }
       val new = Visitor()
       ktFile.accept(new)
 
@@ -77,10 +82,13 @@ class PsiValidator {
       errors.addIfNotNull(validateInitBlocks(ktFile, old.initBlocks, new.initBlocks))
       errors.addIfNotNull(validateConstructors(ktFile, old.primaryConstructors, new.primaryConstructors))
       errors.addIfNotNull(validateConstructors(ktFile, old.secondaryConstructors, new.secondaryConstructors))
-      this.oldVisitor = null
     }
     logger.info("Live Edit: PSI validator checked PSI in $validateMs ms")
     return errors
+  }
+
+  fun validationFinished(ktFile: KtFile) {
+    oldVisitors.remove(ktFile)
   }
 }
 
@@ -160,8 +168,8 @@ private fun flatten(elem: PsiElement): List<LeafPsiElement> {
   queue.addFirst(elem)
   while (queue.isNotEmpty()) {
     val node = queue.removeFirst()
-    if (node.firstChild == null) {
-      leafs.add(node as LeafPsiElement)
+    if (node.firstChild == null && node is LeafPsiElement) {
+      leafs.add(node)
     } else {
       // Add children in reverse order so that they appear in the queue in the same order as in the children array.
       // Using the getChildren() method of PsiElement doesn't work the same way; it misses child nodes for some reason.

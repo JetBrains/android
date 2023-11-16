@@ -385,15 +385,28 @@ public class LiveEditProjectMonitor implements Disposable {
   // Called before an edit to a Kotlin file is made. Only called on the class-differ code path.
   public void beforeFileChanged(KtFile ktFile) {
     if (shouldLiveEdit()) {
+      System.out.println("before file changed: " + ktFile.getName());
       psiValidator.beforeChanges(ktFile);
     }
   }
 
   // Called when a Kotlin file is modified. Only called on the class-differ code path.
   public void fileChanged(KtFile ktFile) {
-    if (shouldLiveEdit()) {
-      scheduleCompile(ktFile);
+    if (!shouldLiveEdit()) {
+      return;
     }
+
+    // Add this while we're still inside a write action, so that no compile can be running while we queue this. This minimizes the risk of a
+    // race condition between any retried compilations and this newly queued event.
+    changedMethodQueue.add(new EditEvent(ktFile, ktFile, new ArrayList<>(), new ArrayList<>()));
+
+    mainThreadExecutor.schedule(() -> {
+      if (ProjectSystemUtil.getProjectSystem(project).getSyncManager().isSyncNeeded() || intermediateSyncs.get()) {
+        updateEditStatus(LiveEditStatus.SyncNeeded.INSTANCE);
+        return;
+      }
+      processQueuedChanges();
+    }, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
   }
 
   private boolean shouldLiveEdit() {
@@ -401,18 +414,6 @@ public class LiveEditProjectMonitor implements Disposable {
            StringUtil.isNotEmpty(applicationId) &&
            !liveEditDevices.isUnrecoverable() &&
            !liveEditDevices.isDisabled();
-  }
-
-  private void scheduleCompile(KtFile ktFile) {
-    mainThreadExecutor.schedule(() -> {
-      if (ProjectSystemUtil.getProjectSystem(project).getSyncManager().isSyncNeeded() || intermediateSyncs.get()) {
-        updateEditStatus(LiveEditStatus.SyncNeeded.INSTANCE);
-        return;
-      }
-
-      changedMethodQueue.add(new EditEvent(ktFile, ktFile, new ArrayList<>(), new ArrayList<>()));
-      processQueuedChanges();
-    }, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
   }
 
   @VisibleForTesting
@@ -505,6 +506,9 @@ public class LiveEditProjectMonitor implements Disposable {
       for (EditEvent change : changes) {
         filesWithCompilationErrors.remove(change.getFile().getName());
       }
+
+      // Mark validation as finished only if the compilation doesn't need to be retried, either because it succeeded or an error occurred.
+      changes.stream().filter(e -> e.getFile() instanceof KtFile).map(e -> (KtFile) e.getFile()).forEach(psiValidator::validationFinished);
     } catch (LiveEditUpdateException e) {
       boolean recoverable = e.getError().getRecoverable();
 
@@ -529,6 +533,8 @@ public class LiveEditProjectMonitor implements Disposable {
         logLiveEditEvent(event);
       }
 
+      // Mark validation as finished only if the compilation doesn't need to be retried, either because it succeeded or an error occurred.
+      changes.stream().filter(v -> v.getFile() instanceof KtFile).map(v -> (KtFile) v.getFile()).forEach(psiValidator::validationFinished);
       return true;
     }
 
