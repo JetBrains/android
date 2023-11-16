@@ -48,6 +48,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
@@ -149,10 +150,10 @@ tailrec fun KtElement.composableScope(): KtExpression? {
 }
 
 /**
- * Returns the [KtAnnotated] that should hold the `@Composable` annotation for this [KtElement],
+ * Returns the [KtModifierListOwner] that should hold the `@Composable` annotation for this [KtElement],
  * irrespective of whether it actually has the annotation.
  */
-tailrec fun KtElement.expectedComposableAnnotationHolder(): KtAnnotated? {
+tailrec fun KtElement.expectedComposableAnnotationHolder(): KtModifierListOwner? {
   return when (val nextParent = parentOfTypes(KtNamedFunction::class, KtLambdaExpression::class)) {
     // Always stop at a named function.
     is KtNamedFunction -> nextParent
