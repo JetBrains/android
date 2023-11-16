@@ -19,7 +19,7 @@ import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
-import com.android.tools.idea.testing.findParentElement
+import com.android.tools.idea.testing.getEnclosing
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
@@ -28,6 +28,7 @@ import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.junit.Before
 import org.junit.Rule
@@ -220,10 +221,10 @@ class PsiUtilsTest {
     )
 
     runReadAction {
-      val element: KtElement = fixture.findParentElement("3|5")
+      val element: KtElement = fixture.getEnclosing("35")
       val scope = element.composableScope()
       assertThat(scope).isNotNull()
-      val function: KtNamedFunction = fixture.findParentElement("Gre|eting")
+      val function: KtNamedFunction = fixture.getEnclosing("Greeting")
       assertThat(scope).isEqualTo(function)
     }
   }
@@ -253,10 +254,10 @@ class PsiUtilsTest {
     )
 
     runReadAction {
-      val element: KtElement = fixture.findParentElement("3|5")
+      val element: KtElement = fixture.getEnclosing("35")
       val scope = element.composableScope()
       assertThat(scope).isNotNull()
-      val function: KtLambdaExpression = fixture.findParentElement("3|5")
+      val function: KtLambdaExpression = fixture.getEnclosing("35")
       assertThat(scope).isEqualTo(function)
     }
   }
@@ -286,10 +287,10 @@ class PsiUtilsTest {
     )
 
     runReadAction {
-      val element: KtElement = fixture.findParentElement("3|5")
+      val element: KtElement = fixture.getEnclosing("35")
       val scope = element.composableScope()
       assertThat(scope).isNotNull()
-      val function: KtNamedFunction = fixture.findParentElement("Gre|eting")
+      val function: KtNamedFunction = fixture.getEnclosing("Greeting")
       assertThat(scope).isEqualTo(function)
     }
   }
@@ -319,11 +320,63 @@ class PsiUtilsTest {
     )
 
     runReadAction {
-      val element: KtElement = fixture.findParentElement("3|5")
+      val element: KtElement = fixture.getEnclosing("35")
       val scope = element.composableScope()
       assertThat(scope).isNotNull()
-      val function: KtLambdaExpression = fixture.findParentElement("3|5")
+      val function: KtLambdaExpression = fixture.getEnclosing("35")
       assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun composableScope_getter() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      val myGreatValue: Int
+        @Composable get() {
+          return 35
+        }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.getEnclosing("35")
+      val scope = element.composableScope()
+      assertThat(scope).isNotNull()
+      val function: KtPropertyAccessor = fixture.getEnclosing("35")
+      assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun composableScope_setter() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      var myGreatValue: Int = 2
+        @Composable set(newValue) {
+          field = newValue + 2
+        }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.getEnclosing("field =")
+      val scope = element.composableScope()
+      assertThat(scope).isNull() // Setter is not a valid scope
     }
   }
 
@@ -335,9 +388,6 @@ class PsiUtilsTest {
       """
       package com.example
 
-      import androidx.compose.runtime.Composable
-
-      @Composable
       fun Greeting() {
         val a: () -> Int = { 35 }
       }
@@ -346,10 +396,10 @@ class PsiUtilsTest {
     )
 
     runReadAction {
-      val element: KtElement = fixture.findParentElement("3|5")
+      val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
-      val function: KtTypeReference = fixture.findParentElement("() -|> Int")
+      val function: KtTypeReference = fixture.getEnclosing("() -> Int")
       assertThat(scope).isEqualTo(function)
     }
   }
@@ -362,19 +412,16 @@ class PsiUtilsTest {
       """
       package com.example
 
-      import androidx.compose.runtime.Composable
-
-      @Composable
       fun Greeting() { val a = 35 }
       """
         .trimIndent()
     )
 
     runReadAction {
-      val element: KtElement = fixture.findParentElement("3|5")
+      val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
-      val function: KtNamedFunction = fixture.findParentElement("Gre|eting")
+      val function: KtNamedFunction = fixture.getEnclosing("Greeting")
       assertThat(scope).isEqualTo(function)
     }
   }
@@ -387,15 +434,12 @@ class PsiUtilsTest {
       """
       package com.example
 
-      import androidx.compose.runtime.Composable
-
       inline fun repeat(times: Int, action: (Int) -> Unit) {
         for (index in 0 until times) {
           action(index)
         }
       }
 
-      @Composable
       fun Greeting() {
         repeat(2) {  val a = 35 }
       }
@@ -404,10 +448,10 @@ class PsiUtilsTest {
     )
 
     runReadAction {
-      val element: KtElement = fixture.findParentElement("3|5")
+      val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
-      val function: KtNamedFunction = fixture.findParentElement("Gre|eting")
+      val function: KtNamedFunction = fixture.getEnclosing("Greeting")
       assertThat(scope).isEqualTo(function)
     }
   }
@@ -420,15 +464,12 @@ class PsiUtilsTest {
       """
       package com.example
 
-      import androidx.compose.runtime.Composable
-
       inline fun repeat(times: Int, noinline action: (Int) -> Unit) {
         for (index in 0 until times) {
           action(index)
         }
       }
 
-      @Composable
       fun Greeting() {
         repeat(2) { val a = 35 }
       }
@@ -437,10 +478,10 @@ class PsiUtilsTest {
     )
 
     runReadAction {
-      val element: KtElement = fixture.findParentElement("3|5")
+      val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
-      val function: KtTypeReference = fixture.findParentElement("(Int) -|> Unit")
+      val function: KtTypeReference = fixture.getEnclosing("(Int) -> Unit")
       assertThat(scope).isEqualTo(function)
     }
   }
@@ -453,31 +494,75 @@ class PsiUtilsTest {
       """
       package com.example
 
-      import androidx.compose.runtime.Composable
-
       fun repeat(times: Int, action: (Int) -> Unit) {
         for (index in 0 until times) {
           action(index)
         }
       }
 
-      @Composable
       fun Greeting() {
         repeat(2) {
           val a = 35
         }
       }
-
       """
         .trimIndent()
     )
 
     runReadAction {
-      val element: KtElement = fixture.findParentElement("3|5")
+      val element: KtElement = fixture.getEnclosing("35")
       val scope = element.expectedComposableAnnotationHolder()
       assertThat(scope).isNotNull()
-      val function: KtTypeReference = fixture.findParentElement("(Int) -|> Unit")
+      val function: KtTypeReference = fixture.getEnclosing("(Int) -> Unit")
       assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun expectedComposableAnnotationHolder_getter() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      val myGreatValue: Int
+        get() {
+          val a = 35
+        }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.getEnclosing("35")
+      val scope = element.expectedComposableAnnotationHolder()
+      assertThat(scope).isNotNull()
+      val function: KtPropertyAccessor = fixture.getEnclosing("35")
+      assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun expectedComposableAnnotationHolder_setter() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      var myGreatValue: Int = 23
+        set(newValue) {
+          field = newValue + 35
+        }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.getEnclosing("35")
+      val scope = element.expectedComposableAnnotationHolder()
+      assertThat(scope).isNull()
     }
   }
 }

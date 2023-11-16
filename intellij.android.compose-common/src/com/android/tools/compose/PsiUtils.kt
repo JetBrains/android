@@ -52,6 +52,7 @@ import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
@@ -129,9 +130,11 @@ fun PsiElement.isInsideComposableCode(): Boolean {
 
 /** Returns the `@Composable` scope around this [KtElement]. */
 tailrec fun KtElement.composableScope(): KtExpression? {
-  return when (val nextParent = parentOfTypes(KtNamedFunction::class, KtLambdaExpression::class)) {
-    // Always stop at a named function - if it's not composable, we're done.
+  return when (val nextParent = possibleComposableScope()) {
+    // Always stop at a named function - if it's not @Composable, we're done.
     is KtNamedFunction -> nextParent.takeIf { it.hasComposableAnnotation() }
+    // A property getter ("get()") can also be @Composable.
+    is KtPropertyAccessor -> nextParent.takeIf { it.isGetter && it.hasComposableAnnotation() }
     // A lambda that is a @Composable function argument may be what recomposes, unless it is
     // inlined.
     is KtLambdaExpression -> {
@@ -150,13 +153,13 @@ tailrec fun KtElement.composableScope(): KtExpression? {
 }
 
 /**
- * Returns the [KtModifierListOwner] that should hold the `@Composable` annotation for this [KtElement],
- * irrespective of whether it actually has the annotation.
+ * Returns the [KtModifierListOwner] that should hold the `@Composable` annotation for this
+ * [KtElement], irrespective of whether it actually has the annotation.
  */
 tailrec fun KtElement.expectedComposableAnnotationHolder(): KtModifierListOwner? {
-  return when (val nextParent = parentOfTypes(KtNamedFunction::class, KtLambdaExpression::class)) {
-    // Always stop at a named function.
+  return when (val nextParent = possibleComposableScope()) {
     is KtNamedFunction -> nextParent
+    is KtPropertyAccessor -> nextParent.takeIf(KtPropertyAccessor::isGetter)
     // A lambda that is a function argument
     is KtLambdaExpression -> {
       when (val lambdaParent = nextParent.parent) {
@@ -178,18 +181,20 @@ tailrec fun KtElement.expectedComposableAnnotationHolder(): KtModifierListOwner?
   }
 }
 
-private fun KtFunction.hasComposableAnnotation(): Boolean =
-  if (isK2Plugin()) {
-    hasAnnotation(COMPOSABLE_CLASS_ID)
-  } else {
-    descriptor?.annotations?.findAnnotation(COMPOSABLE_CLASS_ID.asSingleFqName()) != null
-  }
+private fun KtElement.possibleComposableScope(): KtExpression? =
+  parentOfTypes(KtNamedFunction::class, KtPropertyAccessor::class, KtLambdaExpression::class)
 
-private fun KtTypeReference.hasComposableAnnotation() =
+private fun KtModifierListOwner.hasComposableAnnotation(): Boolean =
   if (isK2Plugin()) {
     hasAnnotation(COMPOSABLE_CLASS_ID)
   } else {
-    annotationEntries.any { it.isComposableAnnotation() }
+    when (this) {
+      is KtFunction ->
+        descriptor?.annotations?.findAnnotation(COMPOSABLE_CLASS_ID.asSingleFqName()) != null
+      is KtTypeReference,
+      is KtPropertyAccessor -> annotationEntries.any { it.isComposableAnnotation() }
+      else -> false
+    }
   }
 
 private fun KtValueArgument.toFunction(): KtFunction? =
