@@ -16,6 +16,7 @@
 package com.android.tools.idea
 
 import com.intellij.openapi.application.ApplicationInfo
+import com.intellij.openapi.application.ApplicationManager
 import java.util.regex.Pattern
 
 object IdeChannel {
@@ -52,13 +53,20 @@ object IdeChannel {
    */
   @JvmStatic
   @JvmOverloads
-  fun getChannel(applicationInfo: ApplicationInfo = ApplicationInfo.getInstance()): Channel =
-    when {
-      versionNameContainsChannel(applicationInfo.fullVersion, "dev") -> Channel.DEV
-      versionNameContainsChannel(applicationInfo.fullVersion, "nightly") -> Channel.NIGHTLY
-      versionNameContainsChannel(applicationInfo.fullVersion, "canary") -> Channel.CANARY
-      versionNameContainsChannel(applicationInfo.fullVersion, "beta") -> Channel.BETA
-      versionNameContainsChannel(applicationInfo.fullVersion, "rc") -> Channel.RC
+  fun getChannel(versionProvider: () -> String = {
+    if (ApplicationManager.getApplication() == null || ApplicationInfo.getInstance () == null)
+        "dev"
+      else
+        ApplicationInfo.getInstance().fullVersion
+  }): Channel {
+    val versionName = versionProvider()
+    return when {
+      versionNameContainsChannel(versionName, "dev") -> Channel.DEV
+      versionNameContainsChannel(versionName, "nightly") -> Channel.NIGHTLY
+      versionNameContainsChannel(versionName, "canary") -> Channel.CANARY
+      versionNameContainsChannel(versionName, "beta") -> Channel.BETA
+      versionNameContainsChannel(versionName, "rc") -> Channel.RC
       else -> Channel.STABLE
     }
+  }
 }
