@@ -34,12 +34,13 @@ import org.jetbrains.kotlin.idea.structuralsearch.resolveExprType
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtDeclarationWithBody
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 
@@ -63,9 +64,11 @@ internal data class StateRead(
         when (scope) {
           is KtLambdaExpression ->
             ComposeBundle.message("state.read.recompose.target.enclosing.lambda")
+          is KtPropertyAccessor ->
+            if (scope.isGetter) "${scope.property.name}.get()" else return null
           else -> scope.name ?: return null
         }
-      val bodyScope = (scope as? KtFunction)?.bodyExpression ?: scope
+      val bodyScope = (scope as? KtDeclarationWithBody)?.bodyExpression ?: scope
       return StateRead(stateVar, bodyScope, scopeName)
     }
   }

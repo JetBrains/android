@@ -35,6 +35,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.junit.Before
 import org.junit.Rule
@@ -268,11 +269,11 @@ class StateReadTest {
         "com/example/Foo.kt",
         // language=kotlin
         """
-      package com.example
-      fun foo() {
-        val a = 1
-      }
-      """
+        package com.example
+        fun foo() {
+          val a = 1
+        }
+        """
           .trimIndent()
       )
 
@@ -294,14 +295,14 @@ class StateReadTest {
         "com/example/Foo.kt",
         // language=kotlin
         """
-      package com.example
-      fun foo(val block: () -> Unit) {}
-      fun bar() {
-        foo {
-          val a = 1
+        package com.example
+        fun foo(val block: () -> Unit) {}
+        fun bar() {
+          foo {
+            val a = 1
+          }
         }
-      }
-      """
+        """
           .trimIndent()
       )
 
@@ -317,17 +318,65 @@ class StateReadTest {
   }
 
   @Test
+  fun create_getterScope() {
+    val psiFile =
+      fixture.addFileToProject(
+        "com/example/Foo.kt",
+        // language=kotlin
+        """
+        package com.example
+        val foo: Int
+          get() {
+            val a = "Hi Andy!"
+          }
+        """
+          .trimIndent()
+      )
+
+    val accessor = psiFile.getEnclosing<KtPropertyAccessor>("Hi Andy!")
+    val a = psiFile.getEnclosing<KtExpression>("Hi Andy!")
+    val stateRead = StateRead.create(a, accessor)
+    assertThat(stateRead).isNotNull()
+    checkNotNull(stateRead)
+    assertThat(stateRead.stateVar).isEqualTo(a)
+    assertThat(stateRead.scope).isEqualTo(accessor.bodyExpression)
+    assertThat(stateRead.scopeName).isEqualTo("foo.get()")
+  }
+
+  @Test
+  fun create_setterScope() {
+    val psiFile =
+      fixture.addFileToProject(
+        "com/example/Foo.kt",
+        // language=kotlin
+        """
+        package com.example
+        var foo: Int = 0
+          set(newValue) {
+            field = "Hi Andy!".length + newValue
+          }
+        """
+          .trimIndent()
+      )
+
+    val accessor = psiFile.getEnclosing<KtPropertyAccessor>("Hi Andy!")
+    val a = psiFile.getEnclosing<KtExpression>("Hi Andy!")
+    val stateRead = StateRead.create(a, accessor)
+    assertThat(stateRead).isNull() // Setter is not a valid scope
+  }
+
+  @Test
   fun create_unnamedScope() {
     val psiFile =
       fixture.addFileToProject(
         "com/example/Foo.kt",
         // language=kotlin
         """
-      package com.example
-      fun foo() {
-        val a = 1
-      }
-      """
+        package com.example
+        fun foo() {
+          val a = 1
+        }
+        """
           .trimIndent()
       )
 
