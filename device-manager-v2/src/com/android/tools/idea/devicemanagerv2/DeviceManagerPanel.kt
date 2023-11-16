@@ -54,6 +54,7 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
@@ -119,7 +120,8 @@ constructor(
   )
 
   private val splitter = JBSplitter(true)
-  private val scrollPane = JBScrollPane()
+  private val scrollPane =
+    JBScrollPane().apply { border = JBUI.Borders.customLineTop(JBColor.border()) }
 
   /**
    * Depending on how many ways we have to create devices, this is either null, an AnAction that
