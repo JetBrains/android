@@ -192,7 +192,7 @@ class WindowsDefenderCheckService(
     }
     else {
       notification(AndroidBundle.message("android.defender.config.prompt.no.script", pathList), NotificationType.INFORMATION)
-        .addAction(NotificationAction.createSimple(DiagnosticBundle.message("defender.config.instructions"), ::showManualInstructions))
+        .addAction(NotificationAction.createSimple("See instructions", ::showManualInstructions))
     }
     notification
       .also {
