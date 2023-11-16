@@ -51,6 +51,7 @@ import org.junit.runner.RunWith
  * After you run the generator, you can verify the improvements running the [StartupBenchmarks] benchmark.
  *
  * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are supported.
+ *
  * The minimum required version of androidx.benchmark to generate a baseline profile is 1.2.0.
  **/
 @RunWith(AndroidJUnit4::class)
@@ -62,10 +63,14 @@ class $className {
 
     @Test
     fun generate() {
-        rule.collect("$targetPackageName") {
+        rule.collect(
+            packageName = "$targetPackageName",
+
+            // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
+            includeInStartupProfile = true
+        ) {
             // This block defines the app's critical user journey. Here we are interested in
-            // optimizing for app startup. But you can also navigate and scroll
-            // through your most important UI.
+            // optimizing for app startup. But you can also navigate and scroll through your most important UI.
 
             // Start default activity for your app
             pressHome()

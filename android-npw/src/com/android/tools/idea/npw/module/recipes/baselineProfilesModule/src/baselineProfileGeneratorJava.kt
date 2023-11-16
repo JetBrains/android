@@ -52,6 +52,7 @@ import org.junit.runner.RunWith;
  * After you run the generator, you can verify the improvements running the {@link StartupBenchmarks} benchmark.
  *
  * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are supported.
+ *
  * The minimum required version of androidx.benchmark to generate a baseline profile is 1.2.0.
  **/
 @RunWith(AndroidJUnit4.class)
@@ -62,25 +63,32 @@ public class $className {
 
     @Test
     public void generate() {
-        baselineProfileRule.collect("$targetPackageName", scope -> {
-            // This block defines the app's critical user journey. Here we are interested in
-            // optimizing for app startup. But you can also navigate and scroll
-            // through your most important UI.
+        baselineProfileRule.collect(
+            /* packageName = */ "$targetPackageName",
+            /* maxIterations = */ 15,
+            /* stableIterations = */ 3,
+            /* outputFilePrefix = */ null,
+            // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
+            /* includeInStartupProfile = */ true,
+            scope -> {
+                // This block defines the app's critical user journey. Here we are interested in
+                // optimizing for app startup. But you can also navigate and scroll
+                // through your most important UI.
 
-            // Start default activity for your app
-            scope.pressHome();
-            scope.startActivityAndWait();
+                // Start default activity for your app
+                scope.pressHome();
+                scope.startActivityAndWait();
 
-            // TODO Write more interactions to optimize advanced journeys of your app.
-            // For example:
-            // 1. Wait until the content is asynchronously loaded
-            // 2. Scroll the feed content
-            // 3. Navigate to detail screen
+                // TODO Write more interactions to optimize advanced journeys of your app.
+                // For example:
+                // 1. Wait until the content is asynchronously loaded
+                // 2. Scroll the feed content
+                // 3. Navigate to detail screen
 
-            // Check UiAutomator documentation for more information how to interact with the app.
-            // https://d.android.com/training/testing/other-components/ui-automator
+                // Check UiAutomator documentation for more information how to interact with the app.
+                // https://d.android.com/training/testing/other-components/ui-automator
 
-            return Unit.INSTANCE;
+                return Unit.INSTANCE;
         });
     }
 }
