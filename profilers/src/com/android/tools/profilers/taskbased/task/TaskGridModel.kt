@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.taskbased.tasks
+package com.android.tools.profilers.taskbased.task
 
 import com.android.tools.profilers.tasks.ProfilerTaskType
-import icons.StudioIcons
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import javax.swing.Icon
 
 /**
  * This class serves as the model for the list/grid of Profiler tasks a user can select from. Each task is represented via a TaskGridItem

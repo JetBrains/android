@@ -99,7 +99,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   /**
    * A map of Session's Id -> {@link Common.SessionMetaData}
    */
-  @NotNull private Map<Long, Common.SessionMetaData> mySessionMetaDatas;
+  @VisibleForTesting
+  @NotNull public Map<Long, Common.SessionMetaData> mySessionMetaDatas;
 
   /**
    * A list of session-related items for display in the Sessions panel.

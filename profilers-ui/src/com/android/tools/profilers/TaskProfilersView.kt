@@ -21,11 +21,9 @@ import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuCaptureStageView
 import com.android.tools.profilers.cpu.CpuProfilerStage
-import com.android.tools.profilers.cpu.CpuProfilerStageViewV2
 import com.android.tools.profilers.memory.AllocationStage
 import com.android.tools.profilers.memory.AllocationStageView
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
-import com.android.tools.profilers.memory.MainMemoryProfilerStageViewV2
 import com.android.tools.profilers.memory.MemoryCaptureStage
 import com.android.tools.profilers.memory.MemoryCaptureStageView
 import com.google.common.annotations.VisibleForTesting
@@ -55,9 +53,9 @@ class TaskProfilersView(override val studioProfilers: StudioProfilers,
 
   init {
     binder.bind(NullMonitorStage::class.java, ::NullMonitorStageView)
-    binder.bind(CpuProfilerStage::class.java, ::CpuProfilerStageViewV2)
+    binder.bind(CpuProfilerStage::class.java, ::InterimStageView)
     binder.bind(CpuCaptureStage::class.java, ::CpuCaptureStageView)
-    binder.bind(MainMemoryProfilerStage::class.java, ::MainMemoryProfilerStageViewV2)
+    binder.bind(MainMemoryProfilerStage::class.java, ::InterimStageView)
     binder.bind(MemoryCaptureStage::class.java, ::MemoryCaptureStageView)
     binder.bind(AllocationStage::class.java, ::AllocationStageView)
     binder.bind(LiveStage::class.java, ::LiveStageView)

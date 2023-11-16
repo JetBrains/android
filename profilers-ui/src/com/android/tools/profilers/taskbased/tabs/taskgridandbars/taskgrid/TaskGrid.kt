@@ -37,7 +37,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_WIDTH_DP
-import com.android.tools.profilers.taskbased.tasks.TaskGridModel
+import com.android.tools.profilers.taskbased.task.TaskGridModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskSupportUtils
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler

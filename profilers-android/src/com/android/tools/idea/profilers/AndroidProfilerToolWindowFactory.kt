@@ -20,8 +20,8 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.profilers.taskbased.home.OpenHomeTabListener
 import com.android.tools.profilers.taskbased.pastrecordings.OpenPastRecordingsTabListener
-import com.android.tools.profilers.taskbased.tasks.CreateProfilerTaskTabListener
-import com.android.tools.profilers.taskbased.tasks.OpenProfilerTaskTabListener
+import com.android.tools.profilers.taskbased.task.CreateProfilerTaskTabListener
+import com.android.tools.profilers.taskbased.task.OpenProfilerTaskTabListener
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer

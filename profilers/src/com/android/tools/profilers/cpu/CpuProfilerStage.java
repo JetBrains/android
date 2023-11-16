@@ -50,6 +50,7 @@ import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalOptions;
 import com.android.tools.profilers.event.EventMonitor;
+import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -145,6 +146,9 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
   @NotNull
   private final Runnable myStopAction;
 
+  @Nullable
+  private final RecordingScreenModel<CpuProfilerStage> myRecordingScreenModel;
+
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, new CpuCaptureParser(profilers.getIdeServices()), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, () -> {});
   }
@@ -188,6 +192,12 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     myEntryPoint = entryPoint;
 
     myStopAction = stopAction;
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      myRecordingScreenModel = new RecordingScreenModel<>(this);
+    }
+    else {
+      myRecordingScreenModel = null;
+    }
 
     List<Trace.TraceInfo> existingCompletedTraceInfoList =
       CpuProfiler.getTraceInfoFromSession(getStudioProfilers().getClient(), mySession).stream()
@@ -265,6 +275,12 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     return myStopAction;
   }
 
+  @Nullable
+  @Override
+  public RecordingScreenModel<CpuProfilerStage> getRecordingScreenModel() {
+    return myRecordingScreenModel;
+  }
+
   @Override
   public void enter() {
     logEnterStage();
@@ -274,6 +290,10 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     getStudioProfilers().getUpdater().register(myInProgressTraceHandler);
     getStudioProfilers().getUpdater().register((ClampedAxisComponentModel)getCpuUsageAxis());
     getStudioProfilers().getUpdater().register((ClampedAxisComponentModel)getThreadCountAxis());
+    // Register recording screen model updatable so timer can update on tick.
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled() && myRecordingScreenModel != null) {
+      getStudioProfilers().getUpdater().register(myRecordingScreenModel);
+    }
 
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
 
@@ -291,6 +311,10 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     getStudioProfilers().getUpdater().unregister(myInProgressTraceHandler);
     getStudioProfilers().getUpdater().unregister((ClampedAxisComponentModel)getCpuUsageAxis());
     getStudioProfilers().getUpdater().unregister((ClampedAxisComponentModel)getThreadCountAxis());
+    // Deregister recording screen model updatable so timer does not continue in background.
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled() && myRecordingScreenModel != null) {
+      getStudioProfilers().getUpdater().unregister(myRecordingScreenModel);
+    }
 
     // Asks the parser to interrupt any parsing in progress.
     myCaptureParser.abortParsing();

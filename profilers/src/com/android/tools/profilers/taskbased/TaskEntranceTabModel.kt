@@ -16,7 +16,7 @@
 package com.android.tools.profilers.taskbased
 
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.taskbased.tasks.TaskGridModel
+import com.android.tools.profilers.taskbased.task.TaskGridModel
 
 /**
  * This class is to be extended by tab UI models allowing the user to select and enter a Profiler task.

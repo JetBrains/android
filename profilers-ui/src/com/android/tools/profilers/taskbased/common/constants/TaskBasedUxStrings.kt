@@ -20,6 +20,10 @@ object TaskBasedUxStrings {
   const val OPEN_PROFILER_TASK = "Open profiler task"
   const val START_PROFILER_TASK = "Start profiler task"
 
+  // Recording screen strings
+  const val RECORDING_IN_PROGRESS = "Recording..."
+  const val STOP_RECORDING = "Stop recording and show results"
+
   // Icon description strings
   const val TASK_CONFIG_DIALOG_DESC = "Task Configurations"
 

@@ -45,6 +45,7 @@ import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject;
 import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.sessions.SessionAspect;
+import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Arrays;
 import java.util.List;
@@ -89,6 +90,9 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
 
   @NotNull
   private final Runnable myStopAction;
+
+  @Nullable
+  private final RecordingScreenModel<MainMemoryProfilerStage> myRecordingScreenModel;
 
   @VisibleForTesting
   public Lazy<RecordingOption> lazyHeapDumpRecordingOption =
@@ -166,6 +170,12 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
 
     myRecordingOptionsModel = new RecordingOptionsModel();
     myStopAction = stopAction;
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      myRecordingScreenModel = new RecordingScreenModel<>(this);
+    }
+    else {
+      myRecordingScreenModel = null;
+    }
   }
 
   public RecordingOptionsModel getRecordingOptionsModel() {
@@ -203,6 +213,11 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     // Update statuses after recording options model has been initialized
     updateAllocationTrackingStatus();
     updateNativeAllocationTrackingStatus();
+
+    // Register recording screen model updatable so timer can update on tick.
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled() && myRecordingScreenModel != null) {
+      getStudioProfilers().getUpdater().register(myRecordingScreenModel);
+    }
   }
 
   @Override
@@ -210,6 +225,10 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     super.exit();
     enableSelectLatestCapture(false, null);
     selectCaptureDuration(null, null);
+    // Deregister recording screen model updatable so timer does not continue in background.
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled() && myRecordingScreenModel != null) {
+      getStudioProfilers().getUpdater().unregister(myRecordingScreenModel);
+    }
   }
 
   @NotNull
@@ -580,6 +599,12 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   @NotNull
   public Runnable getStopAction() {
     return myStopAction;
+  }
+
+  @Nullable
+  @Override
+  public RecordingScreenModel<MainMemoryProfilerStage> getRecordingScreenModel() {
+    return myRecordingScreenModel;
   }
 
   @VisibleForTesting

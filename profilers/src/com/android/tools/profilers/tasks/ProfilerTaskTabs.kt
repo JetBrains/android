@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.tasks
 
-import com.android.tools.profilers.taskbased.tasks.CreateProfilerTaskTabListener
-import com.android.tools.profilers.taskbased.tasks.OpenProfilerTaskTabListener
+import com.android.tools.profilers.taskbased.task.CreateProfilerTaskTabListener
+import com.android.tools.profilers.taskbased.task.OpenProfilerTaskTabListener
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.intellij.openapi.project.Project
 
