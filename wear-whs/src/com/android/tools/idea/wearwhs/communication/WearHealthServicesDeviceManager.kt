@@ -48,7 +48,7 @@ internal interface WearHealthServicesDeviceManager {
   /**
    * Overrides the sensor value for the given capability.
    */
-  suspend fun overrideValue(capability: WhsCapability, value: Float)
+  suspend fun overrideValue(capability: WhsCapability, value: Float?)
 
   /**
    * Loads the current state from WHS to compare with the current UI.
@@ -60,3 +60,5 @@ internal data class OnDeviceCapabilityState(
   var enabled: Boolean,
   var overrideValue: Float?,
 )
+
+internal class ConnectionLostException(message: String) : Exception(message)

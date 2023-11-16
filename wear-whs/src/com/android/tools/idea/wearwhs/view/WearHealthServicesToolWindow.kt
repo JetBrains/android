@@ -75,6 +75,30 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
     }
     val footer = JPanel(FlowLayout(FlowLayout.TRAILING)).apply {
       border = horizontalBorders
+      // Display current state e.g. we encountered an error or if there's work in progress
+      add(JLabel().apply {
+        stateManager.getStatus().onEach {
+          when (it) {
+            is WhsStateManagerStatus.Ready -> {
+              text = ""
+            }
+
+            is WhsStateManagerStatus.Syncing -> {
+              text = message(it.capability.labelKey)
+            }
+
+            is WhsStateManagerStatus.ConnectionLost -> {
+              text = message("wear.whs.panel.connection.lost")
+            }
+
+            is WhsStateManagerStatus.Idle -> {
+              text = ""
+            }
+
+            else -> {}
+          }
+        }.launchIn(uiScope)
+      })
       add(JButton(message("wear.whs.panel.reset")).apply {
         addActionListener {
           stateManager.reset()
@@ -114,8 +138,20 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
         add(JPanel(BorderLayout()).apply {
           preferredSize = Dimension(0, 35)
           val checkBox = JCheckBox(message(capability.labelKey)).also { checkBox ->
+            val plainFont = checkBox.font.deriveFont(Font.PLAIN)
+            val italicFont = checkBox.font.deriveFont(Font.ITALIC)
             stateManager.getCapabilityEnabled(capability).onEach { enabled ->
               checkBox.isSelected = enabled
+            }.launchIn(uiScope)
+            stateManager.getSynced(capability).onEach { synced ->
+              if (!synced) {
+                checkBox.font = italicFont
+                checkBox.text = "${message(capability.labelKey)}*"
+              }
+              else {
+                checkBox.font = plainFont
+                checkBox.text = message(capability.labelKey)
+              }
             }.launchIn(uiScope)
             checkBox.addActionListener {
               stateManager.setCapabilityEnabled(capability, checkBox.isSelected)
@@ -147,9 +183,9 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
               }
               textField.isVisible = capability.isOverrideable
             })
-            add(JLabel(message(capability.unitKey)).apply {
-              isVisible = capability.isOverrideable
-              preferredSize = Dimension(50, preferredSize.height)
+            add(JLabel(message(capability.unitKey)).also { label ->
+              label.isVisible = capability.isOverrideable
+              label.preferredSize = Dimension(50, label.preferredSize.height)
             })
           }, BorderLayout.EAST)
         })

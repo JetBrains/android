@@ -18,6 +18,9 @@ package com.android.tools.idea.wearwhs.view
 import com.android.tools.idea.wearwhs.BUNDLE_NAME
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsCapability
+import com.android.tools.idea.wearwhs.view.Preset.ALL
+import com.android.tools.idea.wearwhs.view.Preset.CUSTOM
+import com.android.tools.idea.wearwhs.view.Preset.STANDARD
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.annotations.PropertyKey
 
@@ -62,7 +65,6 @@ internal interface WearHealthServicesToolWindowStateManager {
    */
   fun setOverrideValue(capability: WhsCapability, value: Float?)
 
-
   /**
    * Applies the changes on current device.
    */
@@ -72,6 +74,18 @@ internal interface WearHealthServicesToolWindowStateManager {
    * Resets the state to the defaults, in this case, to selected preset.
    */
   fun reset()
+
+  /**
+   * State flow for the ongoing status updates, it's an instance of [WhsStateManagerStatus]
+   * which could be the syncing state, containing the capability that is currently being synced
+   * across to the device, an error state, or an idle state.
+   */
+  fun getStatus(): StateFlow<WhsStateManagerStatus?>
+
+  /**
+   * State flow for checking if the current capability overrides are synced with the device.
+   */
+  fun getSynced(capability: WhsCapability): StateFlow<Boolean>
 }
 
 /**
@@ -87,4 +101,15 @@ internal enum class Preset(@PropertyKey(resourceBundle = BUNDLE_NAME) val labelK
   CUSTOM( "wear.whs.panel.capabilities.custom");
 
   override fun toString() = message(labelKey)
+}
+
+/**
+ * Progress state of the Wear Health Services tool window, tells the user what is currently
+ * being synced across to the device, if there's an error, or if the state is idle.
+ */
+internal sealed class WhsStateManagerStatus {
+  object Ready : WhsStateManagerStatus()
+  class Syncing(val capability: WhsCapability) : WhsStateManagerStatus()
+  object ConnectionLost : WhsStateManagerStatus()
+  object Idle : WhsStateManagerStatus()
 }

@@ -24,8 +24,7 @@ import com.android.tools.idea.wearwhs.WhsCapability
  * This class uses the content provider for the synthetic HAL in WHS to sync the current state
  * of the UI to the selected Wear OS device.
  */
-internal class ContentProviderDeviceManager(
-  private var capabilities: List<WhsCapability> = WHS_CAPABILITIES) : WearHealthServicesDeviceManager {
+internal class ContentProviderDeviceManager(private var capabilities: List<WhsCapability> = WHS_CAPABILITIES) : WearHealthServicesDeviceManager {
 
   // TODO(b/309608749): Implement loadCapabilities method
   override suspend fun loadCapabilities() = capabilities
@@ -45,6 +44,6 @@ internal class ContentProviderDeviceManager(
   override suspend fun disableCapability(capability: WhsCapability) {}
 
   // TODO(b/305924073): Implement override methods
-  override suspend fun overrideValue(capability: WhsCapability, value: Float) {}
+  override suspend fun overrideValue(capability: WhsCapability, value: Float?) {}
 }
 

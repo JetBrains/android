@@ -18,16 +18,22 @@ package com.android.tools.idea.wearwhs.view
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
-import com.ibm.icu.impl.Assert
+import com.android.tools.idea.wearwhs.communication.OnDeviceCapabilityState
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import org.junit.Assert
 
 private val capabilities = listOf(WhsCapability(
   "wear.whs.capability.heart.rate.label",
@@ -91,7 +97,6 @@ class WearHealthServicesToolWindowStateManagerTest : LightPlatformTestCase() {
     stateManager.getCapabilitiesList().waitForValue(capabilities)
 
     stateManager.setCapabilityEnabled(capabilities[0], false)
-
     stateManager.getCapabilityEnabled(capabilities[0]).waitForValue(false)
   }
 
@@ -103,13 +108,85 @@ class WearHealthServicesToolWindowStateManagerTest : LightPlatformTestCase() {
 
     stateManager.getOverrideValue(capabilities[1]).waitForValue(3f)
   }
-}
 
-suspend fun <T> StateFlow<T>.waitForValue(value: T, timeout: Long = 1000) {
-  val received = mutableListOf<T>()
-  try {
-    withTimeout(timeout) { takeWhile { it != value }.collect { received.add(it) } }
-  } catch (ex: TimeoutCancellationException) {
-    Assert.fail("Timed out waiting for value $value. Received values so far $received")
+  @Test
+  fun `test reset sets the preset to standard and removes overrides`() = runBlocking {
+    stateManager.getCapabilitiesList().waitForValue(capabilities)
+
+    stateManager.setPreset(Preset.ALL)
+
+    stateManager.setOverrideValue(capabilities[1], 3f)
+
+    stateManager.reset()
+
+    stateManager.getPreset().waitForValue(Preset.STANDARD)
+    stateManager.getCapabilityEnabled(capabilities[2]).waitForValue(false)
+    stateManager.getOverrideValue(capabilities[1]).waitForValue(null)
+  }
+
+  @Test
+  fun `test applyChanges sends synced and status updates`(): Unit = runBlocking {
+    stateManager.getCapabilitiesList().waitForValue(capabilities)
+
+    stateManager.setCapabilityEnabled(capabilities[0], false)
+    stateManager.setCapabilityEnabled(capabilities[1], true)
+    stateManager.setOverrideValue(capabilities[1], 3f)
+    stateManager.setCapabilityEnabled(capabilities[2], true)
+
+    stateManager.getSynced(capabilities[0]).waitForValue(false)
+    stateManager.getSynced(capabilities[1]).waitForValue(false)
+    stateManager.getSynced(capabilities[2]).waitForValue(false)
+
+    stateManager.applyChanges()
+
+    stateManager.getStatus().waitForValue(WhsStateManagerStatus.Idle)
+
+    stateManager.getSynced(capabilities[0]).waitForValue(true)
+    stateManager.getSynced(capabilities[1]).waitForValue(true)
+    stateManager.getSynced(capabilities[2]).waitForValue(true)
+
+    assertThat(deviceManager.loadCurrentCapabilityStates()).containsExactly(
+      capabilities[0], OnDeviceCapabilityState(false, null),
+      capabilities[1], OnDeviceCapabilityState(true, 3f),
+      capabilities[2], OnDeviceCapabilityState(true, null)
+    )
+  }
+
+  @Test
+  fun `test applyChanges sends error status update`(): Unit = runBlocking {
+    stateManager.getCapabilitiesList().waitForValue(capabilities)
+
+    deviceManager.failState = true
+    stateManager.setCapabilityEnabled(capabilities[0], false)
+
+    stateManager.applyChanges()
+
+    stateManager.getStatus().waitForValue(WhsStateManagerStatus.ConnectionLost)
+  }
+
+  @Test
+  fun `test applyChanges sends idle status update when retry succeeds`(): Unit = runBlocking {
+    stateManager.getCapabilitiesList().waitForValue(capabilities)
+
+    stateManager.setCapabilityEnabled(capabilities[0], false)
+
+    deviceManager.failState = true
+
+    stateManager.applyChanges()
+    stateManager.getStatus().waitForValue(WhsStateManagerStatus.ConnectionLost)
+
+    deviceManager.failState = false
+
+    stateManager.applyChanges()
+    stateManager.getStatus().waitForValue(WhsStateManagerStatus.Idle)
+  }
+
+  private suspend fun <T> StateFlow<T>.waitForValue(value: T, timeout: Long = 1000) {
+    val received = mutableListOf<T>()
+    try {
+      withTimeout(timeout) { takeWhile { it != value }.collect { received.add(it) } }
+    } catch (ex: TimeoutCancellationException) {
+      Assert.fail("Timed out waiting for value $value. Received values so far $received")
+    }
   }
 }

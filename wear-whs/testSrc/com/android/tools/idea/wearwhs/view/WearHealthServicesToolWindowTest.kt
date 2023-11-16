@@ -21,8 +21,8 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.StateFlow
@@ -79,12 +79,17 @@ class WearHealthServicesToolWindowTest : LightPlatformTestCase() {
   fun `test panel screenshot matches expectation with modified state manager values`() = runBlocking {
     stateManager.getCapabilitiesList().waitForValue(deviceManager.capabilities)
 
+    deviceManager.failState = true
+
+    stateManager.getCapabilitiesList().waitForValue(WHS_CAPABILITIES)
+
     stateManager.setPreset(Preset.CUSTOM)
     stateManager.setCapabilityEnabled(deviceManager.capabilities[0], true)
     stateManager.setCapabilityEnabled(deviceManager.capabilities[1], false)
     stateManager.setCapabilityEnabled(deviceManager.capabilities[2], false)
     stateManager.setOverrideValue(deviceManager.capabilities[0], 2f)
     stateManager.setOverrideValue(deviceManager.capabilities[2], 5f)
+    stateManager.applyChanges()
 
     val fakeUi = FakeUi(toolWindow)
 
