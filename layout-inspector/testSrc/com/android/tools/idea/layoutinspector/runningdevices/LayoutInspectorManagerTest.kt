@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.createTestActionEvent
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
@@ -52,6 +53,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JPanel
 import org.junit.After
@@ -162,6 +164,35 @@ class LayoutInspectorManagerTest {
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
 
     verifyUiRemoved(tab1)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testHideToolWindow() = withEmbeddedLayoutInspector {
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
+
+    fakeToolWindowManager.addContent(tab1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    fakeToolWindowManager.setSelectedContent(tab1)
+
+    fakeToolWindowManager.toolWindow.show()
+    waitForCondition(2, TimeUnit.SECONDS) { fakeToolWindowManager.toolWindow.isVisible }
+
+    verifyUiRemoved(tab1)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
+
+    verifyUiInjected(tab1)
+
+    fakeToolWindowManager.toolWindow.hide()
+    waitForCondition(2, TimeUnit.SECONDS) { !fakeToolWindowManager.toolWindow.isVisible }
+
+    verifyUiRemoved(tab1)
+
+    fakeToolWindowManager.toolWindow.show()
+    waitForCondition(2, TimeUnit.SECONDS) { fakeToolWindowManager.toolWindow.isVisible }
+
+    verifyUiInjected(tab1)
   }
 
   @Test

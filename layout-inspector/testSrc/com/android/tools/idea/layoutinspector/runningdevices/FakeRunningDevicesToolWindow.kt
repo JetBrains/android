@@ -37,6 +37,8 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.AlertIcon
@@ -66,7 +68,7 @@ data class TabInfo(
 
 class FakeToolWindowManager(project: Project, tabs: List<TabInfo>) :
   ToolWindowHeadlessManagerImpl(project) {
-  private var toolWindow = FakeToolWindow(project, tabs)
+  var toolWindow = FakeToolWindow(project, tabs, this)
 
   override fun getToolWindow(id: String?): ToolWindow? {
     return if (id == RUNNING_DEVICES_TOOL_WINDOW_ID) toolWindow else super.getToolWindow(id)
@@ -83,11 +85,19 @@ class FakeToolWindowManager(project: Project, tabs: List<TabInfo>) :
   fun setSelectedContent(tabInfo: TabInfo) {
     toolWindow.setSelectedContent(tabInfo)
   }
+
+  override fun invokeLater(runnable: Runnable) {
+    runnable.run()
+  }
 }
 
-private class FakeToolWindow(project: Project, tabs: List<TabInfo>) :
-  ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
+class FakeToolWindow(
+  project: Project,
+  tabs: List<TabInfo>,
+  private val manager: ToolWindowManager
+) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
   private val fakeContentManager = FakeContentManager()
+  private var visible = false
 
   init {
     Disposer.register(disposable, fakeContentManager)
@@ -132,6 +142,24 @@ private class FakeToolWindow(project: Project, tabs: List<TabInfo>) :
       (it.component as DataProvider).getData(SERIAL_NUMBER_KEY.name) ==
         tabInfo.deviceId.serialNumber
     }
+  }
+
+  override fun show(runnable: Runnable?) {
+    visible = true
+    notifyStateChanged()
+    runnable?.run()
+  }
+
+  override fun hide(runnable: Runnable?) {
+    visible = false
+    notifyStateChanged()
+    runnable?.run()
+  }
+
+  override fun isVisible() = visible
+
+  private fun notifyStateChanged() {
+    project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(manager)
   }
 }
 

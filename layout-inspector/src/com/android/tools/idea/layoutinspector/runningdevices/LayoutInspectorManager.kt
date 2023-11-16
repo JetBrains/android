@@ -204,8 +204,40 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
             // So if an emulator is disconnected with Layout Inspector turned on and later
             // restarted, Layout Inspector will be on again.
           }
+
+          override fun onToolWindowHidden() {
+            clearSelectedTab()
+          }
+
+          override fun onToolWindowShown(selectedDeviceId: DeviceId?) {
+            restoreSelectedTab(selectedDeviceId)
+          }
         }
       )
+  }
+
+  private var shouldRestoreToolWindowState: Boolean = false
+
+  /** Restore the state of the selected tab if it was manually cleared */
+  private fun restoreSelectedTab(selectedDeviceId: DeviceId?) {
+    if (!shouldRestoreToolWindowState) {
+      return
+    }
+
+    shouldRestoreToolWindowState = false
+    if (selectedDeviceId != null) {
+      selectedTab = createTabState(selectedDeviceId)
+    }
+  }
+
+  /** Clear the selected tab */
+  private fun clearSelectedTab() {
+    if (selectedTab == null) {
+      return
+    }
+
+    shouldRestoreToolWindowState = true
+    selectedTab = null
   }
 
   private fun createTabState(deviceId: DeviceId): SelectedTabState {
