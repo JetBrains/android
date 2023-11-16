@@ -47,19 +47,29 @@ class LayoutInspectorSessionMetrics(
     errorState: AttachErrorState? = null,
     errorCode: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE,
   ) {
+    updateSessionStats(eventType, stats, errorCode)
+
     when (eventType) {
       DynamicLayoutInspectorEventType.INITIAL_RENDER,
       DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE,
-      DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS ->
-        if (loggedInitialRender) return else loggedInitialRender = true
+      DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS -> {
+        if (loggedInitialRender) {
+          return
+        } else {
+          loggedInitialRender = true
+        }
+      }
       DynamicLayoutInspectorEventType.ATTACH_REQUEST,
-      DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST ->
-        if (loggedInitialConnect) return else loggedInitialConnect = true
-      DynamicLayoutInspectorEventType.ATTACH_ERROR -> stats.attachError(errorCode)
-      DynamicLayoutInspectorEventType.ATTACH_SUCCESS -> stats.attachSuccess()
-      DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS -> stats.attachSuccess()
-      else -> {} // continue
+      DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST -> {
+        if (loggedInitialConnect) {
+          return
+        } else {
+          loggedInitialConnect = true
+        }
+      }
+      else -> {}
     }
+
     val builder =
       AndroidStudioEvent.newBuilder()
         .apply {
@@ -82,5 +92,19 @@ class LayoutInspectorSessionMetrics(
         .withProjectId(project)
 
     UsageTracker.log(builder)
+  }
+
+  /** Update session stats according to [eventType]. */
+  private fun updateSessionStats(
+    eventType: DynamicLayoutInspectorEventType,
+    stats: SessionStatistics,
+    errorCode: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE,
+  ) {
+    when (eventType) {
+      DynamicLayoutInspectorEventType.ATTACH_ERROR -> stats.attachError(errorCode)
+      DynamicLayoutInspectorEventType.ATTACH_SUCCESS -> stats.attachSuccess()
+      DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS -> stats.attachSuccess()
+      else -> {}
+    }
   }
 }
