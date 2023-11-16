@@ -54,6 +54,7 @@ class LayoutInspectorSessionMetrics(
       DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE,
       DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS -> {
         if (loggedInitialRender) {
+          // Only log first render.
           return
         } else {
           loggedInitialRender = true
@@ -62,6 +63,7 @@ class LayoutInspectorSessionMetrics(
       DynamicLayoutInspectorEventType.ATTACH_REQUEST,
       DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST -> {
         if (loggedInitialConnect) {
+          // Only log first connect.
           return
         } else {
           loggedInitialConnect = true
@@ -71,25 +73,24 @@ class LayoutInspectorSessionMetrics(
     }
 
     val builder =
-      AndroidStudioEvent.newBuilder()
-        .apply {
-          kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
-          dynamicLayoutInspectorEventBuilder.apply {
-            type = eventType
-            if (eventType == DynamicLayoutInspectorEventType.SESSION_DATA) {
-              stats.save(sessionBuilder)
-            }
-            snapshotMetadata?.toSnapshotInfo()?.let { snapshotInfo = it }
-            if (errorState != null) {
-              errorInfoBuilder.apply {
-                attachErrorState = errorState
-                attachErrorCode = errorCode
-              }
+      AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
+        dynamicLayoutInspectorEventBuilder.apply {
+          type = eventType
+          if (eventType == DynamicLayoutInspectorEventType.SESSION_DATA) {
+            stats.save(sessionBuilder)
+          }
+          snapshotMetadata?.toSnapshotInfo()?.let { snapshotInfo = it }
+          if (errorState != null) {
+            errorInfoBuilder.apply {
+              attachErrorState = errorState
+              attachErrorCode = errorCode
             }
           }
-          process?.let { deviceInfo = it.device.toDeviceInfo() }
         }
-        .withProjectId(project)
+        process?.let { deviceInfo = it.device.toDeviceInfo() }
+        withProjectId(project)
+      }
 
     UsageTracker.log(builder)
   }
