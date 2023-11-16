@@ -1350,7 +1350,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> WEAR_TILE_PREVIEW = Flag.create(
     WEAR_SURFACES, "wear.tile.preview.enabled", "Enable Wear Tile preview",
-    "If enabled, a preview for functions annotated with @TilePreview and returning TilePreviewData is displayed",
+    "If enabled, a preview for functions annotated with @Preview and returning TilePreviewData is displayed",
     true);
   // endregion
 

@@ -36,7 +36,7 @@ import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.toUElementOfType
 
-private const val TILE_PREVIEW_ANNOTATION_NAME = "TilePreview"
+private const val TILE_PREVIEW_ANNOTATION_NAME = "Preview"
 private const val TILE_PREVIEW_ANNOTATION_FQ_NAME = "androidx.wear.tiles.tooling.preview.$TILE_PREVIEW_ANNOTATION_NAME"
 private const val TILE_PREVIEW_DATA_FQ_NAME = "androidx.wear.tiles.tooling.preview.TilePreviewData"
 

@@ -50,7 +50,7 @@ class WearTilePreviewElementFinderTest {
       """.trimIndent()
     )
     fixture.addFileToProjectAndInvalidate(
-      "androidx/wear/tiles/tooling/preview/TilePreview.kt",
+      "androidx/wear/tiles/tooling/preview/Preview.kt",
       // language=kotlin
       """
         package androidx.wear.tiles.tooling.preview
@@ -66,7 +66,7 @@ class WearTilePreviewElementFinderTest {
 
         class TilePreviewData
 
-        annotation class TilePreview(
+        annotation class Preview(
             val name: String = "",
             val group: String = "",
             val device: String = WearDevices.SMALL_ROUND,
@@ -89,33 +89,33 @@ class WearTilePreviewElementFinderTest {
 
         import android.content.Context
         import androidx.wear.tiles.TileService
-        import androidx.wear.tiles.tooling.preview.TilePreview
+        import androidx.wear.tiles.tooling.preview.Preview
         import androidx.wear.tiles.tooling.preview.TilePreviewData
         import androidx.wear.tiles.tooling.preview.WearDevices
 
-        @TilePreview
+        @Preview
         class ThisShouldNotBePreviewed : TileService
 
-        @TilePreview
+        @Preview
         private fun tilePreview(): TilePreviewData {
           return TilePreviewData()
         }
 
-        @TilePreview(
+        @Preview(
           device = WearDevices.LARGE_ROUND
         )
         private fun largeRoundTilePreview(): TilePreviewData {
           return TilePreviewData()
         }
 
-        @TilePreview(
+        @Preview(
           name = "some name"
         )
         private fun namedTilePreview(): TilePreviewData {
           return TilePreviewData()
         }
 
-        @TilePreview(
+        @Preview(
           group = "some group",
           device = WearDevices.SQUARE
         )
@@ -130,40 +130,40 @@ class WearTilePreviewElementFinderTest {
           return TilePreviewData()
         }
 
-        @TilePreview(
+        @Preview(
           locale = "fr"
         )
         private fun tilePreviewWithLocale(): TilePreviewData {
           return TilePreviewData()
         }
 
-        @TilePreview(
+        @Preview(
           fontScale = 1.2f
         )
         private fun tilePreviewWithFontScale(): TilePreviewData {
           return TilePreviewData()
         }
 
-        @TilePreview
+        @Preview
         fun tilePreviewWithParameter(x: Int): TilePreviewData {
           return TilePreviewData()
         }
 
-        @TilePreview
+        @Preview
         fun tilePreviewWithWrongReturnType(): Int {
           return 42
         }
 
-        @TilePreview
+        @Preview
         fun tilePreviewWithNoReturnType() {
         }
 
-        @TilePreview
+        @Preview
         fun tilePreviewWithContextParameter(context: Context): TilePreviewData {
           return TilePreviewData()
         }
 
-        @TilePreview
+        @Preview
         fun tilePreviewWithTooManyParameters(context: Context, x: Int): TilePreviewData {
           return TilePreviewData()
         }
@@ -178,10 +178,10 @@ class WearTilePreviewElementFinderTest {
         """
         package com.android.test
 
-        import androidx.wear.tiles.tooling.preview.TilePreview
+        import androidx.wear.tiles.tooling.preview.Preview
         import androidx.wear.tiles.tooling.preview.TilePreviewData
 
-        @TilePreview
+        @Preview
         private fun tilePreviewInAnotherFile(): TilePreviewData {
           return TilePreviewData()
         }
@@ -233,7 +233,7 @@ class WearTilePreviewElementFinderTest {
         ReadAction.run<Throwable> {
           assertThat(TextRange.create(it.previewBodyPsi!!.psiRange!!))
             .isEqualTo(previewsTest.textRange("tilePreview"))
-          assertThat(it.previewElementDefinitionPsi?.element?.text).isEqualTo("@TilePreview")
+          assertThat(it.previewElementDefinitionPsi?.element?.text).isEqualTo("@Preview")
         }
       }
 
@@ -253,7 +253,7 @@ class WearTilePreviewElementFinderTest {
           assertThat(it.previewElementDefinitionPsi?.element?.text)
             .isEqualTo(
               """
-            @TilePreview(
+            @Preview(
               device = WearDevices.LARGE_ROUND
             )
           """
@@ -278,7 +278,7 @@ class WearTilePreviewElementFinderTest {
           assertThat(it.previewElementDefinitionPsi?.element?.text)
             .isEqualTo(
               """
-            @TilePreview(
+            @Preview(
               name = "some name"
             )
           """
@@ -303,7 +303,7 @@ class WearTilePreviewElementFinderTest {
           assertThat(it.previewElementDefinitionPsi?.element?.text)
             .isEqualTo(
               """
-            @TilePreview(
+            @Preview(
               group = "some group",
               device = WearDevices.SQUARE
             )
@@ -328,7 +328,7 @@ class WearTilePreviewElementFinderTest {
           assertThat(it.previewElementDefinitionPsi?.element?.text)
             .isEqualTo(
               """
-           @TilePreview(
+           @Preview(
              locale = "fr"
            )
          """
@@ -352,7 +352,7 @@ class WearTilePreviewElementFinderTest {
           assertThat(it.previewElementDefinitionPsi?.element?.text)
             .isEqualTo(
               """
-           @TilePreview(
+           @Preview(
              fontScale = 1.2f
            )
          """
@@ -374,7 +374,7 @@ class WearTilePreviewElementFinderTest {
           assertThat(TextRange.create(it.previewBodyPsi!!.psiRange!!))
             .isEqualTo(previewsTest.textRange("tilePreviewWithContextParameter"))
           assertThat(it.previewElementDefinitionPsi?.element?.text)
-            .isEqualTo("@TilePreview")
+            .isEqualTo("@Preview")
         }
       }
     }
