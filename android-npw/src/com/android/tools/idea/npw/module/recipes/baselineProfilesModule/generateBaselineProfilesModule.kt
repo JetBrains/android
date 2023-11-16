@@ -193,11 +193,7 @@ fun setupRunConfigurations(
 
   val configFactory = AndroidBaselineProfileRunConfigurationType.getInstance().factory
 
-  val runConfigForSelected = AndroidBaselineProfileRunConfiguration(
-    project = project,
-    factory = configFactory,
-    name = "$RUN_CONFIGURATION_NAME for ${targetModule.getModuleNameForGradleTask()}"
-  ).apply {
+  val runConfigForSelected = AndroidBaselineProfileRunConfiguration(project, configFactory, RUN_CONFIGURATION_NAME).apply {
     setModule(targetModule)
   }
   val runConfigSettingsForSelected = runManager.createConfiguration(runConfigForSelected, configFactory)
