@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.actions.RefreshRenderAction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.disposable
@@ -23,17 +24,18 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.IdeFocusManager
-import com.intellij.openapi.wm.impl.IdeFocusManagerHeadless
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
-import java.awt.Component
 import java.awt.event.KeyEvent
 import javax.swing.JTextField
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.AdditionalAnswers.delegatesTo
+import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.mock
 
 class RefreshRenderActionTest {
   @get:Rule val projectRule = ProjectRule()
@@ -64,12 +66,15 @@ class RefreshRenderActionTest {
 
     // Replace the IdeFocusManager to make the action think that
     // the current focus is a text field.
+    val customFocusManager = mock(
+      IdeFocusManager::class.java,
+      delegatesTo<Any?>(IdeFocusManager.getGlobalInstance()),
+    )
+    doReturn(textField).whenever(customFocusManager).focusOwner
     ApplicationManager.getApplication()
       .replaceService(
         IdeFocusManager::class.java,
-        object : IdeFocusManagerHeadless() {
-          override fun getFocusOwner(): Component = textField
-        },
+        customFocusManager,
         projectRule.disposable
       )
     val event =
