@@ -228,7 +228,6 @@ maven_repository(
         "@maven//:androidx.test.monitor_1.6.1",
         "@maven//:androidx.tv.tv-foundation_1.0.0-alpha07",
         "@maven//:androidx.tv.tv-material_1.0.0-alpha07",
-        "@maven//:androidx.wear.compose.compose-material_1.1.2",
         "@maven//:androidx.wear.compose.compose-material_1.2.1",
         "@maven//:androidx.wear.compose.compose-navigation_1.2.1",
         "@maven//:androidx.wear.compose.compose-ui-tooling_1.2.1",
