@@ -24,8 +24,8 @@ import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.ide.common.resources.getConfiguredValue
 import com.android.resources.ResourceType
 import com.android.tools.idea.folding.AndroidFoldingSettings
-import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.res.LocalResourceRepository
 import com.intellij.lang.ASTNode
 import com.intellij.lang.folding.FoldingBuilderEx
 import com.intellij.lang.folding.FoldingDescriptor

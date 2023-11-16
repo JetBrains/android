@@ -17,8 +17,9 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation
 
 /**
  * A uniquely identifying display name of the corresponding [PreviewRepresentation]. It is used for
- *  a) Having a display string in the selection DropDownAction for a corresponding [PreviewRepresentation]
- *  b) Have a unique identifier for creating, storing and disposing [PreviewRepresentation]s, so that we do not create the same twice,
- *  know which we do not use anymore etc.
+ * a) Having a display string in the selection DropDownAction for a corresponding
+ * [PreviewRepresentation] b) Have a unique identifier for creating, storing and disposing
+ * [PreviewRepresentation]s, so that we do not create the same twice, know which we do not use
+ * anymore etc.
  */
 typealias RepresentationName = String

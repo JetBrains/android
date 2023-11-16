@@ -17,7 +17,7 @@ package com.android.tools.property.panel.impl.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.common.secondaryPanelBackground
-import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.impl.model.FlagPropertyEditorModel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnAction
@@ -60,40 +60,40 @@ private const val WINDOW_MARGIN = 40
 /**
  * Editor for a flags property.
  *
- * Displays the value as text with a flag icon on the right.
- * Clicking the flag will bring up a balloon control where the individual flags
- * can be changed.
+ * Displays the value as text with a flag icon on the right. Clicking the flag will bring up a
+ * balloon control where the individual flags can be changed.
  */
-class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel) : PropertyTextFieldWithLeftButton(editorModel) {
+class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel, context: EditorContext) :
+  PropertyTextFieldWithLeftButton(editorModel, context) {
 
   override fun requestFocus() {
     leftButton?.requestFocus()
   }
 
-  override val buttonAction = object : AnAction() {
-    override fun actionPerformed(e: AnActionEvent) {
-      val restoreFocusTo: JComponent = tableParent ?: leftButton!!
-      val panel = FlagPropertyPanel(editorModel, restoreFocusTo, windowHeight)
+  override val buttonAction =
+    object : AnAction() {
+      override fun actionPerformed(e: AnActionEvent) {
+        val restoreFocusTo: JComponent = tableParent ?: leftButton!!
+        val panel = FlagPropertyPanel(editorModel, restoreFocusTo, windowHeight)
 
-      val balloon = JBPopupFactory.getInstance()
-        .createBalloonBuilder(panel)
-        .setShadow(true)
-        .setHideOnAction(false)
-        .setBlockClicksThroughBalloon(true)
-        .setAnimationCycle(200)
-        .setFillColor(secondaryPanelBackground)
-        .createBalloon() as BalloonImpl
+        val balloon =
+          JBPopupFactory.getInstance()
+            .createBalloonBuilder(panel)
+            .setShadow(true)
+            .setHideOnAction(false)
+            .setBlockClicksThroughBalloon(true)
+            .setAnimationCycle(200)
+            .setFillColor(secondaryPanelBackground)
+            .createBalloon() as BalloonImpl
 
-      panel.balloon = balloon
-      balloon.show(RelativePoint.getCenterOf(leftComponent), Balloon.Position.below)
-      balloon.setHideListener { panel.hideBalloonAndRestoreFocusOnEditor() }
-      ApplicationManager.getApplication().invokeLater { panel.searchField.requestFocus() }
+        panel.balloon = balloon
+        balloon.show(RelativePoint.getCenterOf(leftComponent), Balloon.Position.below)
+        balloon.setHideListener { panel.hideBalloonAndRestoreFocusOnEditor() }
+        ApplicationManager.getApplication().invokeLater { panel.searchField.requestFocus() }
+      }
     }
-  }
 
-  /**
-   * Return the table this [FlagPropertyEditor] is a cell editor for (if any).
-   */
+  /** Return the table this [FlagPropertyEditor] is a cell editor for (if any). */
   @VisibleForTesting
   val tableParent: JTable?
     get() = SwingUtilities.getAncestorOfClass(JTable::class.java, this) as? JTable
@@ -102,12 +102,12 @@ class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel) : PropertyTex
     get() = SwingUtilities.getWindowAncestor(this).height
 }
 
-/**
- * A panel to be displayed in a balloon control.
- */
-class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
-                        private val restoreFocusTo: JComponent,
-                        windowHeight: Int) : AdtSecondaryPanel(VerticalLayout(2)) {
+/** A panel to be displayed in a balloon control. */
+class FlagPropertyPanel(
+  private val editorModel: FlagPropertyEditorModel,
+  private val restoreFocusTo: JComponent,
+  windowHeight: Int
+) : AdtSecondaryPanel(VerticalLayout(2)) {
   var balloon: Balloon? = null
   val searchField = SearchTextField()
   private val innerPanel = AdtSecondaryPanel(VerticalLayout(2))
@@ -124,13 +124,15 @@ class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
     isFocusCycleRoot = true
     focusTraversalPolicy = CustomFocusTraversalPolicy(searchField.textEditor)
 
-    editorModel.addListener(ValueChangedListener { handleValueChanged() })
+    editorModel.addListener { handleValueChanged() }
 
-    // If there are too many controls to fit inside the Application Window, set the preferred height of the scroll pane.
+    // If there are too many controls to fit inside the Application Window, set the preferred height
+    // of the scroll pane.
     if (preferredSize.height + 2 * JBUI.scale(WINDOW_MARGIN) > windowHeight) {
       val otherControlsHeight = preferredSize.height - innerPanel.preferredSize.height
       val preferredHeight = windowHeight - 2 * JBUI.scale(WINDOW_MARGIN) - otherControlsHeight
-      scrollPane.preferredSize = Dimension(-1, max(preferredHeight, JBUI.scale(MIN_SCROLL_PANE_HEIGHT)))
+      scrollPane.preferredSize =
+        Dimension(-1, max(preferredHeight, JBUI.scale(MIN_SCROLL_PANE_HEIGHT)))
     }
   }
 
@@ -166,20 +168,24 @@ class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
   }
 
   private fun createScrollPane(component: JComponent): JScrollPane {
-    val scrollPane = ScrollPaneFactory.createScrollPane(
-      component,
-      ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
+    val scrollPane =
+      ScrollPaneFactory.createScrollPane(
+        component,
+        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+      )
     scrollPane.border = JBUI.Borders.empty()
-    scrollPane.addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(event: ComponentEvent?) {
-        // unitIncrement affects the scroll wheel speed
-        scrollPane.verticalScrollBar.unitIncrement = scrollPane.height
+    scrollPane.addComponentListener(
+      object : ComponentAdapter() {
+        override fun componentResized(event: ComponentEvent?) {
+          // unitIncrement affects the scroll wheel speed
+          scrollPane.verticalScrollBar.unitIncrement = scrollPane.height
 
-        // blockIncrement affects the page down speed, when clicking above/under the scroll thumb
-        scrollPane.verticalScrollBar.blockIncrement = scrollPane.height
+          // blockIncrement affects the page down speed, when clicking above/under the scroll thumb
+          scrollPane.verticalScrollBar.blockIncrement = scrollPane.height
+        }
       }
-    })
+    )
     return scrollPane
   }
 
@@ -219,13 +225,13 @@ class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
     balloon?.hide()
     val restoreTo = restoreFocusTo
     if (restoreTo is JTable) {
-      // If this is a table editor, the original editor is gone as soon as the focus is lost to the balloon.
+      // If this is a table editor, the original editor is gone as soon as the focus is lost to the
+      // balloon.
       // Ideally we want focus to go back to the editor where the balloon was invoked from.
       // Recreate the editor and request focus on the newly created editor here.
       restoreTo.editCellAt(restoreTo.selectedRow, restoreTo.selectedColumn)
       restoreTo.editorComponent?.requestFocus()
-    }
-    else {
+    } else {
       restoreTo.requestFocus()
     }
   }
@@ -248,10 +254,11 @@ class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
 /**
  * A [DefaultFocusTraversalPolicy] which accept the [searchField] as a possible component.
  *
- * The [searchField] has a NullComponentPeer which disables focus transferal
- * in the [DefaultFocusTraversalPolicy].
+ * The [searchField] has a NullComponentPeer which disables focus transferal in the
+ * [DefaultFocusTraversalPolicy].
  */
-class CustomFocusTraversalPolicy(private val searchField: JComponent): DefaultFocusTraversalPolicy() {
+class CustomFocusTraversalPolicy(private val searchField: JComponent) :
+  DefaultFocusTraversalPolicy() {
   override fun accept(component: Component): Boolean {
     return searchField == component || super.accept(component)
   }

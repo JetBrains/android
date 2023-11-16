@@ -437,6 +437,13 @@ interface FeatureTracker {
   fun trackCollapseTrackGroup(title: String)
 
   /**
+   * Track when a track group is mouse-overed.
+   *
+   * @param title track group title, e.g. Display.
+   */
+  fun trackMouseOverTrackGroup(title: String)
+
+  /**
    * Track when a box selection is performed.
    *
    * @param durationUs box selection duration in microseconds.
@@ -468,6 +475,11 @@ interface FeatureTracker {
    * Tracks the loading of a trace or file
    */
   fun trackLoading(loading: AndroidProfilerEvent.Loading)
+
+  /**
+   * Tracks the number of power rails and battery counters found in captured power profiler data
+   */
+  fun trackPowerProfilerCapture(powerRailCount: Int, batteryCounterCount: Int)
 }
 
 /**

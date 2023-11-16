@@ -18,8 +18,8 @@ package com.android.tools.idea.common.model
 import com.intellij.ui.scale.JBUIScale
 
 /**
- * Represents the distance between two points in android space
- * Corresponds to the [AndroidCoordinate] attribute
+ * Represents the distance between two points in android space Corresponds to the
+ * [AndroidCoordinate] attribute
  */
 @JvmInline
 value class AndroidLength(val value: Float) {
@@ -33,4 +33,5 @@ value class AndroidLength(val value: Float) {
 }
 
 fun scaledAndroidLength(value: Float) = AndroidLength(JBUIScale.scale(value))
+
 operator fun Int.times(rhs: AndroidLength) = rhs * this

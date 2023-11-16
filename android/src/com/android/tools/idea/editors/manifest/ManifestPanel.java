@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getDependencyDisplay
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
+import com.android.SdkConstants;
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
@@ -35,14 +36,13 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
-import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
-import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.rendering.StudioHtmlLinkManager;
+import com.android.tools.rendering.HtmlLinkManager;
 import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.PositionXmlParser;
@@ -1015,7 +1015,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           }
 
           // AAR library in the project build directory?
-          if (path.contains(FilenameConstants.EXPLODED_AAR)) {
+          if (path.contains(SdkConstants.EXPLODED_AAR)) {
             source = findSourceForFileInExplodedAar(file);
           }
         }
@@ -1129,16 +1129,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     ExternalAndroidLibrary androidLibrary = myLibrariesByManifestDir.get(parentFilePath);
     if (androidLibrary == null) return null;
     return getDependencyDisplayName(androidLibrary.getAddress());
-  }
-
-  /**
-   * @see ColorUtil#softer(Color)
-   */
-  @NotNull
-  public static Color harder(@NotNull Color color) {
-    if (color.getBlue() == color.getRed() && color.getRed() == color.getGreen()) return color;
-    final float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
-    return Color.getHSBColor(hsb[0], 1f, hsb[2]);
   }
 
   static class ManifestTreeNode extends DefaultMutableTreeNode {

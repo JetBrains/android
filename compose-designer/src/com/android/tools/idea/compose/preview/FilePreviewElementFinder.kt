@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.concurrency.psiFileChangeFlow
+import com.android.tools.idea.concurrency.disposableCallbackFlow
+import com.intellij.lang.Language
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
@@ -27,11 +29,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.onStart
-import org.jetbrains.kotlin.idea.KotlinFileType
+import kotlinx.coroutines.flow.distinctUntilChanged
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 
 /** Default [FilePreviewElementFinder]. This will be used by default by production code */
 val defaultFilePreviewElementFinder = AnnotationFilePreviewElementFinder
@@ -65,43 +65,72 @@ interface FilePreviewElementFinder {
 }
 
 /**
+ * Flow of events, happening when some data for languages gets changed.
+ *
+ * We are using it here as a workaround to track [KotlinAnnotationsIndex] changes, otherwise we are
+ * failing to collect annotated methods right after a [Project] is created and is in Smart mode but
+ * indexes are not yet prepared.
+ */
+private fun languageModificationFlow(project: Project, languages: Set<Language>) =
+  disposableCallbackFlow<Long>(
+    "${languages.joinToString(", ") { it.displayName }} modification flow",
+  ) {
+    val connection = project.messageBus.connect(this.disposable)
+    val modificationTracker =
+      PsiModificationTracker.getInstance(project).forLanguages { it in languages }
+    connection.subscribe<PsiModificationTracker.Listener>(
+      PsiModificationTracker.TOPIC,
+      object : PsiModificationTracker.Listener {
+        private var lastTimeSeen = modificationTracker.modificationCount
+        init {
+          // After the flow is connected, emit a forced notification to ensure the listener
+          // gets the latest change.
+          trySend(lastTimeSeen)
+        }
+        override fun modificationCountChanged() {
+          val now = modificationTracker.modificationCount
+          if (lastTimeSeen != now) {
+            lastTimeSeen = now
+            trySend(now)
+          }
+        }
+      },
+    )
+  }
+
+/**
  * Creates a new [Flow] containing all the [ComposePreviewElement]s contained in the given
  * [psiFilePointer]. The given [FilePreviewElementFinder] is used to parse the file and obtain the
  * [ComposePreviewElement]s. This flow takes into account any changes in any Kotlin files since
  * Multi-Preview can cause previews to be altered in this file.
  */
 @OptIn(FlowPreview::class)
-suspend fun previewElementFlowForFile(
+fun previewElementFlowForFile(
   psiFilePointer: SmartPsiElementPointer<PsiFile>,
   filePreviewElementProvider: () -> FilePreviewElementFinder = ::defaultFilePreviewElementFinder,
 ): Flow<Set<ComposePreviewElement>> {
-  val kotlinPsiTracker =
-    PsiModificationTracker.getInstance(psiFilePointer.project).forLanguages { lang ->
-      lang.`is`(KotlinLanguage.INSTANCE)
-    }
   return channelFlow {
-    coroutineScope {
-      psiFileChangeFlow(psiFilePointer.project, this@coroutineScope)
-        .onStart {
-          // After the flow is connected, emit a forced notification to ensure the listener
-          // gets the latest change.
-          psiFilePointer.element?.let { emit(it) }
-        }
-        // filter only by Kotlin changes. We care about any Kotlin changes since Multi-preview can
-        // trigger changes from any file.
-        .filter { it.fileType == KotlinFileType.INSTANCE }
-        // do not generate events if there has not been modifications to the file since the last
-        // time
-        .distinctUntilChangedBy { kotlinPsiTracker.modificationCount }
-        // debounce to avoid many equality comparisons of the set
-        .debounce(250)
-        .collectLatest {
-          send(
+      coroutineScope {
+        // We are tracking the language change flow instead of file change flow because
+        // filePreviewElementProvider relies not only on files themselves but also on indexes
+        // [KotlinAnnotationsIndex] in particular. If we only track file changes we lose the time
+        // when the indexes are updated (they are not immediately ready after e.g. a project is
+        // created) and we do not receive the required preview elements.
+        val languageChangeFlow =
+          languageModificationFlow(
+              psiFilePointer.project,
+              setOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE)
+            )
+            // debounce to avoid many equality comparisons of the set
+            .debounce(250)
+        languageChangeFlow.collectLatest {
+          val previews =
             filePreviewElementProvider()
               .findPreviewMethods(psiFilePointer.project, psiFilePointer.virtualFile)
               .toSet()
-          )
+          send(previews)
         }
+      }
     }
-  }
+    .distinctUntilChanged()
 }

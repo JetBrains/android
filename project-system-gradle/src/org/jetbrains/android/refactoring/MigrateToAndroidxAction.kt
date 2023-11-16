@@ -23,11 +23,14 @@ import com.android.support.MigrationParserVisitor
 import com.android.support.parseMigrationFile
 import com.android.tools.idea.AndroidGradleBundle
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -41,11 +44,11 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.actions.BaseRefactoringAction
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.ClassMigrationEntry
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleDependencyMigrationEntry
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.PackageMigrationEntry
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.UpdateGradleDependencyVersionMigrationEntry
-import org.jetbrains.android.util.AndroidUtils
 
 class MigrateToAndroidxAction : BaseRefactoringAction() {
 
@@ -64,7 +67,12 @@ class MigrateToAndroidxAction : BaseRefactoringAction() {
   override fun isAvailableForLanguage(language: Language) = true
 
   private fun hasAndroidFacets(project: Project): Boolean {
-    return IdeInfo.getInstance().isAndroidStudio || AndroidUtils.hasAndroidFacets(project)
+    if (IdeInfo.getInstance().isAndroidStudio) return true
+
+    val facetManager = ProjectFacetManager.getInstance(project)
+    return facetManager.hasFacets(AndroidFacet.ID) ||
+           facetManager.hasFacets(ApkFacet.ID) ||
+           facetManager.hasFacets(GradleFacet.getFacetTypeId())
   }
 }
 

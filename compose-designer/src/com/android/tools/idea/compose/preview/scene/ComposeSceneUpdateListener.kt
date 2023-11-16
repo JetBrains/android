@@ -24,7 +24,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
-import com.android.tools.idea.compose.preview.isInStaticAndNonAnimationMode
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.diagnostic.Logger
@@ -43,7 +42,7 @@ fun updateAnimationInspectorToolbarIcon(
   previewElement: ComposePreviewElementInstance,
   animationToolingUsageTrackerFactory: () -> AnimationToolingUsageTracker
 ) {
-  if (!previewManager.isInStaticAndNonAnimationMode) return
+  if (!previewManager.isInNormalMode) return
   try {
     val hasAnimationsMethod =
       viewObj::class
@@ -76,9 +75,7 @@ class ComposeSceneUpdateListener : SceneManager.SceneUpdateListener {
   override fun onUpdate(component: NlComponent, designSurface: DesignSurface<*>) {
     val previewManager = component.model.dataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val previewElementInstance =
-      (component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
-        as? ComposePreviewElementInstance)
-        ?: return
+      component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) ?: return
     val viewObj = component.viewInfo?.viewObject ?: return
     updateAnimationInspectorToolbarIcon(viewObj, previewManager, previewElementInstance) {
       AnimationToolingUsageTracker.getInstance(designSurface)

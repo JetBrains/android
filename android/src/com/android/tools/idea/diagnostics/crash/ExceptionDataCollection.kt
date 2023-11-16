@@ -67,6 +67,48 @@ class ExceptionDataCollection {
     private const val LOG_COLLECTION_ENABLED = true
     private val LOGGER_CLASSES = ImmutableList.of(
       Logger::class.java.name, IdeaLogger::class.java.name)
+
+    private fun removeLoggerErrorFrames(stackTraceElements: Array<StackTraceElement>): Array<StackTraceElement> {
+      // Detect if the exception is from Logger.error. If so, change the type to LoggerErrorMessage
+      // and remove the logger frames.
+      var firstNonLoggerFrame = 0
+      while (firstNonLoggerFrame < stackTraceElements.size &&
+             stackTraceElements[firstNonLoggerFrame].methodName == "error" &&
+             LOGGER_CLASSES.contains(stackTraceElements[firstNonLoggerFrame].className)) {
+        firstNonLoggerFrame++
+      }
+      return stackTraceElements.sliceArray(firstNonLoggerFrame until stackTraceElements.size)
+    }
+
+    private val regex = Regex("""(.*)\$[0-9]+""")
+    fun calculateSignature(t: Throwable): String {
+      val digest = MessageDigest.getInstance("SHA-1")
+      val originalStackTrace = t.stackTrace
+      if (t.stackTrace.isEmpty()) {
+        return "MissingCrashedThreadStack"
+      }
+      val stackTrace = removeLoggerErrorFrames(t.stackTrace)
+      val isLoggerError = originalStackTrace.size != stackTrace.size
+      val sb = StringBuilder()
+      stackTrace.slice(1 until min(6, stackTrace.size)).joinTo(sb, "") {
+        var methodName = it.methodName
+        val matchResult = regex.matchEntire(methodName)
+
+        if (matchResult != null)
+          methodName = matchResult.groupValues[1]
+
+        return@joinTo if (methodName != "")
+          "${it.className}.$methodName"
+        else
+          ""
+      }
+      val className = if (isLoggerError) LOGGER_ERROR_MESSAGE_EXCEPTION else t.javaClass.name
+      val signaturePrefix = "$className at ${stackTrace[0].className}.${stackTrace[0].methodName}"
+      sb.append(signaturePrefix)
+      val hashBytes = digest.digest(sb.toString().toByteArray(Charset.forName("UTF-8")))
+      val hash = hashBytes.joinToString("") { it.toInt().and(0xff).toString(16).padStart(2, '0') }.substring(0, 8)
+      return "$signaturePrefix-$hash"
+    }
   }
 
   private var configs: Map<String, ExceptionConfiguration>
@@ -299,49 +341,6 @@ class ExceptionDataCollection {
       }
       return@filterValues atLeastOneFilter && match
     }
-  }
-
-  private val regex = Regex("""(.*)\$[0-9]+""")
-
-  fun calculateSignature(t: Throwable): String {
-    val digest = MessageDigest.getInstance("SHA-1")
-    val originalStackTrace = t.stackTrace
-    if (t.stackTrace.isEmpty()) {
-      return "MissingCrashedThreadStack"
-    }
-    val stackTrace = removeLoggerErrorFrames(t.stackTrace)
-    val isLoggerError = originalStackTrace.size != stackTrace.size
-    val sb = StringBuilder()
-    stackTrace.slice(1 until min(6, stackTrace.size)).joinTo(sb, "") {
-      var methodName = it.methodName
-      val matchResult = regex.matchEntire(methodName)
-
-      if (matchResult != null)
-        methodName = matchResult.groupValues[1]
-
-      return@joinTo if (methodName != "")
-        "${it.className}.$methodName"
-      else
-        ""
-    }
-    val className = if (isLoggerError) LOGGER_ERROR_MESSAGE_EXCEPTION else t.javaClass.name
-    val signaturePrefix = "$className at ${stackTrace[0].className}.${stackTrace[0].methodName}"
-    sb.append(signaturePrefix)
-    val hashBytes = digest.digest(sb.toString().toByteArray(Charset.forName("UTF-8")))
-    val hash = hashBytes.joinToString("") { it.toInt().and(0xff).toString(16).padStart(2, '0') }.substring(0, 8)
-    return "$signaturePrefix-$hash"
-  }
-
-  private fun removeLoggerErrorFrames(stackTraceElements: Array<StackTraceElement>): Array<StackTraceElement> {
-    // Detect if the exception is from Logger.error. If so, change the type to LoggerErrorMessage
-    // and remove the logger frames.
-    var firstNonLoggerFrame = 0
-    while (firstNonLoggerFrame < stackTraceElements.size &&
-           stackTraceElements[firstNonLoggerFrame].methodName == "error" &&
-           LOGGER_CLASSES.contains(stackTraceElements[firstNonLoggerFrame].className)) {
-      firstNonLoggerFrame++
-    }
-    return stackTraceElements.sliceArray(firstNonLoggerFrame until stackTraceElements.size)
   }
 
   /**

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.PROJECT_SYSTEM
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_CTA_OLD_AGP_DISMISSED
@@ -39,8 +39,8 @@ private val LOG = Logger.getInstance(LOG_CATEGORY)
 
 sealed class ProjectUpgradeNotification(title: String, content: String, type: NotificationType)
   : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId, title, content, type) {
-  private var callToActionDismissed = false
-  private var studioEventSent = false
+  var callToActionDismissed = false
+  var studioEventSent = false
   abstract val project: Project
   abstract val currentAgpVersion: AgpVersion
 

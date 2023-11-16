@@ -27,6 +27,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.diagnostic.PerformanceWatcher;
 import com.intellij.openapi.util.text.StringUtil;
+import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.util.function.Predicate;
 import javax.swing.JButton;

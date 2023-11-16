@@ -60,10 +60,13 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.kotlin.analysis.providers.createDeclarationProvider
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.idea.base.facet.platform.platform
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.base.projectStructure.productionSourceInfo
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
+import org.jetbrains.kotlin.name.FqName
 import java.io.File
 
 /**
@@ -141,12 +144,18 @@ fun StringParameter.validateStringType(
       }
     KOTLIN_FUNCTION -> {
       project ?: return false
-      module ?: return false
-      val moduleInfo = module.productionSourceInfo!!
-      val platform = module.platform
-      val facade = KotlinCacheService.getInstance(project).getResolutionFacadeByModuleInfo(moduleInfo, platform)!!
-      val helper = KotlinIndicesHelper(facade, searchScope, { true })
-      helper.getTopLevelCallablesByName(value).isNotEmpty()
+      if (isK2Plugin()) {
+        val packageFqName = if (packageName != null) FqName(packageName) else FqName.ROOT
+        val topLevelCallableNames = project.createDeclarationProvider(searchScope, null).getTopLevelCallableNamesInPackage(packageFqName)
+        topLevelCallableNames.any { it.identifierOrNullIfSpecial == value }
+      } else {
+        module ?: return false
+        val moduleInfo = module.productionSourceInfo!!
+        val platform = module.platform
+        val facade = KotlinCacheService.getInstance(project).getResolutionFacadeByModuleInfo(moduleInfo, platform)!!
+        val helper = KotlinIndicesHelper(facade, searchScope, { true })
+        helper.getTopLevelCallablesByName(value).isNotEmpty()
+      }
     }
     CLASS -> project != null && existsClassFile(project, searchScope, provider, fqName)
       PACKAGE, APP_PACKAGE -> project != null && existsPackage(project, provider, value)

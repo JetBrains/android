@@ -26,7 +26,7 @@ const val NETWORK_INSPECTOR_RULES = "NetworkInspectorRules"
 @Service(Service.Level.PROJECT)
 @State(name = NETWORK_INSPECTOR_RULES, storages = [Storage(StoragePathMacros.WORKSPACE_FILE)])
 class RulesPersistentStateComponent : PersistentStateComponent<RuleDataState> {
-  var myRuleDataState: RuleDataState = RuleDataState()
+  private var myRuleDataState: RuleDataState = RuleDataState()
 
   override fun getState(): RuleDataState = myRuleDataState
 

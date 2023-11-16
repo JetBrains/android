@@ -29,16 +29,13 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
-import org.jetbrains.kotlin.idea.gradleTooling.get
 
-/**
- * Helper class to handle the process of visual lint in [VisualizationForm].
- */
+/** Helper class to handle the process of visual lint in [VisualizationForm]. */
 class VisualizationFormVisualLintHandler(
   parentDisposable: Disposable,
   private val project: Project,
-  private val issueModel: IssueModel) {
+  private val issueModel: IssueModel
+) {
 
   private val myBaseConfigIssues = VisualLintBaseConfigIssues()
   val lintIssueProvider = VisualLintIssueProvider(parentDisposable)
@@ -59,31 +56,32 @@ class VisualizationFormVisualLintHandler(
   }
 
   fun setupForLayoutlibSceneManager(manager: LayoutlibSceneManager, isCancelled: () -> Boolean) {
-    val renderListener: RenderListener = object : RenderListener {
-      override fun onRenderCompleted() {
-        if (isCancelled() || manager.model.isDisposed) return
-        val model = manager.model
-        val result = manager.renderResult
-        if (result != null) {
-          ApplicationManager.getApplication().executeOnPooledThread {
-            VisualLintService.getInstance(project).analyzeAfterModelUpdate(
-              lintIssueProvider, result, model, myBaseConfigIssues)
-            if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
-              CommonLintUserDataHandler.updateVisualLintIssues(model.file, lintIssueProvider)
-              issueModel.updateErrorsList()
+    val renderListener: RenderListener =
+      object : RenderListener {
+        override fun onRenderCompleted() {
+          if (isCancelled() || manager.model.isDisposed) return
+          val model = manager.model
+          val result = manager.renderResult
+          if (result != null) {
+            ApplicationManager.getApplication().executeOnPooledThread {
+              VisualLintService.getInstance(project)
+                .analyzeAfterModelUpdate(lintIssueProvider, result, model, myBaseConfigIssues)
+              if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
+                CommonLintUserDataHandler.updateVisualLintIssues(model.file, lintIssueProvider)
+                issueModel.updateErrorsList()
+              }
             }
           }
+
+          // Remove self. This will not cause ConcurrentModificationException.
+          // Callback iteration creates copy of a list. (see {@link ListenerCollection.kt#foreach})
+          manager.removeRenderListener(this)
         }
 
-        // Remove self. This will not cause ConcurrentModificationException.
-        // Callback iteration creates copy of a list. (see {@link ListenerCollection.kt#foreach})
-        manager.removeRenderListener(this)
+        override fun onRenderFailed(e: Throwable) {
+          manager.removeRenderListener(this)
+        }
       }
-
-      override fun onRenderFailed(e: Throwable) {
-        manager.removeRenderListener(this)
-      }
-    }
     manager.addRenderListener(renderListener)
   }
 
@@ -101,6 +99,7 @@ class VisualizationFormVisualLintHandler(
     issueModel.updateErrorsList()
 
     // Trigger Layout Editor Visual Lint
-    (FileEditorManager.getInstance(project).selectedEditor?.getDesignSurface() as? NlDesignSurface)?.updateErrorDisplay()
+    (FileEditorManager.getInstance(project).selectedEditor?.getDesignSurface() as? NlDesignSurface)
+      ?.updateErrorDisplay()
   }
 }

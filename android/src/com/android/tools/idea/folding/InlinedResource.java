@@ -25,7 +25,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.intellij.lang.folding.FoldingDescriptor;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -106,6 +106,9 @@ class InlinedResource {
         if (text != null) {
           if (myElement instanceof PsiMethodCallExpression) {
             text = insertArguments((PsiMethodCallExpression)myElement, text);
+          }
+          if (myResourceReference.getResourceType() == ResourceType.BOOL) {
+            return text;
           }
           if (myResourceReference.getResourceType() == ResourceType.PLURALS && text.startsWith(STRING_PREFIX)) {
             String name = text.substring(STRING_PREFIX.length());

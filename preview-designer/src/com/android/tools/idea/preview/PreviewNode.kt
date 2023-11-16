@@ -18,12 +18,12 @@ package com.android.tools.idea.preview
 /**
  * Marker interface for all types of Nodes in the MultiPreview graph.
  *
- * Every class or interface that should be included in the MultiPreview graph traversal
- * needs to implement this interface.
+ * Every class or interface that should be included in the MultiPreview graph traversal needs to
+ * implement this interface.
  *
- * For example, PreviewElement implements this interface as one of the main responsibilities
- * of [getPreviewNodes] is to create a PreviewElement for each Preview annotation. But at the
- * same time, [getPreviewNodes] can also return other type of PreviewNodes, for other purposes,
- * like collecting data for metrics.
+ * For example, PreviewElement implements this interface as one of the main responsibilities of
+ * [getPreviewNodes] is to create a PreviewElement for each Preview annotation. But at the same
+ * time, [getPreviewNodes] can also return other type of PreviewNodes, for other purposes, like
+ * collecting data for metrics.
  */
 interface PreviewNode

@@ -20,8 +20,10 @@ import com.intellij.util.text.nullize
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-open class StringAttributeDelegate(private val namespace: String?, private val propertyName: String)
-  : ReadWriteProperty<NlComponent, String?> {
+open class StringAttributeDelegate(
+  private val namespace: String?,
+  private val propertyName: String
+) : ReadWriteProperty<NlComponent, String?> {
   override operator fun getValue(thisRef: NlComponent, property: KProperty<*>): String? {
     return thisRef.resolveAttribute(namespace, propertyName)
   }
@@ -31,4 +33,5 @@ open class StringAttributeDelegate(private val namespace: String?, private val p
   }
 }
 
-class StringAutoAttributeDelegate(propertyName: String) : StringAttributeDelegate(SdkConstants.AUTO_URI, propertyName)
+class StringAutoAttributeDelegate(propertyName: String) :
+  StringAttributeDelegate(SdkConstants.AUTO_URI, propertyName)

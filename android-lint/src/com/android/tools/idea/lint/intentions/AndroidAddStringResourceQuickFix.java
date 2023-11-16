@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.lint.intentions;
 
-import static com.google.common.base.CharMatcher.inRange;
-
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.editor.Editor;

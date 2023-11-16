@@ -19,7 +19,6 @@ import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.Permission
-import icons.StudioIcons
 import javax.swing.JButton
 
 /**
@@ -59,22 +58,18 @@ fun ToggleButton(
     activeIssue = state.issue
     when (state.issue.state) {
       IssueState.OPEN -> {
-        button.icon = StudioIcons.Common.SUCCESS
-        button.text = "Close"
+        button.text = "Close issue"
         button.isEnabled = state.shouldBeEnabled()
       }
       IssueState.OPENING -> {
-        button.icon = null
         button.text = "Opening..."
         button.isEnabled = false
       }
       IssueState.CLOSED -> {
-        button.icon = null
         button.text = "Undo close"
         button.isEnabled = state.shouldBeEnabled()
       }
       IssueState.CLOSING -> {
-        button.icon = null
         button.text = "Closing..."
         button.isEnabled = false
       }

@@ -17,7 +17,6 @@ package com.android.build.attribution.ui.data.builder
 
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.ui.data.TimeWithPercentage
-import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

@@ -27,7 +27,7 @@ import org.junit.Test;
 
 public final class IconPropertyTest {
   @Test
-  public void iconPropertyCanWrapLabel() throws Exception {
+  public void iconPropertyCanWrapLabel() {
     JLabel label = new JLabel();
     Icon placeholderIcon = new FakeIcon();
 
@@ -49,7 +49,7 @@ public final class IconPropertyTest {
   }
 
   @Test
-  public void iconPropertyCanWrapButton() throws Exception {
+  public void iconPropertyCanWrapButton() {
     JButton button = new JButton();
     Icon placeholderIcon = new FakeIcon();
 

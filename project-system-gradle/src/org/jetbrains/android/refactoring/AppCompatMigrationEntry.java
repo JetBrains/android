@@ -15,8 +15,11 @@
  */
 package org.jetbrains.android.refactoring;
 
+import static org.apache.commons.lang3.ObjectUtils.max;
+
 import com.android.annotations.NonNull;
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.gradle.Component;
+import com.android.ide.common.gradle.Version;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
@@ -350,25 +353,15 @@ public class AppCompatMigrationEntry {
     public abstract Pair<String, String> compactKey();
 
     /**
-     * Returns the gradle coordinates compact notation but allows replacing the pre-defined version for this artifact with a different one.
-     * The given withVersion will only be used if it's higher than this entry base version
+     * Returns the gradle Component for this entry allowing the pre-defined version for this artifact to be replaced with a different one.
+     * The given withVersion will only be used if it's higher than this entry base version.
      */
     @NotNull
-    public String toCompactNotation(@NotNull String withVersion) {
+    public Component toComponent(@NotNull String withVersion) {
       String newVersionString = getNewBaseVersion();
-      GradleCoordinate newVersion = GradleCoordinate.parseVersionOnly(withVersion);
-      GradleCoordinate baseVersion = GradleCoordinate.parseVersionOnly(newVersionString);
-
-      String useVersion;
-      if (GradleCoordinate.COMPARE_PLUS_HIGHER.compare(newVersion, baseVersion) < 0) {
-        // The given version is lower than the base version, use the baseVersion
-        useVersion = newVersionString;
-      }
-      else {
-        useVersion = withVersion;
-      }
-
-      return new GradleCoordinate(getNewGroupName(), getNewArtifactName(), useVersion).toString();
+      Version newVersion = Version.Companion.parse(withVersion);
+      Version baseVersion = Version.Companion.parse(newVersionString);
+      return new Component(getNewGroupName(), getNewArtifactName(), max(newVersion, baseVersion));
     }
 
     @NotNull

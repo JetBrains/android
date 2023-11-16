@@ -16,10 +16,9 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.PreviewGroup
-import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -28,7 +27,8 @@ import com.intellij.openapi.actionSystem.ToggleAction
 /** [DropDownAction] that allows the user filtering the visible previews by group. */
 internal class GroupSwitchAction :
   DropDownAction(null, message("action.group.switch.title"), null) {
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+  // Actions calling findComposePreviewManagersForContext in the update method, must run in BGT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   /** [ToggleAction] that sets the given [group] as filter. */
   inner class SetGroupAction(private val group: PreviewGroup, private val isSelected: Boolean) :
@@ -51,7 +51,7 @@ internal class GroupSwitchAction :
 
     val presentation = e.presentation
     val previewManagers = findComposePreviewManagersForContext(e.dataContext)
-    val availableGroups = previewManagers.flatMap { it.availableGroups }.toSet()
+    val availableGroups = previewManagers.flatMap { it.availableGroupsFlow.value }.toSet()
     presentation.isVisible =
       availableGroups.isNotEmpty() && previewManagers.none { it.isFilterEnabled }
 
@@ -65,16 +65,16 @@ internal class GroupSwitchAction :
   override fun updateActions(context: DataContext): Boolean {
     removeAll()
     val previewManagers = findComposePreviewManagersForContext(context)
-    val availableGroups = previewManagers.flatMap { it.availableGroups }.toSet()
+    val availableGroups = previewManagers.flatMap { it.availableGroupsFlow.value }.toSet()
     if (availableGroups.isEmpty()) return true
 
-    val selectedGroup = previewManagers.map { it.groupFilter }.firstOrNull() ?: ALL_PREVIEW_GROUP
+    val selectedGroup = previewManagers.map { it.groupFilter }.firstOrNull() ?: PreviewGroup.All
     addGroups(availableGroups, selectedGroup)
     return true
   }
 
   private fun addGroups(groups: Set<PreviewGroup>, selected: PreviewGroup) {
-    add(SetGroupAction(ALL_PREVIEW_GROUP, selected == ALL_PREVIEW_GROUP))
+    add(SetGroupAction(PreviewGroup.All, selected == PreviewGroup.All))
     addSeparator()
     groups.sortedBy { it.displayName }.forEach { add(SetGroupAction(it, it == selected)) }
   }

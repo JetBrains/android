@@ -26,11 +26,11 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import java.io.FileNotFoundException
 import java.io.IOException
 import kotlin.coroutines.coroutineContext
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Job
 
 /** Class responsible for downloading and deleting file database data */
 interface FileDatabaseManager {

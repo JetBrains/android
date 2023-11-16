@@ -27,29 +27,45 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
 
   override fun setUp() {
     super.setUp()
-    val project = project
-    project.replaceService(FileEditorManager::class.java, FileEditorManagerImpl(project, project.coroutineScope), testRootDisposable)
+    project.replaceService(
+      FileEditorManager::class.java,
+      FileEditorManagerImpl(project, project.coroutineScope),
+      testRootDisposable
+    )
   }
 
   fun testNavigationWithinFile() {
-    myFixture.configureByText("${getTestName(false)}.java", """
+    myFixture.configureByText(
+      "${getTestName(false)}.java",
+      """
       class AA {}
 
-      class BV extends A<caret>A {}""".trimIndent())
+      class BV extends A<caret>A {}"""
+        .trimIndent()
+    )
     EditorTestUtil.executeAction(editor, IdeActions.ACTION_GOTO_DECLARATION)
-    myFixture.checkResult("""
+    myFixture.checkResult(
+      """
       class <caret>AA {}
 
-      class BV extends AA {}""".trimIndent())
+      class BV extends AA {}"""
+        .trimIndent()
+    )
     EditorTestUtil.executeAction(editor, IdeActions.ACTION_GOTO_BACK)
-    myFixture.checkResult("""
+    myFixture.checkResult(
+      """
       class AA {}
 
-      class BV extends A<caret>A {}""".trimIndent())
+      class BV extends A<caret>A {}"""
+        .trimIndent()
+    )
     EditorTestUtil.executeAction(editor, IdeActions.ACTION_GOTO_FORWARD)
-    myFixture.checkResult("""
+    myFixture.checkResult(
+      """
       class <caret>AA {}
 
-      class BV extends AA {}""".trimIndent())
+      class BV extends AA {}"""
+        .trimIndent()
+    )
   }
 }

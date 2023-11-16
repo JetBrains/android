@@ -24,7 +24,6 @@ fun baselineProfileGeneratorJava(
 ): String {
   return """package $packageName;
 
-import androidx.benchmark.macro.ExperimentalBaselineProfilesApi;
 import androidx.benchmark.macro.junit4.BaselineProfileRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
@@ -52,7 +51,6 @@ import org.junit.runner.RunWith;
  * <p>
  * After you run the generator, you can verify the improvements running the {@link StartupBenchmarks} benchmark.
  **/
-@ExperimentalBaselineProfilesApi
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class $className {
@@ -61,7 +59,7 @@ public class $className {
 
     @Test
     public void generate() {
-        baselineProfileRule.collectBaselineProfile("$targetPackageName", scope -> {
+        baselineProfileRule.collect("$targetPackageName", scope -> {
             // This block defines the app's critical user journey. Here we are interested in
             // optimizing for app startup. But you can also navigate and scroll
             // through your most important UI.

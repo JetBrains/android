@@ -16,7 +16,7 @@
 
 package com.android.tools.compose
 
-import androidx.compose.compiler.plugins.kotlin.isComposableInvocation
+import androidx.compose.compiler.plugins.kotlin.k1.isComposableInvocation
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey

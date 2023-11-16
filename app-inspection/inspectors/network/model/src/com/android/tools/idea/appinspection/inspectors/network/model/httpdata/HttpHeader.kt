@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
-import java.util.TreeMap
 import org.jetbrains.annotations.VisibleForTesting
+import java.util.TreeMap
 
 private const val FIELD_CONTENT_TYPE = "content-type"
 const val FIELD_CONTENT_LENGTH = "content-length"

@@ -16,13 +16,14 @@
 package com.android.tools.idea.common.lint
 
 import com.android.tools.idea.common.editor.DesignerEditorPanel
-import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.codeHighlighting.HighlightingPass
 import com.intellij.openapi.progress.ProgressIndicator
 import java.lang.ref.WeakReference
 
-class DesignerEditorBackgroundHighlightingPass(editor: DesignerEditorPanel,
-                                               private val annotator: ModelLintIssueAnnotator) : HighlightingPass {
+class DesignerEditorBackgroundHighlightingPass(
+  editor: DesignerEditorPanel,
+  private val annotator: ModelLintIssueAnnotator
+) : HighlightingPass {
 
   private val surfaceRef = WeakReference(editor.surface)
 

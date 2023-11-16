@@ -1,0 +1,6 @@
+dependencies {
+  api project(path: ':module1', configuration: 'api')
+  implementation "androidx.constraintlayout:constraintlayout:1.1.3"
+  testImplementation project(path: ':module2', configuration: 'implementation')
+  androidTestApi project(path: ':module3', configuration: 'api')
+}

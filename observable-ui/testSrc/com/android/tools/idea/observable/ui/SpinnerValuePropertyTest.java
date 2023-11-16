@@ -24,7 +24,7 @@ import org.junit.Test;
 public class SpinnerValuePropertyTest {
 
   @Test
-  public void testSliderValueProperty() throws Exception {
+  public void testSliderValueProperty() {
     JBIntSpinner spinner = new JBIntSpinner(111, Integer.MIN_VALUE, Integer.MAX_VALUE);
     SpinnerValueProperty spinnerValue = new SpinnerValueProperty(spinner);
     CountListener listener = new CountListener();

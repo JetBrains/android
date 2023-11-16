@@ -36,9 +36,7 @@ import javax.swing.ListSelectionModel
 import javax.swing.TransferHandler
 import javax.swing.table.AbstractTableModel
 
-/**
- * Panel showing the list of references for ConstraintHelpers
- */
+/** Panel showing the list of references for ConstraintHelpers */
 class ReferencesIdsPanel : JPanel(BorderLayout()) {
   private var table: PFormTable // supports keyboard navigation
   private lateinit var referencesIds: NlPropertyItem
@@ -60,16 +58,14 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
   override fun updateUI() {
     super.updateUI()
     if (table != null) {
-      val reorderIcon =  StudioIcons.Common.REORDER
+      val reorderIcon = StudioIcons.Common.REORDER
       var padding = JBUI.scale(4) * 2
       var size = reorderIcon.iconWidth + padding
       table.columnModel.getColumn(0).maxWidth = size
     }
   }
 
-  /**
-   * JTable data model for the panel
-   */
+  /** JTable data model for the panel */
   class DataModel(var panel: ReferencesIdsPanel) : AbstractTableModel() {
     private val references = ArrayList<String>()
 
@@ -92,9 +88,7 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
       return if (columnIndex == 0) Icon::class.java else Any::class.java
     }
 
-    /**
-     * Reorder elements
-     */
+    /** Reorder elements */
     fun moveRow(sourceRowIndex: Int, targetRowIndex: Int) {
       val element = references[sourceRowIndex]
       references.add(targetRowIndex, element)
@@ -107,9 +101,7 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
       panel.updateReferences(modifiedReferences(references))
     }
 
-    /**
-     * Rebuild the constraint_referenced_ids string from the current data model
-     */
+    /** Rebuild the constraint_referenced_ids string from the current data model */
     private fun modifiedReferences(references: ArrayList<String>): String {
       val builder = StringBuilder()
       for (i in 0 until references.size) {
@@ -122,8 +114,8 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
     }
 
     /**
-     * Update the model from a given constraint_referenced_ids string
-     * containing views' ids comma-separated.
+     * Update the model from a given constraint_referenced_ids string containing views' ids
+     * comma-separated.
      */
     fun updateModel(referencesString: String?) {
       references.clear()
@@ -158,9 +150,7 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
     }
   }
 
-  /**
-   * DnD transferable (allowing items reordering)
-   */
+  /** DnD transferable (allowing items reordering) */
   class ReferenceIdTransferable(reference: String, row: Int) : Transferable {
     val reference = Pair(reference, row)
 
@@ -184,9 +174,7 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
     }
   }
 
-  /**
-   * DnD handling for rows reordering
-   */
+  /** DnD handling for rows reordering */
   class ReferencesTransferHandler(private val table: JTable) : TransferHandler() {
 
     override fun createTransferable(c: JComponent): Transferable {
@@ -195,9 +183,10 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
     }
 
     override fun canImport(info: TransferSupport): Boolean {
-      val valid = info.component === table
-                  && info.isDrop
-                  && info.isDataFlavorSupported(ReferenceIdTransferable.REFERENCE_ID_FLAVOR)
+      val valid =
+        info.component === table &&
+          info.isDrop &&
+          info.isDataFlavorSupported(ReferenceIdTransferable.REFERENCE_ID_FLAVOR)
       table.cursor = if (valid) DragSource.DefaultMoveDrop else DragSource.DefaultMoveNoDrop
       return valid
     }
@@ -219,7 +208,9 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
         targetRowIndex = max
       }
 
-      val payload = (info.transferable.getTransferData(ReferenceIdTransferable.REFERENCE_ID_FLAVOR) as Pair<*, *>)
+      val payload =
+        (info.transferable.getTransferData(ReferenceIdTransferable.REFERENCE_ID_FLAVOR)
+          as Pair<*, *>)
       val sourceRowIndex = payload.second as Int
       if (sourceRowIndex != -1 && sourceRowIndex != targetRowIndex) {
         (table.model as DataModel).moveRow(sourceRowIndex, targetRowIndex)
@@ -248,7 +239,7 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
     dataModel.updateModel(referencesIds.value)
   }
 
-  fun updateReferences(references : String) {
+  fun updateReferences(references: String) {
     referencesIds.value = references
   }
 
@@ -256,7 +247,7 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
     return dataModel
   }
 
-  fun getSelectedRowIndex() : Int {
+  fun getSelectedRowIndex(): Int {
     return table.selectedRow
   }
 
@@ -267,9 +258,9 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
       val component = referencesIds.components[0]
       val helperId = component.id
       val candidates = component.parent?.children
-      candidates?.forEach { it.id?.let { id ->
-        if (id != helperId && !currentIds.contains(id)) ids.add(id)
-      }}
+      candidates?.forEach {
+        it.id?.let { id -> if (id != helperId && !currentIds.contains(id)) ids.add(id) }
+      }
     }
     return ids
   }
@@ -290,6 +281,5 @@ class ReferencesIdsPanel : JPanel(BorderLayout()) {
       f.setBounds(100, 100, 280, 400)
       f.isVisible = true
     }
-
   }
 }

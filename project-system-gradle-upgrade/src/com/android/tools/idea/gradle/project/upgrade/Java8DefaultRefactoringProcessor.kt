@@ -215,7 +215,7 @@ class KotlinLanguageLevelUsageInfo(
     }
   }
 
-  private val gradleFile = model.gradleFile
+  val gradleFile = model.gradleFile
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     when {

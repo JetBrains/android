@@ -20,7 +20,7 @@ import com.intellij.util.concurrency.Invoker
 import com.intellij.util.concurrency.InvokerSupplier
 
 interface DesignerCommonIssuePanelModelProvider {
-  val model: DesignerCommonIssueModel
+  fun createModel(): DesignerCommonIssueModel
 
   companion object {
     fun getInstance(project: Project): DesignerCommonIssuePanelModelProvider {
@@ -30,13 +30,12 @@ interface DesignerCommonIssuePanelModelProvider {
 }
 
 class AsyncDesignerCommonIssuePanelModelProvider : DesignerCommonIssuePanelModelProvider {
-  private val _model: DesignerCommonIssueModel = AsyncableDesignerCommonIssueModel()
-  override val model: DesignerCommonIssueModel
-    get() = _model
+  override fun createModel() = AsyncableDesignerCommonIssueModel()
 }
 
 /**
- * Implement the [InvokerSupplier] so [com.intellij.ui.tree.AsyncTreeModel] can use [getInvoker] to have different background thread.
+ * Implement the [InvokerSupplier] so [com.intellij.ui.tree.AsyncTreeModel] can use [getInvoker] to
+ * have different background thread.
  */
 class AsyncableDesignerCommonIssueModel : DesignerCommonIssueModel(), InvokerSupplier {
   private val invoker = Invoker.forBackgroundThreadWithReadAction(this)

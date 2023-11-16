@@ -1404,6 +1404,37 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testReadInitWithDotted() throws IOException {
+    writeToBuildFile(TestFile.OVERRIDE_WITH_INIT_WITH_DOTTED);
+
+    List<BuildTypeModel> buildTypeModels = getGradleBuildModel().android().buildTypes();
+    assertThat(buildTypeModels.size(), equalTo(4)); // 2 default + 2 custom
+
+    BuildTypeModel fooBuildType = buildTypeModels.get(2);
+    BuildTypeModel barBuildType = buildTypeModels.get(3);
+
+    assertThat(fooBuildType.name(), equalTo("foo"));
+    assertThat(barBuildType.name(), equalTo("bar"));
+
+    verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), fooBuildType.buildConfigFields());
+    assertThat(fooBuildType.minifyEnabled().toBoolean(), equalTo(true));
+    assertThat(fooBuildType.debuggable().toBoolean(), equalTo(true));
+
+    // Check if initWith is applied
+    assertThat(barBuildType, instanceOf(BuildTypeModelImpl.class)); // We need to cast it, because initWith() is not part of the interface
+    assertThat(((BuildTypeModelImpl)barBuildType).initWith().getRawValue(REFERENCE_TO_TYPE), equalTo(new ReferenceTo(fooBuildType)));
+
+    verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), barBuildType.buildConfigFields());
+    assertThat(barBuildType.minifyEnabled().toBoolean(), equalTo(true));
+    // Check if debuggable was overwritten back to false
+    assertThat(barBuildType.debuggable().toBoolean(), equalTo(false));
+
+    // Check that target buildType is not affected
+    assertThat(fooBuildType.applicationIdSuffix().valueAsString(), equalTo(".foo"));
+    assertThat(barBuildType.applicationIdSuffix().valueAsString(), equalTo(".bar"));
+  }
+
+  @Test
   public void testReadSigningConfig() throws Exception {
     writeToBuildFile(TestFile.READ_SIGNING_CONFIG);
 
@@ -1691,6 +1722,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     REMOVE_AND_APPLY_MAP_ELEMENTS("removeAndApplyMapElements"),
     REMOVE_AND_APPLY_MAP_ELEMENTS_EXPECTED("removeAndApplyMapElementsExpected"),
     OVERRIDE_WITH_INIT_WITH("overrideWithInitWith"),
+    OVERRIDE_WITH_INIT_WITH_DOTTED("overrideWithInitWithDotted"),
     READ_SIGNING_CONFIG("readSigningConfig"),
     SET_SIGNING_CONFIG("setSigningConfig"),
     SET_SIGNING_CONFIG_EXPECTED("setSigningConfigExpected"),

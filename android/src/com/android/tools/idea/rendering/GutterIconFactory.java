@@ -20,7 +20,7 @@ import static com.android.SdkConstants.DOT_XML;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.XmlUtils;
@@ -130,12 +130,14 @@ public class GutterIconFactory {
         Dimension size = new Dimension(maxWidth * RENDERING_SCALING_FACTOR, maxHeight * RENDERING_SCALING_FACTOR);
         try {
           CompletableFuture<BufferedImage> imageFuture = renderer.renderDrawable(xml, size);
-          // TODO(http://b/143455172): Remove the timeout by removing usages of this method on the UI thread. For now we just ensure
-          //  we do not block indefinitely on the UI thread. We also do not use the timeout in unit test to avoid non deterministic tests.
-          //  On production, if the request times out, it will cause the icon on the gutter not to show which is an acceptable fallback
-          //  until this is correctly fixed.
+          // TODO(http://b/143455172, http://b/295049594): We add a timeout to ensure this will not cause a deadlock. This is used
+          //  for rendering icons for the gutter or for the autocompletion, both cases having sometimes resulted in the UI thread
+          //  being stuck. This timeout should be removed once a proper fix has been implemented.
+          //  We do not use the timeout in unit test to avoid non deterministic tests.
+          //  On production, if the request times out, it will cause the icon on the gutter or the autocomplete popup not to show
+          //  which is an acceptable fallback until this is correctly fixed.
           //  250ms should be enough time for inflating and rendering and is used a upper boundary.
-          image = ApplicationManager.getApplication().isDispatchThread() && !ApplicationManager.getApplication().isUnitTestMode() ?
+          image = !ApplicationManager.getApplication().isUnitTestMode() ?
                   imageFuture.get(250, TimeUnit.MILLISECONDS) :
                   imageFuture.get();
         } catch (Throwable e) {
@@ -239,6 +241,16 @@ public class GutterIconFactory {
         }
 
         image = ImageUtil.scaleImage(image, scale);
+        // ImageUtil.scaleImage does not guarantee scaling for HiDPI images: in case scaling factor
+        // is small enough for the resulting image to have 0 width or high, the original (unscaled)
+        // image will be returned!
+        if (image.getWidth(null) > maxWidth || image.getHeight(null) > maxHeight) {
+          image = ImageUtil.toBufferedImage(image, false);
+          // The scale might have changed since the underlying BufferedImage obtained from the HiDPI image
+          // in the previous line might have different size.
+          scale = Math.min(maxWidth / (double)image.getWidth(null), maxHeight / (double)image.getHeight(null));
+          image = ImageUtil.scaleImage(image, scale);
+        }
       } else {
         // If the image is smaller than the max size, simply use it as is instead of scaling down and then up.
         image = bufferedImage;

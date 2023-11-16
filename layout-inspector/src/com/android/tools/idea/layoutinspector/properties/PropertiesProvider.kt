@@ -33,37 +33,43 @@ const val NAMESPACE_INTERNAL = "internal"
 const val ATTR_X = "x"
 const val ATTR_Y = "y"
 
-/**
- * A [PropertiesProvider] provides properties to registered listeners..
- */
+fun interface ResultListener {
+  fun onResult(
+    propertiesProvider: PropertiesProvider,
+    viewNode: ViewNode,
+    propertiesTable: PropertiesTable<InspectorPropertyItem>
+  )
+}
+/** A [PropertiesProvider] provides properties to registered listeners.. */
 interface PropertiesProvider {
 
-  /**
-   * Listeners for [PropertiesProvider] results.
-   */
-  val resultListeners: MutableList<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>
+  /** Add listener for [PropertiesProvider] results. */
+  fun addResultListener(listener: ResultListener)
+
+  /** Remove listener for [PropertiesProvider] results. */
+  fun removeResultListener(listener: ResultListener)
 
   /**
    * Requests properties for the specified [view].
    *
-   * This is potentially an asynchronous request. The associated [InspectorPropertiesModel]
-   * is notified when the table is ready.
+   * This is potentially an asynchronous request. The associated [InspectorPropertiesModel] is
+   * notified when the table is ready.
    */
   fun requestProperties(view: ViewNode): Future<*>
 }
 
 object EmptyPropertiesProvider : PropertiesProvider {
 
-  override val resultListeners = mutableListOf<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>()
+  override fun addResultListener(listener: ResultListener) {}
+
+  override fun removeResultListener(listener: ResultListener) {}
 
   override fun requestProperties(view: ViewNode): Future<*> {
     return Futures.immediateFuture(null)
   }
 }
 
-/**
- * Add a few fabricated internal attributes.
- */
+/** Add a few fabricated internal attributes. */
 fun addInternalProperties(
   table: PropertiesTable<InspectorPropertyItem>,
   view: ViewNode,
@@ -71,25 +77,83 @@ fun addInternalProperties(
   lookup: ViewNodeAndResourceLookup
 ) {
   add(table, ATTR_NAME, PropertyType.STRING, view.qualifiedName, VIEW, view.drawId, lookup)
-  add(table, ATTR_X, PropertyType.DIMENSION, view.layoutBounds.x.toString(), DIMENSION, view.drawId, lookup)
-  add(table, ATTR_Y, PropertyType.DIMENSION, view.layoutBounds.y.toString(), DIMENSION, view.drawId, lookup)
-  add(table, ATTR_WIDTH, PropertyType.DIMENSION, view.layoutBounds.width.toString(), DIMENSION, view.drawId, lookup)
-  add(table, ATTR_HEIGHT, PropertyType.DIMENSION, view.layoutBounds.height.toString(), DIMENSION, view.drawId, lookup)
+  add(
+    table,
+    ATTR_X,
+    PropertyType.DIMENSION,
+    view.layoutBounds.x.toString(),
+    DIMENSION,
+    view.drawId,
+    lookup
+  )
+  add(
+    table,
+    ATTR_Y,
+    PropertyType.DIMENSION,
+    view.layoutBounds.y.toString(),
+    DIMENSION,
+    view.drawId,
+    lookup
+  )
+  add(
+    table,
+    ATTR_WIDTH,
+    PropertyType.DIMENSION,
+    view.layoutBounds.width.toString(),
+    DIMENSION,
+    view.drawId,
+    lookup
+  )
+  add(
+    table,
+    ATTR_HEIGHT,
+    PropertyType.DIMENSION,
+    view.layoutBounds.height.toString(),
+    DIMENSION,
+    view.drawId,
+    lookup
+  )
   attrId?.let { add(table, ATTR_ID, PropertyType.STRING, it, VIEW, view.drawId, lookup) }
 
   (view as? ComposeViewNode)?.addComposeProperties(table, lookup)
 }
 
-private fun ComposeViewNode.addComposeProperties(table: PropertiesTable<InspectorPropertyItem>, lookup: ViewNodeAndResourceLookup) {
+private fun ComposeViewNode.addComposeProperties(
+  table: PropertiesTable<InspectorPropertyItem>,
+  lookup: ViewNodeAndResourceLookup
+) {
   if (!recompositions.isEmpty) {
     // Do not show the "Recomposition" section in the properties panel for nodes without any counts.
     // This includes inlined composables for which we are unable to get recomposition counts for.
-    add(table, "count", PropertyType.INT32, recompositions.count.toString(), RECOMPOSITIONS, drawId, lookup)
-    add(table, "skips", PropertyType.INT32, recompositions.skips.toString(), RECOMPOSITIONS, drawId, lookup)
+    add(
+      table,
+      "count",
+      PropertyType.INT32,
+      recompositions.count.toString(),
+      RECOMPOSITIONS,
+      drawId,
+      lookup
+    )
+    add(
+      table,
+      "skips",
+      PropertyType.INT32,
+      recompositions.skips.toString(),
+      RECOMPOSITIONS,
+      drawId,
+      lookup
+    )
   }
 }
 
-private fun add(table: PropertiesTable<InspectorPropertyItem>, name: String, type: PropertyType, value: String?, section: PropertySection, id: Long,
-                lookup: ViewNodeAndResourceLookup) {
+private fun add(
+  table: PropertiesTable<InspectorPropertyItem>,
+  name: String,
+  type: PropertyType,
+  value: String?,
+  section: PropertySection,
+  id: Long,
+  lookup: ViewNodeAndResourceLookup
+) {
   table.put(InspectorPropertyItem(NAMESPACE_INTERNAL, name, type, value, section, null, id, lookup))
 }

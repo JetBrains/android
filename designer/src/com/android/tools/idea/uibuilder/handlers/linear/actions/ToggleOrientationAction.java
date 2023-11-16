@@ -50,7 +50,7 @@ public class ToggleOrientationAction extends LinearLayoutAction {
     NlWriteCommandActionUtil.run(targetLinearLayouts, "Change LinearLayout orientation", () -> {
       for (NlComponent child : targetLinearLayouts) {
         boolean isVertical = handler.isVertical(child);
-        String value = isVertical ? null : VALUE_VERTICAL; // null: horizontal is the default
+        String value = isVertical ? VALUE_HORIZONTAL : VALUE_VERTICAL;
         child.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value);
       }
     });

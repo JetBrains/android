@@ -17,7 +17,10 @@ package com.android.tools.idea.gradle.project.importing
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.Projects
+import com.android.tools.idea.flags.StudioFlags.GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS
+import com.android.tools.idea.gradle.config.GradleConfigManager
 import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState
 import com.android.tools.idea.gradle.project.sync.SdkSync
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -28,13 +31,14 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.ToolWindows
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.impl.OpenProjectTask
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectTypeService
 import com.intellij.openapi.project.ex.ProjectManagerEx
@@ -50,12 +54,14 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.ExceptionUtil
-import org.jetbrains.annotations.NonNls
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.plugins.gradle.service.project.open.setupGradleSettings
 import org.jetbrains.plugins.gradle.settings.GradleDefaultProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
 import java.io.File
 import java.io.IOException
 import java.nio.file.Path
@@ -66,9 +72,8 @@ import java.nio.file.Path
 class GradleProjectImporter @NonInjectable @VisibleForTesting internal constructor(
   private val mySdkSync: SdkSync,
   private val myTopLevelModuleFactory: TopLevelModuleFactory,
-  private val myProjectFolderFactory: ProjectFolder.Factory
 ) {
-  constructor() : this(SdkSync.getInstance(), TopLevelModuleFactory(), ProjectFolder.Factory())
+  constructor() : this(SdkSync.getInstance(), TopLevelModuleFactory())
 
   /**
    * Ensures presence of the top level Gradle build file and the .idea directory and, additionally, performs cleanup of the libraries
@@ -81,20 +86,24 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
   ): Project? {
     val projectFolderPath = VfsUtilCore.virtualToIoFile(projectFolder)
     try {
-      val projectName = projectFolder.name
-      val newProject = createProject(projectName, projectFolderPath)
-      setUpLocalProperties(projectFolderPath, newProject)
-      importProjectNoSync(Request(newProject))
-      return ProjectManagerEx.getInstanceEx().openProject(
-        projectFolderPath.toPath(),
-        OpenProjectTask {
-          this.forceOpenInNewFrame = forceOpenInNewFrame
-          this.projectToClose = projectToClose
-          isNewProject = false
-          useDefaultProjectAsTemplate = false
-          project = newProject
+      return ProjectManagerEx.getInstanceEx().openProject(projectFolderPath.toPath(), OpenProjectTask {
+        this.forceOpenInNewFrame = forceOpenInNewFrame
+        this.projectToClose = projectToClose
+        isNewProject = false
+        useDefaultProjectAsTemplate = false
+        beforeOpen = {
+          // The scope of this is rather large to mimic old behaviour, it could likely be improved
+          withContext(Dispatchers.EDT) {
+            setUpLocalProperties(projectFolderPath)
+            configureNewProject(it)
+            importProjectNoSync(Request(it))
+          }
+          true
         }
-      )
+      })
+    }
+    catch (e: ProcessCanceledException) {
+      throw e
     }
     catch (e: Throwable) {
       if (ApplicationManager.getApplication().isUnitTestMode) {
@@ -107,10 +116,12 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
   }
 
   @Throws(IOException::class)
-  private fun setUpLocalProperties(projectFolderPath: File, project: Project) {
+  private fun setUpLocalProperties(projectFolderPath: File) {
     try {
       val localProperties = LocalProperties(projectFolderPath)
-      mySdkSync.syncIdeAndProjectAndroidSdks(localProperties, project)
+      if (IdeInfo.getInstance().isAndroidStudio) {
+        mySdkSync.syncIdeAndProjectAndroidSdks(localProperties)
+      }
     }
     catch (e: IOException) {
       logger.info("Failed to sync SDKs", e)
@@ -124,14 +135,9 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
 
   @Throws(IOException::class)
   fun importProjectNoSync(request: Request) {
-    val projectFolderPath = Projects.getBaseDirPath(request.project).absoluteFile
-    val projectFolder = myProjectFolderFactory.create(projectFolderPath)
-    projectFolder.createTopLevelBuildFile()
-    projectFolder.createIdeaProjectFolder()
     val newProject = request.project
     val projectInfo = GradleProjectInfo.getInstance(newProject)
     projectInfo.isNewProject = request.isNewProject
-    silenceUnlinkedGradleProjectNotificationIfNecessary(newProject)
     WriteAction.runAndWait<RuntimeException> {
       if (request.javaLanguageLevel != null) {
         val extension = LanguageLevelProjectExtension.getInstance(newProject)
@@ -181,14 +187,10 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
   }
 
   companion object {
-    // A copy of a private constant from GradleJvmStartupActivity.
-    @NonNls
-    private val SHOW_UNLINKED_GRADLE_POPUP = "show.inlinked.gradle.project.popup"
-
     @JvmStatic
     fun getInstance(): GradleProjectImporter = ApplicationManager.getApplication().getService(GradleProjectImporter::class.java)
 
-    private fun beforeOpen(project: Project) {
+    internal fun beforeOpen(project: Project) {
       ApplicationManager.getApplication().getUserData(AFTER_CREATE)?.invoke(project)
     }
 
@@ -204,32 +206,38 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         }
       }
       val projectSettings = GradleDefaultProjectSettings.createProjectSettings(externalProjectPath)
-      // Set gradleJvm to USE_PROJECT_JDK since this setting is only available in the PSD for Android Studio and use embedded jdk
-      projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
-      ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
-      WriteAction.runAndWait<RuntimeException> {
+      if (GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS.get() || ApplicationManager.getApplication().isUnitTestMode) {
+        projectSettings.gradleJvm = USE_GRADLE_LOCAL_JAVA_HOME
+        ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
+        GradleConfigManager.initializeJavaHome(newProject, externalProjectPath)
         if (IdeInfo.getInstance().isAndroidStudio) {
-          val embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath
-          val jdkTableEntry = JdkUtils.addOrRecreateDedicatedJdkTableEntry(embeddedJdkPath.toString())
-          ProjectJdkTable.getInstance().findJdk(jdkTableEntry)?.let {
-            ProjectRootManager.getInstance(newProject).projectSdk = it
+          val projectMigration = ProjectMigrationsPersistentState.getInstance(newProject)
+          projectMigration.migratedGradleRootsToGradleLocalJavaHome.add(externalProjectPath)
+        }
+      }
+      else {
+        projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
+        ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
+        WriteAction.runAndWait<RuntimeException> {
+          if (IdeInfo.getInstance().isAndroidStudio) {
+            val embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath
+            val jdkTableEntry = JdkUtils.addOrRecreateDedicatedJdkTableEntry(embeddedJdkPath.toString())
+            ProjectJdkTable.getInstance().findJdk(jdkTableEntry)?.let {
+              ProjectRootManager.getInstance(newProject).projectSdk = it
+            }
           }
-        } else {
-          val jdk = IdeSdks.getInstance().jdk
-          if (jdk != null) {
-            ProjectRootManager.getInstance(newProject).projectSdk = jdk
+          else {
+            val jdk = IdeSdks.getInstance().jdk
+            if (jdk != null) {
+              ProjectRootManager.getInstance(newProject).projectSdk = jdk
+            }
           }
         }
       }
+
       beforeOpen(newProject)
     }
 
-    private fun silenceUnlinkedGradleProjectNotificationIfNecessary(newProject: Project) {
-      val gradleSettings = GradleSettings.getInstance(newProject)
-      if (gradleSettings.linkedProjectsSettings.isEmpty()) {
-        PropertiesComponent.getInstance(newProject).setValue(SHOW_UNLINKED_GRADLE_POPUP, false, true)
-      }
-    }
   }
 }
 

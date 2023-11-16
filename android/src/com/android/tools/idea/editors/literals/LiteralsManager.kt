@@ -41,7 +41,6 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
 import org.jetbrains.concurrency.await
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.base.KtConstantValue
 import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode

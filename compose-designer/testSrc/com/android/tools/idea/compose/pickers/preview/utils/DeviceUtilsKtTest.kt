@@ -25,12 +25,12 @@ import com.android.tools.idea.compose.pickers.preview.property.MutableDeviceConf
 import com.android.tools.idea.compose.pickers.preview.property.Orientation
 import com.android.tools.idea.compose.pickers.preview.property.Shape
 import com.android.tools.idea.flags.StudioFlags
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.test.assertNotNull
 
 internal class DeviceUtilsKtTest {
 
@@ -208,7 +208,7 @@ internal class DeviceUtilsKtTest {
     assertEquals(100, screen1.xDimension)
     assertEquals(200, screen1.yDimension)
     assertEquals(320, screen1.pixelDensity.dpiValue) // Adjusted Density bucket
-    assertEquals(0.69, (screen1.diagonalLength * 100).toInt() / 100.0)
+    assertEquals(0.69, (screen1.diagonalLength * 100).toInt() / 100.0, 0.0)
 
     val device2 = deviceFromDeviceSpec("spec:shape=Normal,width=100,height=200,unit=dp,dpi=310")
     assertNotNull(device2)
@@ -219,7 +219,7 @@ internal class DeviceUtilsKtTest {
     assertEquals(200, screen2.xDimension)
     assertEquals(400, screen2.yDimension)
     assertEquals(320, screen2.pixelDensity.dpiValue) // Adjusted Density bucket
-    assertEquals(1.39, (screen2.diagonalLength * 100).toInt() / 100.0)
+    assertEquals(1.39, (screen2.diagonalLength * 100).toInt() / 100.0, 0.0)
   }
 
   @Test

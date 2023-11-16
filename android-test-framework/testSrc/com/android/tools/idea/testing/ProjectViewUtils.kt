@@ -19,6 +19,7 @@ package com.android.tools.idea.testing
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.navigator.AndroidProjectViewPane
 import com.android.tools.idea.sdk.IdeSdks
+import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.GroupByTypeComparator
@@ -62,13 +63,13 @@ fun <T : Any> Project.dumpAndroidProjectView(
     fun Icon.toText(): String? = when {
       // After commit 2c486969f4 evaluate will throw an assertion failed exception if run under read action in NativeIconProvider
       // Most over uses require a read action, only the implementation class DeferredIconImpl knows this
-      this is DeferredIconImpl<*> -> (if (isNeedReadAction) evaluate() else executeOnPooledThread { evaluate() }.get()).toText()
+      this is DeferredIconImpl<*> -> (if (!isNeedReadAction) executeOnPooledThread { evaluate() }.get() else evaluate()).toText()
       this is RetrievableIcon -> retrieveIcon().toText()
       this is RowIcon && allIcons.size == 1 -> getIcon(0)?.toText()
       this is CachedImageIcon -> originalPath ?: Regex("path=([^,]+)").find(toString())?.groups?.get(1)?.value ?: ""
       this is ImageIconUIResource -> description ?: "ImageIconUIResource(?)"
       this is LayeredIcon && allLayers.size == 1 ->  getIcon(0)?.toText()
-      this is LayeredIcon -> "[${allLayers.joinToString(separator = ", ") { it!!.toText().orEmpty() }}]"
+      this is LayeredIcon -> "[${allLayers.joinToString(separator = ", ") { it?.toText().orEmpty() }}]"
       this.javaClass.simpleName == "DummyIcon" -> this.toString()
       else -> "$this (${javaClass.simpleName})"
     }
@@ -105,12 +106,15 @@ fun <T : Any> Project.dumpAndroidProjectView(
         treeStructure
           .getChildElements(element)
           .map { it as AbstractTreeNode<*> }
-          .apply { forEach { it.update() } }
+          .onEach { it.update() }
           .sortedWith(comparator)
           .forEach { dump(it, "    $prefix", newState) }
       }
 
-      dump(rootElement as AbstractTreeNode<*>, state = initialState)
+      val rootNode = rootElement as AbstractTreeNode<*>
+      // dump() updates only the child nodes; before calling it we need to update the root to ensure its presentation is available.
+      rootNode.update()
+      dump(rootNode, state = initialState)
     }
       // Trim the trailing line end since snapshots are loaded without it.
       .trimEnd()

@@ -59,7 +59,7 @@ class $className {
 
     @Test
     fun generate() {
-        rule.collectBaselineProfile("$targetPackageName") {
+        rule.collect("$targetPackageName") {
             // This block defines the app's critical user journey. Here we are interested in
             // optimizing for app startup. But you can also navigate and scroll
             // through your most important UI.

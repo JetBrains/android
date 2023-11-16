@@ -15,13 +15,13 @@ package com.android.tools.idea.compose.preview
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.idea.AndroidPsiUtils.getPsiFileSafely
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
-import com.android.tools.idea.annotations.hasAnnotations
+import com.android.tools.idea.annotations.hasAnnotation
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewEvent
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewUsageTracker
@@ -36,15 +36,10 @@ import org.jetbrains.uast.UMethod
 /** [FilePreviewElementFinder] that uses `@Preview` annotations. */
 object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
   override fun hasPreviewMethods(project: Project, vFile: VirtualFile) =
-    hasAnnotations(
-      project,
-      vFile,
-      setOf(COMPOSE_PREVIEW_ANNOTATION_FQN),
-      COMPOSE_PREVIEW_ANNOTATION_NAME
-    )
+    hasAnnotation(project, vFile, COMPOSE_PREVIEW_ANNOTATION_FQN, COMPOSE_PREVIEW_ANNOTATION_NAME)
 
   override fun hasComposableMethods(project: Project, vFile: VirtualFile) =
-    hasAnnotations(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME)
+    hasAnnotation(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME)
 
   /**
    * Returns all the `@Composable` functions in the [vFile] that are also tagged with `@Preview`.
@@ -56,7 +51,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
     return findAnnotatedMethodsValues(
       project,
       vFile,
-      COMPOSABLE_FQ_NAMES,
+      COMPOSABLE_ANNOTATION_FQ_NAME,
       COMPOSABLE_ANNOTATION_NAME
     ) { methods ->
       val previewNodes = getPreviewNodes(methods, includeAllNodes = true)

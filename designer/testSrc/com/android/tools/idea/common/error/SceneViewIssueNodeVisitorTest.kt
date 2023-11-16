@@ -34,9 +34,7 @@ import org.mockito.Mockito.`when`
 
 class SceneViewIssueNodeVisitorTest {
 
-  @JvmField
-  @Rule
-  val rule = AndroidProjectRule.inMemory().onEdt()
+  @JvmField @Rule val rule = AndroidProjectRule.inMemory().onEdt()
 
   @RunsInEdt
   @Test
@@ -60,7 +58,16 @@ class SceneViewIssueNodeVisitorTest {
 
     val provider = DesignerCommonIssueTestProvider(listOf(issue1, issue2, issue3))
     val model = DesignerCommonIssueModel()
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
+    val panel =
+      DesignerCommonIssuePanel(
+        rule.testRootDisposable,
+        rule.project,
+        model,
+        { LayoutValidationNodeFactory },
+        provider
+      ) {
+        ""
+      }
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 
@@ -92,7 +99,16 @@ class SceneViewIssueNodeVisitorTest {
 
     val provider = DesignerCommonIssueTestProvider(listOf(issue1, issue2, issue3))
     val model = DesignerCommonIssueModel()
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
+    val panel =
+      DesignerCommonIssuePanel(
+        rule.testRootDisposable,
+        rule.project,
+        model,
+        { LayoutValidationNodeFactory },
+        provider
+      ) {
+        ""
+      }
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 
@@ -124,7 +140,16 @@ class SceneViewIssueNodeVisitorTest {
 
     val provider = DesignerCommonIssueTestProvider(listOf(issue1, issue2, issue3))
     val model = DesignerCommonIssueModel()
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
+    val panel =
+      DesignerCommonIssuePanel(
+        rule.testRootDisposable,
+        rule.project,
+        model,
+        { LayoutValidationNodeFactory },
+        provider
+      ) {
+        ""
+      }
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 
@@ -157,7 +182,16 @@ class SceneViewIssueNodeVisitorTest {
 
     val provider = DesignerCommonIssueTestProvider(listOf(issue1, issue2, issue3))
     val model = DesignerCommonIssueModel()
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
+    val panel =
+      DesignerCommonIssuePanel(
+        rule.testRootDisposable,
+        rule.project,
+        model,
+        { LayoutValidationNodeFactory },
+        provider
+      ) {
+        ""
+      }
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 

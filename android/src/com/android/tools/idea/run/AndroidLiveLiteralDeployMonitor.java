@@ -50,7 +50,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
@@ -101,55 +100,50 @@ public class AndroidLiveLiteralDeployMonitor {
   }
 
   /**
-   * Returns a callback that, upon successful deployment of an Android application, can be invoked to
-   * starts a service to monitor live literal changes in such project and live deploy to the device.
-   *
-   * This method mostly create a call back and it is locked to be thread-safe.
+   * Starts a service to monitor live literal changes in such project and live deploy to the device.
+   * This method is locked to be thread-safe.
    */
-  public static Callable<?> getCallback(Project project, String packageName, IDevice device) {
+  public static void startMonitor(Project project, String packageName, IDevice device) {
     String deviceId = device.getSerialNumber();
     LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + packageName);
 
     // Live Edit will eventually replace Live Literals. They conflict with each other the only way the enable
     // one is to to disable the other.
     if (!LiveEditApplicationConfiguration.Companion.getInstance().isLiveLiterals()) {
-      return null;
+      return;
     }
 
     if (!supportLiveLiteral(device)) {
-      return null;
+      return;
     }
 
     LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), packageName);
 
-    return () -> {
-      synchronized (ACTIVE_PROJECTS) {
-        if (!ACTIVE_PROJECTS.containsKey(project)) {
-          LiveLiteralsService service = LiveLiteralsService.Companion.getInstance(project);
-          LiteralChangesListener listener = new LiteralChangesListener(project, packageName);
-          service.addOnLiteralsChangedListener(service, listener::onLiteralsChanged);
-          Disposer.register(service, listener);
-          ACTIVE_PROJECTS.put(project, new HashMap<>());
-        } else {
-          ACTIVE_PROJECTS.get(project).clear();
-        }
-      }
-
-      LiveLiteralsMonitorHandler.DeviceType deviceType;
-      if (device.isEmulator()) {
-        deviceType = LiveLiteralsMonitorHandler.DeviceType.EMULATOR;
+    synchronized (ACTIVE_PROJECTS) {
+      if (!ACTIVE_PROJECTS.containsKey(project)) {
+        LiveLiteralsService service = LiveLiteralsService.Companion.getInstance(project);
+        LiteralChangesListener listener = new LiteralChangesListener(project, packageName);
+        service.addOnLiteralsChangedListener(service, listener::onLiteralsChanged);
+        Disposer.register(service, listener);
+        ACTIVE_PROJECTS.put(project, new HashMap<>());
       }
       else {
-        deviceType = LiveLiteralsMonitorHandler.DeviceType.PHYSICAL;
+        ACTIVE_PROJECTS.get(project).clear();
       }
+    }
 
-      ACTIVE_DEVICES.put(project, deviceId);
+    LiveLiteralsMonitorHandler.DeviceType deviceType;
+    if (device.isEmulator()) {
+      deviceType = LiveLiteralsMonitorHandler.DeviceType.EMULATOR;
+    }
+    else {
+      deviceType = LiveLiteralsMonitorHandler.DeviceType.PHYSICAL;
+    }
 
-      // Event a listener has been installed, we always need to re-enable as certain action can disable the service (such as a rebuild).
-      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(deviceId + "#" + packageName, deviceType);
+    ACTIVE_DEVICES.put(project, deviceId);
 
-      return null;
-    };
+    // Event a listener has been installed, we always need to re-enable as certain action can disable the service (such as a rebuild).
+    LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(deviceId + "#" + packageName, deviceType);
   }
 
   private static void pushLiteralsToDevice(Project project, String packageName, List<LiteralReference> changes, long timestamp) {

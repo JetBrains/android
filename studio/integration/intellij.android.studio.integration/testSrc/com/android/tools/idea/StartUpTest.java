@@ -47,6 +47,7 @@ public class StartUpTest {
       String version = studio.version();
       assertThat(version).startsWith("Android Studio");
       assertThat(version).doesNotContain("dev");
+      assertThat(studio.getSystemProperty("java.home")).isEqualTo(install.getStudioDir().resolve("jbr").toString());
 
       // Wait for plugin manager to load all plugins
       Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*PluginManager - Loaded bundled plugins:(.*)", 10, TimeUnit.SECONDS);
@@ -65,27 +66,27 @@ public class StartUpTest {
         "C/C++ Language Support",
         "CIDR Base",
         "CIDR Debugger",
+        "ClangConfig",
         "Clangd Support",
         "Clangd-CLion Bridge",
+        "ClangFormat",
         "Code Coverage for Java",
         "com.intellij.dev",
         "Configuration Script",
         "Copyright",
         "Eclipse Keymap",
         "EditorConfig",
-        "Firebase App Indexing",
         "Firebase Direct Access",
         "Firebase Services",
         "Firebase Testing",
+        "Git for App Insights",
         "Git",
         "GitHub",
-        "Google Cloud Tools Core",
         "Google Cloud Tools For Android Studio",
-        "Google Developers Samples",
         "Gradle",
-        "Gradle managed device code completion",
         "Gradle-Java",
         "Groovy",
+        "HTML Tools",
         "IDEA CORE",
         "Images",
         "IntelliLang",
@@ -99,11 +100,14 @@ public class StartUpTest {
         "JetBrains maven model api classes",
         "Jetpack Compose",
         "Kotlin",
+        "Lombok",
         "Machine Learning Code Completion",
+        "Machine Learning Code Completion Models",
         "Markdown",
         "Maven server api classes",
         "Mercurial",
         "NetBeans Keymap",
+        "Performance Testing",
         "Plugin DevKit",
         "Properties",
         "Shell Script",
@@ -122,10 +126,6 @@ public class StartUpTest {
 
       if (SystemInfoRt.isLinux) {
         expectedPlugins.add("Emoji Picker");
-      }
-
-      if (SystemInfoRt.isWindows) {
-        expectedPlugins.add("Windows 10 Light Theme");
       }
 
       assertThat(plugins).asList().containsExactlyElementsIn(expectedPlugins);

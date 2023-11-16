@@ -16,10 +16,8 @@
 package com.android.tools.idea
 
 import com.android.testutils.JarTestSuiteRunner
-import com.android.testutils.JarTestSuiteRunner.ExcludeClasses
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
 
 @RunWith(JarTestSuiteRunner::class)
-@ExcludeClasses(LogcatTestSuite::class) // a suite mustn't contain itself
 class LogcatTestSuite : IdeaTestSuiteBase()

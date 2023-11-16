@@ -20,37 +20,45 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicLong
 
-/**
- * A CompilerDaemonClient that blocks until [complete] is called.
- */
+/** A CompilerDaemonClient that blocks until [completeOneRequest] is called. */
 class BlockingDaemonClient : CompilerDaemonClient {
   override val isRunning: Boolean = true
 
-  private val compilationRequestFuture = CompletableDeferred<Unit>()
+  private val pendingRequests = Channel<CompletableDeferred<Unit>>(Channel.UNLIMITED)
   private val _requestReceived = AtomicLong(0)
   val firstRequestReceived = CompletableDeferred<Unit>()
   val requestReceived: Long
     get() = _requestReceived.get()
 
-  override suspend fun compileRequest(files: Collection<PsiFile>,
-                                      module: Module,
-                                      outputDirectory: Path,
-                                      indicator: ProgressIndicator): CompilationResult {
+  override suspend fun compileRequest(
+    files: Collection<PsiFile>,
+    module: Module,
+    outputDirectory: Path,
+    indicator: ProgressIndicator
+  ): CompilationResult {
     _requestReceived.incrementAndGet()
     firstRequestReceived.complete(Unit)
     return try {
-      compilationRequestFuture.await()
+      val request = CompletableDeferred<Unit>()
+      pendingRequests.send(request)
+
+      request.await()
       CompilationResult.Success
     } catch (_: CancellationException) {
       CompilationResult.CompilationAborted()
     }
   }
 
-  fun complete() {
-    compilationRequestFuture.complete(Unit)
+  /**
+   * Completes one pending request. If there are no requests pending, the method will block until one arrives.
+   */
+  fun completeOneRequest() = runBlocking {
+    pendingRequests.receive().complete(Unit)
   }
 
   override fun dispose() {}

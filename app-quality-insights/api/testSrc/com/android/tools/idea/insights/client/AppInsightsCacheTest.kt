@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Blames
 import com.android.tools.idea.insights.Caption
-import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventData
@@ -37,18 +34,16 @@ import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
+import com.android.tools.idea.insights.TestConnection
 import com.google.common.truth.Truth.assertThat
 import java.time.Duration
 import java.time.Instant
-import org.junit.Rule
 import org.junit.Test
 
 class AppInsightsCacheTest {
-
-  @get:Rule val flagRule = FlagRule(StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED, true)
-
   private val now = Instant.now()
-  private val connection = Connection("blah", "1234", "project12", "12")
+  private val connection = TestConnection("blah", "1234", "project12", "12")
+  private val connection2 = TestConnection("appId2", "1234", "project1", "1")
 
   private val testEvent =
     Event(
@@ -116,11 +111,14 @@ class AppInsightsCacheTest {
             "Sample Event",
             "1.2.3",
             "1.2.3",
+            6L,
+            9L,
             5L,
             10L,
             setOf(SignalType.SIGNAL_UNSPECIFIED),
             "https://url.for-crash.com",
-            0
+            0,
+            emptyList()
           ),
           testEvent
         )
@@ -301,11 +299,14 @@ class AppInsightsCacheTest {
           "Sample Event",
           "1.2.3",
           "1.2.3",
+          10L,
+          12L,
           5L,
           10L,
           emptySet(),
           "https://url.for-crash.com",
-          0
+          0,
+          emptyList()
         ),
         testEvent
       )
@@ -325,7 +326,9 @@ class AppInsightsCacheTest {
     val looseFilter =
       QueryFilters(
         Interval(now.minus(Duration.ofDays(30)), now.minus(Duration.ofDays(4))),
-        eventTypes = FailureType.values().toList()
+        eventTypes = FailureType.values().toList(),
+        devices = setOf(testEvent.eventData.device),
+        operatingSystems = setOf(testEvent.eventData.operatingSystemInfo)
       )
     var topIssues = cache.getTopIssues(IssueRequest(connection, looseFilter))
     assertThat(topIssues).hasSize(1)
@@ -339,7 +342,9 @@ class AppInsightsCacheTest {
     val strictFilter =
       QueryFilters(
         Interval(now.minus(Duration.ofDays(3)), now),
-        eventTypes = FailureType.values().toList()
+        eventTypes = FailureType.values().toList(),
+        devices = setOf(testEvent.eventData.device),
+        operatingSystems = setOf(testEvent.eventData.operatingSystemInfo)
       )
     topIssues = cache.getTopIssues(IssueRequest(connection, strictFilter))
     assertThat(topIssues).hasSize(1)
@@ -361,11 +366,14 @@ class AppInsightsCacheTest {
           "Sample Event",
           "1.2.3",
           "1.2.3",
+          9L,
+          9L,
           5L,
           10L,
           emptySet(),
           "https://url.for-crash.com",
-          0
+          0,
+          emptyList()
         ),
         testEvent
       )
@@ -427,5 +435,132 @@ class AppInsightsCacheTest {
       .containsExactly(ISSUE2, ISSUE1)
       .inOrder()
     assertThat(cache.getIssues(connection, emptyList())).isEmpty()
+  }
+
+  @Test
+  fun `populate connections retains only current connections`() {
+    val cache = AppInsightsCacheImpl()
+    cache.populateIssues(connection, listOf(ISSUE1, ISSUE2))
+
+    cache.populateConnections(listOf(connection2))
+
+    assertThat(cache.getRecentConnections()).containsExactly(connection2)
+  }
+
+  @Test
+  fun `getEvent filters on interval, device, and operating system`() {
+    val issue =
+      AppInsightsIssue(
+        IssueDetails(
+          IssueId("1"),
+          "Issue1",
+          "com.google.crash.Crash",
+          FailureType.FATAL,
+          "Sample Event",
+          "1.2.3",
+          "1.2.3",
+          10L,
+          12L,
+          5L,
+          10L,
+          emptySet(),
+          "https://url.for-crash.com",
+          0,
+          emptyList()
+        ),
+        testEvent
+      )
+
+    val cache = AppInsightsCacheImpl()
+    cache.populateIssues(connection, listOf(issue))
+
+    val issueRequest =
+      IssueRequest(
+        connection,
+        QueryFilters(
+          interval = Interval(now.minus(Duration.ofDays(3)), now),
+          devices = setOf(Device("Google", "Pixel 5"), Device("Samsung", "Galaxy S7")),
+          operatingSystems =
+            setOf(OperatingSystemInfo("Android 11", "11"), OperatingSystemInfo("Android 12", "12"))
+        )
+      )
+
+    // Mismatch device
+    assertThat(
+        cache.getEvent(
+          IssueRequest(
+            connection,
+            QueryFilters(
+              interval = Interval(now.minus(Duration.ofDays(10)), now),
+              devices = setOf(Device("Google", "Pixel 5"), Device("Samsung", "Galaxy S7")),
+              operatingSystems = setOf(testEvent.eventData.operatingSystemInfo)
+            )
+          ),
+          issue.id
+        )
+      )
+      .isNull()
+
+    // Mismatch OS
+    assertThat(
+        cache.getEvent(
+          IssueRequest(
+            connection,
+            QueryFilters(
+              interval = Interval(now.minus(Duration.ofDays(10)), now),
+              devices = setOf(testEvent.eventData.device),
+              operatingSystems =
+                setOf(
+                  OperatingSystemInfo("Android 11", "11"),
+                  OperatingSystemInfo("Android 12", "12")
+                )
+            )
+          ),
+          issue.id
+        )
+      )
+      .isNull()
+
+    // Mismatch interval
+    assertThat(
+        cache.getEvent(
+          IssueRequest(
+            connection,
+            QueryFilters(
+              interval = Interval(now.minus(Duration.ofDays(5)), now),
+              devices = setOf(testEvent.eventData.device),
+              operatingSystems = setOf(testEvent.eventData.operatingSystemInfo)
+            )
+          ),
+          issue.id
+        )
+      )
+      .isNull()
+
+    // Match
+    assertThat(
+        cache.getEvent(
+          IssueRequest(
+            connection,
+            QueryFilters(
+              interval = Interval(now.minus(Duration.ofDays(14)), now),
+              devices =
+                setOf(
+                  Device("Google", "Pixel 5"),
+                  Device("Samsung", "Galaxy S7"),
+                  testEvent.eventData.device
+                ),
+              operatingSystems =
+                setOf(
+                  OperatingSystemInfo("Android 11", "11"),
+                  OperatingSystemInfo("Android 12", "12"),
+                  testEvent.eventData.operatingSystemInfo
+                )
+            )
+          ),
+          issue.id
+        )
+      )
+      .isEqualTo(testEvent)
   }
 }

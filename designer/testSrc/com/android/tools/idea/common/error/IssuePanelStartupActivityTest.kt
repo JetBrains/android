@@ -24,28 +24,28 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class IssuePanelStartupActivityTest {
-  @JvmField
-  @Rule
-  val rule = AndroidProjectRule.withAndroidModel().onEdt()
+  @JvmField @Rule val rule = AndroidProjectRule.withAndroidModel().onEdt()
   private lateinit var toolWindow: ToolWindow
 
   @Before
   fun setup() {
     StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.override(true)
 
-    rule.projectRule.replaceProjectService(ToolWindowManager::class.java, TestToolWindowManager(rule.project))
+    rule.projectRule.replaceProjectService(
+      ToolWindowManager::class.java,
+      TestToolWindowManager(rule.project)
+    )
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
     val contentManager = toolWindow.contentManager
-    val content = contentManager.factory.createContent(null, "Current File", true).apply {
-      isCloseable = false
-    }
+    val content =
+      contentManager.factory.createContent(null, "Current File", true).apply { isCloseable = false }
     contentManager.addContent(content)
     contentManager.setSelectedContent(content)
   }
@@ -55,16 +55,17 @@ class IssuePanelStartupActivityTest {
     StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.clearOverride()
   }
 
-  /**
-   * Regression test for b/235316289.
-   */
+  /** Regression test for b/235316289. */
   @RunsInEdt
   @Test
   fun testHavingIssuePanelEvenThereIsNoDesignSurface() {
     var called = 0
-    rule.project.messageBus.connect().subscribe(IssueProviderListener.TOPIC, IssueProviderListener { _, _ -> called++ })
+    rule.project.messageBus
+      .connect()
+      .subscribe(IssueProviderListener.TOPIC, IssueProviderListener { _, _ -> called++ })
 
-    // Before calling IssuePanelStartupActivity().setupIssuePanel(), there is only "Current File" tab.
+    // Before calling IssuePanelStartupActivity().setupIssuePanel(), there is only "Current File"
+    // tab.
     assertEquals(1, toolWindow.contentManager.contentCount)
 
     IssuePanelStartupActivity().setupIssuePanel(rule.project)
@@ -72,9 +73,13 @@ class IssuePanelStartupActivityTest {
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
     rule.fixture.openFileInEditor(layoutFile.virtualFile)
 
-    // The instance of IssuePanelService should be setup already because of IssuePanelStartupActivity.
+    // The instance of IssuePanelService should be setup already because of
+    // IssuePanelStartupActivity.
     assertEquals(2, toolWindow.contentManager.contentCount)
-    assertEquals("Layout and Qualifiers".toTabTitle(), toolWindow.contentManager.getContent(1)!!.displayName)
+    assertEquals(
+      "Layout and Qualifiers".toTabTitle(),
+      toolWindow.contentManager.getContent(1)!!.displayName
+    )
 
     // Verify the issue panel exists even there is no IssueModel created.
     assertEquals(0, called)

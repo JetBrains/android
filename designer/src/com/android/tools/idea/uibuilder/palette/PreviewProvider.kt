@@ -18,19 +18,19 @@ package com.android.tools.idea.uibuilder.palette
 import com.android.ide.common.rendering.api.SessionParams
 import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
+import com.android.tools.rendering.RenderResult
+import com.android.tools.rendering.RenderTask
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.runReadAction
@@ -56,11 +56,11 @@ import java.util.function.Supplier
 import javax.swing.JComponent
 import kotlin.math.min
 
-@AndroidCoordinate
-private const val SHADOW_SIZE = 6
+@AndroidCoordinate private const val SHADOW_SIZE = 6
 private const val PREVIEW_PLACEHOLDER_FILE = "preview.xml"
 private const val CONTAINER_ID = "TopLevelContainer"
-private const val LINEAR_LAYOUT = """<LinearLayout
+private const val LINEAR_LAYOUT =
+  """<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/%1${"$"}s"
@@ -72,18 +72,22 @@ private const val LINEAR_LAYOUT = """<LinearLayout
 """
 
 /**
- * Creates a preview image that is used when dragging an item from the palette.
- * If possible a image is generated from the actual Android view. Otherwise we
- * simply generate the image from the icon used in the palette.
+ * Creates a preview image that is used when dragging an item from the palette. If possible a image
+ * is generated from the actual Android view. Otherwise we simply generate the image from the icon
+ * used in the palette.
  */
 class PreviewProvider(
   private val myDesignSurfaceSupplier: Supplier<DesignSurface<*>?>,
   private val myDependencyManager: DependencyManager
 ) {
-  class ImageAndDimension(val image: BufferedImage, val dimension: Dimension, val rendering: Future<*>?, val disposal: Future<*>?)
+  class ImageAndDimension(
+    val image: BufferedImage,
+    val dimension: Dimension,
+    val rendering: Future<*>?,
+    val disposal: Future<*>?
+  )
 
-  @VisibleForTesting
-  var renderTimeoutMillis = 600L
+  @VisibleForTesting var renderTimeoutMillis = 600L
 
   @AndroidCoordinate
   fun createPreview(component: JComponent, item: Palette.Item): ImageAndDimension {
@@ -91,19 +95,20 @@ class PreviewProvider(
     var image: Image?
     val scaleContext = ScaleContext.create(component)
     val future = if (myDependencyManager.needsLibraryLoad(item)) null else renderDragImage(item)
-    val (renderedItem, disposal) = try {
-      future?.get(renderTimeoutMillis, TimeUnit.MILLISECONDS)
-    }
-    catch (_: Exception) {
-      null
-    } ?: Pair(null, null)
+    val (renderedItem, disposal) =
+      try {
+        future?.get(renderTimeoutMillis, TimeUnit.MILLISECONDS)
+      } catch (_: Exception) {
+        null
+      } ?: Pair(null, null)
 
-    image = if (renderedItem == null) {
-      val icon = item.icon
-      IconLoader.toImage(icon, scaleContext)
-    } else {
-      ImageUtil.ensureHiDPI(renderedItem, scaleContext)
-    }
+    image =
+      if (renderedItem == null) {
+        val icon = item.icon
+        IconLoader.toImage(icon, scaleContext)
+      } else {
+        ImageUtil.ensureHiDPI(renderedItem, scaleContext)
+      }
     val width = ImageUtil.getRealWidth(image!!)
     val height = ImageUtil.getRealHeight(image)
     image = ImageUtil.scaleImage(image, currentScale ?: 1.0)
@@ -116,9 +121,13 @@ class PreviewProvider(
   }
 
   @VisibleForTesting
-  private fun renderDragImage(item: Palette.Item): CompletableFuture<Pair<BufferedImage?, Future<*>?>> {
+  private fun renderDragImage(
+    item: Palette.Item
+  ): CompletableFuture<Pair<BufferedImage?, Future<*>?>> {
     val scene = sceneView
-    val xml = scene?.let { constructPreviewXml(it, item) } ?: return CompletableFuture.completedFuture(Pair(null, null))
+    val xml =
+      scene?.let { constructPreviewXml(it, item) }
+        ?: return CompletableFuture.completedFuture(Pair(null, null))
 
     return getRenderTask(scene.sceneManager.model.configuration)
       .thenCompose { renderTask -> renderImage(renderTask, xml) }
@@ -136,14 +145,15 @@ class PreviewProvider(
     if (xml == PaletteComponentHandler.NO_PREVIEW) {
       return null
     }
-    val tag = try {
-      elementFactory.createTagFromText(xml)
-    } catch (exception: IncorrectOperationException) {
-      return null
-    }
-    val component = runWriteAction {
-      model.createComponent(tag, null, null, InsertType.CREATE_PREVIEW)
-    } ?: return null
+    val tag =
+      try {
+        elementFactory.createTagFromText(xml)
+      } catch (exception: IncorrectOperationException) {
+        return null
+      }
+    val component =
+      runWriteAction { model.createComponent(tag, null, null, InsertType.CREATE_PREVIEW) }
+        ?: return null
 
     // Some components require a parent to render correctly.
     val componentTag = component.tag ?: return null
@@ -163,12 +173,16 @@ class PreviewProvider(
       return null
     }
     val view = result.rootViews.firstOrNull()?.children?.firstOrNull() ?: return null
-    if (image.height < view.bottom || image.width < view.right || view.bottom <= view.top || view.right <= view.left) {
+    if (
+      image.height < view.bottom ||
+        image.width < view.right ||
+        view.bottom <= view.top ||
+        view.right <= view.left
+    ) {
       return null
     }
     val scene = sceneView ?: return null
-    @SwingCoordinate
-    val shadowIncrement = 1 + Coordinates.getSwingDimension(scene, SHADOW_SIZE)
+    @SwingCoordinate val shadowIncrement = 1 + Coordinates.getSwingDimension(scene, SHADOW_SIZE)
     val imageCopy = image.copy ?: return null
     return try {
       imageCopy.getSubimage(
@@ -184,25 +198,28 @@ class PreviewProvider(
   }
 
   private val currentScale: Double?
-    get() = myDesignSurfaceSupplier.get()?.let {
-      if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-        val sceneScale = it.focusedSceneView?.sceneManager?.sceneScalingFactor ?: 1.0f
-        return it.scale * it.screenScalingFactor / sceneScale
-      } else {
-        return it.scale * it.screenScalingFactor
+    get() =
+      myDesignSurfaceSupplier.get()?.let {
+        if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+          val sceneScale = it.focusedSceneView?.sceneManager?.sceneScalingFactor ?: 1.0f
+          return it.scale * it.screenScalingFactor / sceneScale
+        } else {
+          return it.scale * it.screenScalingFactor
+        }
       }
-    }
 
   private val sceneView: SceneView?
     get() = myDesignSurfaceSupplier.get()?.focusedSceneView
 
-  private fun renderImage(renderTask: RenderTask?, xml: String): CompletableFuture<Pair<RenderTask?, RenderResult?>> {
+  private fun renderImage(
+    renderTask: RenderTask?,
+    xml: String
+  ): CompletableFuture<Pair<RenderTask?, RenderResult?>> {
     if (renderTask == null) {
       return CompletableFuture.completedFuture(Pair(null, null))
     }
     val file = runReadAction {
-      PsiFileFactory
-        .getInstance(renderTask.context.module.project)
+      PsiFileFactory.getInstance(renderTask.context.module.project)
         .createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml)
     }
     assert(file is XmlFile)

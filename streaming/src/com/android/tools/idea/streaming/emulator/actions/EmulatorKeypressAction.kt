@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.emulator.actions
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.createKeyboardEvent
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.util.function.Predicate
 
@@ -35,4 +36,6 @@ abstract class EmulatorKeypressAction(
     val emulatorController: EmulatorController = getEmulatorController(event) ?: return
     emulatorController.sendKey(createKeyboardEvent(keyName))
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }

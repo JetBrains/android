@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.analytics
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
 import com.android.tools.idea.common.analytics.setApplicationId
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.preview.PreviewNode
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
@@ -24,10 +25,10 @@ import com.google.common.hash.Hashing
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.diagnostic.Logger
+import org.jetbrains.android.facet.AndroidFacet
 import java.util.Objects
 import java.util.concurrent.Executor
 import java.util.function.Consumer
-import org.jetbrains.android.facet.AndroidFacet
 
 /** Usage tracker implementation for Compose MultiPreview. */
 interface MultiPreviewUsageTracker {
@@ -90,6 +91,7 @@ class MultiPreviewEvent(private val nodes: List<MultiPreviewNode>, val fileFqNam
           .filter { !it.nodeInfo.isUseless() && !it.nodeInfo.isPreviewType() }
           .map { it.nodeInfo.build() }
       )
+      .setIsComposePreviewLiteMode(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
 
   fun build(): ComposeMultiPreviewEvent {
     return eventBuilder.build()

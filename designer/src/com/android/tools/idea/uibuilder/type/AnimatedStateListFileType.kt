@@ -31,12 +31,14 @@ object AnimatedStateListFileType : DrawableFileType(setOf(SdkConstants.TAG_ANIMA
 const val TEMP_ANIMATED_SELECTOR_FOLDER = "drawable-temp"
 
 /**
- * A temp Animated Vector drawable file which is created for previewing transitions in animated selector file.
+ * A temp Animated Vector drawable file which is created for previewing transitions in animated
+ * selector file.
  */
 object AnimatedStateListTempFileType : DrawableFileType(setOf()) {
   override fun isResourceTypeOf(file: PsiFile): Boolean {
     return file is XmlFile &&
-           ApplicationManager.getApplication().runReadAction(Computable { file.parent?.name == TEMP_ANIMATED_SELECTOR_FOLDER })
+      ApplicationManager.getApplication()
+        .runReadAction(Computable { file.parent?.name == TEMP_ANIMATED_SELECTOR_FOLDER })
   }
 
   override fun getToolbarActionGroups(surface: DesignSurface<*>): ToolbarActionGroups {

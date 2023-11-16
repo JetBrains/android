@@ -28,30 +28,28 @@ import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.util.androidFacet
 import org.junit.Test
 import java.awt.dnd.DnDConstants
-import kotlin.test.assertContains
 
-/**
- * This test mimics the resource drag and drop scenario. b/255741287
- */
+/** This test mimics the resource drag and drop scenario. b/255741287 */
 class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {
 
   @Test
   fun testLayoutResource() {
     myFixture.copyFileToProject("layout/layout.xml", "res/layout/layout_to_include.xml")
-    val model = model("model.xml",
-                      component(SdkConstants.LINEAR_LAYOUT)
-                        .id("@+id/outer")
-                        .withBounds(0, 0, 100, 100)
-                        .children(
-                          component(SdkConstants.TEXT_VIEW).withBounds(10, 0, 10, 10)
-                        )
-    ).build()
+    val model =
+      model(
+          "model.xml",
+          component(SdkConstants.LINEAR_LAYOUT)
+            .id("@+id/outer")
+            .withBounds(0, 0, 100, 100)
+            .children(component(SdkConstants.TEXT_VIEW).withBounds(10, 0, 10, 10))
+        )
+        .build()
     val surface = LayoutTestUtilities.createScreen(model).surface
     surface.scene!!.buildDisplayList(DisplayList(), 0)
     surface.model = model
 
-    val layoutResource = StudioResourceRepositoryManager
-        .getModuleResources(myFixture.module.androidFacet!!)
+    val layoutResource =
+      StudioResourceRepositoryManager.getModuleResources(myFixture.module.androidFacet!!)
         .getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)["layout_to_include"][0]
     val asset = Asset.fromResourceItem(layoutResource) as DesignAsset
 
@@ -67,8 +65,8 @@ class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {
     LayoutTestUtilities.dragDrop(manager, 0, 0, 5, 5, transferable, DnDConstants.ACTION_COPY)
 
     model.file.document!!.text.let { layoutXmlContent ->
-      assertContains(layoutXmlContent, "<${SdkConstants.VIEW_INCLUDE}")
-      assertContains(layoutXmlContent, "layout/layout_to_include")
+      assertTrue(layoutXmlContent.contains("<${SdkConstants.VIEW_INCLUDE}"))
+      assertTrue(layoutXmlContent.contains("layout/layout_to_include"))
     }
   }
 
@@ -76,25 +74,28 @@ class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {
   fun testDrawableResource() {
     myFixture.addFileToProject(
       "res/drawable/color_drawable.xml",
-      //language=xml
+      // language=xml
       """
         <?xml version="1.0" encoding="utf-8"?>
         <color xmlns:android="http://schemas.android.com/apk/res/android" android:color="#ff0000" />
-      """.trimIndent())
-    val model = model("model.xml",
-                      component(SdkConstants.LINEAR_LAYOUT)
-                        .id("@+id/outer")
-                        .withBounds(0, 0, 100, 100)
-                        .children(
-                          component(SdkConstants.TEXT_VIEW).withBounds(10, 0, 10, 10)
-                        )
-    ).build()
+      """
+        .trimIndent()
+    )
+    val model =
+      model(
+          "model.xml",
+          component(SdkConstants.LINEAR_LAYOUT)
+            .id("@+id/outer")
+            .withBounds(0, 0, 100, 100)
+            .children(component(SdkConstants.TEXT_VIEW).withBounds(10, 0, 10, 10))
+        )
+        .build()
     val surface = LayoutTestUtilities.createScreen(model).surface
     surface.scene!!.buildDisplayList(DisplayList(), 0)
     surface.model = model
 
-    val layoutResource = StudioResourceRepositoryManager
-        .getModuleResources(myFixture.module.androidFacet!!)
+    val layoutResource =
+      StudioResourceRepositoryManager.getModuleResources(myFixture.module.androidFacet!!)
         .getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE)["color_drawable"][0]
     val asset = Asset.fromResourceItem(layoutResource) as DesignAsset
 
@@ -110,8 +111,8 @@ class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {
     LayoutTestUtilities.dragDrop(manager, 0, 0, 5, 5, transferable, DnDConstants.ACTION_COPY)
 
     model.file.document!!.text.let { layoutXmlContent ->
-      assertContains(layoutXmlContent, "<${SdkConstants.IMAGE_VIEW}")
-      assertContains(layoutXmlContent, "drawable/color_drawable")
+      assertTrue(layoutXmlContent.contains("<${SdkConstants.IMAGE_VIEW}"))
+      assertTrue(layoutXmlContent.contains("drawable/color_drawable"))
     }
   }
 }

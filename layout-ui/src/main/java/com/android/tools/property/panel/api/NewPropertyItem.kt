@@ -17,30 +17,20 @@ package com.android.tools.property.panel.api
 
 import com.android.tools.adtui.model.stdui.EditingSupport
 
-/**
- * Defines basic information about a property which name can be edited in a table.
- */
-interface NewPropertyItem: PropertyItem {
+/** Defines basic information about a property which name can be edited in a table. */
+interface NewPropertyItem : PropertyItem {
 
-  /**
-   * The property name can be overridden.
-   */
+  /** The property name can be overridden. */
   override var name: String
 
-  /**
-   * The [PropertyItem] designated with the [namespace] and [name] of this new property.
-   */
+  /** The [PropertyItem] designated with the [namespace] and [name] of this new property. */
   val delegate: PropertyItem?
     get() = null
 
-  /**
-   * Editing support while editing this properties name.
-   */
+  /** Editing support while editing this properties name. */
   val nameEditingSupport: EditingSupport
     get() = EditingSupport.INSTANCE
 
-  /**
-   * Return true if the qualified name is the same as the property specified.
-   */
+  /** Return true if the qualified name is the same as the property specified. */
   fun isSameProperty(qualifiedName: String): Boolean
 }

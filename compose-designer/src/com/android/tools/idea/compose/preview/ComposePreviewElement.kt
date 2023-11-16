@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
@@ -28,10 +27,10 @@ import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.compose.pickers.preview.utils.findOrParseFromDefinition
 import com.android.tools.idea.compose.pickers.preview.utils.getDefaultPreviewDevice
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.Wallpaper
 import com.android.tools.idea.preview.DisplayPositioning
 import com.android.tools.idea.preview.PreviewDisplaySettings
@@ -43,6 +42,9 @@ import com.android.tools.idea.preview.xml.XmlSerializable
 import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
+import com.android.tools.rendering.ModuleRenderContext
+import com.android.tools.rendering.classloading.ModuleClassLoaderManager
+import com.android.tools.rendering.classloading.useWithClassLoader
 import com.android.tools.sdk.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
@@ -50,13 +52,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentOfType
-import java.awt.Dimension
-import java.util.Objects
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.reflect.full.functions
-import kotlin.reflect.jvm.isAccessible
-import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 import org.jetbrains.android.uipreview.forFile
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.psi.KtClass
@@ -65,14 +60,16 @@ import org.jetbrains.kotlin.psi.allConstructors
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElementOfType
+import java.awt.Dimension
+import java.util.Objects
+import kotlin.math.max
+import kotlin.math.min
 
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
 
-// Max allowed API
-@VisibleForTesting const val MAX_WIDTH = 2000
-
-@VisibleForTesting const val MAX_HEIGHT = 2000
+const val MAX_WIDTH = 2000
+const val MAX_HEIGHT = 2000
 
 /** Default background to be used by the rendered elements when showBackground is set to true. */
 private const val DEFAULT_PREVIEW_BACKGROUND = "?android:attr/windowBackground"
@@ -90,7 +87,7 @@ private const val NO_WALLPAPER_SELECTED = -1
 const val FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD = "${'$'}FailToLoadPreviewParameterProvider"
 
 /** [InMemoryLayoutVirtualFile] for composable functions. */
-internal class ComposeAdapterLightVirtualFile(
+class ComposeAdapterLightVirtualFile(
   name: String,
   content: String,
   originFileProvider: () -> VirtualFile?
@@ -112,7 +109,7 @@ fun dimensionToString(dimension: Int, defaultValue: String = VALUE_WRAP_CONTENT)
   }
 
 private fun KtClass.hasDefaultConstructor() =
-  allConstructors.isEmpty().or(allConstructors.any { it.getValueParameters().isEmpty() })
+  allConstructors.isEmpty().or(allConstructors.any { it.valueParameters.isEmpty() })
 
 /**
  * Returns whether a `@Composable` [COMPOSE_PREVIEW_ANNOTATION_FQN] is defined in a valid location,
@@ -158,22 +155,6 @@ fun KtNamedFunction.isValidComposePreview() =
     isValidPreviewLocation() &&
     this.toUElementOfType<UMethod>()?.let { it.hasPreviewElements() } == true
 
-/**
- * Truncates the given dimension value to fit between the [min] and [max] values. If the receiver is
- * null, this will return null.
- */
-private fun Int?.truncate(min: Int, max: Int): Int? {
-  if (this == null) {
-    return null
-  }
-
-  if (this == UNDEFINED_DIMENSION) {
-    return UNDEFINED_DIMENSION
-  }
-
-  return minOf(maxOf(this, min), max)
-}
-
 /** Empty device spec when the user has not specified any. */
 private const val NO_DEVICE_SPEC = ""
 
@@ -204,9 +185,7 @@ private fun PreviewConfiguration.applyTo(
   renderConfiguration.startBulkEditing()
   if (apiLevel != UNDEFINED_API_LEVEL) {
     val newTarget =
-      renderConfiguration.configurationManager.targets.firstOrNull {
-        it.version.apiLevel == apiLevel
-      }
+      renderConfiguration.settings.targets.firstOrNull { it.version.apiLevel == apiLevel }
     highestApiTarget(renderConfiguration)?.let {
       updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, apiLevel, newTarget))
     }
@@ -238,9 +217,7 @@ private fun PreviewConfiguration.applyTo(
     // If there is no application theme set, we might need to change the theme when changing the
     // device, because different devices might
     // have different default themes.
-    renderConfiguration.setTheme(
-      renderConfiguration.configurationManager.computePreferredTheme(renderConfiguration)
-    )
+    renderConfiguration.setTheme(renderConfiguration.computePreferredTheme())
   }
 
   customSize?.let {
@@ -277,9 +254,9 @@ private fun ComposePreviewElement.getCustomDeviceSize(): Dimension? =
 fun ComposePreviewElement.applyTo(renderConfiguration: Configuration) {
   configuration.applyTo(
     renderConfiguration,
-    { it.configurationManager.highestApiTarget },
-    { it.configurationManager.devices },
-    { it.configurationManager.getDefaultPreviewDevice() },
+    { it.settings.highestApiTarget },
+    { it.settings.devices },
+    { it.settings.getDefaultPreviewDevice() },
     getCustomDeviceSize()
   )
 }
@@ -346,8 +323,10 @@ internal constructor(
       PreviewConfiguration(
         apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
         theme = theme,
-        width = width.truncate(1, MAX_WIDTH) ?: UNDEFINED_DIMENSION,
-        height = height.truncate(1, MAX_HEIGHT) ?: UNDEFINED_DIMENSION,
+        width = width?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(1, MAX_WIDTH)
+            ?: UNDEFINED_DIMENSION,
+        height = height?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(1, MAX_HEIGHT)
+            ?: UNDEFINED_DIMENSION,
         locale = locale ?: "",
         fontScale = fontScale ?: 1f,
         uiMode = uiMode ?: 0,
@@ -386,7 +365,7 @@ interface ComposePreviewElement : PreviewElement {
  * [ComposePreviewElementInstance]s.
  */
 interface ComposePreviewElementTemplate : ComposePreviewElement {
-  fun instances(): Sequence<ComposePreviewElementInstance>
+  fun instances(renderContext: ModuleRenderContext? = null): Sequence<ComposePreviewElementInstance>
 }
 
 /** Definition of a preview element */
@@ -401,17 +380,8 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
   var hasAnimations = false
 
   override fun toPreviewXml(): PreviewXmlBuilder {
-    val matchParent = displaySettings.showDecoration
-    val width =
-      dimensionToString(
-        configuration.width,
-        if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT
-      )
-    val height =
-      dimensionToString(
-        configuration.height,
-        if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT
-      )
+    val width = dimensionToString(configuration.width, VALUE_WRAP_CONTENT)
+    val height = dimensionToString(configuration.height, VALUE_WRAP_CONTENT)
     val xmlBuilder =
       PreviewXmlBuilder(COMPOSE_VIEW_ADAPTER_FQN)
         .androidAttribute(ATTR_LAYOUT_WIDTH, width)
@@ -494,7 +464,7 @@ class SingleComposePreviewElementInstance(
   }
 }
 
-private class ParametrizedComposePreviewElementInstance(
+class ParametrizedComposePreviewElementInstance(
   private val basePreviewElement: ComposePreviewElement,
   parameterName: String,
   val providerClassFqn: String,
@@ -541,10 +511,12 @@ class ParametrizedComposePreviewElementTemplate(
   val parameterProviders: Collection<PreviewParameter>
 ) : ComposePreviewElementTemplate, ComposePreviewElement by basePreviewElement {
   /**
-   * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The will be
-   * [ComposePreviewElement] populated with data from the parameter providers.
+   * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The [ComposePreviewElement]s
+   * will be populated with data from the parameter providers.
    */
-  override fun instances(): Sequence<ComposePreviewElementInstance> {
+  override fun instances(
+    renderContext: ModuleRenderContext?
+  ): Sequence<ComposePreviewElementInstance> {
     assert(parameterProviders.isNotEmpty()) { "ParametrizedPreviewElement used with no parameters" }
 
     val file = basePreviewElement.containingFile ?: return sequenceOf()
@@ -553,79 +525,89 @@ class ParametrizedComposePreviewElementTemplate(
         .warn("Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
-    val moduleRenderContext = forFile(file)
-    val classLoader =
-      StudioModuleClassLoaderManager.get()
-        .getPrivate(
-          ParametrizedComposePreviewElementTemplate::class.java.classLoader,
-          moduleRenderContext,
-          this
-        )
-    try {
-      return parameterProviders
-        .map { previewParameter ->
-          try {
-            val parameterProviderClass =
-              classLoader.loadClass(previewParameter.providerClassFqn).kotlin
-            val parameterProviderSizeMethod =
-              parameterProviderClass.functions
-                .single { "getCount" == it.name }
-                .also { it.isAccessible = true }
-            val parameterProvider =
-              parameterProviderClass.constructors
-                .single { it.parameters.isEmpty() } // Find the default constructor
-                .also { it.isAccessible = true }
-                .call()
-            val providerCount =
-              min(
-                (parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0),
-                previewParameter.limit
-              )
+    val moduleRenderContext = renderContext ?: forFile(file)
+    ModuleClassLoaderManager.get()
+      .getPrivate(
+        ParametrizedComposePreviewElementTemplate::class.java.classLoader,
+        moduleRenderContext
+      )
+      .useWithClassLoader { classLoader ->
+        return parameterProviders
+          .map { previewParameter -> loadPreviewParameterProvider(classLoader, previewParameter) }
+          .first()
+      }
+  }
 
-            return (0 until providerCount)
-              .map { index ->
-                ParametrizedComposePreviewElementInstance(
-                  basePreviewElement = basePreviewElement,
-                  parameterName = previewParameter.name,
-                  index = index,
-                  maxIndex = providerCount - 1,
-                  providerClassFqn = previewParameter.providerClassFqn
-                )
-              }
-              .asSequence()
-          } catch (e: Throwable) {
-            Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
-              .warn(
-                "Failed to instantiate ${previewParameter.providerClassFqn} parameter provider",
-                e
-              )
-          }
-          // Return a fake SingleComposePreviewElementInstance here. ComposeRenderErrorContributor
-          // should handle the exception that will be
-          // thrown for this method not being found.
-          // TODO(b/238315228): propagate the exception so it's shown on the issues panel.
-          val fakeElementFqn =
-            "${previewParameter.providerClassFqn}.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD"
-          return sequenceOf(
-            SingleComposePreviewElementInstance(
-              fakeElementFqn,
-              PreviewDisplaySettings(
-                basePreviewElement.displaySettings.name,
-                null,
-                false,
-                false,
-                null
-              ),
-              null,
-              null,
-              PreviewConfiguration.cleanAndGet()
-            )
+  private fun loadPreviewParameterProvider(
+    classLoader: ClassLoader,
+    previewParameter: PreviewParameter
+  ): Sequence<ComposePreviewElementInstance> {
+    try {
+      val parameterProviderClass = classLoader.loadClass(previewParameter.providerClassFqn)
+      val parameterProviderSizeMethod =
+        parameterProviderClass.methods
+          .single { "getCount" == it.name }
+          .also { it.isAccessible = true }
+      val parameterProvider =
+        parameterProviderClass.constructors
+          .single { it.parameters.isEmpty() } // Find the default constructor
+          .also { it.isAccessible = true }
+          .newInstance()
+      val parameterProviderSize = parameterProviderSizeMethod.invoke(parameterProvider) as? Int ?: 0
+      val providerCount = min(parameterProviderSize, previewParameter.limit)
+
+      if (providerCount == 0) {
+        // Returns a ParametrizedComposePreviewElementInstance with the error:
+        // "IndexOutOfBoundsException: Sequence doesn't contain element at index 0."
+        // In case providerCount is 0 we want to show an error instance that there are no
+        // PreviewParameters instead of showing nothing.
+        // TODO(b/238315228): propagate the exception so it's shown on the issues panel instead of
+        // forcing the error changing the index.
+        Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
+          .warn(
+            "Failed to instantiate ${previewParameter.providerClassFqn} parameter provider: no parameters found"
           )
-        }
-        .first()
-    } finally {
-      StudioModuleClassLoaderManager.get().release(classLoader, this)
+        return sequenceOf(
+          ParametrizedComposePreviewElementInstance(
+            basePreviewElement = basePreviewElement,
+            parameterName = previewParameter.name,
+            index = 0,
+            maxIndex = 0,
+            providerClassFqn = previewParameter.providerClassFqn
+          )
+        )
+      } else {
+        return (0 until providerCount)
+          .map { index ->
+            ParametrizedComposePreviewElementInstance(
+              basePreviewElement = basePreviewElement,
+              parameterName = previewParameter.name,
+              index = index,
+              maxIndex = providerCount - 1,
+              providerClassFqn = previewParameter.providerClassFqn
+            )
+          }
+          .asSequence()
+      }
+    } catch (e: Throwable) {
+      Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
+        .warn("Failed to instantiate ${previewParameter.providerClassFqn} parameter provider", e)
     }
+    // Return a fake SingleComposePreviewElementInstance here. ComposeRenderErrorContributor
+    // should handle the exception that will be
+    // thrown for this method not being found.
+    // TODO(b/238315228): propagate the exception so it's shown on the issues panel.
+    val fakeElementFqn =
+      "${previewParameter.providerClassFqn}.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD"
+    return sequenceOf(
+      SingleComposePreviewElementInstance(
+        fakeElementFqn,
+        PreviewDisplaySettings(basePreviewElement.displaySettings.name, null, false, false, null),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet()
+      )
+    )
   }
 
   override fun equals(other: Any?): Boolean {

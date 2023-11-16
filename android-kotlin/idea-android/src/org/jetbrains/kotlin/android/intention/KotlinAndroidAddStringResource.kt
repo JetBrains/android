@@ -275,9 +275,16 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
 
     private fun KtClassOrObject.isInnerClass() = (this as? KtClass)?.isInner() ?: false
 
+    @OptIn(KtAllowAnalysisOnEdt::class)
     private fun KtFunction.isSubclassExtensionOfAny(baseClasses: Collection<String>): Boolean {
         if (isK2Plugin()) {
-            error("K2 not supported in Android Studio Flamingo")
+            allowAnalysisOnEdt {
+                analyze(this) {
+                    val functionSymbol = this@isSubclassExtensionOfAny.getSymbol() as? KtFunctionLikeSymbol ?: return false
+                    val receiverType = functionSymbol.receiverParameter?.type ?: return false
+                    return baseClasses.any { isSubclassOf(receiverType, it, strict = false) }
+                }
+            }
         }
         val descriptor = unsafeResolveToDescriptor() as FunctionDescriptor
         val extendedTypeDescriptor = descriptor.extensionReceiverParameter?.type?.constructor?.declarationDescriptor

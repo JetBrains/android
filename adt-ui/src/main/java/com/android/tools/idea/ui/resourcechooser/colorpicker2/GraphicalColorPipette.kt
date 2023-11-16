@@ -302,7 +302,7 @@ private abstract class PickerDialogBase(val parent: JComponent, val callback: Co
               // According to the documentation, Toolkit.createCustomCursor() may hang due to some unexpected cases.
               // We future here to avoid potential hanging issue.
               val future = ApplicationManager.getApplication().executeOnPooledThread(
-                Callable { parentComponent.toolkit.createCustomCursor(image, center, CURSOR_NAME) })
+                Callable<Cursor> { parentComponent.toolkit.createCustomCursor(image, center, CURSOR_NAME) })
               // If it spent more than DURATION_COLOR_UPDATING milliseconds to get the cursor, we drop it and just use the old cursor.
               picker.cursor = future.get(DURATION_COLOR_UPDATING, TimeUnit.MILLISECONDS)
             }

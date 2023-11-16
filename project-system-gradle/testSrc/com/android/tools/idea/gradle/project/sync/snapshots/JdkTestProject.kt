@@ -20,9 +20,11 @@ import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
 import java.io.File
+import java.nio.file.Files
 
 sealed class JdkTestProject(
   override val template: String,
@@ -38,16 +40,24 @@ sealed class JdkTestProject(
   val agpVersion: AgpVersionSoftwareEnvironmentDescriptor
 ) : TemplateBasedTestProject {
 
+  class SimpleApplicationWithoutIdea(
+    agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+  ) : JdkTestProject(
+    agpVersion = agpVersion,
+    template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION
+  )
+
   class SimpleApplication(
     agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
     ideaGradleJdk: String? = null,
     ideaProjectJdk: String? = null,
-    localPropertiesJdkPath: String? = null,
-    gradlePropertiesJdkPath: String? = null
+    gradleLocalJavaHome: String? = null,
+    gradlePropertiesJavaHome: String? = null
   ) : JdkTestProject(
     agpVersion = agpVersion,
     template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
     patch = { projectRoot ->
+      Files.createDirectory(projectRoot.resolve(DIRECTORY_STORE_FOLDER).toPath())
       ideaGradleJdk?.let {
         ProjectJdkUtils.setProjectIdeaGradleJdk(
           projectRoot,
@@ -57,11 +67,11 @@ sealed class JdkTestProject(
       ideaProjectJdk?.let {
         ProjectJdkUtils.setProjectIdeaMiscJdk(projectRoot, it)
       }
-      localPropertiesJdkPath?.let {
-        ProjectJdkUtils.setProjectLocalPropertiesJdk(projectRoot, it)
+      gradleLocalJavaHome?.let {
+        ProjectJdkUtils.setProjectGradleLocalJavaHome(projectRoot, it)
       }
-      gradlePropertiesJdkPath?.let {
-        ProjectJdkUtils.setProjectGradlePropertiesJdk(projectRoot, it)
+      gradlePropertiesJavaHome?.let {
+        ProjectJdkUtils.setProjectGradlePropertiesJavaHome(projectRoot, it)
       }
     }
   )
@@ -74,12 +84,13 @@ sealed class JdkTestProject(
     agpVersion = agpVersion,
     template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
     patch = { projectRoot ->
+      Files.createDirectory(projectRoot.resolve(DIRECTORY_STORE_FOLDER).toPath())
       cloneProjectRootIntoMultipleGradleRoots(
         projectRoot,
         gradleRoots = roots,
         configGradleRoot = { gradleRootFile, gradleRoot ->
-          gradleRoot.localPropertiesJdkPath?.let {
-            ProjectJdkUtils.setProjectLocalPropertiesJdk(gradleRootFile, it)
+          gradleRoot.gradleLocalJavaHome?.let {
+            ProjectJdkUtils.setProjectGradleLocalJavaHome(gradleRootFile, it)
           }
         },
         configProjectRoot = {

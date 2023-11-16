@@ -21,10 +21,10 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.rendering.RenderResult
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -36,15 +36,14 @@ import java.awt.event.MouseEvent.BUTTON1
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 
-class NlVisibilityGutterPanelTest: LayoutTestCase() {
+class NlVisibilityGutterPanelTest : LayoutTestCase() {
 
   private var myPanel: NlVisibilityGutterPanel? = null
   private var myModel: SyncNlModel? = null
   private var myTree: NlComponentTree? = null
   private var mySurface: NlDesignSurface? = null
 
-  @Volatile
-  private var myDisposable: Disposable? = null
+  @Volatile private var myDisposable: Disposable? = null
 
   @Throws(Exception::class)
   override fun setUp() {
@@ -52,19 +51,25 @@ class NlVisibilityGutterPanelTest: LayoutTestCase() {
     myPanel = NlVisibilityGutterPanel()
     myModel = generateModelWithFlow()
     myModel!!.getUpdateQueue().setPassThrough(true)
-    // If using a lambda, it can be reused by the JVM and causing an exception because the Disposable is already disposed.
-    myDisposable = object : Disposable {
-      override fun dispose() { }
-    }
-    mySurface = NlDesignSurface.builder(project, myDisposable!!)
-      .setSceneManagerProvider { surface: NlDesignSurface, model: NlModel ->
-        object : SyncLayoutlibSceneManager(surface, model as SyncNlModel) {
-          override fun renderAsync(trigger: LayoutEditorRenderResult.Trigger?, ignore: AtomicBoolean): CompletableFuture<RenderResult> {
-            return CompletableFuture.completedFuture(null)
+    // If using a lambda, it can be reused by the JVM and causing an exception because the
+    // Disposable is already disposed.
+    myDisposable =
+      object : Disposable {
+        override fun dispose() {}
+      }
+    mySurface =
+      NlDesignSurface.builder(project, myDisposable!!)
+        .setSceneManagerProvider { surface: NlDesignSurface, model: NlModel ->
+          object : SyncLayoutlibSceneManager(surface, model as SyncNlModel) {
+            override fun renderAsync(
+              trigger: LayoutEditorRenderResult.Trigger?,
+              ignore: AtomicBoolean
+            ): CompletableFuture<RenderResult> {
+              return CompletableFuture.completedFuture(null)
+            }
           }
         }
-      }
-      .build()
+        .build()
     mySurface!!.setModel(myModel)
     myTree = NlComponentTree(project, mySurface, myPanel)
     myTree!!.updateQueue.isPassThrough = true
@@ -78,15 +83,15 @@ class NlVisibilityGutterPanelTest: LayoutTestCase() {
     try {
       Disposer.dispose(myModel!!)
       Disposer.dispose(myDisposable!!)
-      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+      // Null out all fields, since otherwise they're retained for the lifetime of the suite (which
+      // can be long if e.g. you're running many
       // tests through IJ)
       myDisposable = null
       mySurface = null
       myModel = null
       myTree = null
       myPanel = null
-    }
-    finally {
+    } finally {
       super.tearDown()
     }
   }
@@ -159,48 +164,53 @@ class NlVisibilityGutterPanelTest: LayoutTestCase() {
   }
 
   private fun generateModelWithFlow(): SyncNlModel {
-    val builder = model("visibility_gutter_panel.xml",
-                        component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
-                          .withBounds(0, 0, 1000, 1000)
-                          .matchParentWidth()
-                          .matchParentHeight()
-                          .children(
-                            component(SdkConstants.BUTTON)
-                              .withBounds(0, 0, 200, 200)
-                              .id("@+id/button1")
-                              .wrapContentWidth()
-                              .wrapContentHeight(),
-                            component(SdkConstants.BUTTON)
-                              .withBounds(0, 0, 200, 200)
-                              .id("@+id/button2")
-                              .wrapContentWidth()
-                              .wrapContentHeight(),
-                            component(SdkConstants.BUTTON)
-                              .withBounds(0, 0, 200, 200)
-                              .id("@+id/button3")
-                              .wrapContentWidth()
-                              .wrapContentHeight(),
-                            component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
-                              .id("@+id/layout1")
-                              .withBounds(0, 0, 500, 500)
-                              .matchParentWidth()
-                              .matchParentHeight()
-                              .children(
-                                component(SdkConstants.TEXT_VIEW)
-                                  .withBounds(0, 0, 100, 100)
-                                  .id("@+id/text1")
-                                  .wrapContentWidth()
-                                  .wrapContentHeight(),
-                                component(SdkConstants.TEXT_VIEW)
-                                  .withBounds(0, 0, 100, 100)
-                                  .id("@+id/text2")
-                                  .wrapContentWidth()
-                                  .wrapContentHeight(),
-                                component(SdkConstants.TEXT_VIEW)
-                                  .withBounds(0, 0, 100, 100)
-                                  .id("@+id/text3")
-                                  .wrapContentWidth()
-                                  .wrapContentHeight())))
+    val builder =
+      model(
+        "visibility_gutter_panel.xml",
+        component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
+          .withBounds(0, 0, 1000, 1000)
+          .matchParentWidth()
+          .matchParentHeight()
+          .children(
+            component(SdkConstants.BUTTON)
+              .withBounds(0, 0, 200, 200)
+              .id("@+id/button1")
+              .wrapContentWidth()
+              .wrapContentHeight(),
+            component(SdkConstants.BUTTON)
+              .withBounds(0, 0, 200, 200)
+              .id("@+id/button2")
+              .wrapContentWidth()
+              .wrapContentHeight(),
+            component(SdkConstants.BUTTON)
+              .withBounds(0, 0, 200, 200)
+              .id("@+id/button3")
+              .wrapContentWidth()
+              .wrapContentHeight(),
+            component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
+              .id("@+id/layout1")
+              .withBounds(0, 0, 500, 500)
+              .matchParentWidth()
+              .matchParentHeight()
+              .children(
+                component(SdkConstants.TEXT_VIEW)
+                  .withBounds(0, 0, 100, 100)
+                  .id("@+id/text1")
+                  .wrapContentWidth()
+                  .wrapContentHeight(),
+                component(SdkConstants.TEXT_VIEW)
+                  .withBounds(0, 0, 100, 100)
+                  .id("@+id/text2")
+                  .wrapContentWidth()
+                  .wrapContentHeight(),
+                component(SdkConstants.TEXT_VIEW)
+                  .withBounds(0, 0, 100, 100)
+                  .id("@+id/text3")
+                  .wrapContentWidth()
+                  .wrapContentHeight()
+              )
+          )
+      )
     return builder.build()
   }
 

@@ -43,4 +43,8 @@
 
   </FrameLayout>
 
+  <LinearLayout
+      framework:layout_width="wrap_content"
+      framework:layout_height="wrap_content"/>
+
 </RelativeLayout>

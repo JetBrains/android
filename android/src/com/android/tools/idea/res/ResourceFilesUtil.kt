@@ -18,19 +18,8 @@ package com.android.tools.idea.res
 
 import com.android.resources.ResourceFolderType
 import com.intellij.openapi.vfs.VirtualFile
-import java.io.File
 
 /**
  * Studio Independent resource folder util functions
  */
 fun getFolderType(file: VirtualFile?): ResourceFolderType? = file?.parent?.let { ResourceFolderType.getFolderType(it.name) }
-
-/**
- * Checks if the given path points to a file resource. The resource path can point
- * to either file on disk, or a ZIP file entry. If the candidate path contains
- * "file:" or "apk:" scheme prefix, the method returns true without doing any I/O.
- * Otherwise, the local file system is checked for existence of the file.
- */
-fun isFileResource(candidatePath: String): Boolean =
-  candidatePath.startsWith("file:") || candidatePath.startsWith("apk:") || candidatePath.startsWith("jar:") ||
-  File(candidatePath).isFile

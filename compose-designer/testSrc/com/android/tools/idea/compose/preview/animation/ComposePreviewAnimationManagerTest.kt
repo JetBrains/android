@@ -29,9 +29,9 @@ import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnim
 import com.android.tools.idea.rendering.classloading.NopClassLocator
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
-import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
-import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
-import com.android.tools.idea.rendering.classloading.toClassTransform
+import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.rendering.classloading.toClassTransform
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
@@ -43,11 +43,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.util.containers.getIfSingle
 import com.intellij.util.ui.UIUtil
-import java.awt.Dimension
-import java.io.IOException
-import java.util.stream.Collectors
-import javax.swing.JComponent
-import javax.swing.JSlider
 import org.jetbrains.android.uipreview.createUrlClassLoader
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -59,6 +54,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.Mockito
+import java.awt.Dimension
+import java.io.IOException
+import java.util.stream.Collectors
+import javax.swing.JComponent
+import javax.swing.JSlider
 
 @RunWith(Parameterized::class)
 class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : InspectorTests() {

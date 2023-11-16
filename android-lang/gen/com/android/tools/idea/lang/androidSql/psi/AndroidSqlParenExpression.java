@@ -24,7 +24,7 @@ import com.intellij.psi.PsiElement;
 
 public interface AndroidSqlParenExpression extends AndroidSqlExpression {
 
-  @Nullable
-  AndroidSqlExpression getExpression();
+  @NotNull
+  List<AndroidSqlExpression> getExpressionList();
 
 }

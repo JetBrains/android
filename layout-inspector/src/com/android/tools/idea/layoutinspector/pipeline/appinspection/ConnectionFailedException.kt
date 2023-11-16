@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,8 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceEx
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionMissingException
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
-import com.android.tools.idea.layoutinspector.pipeline.ErrorInfo
 import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.MINIMUM_COMPOSE_COORDINATE
-import com.android.tools.idea.layoutinspector.pipeline.info
 import com.android.tools.idea.transport.TransportNonExistingFileException
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.intellij.openapi.diagnostic.Logger
@@ -37,65 +35,95 @@ const val GMAVEN_HOSTNAME = "maven.google.com"
 /**
  * A problem was detected in one of the app inspection inspectors.
  *
- * Include a [message] for the user and an error [code] for analytics tracking.
+ * @param message User visible error message.
+ * @param code The error code used for analytics.
  */
-class ConnectionFailedException(message: String, val code: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE): Exception(message)
+class ConnectionFailedException(
+  message: String,
+  val code: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
+) : Exception(message)
 
 /**
- * Convert an exception to an [ErrorInfo] which has enough information for generating a message for the user and logging to analytics.
- * If the exception is unexpected (i.e. we cannot predict a proper user message) then the exception is logged to the crash db.
+ * An error description with an error [code] and optional [args] for generating a message.
+ *
+ * @param code The error code used for analytics.
+ * @param args The arguments to use in creating a string representation of the error
  */
-val Throwable.errorCode: ErrorInfo
-  get() = when (this) {
-    is ConnectionFailedException -> code.info()
-    is AppInspectionCannotFindAdbDeviceException -> AttachErrorCode.APP_INSPECTION_CANNOT_FIND_DEVICE.info()
-    is AppInspectionProcessNoLongerExistsException -> AttachErrorCode.APP_INSPECTION_PROCESS_NO_LONGER_EXISTS.info()
-    is AppInspectionVersionIncompatibleException -> AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION.info()
-    is AppInspectionVersionMissingException -> AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND.info()
-    is AppInspectionLibraryMissingException -> AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY.info()
-    is AppInspectionAppProguardedException -> AttachErrorCode.APP_INSPECTION_PROGUARDED_APP.info()
-    is AppInspectionArtifactNotFoundException -> when {
-      // The app may be using a SNAPSHOT for compose:ui:ui but have not specified the VM flag use.snapshot.jar:
-      artifactCoordinate.version.endsWith("-SNAPSHOT") -> AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED
-      message?.contains(GMAVEN_HOSTNAME) == true -> AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD
-      artifactCoordinate.sameArtifact(MINIMUM_COMPOSE_COORDINATE) -> AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND
-      else -> AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND
-    }.info("artifact" to artifactCoordinate.toString())
-    is AppInspectionServiceException -> {
-      logUnexpectedError(InspectorConnectionError(this))
-      AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR.info()
-    }
-    is TransportNonExistingFileException -> AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND.info("path" to path)
-    else -> {
-      logUnexpectedError(InspectorConnectionError(this))
-      AttachErrorCode.UNKNOWN_ERROR_CODE.info()
-    }
+data class AttachErrorInfo(val code: AttachErrorCode, val args: Map<String, String>)
+
+/**
+ * Convert an exception to an [AttachErrorInfo] which has enough information for generating a
+ * message for the user and logging to analytics.
+ */
+fun Throwable.toAttachErrorInfo(): AttachErrorInfo {
+  return when (this) {
+    is ConnectionFailedException -> code.toInfo()
+    is AppInspectionCannotFindAdbDeviceException ->
+      AttachErrorCode.APP_INSPECTION_CANNOT_FIND_DEVICE.toInfo()
+    is AppInspectionProcessNoLongerExistsException ->
+      AttachErrorCode.APP_INSPECTION_PROCESS_NO_LONGER_EXISTS.toInfo()
+    is AppInspectionVersionIncompatibleException ->
+      AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION.toInfo()
+    is AppInspectionVersionMissingException ->
+      AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND.toInfo()
+    is AppInspectionLibraryMissingException ->
+      AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY.toInfo()
+    is AppInspectionAppProguardedException -> AttachErrorCode.APP_INSPECTION_PROGUARDED_APP.toInfo()
+    is TransportNonExistingFileException ->
+      AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND.toInfo("path" to path)
+    is AppInspectionArtifactNotFoundException -> this.toAttachErrorInfo()
+    is AppInspectionServiceException -> AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR.toInfo()
+    else -> AttachErrorCode.UNKNOWN_ERROR_CODE.toInfo()
   }
+}
 
 /**
- * Convert a [LibraryCompatbilityInfo.Status] to [ErrorInfo].
- * <p/>An unexpected status will be logged to the crash db.
+ * Convert a [LibraryCompatbilityInfo.Status] to [AttachErrorInfo].
+ *
+ * An unexpected status will be logged to the crash db.
  */
-val LibraryCompatbilityInfo.Status?.errorCode: ErrorInfo
-  get() = when (this) {
-    LibraryCompatbilityInfo.Status.INCOMPATIBLE -> AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION
-    LibraryCompatbilityInfo.Status.APP_PROGUARDED -> AttachErrorCode.APP_INSPECTION_PROGUARDED_APP
-    LibraryCompatbilityInfo.Status.VERSION_MISSING -> AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND
-    LibraryCompatbilityInfo.Status.LIBRARY_MISSING -> AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY
-    else -> {
-      logUnexpectedError(InspectorConnectionError("Unexpected status $this"))
-      AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR
+fun LibraryCompatbilityInfo.Status?.toAttachErrorInfo(): AttachErrorInfo {
+  val errorCode =
+    when (this) {
+      LibraryCompatbilityInfo.Status.INCOMPATIBLE ->
+        AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION
+      LibraryCompatbilityInfo.Status.APP_PROGUARDED -> AttachErrorCode.APP_INSPECTION_PROGUARDED_APP
+      LibraryCompatbilityInfo.Status.VERSION_MISSING ->
+        AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND
+      LibraryCompatbilityInfo.Status.LIBRARY_MISSING ->
+        AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY
+      else -> {
+        logUnexpectedError(InspectorConnectionError("Unexpected status $this"))
+        AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR
+      }
     }
-  }.info()
+  return errorCode.toInfo()
+}
 
 /**
- * Log this unexpected exception to the crash db such that we can find these in go/studio-exceptions, but do not throw a new exception
- * since we cannot throw exception inside a coroutine error handler.
+ * Log unexpected exception, so we can see them in idea.log and are reported in the crash db at
+ * go/studio-exceptions.
  */
 fun logUnexpectedError(error: InspectorConnectionError) {
   try {
     Logger.getInstance(ConnectionFailedException::class.java).error(error)
-  }
-  catch (_: Throwable) {
-  }
+  } catch (_: Throwable) {}
 }
+
+private fun AppInspectionArtifactNotFoundException.toAttachErrorInfo(): AttachErrorInfo {
+  val errorCode =
+    when {
+      // The app may be using a SNAPSHOT for compose:ui:ui but have not specified the VM flag
+      // use.snapshot.jar:
+      artifactCoordinate.version.endsWith("-SNAPSHOT") ->
+        AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED
+      message?.contains(GMAVEN_HOSTNAME) == true ->
+        AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD
+      artifactCoordinate.sameArtifact(MINIMUM_COMPOSE_COORDINATE) ->
+        AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND
+      else -> AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND
+    }
+  return errorCode.toInfo("artifact" to artifactCoordinate.toString())
+}
+
+fun AttachErrorCode.toInfo(vararg args: Pair<String, String>) = AttachErrorInfo(this, args.toMap())

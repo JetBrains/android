@@ -31,7 +31,7 @@ import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 
 class DownloadsInfoPageView(
-  private val pageModel: DownloadsInfoPageModel,
+  val pageModel: DownloadsInfoPageModel,
   val actionHandlers: ViewActionHandlers,
   val disposable: Disposable,
   ) : BuildAnalyzerDataPageView {

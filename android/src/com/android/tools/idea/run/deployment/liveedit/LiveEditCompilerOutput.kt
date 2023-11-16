@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.intellij.openapi.module.Module
 
 enum class LiveEditClassType {
@@ -25,6 +26,7 @@ enum class LiveEditClassType {
 class LiveEditCompiledClass(val name: String, var data: ByteArray, val module: Module?, val type: LiveEditClassType)
 
 data class LiveEditCompilerOutput internal constructor (val classes: List<LiveEditCompiledClass> = emptyList(),
+                                                        val irClasses: List<IrClass> = emptyList(),
                                                         val groupIds: List<Int> = emptyList(),
                                                         val resetState: Boolean = false) {
 
@@ -45,11 +47,18 @@ data class LiveEditCompilerOutput internal constructor (val classes: List<LiveEd
 
   internal class Builder(
     var classes: MutableList<LiveEditCompiledClass> = ArrayList(),
-    private var groupIds: ArrayList<Int> = ArrayList(),
+    val groupIds: MutableSet<Int> = mutableSetOf(),
     var resetState: Boolean = false) {
+
+    private val irClasses = mutableListOf<IrClass>()
 
     fun addClass(clazz: LiveEditCompiledClass) : Builder {
       classes.add(clazz)
+      return this
+    }
+
+    fun addIrClass(irClass: IrClass) : Builder {
+      irClasses.add(irClass)
       return this
     }
 
@@ -58,6 +67,6 @@ data class LiveEditCompilerOutput internal constructor (val classes: List<LiveEd
       return this
     }
 
-    fun build() = LiveEditCompilerOutput(classes, groupIds, resetState)
+    fun build() = LiveEditCompilerOutput(classes, irClasses, groupIds.toList(), resetState)
   }
 }

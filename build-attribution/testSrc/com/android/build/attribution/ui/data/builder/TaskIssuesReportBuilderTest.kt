@@ -26,7 +26,6 @@ import com.android.build.attribution.ui.data.TaskIssueType.ALWAYS_RUN_TASKS
 import com.android.build.attribution.ui.data.TaskIssueType.TASK_SETUP_ISSUE
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
-import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

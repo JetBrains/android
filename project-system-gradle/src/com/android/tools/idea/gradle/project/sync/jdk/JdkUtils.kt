@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.jdk
 
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
+import com.android.tools.idea.gradle.util.GradleConfigProperties
+import com.android.tools.idea.sdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.sdk.extensions.isEqualTo
@@ -29,6 +31,8 @@ import com.intellij.openapi.roots.ProjectRootManager
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
+import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
+import java.io.File
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
@@ -91,16 +95,64 @@ object JdkUtils {
   }
 
   /**
+   * Configure given a project with single gradle root the [GradleProjectSettings.setGradleJvm] to use the Gradle JDK.
+   * @param project Project to be modified
+   * @param jdkPath Jdk absolute path
+   */
+  fun setProjectGradleJdkWithSingleGradleRoot(project: Project, jdkPath: @SystemIndependent String) {
+    project.basePath?.let { gradleRootPath ->
+      setProjectGradleJdk(project, gradleRootPath, jdkPath)
+    }
+  }
+
+  /**
+   * Configure given a gradle root project the [GradleProjectSettings.setGradleJvm] to use the Gradle JDK
+   * @param project Project to be modified
+   * @param gradleRootPath Gradle project root absolute path
+   * @param jdkPath Jdk absolute path
+   * @return The jdkTable entry created only in case the project isn't using the [USE_GRADLE_LOCAL_JAVA_HOME] that doesn't require
+   * a valid entry in order to trigger gradle sync
+   */
+  @Suppress("UnstableApiUsage")
+  fun setProjectGradleJdk(project: Project, gradleRootPath: @SystemIndependent String, jdkPath: @SystemIndependent String): String? {
+    val projectSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(gradleRootPath)
+    return when (projectSettings?.gradleJvm) {
+      USE_GRADLE_LOCAL_JAVA_HOME -> {
+        GradleConfigProperties(File(gradleRootPath)).apply {
+          javaHome = File(jdkPath)
+          save()
+        }
+        null
+      }
+      else -> {
+        val jdkTableEntry = addOrRecreateDedicatedJdkTableEntry(jdkPath)
+        updateProjectGradleJvm(project, gradleRootPath, jdkTableEntry)
+        jdkTableEntry
+      }
+    }
+  }
+
+  /**
    * Configure given a gradle root project the [GradleProjectSettings.setGradleJvm] to use the Embedded JDK
    * @param project Project to be modified
    * @param gradleRootPath Gradle project root absolute path
    * @return The jdkTable entry created for the embedded jdk
    */
-  fun setProjectGradleJvmToUseEmbeddedJdk(project: Project, gradleRootPath: @SystemIndependent String): String {
+  fun setProjectGradleJvmToUseEmbeddedJdk(project: Project, gradleRootPath: @SystemIndependent String): String? {
     return IdeSdks.getInstance().embeddedJdkPath.absolutePathString().let {
-      val jdkTableEntry = addOrRecreateDedicatedJdkTableEntry(it)
-      updateProjectGradleJvm(project, gradleRootPath, jdkTableEntry)
-      jdkTableEntry
+      setProjectGradleJdk(project, gradleRootPath, it)
+    }
+  }
+
+  /**
+   * Configure given a gradle root project the [GradleProjectSettings.setGradleJvm] to use the Default JDK
+   * @param project Project to be modified
+   * @param gradleRootPath Gradle project root absolute path
+   * @return The jdkTable entry created for the Default jdk
+   */
+  fun setProjectGradleJvmToUseDefaultJdk(project: Project, gradleRootPath: @SystemIndependent String): String? {
+    return GradleDefaultJdkPathStore.jdkPath?.let {
+      setProjectGradleJdk(project, gradleRootPath, it)
     }
   }
 
@@ -124,6 +176,4 @@ object JdkUtils {
     val projectSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(gradleRootPath)
     projectSettings?.gradleJvm = gradleJvm
   }
-
-
 }

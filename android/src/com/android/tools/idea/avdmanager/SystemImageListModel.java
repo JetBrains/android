@@ -45,7 +45,6 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.ColumnInfo;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
@@ -107,7 +106,14 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
   @Override
   public void setItems(@NotNull List<SystemImageDescription> items) {
     myUpdating = true;
-    super.setItems(items);
+
+    if (getItems().equals(items)) {
+      fireTableDataChanged();
+    }
+    else {
+      super.setItems(items);
+    }
+
     myUpdating = false;
   }
 

@@ -25,10 +25,7 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.IAndroidTarget
-import com.android.sdklib.SdkVersionInfo
-import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
-import com.android.sdklib.SdkVersionInfo.LOWEST_COMPILE_SDK_VERSION
 import com.android.sdklib.getFullApiName
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
@@ -40,15 +37,14 @@ import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision
 import com.android.tools.idea.npw.invokeLater
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionException
-import java.io.File
 import java.nio.file.Path
 import java.util.function.Consumer
 import kotlin.math.max
@@ -86,8 +82,9 @@ class AndroidVersionsInfo {
    */
   fun getKnownTargetVersions(formFactor: FormFactor, minSdkLevel: Int): MutableList<VersionItem> {
     val minSdkLevel = minSdkLevel.coerceAtLeast(formFactor.minOfflineApiLevel)
+    val maxSdkLevel = formFactor.maxOfflineApiLevel
     return knownTargetVersions.filter {
-      formFactor.isAvailable(minSdkLevel, it.minApiLevel) || it.androidTarget?.version?.isPreview == true
+      formFactor.isAvailable(minSdkLevel .. maxSdkLevel, it.minApiLevel) || it.androidTarget?.version?.isPreview == true
     }.toMutableList()
   }
 
@@ -281,15 +278,22 @@ private fun getPackageList(requestedPaths: Collection<String>,
 }
 
 private fun filterPkgDesc(p: RepoPackage, formFactor: FormFactor, minSdkLevel: Int): Boolean =
-  p.typeDetails is ApiDetailsType && doFilter(formFactor, minSdkLevel, getTag(p), p.getFeatureLevel())
+  p.typeDetails is ApiDetailsType && doFilter(formFactor, minSdkLevel .. Int.MAX_VALUE, getTag(p), p.getFeatureLevel())
 
-private fun doFilter(formFactor: FormFactor, minSdkLevel: Int, tag: IdDisplay?, targetSdkLevel: Int): Boolean =
-  formFactor.isSupported(tag, targetSdkLevel) && targetSdkLevel >= minSdkLevel
+private fun doFilter(formFactor: FormFactor, sdkLevelRange: IntRange, tag: IdDisplay?, targetSdkLevel: Int): Boolean =
+  formFactor.isSupported(tag, targetSdkLevel) && targetSdkLevel in sdkLevelRange
 
 private fun RepoPackage.getFeatureLevel(): Int = getAndroidVersion(this).featureLevel
 
-private fun FormFactor.isAvailable(minSdkLevel: Int, targetSdkLevel: Int): Boolean =
-  doFilter(this, minSdkLevel, SystemImage.DEFAULT_TAG, targetSdkLevel)
+private fun FormFactor.isAvailable(sdkLevelRange: IntRange, targetSdkLevel: Int): Boolean =
+  doFilter(this, sdkLevelRange, defaultTag(), targetSdkLevel)
+
+private fun FormFactor.defaultTag() = when (this) {
+  FormFactor.MOBILE -> SystemImage.DEFAULT_TAG
+  FormFactor.WEAR -> SystemImage.WEAR_TAG
+  FormFactor.TV -> SystemImage.ANDROID_TV_TAG
+  FormFactor.AUTOMOTIVE -> SystemImage.AUTOMOTIVE_TAG
+}
 
 private fun getAndroidVersion(repoPackage: RepoPackage): AndroidVersion = (repoPackage.typeDetails as ApiDetailsType).androidVersion
 

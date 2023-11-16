@@ -74,7 +74,6 @@ abstract class GmdCodeCompletionTestBase : AndroidTestCase() {
     myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
     myFixture.completeBasic()
     callback()
-
   }
 
   protected fun managedVirtualDevicePropertyNameCompletionTestHelper(

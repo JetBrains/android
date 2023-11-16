@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.logcat.testing
 
+import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.runInEdtAndGet
@@ -28,6 +31,12 @@ internal class LogcatEditorRule(private val projectRule: ProjectRule) : External
   lateinit var editor: EditorEx
     private set
 
+  /**
+   * RangeMarker's are kept in the Document as weak reference (see IntervalTreeImpl#createGetter) so we need to keep them alive as long as
+   * they are valid.
+   */
+  private val markers = mutableListOf<RangeMarker>()
+
   override fun before() {
     editor = runInEdtAndGet { createLogcatEditor(projectRule.project) }
   }
@@ -35,4 +44,18 @@ internal class LogcatEditorRule(private val projectRule: ProjectRule) : External
   override fun after() {
     runInEdtAndWait { EditorFactory.getInstance().releaseEditor(editor) }
   }
+
+  fun putLogcatMessages(vararg messages: LogcatMessage, formatMessage: LogcatMessage.() -> String = LogcatMessage::toString) {
+    val document = editor.document
+    messages.forEach {
+      val start = document.textLength
+      val text = it.formatMessage()
+      document.insertString(start, "$text\n")
+      document.createRangeMarker(start, start + text.length).apply {
+        putUserData(LOGCAT_MESSAGE_KEY, it)
+        markers.add(this)
+      }
+    }
+  }
+
 }

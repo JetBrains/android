@@ -32,13 +32,10 @@ import com.android.tools.idea.execution.common.applychanges.CodeSwapAction;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.DeviceManagerToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.AGPUpgradeAssistantToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEventListener;
@@ -95,7 +92,6 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JToggleButtonFixture;
 import org.fest.swing.timing.Wait;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -124,20 +120,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       names.add(module.getName());
     }
     return names;
-  }
-
-  @NotNull
-  public AndroidModuleModel getAndroidProjectForModule(@NotNull String name) {
-    Module module = getModule(name);
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && AndroidModel.isRequired(facet)) {
-      // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
-      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-      if (androidModel != null) {
-        return androidModel;
-      }
-    }
-    throw new AssertionError("Unable to find AndroidGradleModel for module '" + name + "'");
   }
 
   @NotNull
@@ -479,6 +461,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   public static IdeFrameFixture actAndWaitForGradleProjectSyncToFinish(@Nullable Wait waitForSync,
                                                                        @NotNull Supplier<? extends IdeFrameFixture> ideFrame) {
+    return actAndWaitForGradleProjectSyncToFinish(waitForSync, ideFrame, false);
+  }
+
+  public static IdeFrameFixture actAndWaitForGradleProjectSyncToFinish(
+    @Nullable Wait waitForSync,
+    @NotNull Supplier<? extends IdeFrameFixture> ideFrame,
+    boolean isOpeningProject
+  ) {
     long beforeStartedTimeStamp = System.currentTimeMillis();
 
     IdeFrameFixture ideFixture = ideFrame.get();
@@ -491,7 +481,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     (waitForSync != null ? waitForSync : Wait.seconds(60))
       .expecting("syncing project '" + project.getName() + "' to finish")
-      .until(() -> GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp() > beforeStartedTimeStamp);
+      .until(() -> {
+        long lastTimestamp = GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp();
+        if (isOpeningProject && lastTimestamp > 0) {
+          // When opening the project, a sync is started, therefore lastTimestamp can be less than beforeStartedTimeStamp if sync
+          // finishes before this method is called.
+          return true;
+        }
+        return lastTimestamp > beforeStartedTimeStamp;
+      });
 
     if (GradleSyncState.getInstance(project).lastSyncFailed()) {
       fail("Sync failed. See logs.");
@@ -695,21 +693,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public DeviceManagerToolWindowFixture invokeDeviceManager() {
-    // The action button is prone to move during rendering so that robot.click()
-    // could miss.
-    // So, we use component's click here directly.
-    ActionButtonFixture actionButtonFixture = findActionButtonByActionId("Android.DeviceManager", 30);
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() {
-        actionButtonFixture.target().click();
-      }
-    });
-    return new DeviceManagerToolWindowFixture(this);
-  }
-
-  @NotNull
   public IdeSettingsDialogFixture invokeSdkManager() {
     ActionButton sdkButton = waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override protected boolean isMatching(@NotNull ActionButton actionButton) {
@@ -866,15 +849,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   /**
-   * Checks for text present in find tool window
+   * Tool Window Fixture
    *
-   * @param text string that need to checked in content tree.
-   *
-   * @return boolean returns whether the text is present in content tree.
+   * @return Tool Window Fixture.
    */
-  public boolean findToolWindowContains(String text){
-    return new FindToolWindowFixture.ContentFixture(this).contains(text);
+  public FindToolWindowFixture.ContentFixture getFindToolWindow(){
+    return new FindToolWindowFixture.ContentFixture(this);
   }
-
-
 }

@@ -57,10 +57,12 @@ fun ViewNode.Builder.ViewNode(init: ViewNode.Builder.() -> Unit) {
 }
 
 fun ViewBounds(layout: Rect, render: Quad? = null): Bounds {
-  return Bounds.newBuilder().apply {
-    this.layout = layout
-    render?.let { this.render = it }
-  }.build()
+  return Bounds.newBuilder()
+    .apply {
+      this.layout = layout
+      render?.let { this.render = it }
+    }
+    .build()
 }
 
 fun ViewRect(w: Int, h: Int): Rect = ViewRect(0, 0, w, h)
@@ -70,24 +72,28 @@ fun ViewRect(x: Int, y: Int, w: Int, h: Int): Rect {
 }
 
 fun ViewQuad(x0: Int, y0: Int, x1: Int, y1: Int, x2: Int, y2: Int, x3: Int, y3: Int): Quad {
-  return Quad.newBuilder().apply {
-    this.x0 = x0
-    this.y0 = y0
-    this.x1 = x1
-    this.y1 = y1
-    this.x2 = x2
-    this.y2 = y2
-    this.x3 = x3
-    this.y3 = y3
-  }.build()
+  return Quad.newBuilder()
+    .apply {
+      this.x0 = x0
+      this.y0 = y0
+      this.x1 = x1
+      this.y1 = y1
+      this.x2 = x2
+      this.y2 = y2
+      this.x3 = x3
+      this.y3 = y3
+    }
+    .build()
 }
 
 fun ViewResource(type: Int, namespace: Int, name: Int): Resource {
-  return Resource.newBuilder().apply {
-    this.type = type
-    this.namespace = namespace
-    this.name = name
-  }.build()
+  return Resource.newBuilder()
+    .apply {
+      this.type = type
+      this.namespace = namespace
+      this.name = name
+    }
+    .build()
 }
 
 fun ViewAppContext(theme: Resource): AppContext {

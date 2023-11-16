@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.helpers.androidGradlePluginVersionValues
-import com.android.tools.idea.gradle.structure.model.helpers.versionValues
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
+import com.android.tools.idea.gradle.structure.model.helpers.versionValues
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.KnownValues
@@ -42,7 +42,7 @@ import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.google.common.util.concurrent.ListenableFuture
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import com.intellij.util.containers.nullize
 import kotlin.reflect.KProperty
 
 object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildModel> {
@@ -71,13 +71,14 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
               ?.let { listOf(it) }
             ?: plugins()
               .filter { it.isAgp() }
-              .ifNotEmpty { map { it.version() } }
+              .map { it.version() }
+              .nullize()
           }
           ?: projectSettingsModel?.run {
-            pluginManagement().plugins().plugins().filter { it.isAgp() }.ifNotEmpty { map { it.version() } }
+            pluginManagement().plugins().plugins().filter { it.isAgp() }.map { it.version() }.nullize()
           }
         when {
-          models == null -> null
+          models == null -> null.also { LOG.warn("Android Gradle Plugin Version not found") }
           models.isEmpty() -> error("AGP version parsed property implementation inconsistency")
           else ->
             object : ResolvedPropertyModel by models[0] {
@@ -86,18 +87,6 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
               }
             }
         }
-      },
-      parsedPropertyInitializer = {
-        projectBuildModel!!
-          .buildscript()
-          .dependencies()
-          .let { dependencies ->
-            dependencies.addArtifact("classpath", "$AGP_GROUP_ID_NAME:0.0")
-            dependencies.all()
-              .mapNotNull { it as? ArtifactDependencyModel }
-              .single { it.isAgp() }
-              .version()
-          }
       },
       getter = { asString() },
       setter = { setValue(it) },

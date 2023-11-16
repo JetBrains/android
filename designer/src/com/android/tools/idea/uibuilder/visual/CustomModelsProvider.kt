@@ -19,9 +19,10 @@ import com.android.ide.common.resources.Locale
 import com.android.resources.NightMode
 import com.android.resources.ScreenOrientation
 import com.android.resources.UiMode
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.configurations.ConfigurationForFile
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -36,8 +37,10 @@ import com.intellij.util.xmlb.annotations.Transient
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.WeakHashMap
 
-data class CustomConfigurationSet(var title: String = "Custom",
-                                  var customConfigAttributes: List<CustomConfigurationAttribute> = emptyList()) {
+data class CustomConfigurationSet(
+  var title: String = "Custom",
+  var customConfigAttributes: List<CustomConfigurationAttribute> = emptyList()
+) {
   @Transient
   fun addConfigAttribute(attribute: CustomConfigurationAttribute) {
     val list = customConfigAttributes.toMutableList()
@@ -56,40 +59,48 @@ data class CustomConfigurationSet(var title: String = "Custom",
 data class NamedConfiguration(val name: String, val config: Configuration)
 
 /**
- * The name with attributes which are used to create [Configuration].
- * Note that [name] never be null. If there is no given name then the name is treated as empty string.
+ * The name with attributes which are used to create [Configuration]. Note that [name] never be
+ * null. If there is no given name then the name is treated as empty string.
  *
- * The initial values of properties are given for serializing and deserializing by [VisualizationToolSettings].
+ * The initial values of properties are given for serializing and deserializing by
+ * [VisualizationToolSettings].
  */
-data class CustomConfigurationAttribute(var name: String = "",
-                                        var deviceId: String? = null,
-                                        var apiLevel: Int? = null,
-                                        var orientation: ScreenOrientation? = null,
-                                        var localeString: String? = null,
-                                        var theme: String? = null,
-                                        var uiMode: UiMode? = null,
-                                        var nightMode: NightMode? = null)
+data class CustomConfigurationAttribute(
+  var name: String = "",
+  var deviceId: String? = null,
+  var apiLevel: Int? = null,
+  var orientation: ScreenOrientation? = null,
+  var localeString: String? = null,
+  var theme: String? = null,
+  var uiMode: UiMode? = null,
+  var nightMode: NightMode? = null
+)
 
-private object CustomModelDataContext: DataContext {
-  override fun getData(dataId: String): Any = when (dataId) {
-    IS_CUSTOM_MODEL.name -> true
-    else -> false
-  }
+private object CustomModelDataContext : DataContext {
+  override fun getData(dataId: String): Any =
+    when (dataId) {
+      IS_CUSTOM_MODEL.name -> true
+      else -> false
+    }
 }
 
 /**
- * This class provides the [NlModel]s with custom [Configuration] for [VisualizationForm].<br>
- * The custom [Configuration] is added by [AddCustomConfigurationAction].
+ * This class provides the [NlModel]s with custom [Configuration] for [VisualizationForm].<br> The
+ * custom [Configuration] is added by [AddCustomConfigurationAction].
  */
-class CustomModelsProvider(private val customId: String,
-                           val customConfigSet: CustomConfigurationSet,
-                           private val configurationSetListener: ConfigurationSetListener) : VisualizationModelsProvider {
+class CustomModelsProvider(
+  val customId: String,
+  val customConfigSet: CustomConfigurationSet,
+  private val configurationSetListener: ConfigurationSetListener
+) : VisualizationModelsProvider {
 
   /**
-   * Map for recording ([Configuration], [CustomConfigurationAttribute]) pairs. Which is used for removing [CustomConfigurationAttribute].
-   * We use [WeakHashMap] here to avoid leaking [Configuration].
+   * Map for recording ([Configuration], [CustomConfigurationAttribute]) pairs. Which is used for
+   * removing [CustomConfigurationAttribute]. We use [WeakHashMap] here to avoid leaking
+   * [Configuration].
    */
-  private val configurationToConfigurationAttributesMap = WeakHashMap<Configuration, CustomConfigurationAttribute>()
+  private val configurationToConfigurationAttributesMap =
+    WeakHashMap<Configuration, CustomConfigurationAttribute>()
 
   fun addCustomConfigurationAttributes(config: CustomConfigurationAttribute) {
     customConfigSet.addConfigAttribute(config)
@@ -109,7 +120,11 @@ class CustomModelsProvider(private val customId: String,
     return DefaultActionGroup(addAction)
   }
 
-  override fun createNlModels(parentDisposable: Disposable, file: PsiFile, facet: AndroidFacet): List<NlModel> {
+  override fun createNlModels(
+    parentDisposable: Disposable,
+    file: PsiFile,
+    facet: AndroidFacet
+  ): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
     }
@@ -121,28 +136,36 @@ class CustomModelsProvider(private val customId: String,
     val models = mutableListOf<NlModel>()
 
     // Default layout file. (Based on current configuration in Layout Editor)
-    models.add(NlModel.builder(facet, currentFile, currentFileConfig)
-      .withParentDisposable(parentDisposable)
-      .withComponentRegistrar(NlComponentRegistrar)
-      .build().apply { modelDisplayName = "Default (Current File)" })
+    models.add(
+      NlModel.builder(facet, currentFile, currentFileConfig)
+        .withParentDisposable(parentDisposable)
+        .withComponentRegistrar(NlComponentRegistrar)
+        .build()
+        .apply { modelDisplayName = "Default (Current File)" }
+    )
 
     // Custom Configurations
     for (attributes in customConfigSet.customConfigAttributes) {
       val customConfig = attributes.toNamedConfiguration(currentFileConfig) ?: continue
 
       val config = customConfig.config
-      val betterFile = ConfigurationMatcher.getBetterMatch(currentFileConfig,
-                                                           config.device,
-                                                           config.deviceState?.name,
-                                                           config.locale,
-                                                           config.target) ?: currentFile
+      val betterFile =
+        ConfigurationMatcher.getBetterMatch(
+          currentFileConfig,
+          config.device,
+          config.deviceState?.name,
+          config.locale,
+          config.target
+        )
+          ?: currentFile
 
-      val model = NlModel.builder(facet, betterFile, config)
-        .withParentDisposable(parentDisposable)
-        .withModelTooltip(config.toHtmlTooltip())
-        .withComponentRegistrar(NlComponentRegistrar)
-        .withDataContext(CustomModelDataContext)
-        .build()
+      val model =
+        NlModel.builder(facet, betterFile, config)
+          .withParentDisposable(parentDisposable)
+          .withModelTooltip(config.toHtmlTooltip())
+          .withComponentRegistrar(NlComponentRegistrar)
+          .withDataContext(CustomModelDataContext)
+          .build()
       model.modelDisplayName = customConfig.name
       models.add(model)
       Disposer.register(model, config)
@@ -152,24 +175,28 @@ class CustomModelsProvider(private val customId: String,
   }
 }
 
-private fun CustomConfigurationAttribute.toNamedConfiguration(defaultConfig: Configuration): NamedConfiguration? {
-  val configurationManager = defaultConfig.configurationManager
+private fun CustomConfigurationAttribute.toNamedConfiguration(
+  defaultConfig: Configuration
+): NamedConfiguration? {
+  val settings = defaultConfig.settings
   val id = deviceId ?: return null
-  val device = configurationManager.getDeviceById(id)
-  val target = configurationManager.targets.firstOrNull { it.version.apiLevel == apiLevel } ?: return null
+  val device = settings.getDeviceById(id)
+  val target = settings.targets.firstOrNull { it.version.apiLevel == apiLevel } ?: return null
   val state = device?.defaultState?.deepCopy()
   state?.let {
-    // The state name is used for finding better match of orientation, and it should be the same as ScreenOrientation.shortDisplayValue.
-    // When the name is null, the default device orientation will be used. Here when orientation happens to be null, we want to keep the
+    // The state name is used for finding better match of orientation, and it should be the same as
+    // ScreenOrientation.shortDisplayValue.
+    // When the name is null, the default device orientation will be used. Here when orientation
+    // happens to be null, we want to keep the
     // previous state name rather than using a default orientation.
     orientation?.let { state.name = it.shortDisplayValue }
     state.orientation = orientation
   }
 
-  val newConfig = Configuration.create(defaultConfig, defaultConfig.file!!)
+  val newConfig = ConfigurationForFile.create(defaultConfig, defaultConfig.file!!)
   newConfig.setEffectiveDevice(device, state)
   newConfig.target = target
-  newConfig.locale = if (localeString != null) Locale.create(localeString!!) else configurationManager.locale
+  newConfig.locale = if (localeString != null) Locale.create(localeString!!) else settings.locale
   newConfig.setTheme(theme)
   newConfig.nightMode = nightMode ?: defaultConfig.nightMode
   newConfig.uiMode = uiMode ?: defaultConfig.uiMode

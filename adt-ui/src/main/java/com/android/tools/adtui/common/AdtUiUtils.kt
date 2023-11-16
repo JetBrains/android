@@ -16,7 +16,7 @@
 package com.android.tools.adtui.common
 
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.adtui.common.AdtUiUtils.ShrinkDirection.*
+import com.android.tools.adtui.common.AdtUiUtils.ShrinkDirection.TRUNCATE_END
 import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.intellij.openapi.keymap.MacKeymapUtil

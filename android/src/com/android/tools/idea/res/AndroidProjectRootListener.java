@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.tools.idea.model.AndroidModel;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -32,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
  * Service that subscribes to project root changes in order to invalidate {@link AndroidDependenciesCache},
  * the {@link ResourceFolderManager} cache, and to update resource repositories.
  */
-public class AndroidProjectRootListener {
+public class AndroidProjectRootListener implements Disposable.Default {
   /**
    * Makes AndroidProjectRootListener listen to the {@link ModuleRootListener#TOPIC} events if it has not been listening already.
    *
@@ -43,7 +44,7 @@ public class AndroidProjectRootListener {
   }
 
   private AndroidProjectRootListener(@NotNull Project project) {
-    project.getMessageBus().connect().subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
+    project.getMessageBus().connect(this).subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {
         moduleRootsOrDependenciesChanged(project);

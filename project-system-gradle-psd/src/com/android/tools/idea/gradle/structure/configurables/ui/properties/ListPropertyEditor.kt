@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.getValue
+import com.intellij.ui.SimpleColoredComponent
 import javax.swing.table.DefaultTableColumnModel
 import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableCellEditor
@@ -51,6 +52,8 @@ class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<Va
   init {
     loadValue()
   }
+
+  override val statusComponent: SimpleColoredComponent = SimpleColoredComponent()
 
   override fun createTableModel(): DefaultTableModel {
     val tableModel = DefaultTableModel()

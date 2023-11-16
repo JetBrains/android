@@ -22,12 +22,15 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.property.panel.impl.model.CollapsibleLabelModel
 import com.android.tools.property.ptable.ColumnFraction
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.util.ui.UIUtil
 import org.junit.Test
 import org.junit.runners.model.Statement
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Font
+import javax.swing.JPanel
 
 class CollapsibleLabelPanelTest {
 
@@ -49,7 +52,13 @@ class CollapsibleLabelPanelTest {
   fun testColumnResize() {
     val columnFraction = ColumnFraction(initialValue = 0.5f, resizeSupported = true)
     val model = CollapsibleLabelModel("Label", null, false, PropertiesComponentMock())
-    val panel = CollapsibleLabelPanel(model, UIUtil.FontSize.NORMAL, Font.BOLD, nameColumnFraction = columnFraction)
+    val panel =
+      CollapsibleLabelPanel(
+        model,
+        UIUtil.FontSize.NORMAL,
+        Font.BOLD,
+        nameColumnFraction = columnFraction
+      )
     val label = panel.label
     panel.size = Dimension(500, 200)
     panel.doLayout()
@@ -75,11 +84,45 @@ class CollapsibleLabelPanelTest {
     val panel = CollapsibleLabelPanel(model, UIUtil.FontSize.NORMAL, Font.BOLD)
     val size = panel.label.font.size
 
-    PortableUiFontRule(scale = 4f).apply(object : Statement() {
-      override fun evaluate() {
-        panel.updateUI()
-        assertThat(panel.label.font.size).isEqualTo(size * 4)
+    PortableUiFontRule(scale = 4f)
+      .apply(
+        object : Statement() {
+          override fun evaluate() {
+            panel.updateUI()
+            assertThat(panel.label.font.size).isEqualTo(size * 4)
+          }
+        },
+        mock()
+      )
+      .evaluate()
+  }
+
+  @Test
+  fun testButtonsAreVerticallyCentered() {
+    val columnFraction = ColumnFraction(initialValue = 0.5f, resizeSupported = true)
+    val model = CollapsibleLabelModel("Label", null, false, PropertiesComponentMock())
+    val action1 =
+      object : AnAction() {
+        override fun actionPerformed(event: AnActionEvent) {}
       }
-    }, mock()).evaluate()
+    val action2 =
+      object : AnAction() {
+        override fun actionPerformed(event: AnActionEvent) {}
+      }
+    val panel =
+      CollapsibleLabelPanel(
+        model,
+        UIUtil.FontSize.NORMAL,
+        Font.BOLD,
+        listOf(action1, action2),
+        columnFraction
+      )
+    panel.size = Dimension(500, 50)
+    panel.doLayout()
+    panel.components.forEach { it.doLayout() }
+    val buttonPanel = panel.components.last() as JPanel
+    buttonPanel.components.forEach { button ->
+      assertThat(button.y).isEqualTo((50 - button.height) / 2)
+    }
   }
 }

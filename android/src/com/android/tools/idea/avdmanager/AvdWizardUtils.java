@@ -134,12 +134,12 @@ public class AvdWizardUtils {
 
   // The AVD wizard needs a bit of extra width as its options panel is pretty dense
   private static final Dimension AVD_WIZARD_MIN_SIZE = JBUI.size(600, 400);
-  private static final Dimension AVD_WIZARD_SIZE = JBUI.size(1000, 650);
+  private static final Dimension AVD_WIZARD_SIZE = JBUI.size(1100, 750);
 
   private static final String AVD_WIZARD_HELP_URL = "https://developer.android.com/r/studio-ui/avd-manager.html";
 
   /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
-  private static final int MAX_RAM_MB = 1536;
+  private static final int MAX_RAM_MB = 2048;
 
   private static final Revision MIN_SNAPSHOT_MANAGEMENT_VERSION = new Revision(27, 2, 5);
   private static final Revision MIN_WEBP_VERSION = new Revision(25, 2, 3);

@@ -20,13 +20,16 @@ import com.android.tools.idea.compose.pickers.base.property.PsiCallParameterProp
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferences
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
 import org.jetbrains.kotlin.idea.util.ImportDescriptorResult
 import org.jetbrains.kotlin.idea.util.ImportInsertHelper
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtValueArgument
 
 /**
  * [PsiCallParameterPropertyItem] for @Preview parameters that can take an Enum from the project.
@@ -36,18 +39,20 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 internal class ClassPsiCallParameter(
   project: Project,
   model: PsiCallPropertiesModel,
-  resolvedCall: ResolvedCall<*>,
-  descriptor: ValueParameterDescriptor,
+  addNewArgumentToResolvedCall: (KtValueArgument, KtPsiFactory) -> KtValueArgument?,
+  parameterName: Name,
+  parameterTypeNameIfStandard: Name?,
   argumentExpression: KtExpression?,
-  initialValue: String?
+  initialValue: String?,
 ) :
   PsiCallParameterPropertyItem(
     project,
     model,
-    resolvedCall,
-    descriptor,
+    addNewArgumentToResolvedCall,
+    parameterName,
+    parameterTypeNameIfStandard,
     argumentExpression,
-    initialValue
+    initialValue,
   ) {
 
   /**
@@ -72,6 +77,10 @@ internal class ClassPsiCallParameter(
     fqValue: String,
     trackableValue: PreviewPickerValue
   ) {
+    if (isK2Plugin()) {
+      setValueAndShorten(fqValue, trackableValue)
+      return
+    }
     val importResult = importClass(fqClass)
 
     if (importResult != null && importResult != ImportDescriptorResult.FAIL) {
@@ -87,4 +96,9 @@ internal class ClassPsiCallParameter(
         ImportInsertHelper.getInstance(project).importDescriptor(model.ktFile, importDescriptor)
       }
     }
+
+  private fun setValueAndShorten(fqValue: String, trackableValue: PreviewPickerValue) {
+    writeNewValue(fqValue, true, trackableValue)
+    argumentExpression?.let { arg -> shortenReferences(arg) }
+  }
 }

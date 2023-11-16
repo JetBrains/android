@@ -245,7 +245,7 @@ public class GradleProjectSystemUtil {
    *
    * @param file           the given file.
    * @param honorExclusion if {@code true}, this method will return {@code null} if the given file is "excluded".
-   * @return the {@code AndroidModuleModel} for the module containing the given file, or {@code null} if the module is not an Android
+   * @return the {@code GradleAndroidModel} for the module containing the given file, or {@code null} if the module is not an Android
    * module.
    */
   @Nullable
@@ -269,7 +269,7 @@ public class GradleProjectSystemUtil {
    * This method will return {@code null} if the file is "excluded" or if the module the file belongs to is not an Android module.
    *
    * @param file the given file.
-   * @return the {@code AndroidModuleModel} for the module containing the given file, or {@code null} if the file is "excluded" or if the
+   * @return the {@code GradleAndroidModel} for the module containing the given file, or {@code null} if the file is "excluded" or if the
    * module the file belongs to is not an Android module.
    */
   @Nullable

@@ -15,8 +15,6 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceImplementation="com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog"/>
-
     <applicationConfigurable groupId="tools.android" id="emulator"
                              provider="com.android.tools.idea.streaming.emulator.settings.EmulatorConfigurableProvider"
                              bundle="messages.StreamingBundle"
@@ -28,13 +26,13 @@
 
     <customizableActionGroupProvider implementation="com.android.tools.idea.streaming.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
 
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
     <android.toolWindow id="Running Devices"
                         anchor="right"
                         secondary="true"
                         canCloseContents="true"
-                        doNotActivateOnStart="true"
                         icon="StudioIcons.Shell.ToolWindows.EMULATOR"
-                        factoryClass="com.android.tools.idea.streaming.StreamingToolWindowFactory"/>
+                        factoryClass="com.android.tools.idea.streaming.core.StreamingToolWindowFactory"/>
     <notificationGroup id="Running Devices Messages"
                        displayType="BALLOON"
                        toolWindowId="Running Devices"
@@ -42,9 +40,7 @@
                        key="android.streaming.notification.title"/>
 
     <keymapExtension implementation="com.android.tools.idea.streaming.actions.StreamingKeymapExtension"/>
-    <projectService serviceImplementation="com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel$MultiDisplayStateStorage" />
     <notificationGroup id="Android Emulator" displayType="BALLOON"/>
-
   </extensions>
 
   <actions>
@@ -84,12 +80,11 @@
         <keyboard-shortcut first-keystroke="meta r" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta r" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.folding.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowFoldingControlsAction"
-              icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold" description="Show folding controls for the device">
-        <keyboard-shortcut first-keystroke="control shift BACK_SLASH" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="meta shift BACK_SLASH" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="meta shift BACK_SLASH" keymap="Mac OS X 10.5+"/>
-      </action>
+      <group id="android.device.postures" class="com.android.tools.idea.streaming.actions.StreamingFoldingActionGroup"
+              icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold"
+              description="Select from the states defined by the device to test how your app responds to them" popup="true"/>
+      <action id="android.emulator.virtual.sensors" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowVirtualSensorsAction"
+              text="Virtual Sensors" description="Show virtual sensors controls for the device"/>
       <action id="android.device.wear1.button" class="com.android.tools.idea.streaming.actions.StreamingWear1ButtonAction"
               icon="StudioIcons.Emulator.Wear.BUTTON_1" text="Button 1" description="Press the first button of the device">
         <keyboard-shortcut first-keystroke="control shift 1" keymap="$default"/>
@@ -159,6 +154,9 @@
       </action>
       <action id="android.emulator.snapshots" class="com.android.tools.idea.streaming.emulator.actions.EmulatorManageSnapshotsAction"
               icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS" text="Snapshots" description="Create, load, rename or delete emulator snapshots"/>
+      <action id="android.streaming.hardware.input" class="com.android.tools.idea.streaming.actions.StreamingHardwareInputAction"
+              icon="StudioIcons.Emulator.Toolbar.HARDWARE_INPUT" text="Hardware Input"
+              description="Enable transparent forwarding of keyboard and mouse events to the connected device"/>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowExtendedControlsAction"
               icon="AllIcons.Actions.More" text="Extended Controls" description="Show emulator extended controls"/>
     </group>
@@ -174,7 +172,7 @@
       <reference ref="android.device.volume.down.button"/>
       <reference ref="android.device.rotate.left"/>
       <reference ref="android.device.rotate.right"/>
-      <reference ref="android.emulator.folding.controls"/>
+      <reference ref="android.device.postures"/>
       <reference ref="android.device.wear1.button"/>
       <reference ref="android.device.wear2.button"/>
       <reference ref="android.device.sleep"/>
@@ -192,6 +190,7 @@
         <separator/>
       </group>
       <reference ref="android.emulator.snapshots"/>
+      <reference ref="android.streaming.hardware.input"/>
       <reference ref="android.emulator.extended.controls"/>
     </group>
 
@@ -201,6 +200,7 @@
       <reference ref="android.device.volume.down.button"/>
       <reference ref="android.device.rotate.left"/>
       <reference ref="android.device.rotate.right"/>
+      <reference ref="android.device.postures"/>
       <reference ref="android.device.wear1.button"/>
       <reference ref="android.device.wear2.button"/>
       <reference ref="android.device.sleep"/>
@@ -209,6 +209,7 @@
       <reference ref="android.device.overview.button"/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
+      <reference ref="android.streaming.hardware.input"/>
       <reference ref="android.device.reservation.extend"/>
     </group>
 

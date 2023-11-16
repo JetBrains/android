@@ -15,20 +15,23 @@
  */
 package com.android.tools.idea.layoutinspector.settings
 
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.testFramework.ApplicationRule
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JCheckBox
+import javax.swing.JPanel
 
 class LayoutInspectorConfigurableProviderTest {
   private lateinit var layoutInspectorSettings: LayoutInspectorSettings
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   @Before
   fun testSetUp() {
@@ -40,7 +43,7 @@ class LayoutInspectorConfigurableProviderTest {
     val provider = LayoutInspectorConfigurableProvider()
     val configurable = provider.createConfigurable()
 
-    LightPlatformTestCase.assertEquals("Layout Inspector", configurable.displayName)
+    assertThat("Layout Inspector").isEqualTo(configurable.displayName)
   }
 
   @Test
@@ -48,12 +51,45 @@ class LayoutInspectorConfigurableProviderTest {
     val provider = LayoutInspectorConfigurableProvider()
     val configurable = provider.createConfigurable() as SearchableConfigurable
 
-    LightPlatformTestCase.assertEquals("layout.inspector.configurable", configurable.id)
+    assertThat("layout.inspector.configurable").isEqualTo(configurable.id)
   }
 
   @Test
-  fun testConfigurableSettingInteraction() {
-    val provider = LayoutInspectorConfigurableProvider()
+  fun testConfigurableControls() {
+    val configurable1 =
+      LayoutInspectorConfigurableProvider().createConfigurable() as SearchableConfigurable
+    val component1 = configurable1.createComponent()!!
+
+    assertThat(component1.components).hasLength(2)
+    assertThat((component1.components[0] as JCheckBox).text)
+      .isEqualTo("Enable auto connect (requires a restart of Android Studio)")
+
+    val previous = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(true)
+
+    val configurable2 =
+      LayoutInspectorConfigurableProvider().createConfigurable() as SearchableConfigurable
+    val component2 = configurable2.createComponent()!!
+    val enableEmbeddedLiPanel = component2.components[1] as JPanel
+
+    assertThat(component2.components).hasLength(2)
+    assertThat((component2.components[0] as JCheckBox).text)
+      .isEqualTo("Enable auto connect (requires a restart of Android Studio)")
+    assertThat((enableEmbeddedLiPanel.components[0] as JCheckBox).text)
+      .isEqualTo("Enable embedded Layout Inspector (requires a restart of Android Studio)")
+
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(previous)
+  }
+
+  @Test
+  fun testConfigurableSettingAutoConnectInteraction() {
+
+    var restartStudio = true
+    var restartDialogShown = false
+    val provider = LayoutInspectorConfigurableProvider {
+      restartDialogShown = true
+      restartStudio
+    }
     val configurable = provider.createConfigurable()
     val enableAutoConnectCheckBox = configurable.createComponent()!!.getComponent(0) as JBCheckBox
 
@@ -73,6 +109,7 @@ class LayoutInspectorConfigurableProviderTest {
 
     // store setting from swing to configurable
     configurable.apply()
+    assertThat(restartDialogShown).isTrue()
     assertThat(configurable.isModified).isFalse()
     assertThat(enableAutoConnectCheckBox.isSelected).isFalse()
     assertThat(layoutInspectorSettings.autoConnectEnabled).isFalse()
@@ -88,5 +125,89 @@ class LayoutInspectorConfigurableProviderTest {
     configurable.reset()
     assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
     assertThat(enableAutoConnectCheckBox.isSelected).isTrue()
+
+    restartStudio = false
+
+    // uncheck the checkbox
+    enableAutoConnectCheckBox.isSelected = false
+
+    assertThat(configurable.isModified).isTrue()
+    assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
+
+    // store setting from swing to configurable
+    // the settings shouldn't be stored because studio is not restarted
+    configurable.apply()
+    assertThat(restartDialogShown).isTrue()
+    assertThat(configurable.isModified).isFalse()
+    assertThat(enableAutoConnectCheckBox.isSelected).isTrue()
+    assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
+  }
+
+  @Test
+  fun testConfigurableSettingEmbeddedLayoutInspectorInteraction() = withEmbeddedLayoutInspector {
+    val previous = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(true)
+
+    var restartStudio = true
+    var restartDialogShown = false
+    val provider = LayoutInspectorConfigurableProvider {
+      restartDialogShown = true
+      restartStudio
+    }
+    val configurable = provider.createConfigurable()
+    val enableEmbeddedLiPanel = configurable.createComponent()!!.getComponent(1) as JPanel
+    val enableEmbeddedLiCheckBox = enableEmbeddedLiPanel.components.first() as JCheckBox
+    assertThat(enableEmbeddedLiPanel.components[2]).isInstanceOf(ActionLink::class.java)
+
+    // make sure to start with property set to true
+    enableEmbeddedLayoutInspector = true
+
+    // load settings from configurable to swing
+    configurable.reset()
+    assertThat(enableEmbeddedLayoutInspector).isTrue()
+    assertThat(enableEmbeddedLiCheckBox.isSelected).isTrue()
+
+    // uncheck the checkbox
+    enableEmbeddedLiCheckBox.isSelected = false
+
+    assertThat(configurable.isModified).isTrue()
+    assertThat(enableEmbeddedLayoutInspector).isTrue()
+
+    // store setting from swing to configurable
+    configurable.apply()
+    assertThat(restartDialogShown).isTrue()
+    assertThat(configurable.isModified).isFalse()
+    assertThat(enableEmbeddedLiCheckBox.isSelected).isFalse()
+    assertThat(enableEmbeddedLayoutInspector).isFalse()
+
+    // load settings from configurable to swing
+    configurable.reset()
+    assertThat(enableEmbeddedLayoutInspector).isFalse()
+    assertThat(enableEmbeddedLiCheckBox.isSelected).isFalse()
+
+    // back to true
+    enableEmbeddedLayoutInspector = true
+    // load settings from configurable to swing
+    configurable.reset()
+    assertThat(enableEmbeddedLayoutInspector).isTrue()
+    assertThat(enableEmbeddedLiCheckBox.isSelected).isTrue()
+
+    restartStudio = false
+
+    // uncheck the checkbox
+    enableEmbeddedLiCheckBox.isSelected = false
+
+    assertThat(configurable.isModified).isTrue()
+    assertThat(enableEmbeddedLayoutInspector).isTrue()
+
+    // store setting from swing to configurable
+    // the settings shouldn't be stored because studio is not restarted
+    configurable.apply()
+    assertThat(restartDialogShown).isTrue()
+    assertThat(configurable.isModified).isFalse()
+    assertThat(enableEmbeddedLiCheckBox.isSelected).isTrue()
+    assertThat(enableEmbeddedLayoutInspector).isTrue()
+
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(previous)
   }
 }

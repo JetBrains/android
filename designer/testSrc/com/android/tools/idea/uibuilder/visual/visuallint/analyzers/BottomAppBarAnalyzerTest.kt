@@ -22,21 +22,23 @@ import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.google.common.collect.ImmutableList
 
-class BottomAppBarAnalyzerTest: LayoutTestCase() {
+class BottomAppBarAnalyzerTest : LayoutTestCase() {
 
   fun testBottomAppBarPhone() {
     val model =
-      model("phone_appbar_layout.xml",
-            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-              .withBounds(0, 0, 200, 200)
-              .withMockView()
-              .children(
-                component("com.google.android.material.bottomappbar.BottomAppBar")
-                  .matchParentWidth()
-                  .height("40dp")
-                  .withMockView()
-              )
-      ).build()
+      model(
+          "phone_appbar_layout.xml",
+          component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
+            .withBounds(0, 0, 200, 200)
+            .withMockView()
+            .children(
+              component("com.google.android.material.bottomappbar.BottomAppBar")
+                .matchParentWidth()
+                .height("40dp")
+                .withMockView()
+            )
+        )
+        .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
     val issues = BottomAppBarAnalyzer.findIssues(renderResult, model)
     assertEquals(0, issues.size)
@@ -44,17 +46,19 @@ class BottomAppBarAnalyzerTest: LayoutTestCase() {
 
   fun testBottomAppBarTablet() {
     val model =
-      model("tablet_appbar_layout.xml",
-            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-              .withBounds(0, 0, 200, 200)
-              .withMockView()
-              .children(
-                component("com.google.android.material.bottomappbar.BottomAppBar")
-                  .matchParentWidth()
-                  .height("40dp")
-                  .withMockView()
-              )
-      ).build()
+      model(
+          "tablet_appbar_layout.xml",
+          component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
+            .withBounds(0, 0, 200, 200)
+            .withMockView()
+            .children(
+              component("com.google.android.material.bottomappbar.BottomAppBar")
+                .matchParentWidth()
+                .height("40dp")
+                .withMockView()
+            )
+        )
+        .build()
     val tabletConfig = RenderTestUtil.getConfiguration(myModule, model.virtualFile, "Nexus 9")
     model.configuration = tabletConfig
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))

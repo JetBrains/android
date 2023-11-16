@@ -31,13 +31,13 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
-import javax.swing.JPanel
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JPanel
 
 class AllTabPanelTest {
 
@@ -55,7 +55,7 @@ class AllTabPanelTest {
           projectRule,
           "layout",
           "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
+          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER),
         )
         .build()
     }
@@ -83,13 +83,31 @@ class AllTabPanelTest {
   @Test
   fun `add and remove cards`() {
     val cardOne =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("One")) {}
+      AnimationCard(
+          TestUtils.testPreviewState(),
+          surface,
+          ElementState("One"),
+          emptyList(),
+          NoopAnimationTracker,
+        )
         .apply { setDuration(111) }
     val cardTwo =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Two")) {}
+      AnimationCard(
+          TestUtils.testPreviewState(),
+          surface,
+          ElementState("Two"),
+          emptyList(),
+          NoopAnimationTracker,
+        )
         .apply { setDuration(222) }
     val cardThree =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Three")) {}
+      AnimationCard(
+          TestUtils.testPreviewState(),
+          surface,
+          ElementState("Three"),
+          emptyList(),
+          NoopAnimationTracker,
+        )
         .apply { setDuration(333) }
 
     val panel = AllTabPanel().apply { setSize(1000, 800) }
@@ -165,13 +183,31 @@ class AllTabPanelTest {
   @Test
   fun `preview ui`() {
     val cardOne =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("One")) {}
+      AnimationCard(
+          TestUtils.testPreviewState(),
+          surface,
+          ElementState("One"),
+          emptyList(),
+          NoopAnimationTracker,
+        )
         .apply { setDuration(111) }
     val cardTwo =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Two")) {}
+      AnimationCard(
+          TestUtils.testPreviewState(),
+          surface,
+          ElementState("Two"),
+          emptyList(),
+          NoopAnimationTracker,
+        )
         .apply { setDuration(222) }
     val cardThree =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Three")) {}
+      AnimationCard(
+          TestUtils.testPreviewState(),
+          surface,
+          ElementState("Three"),
+          emptyList(),
+          NoopAnimationTracker,
+        )
         .apply { setDuration(333) }
 
     val panel =
@@ -196,13 +232,31 @@ class AllTabPanelTest {
   @Test
   fun `preview ui with mixed cards`() {
     val cardOne =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("AnimationCard One")) {}
+      AnimationCard(
+          TestUtils.testPreviewState(),
+          surface,
+          ElementState("AnimationCard One"),
+          emptyList(),
+          NoopAnimationTracker,
+        )
         .apply { setDuration(111) }
     val cardTwo =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("AnimationCard Two")) {}
+      AnimationCard(
+          TestUtils.testPreviewState(),
+          surface,
+          ElementState("AnimationCard Two"),
+          emptyList(),
+          NoopAnimationTracker,
+        )
         .apply { setDuration(222) }
     val cardThree =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("AnimationCard Three")) {}
+      AnimationCard(
+          TestUtils.testPreviewState(),
+          surface,
+          ElementState("AnimationCard Three"),
+          emptyList(),
+          NoopAnimationTracker,
+        )
         .apply { setDuration(333) }
     val labelCardOne = LabelCard(ElementState("LabelCard One"))
     val labelCardTwo = LabelCard(ElementState("LabelCard Two"))
@@ -240,8 +294,14 @@ class AllTabPanelTest {
       }
     for (i in 0..10) {
       panel.addCard(
-        AnimationCard(TestUtils.testPreviewState(), surface, ElementState("card $i")) {}
-          .apply { setDuration(i * 10) }
+        AnimationCard(
+            TestUtils.testPreviewState(),
+            surface,
+            ElementState("card $i"),
+            emptyList(),
+            NoopAnimationTracker,
+          )
+          .apply { setDuration(i * 10) },
       )
     }
 
@@ -273,8 +333,14 @@ class AllTabPanelTest {
       }
     for (i in 0..10) {
       panel.addCard(
-        AnimationCard(TestUtils.testPreviewState(), surface, ElementState("card $i")) {}
-          .apply { setDuration(i * 10) }
+        AnimationCard(
+            TestUtils.testPreviewState(),
+            surface,
+            ElementState("card $i"),
+            emptyList(),
+            NoopAnimationTracker,
+          )
+          .apply { setDuration(i * 10) },
       )
     }
 

@@ -38,7 +38,6 @@ public class AnimationToolbarTest {
 
   @Test
   public void toolbarDisplayedForAnimatedVectors() throws Exception {
-    StudioFlags.NELE_ANIMATIONS_PREVIEW.override(true);
     guiTest.importSimpleApplication();
     IdeFrameFixture frame = guiTest.ideFrame();
 
@@ -58,10 +57,5 @@ public class AnimationToolbarTest {
     catch (ComponentLookupException expected) {
       // We expect to throw ComponentLookupException as we shouldn't find an AnimationToolbar
     }
-  }
-
-  @After
-  public void tearDown() {
-    StudioFlags.NELE_ANIMATIONS_PREVIEW.clearOverride();
   }
 }

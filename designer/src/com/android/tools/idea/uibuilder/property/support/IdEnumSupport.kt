@@ -100,21 +100,15 @@ class IdEnumSupport(val property: NlPropertyItem) : EnumSupport {
         ATTR_LAYOUT_START_TO_START_OF,
         ATTR_LAYOUT_TOP_TO_TOP_OF,
         ATTR_LAYOUT_TOP_TO_BOTTOM_OF -> findSiblingIds()
-
         ATTR_CHECKED_BUTTON,
         ATTR_CHECKED_CHIP -> findChildIds()
-
         ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE,
         ATTR_ACCESSIBILITY_TRAVERSAL_AFTER -> findLayoutIdsExcludeSelf()
-
         ATTR_MOTION_TARGET_ID -> findLayoutIds()
-
         ATTR_LABEL_FOR -> findSiblingIds()
-
         ATTR_CONSTRAINT_SET_START,
         ATTR_CONSTRAINT_SET_END,
         ATTR_DERIVE_CONSTRAINTS_FROM -> findConstraintSetIds()
-
         else -> error("$UNEXPECTED_ATTR: ${property.name}")
       }
 
@@ -134,14 +128,21 @@ class IdEnumSupport(val property: NlPropertyItem) : EnumSupport {
 
   private fun findChildIdsOf(parent: NlComponent?, omit: List<NlComponent>): List<EnumValue> {
     val values = mutableListOf<EnumValue>()
-    parent?.children?.filter { !omit.contains(it) }?.mapNotNull { it.id }?.mapTo(values) { EnumValue.item(ID_PREFIX + it)}
+    parent
+      ?.children
+      ?.filter { !omit.contains(it) }
+      ?.mapNotNull { it.id }
+      ?.mapTo(values) { EnumValue.item(ID_PREFIX + it) }
     property.definition?.values?.mapTo(values) { EnumValue.item(it) }
     return values
   }
 
   private fun findLayoutIds(): List<EnumValue> {
     val values = mutableListOf<EnumValue>()
-    property.components.firstOrNull()?.model?.flattenComponents()
+    property.components
+      .firstOrNull()
+      ?.model
+      ?.flattenComponents()
       ?.map { it.id }
       .notNullize()
       .forEach { values.add(EnumValue.item(ID_PREFIX + it)) }
@@ -150,7 +151,10 @@ class IdEnumSupport(val property: NlPropertyItem) : EnumSupport {
 
   private fun findLayoutIdsExcludeSelf(): List<EnumValue> {
     val values = mutableListOf<EnumValue>()
-    property.components.firstOrNull()?.model?.flattenComponents()
+    property.components
+      .firstOrNull()
+      ?.model
+      ?.flattenComponents()
       ?.filter { !property.components.contains(it) }
       ?.map { it.id }
       .notNullize()
@@ -162,9 +166,12 @@ class IdEnumSupport(val property: NlPropertyItem) : EnumSupport {
     @Suppress("UNCHECKED_CAST")
     val tagPointer = property.optionalValue1 as? SmartPsiElementPointer<XmlTag>
     val tag = tagPointer?.element
-    return tag?.parentTag?.subTags
-             ?.filter { it.localName == MotionSceneAttrs.Tags.CONSTRAINTSET && it != tag }
-             ?.mapNotNull { stripIdPrefix(it.getAttributeValue(ATTR_ID, ANDROID_URI)).nullize() }
-             ?.map { EnumValue.item(ID_PREFIX + it) } ?: emptyList()
+    return tag
+      ?.parentTag
+      ?.subTags
+      ?.filter { it.localName == MotionSceneAttrs.Tags.CONSTRAINTSET && it != tag }
+      ?.mapNotNull { stripIdPrefix(it.getAttributeValue(ATTR_ID, ANDROID_URI)).nullize() }
+      ?.map { EnumValue.item(ID_PREFIX + it) }
+      ?: emptyList()
   }
 }

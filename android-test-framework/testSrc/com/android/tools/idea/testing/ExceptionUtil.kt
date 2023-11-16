@@ -17,7 +17,6 @@ package com.android.tools.idea.testing
 
 import com.intellij.testFramework.fixtures.IdeaTestFixture
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.util.containers.ConcurrentList
 import com.intellij.util.containers.ContainerUtil
 import org.junit.runners.model.MultipleFailureException
 

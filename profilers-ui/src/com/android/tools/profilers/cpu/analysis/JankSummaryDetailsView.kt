@@ -40,7 +40,6 @@ import java.awt.event.ComponentEvent
 import javax.swing.JComponent
 import javax.swing.table.DefaultTableCellRenderer
 import kotlin.math.min
-import kotlin.streams.toList
 import com.android.tools.adtui.common.border as BorderColor
 
 class JankSummaryDetailsView(profilersView: StudioProfilersView, model: JankAnalysisModel.Summary)

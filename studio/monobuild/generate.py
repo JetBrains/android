@@ -55,7 +55,7 @@ def main():
     intellij = load_project("IntelliJ", intellij_root)
     convert_intellij_sdk_libs(studio, intellij, source_map_file)
     rename_libraries_using_prefix(studio, "studio-lib")
-    move_project_kotlinc_opts_into_modules(studio)
+    move_project_kotlinc_opts_into_modules(intellij)
 
     # Merge the projects and write out the result.
     merged = JpsProject(
@@ -65,7 +65,7 @@ def main():
     )
     write_project(merged, outdir)
     transfer_config_files(intellij, studio, outdir)
-    transfer_workspace_xml(monobuild_dir, outdir)
+    transfer_user_files(monobuild_dir, outdir)
 
     # Assert no remaining references to intellij-sdk.
     print("Searching for residual references to prebuilts/studio/intellij-sdk")
@@ -238,10 +238,12 @@ def transfer_config_files(intellij: JpsProject, studio: JpsProject, outdir: Path
         ".idea/OWNERS",
         ".idea/vcs.xml",
         ".idea/workspace.xml",
+        ".idea/shelf",
     ]
     # Config files that should be transfered from Studio, but not from IntelliJ.
     studio_override_paths = [
         ".idea/ant.xml",  # Contains our bazel-dependencies build step.
+        ".idea/kotlinc.xml",  # Prefer our Kotlinc version to maintain compatibility with our compiler plugins.
         ".idea/codeInsightSettings.xml",
         ".idea/codeStyles/codeStyleConfig.xml",
         ".idea/codeStyles/Project.xml",
@@ -307,17 +309,25 @@ def copy_config_files(project: JpsProject, ignored_paths: list[str], outdir: Pat
             shutil.copy(f, outfile)
 
 
-# Preserves .idea/workspace.xml, which contains user settings.
-def transfer_workspace_xml(prev_project: Path, next_project: Path):
-    prev_workspace_xml = prev_project.joinpath(".idea/workspace.xml")
-    next_workspace_xml = next_project.joinpath(".idea/workspace.xml")
-    if prev_workspace_xml.exists():
-        print("Preserving .idea/workspace.xml")
-        shutil.copy(prev_workspace_xml, next_workspace_xml)
-    else:
+# Preserves user files such as .idea/workspace.xml.
+def transfer_user_files(src_project: Path, dst_project: Path):
+    user_files = [
+        ".idea/workspace.xml",
+        ".idea/shelf",
+    ]
+    for relpath in user_files:
+        src = src_project.joinpath(relpath)
+        dst = dst_project.joinpath(relpath)
+        if src.is_file():
+            shutil.copy(src, dst)
+        elif src.is_dir():
+            shutil.copytree(src, dst)
+
+    workspace_xml = dst_project.joinpath(".idea/workspace.xml")
+    if not workspace_xml.exists():
         # Init with sensible defaults to avoid very slow builds.
         print("Seeding .idea/workspace.xml")
-        with open(next_workspace_xml, 'w', encoding="UTF-8") as f:
+        with open(workspace_xml, 'w', encoding="UTF-8") as f:
             f.write('<project version="4">\n')
             f.write('  <component name="CompilerWorkspaceConfiguration">\n')
             f.write('    <option name="PARALLEL_COMPILATION" value="true" />\n')
@@ -377,7 +387,7 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str
         src: ET.Element
         type = mapping["type"]
         if type == "module-output":
-            module: str = mapping["module"]
+            module: str = mapping["name"]
             src = ET.Element("orderEntry", {"type": "module", "module-name": module})
         elif type == "project-library":
             lib: str = mapping["library"]

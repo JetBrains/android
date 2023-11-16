@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
+import com.android.tools.idea.flags.StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
 import com.intellij.openapi.application.ApplicationManager
@@ -29,11 +30,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.kotlin.utils.yieldIfNotNull
-import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
-import org.jetbrains.plugins.gradle.util.gradleIdentityPath
-import org.jetbrains.plugins.gradle.util.gradlePath
-import org.jetbrains.plugins.gradle.util.isIncludedBuild
-import java.util.Comparator
 
 private const val BUILD_ORDER_BASE = 1_000_000
 private const val MODULE_ORDER_BASE = 2_000_000
@@ -45,27 +41,26 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
   private data class ModuleDesc(
     val module: Module,
     val projectPath: GradleHolderProjectPath,
-    val buildName: String
+    val gradleIdentityPath: String,
   ) {
 
     val orderBase: Int = when {
-      projectPath.path == ":" && buildName == ":" -> 0
+      gradleIdentityPath == ":" -> 0
       projectPath.path == ":" -> BUILD_ORDER_BASE
       else -> MODULE_ORDER_BASE
     }
 
-    val displayPath: String = projectPath.path
+    val displayPath: String = gradleIdentityPath
 
     val projectDisplayName: String = when {
-      projectPath.path == ":" && buildName == ":" -> PROJECT_PREFIX + module.name
-      projectPath.path == ":" -> BUILD_PREFIX +  buildName
+      gradleIdentityPath == ":" -> PROJECT_PREFIX + module.name
+      projectPath.path == ":" -> BUILD_PREFIX + gradleIdentityPath
       else -> MODULE_PREFIX + displayPath
     }
 
     companion object {
       val CONFIG_FILE_GROUP_COMPARATOR: Comparator<ModuleDesc> =
         compareBy<ModuleDesc> { it.projectPath.buildRootDir }
-          .thenBy { it.buildName }
           .thenBy { it.projectPath.path }
     }
   }
@@ -73,16 +68,15 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
   private val holderModules: List<ModuleDesc> =
     ModuleManager.getInstance(project).modules
       .mapNotNull {
-        val gradleHolderProjectPath = it.getGradleProjectPath()?.toHolder()
-        gradleHolderProjectPath
-          ?.resolveIn(project)
-          ?.let { holderModule ->
-            ModuleDesc(
-              module = holderModule,
-              projectPath = gradleHolderProjectPath,
-              buildName = holderModule.resolveBuildName()
-            )
-          }
+        val gradleHolderProjectPath = it.getGradleProjectPath()?.toHolder() ?: return@mapNotNull null
+        val gradleIdentityPath = it.getGradleIdentityPath() ?: return@mapNotNull null
+        gradleHolderProjectPath.resolveIn(project)?.let { holderModule ->
+          ModuleDesc(
+            module = holderModule,
+            projectPath = gradleHolderProjectPath,
+            gradleIdentityPath = gradleIdentityPath
+          )
+        }
       }
       .sortedWith(ModuleDesc.CONFIG_FILE_GROUP_COMPARATOR)
 
@@ -92,7 +86,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
     override val groupOrder: Int
   ) : BuildConfigurationSourceProvider.ConfigurationFile
 
-  private fun VirtualFile.describe(displayName: String, legacyOrder: Int):ConfigurationFileImpl {
+  private fun VirtualFile.describe(displayName: String, legacyOrder: Int): ConfigurationFileImpl {
     return ConfigurationFileImpl(this, displayName, legacyOrder)
   }
 
@@ -121,7 +115,8 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
           file.describe(
             if (file.fileType === proguardFileType) {
               "ProGuard Rules for \"${module.displayPath}\""
-            } else {
+            }
+            else {
               module.projectDisplayName
             },
             (module.orderBase + index) + if (file.fileType === proguardFileType) MODULE_SECONDARY_OFFSET else 0
@@ -148,6 +143,13 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
         projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE)
           ?.describe("Project Settings", BUILD_WIDE_ORDER_BASE)
       )
+
+      if (DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get()) {
+        yieldIfNotNull(
+          projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE_TOML)
+            ?.describe("Declarative Project Settings", BUILD_WIDE_ORDER_BASE)
+        )
+      }
 
       yieldIfNotNull(
         projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE_KTS)
@@ -181,10 +183,11 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
     val files = mutableListOf<VirtualFile>()
     for (child in moduleRootFolder.children) {
       if (!child.isValid ||
-        child.isDirectory ||
-        (
-          !child.name.endsWith(SdkConstants.EXT_GRADLE) &&
+          child.isDirectory ||
+          (
+            !child.name.endsWith(SdkConstants.EXT_GRADLE) &&
             !child.name.endsWith(SdkConstants.EXT_GRADLE_KTS) &&
+            !child.isDeclarativeBuildFile() &&
             child.fileType !== proguardFileType
           )
       ) {
@@ -193,7 +196,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
 
       // When a project is imported via unit tests, there is a ijinitXXXX.gradle file created somehow, exclude that.
       if (ApplicationManager.getApplication().isUnitTestMode &&
-        (child.name.startsWith("ijinit") || child.name.startsWith("asLocalRepo"))
+          (child.name.startsWith("ijinit") || child.name.startsWith("asLocalRepo"))
       ) {
         continue
       }
@@ -202,16 +205,10 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
     return files
   }
 
+  private fun VirtualFile.isDeclarativeBuildFile() =
+    DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get() && name.endsWith(SdkConstants.EXT_GRADLE_TOML)
+
   private val proguardFileType: FileType = FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")
-
-  private fun Module.resolveBuildName(): String {
-    val mainModuleDataNode = CachedModuleDataFinder.getInstance(project).findMainModuleData(this) ?: return ":"
-    if (!mainModuleDataNode.data.isIncludedBuild) return ":"
-    val gradlePath = mainModuleDataNode.data.gradlePath
-    val gradleIdentityPath = mainModuleDataNode.data.gradleIdentityPath
-    return gradleIdentityPath.removeSuffix(gradlePath)
-  }
-
 }
 
 private const val MODULE_PREFIX = "Module "

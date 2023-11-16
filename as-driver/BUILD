@@ -2,7 +2,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 
 java_binary(
     name = "as_driver",
-    srcs = glob(["agent/src/com/android/tools/asdriver/agent/*.java"]),
+    srcs = glob(["agent/testSrc/com/android/tools/asdriver/agent/*.java"]),
     deploy_manifest_lines = [
         "Premain-Class: com.android.tools.asdriver.agent.Agent",
         "Boot-Class-Path: as_driver.jar",
@@ -24,7 +24,8 @@ java_binary(
 
 java_binary(
     name = "as_driver_inject",
-    srcs = glob(["agent/src/com/android/tools/asdriver/inject/*.java"]),
+    testonly = True,
+    srcs = glob(["agent/testSrc/com/android/tools/asdriver/inject/*.java"]),
     deploy_env = [
         ":deploy_env",
     ],
@@ -35,14 +36,17 @@ java_binary(
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/bleak:intellij.android.bleak",
+        "//tools/adt/idea/bleak-config:intellij.android.bleak-config",
+        "//tools/adt/idea/bleak-config:intellij.android.bleak-config_testlib",
     ],
 )
 
 # managed by go/iml_to_build
 iml_module(
     name = "as-driver.agent",
-    srcs = ["agent/src"],
     iml_files = ["agent/as-driver.agent.iml"],
+    test_srcs = ["agent/testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -50,6 +54,8 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
+        "//tools/adt/idea/bleak:intellij.android.bleak[module]",
+        "//tools/adt/idea/bleak-config:intellij.android.bleak-config[module]",
     ],
 )
 
@@ -57,7 +63,7 @@ iml_module(
 iml_module(
     name = "as-driver.utils",
     data = [
-        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-33",
         "//tools/adt/idea/as-driver:as_driver_deploy.jar",
         "//tools/base/threading-agent:threading_agent.jar",
         "//tools/vendor/google/testing/display:ffmpeg_files",

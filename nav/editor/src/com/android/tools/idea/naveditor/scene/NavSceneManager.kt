@@ -60,7 +60,7 @@ import com.android.tools.idea.naveditor.scene.targets.NavigationTargetProvider
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.android.tools.idea.rendering.parsers.PsiXmlTag
-import com.android.tools.idea.rendering.parsers.TagSnapshot
+import com.android.tools.rendering.parsers.TagSnapshot
 import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.xml.XmlTag

@@ -37,7 +37,10 @@ class SynchronizeNodesMenuItem(
     get() =
       if (context == MenuContext.Toolbar) true else super.isVisible
 
+  override val isEnabled: Boolean
+    get() = if (context == MenuContext.Toolbar) true else super.isEnabled
+
   override fun run(nodes: List<DeviceFileEntryNode>) {
-    listener.synchronizeNodes(nodes)
+    listener.synchronizeNodes()
   }
 }

@@ -19,12 +19,14 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.stdui.TooltipLayeredPane
+import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.JBColor
+import org.junit.Assert.assertTrue
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
@@ -34,7 +36,8 @@ import java.awt.Point
 import java.util.stream.Collectors
 import javax.swing.JLabel
 import javax.swing.JPanel
-import kotlin.test.assertTrue
+
+val NoopAnimationTracker = AnimationTracker(AnimationToolingUsageTracker.getInstance(null))
 
 object TestUtils {
   private const val TEST_ELEMENT_WIDTH = 100
@@ -70,7 +73,12 @@ object TestUtils {
   /** Create [TimelinePanel] with 300x500 size. */
   fun createTestSlider(): TimelinePanel {
     val root = JPanel(BorderLayout())
-    val slider = TimelinePanel(Tooltip(root, TooltipLayeredPane(root)), testPreviewState()) {}
+    val slider =
+      TimelinePanel(
+        Tooltip(root, TooltipLayeredPane(root)),
+        testPreviewState(),
+        NoopAnimationTracker
+      )
     slider.maximum = 100
     root.apply {
       // Extra parent panel is required for slider to properly set all sizes and to enable tooltips.

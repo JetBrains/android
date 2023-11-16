@@ -15,10 +15,14 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.idea.rendering.classloading.ClassTransform
+import com.android.tools.rendering.ModuleRenderContext
+import com.android.tools.rendering.classloading.ClassTransform
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import org.jetbrains.annotations.TestOnly
 import java.util.LinkedList
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * How many different classloader types the hatchery stores. The current default is 2 with the idea of having:
@@ -32,19 +36,61 @@ private const val CAPACITY = 2
 private const val COPIES = 1
 
 /**
- * A storage of [StudioModuleClassLoader]s of the same type responsible for their preloading and replenishment. [StudioModuleClassLoader]s managed by
- * this storage do not get stale after updating only the user code since module dependencies should change for these [StudioModuleClassLoader]s
+ * Contains all the information that was used to create a [StudioModuleClassLoader].
+ */
+data class StudioModuleClassLoaderCreationContext(
+  val parent: ClassLoader?,
+  val moduleRenderContext: ModuleRenderContext,
+  val classesToPreload: Set<String>,
+  val projectTransform: ClassTransform,
+  val nonProjectTransformation: ClassTransform,
+) {
+
+  /**
+   * Creates a new [StudioModuleClassLoader] from this [StudioModuleClassLoaderCreationContext].
+   */
+  fun createClassLoader(): StudioModuleClassLoader =
+    StudioModuleClassLoader(
+      parent,
+      moduleRenderContext,
+      projectTransform,
+      nonProjectTransformation,
+      StudioModuleClassLoaderManager.createDiagnostics()
+    )
+
+  companion object {
+    /** Obtains a the [StudioModuleClassLoaderCreationContext] used to create the [classLoader]. */
+    fun fromClassLoader(classLoader: StudioModuleClassLoader): StudioModuleClassLoaderCreationContext? =
+      classLoader.moduleContext?.let { moduleRenderContext ->
+        StudioModuleClassLoaderCreationContext(
+          parent = classLoader.parentAtConstruction,
+          moduleRenderContext = moduleRenderContext,
+          classesToPreload = classLoader.nonProjectLoadedClasses,
+          projectTransform = classLoader.projectClassesTransform,
+          nonProjectTransformation = classLoader.nonProjectClassesTransform
+        )
+      }
+
+    @TestOnly
+    fun fromClassLoaderOrThrow(classLoader: StudioModuleClassLoader): StudioModuleClassLoaderCreationContext =
+      fromClassLoader(classLoader)!!
+  }
+}
+
+/**
+ * A storage of [StudioModuleClassLoader]s of the same type responsible for their preloading and
+ * replenishment. [StudioModuleClassLoader]s managed by this storage do not get stale after updating
+ * only the user code since module dependencies should change for these [StudioModuleClassLoader]s
  * to become invalid.
  */
-private class Clutch(private val cloner: (StudioModuleClassLoader) -> StudioModuleClassLoader?, donor: StudioModuleClassLoader, copies: Int = COPIES) {
-  private val classesToPreload = donor.nonProjectLoadedClasses
+private class Clutch(
+  private val cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader?,
+  private val donor: StudioModuleClassLoaderCreationContext,
+  copies: Int = COPIES
+) {
   private val eggs = ConcurrentLinkedQueue<Preloader>()
   init {
-    repeat(copies) {
-      cloner(donor)?.let {
-        eggs.add(Preloader(it, classesToPreload))
-      }
-    }
+    repeat(copies) { cloner(donor)?.let { eggs.add(Preloader(it, donor.classesToPreload)) } }
   }
 
   /**
@@ -64,15 +110,14 @@ private class Clutch(private val cloner: (StudioModuleClassLoader) -> StudioModu
       .firstOrNull {
         if (!it.isUserCodeUpToDate) {
           // This class loader can not be used, it's not up-to-date
-          Disposer.dispose(it)
+          it.dispose()
           false
-        }
-        else true
+        } else true
       }
       ?.let { compatibleClassLoader ->
         // Incubate the next one
-        cloner(compatibleClassLoader)?.let { newClassLoader ->
-          eggs.add(Preloader(newClassLoader, classesToPreload))
+        cloner(donor)?.let { newClassLoader ->
+          eggs.add(Preloader(newClassLoader, donor.classesToPreload))
         }
         compatibleClassLoader
       }
@@ -82,11 +127,11 @@ private class Clutch(private val cloner: (StudioModuleClassLoader) -> StudioModu
    * Should be called when the clutch is no longer needed to free all the resources.
    */
   fun destroy() {
-    generateSequence { eggs.poll() }.forEach { it.cancel() }
+    generateSequence { eggs.poll() }.forEach { it.dispose() }
   }
 
   fun getStats(): Stats {
-    return Stats("Clutch ${this.hashCode()}", eggs.map { ReadyState(it.getLoadedCount(), classesToPreload.size) })
+    return Stats("Clutch ${this.hashCode()}", eggs.map { ReadyState(it.getLoadedCount(), donor.classesToPreload.size) })
   }
 }
 
@@ -105,7 +150,7 @@ private data class Request(
       return false
     }
     return projectTransformations.id == other.projectTransformations.id &&
-           nonProjectTransformations.id == other.nonProjectTransformations.id
+      nonProjectTransformations.id == other.nonProjectTransformations.id
   }
 
   override fun hashCode(): Int {
@@ -116,21 +161,34 @@ private data class Request(
 /**
  * A data structure responsible for replenishing and providing on demand [StudioModuleClassLoader]s ready to use
  */
-class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private val copies: Int = COPIES) {
+class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private val copies: Int = COPIES, parentDisposable: Disposable) {
   // Requests for ModuleClassLoaders type that hatchery does not know how to create
   private val requests = mutableSetOf<Request>()
   // Clutches of different ModuleClassLoader types
   private val storage = LinkedList<Clutch>()
 
+  // If this class is disposed, it will stop accepting requests
+  private val isDisposed = AtomicBoolean(false)
+
+  init {
+    Disposer.register(parentDisposable) {
+      isDisposed.set(true)
+      destroy()
+    }
+  }
+
   /**
    * Request a ModuleClassLoader compatible with the input from this hatchery if such exists.
    */
   @Synchronized
-  fun requestClassLoader(parent: ClassLoader?, projectTransformations: ClassTransform, nonProjectTransformations: ClassTransform):
-    StudioModuleClassLoader? {
-    storage.find { it.isCompatible(parent, projectTransformations, nonProjectTransformations) }?.let { clutch ->
-      return clutch.retrieve()
-    }
+  fun requestClassLoader(parent: ClassLoader?, projectTransformations: ClassTransform, nonProjectTransformations: ClassTransform): StudioModuleClassLoader? {
+    if (isDisposed.get()) return null
+
+    storage
+      .find { it.isCompatible(parent, projectTransformations, nonProjectTransformations) }
+      ?.let { clutch ->
+        return clutch.retrieve()
+      }
     // If there is no compatible clutch we remember the request and will create one when we have an appropriate donor
     requests.add(Request(parent, projectTransformations, nonProjectTransformations))
     return null
@@ -141,12 +199,14 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
    * should only be used for cloning. Returns true if donor was used for cloning and false otherwise.
    */
   @Synchronized
-  fun incubateIfNeeded(donor: StudioModuleClassLoader, cloner: (StudioModuleClassLoader) -> StudioModuleClassLoader?): Boolean {
-    if (storage.find { it.isCompatible(
-        donor.parent, donor.projectClassesTransform, donor.nonProjectClassesTransform) } != null) {
-      return false
-    }
-    val request = Request(donor.parentAtConstruction, donor.projectClassesTransform, donor.nonProjectClassesTransform)
+  fun incubateIfNeeded(donor: StudioModuleClassLoaderCreationContext, cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader?): Boolean {
+    if (isDisposed.get()) return false
+
+    val hasCompatibleDonor = storage.find {
+      it.isCompatible(donor.parent, donor.projectTransform, donor.nonProjectTransformation)
+    } != null
+    if (hasCompatibleDonor) return false
+    val request = Request(donor.parent, donor.projectTransform, donor.nonProjectTransformation)
     if (requests.contains(request)) {
       requests.remove(request)
       if (storage.size == capacity) {

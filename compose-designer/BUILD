@@ -1,6 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -43,14 +44,55 @@ iml_module(
 iml_module(
     name = "intellij.android.compose-designer.tests",
     iml_files = ["intellij.android.compose-designer.tests.iml"],
-    resources = ["testSrc/META-INF"],
     split_test_targets = {
-        "gradle": {
+        "gradle.fast": {
+            "tags": ["cpu:3"],
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.compose.gradle.fast",
+        },
+        "gradle.navigation": {
+            "test_filter": "com.android.tools.idea.compose.gradle.navigation",
+        },
+        "gradle.preview": {
+            "tags": ["cpu:3"],
+            "shard_count": 3,
+            "test_filter": "com.android.tools.idea.compose.gradle.preview",
+        },
+        "gradle.runconfiguration": {
+            "test_filter": "com.android.tools.idea.compose.gradle.preview.runconfiguration",
+        },
+        # Can probably be grouped into gradle-other once flakiness is fixed: b/279558854
+        "AccessibilityModelUpdaterTest": {
+            "test_filter": "com.android.tools.idea.compose.gradle.preview.AccessibilityModelUpdaterTest",
+        },
+        # Source of many flakes. Splitting it into an individual target for better investigation.
+        "ComposePreviewRepresentationGradleTest": {
+            "test_filter": "com.android.tools.idea.compose.gradle.preview.ComposePreviewRepresentationGradleTest",
+        },
+        # Can probably be grouped into gradle-other once flakiness is fixed: b/261126651, b/272048512
+        "RenderErrorTest": {
+            "test_filter": "com.android.tools.idea.compose.gradle.preview.RenderErrorTest",
+        },
+        "gradle-other": {
             "tags": ["cpu:3"],
             "shard_count": 7,
             "test_filter": "com.android.tools.idea.compose.gradle",
         },
-        "non-gradle": {},
+        "animation": {
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.compose.preview.animation",
+        },
+        "runconfiguration": {
+            "test_filter": "com.android.tools.idea.compose.preview.runconfiguration",
+        },
+        "fast": {
+            "test_filter": "com.android.tools.idea.compose.preview.fast",
+        },
+        # Source of many flakes. Splitting it into an individual target for better investigation.
+        "ComposePreviewRepresentationTest": {
+            "test_filter": "com.android.tools.idea.compose.preview.ComposePreviewRepresentationTest",
+        },
+        "other": {},
     },
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.compose.preview.ComposePreviewTestSuite",
@@ -113,6 +155,10 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/.idea/libraries:asm-tools[test]",
+        "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
     ],
 )
 
@@ -184,17 +230,7 @@ iml_module(
     ],
 )
 
-compose_preview_data = select({
-    "@platforms//os:linux": [
-        "//tools/adt/idea/studio:android-studio.linux.zip",
-    ],
-    "@platforms//os:macos": [
-        "//tools/adt/idea/studio:android-studio.mac.zip",
-    ],
-    "@platforms//os:windows": [
-        "//tools/adt/idea/studio:android-studio.win.zip",
-    ],
-}) + [
+compose_preview_data = [
     ":compose_preview_deps",
     "//prebuilts/studio/sdk:build-tools/30.0.3",
     "//tools/adt/idea/compose-designer/testData:composepreview",
@@ -225,7 +261,7 @@ maven_repository(
     ],
 )
 
-iml_test(
+iml_studio_test(
     name = "ComposePreviewKotlinTest",
     timeout = "long",
     data = compose_preview_data,

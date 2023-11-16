@@ -63,7 +63,7 @@ class AidlDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor 
           .firstNotNullOfOrNull { it.psiElement }
         ?: return@module
       val psiElement = WrappedPsiElement(buildFeaturesOrHigherPsiElement, this, INSERT_AIDL_DIRECTIVE)
-      usages.add(RenderScriptEnableUsageInfo(psiElement, aidlModel))
+      usages.add(AidlEnableUsageInfo(psiElement, aidlModel))
     }
     return usages.toTypedArray()
   }

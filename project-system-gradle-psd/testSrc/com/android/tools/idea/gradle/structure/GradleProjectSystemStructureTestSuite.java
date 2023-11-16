@@ -18,15 +18,14 @@ package com.android.tools.idea.gradle.structure;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.intellij.ui.icons.CoreIconManager;
 import com.intellij.ui.IconManager;
+import com.intellij.ui.icons.CoreIconManager;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses(GradleProjectSystemStructureTestSuite.class)
 public class GradleProjectSystemStructureTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
+  @ClassRule public static final GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
     unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");

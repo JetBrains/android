@@ -29,6 +29,9 @@ import java.util.concurrent.TimeUnit
 // to enable collection of extended memory usage reports
 const val COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS: String = "studio.collect.extended.memory.reports"
 
+// The name of the flag that is used for enabling gathering hprof snapshots
+const val DUMP_HPROF_SNAPSHOT: String = "studio.dump.hprof.snapshot"
+
 /**
  * Util class that requests memory usage report collection by calling internal action `IntegrationTestCollectMemoryUsageStatisticsAction`,
  * parses the output and sends the results to perfgate.
@@ -74,6 +77,12 @@ class MemoryUsageReportProcessor {
       metric.setAnalyzers(benchmark, setOf(analyzer))
       metric.addSamples(benchmark, Metric.MetricSample(timeStamp, totalObjectsSize))
       metric.commit()
+
+      val objectStatisticsRegex = "(\\d+) bytes/(\\d+) objects\\[(\\d+) bytes/(\\d+) objects\\]"
+
+      parseAndCommitMetrics("Total platform objects memory: $objectStatisticsRegex", "total_platform_objects_self_size",
+                            "total_platform_objects_retained_size", installation, benchmark, timeStamp)
+
       m = installation.memoryReportFile.waitForMatchingLine("Total shared memory: (\\d+) bytes/(\\d+) objects", 60,
                                                             TimeUnit.SECONDS)
       val sharedObjectsSize = m.group(1).toLong()
@@ -102,6 +111,8 @@ class MemoryUsageReportProcessor {
         metric.setAnalyzers(benchmark, setOf(analyzer))
         metric.addSamples(benchmark, Metric.MetricSample(timeStamp, categoryOwnedSize))
         metric.commit()
+        parseAndCommitMetrics("    Platform object: $objectStatisticsRegex", categoryLabel + "_platform_objects_self_size",
+                              categoryLabel + "_platform_objects_retained_size", installation, benchmark, timeStamp)
       }
       m = installation.memoryReportFile.waitForMatchingLine("(\\d+) Components:", 60, TimeUnit.SECONDS)
       val numberOfComponents = m.group(1).toInt()
@@ -116,11 +127,35 @@ class MemoryUsageReportProcessor {
         metric.setAnalyzers(benchmark, setOf(analyzer))
         metric.addSamples(benchmark, Metric.MetricSample(timeStamp, componentOwnedSize))
         metric.commit()
+        parseAndCommitMetrics("    Platform object: $objectStatisticsRegex", componentLabel + "_platform_objects_self_size",
+                              componentLabel + "_platform_objects_retained_size", installation, benchmark, timeStamp)
       }
       println("Memory statistics collection finished successfully. Took ${TimeUnit.MILLISECONDS.toSeconds(reportCollectionTimeMs)}seconds.")
       if (getBoolean(COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS)) {
         installation.memoryReportFile.printContents()
       }
+    }
+
+    private fun parseAndCommitMetrics(
+      searchString: String,
+      selfSizeMetricName: String,
+      retainedSizeMetricName: String,
+      installation: AndroidStudioInstallation,
+      benchmark: Benchmark,
+      timeStamp: Long
+    ) {
+      val m1 = installation.memoryReportFile.waitForMatchingLine(searchString, 60,
+                                                                 TimeUnit.SECONDS)
+      val totalPlatformObjectsSelfSize = m1.group(1).toLong()
+      val totalPlatformObjectsRetainedSize = m1.group(3).toLong()
+      var metric = Metric(selfSizeMetricName)
+      metric.setAnalyzers(benchmark, setOf(analyzer))
+      metric.addSamples(benchmark, Metric.MetricSample(timeStamp, totalPlatformObjectsSelfSize))
+      metric.commit()
+      metric = Metric(retainedSizeMetricName)
+      metric.setAnalyzers(benchmark, setOf(analyzer))
+      metric.addSamples(benchmark, Metric.MetricSample(timeStamp, totalPlatformObjectsRetainedSize))
+      metric.commit()
     }
 
     fun collectMemoryUsageStatistics(studio: AndroidStudio,

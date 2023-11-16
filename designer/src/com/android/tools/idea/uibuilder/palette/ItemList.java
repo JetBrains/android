@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import static com.intellij.ui.ExperimentalUI.isNewUI;
-
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.intellij.openapi.util.Pair;
 import com.intellij.ui.ClientProperty;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ExpandableItemsHandler;
+import com.intellij.ui.NewUiValue;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
@@ -138,7 +137,7 @@ public class ItemList extends ListWithMargin<Palette.Item> {
 
       setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
       mySelectionForeground = UIUtil.getTreeForeground(selected, hasFocus);
-      setIcon(selected && hasFocus && !isNewUI() ? ColoredIconGenerator.INSTANCE.generateWhiteIcon(icon) : icon);
+      setIcon(selected && hasFocus && !NewUiValue.isEnabled() ? ColoredIconGenerator.generateWhiteIcon(icon) : icon);
       append(text);
     }
   }

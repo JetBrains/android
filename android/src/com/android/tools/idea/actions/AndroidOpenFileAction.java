@@ -27,7 +27,7 @@ import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
 import com.android.tools.adtui.validation.Validator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.GeneralSettings;
+import com.intellij.ide.GeneralLocalSettings;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.openapi.Disposable;
@@ -87,8 +87,9 @@ public class AndroidOpenFileAction extends DumbAwareAction {
 
       VirtualFile explicitPreferredDirectory = ((project != null) && !project.isDefault()) ? project.getBaseDir() : null;
       if (explicitPreferredDirectory == null) {
-        if (StringUtil.isNotEmpty(GeneralSettings.getInstance().getDefaultProjectDirectory())) {
-          explicitPreferredDirectory = VfsUtil.findFileByIoFile(new File(GeneralSettings.getInstance().getDefaultProjectDirectory()), true);
+        String defaultProjectDirectory = GeneralLocalSettings.getInstance().getDefaultProjectDirectory();
+        if (StringUtil.isNotEmpty(defaultProjectDirectory)) {
+          explicitPreferredDirectory = VfsUtil.findFileByIoFile(new File(defaultProjectDirectory), true);
         }
         else {
           explicitPreferredDirectory = getUserHomeDir();

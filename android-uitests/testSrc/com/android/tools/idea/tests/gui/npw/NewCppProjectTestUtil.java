@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 public class NewCppProjectTestUtil {
 
   private static final String APP_NAME = "app";
-  private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(".*adb shell am start .*myapplication\\.MainActivity.*", Pattern.DOTALL);
+  private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(".*Starting .*myapplication\\.MainActivity.*", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
 
   protected static void createNewProjectWithCpp(CppStandardType toolChain, GuiTestRule guiTest) throws Exception {
@@ -98,12 +98,13 @@ public class NewCppProjectTestUtil {
     return flags.orElse(null);
   }
 
-  protected static void runAppOnEmulator(@NotNull IdeFrameFixture ideFrame) {
-    ideFrame.runApp(APP_NAME, "Google Nexus 5X");
+  protected static void runAppOnEmulator(@NotNull IdeFrameFixture ideFrame){
+    ideFrame.runApp(APP_NAME, "Google Nexus 5X", Wait.seconds(EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS));
+    Wait.seconds(10); //Text is taking some time to appear in 'Run' window after emulator starts
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrame.getRunToolWindow().findContent(APP_NAME);
-    contentFixture.waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
+    contentFixture.outputMatches(new PatternTextMatcher(LOCAL_PATH_OUTPUT));
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
   }
 

@@ -34,7 +34,9 @@ import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.ViewActionHandlers
+import com.android.build.attribution.ui.view.WindowsDefenderPageHandler
 import com.android.build.attribution.ui.view.details.JetifierWarningDetailsView
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
@@ -43,7 +45,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNam
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Request.Companion.builder
-import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
+import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
 import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
 import com.google.common.base.Stopwatch
@@ -51,7 +53,6 @@ import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.lang.properties.IProperty
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.CodeInsightColors
@@ -196,7 +197,7 @@ class BuildAnalyzerViewController(
   }
 
   override fun runAgpUpgrade() {
-    ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
+    project.getService(AssistantInvoker::class.java).performRecommendedPluginUpgrade(project)
     analytics.runAgpUpgradeClicked()
   }
 
@@ -303,10 +304,26 @@ class BuildAnalyzerViewController(
     }
   }
 
+  override fun windowsDefenderPageHandler(): WindowsDefenderPageHandler = WindowsDefenderPageHandlerImpl(WindowsDefenderCheckService.getInstance(project))
+
   private fun runAndMeasureDuration(action: () -> Unit): Duration {
     val watch = Stopwatch.createStarted()
     action()
     return watch.elapsed()
+  }
+}
+
+class WindowsDefenderPageHandlerImpl(val service: WindowsDefenderCheckService) : WindowsDefenderPageHandler {
+  override fun runAutoExclusionScript(callback: (Boolean) -> Unit) {
+    service.runAutoExclusionScript(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_WARNING_PAGE, callback)
+  }
+
+  override fun ignoreCheckForProject() {
+    service.ignoreCheckForProject(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_WARNING_PAGE) {}
+  }
+
+  override fun trackShowingManualInstructions() {
+    service.trackShowingManualInstructions(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_WARNING_PAGE)
   }
 }
 

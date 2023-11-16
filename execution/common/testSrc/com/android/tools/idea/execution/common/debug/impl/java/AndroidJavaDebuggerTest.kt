@@ -24,9 +24,13 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.AndroidSessionInfo
+import com.android.tools.idea.execution.common.assertTaskPresentedInStats
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
 import com.android.tools.idea.execution.common.debug.createFakeExecutionEnvironment
+import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.execution.common.stats.RunStatsService
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.DebuggerManager
@@ -41,6 +45,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.util.ExceptionUtil
 import com.intellij.xdebugger.XDebuggerManager
 import junit.framework.Assert.fail
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
@@ -60,6 +65,9 @@ class AndroidJavaDebuggerTest {
 
   @get:Rule
   val projectRule = ProjectRule()
+
+  @get:Rule
+  val usageTrackerRule = UsageTrackerRule()
 
   val project
     get() = projectRule.project
@@ -100,7 +108,7 @@ class AndroidJavaDebuggerTest {
   }
 
   @Test
-  fun testAllInformationForApplyChangesAndPositionManager() {
+  fun testAllInformationForPositionManager() = runTest {
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
       FakeAdbTestRule.CLIENT_PACKAGE_NAME,
@@ -117,7 +125,11 @@ class AndroidJavaDebuggerTest {
   }
 
   @Test
-  fun testSessionCreated() {
+  fun testSessionCreated() = runTest {
+    val stats = RunStatsService.get(project).create().also {
+      executionEnvironment.putUserData(RunStats.KEY, it)
+    }
+
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
       FakeAdbTestRule.CLIENT_PACKAGE_NAME,
@@ -126,11 +138,13 @@ class AndroidJavaDebuggerTest {
       javaDebugger.createState(), onDebugProcessDestroyed, EmptyProgressIndicator()
     )
     assertThat(session).isNotNull()
-    assertThat(session!!.sessionName).isEqualTo("myConfiguration")
+    assertThat(session.sessionName).isEqualTo("myConfiguration")
+    stats.success()
+    assertTaskPresentedInStats(usageTrackerRule.usages, "startDebuggerSession")
   }
 
   @Test
-  fun testOnDebugProcessDestroyCallback() {
+  fun testOnDebugProcessDestroyCallback() = runTest {
     val countDownLatch = CountDownLatch(1)
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
@@ -172,7 +186,7 @@ class AndroidJavaDebuggerTest {
   }
 
   @Test
-  fun testKillAppOnDestroy() {
+  fun testKillAppOnDestroy() = runTest {
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
       FakeAdbTestRule.CLIENT_PACKAGE_NAME,
@@ -204,7 +218,7 @@ class AndroidJavaDebuggerTest {
   }
 
   @Test
-  fun testVMExitedNotifierIsInvokedOnDetach() {
+  fun testVMExitedNotifierIsInvokedOnDetach() = runTest {
     val spyClient = Mockito.spy(client)
 
     val mockDeploymentAppService = mock<DeploymentApplicationService>()

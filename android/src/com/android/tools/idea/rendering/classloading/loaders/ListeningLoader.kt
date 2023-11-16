@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+
 /**
  * A [DelegatingClassLoader.Loader] that delegates the loads to [delegate] and calls [onBeforeLoad] and [onAfterLoad] before and after
  * loading the classes.

@@ -53,14 +53,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "dexlib2",
-    # do not sort: must match IML order
-    jars = ["//prebuilts/tools/common/m2:dexlib2_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "truth-java8-extension",
     jars = ["//prebuilts/tools/common/m2:truth-java8-extension_files"],
     visibility = ["//visibility:public"],
@@ -89,13 +81,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "easymock",
-    jars = ["//prebuilts/tools/common/m2:easymock_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "libam-instrumentation-data-proto",
     jars = ["//tools/base/ddmlib:libam-instrumentation-data-proto.jar"],
     visibility = ["//visibility:public"],
@@ -112,13 +97,6 @@ jvm_import(
 jvm_import(
     name = "studio-analytics-proto",
     jars = ["//tools/analytics-library/protos/src/main/proto:libstudio.proto.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "aia-proto",
-    jars = ["//tools/base/sdk-common/aia-manifest-jar-generator:proto.jar"],
     visibility = ["//visibility:public"],
 )
 
@@ -175,13 +153,6 @@ jvm_import(
 jvm_import(
     name = "guava-testlib",
     jars = ["//prebuilts/tools/common/m2:guava-testlib_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "tightvnc",
-    jars = ["//prebuilts/tools/common/tightvnc:tightvnc_files"],
     visibility = ["//visibility:public"],
 )
 
@@ -270,13 +241,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "firebase_java_proto",
-    jars = [],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "utp-core-proto-jarjar",
     # do not sort: must match IML order
     jars = ["//tools/base/bazel:utp-core-proto-jarjar.jar"],
@@ -285,29 +249,8 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "directaccess_client_proto",
-    jars = [],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "adb_proxy_proto",
-    jars = ["//tools/base/adb-proxy/proto:adb_proxy_studio_proto.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "gson",
     jars = ["//prebuilts/tools/common/m2:gson_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "oauth2",
-    jars = ["//prebuilts/tools/common/m2:oauth2_files"],
     visibility = ["//visibility:public"],
 )
 
@@ -322,5 +265,40 @@ jvm_import(
 jvm_import(
     name = "google-baksmali",
     jars = ["//prebuilts/tools/common/m2:google-baksmali_files"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "gradle-shared-proto",
+    jars = ["//tools/base/build-system/gradle-core:common_proto.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "jetty",
+    jars = ["//prebuilts/tools/common/m2:jetty_files"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "cloudresourcemanager",
+    jars = ["//prebuilts/tools/common/m2:cloudresourcemanager_files"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "google-api-client",
+    jars = ["//prebuilts/tools/common/m2:google-api-client_files"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "kotlin-multiplatform-android-models-proto",
+    jars = ["//tools/base/kotlin-multiplatform-models/proto:kotlin_multiplatform_android_models_proto.jar"],
     visibility = ["//visibility:public"],
 )

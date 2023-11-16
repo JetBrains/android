@@ -32,8 +32,6 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.parentOfType
-import java.io.DataInput
-import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
@@ -44,6 +42,8 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
+import java.io.DataInput
+import java.io.DataOutput
 
 /**
  * Represents a @Provides or @Binds method in Dagger.
@@ -92,7 +92,7 @@ private object ProvidesMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodWra
     )
 
     for (parameter in wrapper.getParameters()) {
-      val parameterSimpleTypeName = parameter.getType().getSimpleName()
+      val parameterSimpleTypeName = parameter.getType().getSimpleName() ?: ""
       val parameterName = parameter.getSimpleName()
       indexEntries.addIndexValue(
         parameterSimpleTypeName,

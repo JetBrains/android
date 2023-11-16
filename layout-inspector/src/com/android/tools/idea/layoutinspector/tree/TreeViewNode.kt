@@ -20,8 +20,8 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 /**
  * A mutable node in a component tree.
  *
- * There is a 1-1 relationship with a [ViewNode] but the tree hierarchy
- * may or may not be the same as the [ViewNode] hierarchy.
+ * There is a 1-1 relationship with a [ViewNode] but the tree hierarchy may or may not be the same
+ * as the [ViewNode] hierarchy.
  */
 class TreeViewNode(val view: ViewNode) {
   var parent: TreeViewNode? = null

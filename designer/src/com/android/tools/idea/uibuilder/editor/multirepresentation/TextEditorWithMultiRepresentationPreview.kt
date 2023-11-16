@@ -24,14 +24,13 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
+import com.intellij.pom.Navigatable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
 
-/**
- * Converts the [PreferredVisibility] value into the equivalent [TextEditorWithPreview.Layout].
- */
+/** Converts the [PreferredVisibility] value into the equivalent [TextEditorWithPreview.Layout]. */
 private fun PreferredVisibility?.toTextEditorLayout(): TextEditorWithPreview.Layout? =
   when (this) {
     PreferredVisibility.HIDDEN -> TextEditorWithPreview.Layout.SHOW_EDITOR
@@ -41,18 +40,28 @@ private fun PreferredVisibility?.toTextEditorLayout(): TextEditorWithPreview.Lay
   }
 
 /**
- * A generic [SeamlessTextEditorWithPreview] where a preview part of it is [MultiRepresentationPreview]. It keeps track of number of
- * representations in the preview part and if none switches to the pure text editor mode.
+ * A generic [SeamlessTextEditorWithPreview] where a preview part of it is
+ * [MultiRepresentationPreview]. It keeps track of number of representations in the preview part and
+ * if none switches to the pure text editor mode.
  */
 open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPreview>(
-  private val project: Project, textEditor: TextEditor, preview: P, editorName: String) :
-  SeamlessTextEditorWithPreview<P>(textEditor, preview, editorName) {
+  private val project: Project,
+  textEditor: TextEditor,
+  preview: P,
+  editorName: String
+) : SeamlessTextEditorWithPreview<P>(textEditor, preview, editorName) {
   /**
    * SplitEditorAction that sets the [layoutSetExplicitly] when the user has clicked the action.
-   * This prevents the tab from being switched automatically once the user has explicitly switch to a specific mode.
+   * This prevents the tab from being switched automatically once the user has explicitly switch to
+   * a specific mode.
    */
-  private inner class SplitEditorActionDelegate(delegate: SplitEditorAction)
-    : SplitEditorAction(delegate.name, delegate.icon, delegate.delegate, delegate.showDefaultGutterPopup) {
+  private inner class SplitEditorActionDelegate(delegate: SplitEditorAction) :
+    SplitEditorAction(
+      delegate.name,
+      delegate.icon,
+      delegate.delegate,
+      delegate.showDefaultGutterPopup
+    ) {
     override fun onUserSelectedAction() {
       layoutSetExplicitly = true
     }
@@ -72,66 +81,70 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     }
   }
 
-  /**
-   * Whether this editor is active currently or not.
-   */
+  /** Whether this editor is active currently or not. */
   private var isActive = false
 
-  /**
-   * True until the first activation happens.
-   */
+  /** True until the first activation happens. */
   private var firstActivation = true
 
   /**
-   * True if the layout has been set explicitly when restoring the state. When it has been set explicitly,
-   * the editor will not try to set the preferred layout from the [PreviewRepresentation.preferredInitialVisibility].
+   * True if the layout has been set explicitly when restoring the state. When it has been set
+   * explicitly, the editor will not try to set the preferred layout from the
+   * [PreviewRepresentation.preferredInitialVisibility].
    */
   private var layoutSetExplicitly = false
 
+  /**
+   * Action that replaces the default "Show Editor" action with one that registers when the user has
+   * clicked it explicitly.
+   */
+  private val showEditorAction: SplitEditorAction =
+    SplitEditorActionDelegate(super.getShowEditorAction())
 
   /**
-   * Action that replaces the default "Show Editor" action with one that registers when the user has clicked it explicitly.
+   * Action that replaces the default "Show Editor And Preview" action with one that registers when
+   * the user has clicked it explicitly.
    */
-  private val showEditorAction: SplitEditorAction = SplitEditorActionDelegate(super.getShowEditorAction())
+  private var showEditorAndPreviewAction: SplitEditorAction =
+    SplitEditorActionDelegate(super.getShowEditorAndPreviewAction())
 
   /**
-   * Action that replaces the default "Show Editor And Preview" action with one that registers when the user has clicked it explicitly.
+   * Action that replaces the default "Show Preview" action with one that registers when the user
+   * has clicked it explicitly.
    */
-  private var showEditorAndPreviewAction: SplitEditorAction = SplitEditorActionDelegate(super.getShowEditorAndPreviewAction())
-
-  /**
-   * Action that replaces the default "Show Preview" action with one that registers when the user has clicked it explicitly.
-   */
-  private var showPreviewAction: SplitEditorAction = SplitEditorActionDelegate(super.getShowPreviewAction())
+  private var showPreviewAction: SplitEditorAction =
+    SplitEditorActionDelegate(super.getShowPreviewAction())
 
   init {
     isPureTextEditor = preview.representationNames.isEmpty()
-    preview.onRepresentationsUpdated = {
-      isPureTextEditor = preview.representationNames.isEmpty()
-    }
+    preview.onRepresentationsUpdated = { isPureTextEditor = preview.representationNames.isEmpty() }
     preview.registerShortcuts(component)
-    preview.component.addComponentListener(object : ComponentListener {
-      override fun componentResized(e: ComponentEvent?) {}
-      override fun componentMoved(e: ComponentEvent?) {}
+    preview.component.addComponentListener(
+      object : ComponentListener {
+        override fun componentResized(e: ComponentEvent?) {}
+        override fun componentMoved(e: ComponentEvent?) {}
 
-      override fun componentShown(e: ComponentEvent?) {
-        // The preview has been shown but only activate if the editor is selected
-        if (isEditorSelected()) activate()
-      }
+        override fun componentShown(e: ComponentEvent?) {
+          // The preview has been shown but only activate if the editor is selected
+          if (isEditorSelected()) activate()
+        }
 
-      override fun componentHidden(e: ComponentEvent?) {
-        deactivate()
+        override fun componentHidden(e: ComponentEvent?) {
+          deactivate()
+        }
       }
-    })
+    )
   }
 
   /**
-   * Returns whether this preview is active. That means that the number of [selectNotify] calls is larger than
-   * the number of [deselectNotify] calls.
+   * Returns whether this preview is active. That means that the number of [selectNotify] calls is
+   * larger than the number of [deselectNotify] calls.
    */
   private fun isEditorSelected(): Boolean {
-    val selectedEditors = FileEditorManager.getInstance(
-      project).selectedEditors.filterIsInstance<TextEditorWithMultiRepresentationPreview<*>>()
+    val selectedEditors =
+      FileEditorManager.getInstance(project)
+        .selectedEditors
+        .filterIsInstance<TextEditorWithMultiRepresentationPreview<*>>()
     return selectedEditors.any { it == this }
   }
 
@@ -139,6 +152,19 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     if (isActive) return
     isActive = true
     preview.onActivate()
+  }
+
+  override fun navigateTo(navigatable: Navigatable) {
+    // Check if the text editor is not visible.
+    // When not visible, if the user is trying to navigate to the source code, we
+    // show the split mode so the user can see where the cursor moved.
+    // This is helpful in situations like hitting a debugger breakpoint or clicking a
+    // component in the Layout Inspector.
+    if (isDesignMode()) {
+      selectSplitMode(false)
+    }
+
+    super.navigateTo(navigatable)
   }
 
   private fun deactivate() {
@@ -167,8 +193,7 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
           if (preview.component.isShowing) activate()
         }
       }
-    }
-    else {
+    } else {
       // The editor has been selected, but only activate if it's visible.
       if (preview.component.isShowing) activate()
     }
@@ -181,9 +206,7 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     deactivate()
   }
 
-  /**
-   * Set the layout (code, split or only design) of the panel explicitly.
-   */
+  /** Set the layout (code, split or only design) of the panel explicitly. */
   protected fun setLayoutExplicitly(layout: Layout?) {
     if (layout != null) {
       layoutSetExplicitly = true

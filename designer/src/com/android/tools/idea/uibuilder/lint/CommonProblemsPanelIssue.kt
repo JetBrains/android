@@ -40,26 +40,29 @@ class CommonProblemsPanelIssue(issue: Issue) : Issue() {
       when (source) {
         is VisualLintIssueProvider.VisualLintIssueSource -> {
           source.components.forEach { component ->
-            getTextRange(component)?.let { return it }
-        }}
-        is NlComponentIssueSource -> return source.component?.let { getTextRange(it) }
-
+            component.getTextRange()?.let {
+              return it
+            }
+          }
+        }
+        is NlComponentIssueSource -> return source.component?.getTextRange()
       }
 
       return null
     }
 
   /** Returns formatted plain strings (from html description) */
-  val formattedDescription: String get() = Jsoup.parse(this.description).text()
+  val formattedDescription: String
+    get() = Jsoup.parse(this.description).text()
 
   override fun equals(other: Any?): Boolean {
     if (other === this) return true
     if (other !is CommonProblemsPanelIssue) return false
-    return other.severity == severity
-           && other.summary == summary
-           && other.description == description
-           && other.category == category
-           && other.range == range
+    return other.severity == severity &&
+      other.summary == summary &&
+      other.description == description &&
+      other.category == category &&
+      other.range == range
   }
 
   override fun hashCode(): Int {
@@ -74,12 +77,13 @@ class CommonProblemsPanelIssue(issue: Issue) : Issue() {
 }
 
 /** Displays all issues in [annotationResult] to [holder] with appropriate range as source text */
-fun showIssuesInCommonProblemsPanel(annotationResult: CommonPanelIssueSet?, holder: AnnotationHolder) {
+fun showIssuesInCommonProblemsPanel(
+  annotationResult: CommonPanelIssueSet?,
+  holder: AnnotationHolder
+) {
   annotationResult?.forEach { issue ->
     val builder = holder.newAnnotation(issue.severity, issue.formattedDescription)
-    issue.range?.let {
-      builder.range(it)
-    }
+    issue.range?.let { builder.range(it) }
     builder.needsUpdateOnTyping(true).create()
   }
 }

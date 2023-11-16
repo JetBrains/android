@@ -21,6 +21,7 @@ import com.android.tools.idea.io.grpc.ManagedChannel;
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.system.CpuArch;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -160,6 +161,12 @@ public class AndroidStudio implements AutoCloseable {
     return response.getVersion();
   }
 
+  public String getSystemProperty(String systemProperty) {
+    ASDriver.GetSystemPropertyRequest rq = ASDriver.GetSystemPropertyRequest.newBuilder().setSystemProperty(systemProperty).build();
+    ASDriver.GetSystemPropertyResponse response = androidStudio.getSystemProperty(rq);
+    return response.getValue();
+  }
+
   /**
    * @param force true to kill Studio right away, false to gracefully exit. Note that killing Studio will not allow it to run
    *              cleanup processes, such as stopping Gradle, which would let Gradle to continue writing to the filesystem.
@@ -219,16 +226,31 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void executeAction(String action) {
-    ASDriver.ExecuteActionRequest rq = ASDriver.ExecuteActionRequest.newBuilder().setActionId(action).build();
+    executeAction(action, DataContextSource.DEFAULT);
+  }
+
+  public void executeAction(String action, DataContextSource dataContextSource) {
+    ASDriver.ExecuteActionRequest rq =
+      ASDriver.ExecuteActionRequest.newBuilder().setActionId(action).setDataContextSource(dataContextSource.dataContextSource).build();
     ASDriver.ExecuteActionResponse response = androidStudio.executeAction(rq);
     switch (response.getResult()) {
-      case OK:
-        return;
-      case ACTION_NOT_FOUND:
-        throw new NoSuchElementException(String.format("No action found by this ID: %s", action));
-      default:
-        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+      case OK -> {}
+      case ACTION_NOT_FOUND -> throw new NoSuchElementException(String.format("No action found by this ID: %s", action));
+      case ERROR -> throw new IllegalStateException(String.format("Failed to execute action: %s. %s",
+                                                                  action, formatErrorMessage(response.getErrorMessage())));
+      default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
+  }
+
+  /**
+   * Invokes the "Resume Program" button. This button is only enabled when the debugger has paused
+   * execution, which means that this method can be used to ensure that the debugger had indeed hit
+   * a breakpoint (although it will change the state of the application by then resuming the
+   * program).
+   */
+  public void resumeProgramFromDebugging() {
+    System.out.println("Waiting for a breakpoint to be hit by the debugger, then resuming the program");
+    invokeByIcon("actions/resume.svg");
   }
 
   public void invokeByIcon(String icon) {
@@ -239,7 +261,7 @@ public class AndroidStudio implements AutoCloseable {
 
   public void invokeComponent(String componentText) {
     ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
-    builder.addComponentTextMatch(componentText);
+    builder.addComponentTextExactMatch(componentText);
     invokeComponent(builder);
   }
 
@@ -247,13 +269,10 @@ public class AndroidStudio implements AutoCloseable {
     ASDriver.InvokeComponentRequest request = ASDriver.InvokeComponentRequest.newBuilder().addAllMatchers(matchers.build()).build();
     ASDriver.InvokeComponentResponse response = androidStudio.invokeComponent(request);
     switch (response.getResult()) {
-      case OK:
-        return;
-      case ERROR:
-        throw new IllegalStateException(String.format("Could not invoke component with these matchers: %s. Check the Android Studio " +
-                                                      "stderr log for the cause.", matchers));
-      default:
-        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+      case OK -> {}
+      case ERROR -> throw new IllegalStateException(String.format("Could not invoke component with these matchers: %s. %s",
+                                                                  matchers, formatErrorMessage(response.getErrorMessage())));
+      default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
   }
 
@@ -263,9 +282,16 @@ public class AndroidStudio implements AutoCloseable {
     ASDriver.WaitForIndexResponse ignore = androidStudio.waitForIndex(rq);
   }
 
+  public void waitForNativeBreakpointHit() throws IOException, InterruptedException {
+    System.out.println("Waiting for native breakpoint to hit");
+    install.getIdeaLog().waitForMatchingLine(".*Native breakpoint hit.*", 3, TimeUnit.MINUTES);
+  }
+
   /**
    * Opens a file and then goes to a specific line and column in the first open project's selected
    * text editor.
+   * @param file the name of the file, interpreted initially as an absolute file path, but subsequently as a project-relative file path
+   *            if no file is initially found.
    * @param line 0-indexed line number.
    * @param column 0-indexed column number.
    * @see com.intellij.openapi.editor.LogicalPosition
@@ -281,13 +307,11 @@ public class AndroidStudio implements AutoCloseable {
     ASDriver.OpenFileRequest rq = builder.build();
     ASDriver.OpenFileResponse response = androidStudio.openFile(rq);
     switch (response.getResult()) {
-      case OK:
-        return;
-      case ERROR:
-        throw new IllegalStateException(String.format("Could not open file \"%s\" in project \"%s\" to line %d:%d. Check the Android " +
-                                                      "Studio stderr log for the cause.", file, project, line, column));
-      default:
-        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+      case OK -> {}
+      case ERROR ->
+        throw new IllegalStateException(String.format("Could not open file \"%s\" in project \"%s\" to line %d:%d. %s",
+                                                      file, project, line, column, formatErrorMessage(response.getErrorMessage())));
+      default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
   }
 
@@ -303,39 +327,86 @@ public class AndroidStudio implements AutoCloseable {
       case OK:
         return;
       case ERROR:
-        throw new IllegalStateException(String.format("Could not edit file \"%s\" with searchRegex %s and replacement %s. Check the " +
-                                                      "Android Studio stderr log for the cause.", file, searchRegex, replacement));
+        throw new IllegalStateException(String.format("Could not edit file \"%s\" with searchRegex %s and replacement %s. %s",
+                                                      file, searchRegex, replacement, formatErrorMessage(response.getErrorMessage())));
       default:
         throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
   }
 
+  /**
+   * @deprecated use {@link #waitForComponentWithExactText(String)} instead
+   */
+  @Deprecated
   public void waitForComponent(String componentText) {
+    waitForComponentWithExactText(componentText);
+  }
+
+  /** Waits for a {@code Component} whose <b>entire</b> text matches {@code componentText}.*/
+  public void waitForComponentWithExactText(String componentText) {
     ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
-    builder.addComponentTextMatch(componentText);
+    builder.addComponentTextExactMatch(componentText);
     waitForComponent(builder);
   }
 
-  public void waitForComponentByClass(String... classNames) {
+  /** Waits for a {@code Component} whose text contains {@code containedText}. */
+  public void waitForComponentWithTextContaining(String containedText) {
+    ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
+    builder.addComponentTextContainsMatch(containedText);
+    waitForComponent(builder);
+  }
+
+  /** Waits for a {@code Component} whose <b>entire</b> text matches the regular expression {@code regex}. */
+  public void waitForComponentWithTextMatchingRegex(String regex) {
+    ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
+    builder.addComponentTextRegexMatch(regex);
+    waitForComponent(builder);
+  }
+
+  public void waitForComponentByClass(String... classNames){
+    waitForComponentByClass(false, classNames);
+  }
+
+  public void waitForComponentByClass(boolean waitForEnabled, String... classNames) {
     ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
     for (String className : classNames) {
       builder.addSwingClassRegexMatch(String.format(".*%s.*", className));
     }
-    waitForComponent(builder);
+    waitForComponent(builder, waitForEnabled);
   }
 
-  public void waitForComponent(ComponentMatchersBuilder requestBuilder) {
-    ASDriver.WaitForComponentRequest request = ASDriver.WaitForComponentRequest.newBuilder().addAllMatchers(requestBuilder.build()).build();
+  public void waitForComponent(ComponentMatchersBuilder requestBuilder){
+    waitForComponent(requestBuilder, false);
+  }
+
+  public void waitForComponent(ComponentMatchersBuilder requestBuilder, boolean waitForEnabled) {
+    ASDriver.WaitForComponentRequest request = ASDriver.WaitForComponentRequest.newBuilder().addAllMatchers(requestBuilder.build()).setWaitForEnabled(waitForEnabled).build();
     ASDriver.WaitForComponentResponse response = androidStudio.waitForComponent(request);
     switch (response.getResult()) {
-      case OK:
-        return;
-      case ERROR:
-        throw new IllegalStateException(String.format("Could not wait for component with these matchers: %s. Check the Android Studio " +
-                                                      "stderr log for the cause.", requestBuilder));
-      default:
-        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+      case OK -> {}
+      case ERROR -> throw new IllegalStateException(String.format("Failed while waiting for component with these matchers: %s. %s",
+                                                    requestBuilder, formatErrorMessage(response.getErrorMessage())));
+      default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
+  }
+
+  public void waitForProjectInit(){
+    // Need to wait for the device selector to be ready
+    System.out.println("Wait for ActionToolBar");
+    this.waitForComponentByClass(true, "MyNavBarWrapperPanel", "ActionToolbarImpl", "DeviceAndSnapshotComboBoxAction");
+  }
+
+  public List<AnalysisResult> analyzeFile(String file) {
+    ASDriver.AnalyzeFileRequest.Builder builder = ASDriver.AnalyzeFileRequest.newBuilder().setFile(file);
+    ASDriver.AnalyzeFileRequest rq = builder.build();
+    ASDriver.AnalyzeFileResponse response = androidStudio.analyzeFile(rq);
+    return switch (response.getStatus()) {
+      case OK -> response.getAnalysisResultsList().stream().map(AnalysisResult::fromProto).toList();
+      case ERROR ->
+        throw new IllegalStateException(String.format("Could not analyze file %s. %s",
+                                                      file, formatErrorMessage(response.getErrorMessage())));
+      default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getStatus()));
+    };
   }
 
   public void waitForBuild() throws IOException, InterruptedException {
@@ -360,5 +431,54 @@ public class AndroidStudio implements AutoCloseable {
     Matcher matcher = install.getIdeaLog()
       .waitForMatchingLine(".*Gradle sync finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
     System.out.println("Sync took " + matcher.group(1));
+  }
+
+  public void runWithBleak(Runnable scenario) {
+    scenario.run(); // warm up: for BLeak to track a path in the heap, it must exist when the first snapshot is taken.
+    int lastIter = 3;
+    for (int i = 0; i < lastIter; i++) {
+      ASDriver.TakeBleakSnapshotRequest request = ASDriver.TakeBleakSnapshotRequest.newBuilder().setCurrentIteration(i).setLastIteration(lastIter).build();
+      ASDriver.TakeBleakSnapshotResponse response = androidStudio.takeBleakSnapshot(request);
+      if (response.getResult() == ASDriver.TakeBleakSnapshotResponse.Result.ERROR) {
+        throw new IllegalStateException("Error in BLeak. " + formatErrorMessage(response.getErrorMessage()));
+      }
+      scenario.run();
+    }
+    ASDriver.TakeBleakSnapshotRequest request = ASDriver.TakeBleakSnapshotRequest.newBuilder().setCurrentIteration(lastIter).setLastIteration(lastIter).build();
+    ASDriver.TakeBleakSnapshotResponse response = androidStudio.takeBleakSnapshot(request);
+    switch (response.getResult()) {
+      case OK -> {}
+      case ERROR -> throw new IllegalStateException("Error in BLeak. " + formatErrorMessage(response.getErrorMessage()));
+      case LEAK_DETECTED -> throw new MemoryLeakException(response.getLeakInfo());
+    }
+  }
+
+  private static String formatErrorMessage(String errorMessage) {
+    if (StringUtil.isEmpty(errorMessage)) {
+      return "Check the Android Studio stderr log for the cause. See go/e2e-find-log-files for more info.";
+    }
+    return "Error message: " + errorMessage;
+  }
+
+  /**
+   * Describes from which component an action should obtain its {@code DataContext}. By default, a minimal {@code DataContext} is
+   * constructed with only the {@code Project} and the {@code Editor} specified.
+   */
+  public enum DataContextSource {
+    DEFAULT(ASDriver.ExecuteActionRequest.DataContextSource.DEFAULT),
+    SELECTED_TEXT_EDITOR(ASDriver.ExecuteActionRequest.DataContextSource.SELECTED_TEXT_EDITOR);
+
+    // This is the underlying proto enum that we do not want to expose as part of the API.
+    private final ASDriver.ExecuteActionRequest.DataContextSource dataContextSource;
+
+    DataContextSource(ASDriver.ExecuteActionRequest.DataContextSource dataContextSource) {
+      this.dataContextSource = dataContextSource;
+    }
+  }
+
+  private static class MemoryLeakException extends RuntimeException {
+    private MemoryLeakException(String message) {
+      super(message);
+    }
   }
 }

@@ -21,12 +21,13 @@ import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.AndroidConfigurationProgramRunner
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
 import com.android.tools.idea.gradle.run.MakeBeforeRunTask
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
 import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
 import com.google.common.truth.Truth
 import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.ExecutionTargetManager
@@ -35,7 +36,6 @@ import com.intellij.execution.PsiLocation
 import com.intellij.execution.RunManager
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
@@ -77,8 +77,8 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
         override fun getId(): String = "target"
         override fun getDisplayName(): String = "target"
         override fun getIcon(): Icon? = null
-        override fun getAvailableDeviceCount(): Int = 1
-        override fun getRunningDevices(): Collection<IDevice> = emptyList()
+        override fun getAvailableDeviceCount(): Int = deviceFutures?.devices?.size ?: 0
+        override fun getRunningDevices(): Collection<IDevice> = deviceFutures?.get()?.map { it.get() } ?: emptyList()
         override fun canRun(configuration: RunConfiguration): Boolean = configuration === this@executeMakeBeforeRunStepInTest
       }
       ExecutionTargetManager.getInstance(this.project).activeTarget = target
@@ -88,7 +88,7 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
       override fun getRunnerId(): String = "runner_id"
       override fun canRunWithMultipleDevices(executorId: String): Boolean = false
       override val supportedConfigurationTypeIds = emptyList<String>()
-      override fun run(environment: ExecutionEnvironment, state: RunProfileState, indicator: ProgressIndicator): RunContentDescriptor {
+      override fun run(environment: ExecutionEnvironment, executor: AndroidConfigurationExecutor, indicator: ProgressIndicator): RunContentDescriptor {
         return mock<RunContentDescriptor>()
       }
     }
@@ -163,7 +163,8 @@ fun mockDeviceFor(androidVersion: Int, abis: List<Abi>, density: Int? = null): I
   val device = mock<IDevice>()
   whenever(device.abis).thenReturn(abis.map { it.toString() })
   whenever(device.version).thenReturn(AndroidVersion(androidVersion))
-  whenever(device.serialNumber).thenReturn("serial-number")
+  whenever(device.serialNumber).thenReturn("1234")
+  whenever(device.isOnline).thenReturn(true)
   density?.let { whenever(device.density).thenReturn(density) }
   return device
 }

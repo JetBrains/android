@@ -20,7 +20,6 @@ import com.google.common.collect.Multiset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.Icon;
@@ -39,14 +38,13 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
   @NotNull
   private final Multiset<String> myDeviceNameMultiset;
 
-  SelectMultipleDevicesDialogTableModel(@NotNull List<Device> devices,
-                                        @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
+  SelectMultipleDevicesDialogTableModel(@NotNull List<Device> devices) {
     devices.sort(new DeviceComparator());
     myRows = new ArrayList<>();
 
     for (Device device : devices) {
       for (Target target : device.getTargets()) {
-        myRows.add(new SelectMultipleDevicesDialogTableModelRow(device, selectDeviceSnapshotComboBoxSnapshotsEnabledGet, target));
+        myRows.add(new SelectMultipleDevicesDialogTableModelRow(device, target));
       }
     }
 

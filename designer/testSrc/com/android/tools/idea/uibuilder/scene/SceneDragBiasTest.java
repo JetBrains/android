@@ -59,7 +59,7 @@ public class SceneDragBiasTest extends SceneTest {
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "        app:layout_constraintHorizontal_bias=\"0.055\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.034\"\n" +
                  "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"parent\" />");
@@ -77,7 +77,7 @@ public class SceneDragBiasTest extends SceneTest {
                  "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "        app:layout_constraintVertical_bias=\"0.091\" />");
+                 "        app:layout_constraintVertical_bias=\"0.074\" />");
   }
 
   public void testDragTopLeft() {
@@ -89,10 +89,10 @@ public class SceneDragBiasTest extends SceneTest {
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "        app:layout_constraintHorizontal_bias=\"0.166\"\n" +
+                 "        app:layout_constraintHorizontal_bias=\"0.151\"\n" +
                  "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "        app:layout_constraintVertical_bias=\"0.193\" />");
+                 "        app:layout_constraintVertical_bias=\"0.18\" />");
   }
 }

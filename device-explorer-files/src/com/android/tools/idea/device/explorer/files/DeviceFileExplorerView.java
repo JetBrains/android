@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.device.explorer.files;
 
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystemService;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,10 +27,9 @@ public interface DeviceFileExplorerView {
 
   void showNoDeviceScreen();
 
-  void reportErrorRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message, @NotNull Throwable t);
+  void reportError(@NotNull String message, @NotNull Throwable t);
   void reportErrorRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message, @NotNull Throwable t);
 
-  void reportMessageRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message);
   void reportMessageRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message);
 
   void startTreeBusyIndicator();
@@ -45,9 +42,7 @@ public interface DeviceFileExplorerView {
   void startProgress();
   void setProgressIndeterminate(boolean indeterminate);
   void setProgressValue(double fraction);
-  void setProgressOkColor();
   void setProgressWarningColor();
-  void setProgressErrorColor();
   void setProgressText(@NotNull String text);
   void stopProgress();
 }

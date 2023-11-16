@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
@@ -28,6 +29,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.toIoFile
 import com.google.common.collect.HashMultimap
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -36,6 +38,7 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
@@ -52,6 +55,7 @@ import java.util.concurrent.CountDownLatch
  * This implementation of AndroidProjectSystem is used during integration tests and includes methods
  * to stub project system functionalities.
  */
+@Deprecated("Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project")
 class TestProjectSystem @JvmOverloads constructor(
   val project: Project,
   availableDependencies: List<GradleCoordinate> = listOf(),
@@ -60,6 +64,8 @@ class TestProjectSystem @JvmOverloads constructor(
   private val androidLibraryDependencies: Collection<ExternalAndroidLibrary> = emptySet()
 ) : AndroidProjectSystem {
 
+  data class Dependency(val type: DependencyType, val coordinate: GradleCoordinate)
+
   override fun getBootClasspath(module: Module): Collection<String> {
     return emptyList()
   }
@@ -67,11 +73,12 @@ class TestProjectSystem @JvmOverloads constructor(
   /**
    * Injects this project system into the [project] it was created for.
    */
+  @Deprecated("Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project")
   fun useInTests() {
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(this)
   }
 
-  private val dependenciesByModule: HashMultimap<Module, GradleCoordinate> = HashMultimap.create()
+  private val dependenciesByModule: HashMultimap<Module, Dependency> = HashMultimap.create()
   private val availablePreviewDependencies: List<GradleCoordinate>
   private val availableStableDependencies: List<GradleCoordinate>
   private val incompatibleDependencyPairs: HashMap<GradleCoordinate, GradleCoordinate>
@@ -94,13 +101,13 @@ class TestProjectSystem @JvmOverloads constructor(
    */
   fun addDependency(artifactId: GoogleMavenArtifactId, module: Module, mavenVersion: GradleVersion) {
     val coordinate = artifactId.getCoordinate(mavenVersion.toString())
-    dependenciesByModule.put(module, coordinate)
+    dependenciesByModule.put(module, Dependency(DependencyType.IMPLEMENTATION, coordinate))
   }
 
   /**
    * @return the set of dependencies added to the given module.
    */
-  fun getAddedDependencies(module: Module): Set<GradleCoordinate> = dependenciesByModule.get(module)
+  fun getAddedDependencies(module: Module): Set<Dependency> = dependenciesByModule.get(module)
 
   /**
    * Mark a pair of dependencies as incompatible so that [AndroidModuleSystem.analyzeDependencyCompatibility]
@@ -169,18 +176,47 @@ class TestProjectSystem @JvmOverloads constructor(
         coordinateToFakeRegisterDependencyError[coordinate]?.let {
           throw DependencyManagementException(it, DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
         }
-        dependenciesByModule.put(module, coordinate)
+        dependenciesByModule.put(module, Dependency(type, coordinate))
       }
 
       override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
-        dependenciesByModule[module].firstOrNull { it.matches(coordinate) }
+        dependenciesByModule[module].map { it.coordinate }.firstOrNull { it.matches(coordinate) }
 
       override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? =
-        dependenciesByModule[module].firstOrNull { it.matches(coordinate) }
+        dependenciesByModule[module].map { it.coordinate }.firstOrNull { it.matches(coordinate) }
 
-      override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
-        return emptyList()
-      }
+      override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
+        listOfNotNull(
+          NamedModuleTemplate(
+            "main",
+            AndroidModulePathsImpl(
+              ModuleRootManager.getInstance(module).sourceRoots.first().parent.toIoFile(),
+              null,
+              ModuleRootManager.getInstance(module).sourceRoots.first().toIoFile(),
+              null,
+              null,
+              null,
+              emptyList(),
+              emptyList()
+            )
+          ),
+          // Fake an androidTest sourceSet
+          module.getAndroidTestModule()?.let { testModule ->
+            NamedModuleTemplate(
+              "androidTest",
+              AndroidModulePathsImpl(
+                ModuleRootManager.getInstance(module).sourceRoots.first().parent.toIoFile(),
+                null,
+                null,
+                null,
+                ModuleRootManager.getInstance(testModule).sourceRoots.first().parent.toIoFile(),
+                null,
+                emptyList(),
+                emptyList()
+              )
+            )
+          }
+        )
 
       override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
         return CapabilityNotSupported()
@@ -292,6 +328,10 @@ class TestProjectSystem @JvmOverloads constructor(
 
   override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): List<AndroidFacet> {
     return emptyList()
+  }
+
+  override fun isNamespaceOrParentPackage(packageName: String): Boolean {
+    return false
   }
 }
 

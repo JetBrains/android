@@ -21,10 +21,10 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.configurations.ConfigurationSettings;
 import com.android.tools.res.ResourceRepositoryManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.android.tools.sdk.AndroidTargetData;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -33,11 +33,11 @@ import org.jetbrains.annotations.NotNull;
 public class ThemeEditorStyle {
   private static final Logger LOG = Logger.getInstance(ThemeEditorStyle.class);
 
-  @NotNull private final ConfigurationManager myManager;
+  @NotNull private final ConfigurationSettings mySettings;
   @NotNull private final ResourceReference myStyleReference;
 
-  public ThemeEditorStyle(@NotNull ConfigurationManager manager, @NotNull ResourceReference styleReference) {
-    myManager = manager;
+  public ThemeEditorStyle(@NotNull ConfigurationSettings settings, @NotNull ResourceReference styleReference) {
+    mySettings = settings;
     myStyleReference = styleReference;
   }
 
@@ -58,7 +58,7 @@ public class ThemeEditorStyle {
    */
   @NotNull
   public String getQualifiedName() {
-    ResourceRepositoryManager repositoryManager = myManager.getConfigModule().getResourceRepositoryManager();
+    ResourceRepositoryManager repositoryManager = mySettings.getConfigModule().getResourceRepositoryManager();
     if (repositoryManager == null || repositoryManager.getNamespace().equals(myStyleReference.getNamespace())) {
       return myStyleReference.getName();
     }
@@ -81,7 +81,7 @@ public class ThemeEditorStyle {
     if (isFramework()) {
       return false;
     }
-    ResourceRepositoryManager repositoryManager = myManager.getConfigModule().getResourceRepositoryManager();
+    ResourceRepositoryManager repositoryManager = mySettings.getConfigModule().getResourceRepositoryManager();
     assert repositoryManager != null;
     ResourceRepository repository = repositoryManager.getProjectResources();
     return repository.hasResources(myStyleReference.getNamespace(), myStyleReference.getResourceType(), myStyleReference.getName());
@@ -95,13 +95,13 @@ public class ThemeEditorStyle {
       return true;
     }
 
-    IAndroidTarget target = myManager.getTarget();
+    IAndroidTarget target = mySettings.getTarget();
     if (target == null) {
       LOG.error("Unable to get IAndroidTarget.");
       return false;
     }
 
-    AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, myManager.getConfigModule().getAndroidPlatform());
+    AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, mySettings.getConfigModule().getAndroidPlatform());
     if (androidTargetData == null) {
       LOG.error("Unable to get AndroidTargetData.");
       return false;

@@ -38,6 +38,7 @@ import junit.framework.TestCase
 import org.jetbrains.kotlin.android.DirectiveBasedActionUtils
 import org.jetbrains.kotlin.android.KotlinLightProjectDescriptor
 import org.jetbrains.kotlin.android.KotlinTestUtils
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.psi.KtFile
 import java.io.File
 import java.util.regex.Pattern
@@ -96,7 +97,11 @@ abstract class AbstractQuickFixMultiFileTest : LightJavaCodeInsightFixtureTestCa
         val actionShouldBeAvailable = actionHint.shouldPresent()
 
         if (psiFile is KtFile) {
-          DirectiveBasedActionUtils.checkForUnexpectedErrors(psiFile)
+          if (isK2Plugin()) {
+            DirectiveBasedActionUtils.checkForUnexpectedErrorsK2(psiFile)
+          } else {
+            DirectiveBasedActionUtils.checkForUnexpectedErrorsK1(psiFile)
+          }
         }
 
         doAction(text, file, editor, actionShouldBeAvailable, beforeFileName, this::availableActions, myFixture::doHighlighting)

@@ -19,10 +19,10 @@ import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
-import com.android.tools.idea.uibuilder.model.viewHandler
+import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 
-class ScaleTypeViewActionTest: SceneTest() {
+class ScaleTypeViewActionTest : SceneTest() {
 
   fun testChangeScaleType() {
     val imageView = myModel.find("imageView")!!
@@ -30,26 +30,27 @@ class ScaleTypeViewActionTest: SceneTest() {
       val action = ScaleTypeViewAction(SdkConstants.ANDROID_URI, SdkConstants.ATTR_SCALE_TYPE, type)
       val editor = ViewEditorImpl(myModel, myScene)
 
-      action.perform(editor, imageView.viewHandler!!, imageView, mutableListOf(imageView), 0)
+      action.perform(editor, imageView.getViewHandler {}!!, imageView, mutableListOf(imageView), 0)
 
       assertEquals(type.attributeValue, imageView.getAndroidAttribute(SdkConstants.ATTR_SCALE_TYPE))
     }
   }
 
   override fun createModel(): ModelBuilder {
-    return model("constraint.xml",
-                 component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-                   .withBounds(0, 0, 1000, 1000)
-                   .id("@id/constraint")
-                   .matchParentWidth()
-                   .matchParentHeight()
-                   .children(
-                     component(SdkConstants.IMAGE_VIEW)
-                       .withBounds(0, 0, 200, 200)
-                       .id("@id/imageView")
-                       .width("100dp")
-                       .height("100dp")
-                   )
+    return model(
+      "constraint.xml",
+      component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
+        .withBounds(0, 0, 1000, 1000)
+        .id("@id/constraint")
+        .matchParentWidth()
+        .matchParentHeight()
+        .children(
+          component(SdkConstants.IMAGE_VIEW)
+            .withBounds(0, 0, 200, 200)
+            .id("@id/imageView")
+            .width("100dp")
+            .height("100dp")
+        )
     )
   }
 }

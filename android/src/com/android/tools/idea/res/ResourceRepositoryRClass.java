@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.tools.res.LocalResourceRepository;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.ModificationTracker;
@@ -43,7 +44,8 @@ public abstract class ResourceRepositoryRClass extends AndroidRClassBase {
     @NotNull Transitivity getTransitivity();
     @NotNull
     StudioResourceRepositoryManager getResourceRepositoryManager();
-    @NotNull LocalResourceRepository getResourceRepository();
+    @NotNull
+    LocalResourceRepository getResourceRepository();
     @NotNull ResourceNamespace getResourceNamespace();
     @NotNull AndroidLightField.FieldModifier getFieldModifier();
   }

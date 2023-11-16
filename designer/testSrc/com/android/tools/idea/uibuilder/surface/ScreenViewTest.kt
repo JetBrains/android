@@ -22,14 +22,13 @@ import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.rendering.RenderLogger
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.createRenderTaskErrorResult
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY
+import com.android.tools.rendering.RenderLogger
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -39,8 +38,7 @@ import org.mockito.Mockito.mock
 import java.awt.Dimension
 
 class ScreenViewTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @After
   fun tearDown() {
@@ -48,13 +46,12 @@ class ScreenViewTest {
   }
 
   private fun buildState(): State {
-    val screen = Screen().apply {
-      yDimension = 500
-      xDimension = 300
-    }
-    val hardware = Hardware().apply {
-      setScreen(screen)
-    }
+    val screen =
+      Screen().apply {
+        yDimension = 500
+        xDimension = 300
+      }
+    val hardware = Hardware().apply { setScreen(screen) }
     return State().apply {
       setHardware(hardware)
       isDefaultState = true
@@ -62,12 +59,14 @@ class ScreenViewTest {
   }
 
   private fun buildDevice(name: String, defaultState: State = buildState()): Device {
-    return Device.Builder().apply {
-      setName(name)
-      setManufacturer(name)
-      addSoftware(Software())
-      addState(defaultState)
-    }.build()
+    return Device.Builder()
+      .apply {
+        setName(name)
+        setManufacturer(name)
+        addSoftware(Software())
+        addState(defaultState)
+      }
+      .build()
   }
 
   @Test
@@ -100,25 +99,42 @@ class ScreenViewTest {
     DEVICE_CONTENT_SIZE_POLICY.measure(screenView, outDimension)
 
     // Not modified
-    assertEquals("measure should not modify the dimensions where there is no device available", 123, outDimension.width)
-    assertEquals("measure should not modify the dimensions where there is no device available", 123, outDimension.height)
+    assertEquals(
+      "measure should not modify the dimensions where there is no device available",
+      123,
+      outDimension.width
+    )
+    assertEquals(
+      "measure should not modify the dimensions where there is no device available",
+      123,
+      outDimension.height
+    )
 
     whenever(configuration.cachedDevice).thenReturn(buildDevice("Pixel5"))
     DEVICE_CONTENT_SIZE_POLICY.measure(screenView, outDimension)
     // Not modified
-    assertEquals("measure should not modify the dimensions where there is no state available", 123, outDimension.width)
-    assertEquals("measure should not modify the dimensions where there is no state available", 123, outDimension.height)
+    assertEquals(
+      "measure should not modify the dimensions where there is no state available",
+      123,
+      outDimension.width
+    )
+    assertEquals(
+      "measure should not modify the dimensions where there is no state available",
+      123,
+      outDimension.height
+    )
   }
 
   @Test
   fun `device content size policy with device and state`() {
     val screenView = mock(ScreenView::class.java)
     val configuration = mock(Configuration::class.java)
-    val screen = Screen().apply {
-      yDimension = 500
-      xDimension = 300
-      pixelDensity = Density.MEDIUM
-    }
+    val screen =
+      Screen().apply {
+        yDimension = 500
+        xDimension = 300
+        pixelDensity = Density.MEDIUM
+      }
     val device = buildDevice("Pixel5", buildState().apply { hardware.screen = screen })
     whenever(configuration.cachedDevice).thenReturn(device)
     whenever(configuration.deviceState).thenReturn(device.defaultState)
@@ -139,11 +155,12 @@ class ScreenViewTest {
     StudioFlags.NELE_DP_SIZED_PREVIEW.override(true)
     val screenView = mock(ScreenView::class.java)
     val configuration = mock(Configuration::class.java)
-    val lowDensityScreen = Screen().apply {
-      yDimension = 500
-      xDimension = 300
-      pixelDensity = Density.LOW
-    }
+    val lowDensityScreen =
+      Screen().apply {
+        yDimension = 500
+        xDimension = 300
+        pixelDensity = Density.LOW
+      }
     val device = buildDevice("Pixel5", buildState().apply { hardware.screen = lowDensityScreen })
     whenever(configuration.cachedDevice).thenReturn(device)
     whenever(configuration.deviceState).thenReturn(device.defaultState)
@@ -158,11 +175,12 @@ class ScreenViewTest {
     assertEquals(400, outDimension.width)
     assertEquals(667, outDimension.height)
 
-    val highDensityScreen = Screen().apply {
-      yDimension = 500
-      xDimension = 300
-      pixelDensity = Density.XXHIGH
-    }
+    val highDensityScreen =
+      Screen().apply {
+        yDimension = 500
+        xDimension = 300
+        pixelDensity = Density.XXHIGH
+      }
     device.defaultState.hardware.screen = highDensityScreen
 
     DEVICE_CONTENT_SIZE_POLICY.measure(screenView, outDimension)

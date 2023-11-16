@@ -42,7 +42,12 @@ interface IdeAndroidLibraryDependency : IdeArtifactDependency<IdeAndroidLibrary>
 @Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")
 interface IdeJavaLibraryDependency : IdeArtifactDependency<IdeJavaLibrary>
 
-data class LibraryReference(val libraryIndex: Int) : Serializable
+enum class ResolverType {
+  GLOBAL,
+  KMP_ANDROID
+}
+
+data class LibraryReference(val libraryIndex: Int, val resolverType: ResolverType = ResolverType.GLOBAL) : Serializable
 
 interface IdeLibraryModelResolver {
   @Deprecated("IdeDependency and subclasses will be removed", ReplaceWith("this.resolve(unresolved)"))

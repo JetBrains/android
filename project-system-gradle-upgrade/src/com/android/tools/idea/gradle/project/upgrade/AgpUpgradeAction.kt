@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
+import com.intellij.ide.impl.isTrusted
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
@@ -25,10 +26,21 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
 
 class AgpUpgradeAction: AnAction() {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    val project = e.project
+    @Suppress("UnstableApiUsage")
+    if (project == null || !project.isTrusted()) {
+      e.presentation.isEnabled = false
+    }
+  }
+
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val current = project.findPluginInfo()?.pluginVersion ?: return
-    val latestKnown = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val latestKnown = AgpVersions.latestKnown
     ApplicationManager.getApplication().executeOnPooledThread {
       val published = IdeGoogleMavenRepository.getAgpVersions()
       val state = computeGradlePluginUpgradeState(current, latestKnown, published)

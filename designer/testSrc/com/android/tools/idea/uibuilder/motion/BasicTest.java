@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
 import com.android.tools.idea.uibuilder.motion.adapters.MTagImp;
 import java.awt.BorderLayout;
-import java.util.function.Predicate;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -46,8 +45,7 @@ public class BasicTest extends BaseMotionEditorTest {
   }
 
   private JLabel findErrorLabel() {
-    return fakeUi.findComponent(JLabel.class,
-                                (Predicate<JLabel>)label -> label.isVisible() && "MotionEditorErrorLabel".equals(label.getName()));
+    return fakeUi.findComponent(JLabel.class, label -> label.isVisible() && "MotionEditorErrorLabel".equals(label.getName()));
   }
 
   public void testValidScene() {

@@ -41,6 +41,7 @@ import java.io.File
 import java.io.IOException
 
 class ProjectBuildModelTest : GradleFileModelTestCase() {
+
   override fun setUp(){
     super.setUp()
     GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled = true
@@ -498,6 +499,19 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     finally {
       GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled = true
     }
+  }
+
+  @Test
+  fun testVersionCatalogResolutionPatternSyntax() {
+    writeToBuildFile(TestFile.VERSION_CATALOG_PATTERN_BUILD_FILE);
+    writeToVersionCatalogFile(TestFile.VERSION_CATALOG_COMPACT_NOTATION)
+
+    val pbm = projectBuildModel
+    val buildModel = pbm.projectBuildModel!!
+    val dependencies = buildModel.dependencies()
+    val artifacts = dependencies.artifacts()
+    // we probably won't be able to resolve the reference, but we should not crash in failing to do so.
+    assertSize(0, artifacts)
   }
 
   @Test
@@ -1694,6 +1708,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     BUILD_SRC_ANDROID_GRADLE_PLUGIN_DEPENDENCY_EXPECTED("buildSrcAndroidGradlePluginDependencyExpected"),
     CONTEXT_AGP_VERSION("contextAgpVersion"),
     VERSION_CATALOG_BUILD_FILE("versionCatalogBuildFile"),
+    VERSION_CATALOG_PATTERN_BUILD_FILE("versionCatalogPatternBuildFile"),
     VERSION_CATALOG_BUILD_FILE_PLUGINS_REFERENCE_EXPECTED("versionCatalogBuildFilePluginsReferenceExpected"),
     VERSION_CATALOG_ALIAS_MAPPING_BUILD_FILE("versionCatalogAliasMappingBuildFile"),
     VERSION_CATALOG_PLUGINS_DSL_BUILD_FILE("versionCatalogPluginsDslBuildFile"),

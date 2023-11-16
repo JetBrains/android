@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.project.sync.idea.issues
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.project.sync.quickFixes.DownloadAndroidStudioQuickFix
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
@@ -50,7 +50,6 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
@@ -87,9 +86,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
     val message = when {
       issueData.error is JdkImportCheckException -> issueData.error.message!!
       issueData.error.message?.contains("Unsupported major.minor version 52.0") == true -> {
-        invokeLater {
-          updateUsageTracker(issueData.projectPath, GradleSyncFailure.JDK8_REQUIRED)
-        }
+        SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.JDK8_REQUIRED)
         "${issueData.error.message!!}\nPlease use JDK 8 or newer."
       }
       else -> return null
@@ -99,8 +96,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
       if (IdeInfo.getInstance().isAndroidStudio) {
         val ideaProject = fetchIdeaProjectForGradleProject(issueData.projectPath)
         if (ideaProject != null) {
-          val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
-          if (!gradleInstallation.isUsingJavaHomeJdk(ideaProject)) {
+          if (!IdeSdks.getInstance().isUsingJavaHomeJdk(ideaProject)) {
             addUseJavaHomeQuickFix(this)
           }
         }
@@ -122,7 +118,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
 
   private fun addUseJavaHomeQuickFix(composer: BuildIssueComposer) {
     val ideSdks = IdeSdks.getInstance()
-    val jdkFromHome = IdeSdks.getJdkFromJavaHome()
+    val jdkFromHome = ideSdks.jdkFromJavaHome
     if (jdkFromHome != null && ideSdks.validateJdkPath(Paths.get(jdkFromHome)) != null) {
       composer.addQuickFix(UseJavaHomeAsJdkQuickFix())
     }
@@ -159,16 +155,14 @@ private class UseEmbeddedJdkQuickFix : DescribedBuildIssueQuickFix {
   }
 }
 
-public class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
+class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
   override val description: String = "Change Gradle JDK..."
-  override val id: String = "select.jdk.from.new.psd"
+  override val id: String = "select.jdk.from.gradle.settings"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val service = ProjectSettingsService.getInstance(project)
     if (service is AndroidProjectSettingsService) {
-      service.chooseJdkLocation()
-    } else {
-      service.chooseAndSetSdk()
+      service.chooseJdkLocation(project.basePath)
     }
     return CompletableFuture.completedFuture(null)
   }
@@ -185,12 +179,6 @@ public class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
 private fun validateAndGetErrors(jdk: Sdk): String? {
   val jdkHomePath = jdk.homePath ?: return "Could not find valid Jdk home from the selected Jdk location."
   val selectedJdkMsg = "Selected Jdk location is $jdkHomePath.\n"
-  // Check if the version of selected Jdk is the same with the Jdk IDE uses.
-  val runningJdkVersion = IdeSdks.getInstance().runningVersionOrDefault
-  if (!StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get() && !IdeSdks.isJdkSameVersion(Paths.get(jdkHomePath), runningJdkVersion)) {
-    return "The version of selected Jdk doesn't match the Jdk used by Studio. Please choose a valid Jdk " +
-           runningJdkVersion.description + " directory.\n" + selectedJdkMsg
-  }
   // Check Jdk installation is complete.
   if (!JdkUtil.checkForJdk(jdkHomePath)) {
     return "The Jdk installation is invalid.\n$selectedJdkMsg"

@@ -36,7 +36,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.facet.AndroidFacet
-import java.io.File
 import java.nio.file.Path
 
 /**
@@ -135,6 +134,19 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    * Returns a list of [AndroidFacet]s by given package name.
    */
   fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet>
+
+  /**
+   * Returns true if the given [packageName] is either one of the namespaces, or a parent.
+   *
+   * For example, if the project contains `com.example.myapp` and `com.example.mylib`, this
+   * would return true for exactly
+   *    `com`, `com.example`, `com.example.myapp` and `com.example.mylib`.
+   *
+   * This method may return false for packages that do exist if it is called when project
+   * sync has failed, or for non-gradle build systems if it is called before indexes are ready,
+   * but it should never throw IndexNotReadyException.
+   */
+  fun isNamespaceOrParentPackage(packageName: String): Boolean
 
   /**
    * @return all the application IDs of artifacts this project module is known to produce.

@@ -38,29 +38,31 @@ import com.android.tools.idea.uibuilder.model.w
 
 private const val ERROR_UNDEFINED = "undefined"
 
-/**
- * [DragHandler] handles the dragging from Palette and ComponentTree for all Layouts.
- */
-internal class CommonDragHandler(editor: ViewEditor,
-                                 handler: ViewGroupHandler,
-                                 layout: SceneComponent,
-                                 components: List<NlComponent>,
-                                 type: DragType
+/** [DragHandler] handles the dragging from Palette and ComponentTree for all Layouts. */
+internal class CommonDragHandler(
+  editor: ViewEditor,
+  handler: ViewGroupHandler,
+  layout: SceneComponent,
+  components: List<NlComponent>,
+  type: DragType
 ) : DragHandler(editor, handler, layout, components, type) {
 
   private val dragTarget: CommonDragTarget?
 
   init {
     val dragged = components[0]
-    val component = layout.scene.getSceneComponent(dragged) ?: TemporarySceneComponent(layout.scene, dragged).apply {
-      setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h))
-    }
+    val component =
+      layout.scene.getSceneComponent(dragged)
+        ?: TemporarySceneComponent(layout.scene, dragged).apply {
+          setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h))
+        }
 
     dragTarget = CommonDragTarget(component, fromToolWindow = true)
 
     component.setTargetProvider { _ -> mutableListOf<Target>(dragTarget) }
     component.updateTargets()
-    // Note: Don't use [dragged] in this lambda function since the content of components may be replaced within interaction.
+    // Note: Don't use [dragged] in this lambda function since the content of components may be
+    // replaced within interaction.
     // This weird implementation may be fixed in the future, but we just work around here.
     component.setComponentProvider { _ -> components[0] }
     layout.addChild(component)
@@ -75,7 +77,12 @@ internal class CommonDragHandler(editor: ViewEditor,
     dragTarget.mouseDown(x, y)
   }
 
-  override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int, sceneContext: SceneContext): String? {
+  override fun update(
+    @AndroidDpCoordinate x: Int,
+    @AndroidDpCoordinate y: Int,
+    modifiers: Int,
+    sceneContext: SceneContext
+  ): String? {
     if (dragTarget == null) {
       return ERROR_UNDEFINED
     }
@@ -86,8 +93,12 @@ internal class CommonDragHandler(editor: ViewEditor,
   }
 
   // Note that coordinate is AndroidCoordinate, not AndroidDpCoordinate.
-  override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int,
-                      insertType: InsertType) {
+  override fun commit(
+    @AndroidCoordinate x: Int,
+    @AndroidCoordinate y: Int,
+    modifiers: Int,
+    insertType: InsertType
+  ) {
     if (dragTarget == null) {
       return
     }
@@ -119,14 +130,16 @@ internal class CommonDragHandler(editor: ViewEditor,
   companion object {
     /**
      * The classes of [ViewGroupHandler] which don't support [CommonDragHandler] yet.
+     *
      * TODO: makes [CommonDragHandler] can be used in all [ViewGroupHandler].
      */
-    private val HANDLER_CLASSES_NOT_SUPPORT= listOf(
-      ItemHandler::class,
-      MenuHandler::class,
-      PreferenceCategoryHandler::class,
-      PreferenceScreenHandler::class,
-    )
+    private val HANDLER_CLASSES_NOT_SUPPORT =
+      listOf(
+        ItemHandler::class,
+        MenuHandler::class,
+        PreferenceCategoryHandler::class,
+        PreferenceScreenHandler::class,
+      )
 
     @JvmStatic
     fun isSupportCommonDragHandler(handler: ViewGroupHandler): Boolean {

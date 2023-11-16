@@ -49,5 +49,10 @@ class Item(
 
   override fun toString() = "$tagName ${id.orEmpty()}"
 
-  data class Insertion(val data: Transferable, val before: Any?, val isMove: Boolean, val draggedFromTree: List<Any>)
+  data class Insertion(
+    val data: Transferable,
+    val before: Any?,
+    val isMove: Boolean,
+    val draggedFromTree: List<Any>
+  )
 }

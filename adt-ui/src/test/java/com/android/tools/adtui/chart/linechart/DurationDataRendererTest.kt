@@ -36,6 +36,7 @@ import java.awt.Insets
 import java.awt.Rectangle
 import java.awt.geom.Path2D
 import java.awt.geom.Rectangle2D
+import java.util.Arrays
 import java.util.Collections
 import javax.swing.Icon
 import javax.swing.JPanel
@@ -179,7 +180,7 @@ class DurationDataRendererTest {
     val series2 = DefaultDataSeries<Long>()
     val rangeSeries1 = RangedContinuousSeries("test1", xRange, yRange, series1)
     val rangeSeries2 = RangedContinuousSeries("test2", xRange, yRange, series2)
-    val lineChart = LineChart(listOf(rangeSeries1, rangeSeries2))
+    val lineChart = LineChart(Arrays.asList(rangeSeries1, rangeSeries2))
     lineChart.configure(rangeSeries1, LineConfig(Color.ORANGE).setStroke(LineConfig.DEFAULT_DASH_STROKE))
     lineChart.configure(rangeSeries2, LineConfig(Color.PINK).setStroke(LineConfig.DEFAULT_DASH_STROKE))
 
@@ -202,7 +203,7 @@ class DurationDataRendererTest {
     durationDataRenderer.renderLines(lineChart,
                                      mock(Graphics2D::class.java),
                                      Collections.singletonList(Path2D.Float()) as List<Path2D>,
-                                     listOf(rangeSeries1, rangeSeries2))
+                                     Arrays.asList(rangeSeries1, rangeSeries2))
     assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries1).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.25)
     // rangeSeries2 isn't updated as the custom LineConfig is not a dash stroke.
     assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries2).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.0)

@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.actions.license;
 
-import java.nio.file.Files;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import org.jetbrains.annotations.NotNull;
 
 public class LicenseTextCollector {
   private final Path myHome;

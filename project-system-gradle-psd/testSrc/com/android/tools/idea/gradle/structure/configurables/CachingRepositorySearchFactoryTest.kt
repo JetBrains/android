@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.ide.common.gradle.Version
-import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
+import com.android.tools.idea.gradle.repositories.search.ArbitraryModulesSearchQuery
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
+import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
 import com.android.tools.idea.gradle.repositories.search.FoundArtifact
-import com.android.tools.idea.gradle.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.repositories.search.SearchResult
 import com.google.common.util.concurrent.Futures
@@ -62,8 +62,8 @@ class CachingRepositorySearchFactoryTest {
     val module1Repos = factory.create(listOf(repoA1))
     val module2Repos = factory.create(listOf(repoA2, repoB2))
 
-    module1Repos.search(SearchRequest(SearchQuery("group", "name"), 10, 0))
-    module2Repos.search(SearchRequest(SearchQuery("group", "name"), 10, 0))
+    module1Repos.search(SearchRequest(ArbitraryModulesSearchQuery("group", "name"), 10, 0))
+    module2Repos.search(SearchRequest(ArbitraryModulesSearchQuery("group", "name"), 10, 0))
 
     assertThat(a1Searched, equalTo(1))
     assertThat(a2Searched, equalTo(0))

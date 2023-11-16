@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -31,12 +30,12 @@ import com.intellij.openapi.project.DumbAwareAction
 internal class ToggleViewFormatAction : DumbAwareAction() {
 
   override fun update(e: AnActionEvent) {
-    val formattingOptions = e.getData(LOGCAT_PRESENTER_ACTION)?.formattingOptions
+    val formattingOptions = e.getLogcatPresenter()?.formattingOptions
     e.presentation.isVisible = formattingOptions === COMPACT.formattingOptions || formattingOptions === STANDARD.formattingOptions
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val logcatPresenter = e.getData(LOGCAT_PRESENTER_ACTION) ?: return
+    val logcatPresenter = e.getLogcatPresenter() ?: return
 
     logcatPresenter.formattingOptions = when {
       logcatPresenter.formattingOptions === COMPACT.formattingOptions -> STANDARD.formattingOptions

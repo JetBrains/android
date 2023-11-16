@@ -25,7 +25,6 @@ import java.util.IdentityHashMap
 import java.util.Objects
 import java.util.stream.Stream
 import kotlin.math.min
-import kotlin.streams.toList
 
 /**
  * A general base class for classifying/filtering objects into categories.

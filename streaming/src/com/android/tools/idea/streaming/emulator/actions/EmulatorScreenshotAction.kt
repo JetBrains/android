@@ -31,6 +31,7 @@ import com.android.tools.idea.ui.screenshot.ScreenshotSupplier
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.google.common.base.Throwables
 import com.google.common.util.concurrent.UncheckedExecutionException
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
@@ -63,6 +64,8 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     emulatorController.getScreenshot(pngFormat(), ScreenshotReceiver(emulatorController, project))
   }
 
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   private class ScreenshotReceiver(val emulatorController: EmulatorController, val project: Project) : EmptyStreamObserver<Image>() {
 
     override fun onNext(response: Image) {
@@ -83,10 +86,12 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
 
         val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue, deviceType(emulatorController))
         val screenshotSupplier = MyScreenshotSupplier(emulatorController)
-        val screenshotFramer = emulatorController.skinDefinition?.let { MyScreenshotPostprocessor(it) }
+        val skinDefinition = emulatorController.skinDefinition
+        val screenshotFramer = MyScreenshotPostprocessor(skinDefinition)
+        val framingOptions = skinDefinition?.let { listOf(avdFrame) } ?: listOf()
 
         ApplicationManager.getApplication().invokeLater {
-          showScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotFramer)
+          showScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotFramer, framingOptions)
         }
       }
       catch (e: Exception) {
@@ -94,10 +99,14 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       }
     }
 
-    private fun showScreenshotViewer(project: Project, screenshotImage: ScreenshotImage, backingFile: Path,
-                                     screenshotSupplier: ScreenshotSupplier, screenshotPostprocessor: ScreenshotPostprocessor?) {
+    private fun showScreenshotViewer(project: Project,
+                                     screenshotImage: ScreenshotImage,
+                                     backingFile: Path,
+                                     screenshotSupplier: ScreenshotSupplier,
+                                     screenshotPostprocessor: ScreenshotPostprocessor,
+                                     framingOptions: List<FramingOption>) {
       val viewer = object : ScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotPostprocessor,
-                                             listOf(avdFrame), 0, EnumSet.noneOf(Option::class.java)) {
+                                             framingOptions, 0, EnumSet.noneOf(Option::class.java)) {
         override fun doOKAction() {
           super.doOKAction()
           screenshot?.let {
@@ -141,21 +150,21 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     }
   }
 
-  private class MyScreenshotPostprocessor(val skinDefinition: SkinDefinition) : ScreenshotPostprocessor {
+  private class MyScreenshotPostprocessor(val skinDefinition: SkinDefinition?) : ScreenshotPostprocessor {
 
     override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
       val image = screenshotImage.image
       val w = image.width
       val h = image.height
-      val skin = skinDefinition.createScaledLayout(w, h, screenshotImage.screenshotRotationQuadrants)
-      if (framingOption == null) {
+      val skin = skinDefinition?.createScaledLayout(w, h, screenshotImage.screenshotRotationQuadrants)
+      if (framingOption == null || skin == null) {
         @Suppress("UndesirableClassUsage")
         val result = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
         val graphics = result.createGraphics()
         graphics.drawImage(image, null, 0, 0)
         graphics.composite = AlphaComposite.getInstance(AlphaComposite.DST_OUT)
         val displayRectangle = Rectangle(0, 0, w, h)
-        skin.drawFrameAndMask(graphics, displayRectangle)
+        skin?.drawFrameAndMask(graphics, displayRectangle)
         if (backgroundColor != null) {
           graphics.color = backgroundColor
           graphics.composite = AlphaComposite.getInstance(AlphaComposite.DST_OVER)

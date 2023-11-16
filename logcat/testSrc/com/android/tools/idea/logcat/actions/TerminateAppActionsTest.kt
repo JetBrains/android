@@ -17,22 +17,18 @@ import com.android.fakeadbserver.services.Service
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
-import com.android.tools.idea.logcat.LogcatPresenter
+import com.android.tools.idea.logcat.LogcatPresenter.Companion.CONNECTED_DEVICE
+import com.android.tools.idea.logcat.LogcatPresenter.Companion.EDITOR
 import com.android.tools.idea.logcat.actions.TerminateAppActions.CrashAppAction
 import com.android.tools.idea.logcat.actions.TerminateAppActions.ForceStopAppAction
 import com.android.tools.idea.logcat.actions.TerminateAppActions.KillAppAction
 import com.android.tools.idea.logcat.devices.Device
-import com.android.tools.idea.logcat.message.LogcatMessage
-import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
-import com.intellij.openapi.editor.RangeMarker
-import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.ProjectRule
@@ -72,12 +68,6 @@ class TerminateAppActionsTest {
   private val fakeAdb get() = fakeAdbRule.fakeAdb
   private val adbSession get() = fakeAdbRule.adbSession
 
-  /**
-   * RangeMarker's are kept in the Document as weak reference (see IntervalTreeImpl#createGetter) so we need to keep them alive as long as
-   * they are valid.
-   */
-  private val markers = mutableListOf<RangeMarker>()
-
   private val device30 = Device.createPhysical("device", true, "10", 30, "Google", "Pixel")
 
   private val device25 = Device.createPhysical("device", true, "10", 25, "Google", "Pixel")
@@ -89,7 +79,7 @@ class TerminateAppActionsTest {
     val device = fakeAdb.connectDevice(device30)
     val event = createEvent(device30)
     device.startClient(101)
-    editor.putLogcatMessage(logcatMessage(pid = 101))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101))
 
     ForceStopAppAction().update(event)
 
@@ -101,7 +91,7 @@ class TerminateAppActionsTest {
   fun forceStopAppAction_processDoesNotExists_isNotEnabled(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     fakeAdb.connectDevice(device30)
     val event = createEvent(device30)
-    editor.putLogcatMessage(logcatMessage(pid = 101))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101))
 
     ForceStopAppAction().update(event)
 
@@ -114,7 +104,7 @@ class TerminateAppActionsTest {
     val device = fakeAdb.connectDevice(device30)
     val event = createEvent(device30)
     device.startClient(101)
-    editor.putLogcatMessage(logcatMessage(pid = 101, appId = "system_process"))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101, appId = "system_process"))
 
     ForceStopAppAction().update(event)
 
@@ -127,7 +117,7 @@ class TerminateAppActionsTest {
     val device = fakeAdb.connectDevice(device30)
     val event = createEvent(device30)
     device.startClient(101)
-    editor.putLogcatMessage(logcatMessage(pid = 101, appId = "pid-101"))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101, appId = "pid-101"))
 
     ForceStopAppAction().update(event)
 
@@ -140,7 +130,7 @@ class TerminateAppActionsTest {
     val device = fakeAdb.connectDevice(device30)
     val event = createEvent(device30)
     device.startClient(101)
-    editor.putLogcatMessage(logcatMessage(pid = 101))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101))
 
     KillAppAction().update(event)
 
@@ -152,7 +142,7 @@ class TerminateAppActionsTest {
   fun killAppAction_processDoesNotExists_isNotEnabled(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     fakeAdb.connectDevice(device30)
     val event = createEvent(device30)
-    editor.putLogcatMessage(logcatMessage(pid = 101))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101))
 
     KillAppAction().update(event)
 
@@ -165,7 +155,7 @@ class TerminateAppActionsTest {
     val device = fakeAdb.connectDevice(device30)
     val event = createEvent(device30)
     device.startClient(101)
-    editor.putLogcatMessage(logcatMessage(pid = 101))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101))
 
     KillAppAction().update(event)
 
@@ -178,7 +168,7 @@ class TerminateAppActionsTest {
     val device = fakeAdb.connectDevice(device30)
     val event = createEvent(device30)
     device.startClient(101)
-    editor.putLogcatMessage(logcatMessage(pid = 101))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101))
 
     CrashAppAction().update(event)
 
@@ -191,7 +181,7 @@ class TerminateAppActionsTest {
     val device = fakeAdb.connectDevice(device25)
     val event = createEvent(device25)
     device.startClient(101)
-    editor.putLogcatMessage(logcatMessage(pid = 101))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101))
 
     CrashAppAction().update(event)
 
@@ -202,7 +192,7 @@ class TerminateAppActionsTest {
   fun crashAppAction_processDoesNotExists_isNotEnabled(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     fakeAdb.connectDevice(device30)
     val event = createEvent(device30)
-    editor.putLogcatMessage(logcatMessage(pid = 101))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101))
 
     CrashAppAction().update(event)
 
@@ -215,7 +205,7 @@ class TerminateAppActionsTest {
     val device = fakeAdb.connectDevice(device30)
     val event = createEvent(device30)
     device.startClient(101)
-    editor.putLogcatMessage(logcatMessage(pid = 101, appId = "system_process"))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101, appId = "system_process"))
 
     CrashAppAction().update(event)
 
@@ -228,7 +218,7 @@ class TerminateAppActionsTest {
     val device = fakeAdb.connectDevice(device30)
     val event = createEvent(device30)
     device.startClient(101)
-    editor.putLogcatMessage(logcatMessage(pid = 101, appId = "pid-101"))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101, appId = "pid-101"))
 
     CrashAppAction().update(event)
 
@@ -245,7 +235,7 @@ class TerminateAppActionsTest {
     val event = createEvent(device30)
     device.startClient(101)
     device.serviceManager.setActivityManager(activityManagerService)
-    editor.putLogcatMessage(logcatMessage(pid = 101, appId = "com.app"))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101, appId = "com.app"))
 
     ForceStopAppAction().actionPerformed(event)
 
@@ -258,7 +248,7 @@ class TerminateAppActionsTest {
     val event = createEvent(device30)
     device.startClient(101)
     device.serviceManager.setActivityManager(activityManagerService)
-    editor.putLogcatMessage(logcatMessage(pid = 101, appId = "com.app"))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101, appId = "com.app"))
 
     KillAppAction().actionPerformed(event)
 
@@ -274,7 +264,7 @@ class TerminateAppActionsTest {
     val event = createEvent(device30)
     device.startClient(101)
     device.serviceManager.setActivityManager(activityManagerService)
-    editor.putLogcatMessage(logcatMessage(pid = 101, appId = "com.app"))
+    editorRule.putLogcatMessages(logcatMessage(pid = 101, appId = "com.app"))
 
     CrashAppAction().actionPerformed(event)
 
@@ -282,20 +272,11 @@ class TerminateAppActionsTest {
   }
 
   private fun createEvent(device: Device) =
-    TestActionEvent(MapDataContext().apply {
+    TestActionEvent.createTestEvent(MapDataContext().apply {
       put(PROJECT, project)
       put(EDITOR, editor)
-      put(LogcatPresenter.CONNECTED_DEVICE, device)
+      put(CONNECTED_DEVICE, device)
     })
-
-  private fun EditorEx.putLogcatMessage(message: LogcatMessage) {
-    document.setText("foo") // it doesn't really matter what the text is
-    caretModel.moveToOffset(0)
-    document.createRangeMarker(0, 3).apply {
-      putUserData(LOGCAT_MESSAGE_KEY, message)
-      markers.add(this)
-    }
-  }
 
   /**
    * Connect a device and wait for AdbSession to see it

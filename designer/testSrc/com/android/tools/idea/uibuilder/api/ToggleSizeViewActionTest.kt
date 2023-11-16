@@ -20,16 +20,14 @@ import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
-import com.android.tools.idea.uibuilder.model.layoutHandler
+import com.android.tools.idea.uibuilder.model.getLayoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.intellij.util.ui.EmptyIcon
 import junit.framework.TestCase
 
-class ToggleSizeViewActionTest: SceneTest() {
+class ToggleSizeViewActionTest : SceneTest() {
 
-  /**
-   * Regression test for b/143964703
-   */
+  /** Regression test for b/143964703 */
   fun testNoExceptionWhenPerform() {
     val action = ToggleSizeViewAction("Toggle", ATTR_WIDTH, EmptyIcon.ICON_0, EmptyIcon.ICON_0)
 
@@ -38,29 +36,30 @@ class ToggleSizeViewActionTest: SceneTest() {
     val editor = ViewEditorImpl(myScreen.screen)
 
     try {
-      action.setSelected(editor, root.layoutHandler!!, root, listOf(text), true)
-      action.setSelected(editor, root.layoutHandler!!, root, listOf(text), false)
-    }
-    catch (error: AssertionError) {
+      action.setSelected(editor, root.getLayoutHandler {}!!, root, listOf(text), true)
+      action.setSelected(editor, root.getLayoutHandler {}!!, root, listOf(text), false)
+    } catch (error: AssertionError) {
       TestCase.fail("AssertionError \"$error\" should not happen")
     }
   }
 
   override fun createModel(): ModelBuilder {
-    return model("layout.xml",
-                 component(LINEAR_LAYOUT)
-                   .id("@id/root")
-                   .withBounds(0, 0, 2000, 2000)
-                   .matchParentWidth()
-                   .matchParentHeight()
-                   .children(
-                     component(TEXT_VIEW)
-                       .withBounds(200, 200, 200, 200)
-                       .id("@id/myText")
-                       .width("100dp")
-                       .height("100dp")
-                       .withAttribute("android:layout_x", "100dp")
-                       .withAttribute("android:layout_y", "100dp")
-                   ))
+    return model(
+      "layout.xml",
+      component(LINEAR_LAYOUT)
+        .id("@id/root")
+        .withBounds(0, 0, 2000, 2000)
+        .matchParentWidth()
+        .matchParentHeight()
+        .children(
+          component(TEXT_VIEW)
+            .withBounds(200, 200, 200, 200)
+            .id("@id/myText")
+            .width("100dp")
+            .height("100dp")
+            .withAttribute("android:layout_x", "100dp")
+            .withAttribute("android:layout_y", "100dp")
+        )
+    )
   }
 }

@@ -18,23 +18,21 @@
 package com.android.tools.idea.configurations
 
 import com.android.annotations.concurrency.Slow
-import com.android.ide.common.rendering.HardwareConfigHelper.isAutomotive
-import com.android.ide.common.rendering.HardwareConfigHelper.isDesktop
-import com.android.ide.common.rendering.HardwareConfigHelper.isMobile
-import com.android.ide.common.rendering.HardwareConfigHelper.isNexus
-import com.android.ide.common.rendering.HardwareConfigHelper.isTv
-import com.android.ide.common.rendering.HardwareConfigHelper.isWear
-import com.android.ide.common.rendering.HardwareConfigHelper.sortDevicesByScreenSize
+import com.android.ide.common.rendering.HardwareConfigHelper.*
 import com.android.ide.common.rendering.api.HardwareConfig
 import com.android.resources.Density
 import com.android.sdklib.devices.Device
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
+import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
+import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
+import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.util.Computable
 import com.intellij.util.containers.CollectionFactory
-import org.jetbrains.android.dom.manifest.Manifest
+import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.sdk.AvdManagerUtils
+import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 private val DEVICE_CACHES = CollectionFactory.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
@@ -71,7 +69,7 @@ enum class DeviceGroup {
  * @return map of sorted devices
  */
 fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Device>> = DEVICE_CACHES.getOrPut(configuration) {
-  return groupDevices(configuration.configurationManager.devices)
+  return groupDevices(configuration.settings.devices)
 }
 
 /**
@@ -119,31 +117,25 @@ private fun isCanonicalDevice(device: Device): Boolean {
 private fun isAdditionalDevice(device: Device): Boolean {
   val id = device.id
 
-  return id == AdditionalDeviceService.DEVICE_CLASS_PHONE_ID ||
-         id == AdditionalDeviceService.DEVICE_CLASS_FOLDABLE_ID ||
-         id == AdditionalDeviceService.DEVICE_CLASS_TABLET_ID ||
-         id == AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID
+  return id == DEVICE_CLASS_PHONE_ID ||
+         id == DEVICE_CLASS_FOLDABLE_ID ||
+         id == DEVICE_CLASS_TABLET_ID ||
+         id == DEVICE_CLASS_DESKTOP_ID
 }
 
 private fun sizeGroupNexus(device: Device): DeviceGroup {
-  val diagonalLength = device.defaultHardware.screen.diagonalLength
+  val screen = device.defaultHardware.screen
+  // For foldables the device definition diagonal might be for the unfolded device, calculate ourselves.
+  val diagonalLength = if (!screen.isFoldable)
+    screen.diagonalLength
+  else
+    hypot(screen.xDimension/screen.pixelDensity.dpiValue.toDouble(), screen.yDimension/screen.pixelDensity.dpiValue.toDouble())
+
   return when {
     diagonalLength < 5 -> DeviceGroup.NEXUS
     diagonalLength < 7 -> DeviceGroup.NEXUS_XL
     else -> DeviceGroup.NEXUS_TABLET
   }
-}
-
-/**
- * Return the avd devices in the module of [configuration]
- */
-fun getAvdDevices(configuration: Configuration): List<Device> {
-  // Unlikely, but has happened - see http://b.android.com/68091
-  val module = (configuration.configModule as StudioConfigurationModelModule).module
-  val facet = AndroidFacet.getInstance(module) ?: return emptyList()
-  val configurationManager = configuration.configurationManager
-  val avdManager = AvdManagerUtils.getAvdManager(facet) ?: return emptyList()
-  return avdManager.validAvds.mapNotNull { configurationManager.createDeviceForAvd(it) }
 }
 
 /**
@@ -160,10 +152,8 @@ fun isUseWearDeviceAsDefault(module: Module): Boolean {
   if (facet == null || facet.isDisposed) {
     return false
   }
-  val manifest = Manifest.getMainManifest(facet) ?: return false
-  return ApplicationManager.getApplication().runReadAction(Computable {
-    manifest.usesFeatures.any { usesFeature -> usesFeature.name.value == WEAR_OS_USE_FEATURE_TAG }
-  })
+  val manifestXml = runReadAction { facet.getPrimaryManifestXml() } ?: return false
+  return manifestXml.usesFeature.contains(WEAR_OS_USE_FEATURE_TAG)
 }
 
 enum class CanonicalDeviceType(val id: String) {
@@ -194,13 +184,13 @@ fun getReferenceDevice(config: Configuration, type: ReferenceDeviceType) = getRe
 fun getReferenceDevice(devices: Map<DeviceGroup, List<Device>>, type: ReferenceDeviceType): Device? {
   return when (type) {
     ReferenceDeviceType.MEDIUM_PHONE ->
-      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_PHONE_ID }
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_PHONE_ID }
     ReferenceDeviceType.FOLDABLE ->
-      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_FOLDABLE_ID }
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_FOLDABLE_ID }
     ReferenceDeviceType.MEDIUM_TABLET ->
-      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_TABLET_ID }
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_TABLET_ID }
     ReferenceDeviceType.DESKTOP ->
-      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID }
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_DESKTOP_ID }
   }
 }
 

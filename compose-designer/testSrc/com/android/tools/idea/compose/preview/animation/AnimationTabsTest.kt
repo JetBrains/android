@@ -27,13 +27,13 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.tabs.TabInfo
-import javax.swing.JPanel
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JPanel
+import kotlin.test.assertNotNull
 
 class AnimationTabsTest {
 
@@ -48,11 +48,11 @@ class AnimationTabsTest {
     parentDisposable = Disposer.newDisposable()
     val model = runInEdtAndGet {
       NlModelBuilderUtil.model(
-          projectRule,
-          "layout",
-          "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
-        )
+        projectRule,
+        "layout",
+        "layout.xml",
+        ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
+      )
         .build()
     }
     surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()

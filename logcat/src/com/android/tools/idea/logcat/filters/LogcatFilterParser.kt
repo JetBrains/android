@@ -17,7 +17,6 @@ package com.android.tools.idea.logcat.filters
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
@@ -41,6 +40,7 @@ import com.android.tools.idea.logcat.filters.parser.toText
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent.TermVariants
 import com.intellij.openapi.project.Project
@@ -63,7 +63,7 @@ import java.time.Clock
  */
 internal class LogcatFilterParser(
   project: Project,
-  private val packageNamesProvider: PackageNamesProvider,
+  private val projectApplicationIdsProvider: ProjectApplicationIdsProvider,
   private val androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
   private val joinConsecutiveTopLevelValue: Boolean = false,
   private val topLevelSameKeyTreatment: CombineWith = OR,
@@ -83,19 +83,19 @@ internal class LogcatFilterParser(
    * @return A [LogcatFilter] representing the provided string or null if the filter is empty.
    */
   @UiThread
-  fun parse(filterString: String): LogcatFilter? {
+  fun parse(filterString: String, matchCase: Boolean): LogcatFilter? {
     return try {
-      parseInternal(filterString)
+      parseInternal(filterString, matchCase)
     }
     catch (e: LogcatFilterParseException) {
       // Any error in parsing results in a filter that matches the raw string with the entire line.
-      StringFilter(filterString, IMPLICIT_LINE, TextRange(0, filterString.length))
+      StringFilter(filterString, IMPLICIT_LINE, matchCase, TextRange(0, filterString.length))
     }
   }
 
   fun isValid(filterString: String): Boolean {
     return try {
-      parseInternal(filterString)
+      parseInternal(filterString, true)
       true
     }
     catch (e: LogcatFilterParseException) {
@@ -138,17 +138,17 @@ internal class LogcatFilterParser(
   }
 
 
-  private fun parseInternal(filterString: String): LogcatFilter? {
+  private fun parseInternal(filterString: String, matchCase: Boolean): LogcatFilter? {
     return when {
       filterString.isEmpty() -> null
-      filterString.isBlank() -> StringFilter(filterString, IMPLICIT_LINE, TextRange(0, filterString.length))
+      filterString.isBlank() -> StringFilter(filterString, IMPLICIT_LINE, matchCase, TextRange(0, filterString.length))
       else -> {
         val psi = psiFileFactory.createFileFromText("temp.lcf", LogcatFilterFileType, filterString)
         if (PsiTreeUtil.hasErrorElements(psi)) {
           val errorElement = PsiTreeUtil.findChildOfType(psi, PsiErrorElement::class.java) as PsiErrorElement
           throw LogcatFilterParseException(errorElement)
         }
-        psi.toFilter()
+        psi.toFilter(matchCase)
       }
     }
   }
@@ -160,7 +160,7 @@ internal class LogcatFilterParser(
    * @param filterString a string in the Logcat filter language
    * @return A [LogcatFilterEvent] representing the provided string.
    */
-  fun getUsageTrackingEvent(filterString: String): LogcatFilterEvent.Builder? {
+  fun getUsageTrackingEvent(filterString: String, matchCase: Boolean): LogcatFilterEvent.Builder? {
     val builder = LogcatFilterEvent.newBuilder()
     try {
       val psi = psiFileFactory.createFileFromText("temp.lcf", LogcatFilterFileType, filterString)
@@ -169,7 +169,8 @@ internal class LogcatFilterParser(
       }
       else {
         // We should not be getting a null here because we don't call this method if filterString is empty
-        val logcatFilter = psi.toFilter() ?: return builder
+        // TODO(aalbert): Add matchCase to event tracking
+        val logcatFilter = psi.toFilter(matchCase) ?: return builder
         processFilters(logcatFilter) { filter ->
           when {
             filter is StringFilter && filter.field == IMPLICIT_LINE -> builder.implicitLineTerms++
@@ -222,18 +223,21 @@ internal class LogcatFilterParser(
     updater(terms)
   }
 
-  private fun PsiFile.toFilter(): LogcatFilter? {
+  private fun PsiFile.toFilter(matchCase: Boolean): LogcatFilter? {
     val expressions = PsiTreeUtil.getChildrenOfType(this, LogcatFilterExpression::class.java)
 
     return when {
       expressions == null -> null
-      expressions.size == 1 -> expressions[0].toFilter()
-      else -> createTopLevelFilter(expressions)
+      expressions.size == 1 -> expressions[0].toFilter(matchCase)
+      else -> createTopLevelFilter(expressions, matchCase)
     }
   }
 
-  private fun createTopLevelFilter(expressions: Array<LogcatFilterExpression>): LogcatFilter {
-    val filters = if (joinConsecutiveTopLevelValue) combineConsecutiveValues(expressions) else expressions.map { it.toFilter() }
+  private fun createTopLevelFilter(expressions: Array<LogcatFilterExpression>, matchCase: Boolean): LogcatFilter {
+    val filters = when {
+      joinConsecutiveTopLevelValue -> combineConsecutiveValues(expressions, matchCase)
+      else -> expressions.map { it.toFilter(matchCase) }
+    }
 
     return when {
       filters.size == 1 -> filters[0]
@@ -248,7 +252,7 @@ internal class LogcatFilterParser(
     return AndLogcatFilter(groups.map { if (it.size == 1) it[0] else OrLogcatFilter(it.toList()) })
   }
 
-  private fun combineConsecutiveValues(expressions: Array<LogcatFilterExpression>): List<LogcatFilter> {
+  private fun combineConsecutiveValues(expressions: Array<LogcatFilterExpression>, matchCase: Boolean): List<LogcatFilter> {
     // treat consecutive top level values as concatenations rather than an 'and'.
     // First, group consecutive top level value expressions.
     val grouped = expressions.fold(mutableListOf<MutableList<LogcatFilterExpression>>()) { accumulator, expression ->
@@ -262,38 +266,39 @@ internal class LogcatFilterParser(
     }
 
     // Then, combine in an AndFilter while creating a single top level filter for consecutive top-level expressions.
-    return grouped.map { if (it.size == 1) it[0].toFilter() else combineLiterals(it) }
+    return grouped.map { if (it.size == 1) it[0].toFilter(matchCase) else combineLiterals(it, matchCase) }
   }
 
-  private fun combineLiterals(expressions: List<LogcatFilterExpression>): StringFilter {
+  private fun combineLiterals(expressions: List<LogcatFilterExpression>, matchCase: Boolean): StringFilter {
     val text = expressions.joinToString("") {
       val expression = it as LogcatFilterLiteralExpression
       expression.firstChild.toText() + if (expression.nextSibling is PsiWhiteSpace) expression.nextSibling.text else ""
     }
-    return StringFilter(text.trim(), IMPLICIT_LINE, TextRange(expressions.first().startOffset, expressions.last().endOffset))
+    return StringFilter(text.trim(), IMPLICIT_LINE, matchCase, TextRange(expressions.first().startOffset, expressions.last().endOffset))
   }
 
-  private fun LogcatFilterExpression.toFilter(): LogcatFilter {
+  private fun LogcatFilterExpression.toFilter(matchCase: Boolean): LogcatFilter {
     return when (this) {
-      is LogcatFilterLiteralExpression -> this.literalToFilter()
-      is LogcatFilterParenExpression -> expression?.toFilter() ?: EmptyFilter
-      is LogcatFilterAndExpression -> AndLogcatFilter(flattenAndExpression(this).map { it.toFilter() })
-      is LogcatFilterOrExpression -> OrLogcatFilter(flattenOrExpression(this).map { it.toFilter() })
+      is LogcatFilterLiteralExpression -> this.literalToFilter(matchCase)
+      is LogcatFilterParenExpression -> expression?.toFilter(matchCase) ?: EmptyFilter
+      is LogcatFilterAndExpression -> AndLogcatFilter(flattenAndExpression(this).map { it.toFilter(matchCase) })
+      is LogcatFilterOrExpression -> OrLogcatFilter(flattenOrExpression(this).map { it.toFilter(matchCase) })
       else -> throw ParseException("Unexpected element: ${this::class.simpleName}", -1) // Should not happen
     }
   }
 
-  private fun LogcatFilterLiteralExpression.literalToFilter() =
+  private fun LogcatFilterLiteralExpression.literalToFilter(matchCase: Boolean) =
     when (firstChild.elementType) {
-      VALUE -> StringFilter(firstChild.toText(), IMPLICIT_LINE, TextRange(startOffset, endOffset))
-      KEY, STRING_KEY, REGEX_KEY -> toKeyFilter(clock, packageNamesProvider, androidProjectDetector)
+      VALUE -> StringFilter(firstChild.toText(), IMPLICIT_LINE, matchCase, TextRange(startOffset, endOffset))
+      KEY, STRING_KEY, REGEX_KEY -> toKeyFilter(matchCase, clock, projectApplicationIdsProvider, androidProjectDetector)
       else -> throw ParseException("Unexpected elementType: $firstChild.elementType", -1) // Should not happen
     }
 }
 
 private fun LogcatFilterLiteralExpression.toKeyFilter(
+  matchCase: Boolean,
   clock: Clock,
-  packageNamesProvider: PackageNamesProvider,
+  projectApplicationIdsProvider: ProjectApplicationIdsProvider,
   androidProjectDetector: AndroidProjectDetector,
 ): LogcatFilter {
   val textRange = TextRange(startOffset, endOffset)
@@ -321,13 +326,13 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
 
       fun isAndroidProject() = androidProjectDetector.isAndroidProject(project)
       when {
-        isNegated && isRegex -> NegatedRegexFilter(value, field, textRange)
-        isNegated && isExact -> NegatedExactStringFilter(value, field, textRange)
-        isNegated -> NegatedStringFilter(value, field, textRange)
-        isRegex -> RegexFilter(value, field, textRange)
-        isExact -> ExactStringFilter(value, field, textRange)
-        key == "package" && value == "mine" && isAndroidProject() -> ProjectAppFilter(packageNamesProvider, textRange)
-        else -> StringFilter(value, field, textRange)
+        isNegated && isRegex -> NegatedRegexFilter(value, field, matchCase, textRange)
+        isNegated && isExact -> NegatedExactStringFilter(value, field, matchCase, textRange)
+        isNegated -> NegatedStringFilter(value, field, matchCase, textRange)
+        isRegex -> RegexFilter(value, field, matchCase, textRange)
+        isExact -> ExactStringFilter(value, field, matchCase, textRange)
+        key == "package" && value == "mine" && isAndroidProject() -> ProjectAppFilter(projectApplicationIdsProvider, textRange)
+        else -> StringFilter(value, field,  matchCase, textRange)
 
       }
     }
@@ -347,7 +352,7 @@ private fun LogcatFilterLiteralExpression.createIsFilter(text: String): LogcatFi
   return when {
     !StudioFlags.LOGCAT_IS_FILTER.get() -> throw LogcatFilterParseException(PsiErrorElementImpl("Invalid key: is"))
     text == "crash" -> CrashFilter(TextRange(startOffset, endOffset))
-    text == "firebase" -> RegexFilter(firebaseRegex, TAG, TextRange(startOffset, endOffset))
+    text == "firebase" -> RegexFilter(firebaseRegex, TAG, matchCase = true, TextRange(startOffset, endOffset))
     text == "stacktrace" -> StackTraceFilter(TextRange(startOffset, endOffset))
     else -> throw LogcatFilterParseException(PsiErrorElementImpl("Invalid filter: is:$text"))
   }

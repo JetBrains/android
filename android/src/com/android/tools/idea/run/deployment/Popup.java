@@ -49,10 +49,10 @@ final class Popup extends ActionGroupPopup {
     new HelpTooltipForList<ActionItem>().installOnList(this, list, (listIndex, tooltip) -> {
       AnAction action = list.getModel().getElementAt(listIndex).getAction();
       if (action instanceof SelectDeviceAction) {
-        return UpdatableDeviceHelpTooltipKt.updateTooltip(((SelectDeviceAction)action).getDevice(), tooltip);
+        return TooltipsKt.updateTooltip(((SelectDeviceAction)action).getDevice().launchCompatibility(), tooltip);
       }
       if (action instanceof SnapshotActionGroup) {
-        return UpdatableDeviceHelpTooltipKt.updateTooltip(((SnapshotActionGroup)action).getDevice(), tooltip);
+        return TooltipsKt.updateTooltip(((SnapshotActionGroup)action).getDevice().launchCompatibility(), tooltip);
       }
       return false;
     });

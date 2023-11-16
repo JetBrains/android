@@ -15,24 +15,36 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.android.tools.adtui.compose.ComposeStatus
 import com.android.tools.adtui.compose.InformationPopup
 import com.android.tools.adtui.compose.InformationPopupImpl
 import com.android.tools.adtui.compose.IssueNotificationAction
 import com.android.tools.idea.actions.BrowserHelpAction
 import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
+import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
+import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
@@ -76,16 +88,35 @@ internal fun defaultCreateInformationPopup(
   dataContext: DataContext,
 ): InformationPopup? {
   return getStatusInfo(project, dataContext).let { status ->
-    if (status == LiveEditStatus.Disabled) {
+    if (shouldHideImpl(status, dataContext)) {
       return@let null
     }
 
     val link = status.actionId?.let {
-      val id = if (it == MANUAL_LIVE_EDIT_ACTION_ID) LiveEditService.PIGGYBACK_ACTION_ID else it
+      val id = when (it) {
+        REFRESH_ACTION_ID -> if (LiveEditApplicationConfiguration.getInstance().leTriggerMode == ON_SAVE) LiveEditService.PIGGYBACK_ACTION_ID else MANUAL_LIVE_EDIT_ACTION_ID
+        else -> it
+      }
       val action = ActionManager.getInstance().getAction(it)
       val shortcut = KeymapManager.getInstance()?.activeKeymap?.getShortcuts(id)?.toList()?.firstOrNull()
       AnActionLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText(shortcut)})" else ""}", action)
     }
+
+    val upgradeAssistant =
+      if (status.title == LiveEditStatus.OutOfDate.title &&
+          status.description.contains(LiveEditUpdateException.Error.UNSUPPORTED_BUILD_LIBRARY_DESUGAR.message))
+        AnActionLink("View Upgrade Assistant", object : AnAction() {
+          override fun actionPerformed(e: AnActionEvent) {
+            ActionUtil.invokeAction(
+              ActionManager.getInstance().getAction("AgpUpgrade"),
+              dataContext,
+              RUNNING_DEVICES_TOOL_WINDOW_ID,
+              null,
+              null)
+          }
+        })
+      else
+        null
 
     val configureLiveEditAction = ConfigureLiveEditAction()
     return@let InformationPopupImpl(
@@ -94,6 +125,7 @@ internal fun defaultCreateInformationPopup(
       emptyList(),
       listOfNotNull(
         link,
+        upgradeAssistant,
         AnActionLink("View Docs", BrowserHelpAction("Live Edit Docs", "https://developer.android.com/jetpack/compose/tooling/iterative-development#live-edit")),
         object: AnActionLink("Configure Live Edit", configureLiveEditAction) {
         }.apply {
@@ -154,9 +186,38 @@ class LiveEditIssueNotificationAction(
     return JBUI.insets(2)
   }
 
+  override fun shouldHide(status: ComposeStatus, dataContext: DataContext): Boolean {
+    return shouldHideImpl(status, dataContext)
+  }
+
   override fun getActionUpdateThread(): ActionUpdateThread {
     return ActionUpdateThread.EDT
   }
+}
+
+private fun shouldHideImpl(status: ComposeStatus, dataContext: DataContext): Boolean {
+  if (status != LiveEditStatus.Disabled) {
+    // Always show when it's an active status, even if error.
+    return false
+  }
+  val toolWindowId = dataContext.getData(PlatformDataKeys.TOOL_WINDOW)
+  if (toolWindowId == null || toolWindowId.id != RUNNING_DEVICES_TOOL_WINDOW_ID) {
+    return true
+  }
+  // Only show for running devices tool window.
+  val project = dataContext.getData(CommonDataKeys.PROJECT) ?: return true
+  val serial = dataContext.getData(SERIAL_NUMBER_KEY) ?: return true
+  val device = AndroidDebugBridge.getBridge()?.devices?.find { it.serialNumber == serial } ?: return true
+  // Hide status when the device doesn't support Live Edit.
+  if (!LiveEditProjectMonitor.supportLiveEdits(device)) {
+    return true
+  }
+  // Hide status when the project isn't Compose.
+  if (!LiveEditService.usesCompose(project)) {
+    return true
+  }
+  // Hide status when Live Edit is already enabled (note: status is Disabled if we get to this part of the code).
+  return LiveEditApplicationConfiguration.getInstance().isLiveEdit
 }
 
 /**

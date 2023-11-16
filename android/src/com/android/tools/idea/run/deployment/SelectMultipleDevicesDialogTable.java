@@ -18,7 +18,6 @@ package com.android.tools.idea.run.deployment;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;

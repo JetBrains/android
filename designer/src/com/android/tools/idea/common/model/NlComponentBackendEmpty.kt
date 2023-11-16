@@ -16,20 +16,18 @@
 package com.android.tools.idea.common.model
 
 import com.intellij.designer.model.EmptyXmlTag
-import com.intellij.pom.Navigatable
 import com.intellij.psi.xml.XmlTag
 
 /**
- * NlComponent backend based on an empty XmlTag.
- * This is to be used for NlComponents that are not associated with an XML tag.
+ * NlComponent backend based on an empty XmlTag. This is to be used for NlComponents that are not
+ * associated with an XML tag.
  */
-class NlComponentBackendEmpty: NlComponentBackend {
+class NlComponentBackendEmpty : NlComponentBackend {
   override val tag: XmlTag = EmptyXmlTag.INSTANCE
 
-  override fun setTagElement(tag: XmlTag) { }
+  override fun setTagElement(tag: XmlTag) {}
 
-  @Deprecated("Use getTag", ReplaceWith("getTag()"))
-  override fun getTagDeprecated() = tag
+  @Deprecated("Use getTag", ReplaceWith("getTag()")) override fun getTagDeprecated() = tag
 
   override fun getTagName() = ""
 
@@ -39,7 +37,7 @@ class NlComponentBackendEmpty: NlComponentBackend {
 
   override fun getAffectedFile() = null
 
-  override fun reformatAndRearrange() { }
+  override fun reformatAndRearrange() {}
 
   override fun isValid() = true
 

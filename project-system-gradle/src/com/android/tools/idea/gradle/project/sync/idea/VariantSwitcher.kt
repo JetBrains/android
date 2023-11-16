@@ -19,7 +19,6 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
@@ -46,6 +45,8 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.plugins.gradle.util.gradleIdentityPathOrNull
+import org.jetbrains.plugins.gradle.util.gradlePathOrNull
 
 class VariantProjectDataNodes {
   var data: MutableList<DataNode<ProjectData>> = mutableListOf()
@@ -130,8 +131,8 @@ fun ExternalProjectInfo.findAndSetupSelectedCachedVariantData(variantData: DataN
 
 /**
  * Sets up the IDE to containing the dependency information in the selected variants for modules of all provided
- * [AndroidModuleModel].
- * This method assumes that the new variant name has been already set on the [AndroidModuleModel]s.
+ * [GradleAndroidModel].
+ * This method assumes that the new variant name has been already set on the [GradleAndroidModel]s.
  *
  * If we have the variant information this method re-configures the project to use this new information by adjusting the
  * [DataNode] tree to use the new variant information. If we don't we just trigger a new refresh project syncing the new
@@ -164,9 +165,9 @@ private fun DataNode<ProjectData>.repopulateProjectDataWith(
 }
 
 private fun variantAndAbi(moduleDataNode: DataNode<out ModuleData>): VariantAndAbi? {
-  val androidModuleModel = GradleAndroidModelDataImpl.findFromModuleDataNode(moduleDataNode) ?: return null
+  val gradleAndroidModel = GradleAndroidModelDataImpl.findFromModuleDataNode(moduleDataNode) ?: return null
   val ndkModuleModel = ExternalSystemApiUtil.find(moduleDataNode, AndroidProjectKeys.NDK_MODEL)?.data
-  return VariantAndAbi(androidModuleModel.selectedVariantName, ndkModuleModel?.selectedAbi)
+  return VariantAndAbi(gradleAndroidModel.selectedVariantName, ndkModuleModel?.selectedAbi)
 }
 
 private class AndroidModule(
@@ -182,20 +183,19 @@ private class AndroidModules(
 
 private fun DataNode<ProjectData>.getAndroidModules(): AndroidModules {
   val holderModuleNodes = findAllRecursively(this, ProjectKeys.MODULE)
-  val roots = holderModuleNodes.filter { !it.data.id.contains(':') }.associateBy { it.data.id }
+  val roots =
+    holderModuleNodes.filter { it.data.gradlePathOrNull == ":" }
+      .associate { it.data.gradleIdentityPathOrNull to it.data.linkedExternalProjectPath }
 
   return AndroidModules(
     holderModuleNodes.mapNotNull { node ->
       val androidModel = GradleAndroidModelDataImpl.findFromModuleDataNode(node) ?: return@mapNotNull null
-      val moduleId = node.data.id
-      // Note: The root project name extracted below does not necessarily match the name of any Gradle projects or included builds.
-      // However, it is expected to be always the same for all modules derived from one `IdeaProject` model instance.
-      val rootProjectName = moduleId.substringBefore(':', moduleId)
-      val projectPath = ":" + moduleId.substringAfter(':', "")
+
+      val projectPath = node.data.gradlePathOrNull ?: return@mapNotNull null
+      val rootProjectName = node.data.gradleIdentityPathOrNull?.removeSuffix(projectPath)?.ifEmpty { ":" } ?: return@mapNotNull null
       AndroidModule(
         gradleProjectPath = GradleHolderProjectPath(
-          (if (rootProjectName == "") this.data.linkedExternalProjectPath
-          else roots[rootProjectName]?.data?.linkedExternalProjectPath) ?: error("Cannot find root module data: $rootProjectName"),
+          roots[rootProjectName] ?: error("Cannot find root module data: $rootProjectName"),
           projectPath
         ),
         module = node,

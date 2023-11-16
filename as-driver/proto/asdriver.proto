@@ -22,6 +22,12 @@ service AndroidStudio {
   rpc EditFile(EditFileRequest) returns (EditFileResponse) {}
 
   rpc WaitForComponent(WaitForComponentRequest) returns (WaitForComponentResponse) {}
+
+  rpc GetSystemProperty(GetSystemPropertyRequest) returns (GetSystemPropertyResponse) {}
+
+  rpc AnalyzeFile(AnalyzeFileRequest) returns (AnalyzeFileResponse) {}
+
+  rpc TakeBleakSnapshot(TakeBleakSnapshotRequest) returns (TakeBleakSnapshotResponse) {}
 }
 
 message GetVersionRequest {}
@@ -37,9 +43,16 @@ message QuitRequest {
 message QuitResponse {}
 
 message ExecuteActionRequest {
+  enum DataContextSource {
+    DEFAULT = 0;
+    SELECTED_TEXT_EDITOR = 1;
+  }
+
   string action_id = 1;
 
   optional string project_name = 2;
+
+  optional DataContextSource data_context_source = 3;
 }
 
 message ExecuteActionResponse {
@@ -49,6 +62,7 @@ message ExecuteActionResponse {
     ERROR = 2;
   }
   ExecuteActionResponse.Result result = 1;
+  string error_message = 2;
 }
 
 message ShowToolWindowRequest {
@@ -81,7 +95,13 @@ message SwingClassRegexMatch {
 }
 
 message ComponentTextMatch {
+  enum MatchMode {
+    EXACT = 0;
+    CONTAINS = 1;
+    REGEX = 2;
+  }
   string text = 1;
+  MatchMode matchMode = 2;
 }
 
 message SvgIconMatch {
@@ -94,6 +114,7 @@ message InvokeComponentResponse {
     ERROR = 1;
   }
   InvokeComponentResponse.Result result = 1;
+  string error_message = 2;
 }
 
 message WaitForIndexRequest {}
@@ -114,6 +135,7 @@ message OpenFileResponse {
     ERROR = 1;
   }
   OpenFileResponse.Result result = 1;
+  string error_message = 2;
 }
 
 message EditFileRequest {
@@ -128,10 +150,12 @@ message EditFileResponse {
     ERROR = 1;
   }
   EditFileResponse.Result result = 1;
+  string error_message = 2;
 }
 
 message WaitForComponentRequest {
   repeated ComponentMatcher matchers = 1;
+  bool wait_for_enabled = 2;
 }
 
 message WaitForComponentResponse {
@@ -140,4 +164,69 @@ message WaitForComponentResponse {
     ERROR = 1;
   }
   WaitForComponentResponse.Result result = 1;
+  string error_message = 2;
+}
+
+message GetSystemPropertyRequest {
+  string system_property = 1;
+}
+
+message GetSystemPropertyResponse {
+  optional string value = 1; // Optional because the property may not be defined
+}
+
+message AnalyzeFileRequest {
+  string file = 1;
+}
+
+message AnalyzeFileResponse {
+  enum Status {
+    OK = 0;
+    ERROR = 1;
+  }
+  AnalyzeFileResponse.Status status = 1;
+  repeated AnalysisResult analysis_results = 2;
+  string error_message = 3;
+}
+
+message AnalysisResult {
+  // Serialized version of com.intellij.lang.annotation.HighlightSeverity.
+  message HighlightSeverity {
+    string name = 1;
+    int32 value = 2;
+  }
+
+  HighlightSeverity severity = 1;
+
+  // This is generally the offending line of code, e.g. "import foo;".
+  string text = 2;
+
+  // A description of the issue, e.g. "Unused import statement".
+  optional string description = 3;
+
+  // This is the name of the tool that produced the problem, e.g.
+  // "RedundantSuppression". GlobalSimpleInspectionTool instances like
+  // SyntaxErrorInspection will appear as null, as will some other
+  // GlobalInspectionTool instances like
+  // AndroidLintGradleDependencyInspection.
+  optional string tool_id = 4;
+
+  // The line number that the issue starts on.
+  uint32 line_number = 5;
+}
+
+message TakeBleakSnapshotRequest {
+  int32 current_iteration = 1;
+  int32 last_iteration = 2;
+}
+
+message TakeBleakSnapshotResponse {
+  enum Result {
+    OK = 0;
+    LEAK_DETECTED = 1;
+    ERROR = 2;
+  }
+  TakeBleakSnapshotResponse.Result result = 1;
+  optional string leak_info = 2;
+  string error_message = 3;
 }

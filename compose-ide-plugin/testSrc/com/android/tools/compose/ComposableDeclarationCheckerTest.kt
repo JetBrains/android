@@ -155,9 +155,9 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
       }
 
       object FakeFoo : Foo {
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: public open fun composableFunction(param: Boolean): Boolean defined in com.example.FakeFoo, @Composable public abstract fun composableFunction(param: Boolean): Boolean defined in com.example.Foo">override fun composableFunction(param: Boolean)</error> = true
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: @Composable public open fun nonComposableFunction(param: Boolean): Boolean defined in com.example.FakeFoo, public abstract fun nonComposableFunction(param: Boolean): Boolean defined in com.example.Foo">@Composable override fun nonComposableFunction(param: Boolean)</error> = true
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: public open val nonComposableProperty: Boolean defined in com.example.FakeFoo, public abstract val nonComposableProperty: Boolean defined in com.example.Foo">override val nonComposableProperty: Boolean</error> <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: @Composable public open fun `<get-nonComposableProperty>`(): Boolean defined in com.example.FakeFoo, public abstract fun `<get-nonComposableProperty>`(): Boolean defined in com.example.Foo">@Composable get()</error> = true
+          <error descr="[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: public open fun composableFunction(param: Boolean): Boolean defined in com.example.FakeFoo, @Composable public abstract fun composableFunction(param: Boolean): Boolean defined in com.example.Foo">override fun composableFunction(param: Boolean)</error> = true
+          <error descr="[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun nonComposableFunction(param: Boolean): Boolean defined in com.example.FakeFoo, public abstract fun nonComposableFunction(param: Boolean): Boolean defined in com.example.Foo">@Composable override fun nonComposableFunction(param: Boolean)</error> = true
+          <error descr="[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: public open val nonComposableProperty: Boolean defined in com.example.FakeFoo, public abstract val nonComposableProperty: Boolean defined in com.example.Foo">override val nonComposableProperty: Boolean</error> <error descr="[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun `<get-nonComposableProperty>`(): Boolean defined in com.example.FakeFoo, public abstract fun `<get-nonComposableProperty>`(): Boolean defined in com.example.Foo">@Composable get()</error> = true
       }
 
       interface Bar {
@@ -169,10 +169,10 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
       }
 
       object FakeBar : Bar {
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: public open fun composableFunction(param: Boolean): Boolean defined in com.example.FakeBar, @Composable public abstract fun composableFunction(param: Boolean): Boolean defined in com.example.Bar">override fun composableFunction(param: Boolean)</error> = true
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: public open val composableProperty: Boolean defined in com.example.FakeBar, public abstract val composableProperty: Boolean defined in com.example.Bar">override val composableProperty: Boolean</error> <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: public open fun `<get-composableProperty>`(): Boolean defined in com.example.FakeBar, @Composable public abstract fun `<get-composableProperty>`(): Boolean defined in com.example.Bar">get()</error> = true
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: @Composable public open fun nonComposableFunction(param: Boolean): Boolean defined in com.example.FakeBar, public abstract fun nonComposableFunction(param: Boolean): Boolean defined in com.example.Bar">@Composable override fun nonComposableFunction(param: Boolean)</error> = true
-          <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: public open val nonComposableProperty: Boolean defined in com.example.FakeBar, public abstract val nonComposableProperty: Boolean defined in com.example.Bar">override val nonComposableProperty: Boolean</error> <error descr="[CONFLICTING_OVERLOADS] Conflicting overloads: @Composable public open fun `<get-nonComposableProperty>`(): Boolean defined in com.example.FakeBar, public abstract fun `<get-nonComposableProperty>`(): Boolean defined in com.example.Bar">@Composable get()</error> = true
+          <error descr="[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: public open fun composableFunction(param: Boolean): Boolean defined in com.example.FakeBar, @Composable public abstract fun composableFunction(param: Boolean): Boolean defined in com.example.Bar">override fun composableFunction(param: Boolean)</error> = true
+          <error descr="[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: public open val composableProperty: Boolean defined in com.example.FakeBar, public abstract val composableProperty: Boolean defined in com.example.Bar">override val composableProperty: Boolean</error> <error descr="[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: public open fun `<get-composableProperty>`(): Boolean defined in com.example.FakeBar, @Composable public abstract fun `<get-composableProperty>`(): Boolean defined in com.example.Bar">get()</error> = true
+          <error descr="[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun nonComposableFunction(param: Boolean): Boolean defined in com.example.FakeBar, public abstract fun nonComposableFunction(param: Boolean): Boolean defined in com.example.Bar">@Composable override fun nonComposableFunction(param: Boolean)</error> = true
+          <error descr="[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: public open val nonComposableProperty: Boolean defined in com.example.FakeBar, public abstract val nonComposableProperty: Boolean defined in com.example.Bar">override val nonComposableProperty: Boolean</error> <error descr="[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun `<get-nonComposableProperty>`(): Boolean defined in com.example.FakeBar, public abstract fun `<get-nonComposableProperty>`(): Boolean defined in com.example.Bar">@Composable get()</error> = true
       }
 
         """
@@ -194,7 +194,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
       """
             import androidx.compose.runtime.Composable
 
-            fun print(<warning descr="[UNUSED_PARAMETER] Parameter 'message' is never used">message</warning>: Any?) {}
+            fun print(message: Any?) {}
 
             @Composable fun <error descr="[COMPOSABLE_FUN_MAIN] Composable main functions are not currently supported">main</error>(args: Array<String>) {
                 print(args)
@@ -208,7 +208,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
       """
             import androidx.compose.runtime.Composable
 
-            fun print(<warning descr="[UNUSED_PARAMETER] Parameter 'message' is never used">message</warning>: Any?) {}
+            fun print(message: Any?) {}
 
             class Foo
 
@@ -245,8 +245,8 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     val file = addFileToProject(
       "src/com/example/test.kt",
       """
+      $suppressAnnotation
       package com.example
-
       $expectedText
       """.trimIndent()
     )

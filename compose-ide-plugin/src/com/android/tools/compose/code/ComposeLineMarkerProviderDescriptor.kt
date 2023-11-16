@@ -15,8 +15,9 @@
  */
 package com.android.tools.compose.code
 
-import androidx.compose.compiler.plugins.kotlin.isComposableInvocation
+import androidx.compose.compiler.plugins.kotlin.k1.isComposableInvocation
 import com.android.tools.compose.ComposeBundle
+import com.android.tools.compose.isComposableInvocation
 import com.android.tools.compose.isComposeEnabled
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
@@ -29,11 +30,16 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import icons.StudioIcons
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analyzer.AnalysisResult
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithAllCompilerChecks
 import org.jetbrains.kotlin.idea.editor.fixers.range
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
 
@@ -64,6 +70,16 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
     private val ANALYSIS_RESULT_KEY = Key<CachedValue<AnalysisResult>>("ComposeLineMarkerProviderDescriptor.AnalysisResult")
 
     private fun isComposableInvocation(parentFunction: KtCallExpression): Boolean {
+      if (isK2Plugin()) {
+        analyze(parentFunction) {
+          // `KtCallExpression.resolveCall()` expects the call to be successful always, or throws.
+          // Instead, we should use `KtElement.resolveCall()` that allows an unresolved call.
+          val callInfo = (parentFunction as KtElement).resolveCall() ?: return false
+          val symbol = callInfo.singleFunctionCallOrNull()?.symbol ?: return false
+          return isComposableInvocation(symbol)
+        }
+      }
+
       val containingFile = parentFunction.containingFile as? KtFile ?: return false
 
       val analysisResult = CachedValuesManager.getManager(parentFunction.project).getCachedValue(

@@ -19,20 +19,22 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.IssueDetails
-import com.android.tools.idea.insights.ui.AppInsightsIssuesTableView.Companion.LOGGER
 import com.intellij.icons.AllIcons
+import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.StatusText
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.LayoutManager
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JList
 import javax.swing.JPanel
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -71,7 +73,6 @@ val EMPTY_STATE_LINK_FORMAT =
 fun IssueDetails.getDisplayTitle(): Pair<String, String> {
   val splitSubtitle = subtitle.split('.')
   if (splitSubtitle.size < 2) {
-    LOGGER.warn("Failed to format subtitle: $subtitle")
     return title to ""
   }
   val (className, methodName) = splitSubtitle.takeLast(2)
@@ -114,3 +115,38 @@ fun getFatalityIcon(
     icon
   }
 }
+
+open class ResizedSimpleColoredComponent : SimpleColoredComponent() {
+  init {
+    isOpaque = false
+    isTransparentIconBackground = true
+    font = UIUtil.getListFont()
+  }
+
+  override fun getPreferredSize(): Dimension {
+    return UIUtil.updateListRowHeight(super.getPreferredSize())
+  }
+}
+
+class JListSimpleColoredComponent<T>(icon: Icon?, list: JList<T>, hasFocus: Boolean) :
+  ResizedSimpleColoredComponent() {
+  init {
+    font = list.font
+    foreground =
+      if (hasFocus) {
+        list.selectionForeground
+      } else {
+        list.foreground
+      }
+    if (icon != null) {
+      this.icon = if (hasFocus) ColoredIconGenerator.generateColoredIcon(icon, foreground) else icon
+    }
+  }
+}
+
+fun prettyRangeString(lower: Any, upper: Any) =
+  if (lower == upper) {
+    lower.toString()
+  } else {
+    "$lower → $upper"
+  }

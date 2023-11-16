@@ -26,6 +26,8 @@ const val FN_BUILD_GRADLE_KTS = "build.gradle.kts"
 const val FN_GRADLE_PROPERTIES = "gradle.properties"
 const val FN_SETTINGS_GRADLE = "settings.gradle"
 const val FN_SETTINGS_GRADLE_KTS = "settings.gradle.kts"
+const val FN_DECLARATIVE_BUILD_GRADLE = "build.gradle.toml"
+const val FN_DECLARATIVE_SETTINGS_GRADLE = "settings.gradle.toml"
 
 const val EXT_VERSIONS_TOML = "versions.toml"
 

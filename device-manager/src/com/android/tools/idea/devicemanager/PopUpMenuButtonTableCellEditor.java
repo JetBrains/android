@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.devicemanager;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
-import com.android.tools.idea.wearpairing.WearPairingManagerKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
@@ -89,8 +86,7 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
       return Optional.empty();
     }
 
-    boolean enabled = StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get();
-    AbstractButton item = new JBMenuItem(enabled ? "View Paired Device(s)" : "Unpair Device");
+    AbstractButton item = new JBMenuItem("View Paired Device(s)");
 
     item.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
@@ -99,15 +95,7 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
 
       DeviceManagerUsageTracker.log(deviceManagerEvent);
 
-      if (enabled) {
-        myPanel.viewDetails(DetailsPanel.PAIRED_DEVICES_TAB_INDEX);
-      }
-      else {
-        Object name = pairs.get(0).getPeerDevice(key).getDisplayName();
-        item.setToolTipText(AndroidWearPairingBundle.message("wear.assistant.device.list.forget.connection", name));
-
-        WearPairingManagerKt.removeAllPairedDevicesAsync(myManager, key, true);
-      }
+      myPanel.viewDetails(DetailsPanel.PAIRED_DEVICES_TAB_INDEX);
     });
 
     return Optional.of(item);

@@ -38,15 +38,13 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.vfs.VirtualFile
 import icons.StudioIcons
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class IssueNotificationActionTest {
 
-  @Rule
-  @JvmField
-  val projectRule = AndroidProjectRule.inMemory()
+  @Rule @JvmField val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun testOnlyHaveVisualLintIssue() {
@@ -74,13 +72,13 @@ class IssueNotificationActionTest {
     val actionEvent = AnActionEvent(null, context, "", presentation, ActionManager.getInstance(), 0)
     val visualLintIssueModel = VisualLintService.getInstance(projectRule.project).issueModel
 
-
     action.update(actionEvent)
     assertEquals(IssueNotificationAction.DISABLED_ICON, presentation.icon)
     assertEquals(IssueNotificationAction.NO_ISSUE, presentation.description)
 
     run {
-      val infoIssueProvider = createSingleIssueProviderWithSeverity(HighlightSeverity.INFORMATION, mockedFile)
+      val infoIssueProvider =
+        createSingleIssueProviderWithSeverity(HighlightSeverity.INFORMATION, mockedFile)
       visualLintIssueModel.addIssueProvider(infoIssueProvider)
       action.update(actionEvent)
       assertEquals(StudioIcons.Common.INFO_INLINE, presentation.icon)
@@ -88,7 +86,8 @@ class IssueNotificationActionTest {
     }
 
     run {
-      val warningIssueProvider = createSingleIssueProviderWithSeverity(HighlightSeverity.WARNING, mockedFile)
+      val warningIssueProvider =
+        createSingleIssueProviderWithSeverity(HighlightSeverity.WARNING, mockedFile)
       visualLintIssueModel.addIssueProvider(warningIssueProvider)
       action.update(actionEvent)
       assertEquals(StudioIcons.Common.WARNING_INLINE, presentation.icon)
@@ -96,7 +95,8 @@ class IssueNotificationActionTest {
     }
 
     run {
-      val errorIssueProvider = createSingleIssueProviderWithSeverity(HighlightSeverity.ERROR, mockedFile)
+      val errorIssueProvider =
+        createSingleIssueProviderWithSeverity(HighlightSeverity.ERROR, mockedFile)
       visualLintIssueModel.addIssueProvider(errorIssueProvider)
       action.update(actionEvent)
       assertEquals(StudioIcons.Common.ERROR_INLINE, presentation.icon)
@@ -104,7 +104,10 @@ class IssueNotificationActionTest {
     }
   }
 
-  private fun createSingleIssueProviderWithSeverity(severity: HighlightSeverity, file: VirtualFile): IssueProvider {
+  private fun createSingleIssueProviderWithSeverity(
+    severity: HighlightSeverity,
+    file: VirtualFile
+  ): IssueProvider {
     return object : IssueProvider() {
       override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
         val issue = TestIssue(source = IssueSourceWithFile(file), severity = severity)

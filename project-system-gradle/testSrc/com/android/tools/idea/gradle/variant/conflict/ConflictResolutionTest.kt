@@ -64,7 +64,7 @@ class ConflictResolutionTest : ConflictsTestCase() {
 
     assertThat(project.readAndClearLastSyncRequest()?.requestedVariantChange).isEqualTo(
       SwitchVariantRequest(
-        libModule.getModuleIdForSyncRequest(),
+        libModule.getModuleIdForSyncRequest()!!,
         "release",
         null
       )
@@ -125,7 +125,7 @@ class ConflictResolutionTest : ConflictsTestCase() {
 
     assertThat(project.readAndClearLastSyncRequest()?.requestedVariantChange).isEqualTo(
       SwitchVariantRequest(
-        libModule.getModuleIdForSyncRequest(),
+        libModule.getModuleIdForSyncRequest()!!,
         "release",
         null
       )

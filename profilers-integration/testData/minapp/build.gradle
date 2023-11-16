@@ -1,7 +1,7 @@
 buildscript {
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.1.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.20-Beta"
+        classpath 'com.android.tools.build:gradle:7.4.1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.10"
      }
 }
 
@@ -12,6 +12,9 @@ android {
     compileSdk 33
     defaultConfig {
         applicationId "com.example.minapp"
-        minSdk 26
+        minSdk 29
+    }
+    lintOptions {
+      checkReleaseBuilds false
     }
 }

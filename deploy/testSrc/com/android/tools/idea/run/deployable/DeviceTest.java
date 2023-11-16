@@ -19,7 +19,6 @@ import static com.android.fakeadbserver.DeviceState.DeviceStatus.ONLINE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
@@ -42,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import kotlinx.coroutines.CoroutineScope;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -266,11 +266,12 @@ public class DeviceTest {
                                                       @NotNull Supplier<CountDownLatch> finishedLatchSupplier) {
     return new DeviceCommandHandler("shell") {
       @Override
-      public boolean accept(@NonNull FakeAdbServer server,
-                            @NonNull Socket socket,
-                            @NonNull DeviceState device,
-                            @NonNull String command,
-                            @NonNull String args) {
+      public boolean accept(@NotNull FakeAdbServer server,
+                            @NotNull CoroutineScope socketScope,
+                            @NotNull Socket socket,
+                            @NotNull DeviceState device,
+                            @NotNull String command,
+                            @NotNull String args) {
         if (!this.command.equals(command) || !commandPattern.matcher(args).matches()) {
           return false;
         }

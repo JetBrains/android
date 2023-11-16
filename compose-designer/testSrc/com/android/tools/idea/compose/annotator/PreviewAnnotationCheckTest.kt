@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.annotator
 
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.compose.annotator.check.common.BadType
 import com.android.tools.idea.compose.annotator.check.common.CheckResult
 import com.android.tools.idea.compose.annotator.check.common.Failure
@@ -25,22 +26,22 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.moveCaret
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.runInEdtAndGet
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertNotNull
 
 internal class PreviewAnnotationCheckTest {
 
@@ -57,7 +58,6 @@ internal class PreviewAnnotationCheckTest {
 
   @After
   fun tearDown() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
@@ -68,7 +68,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320,id=fooBar 123")
         @Composable
@@ -83,7 +83,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "   ")
         @Composable
@@ -101,7 +101,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "spec:shape=Tablet,shape=Normal,width=qwe,unit=sp,dpi=320,madeUpParam")
         @Composable
@@ -128,7 +128,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = " abc ")
         @Composable
@@ -155,7 +155,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "spec:width=100,isRound=no")
         @Composable
@@ -175,7 +175,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "spec:width=100dp,height=400.56px,chinSize=30")
         @Composable
@@ -197,7 +197,7 @@ internal class PreviewAnnotationCheckTest {
           """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
         @Composable
@@ -221,7 +221,6 @@ internal class PreviewAnnotationCheckTest {
 
   @Test
   fun testBadTarget() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
     val result =
       addKotlinFileAndCheckPreviewAnnotation(
         """
@@ -242,8 +241,7 @@ internal class PreviewAnnotationCheckTest {
   }
 
   @Test
-  fun testMultipreviewAnnotation_flagEnabled() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
+  fun testMultipreviewAnnotation() {
     val result =
       addKotlinFileAndCheckPreviewAnnotation(
         """
@@ -259,28 +257,6 @@ internal class PreviewAnnotationCheckTest {
   }
 
   @Test
-  fun testMultipreviewAnnotation_flagDisabled() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(false)
-    val result =
-      addKotlinFileAndCheckPreviewAnnotation(
-        """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-
-        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
-        annotation class myAnnotation() {}
-      """
-          .trimIndent()
-      )
-    assertEquals(1, result.issues.size)
-    assertEquals(Failure::class, result.issues[0]::class)
-    assertEquals(
-      "Preview target must be a composable function",
-      (result.issues[0] as Failure).failureMessage
-    )
-  }
-
-  @Test
   fun testDeviceIdFailure() {
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
 
@@ -289,7 +265,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "id:device_1")
         @Composable
@@ -313,7 +289,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "id:device_1")
         @Composable
@@ -330,9 +306,30 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "id:pixel_4")
+        @Composable
+        fun myFun() {}
+"""
+          .trimIndent()
+      )
+    assertFalse(result.hasIssues)
+  }
+
+  @Test
+  fun deprecatedDevicesShouldBeValid() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
+    runWriteActionAndWait { Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module) }
+
+    val result =
+      addKotlinFileAndCheckPreviewAnnotation(
+        """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
+
+        @Preview(device = "id:Nexus 5")
         @Composable
         fun myFun() {}
 """
@@ -351,7 +348,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "name:Nexus 11")
         @Composable
@@ -368,9 +365,9 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
-        @Preview(device = "name:Nexus 10")
+        @Preview(device = "name:Pixel Tablet")
         @Composable
         fun myFun() {}
 """
@@ -388,7 +385,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "name:Nexus 11")
         @Composable
@@ -411,7 +408,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "spec:parent=device_1")
         @Composable
@@ -429,7 +426,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "spec:parent=pixel_4,orientation=portrait")
         @Composable
@@ -445,7 +442,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "spec:parent=pixel_6,orientation=portrait,foo=bar")
         @Composable
@@ -463,7 +460,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "spec:parent=pixel_4_xl,width=1080px,height=1920px,isRound=true,dpi=320,chinSize=20px,orientation=portrait")
         @Composable
@@ -485,7 +482,7 @@ internal class PreviewAnnotationCheckTest {
         """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview(device = "spec:width=1080px,parent=pixel_4_xl")
         @Composable

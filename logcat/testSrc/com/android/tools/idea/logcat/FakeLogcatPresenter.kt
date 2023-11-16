@@ -22,6 +22,7 @@ import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
+import java.nio.file.Path
 
 /*
  * Copyright (C) 2021 The Android Open Source Project
@@ -42,6 +43,8 @@ internal class FakeLogcatPresenter : LogcatPresenter {
   var reloadedMessages = 0
   var logcatRestartedCount = 0
   var attachedDevice: Device? = null
+  var device: Device? = null
+  var logcatFilter: String = ""
 
   val messageBatches = mutableListOf<List<LogcatMessage>>()
   val lineBatches = mutableListOf<List<String>>()
@@ -77,17 +80,19 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   override fun isShowing() = showing
 
+  override fun openLogcatFile(path: Path) {
+    TODO("Not yet implemented")
+  }
+
   override fun getBacklogMessages(): List<LogcatMessage> = messageBatches.flatten()
 
   override suspend fun enterInvisibleMode() {
     messageBatches.clear()
   }
 
-  override fun applyFilter(logcatFilter: LogcatFilter?) {
-    TODO("Not yet implemented")
-  }
+  override fun getSelectedDevice(): Device? = device
 
-  override fun getSelectedDevice(): Device? {
+  override fun applyFilter(logcatFilter: LogcatFilter?) {
     TODO("Not yet implemented")
   }
 
@@ -123,12 +128,10 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     TODO("Not yet implemented")
   }
 
-  override fun getFilter(): String {
-    TODO("Not yet implemented")
-  }
+  override fun getFilter(): String  = logcatFilter
 
   override fun setFilter(filter: String) {
-    TODO("Not yet implemented")
+    logcatFilter = filter
   }
 
   fun appendMessage(message: String) {

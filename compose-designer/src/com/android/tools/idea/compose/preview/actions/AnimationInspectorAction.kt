@@ -17,8 +17,9 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.PreviewMode
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.ui.AnActionButton
@@ -31,32 +32,33 @@ import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated
  *   information.
  */
-internal class AnimationInspectorAction(private val dataContextProvider: () -> DataContext) :
+class AnimationInspectorAction(private val dataContextProvider: () -> DataContext) :
   AnActionButton(
     message("action.animation.inspector.title"),
     message("action.animation.inspector.description"),
     ANIMATION_INSPECTOR
   ) {
 
-  private fun getPreviewElement() =
-    dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
-      as? ComposePreviewElementInstance
+  private fun getPreviewElement() = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
     e.presentation.apply {
-      isEnabled = true
+      val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+      isEnabled = !isEssentialsModeEnabled
       // Only display the animation inspector icon if there are animations to be inspected.
       isVisible = getPreviewElement()?.hasAnimations == true
+      text = if (isEssentialsModeEnabled) null else message("action.animation.inspector.title")
       description =
-        if (isEnabled) message("action.animation.inspector.description")
-        else message("action.animation.inspector.unavailable.title")
+        if (isEssentialsModeEnabled)
+          message("action.animation.inspector.essentials.mode.description")
+        else message("action.animation.inspector.description")
     }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)?.let {
-      it.animationInspectionPreviewElementInstance = getPreviewElement()
-    }
+    val manager = dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER) ?: return
+    val previewElement = getPreviewElement() ?: return
+    manager.setMode(PreviewMode.AnimationInspection(previewElement))
   }
 }

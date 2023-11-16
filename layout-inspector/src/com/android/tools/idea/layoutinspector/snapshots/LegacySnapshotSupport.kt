@@ -16,16 +16,19 @@
 package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.annotations.concurrency.Slow
+import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyPropertiesProvider
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeParser
+import com.android.tools.idea.layoutinspector.resource.data.createReference
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.write
@@ -48,25 +51,31 @@ class LegacySnapshotLoader : SnapshotLoader {
 
   override val capabilities = mutableSetOf<InspectorClient.Capability>()
 
-  override fun loadFile(file: Path, model: InspectorModel, stats: SessionStatistics): SnapshotMetadata {
+  override fun loadFile(
+    file: Path,
+    model: InspectorModel,
+    notificationModel: NotificationModel,
+    stats: SessionStatistics
+  ): SnapshotMetadata {
     val options = LayoutInspectorCaptureOptions()
 
     ObjectInputStream(Files.newInputStream(file)).use { input ->
       // Parse options
       options.parse(input.readUTF())
-      if (options.version != ProtocolVersion.Version1 && options.version != ProtocolVersion.Version3) {
+      if (
+        options.version != ProtocolVersion.Version1 && options.version != ProtocolVersion.Version3
+      ) {
         val message = "LegacySnapshotLoader only supports v1 and v3, got ${options.version}."
         Logger.getInstance(AppInspectionSnapshotLoader::class.java).error(message)
         throw Exception(message)
       }
 
-      metadata = if (options.version == ProtocolVersion.Version3) {
-        Metadata.parseDelimitedFrom(input).convert(ProtocolVersion.Version3)
-      }
-      else {
-        SnapshotMetadata(ProtocolVersion.Version1)
-      }
-
+      metadata =
+        if (options.version == ProtocolVersion.Version3) {
+          Metadata.parseDelimitedFrom(input).convert(ProtocolVersion.Version3)
+        } else {
+          SnapshotMetadata(ProtocolVersion.Version1)
+        }
 
       val windows = mutableListOf<String>()
       while (input.available() > 0) {
@@ -74,34 +83,50 @@ class LegacySnapshotLoader : SnapshotLoader {
         val nodeBytes = ByteArray(input.readInt())
         input.readFully(nodeBytes)
         val propertyUpdater = LegacyPropertiesProvider.Updater(model)
-        val (node, _) = LegacyTreeParser.parseLiveViewNode(
-          nodeBytes, propertyUpdater
-        ) ?: throw IOException("Error parsing view node")
+        val (node, _) =
+          LegacyTreeParser.parseLiveViewNode(nodeBytes, propertyUpdater)
+            ?: throw IOException("Error parsing view node")
         propertyUpdater.apply(propertiesProvider)
 
         // Preview image
         val previewBytes = ByteArray(input.readInt())
         input.readFully(previewBytes)
         val image = ImageIO.read(ByteArrayInputStream(previewBytes))
-        val windowName = if (options.version == ProtocolVersion.Version3) {
-          input.readString()
-        } else ""
+        val windowName =
+          if (options.version == ProtocolVersion.Version3) {
+            input.readString()
+          } else ""
 
         windows.add(windowName)
-        val window = object : AndroidWindow(node, windowName, ImageType.BITMAP_AS_REQUESTED) {
-          override fun refreshImages(scale: Double) {
-            ViewNode.writeAccess {
-              root.flatten().forEach { it.drawChildren.clear() }
-              if (image != null) {
-                root.drawChildren.add(DrawViewImage(image, root))
+        val window =
+          object : AndroidWindow(node, windowName, ImageType.BITMAP_AS_REQUESTED) {
+            override fun refreshImages(scale: Double) {
+              ViewNode.writeAccess {
+                root.flatten().forEach { it.drawChildren.clear() }
+                if (image != null) {
+                  root.drawChildren.add(DrawViewImage(image, root))
+                }
+                root.flatten().forEach {
+                  it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) }
+                }
               }
-              root.flatten().forEach { it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) } }
             }
           }
-        }
         model.update(window, windows, 1)
-        model.resourceLookup.updateConfiguration(metadata.dpi)
       }
+    }
+    val theme = createReference(metadata.theme, metadata.processName)
+    val folderConfig =
+      metadata.folderConfig?.let { FolderConfiguration.getConfigForQualifierString(it) }
+    if (theme != null && folderConfig != null) {
+      model.resourceLookup.updateConfiguration(
+        folderConfig,
+        theme,
+        processDescriptor,
+        fontScaleFromConfig = 1f
+      )
+    } else {
+      model.resourceLookup.updateConfiguration(metadata.dpi)
     }
     return metadata
   }
@@ -112,6 +137,8 @@ fun saveLegacySnapshot(
   path: Path,
   data: Map<String, ByteArray>,
   images: Map<String, ByteArray>,
+  config: String,
+  theme: String,
   process: ProcessDescriptor,
   model: InspectorModel
 ): SnapshotMetadata {
@@ -120,15 +147,18 @@ fun saveLegacySnapshot(
   ObjectOutputStream(baos).use { output ->
     output.writeUTF(LayoutInspectorCaptureOptions(ProtocolVersion.Version3).toString())
 
-    metadata = SnapshotMetadata(
-      snapshotVersion = ProtocolVersion.Version3,
-      apiLevel = process.device.apiLevel,
-      processName = process.name,
-      source = Metadata.Source.STUDIO,
-      sourceVersion = ApplicationInfo.getInstance().fullVersion,
-      liveDuringCapture = false,
-      dpi = model.resourceLookup.dpi
-    )
+    metadata =
+      SnapshotMetadata(
+        snapshotVersion = ProtocolVersion.Version3,
+        apiLevel = process.device.apiLevel,
+        processName = process.name,
+        source = Metadata.Source.STUDIO,
+        sourceVersion = ApplicationInfo.getInstance().fullVersion,
+        liveDuringCapture = false,
+        dpi = model.resourceLookup.dpi,
+        folderConfig = config,
+        theme = theme
+      )
 
     metadata.toProto().writeDelimitedTo(output)
 

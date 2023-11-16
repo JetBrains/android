@@ -46,13 +46,13 @@ class WearDeviceModelsProviderTest : LayoutTestCase() {
 
     assertNotEmpty(nlModels)
     for (nlModel in nlModels) {
-      assertTrue(WEAR_DEVICES_TO_DISPLAY.contains (nlModel.configuration.device!!.displayName))
+      assertTrue(WEAR_DEVICES_TO_DISPLAY.contains(nlModel.configuration.device!!.displayName))
     }
   }
 
   fun testOrientationForWearDevices() {
     // Round and Circle device must be portrait, and Chin device must be landscape
-    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
+    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
     val modelsProvider = WearDeviceModelsProvider
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
 
@@ -61,7 +61,8 @@ class WearDeviceModelsProviderTest : LayoutTestCase() {
     for (nlModel in nlModels) {
       val device = nlModel.configuration.device
       TestCase.assertNotNull(device)
-      val expected = if (device!!.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
+      val expected =
+        if (device!!.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
       TestCase.assertEquals(expected, nlModel.configuration.deviceState!!.orientation)
     }
   }
@@ -109,7 +110,8 @@ class WearDeviceModelsProviderTest : LayoutTestCase() {
 }
 
 @Language("Xml")
-private const val LAYOUT_FILE_CONTENT = """
+private const val LAYOUT_FILE_CONTENT =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent"
@@ -119,7 +121,8 @@ private const val LAYOUT_FILE_CONTENT = """
 """
 
 @Language("Xml")
-private const val DRAWABLE_FILE_CONTENT = """
+private const val DRAWABLE_FILE_CONTENT =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
   android:shape="line">

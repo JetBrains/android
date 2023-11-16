@@ -21,10 +21,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import junit.framework.TestCase;
+import org.junit.Ignore;
 
 /**
  * Tests for {@link TestProjectPathsGenerator}.
  */
+@Ignore // This is for a standalone, test-only application
 public class TestProjectPathsGeneratorTest extends TestCase {
   public void testCodeGeneration() throws IOException {
     if (SystemInfo.isWindows) {

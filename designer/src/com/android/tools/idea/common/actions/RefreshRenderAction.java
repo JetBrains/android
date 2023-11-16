@@ -20,6 +20,7 @@ import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.RenderUtils;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
@@ -48,5 +49,10 @@ public class RefreshRenderAction extends AnAction {
     DesignSurface<?> surface = e.getRequiredData(DesignerDataKeys.DESIGN_SURFACE);
     RenderUtils.clearCache(surface.getConfigurations());
     surface.forceUserRequestedRefresh();
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.EDT;
   }
 }

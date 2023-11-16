@@ -21,7 +21,9 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import javax.swing.JComboBox;
 import javax.swing.JTextField;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.android.actions.CreateResourceFileDialogBase;
 import org.jetbrains.annotations.NotNull;
@@ -74,11 +76,14 @@ public class CreateResourceFileDialogFixture extends IdeaDialogFixture<CreateRes
 
   @NotNull
   public CreateResourceFileDialogFixture setType(@NotNull String type) {
-    ApplicationManager.getApplication().invokeAndWait(
-      () -> robot().finder()
-        .findByLabel(target(), "Resource type:", TemplateKindCombo.class, true)
-        .setSelectedName(type),
-      ModalityState.any());
+    TemplateKindCombo
+      resourceType = robot().finder().findByLabel(target(), "Resource type:", TemplateKindCombo.class, true);
+
+    JComboBoxFixture comboBox = new JComboBoxFixture(robot(), robot().finder()
+      .findByType(resourceType.getChildComponent(), JComboBox.class));
+
+    comboBox.click();
+    comboBox.selectItem(type);
     return this;
   }
 }

@@ -20,6 +20,7 @@ import com.google.common.base.Splitter
 import com.intellij.openapi.diagnostic.Logger
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.ATOMIC_MOVE
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
@@ -35,19 +36,23 @@ import kotlin.text.Charsets.UTF_8
  *     or null to return all keys and values.
  */
 fun readKeyValueFile(file: Path, keysToExtract: Set<String>? = null): Map<String, String>? {
-  val result = mutableMapOf<String, String>()
-  try {
+  return try {
+    val result = mutableMapOf<String, String>()
     for (line in Files.readAllLines(file)) {
       val keyValue = KEY_VALUE_SPLITTER.splitToList(line)
       if (keyValue.size == 2 && (keysToExtract == null || keysToExtract.contains(keyValue[0]))) {
         result[keyValue[0]] = keyValue[1]
       }
     }
-    return result
+    result
+  }
+  catch (e: NoSuchFileException) {
+    logError("Could not find $file", null)
+    null
   }
   catch (e: IOException) {
     logError("Error reading $file", e)
-    return null
+    null
   }
 }
 
@@ -81,8 +86,8 @@ fun updateKeyValueFile(file: Path, updates: Map<String, String?>) {
   }
 }
 
-private fun logError(message: String, e: IOException) {
-  logger().error(e.message?.let { "$message - $it" } ?: message)
+private fun logError(message: String, e: IOException?) {
+  logger().error(e?.message?.let { "$message - $it" } ?: message)
 }
 
 private val KEY_VALUE_SPLITTER = Splitter.on('=').trimResults()

@@ -21,11 +21,13 @@ import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.api.TableSupport
 import com.android.tools.property.panel.impl.ui.PropertyTooltip
+import com.android.tools.property.ptable.KEY_IS_VISUALLY_RESTRICTED
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableGroupItem
 import com.android.tools.property.ptable.PTableItem
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
+import com.intellij.ui.ClientProperty
 import com.intellij.ui.ExperimentalUI.Companion.isNewUI
 import com.intellij.ui.NewUiValue
 import com.intellij.ui.components.JBLabel
@@ -54,12 +56,12 @@ const val DEPTH_INDENT = 8
 /**
  * Component used to display the name of a property in the properties panel.
  *
- * This component is used for both rendering and editing of group properties.
- * A group property is editable in the sense the user can expand and collapse
- * the group using the expand icon shown to the left of the property name.
- * A custom icon can be shown for non group items.
+ * This component is used for both rendering and editing of group properties. A group property is
+ * editable in the sense the user can expand and collapse the group using the expand icon shown to
+ * the left of the property name. A custom icon can be shown for non group items.
  */
-class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPanel(BorderLayout()) {
+class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
+  JPanel(BorderLayout()) {
   private val iconLabel = LabelWithFocusBorder()
   private val label = LabelWithTooltipFromParent()
   private var standardIndent = 0
@@ -80,11 +82,13 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPa
   init {
     iconLabel.verticalAlignment = JLabel.TOP
     iconLabel.isFocusable = false
-    iconLabel.addMouseListener(object : MouseAdapter() {
-      override fun mousePressed(event: MouseEvent) {
-        toggle()
+    iconLabel.addMouseListener(
+      object : MouseAdapter() {
+        override fun mousePressed(event: MouseEvent) {
+          toggle()
+        }
       }
-    })
+    )
 
     label.verticalAlignment = JLabel.TOP
     label.isFocusable = false
@@ -93,17 +97,19 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPa
     registerActionKey({ toggle() }, KeyStrokes.ENTER, "toggle")
     registerActionKey({ toggle() }, KeyStrokes.SPACE, "toggle")
 
-    addMouseListener(object : MouseAdapter() {
-      override fun mousePressed(event: MouseEvent) {
-        requestFocusInWindow()
-      }
+    addMouseListener(
+      object : MouseAdapter() {
+        override fun mousePressed(event: MouseEvent) {
+          requestFocusInWindow()
+        }
 
-      override fun mouseClicked(event: MouseEvent) {
-        if (event.clickCount > 1) {
-          toggle()
+        override fun mouseClicked(event: MouseEvent) {
+          if (event.clickCount > 1) {
+            toggle()
+          }
         }
       }
-    })
+    )
 
     add(iconLabel, BorderLayout.WEST)
     add(label, BorderLayout.CENTER)
@@ -124,14 +130,17 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPa
     expandedIcon = UIUtil.getTreeExpandedIcon()
     collapsedIcon = UIUtil.getTreeCollapsedIcon()
     expandedWhiteIcon =
-      if (NewUiValue.isEnabled()) UIUtil.getTreeExpandedIcon() else ColoredIconGenerator.generateWhiteIcon (UIUtil.getTreeExpandedIcon())
+      if (NewUiValue.isEnabled()) UIUtil.getTreeExpandedIcon()
+      else ColoredIconGenerator.generateWhiteIcon(UIUtil.getTreeExpandedIcon())
     collapsedWhiteIcon =
-      if (NewUiValue.isEnabled()) UIUtil.getTreeCollapsedIcon() else ColoredIconGenerator.generateWhiteIcon(UIUtil.getTreeCollapsedIcon())
+      if (NewUiValue.isEnabled()) UIUtil.getTreeCollapsedIcon()
+      else ColoredIconGenerator.generateWhiteIcon(UIUtil.getTreeCollapsedIcon())
     labelFont = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
   }
 
   override fun getToolTipText(event: MouseEvent): String? {
-    // Trick: Use the component from the event.source for tooltip in tables. See TableEditor.getToolTip().
+    // Trick: Use the component from the event.source for tooltip in tables. See
+    // TableEditor.getToolTip().
     val component = event.source as? JTable ?: return null
     val tableRow = component.rowAtPoint(event.point)
     val tableColumn = component.columnAtPoint(event.point)
@@ -140,13 +149,19 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPa
     }
     val item = component.getValueAt(tableRow, tableColumn)
     val property = item as? PropertyItem ?: return null
-    return PropertyTooltip.setToolTip(component, event, property, forValue = tableColumn == 1, text = "")
+    PropertyTooltip.setToolTip(component, property, forValue = tableColumn == 1, text = "")
+    return null
   }
 
-  /**
-   * Call this method to setup the component as a renderer or editor for a given property item.
-   */
-  fun setUpItem(table: PTable, item: PTableItem, depth: Int, isSelected: Boolean, hasFocus: Boolean, isExpanded: Boolean): JComponent {
+  /** Call this method to setup the component as a renderer or editor for a given property item. */
+  fun setUpItem(
+    table: PTable,
+    item: PTableItem,
+    depth: Int,
+    isSelected: Boolean,
+    hasFocus: Boolean,
+    isExpanded: Boolean
+  ): JComponent {
     label.text = if (isExpanded) "<html><nobr>${item.name}</nobr></html>" else item.name
     label.font = labelFont
     background = UIUtil.getTableSelectionBackground(true)
@@ -159,7 +174,10 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPa
       }
       item is PropertyItem && item.namespaceIcon != null -> {
         iconLabel.icon =
-          item.namespaceIcon?.let { if (isSelected && hasFocus && !isNewUI()) ColoredIconGenerator.generateWhiteIcon(it) else it }
+          item.namespaceIcon?.let {
+            if (isSelected && hasFocus && !isNewUI()) ColoredIconGenerator.generateWhiteIcon(it)
+            else it
+          }
       }
       else -> {
         iconLabel.icon = null
@@ -169,21 +187,20 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPa
     if (isSelected && hasFocus) {
       label.foreground = UIUtil.getTreeSelectionForeground(true)
       background = UIUtil.getTreeSelectionBackground(true)
-    }
-    else {
+    } else {
       label.foreground = table.foregroundColor
       background = table.backgroundColor
     }
 
     // Some editors in the layout inspector are much taller than a single text editor.
-    // Make the label look centered with a standard text editor, and top aligned with a taller editor.
+    // Make the label look centered with a standard text editor, and top aligned with a taller
+    // editor.
     label.border = BorderFactory.createEmptyBorder(topOffset, 0, 0, standardRightIndent)
 
     if (iconLabel.icon != null) {
       iconTextGap = max(iconWidth - iconLabel.icon.iconWidth, minSpacing)
       iconTopOffset = topOffset + (label.preferredSize.height - iconLabel.icon.iconHeight) / 2 - 1
-    }
-    else {
+    } else {
       indent += iconWidth + minSpacing
     }
     iconLabel.border = BorderFactory.createEmptyBorder(iconTopOffset, indent, 0, iconTextGap)
@@ -194,13 +211,13 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPa
   private fun getGroupNodeIcon(isGroupExpanded: Boolean, isSelectedWithFocus: Boolean) =
     if (isSelectedWithFocus) {
       if (isGroupExpanded) expandedWhiteIcon else collapsedWhiteIcon
-    }
-    else {
+    } else {
       if (isGroupExpanded) expandedIcon else collapsedIcon
     }
 
   /**
-   * Compute the top offset for making a small label appear vertical centered with a standard text editor.
+   * Compute the top offset for making a small label appear vertical centered with a standard text
+   * editor.
    *
    * A standard editor is using a normal size font and a DarculaTextBorder.
    */
@@ -219,6 +236,10 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPa
    * The label itself does not have the context to display tooltip for the property.
    */
   private open class LabelWithTooltipFromParent : JBLabel() {
+    init {
+      ClientProperty.put(this, KEY_IS_VISUALLY_RESTRICTED) { width < preferredSize.width }
+    }
+
     override fun getToolTipText(event: MouseEvent): String? =
       (parent as? JComponent)?.getToolTipText(event)
   }
@@ -226,9 +247,8 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPa
   /**
    * Label which displays a focus border around the label.
    *
-   * This is used for the tree expansion icons.
-   * Notice that it is the parent panel [DefaultNameComponent] that has
-   * focus not the label.
+   * This is used for the tree expansion icons. Notice that it is the parent panel
+   * [DefaultNameComponent] that has focus not the label.
    */
   private class LabelWithFocusBorder : LabelWithTooltipFromParent() {
 
@@ -241,9 +261,14 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPa
         val g2 = g.create() as Graphics2D
         try {
           g2.translate(insets.left - indent, insets.top - indent)
-          DarculaUIUtil.paintFocusBorder(g2, icon.iconWidth + 2 * indent, icon.iconHeight + 2 * indent, 0f, true)
-        }
-        finally {
+          DarculaUIUtil.paintFocusBorder(
+            g2,
+            icon.iconWidth + 2 * indent,
+            icon.iconHeight + 2 * indent,
+            0f,
+            true
+          )
+        } finally {
           g2.dispose()
         }
       }

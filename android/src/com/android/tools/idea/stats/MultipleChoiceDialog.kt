@@ -41,7 +41,7 @@ private const val NEXT_BUTTON_TEXT = "Next"
  */
 class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, hasFollowup: Boolean)
   : DialogWrapper(null), ActionListener, ItemListener {
-  private val checkBoxes = mutableListOf<JCheckBox>()
+  val checkBoxes = mutableListOf<JCheckBox>()
 
   val content: JComponent = Box.createVerticalBox().apply {
     border = JBUI.Borders.empty(0, 0, 10, 50)
@@ -94,13 +94,14 @@ class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger:
   }
 
   private fun handleSelection() {
-    val limitReached = checkBoxes.count { it.isSelected } == survey.answerCount
+    val selectedCount = checkBoxes.count { it.isSelected }
 
     checkBoxes.forEach {
-      it.isEnabled = it.isSelected || !limitReached
+      it.isEnabled = it.isSelected || selectedCount < survey.answerCount
     }
 
-    isOKActionEnabled = limitReached
+    val minimum = if (survey.answerPolicy == Survey.AnswerPolicy.LAX) 1 else survey.answerCount
+    isOKActionEnabled = selectedCount >= minimum
   }
 
   private fun createButton(option: Option) = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
@@ -131,5 +132,3 @@ class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger:
     }
   }
 }
-
-

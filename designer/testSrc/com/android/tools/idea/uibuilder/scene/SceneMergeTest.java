@@ -51,7 +51,7 @@ public class SceneMergeTest extends SceneTest {
     SceneComponent component = myScene.getSceneComponent("root");
     assertTrue(component.getDecorator() instanceof ConstraintLayoutDecorator);
     Project project = component.getNlComponent().getModel().getProject();
-    ViewHandler viewGroupHandler = ViewHandlerManager.get(project).getHandler(component.getNlComponent());
+    ViewHandler viewGroupHandler = ViewHandlerManager.get(project).getHandler(component.getNlComponent(), () -> {});
     assertTrue(viewGroupHandler instanceof MergeDelegateHandler);
   }
 }

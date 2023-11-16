@@ -22,15 +22,10 @@ import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.Pr
 import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse;
-import com.android.tools.idea.stats.UsageTrackerUtils;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.util.Ref;
-import com.intellij.util.ThreeState;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.deploy.proto.Deploy;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.AdbInstaller;
@@ -40,8 +35,12 @@ import com.android.tools.deployer.tasks.LiveUpdateDeployer;
 import com.android.tools.idea.editors.literals.LiveEditService;
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration;
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass;
+import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse;
 import com.android.tools.idea.util.StudioPathManager;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LiveEditEvent;
 import com.intellij.concurrency.JobScheduler;
@@ -49,9 +48,16 @@ import com.intellij.ide.ActivityTracker;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.util.ThreeState;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -73,6 +79,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.idea.KotlinFileType;
 
 /**
  * Helper to set up Live Literal deployment monitoring.
@@ -159,7 +166,7 @@ public class LiveEditProjectMonitor implements Disposable {
   //       1. A better name would be "mainThreadExecutor".
   //       2. We should also run appRefresh notifications on this thread.
   //       3. We should also run ADB events on this thread.
-  private final ScheduledExecutorService methodChangesExecutor = Executors.newSingleThreadScheduledExecutor();
+  private final ScheduledExecutorService mainThreadExecutor = Executors.newSingleThreadScheduledExecutor();
 
   /**
    * Track the state of the project {@link #project} on devices it has been deployed on as {@link #applicationId}
@@ -178,6 +185,7 @@ public class LiveEditProjectMonitor implements Disposable {
   private AtomicReference<Long> gradleTimeSync = new AtomicReference<>(Integer.toUnsignedLong(0));
 
   private final LiveEditCompiler compiler;
+  private final Precompiler precompiler;
 
   // We want to log only a percentage of LE events, but we also always want to log the *first* event after a deployment.
   private final double LE_LOG_FRACTION = 0.1;
@@ -193,9 +201,14 @@ public class LiveEditProjectMonitor implements Disposable {
   // Care should be given when modifying this field to preserve atomicity.
   private final ConcurrentLinkedQueue<EditEvent> changedMethodQueue = new ConcurrentLinkedQueue<>();
 
+  private final MutableIrClassCache irClassCache = new MutableIrClassCache();
+
+  private final Set<VirtualFile> precompiledFiles = new HashSet<>();
+
   public LiveEditProjectMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
     this.project = project;
-    this.compiler = new LiveEditCompiler(project);
+    this.compiler = new LiveEditCompiler(project, irClassCache);
+    this.precompiler = new Precompiler(project, compiler.getInlineCandidateCache());
     this.adbEventsListener = liveEditService.getAdbEventsListener();
 
     gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
@@ -237,7 +250,7 @@ public class LiveEditProjectMonitor implements Disposable {
       return;
     }
 
-    if (StringUtil.isEmpty(applicationId)) {
+    if (!hasAppBeenDeployed()) {
       return;
     }
 
@@ -252,8 +265,8 @@ public class LiveEditProjectMonitor implements Disposable {
     }
 
     changedMethodQueue.add(event);
-    methodChangesExecutor.schedule(this::processQueuedChanges, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(),
-                                   TimeUnit.MILLISECONDS);
+    mainThreadExecutor.schedule(this::processQueuedChanges, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(),
+                                TimeUnit.MILLISECONDS);
   }
 
   private void processQueuedChanges() {
@@ -271,8 +284,8 @@ public class LiveEditProjectMonitor implements Disposable {
 
     if (!handleChangedMethods(project, copy)) {
       changedMethodQueue.addAll(copy);
-      methodChangesExecutor.schedule(this::processQueuedChanges, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(),
-                                     TimeUnit.MILLISECONDS);
+      mainThreadExecutor.schedule(this::processQueuedChanges, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(),
+                                  TimeUnit.MILLISECONDS);
     }
   }
 
@@ -283,7 +296,7 @@ public class LiveEditProjectMonitor implements Disposable {
 
     liveEditDevices.clear();
     deviceWatcher.clearListeners();
-    methodChangesExecutor.shutdownNow();
+    mainThreadExecutor.shutdownNow();
   }
 
   public LiveEditCompiler getCompiler() {
@@ -352,12 +365,18 @@ public class LiveEditProjectMonitor implements Disposable {
 
     // This method (notifyAppDeploy) is called from Studio on a random Worker thread. We schedule the data update on the same Executor
     // we process our keystrokes {@link #methodChangesExecutor}
-    methodChangesExecutor.schedule(
+    mainThreadExecutor.schedule(
       () -> {
         this.applicationId = applicationId;
         this.gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
         resetState();
         deviceWatcher.setApplicationId(applicationId);
+
+        irClassCache.clear();
+        precompiledFiles.clear();
+        for (VirtualFile file : FileEditorManager.getInstance(project).getOpenFiles()) {
+          precompileFile(file);
+        }
       },
       0L,
       TimeUnit.NANOSECONDS).get();
@@ -365,6 +384,61 @@ public class LiveEditProjectMonitor implements Disposable {
     return true;
   }
 
+  private boolean hasAppBeenDeployed() {
+    return StringUtil.isNotEmpty(applicationId);
+  }
+
+  public void notifyFileOpen(VirtualFile file) {
+    if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
+      return;
+    }
+
+    if (!hasAppBeenDeployed()) {
+      return;
+    }
+
+    // Precompile should only run the first time a file is opened after a deployment. Running precompile every time a given file opens may
+    // cause changes to be missed when running in MANUAL mode: user makes changes -> closes file -> re-opens file -> precompile incorrectly
+    // updates the IR cache with the new changes.
+    if (precompiledFiles.contains(file)) {
+      return;
+    }
+    mainThreadExecutor.schedule(() -> {
+      precompileFile(file);
+    }, 0L, TimeUnit.NANOSECONDS);
+  }
+
+  private void precompileFile(VirtualFile file) {
+    long startTimeNs = System.nanoTime();
+
+    if (!FileTypeRegistry.getInstance().isFileOfType(file, KotlinFileType.INSTANCE)) {
+      return;
+    }
+
+    List<byte[]> outputs;
+    try {
+      outputs = precompiler.compile(file);
+    } catch (Exception e) {
+      // TODO: handle compile failure
+      LOGGER.error(e, "Live Edit precompile of %s failed", file.getPath());
+      return;
+    }
+
+    for (byte[] output : outputs) {
+      try {
+        IrClass irClass = new IrClass(output);
+        irClassCache.update(irClass);
+        LOGGER.info("\tCached precompiled class %s", irClass.getName());
+      } catch (Exception e) {
+        // TODO: handle parse failure
+      }
+    }
+
+    precompiledFiles.add(file);
+
+    long durationNs = System.nanoTime() - startTimeNs;
+    LOGGER.info("Live Edit precompiled %s in %dms", file.getPath(), TimeUnit.NANOSECONDS.toMillis(durationNs));
+  }
 
   @VisibleForTesting
   @NotNull
@@ -375,7 +449,7 @@ public class LiveEditProjectMonitor implements Disposable {
   // Triggered from LiveEdit manual mode. Use buffered changes.
   @Trace
   public void onManualLETrigger() {
-    methodChangesExecutor.schedule(this::doOnManualLETrigger, 0, TimeUnit.MILLISECONDS);
+    mainThreadExecutor.schedule(this::doOnManualLETrigger, 0, TimeUnit.MILLISECONDS);
   }
 
   @VisibleForTesting
@@ -389,13 +463,12 @@ public class LiveEditProjectMonitor implements Disposable {
 
     updateEditableStatus(LiveEditStatus.InProgress.INSTANCE);
 
-    while(!processChanges(project, bufferedEvents, LiveEditEvent.Mode.MANUAL)) {
+    while(!processChanges(project, bufferedEvents,
+                          LiveEditService.isLeTriggerOnSave() ? LiveEditEvent.Mode.ON_SAVE : LiveEditEvent.Mode.MANUAL)) {
         LOGGER.info("ProcessChanges was interrupted");
     }
     bufferedEvents.clear();
   }
-
-
 
   @Trace
   boolean handleChangedMethods(Project project, List<EditEvent> changes) {
@@ -431,8 +504,18 @@ public class LiveEditProjectMonitor implements Disposable {
 
     Optional<LiveEditDesugarResponse> compiled;
 
+    PsiDocumentManager psiManager = PsiDocumentManager.getInstance(project);
     try {
       PrebuildChecks(project, changes);
+
+      // The PSI might not update immediately after a file is edited. Interrupt until all changes are committed to the PSI.
+      for (EditEvent change : changes) {
+        Document doc = psiManager.getDocument(change.getFile());
+        if (doc != null && psiManager.isUncommited(doc)) {
+          return false;
+        }
+      }
+
       List<LiveEditCompilerInput> inputs = changes.stream().map(
         change ->
           new LiveEditCompilerInput(change.getFile(), change.getOrigin(), change.getParentGroup()))
@@ -461,12 +544,17 @@ public class LiveEditProjectMonitor implements Disposable {
         for (EditEvent change : changes) {
           filesWithCompilationErrors.add(change.getFile().getName());
         }
-      } else {
-        // We only log unrecoverable events, ignoring easily recoverable syntax / type errors that happens way too common during editting.
-        event.setStatus(e.getError().getMetric());
       }
 
-      logLiveEditEvent(event);
+      // We log all unrecoverable events, ignoring easily recoverable syntax / type errors that happens way too common during editing.
+      // Both inlining restriction should are also logged despite being recoverable as well.
+      if (e.getError() == LiveEditUpdateException.Error.UNABLE_TO_INLINE ||
+          e.getError() == LiveEditUpdateException.Error.NON_PRIVATE_INLINE_FUNCTION ||
+          !recoverable) {
+        event.setStatus(e.getError().getMetric());
+        logLiveEditEvent(event);
+      }
+
       return true;
     }
 
@@ -474,7 +562,6 @@ public class LiveEditProjectMonitor implements Disposable {
       Optional<String> errorFilename = filesWithCompilationErrors.stream().findFirst();
       String errorMsg = ErrorReporterKt.leErrorMessage(LiveEditUpdateException.Error.COMPILATION_ERROR, errorFilename.get());
       updateEditStatus(LiveEditStatus.createPausedStatus(errorMsg));
-      logLiveEditEvent(event);
       return true;
     }
 
@@ -494,6 +581,9 @@ public class LiveEditProjectMonitor implements Disposable {
       event.setStatus(errorToStatus(errors.get(0)));
     } else {
       event.setStatus(LiveEditEvent.Status.SUCCESS);
+      for (IrClass irClass : desugaredResponse.getCompilerOutput().getIrClasses()) {
+        irClassCache.update(irClass);
+      }
     }
 
     pushFinish = System.nanoTime();
@@ -555,10 +645,9 @@ public class LiveEditProjectMonitor implements Disposable {
       case REMOVED_INTERFACE:
         return LiveEditEvent.Status.UNSUPPORTED_MODIFY_INHERITANCE;
       case UNSUPPORTED_COMPOSE_VERSION:
-        // TODO: Add new event.
-        return LiveEditEvent.Status.UNKNOWN;
+        return LiveEditEvent.Status.UNSUPPORTED_COMPOSE_RUNTIME_VERSION;
       default:
-        return LiveEditEvent.Status.UNKNOWN;
+        return LiveEditEvent.Status.UNKNOWN_LIVE_UPDATE_DEPLOYER_ERROR;
     }
   }
 
@@ -615,7 +704,6 @@ public class LiveEditProjectMonitor implements Disposable {
 
     boolean useDebugMode = LiveEditAdvancedConfiguration.getInstance().getUseDebugMode();
     boolean resetState = update.resetState();
-    boolean usePartialRecompose = LiveEditAdvancedConfiguration.getInstance().getUsePartialRecompose() && !resetState;
 
     int apiLevel = liveEditDevices.getInfo(device).getApp().getMinAPI();
     LiveUpdateDeployer.UpdateLiveEditsParam param =
@@ -623,7 +711,7 @@ public class LiveEditProjectMonitor implements Disposable {
         update.classes(apiLevel),
         update.supportClasses(apiLevel),
         update.groupIds(),
-        usePartialRecompose,
+        !resetState,
         useDebugMode);
 
     LiveUpdateDeployer.UpdateLiveEditResult result = deployer.updateLiveEdit(installer, adb, applicationId, param);

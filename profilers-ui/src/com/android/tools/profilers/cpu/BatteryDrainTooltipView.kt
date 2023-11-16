@@ -26,9 +26,6 @@ class BatteryDrainTooltipView(parent: JComponent, val tooltip: BatteryDrainToolt
   private val content = JPanel(TabularLayout("*").setVGap(12))
 
   @VisibleForTesting
-  val descriptionLabel = createTooltipLabel()
-
-  @VisibleForTesting
   val valueLabel = createTooltipLabel()
 
   override fun createTooltip(): JComponent {
@@ -36,24 +33,18 @@ class BatteryDrainTooltipView(parent: JComponent, val tooltip: BatteryDrainToolt
   }
 
   private fun updateView() {
-    descriptionLabel.text = "<html>${getDescriptionText(tooltip.counterName)}</html>"
     val batteryDrainValueText = NumberFormatter.formatInteger(tooltip.activeValue)
     valueLabel.text = "${getTitle(tooltip.counterName)}: $batteryDrainValueText"
+    valueLabel.text += when (tooltip.unit) {
+      "µah", "µa" -> " ${tooltip.unit}"
+      else -> tooltip.unit
+    }
   }
 
   private fun getTitle(counterName: String) = counterName
 
-  private fun getDescriptionText(counterName: String) =
-    when (counterName) {
-      // Potentially can have case for each battery drain counter.
-      // This decision depends on future decisions regarding
-      // what data to show & how we aggregate/group it.
-      else -> "[PLACEHOLDER BATTERY DESCRIPTION]"
-    }
-
   init {
     content.add(valueLabel, TabularLayout.Constraint(0, 0))
-    content.add(descriptionLabel, TabularLayout.Constraint(1, 0))
     tooltip.addDependency(this).onChange(BatteryDrainTooltip.Aspect.VALUE_CHANGED) { updateView() }
     updateView()
   }

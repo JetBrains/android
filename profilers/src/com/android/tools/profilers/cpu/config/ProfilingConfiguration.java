@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.cpu.config;
 
-import com.android.tools.adtui.model.options.OptionsProvider;
 import com.android.tools.adtui.model.options.OptionsProperty;
+import com.android.tools.adtui.model.options.OptionsProvider;
 import com.android.tools.idea.protobuf.GeneratedMessageV3;
 import com.android.tools.profiler.proto.Trace;
 import java.util.Map;
@@ -110,7 +110,7 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
    * Converts from {@link Trace.TraceConfiguration} to {@link ProfilingConfiguration}.
    */
   @NotNull
-  public static ProfilingConfiguration fromProto(@NotNull Trace.TraceConfiguration proto) {
+  public static ProfilingConfiguration fromProto(@NotNull Trace.TraceConfiguration proto, boolean isTraceboxEnabled) {
     switch (proto.getUnionCase()) {
       case ART_OPTIONS:
         if (proto.getArtOptions().getTraceMode() == Trace.TraceMode.SAMPLED) {
@@ -125,7 +125,7 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
           return artInstrumented;
         }
       case PERFETTO_OPTIONS:
-        PerfettoConfiguration perfetto = new PerfettoConfiguration("");
+        PerfettoConfiguration perfetto = new PerfettoConfiguration("", isTraceboxEnabled);
         return perfetto;
       case ATRACE_OPTIONS:
         AtraceConfiguration atrace = new AtraceConfiguration("");

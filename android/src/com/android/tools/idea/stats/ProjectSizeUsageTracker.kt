@@ -17,6 +17,7 @@ package com.android.tools.idea.stats
 
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.serverflags.ServerFlagService

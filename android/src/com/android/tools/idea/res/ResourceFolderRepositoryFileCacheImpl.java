@@ -55,13 +55,13 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Manages a local file cache for ResourceFolderRepository state, for faster project reload.
  */
-class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryFileCache {
+public class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryFileCache {
   private static final String CACHE_DIRECTORY = "caches/project_resources";
   private static final String INVALIDATION_MARKER_FILE = "invalidated.txt";
 
   @NotNull private final Path myRootDir;
 
-  ResourceFolderRepositoryFileCacheImpl() {
+  public ResourceFolderRepositoryFileCacheImpl() {
     myRootDir = Paths.get(PathManager.getSystemPath()).resolve(CACHE_DIRECTORY);
   }
 

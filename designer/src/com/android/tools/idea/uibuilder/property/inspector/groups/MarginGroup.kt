@@ -20,13 +20,15 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.PropertiesTable
 
 class MarginGroup(properties: PropertiesTable<NlPropertyItem>) :
-  AbstractMarginGroup("layout_margin",
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_HORIZONTAL),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_VERTICAL))
+  AbstractMarginGroup(
+    "layout_margin",
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_HORIZONTAL),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_VERTICAL)
+  )

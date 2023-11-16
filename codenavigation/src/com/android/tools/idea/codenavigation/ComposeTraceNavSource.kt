@@ -16,7 +16,7 @@
 package com.android.tools.idea.codenavigation
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ResolveComposeTracingCodeLocationMetadata
@@ -65,7 +65,9 @@ class ComposeTracingNavSource @VisibleForTesting internal constructor(
   var lastMetricsEvent: AndroidStudioEvent.Builder? = null
     private set;
 
-  // TODO(b/244437735): use PsiNavSource as a reference to use the PsiManager instead of enumerating files manually
+  // TODO(b/244437735): use Psi nav sources (e.g. PsiOuterClassAndLine) as a reference to use the PsiManager instead of enumerating files
+  //  manually
+  //
   // TODO(b/244437735): sorting when multiple matches, e.g. prioritise user code when handling multiple matches
   override fun lookUp(location: CodeLocation, arch: String?): Navigatable? {
     val fullComposableName = location.fullComposableName ?: return null // not a Compose Tracing location

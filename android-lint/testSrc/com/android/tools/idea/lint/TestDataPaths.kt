@@ -20,8 +20,8 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestPro
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.util.PathUtil
-import java.io.File
 import org.jetbrains.android.AndroidTestBase
+import java.io.File
 
 object TestDataPaths {
   @JvmField

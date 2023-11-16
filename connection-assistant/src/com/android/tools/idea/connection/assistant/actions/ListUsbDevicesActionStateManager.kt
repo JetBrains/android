@@ -19,6 +19,7 @@ import com.android.ddmlib.AdbDevice
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.assistant.AssistActionState
 import com.android.tools.idea.assistant.AssistActionStateManager
 import com.android.tools.idea.assistant.datamodel.ActionData
@@ -27,7 +28,6 @@ import com.android.tools.idea.assistant.view.StatefulButtonMessage
 import com.android.tools.idea.assistant.view.UIUtils
 import com.android.tools.idea.concurrency.toCompletionStage
 import com.android.tools.idea.rendering.HtmlBuilderHelper
-import com.android.tools.idea.stats.withProjectId
 import com.android.tools.usb.Platform
 import com.android.tools.usb.UsbDeviceCollector
 import com.android.tools.usb.UsbDeviceCollectorImpl
@@ -70,7 +70,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
       project,
       actionData,
       UsbDeviceCollectorImpl(),
-      { AndroidDebugBridge.getBridge()?.rawDeviceList?.toCompletionStage() ?: CompletableFuture.completedFuture(emptyList()) },
+      { AndroidDebugBridge.getBridge()?.rawDeviceList?.toCompletionStage() ?: CompletableFuture.completedFuture(emptyList<AdbDevice>()) },
       { AndroidDebugBridge.getBridge()?.devices?.toList() ?: emptyList() }
     )
   }

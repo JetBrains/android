@@ -23,7 +23,7 @@ import perfetto.protos.PerfettoConfig.TraceConfig
 /**
  * Configuration for Perfetto traces.
  */
-class PerfettoConfiguration(name: String) : ProfilingConfiguration(name) {
+class PerfettoConfiguration(name: String, private val isTraceboxEnabled: Boolean) : ProfilingConfiguration(name) {
   override fun getOptions(): TraceConfig {
     return PerfettoTraceConfigBuilders.getCpuTraceConfig(SYSTEM_TRACE_BUFFER_SIZE_MB)
   }
@@ -51,7 +51,5 @@ class PerfettoConfiguration(name: String) : ProfilingConfiguration(name) {
     return TraceType.PERFETTO
   }
 
-  override fun getRequiredDeviceLevel(): Int {
-    return AndroidVersion.VersionCodes.P
-  }
+  override fun getRequiredDeviceLevel(): Int = if (isTraceboxEnabled) AndroidVersion.VersionCodes.M else AndroidVersion.VersionCodes.P
 }

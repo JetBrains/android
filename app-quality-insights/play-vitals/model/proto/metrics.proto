@@ -20,6 +20,10 @@ enum AggregationPeriod {
 
   // Data is aggregated in daily intervals.
   DAILY = 2;
+
+  // Data is aggregated over the full timeline range. Effectively this produces
+  // a single value rather than a timeline.
+  FULL_RANGE = 3;
 }
 
 // Indicates the view selected by the user. The output data will correspond to
@@ -151,6 +155,8 @@ message DimensionValue {
 
 // Represents the value of a metric.
 message MetricValue {
+  // Name of the metric.
+  string metric = 1;
 
   // Actual value of the metric. Type-dependent.
   oneof value {
@@ -159,8 +165,19 @@ message MetricValue {
     google.type.Decimal decimal_value = 2;
   }
 
-  // Name of the metric.
-  string metric = 1;
+  // If given, represents a confidence interval for value.
+  oneof confidence_interval {
+    // Confidence interval of a value that is of type type.Decimal.
+    DecimalConfidenceInterval decimal_value_confidence_interval = 3;
+  }
+}
+
+// Represents the confidence interval of a metric.
+message DecimalConfidenceInterval {
+  // The confidence interval's lower bound.
+  google.type.Decimal lower_bound = 1;
+  // The confidence interval's upper bound.
+  google.type.Decimal upper_bound = 2;
 }
 
 // Represents a row of dimensions and metrics.

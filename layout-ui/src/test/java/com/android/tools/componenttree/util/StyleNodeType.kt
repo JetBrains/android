@@ -41,16 +41,16 @@ class StyleNodeType : NodeType<Style> {
 class StyleRenderer : TreeCellRenderer {
   private val label = JLabel()
 
-  override fun getTreeCellRendererComponent(tree: JTree?,
-                                            value: Any?,
-                                            selected: Boolean,
-                                            expanded: Boolean,
-                                            leaf: Boolean,
-                                            row: Int,
-                                            hasFocus: Boolean): Component {
+  override fun getTreeCellRendererComponent(
+    tree: JTree?,
+    value: Any?,
+    selected: Boolean,
+    expanded: Boolean,
+    leaf: Boolean,
+    row: Int,
+    hasFocus: Boolean
+  ): Component {
     label.text = (value as? Style)?.name ?: ""
     return label
   }
 }
-
-

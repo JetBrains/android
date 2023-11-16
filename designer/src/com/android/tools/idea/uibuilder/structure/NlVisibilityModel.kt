@@ -22,9 +22,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility.Companion.convert
 
-/**
- * Helper model for component visibility.
- */
+/** Helper model for component visibility. */
 class NlVisibilityModel(val component: NlComponent) {
 
   enum class Visibility {
@@ -59,10 +57,12 @@ class NlVisibilityModel(val component: NlComponent) {
   }
 
   /** [SdkConstants.ANDROID_URI] visibility */
-  val androidVisibility: Visibility get() = myAndroidVisibility
+  val androidVisibility: Visibility
+    get() = myAndroidVisibility
 
   /** [SdkConstants.TOOLS_URI] visibility */
-  val toolsVisibility: Visibility get() = myToolsVisibility
+  val toolsVisibility: Visibility
+    get() = myToolsVisibility
 
   private var myAndroidVisibility: Visibility
   private var myToolsVisibility: Visibility
@@ -73,9 +73,9 @@ class NlVisibilityModel(val component: NlComponent) {
   }
 
   /**
-   * Returns visibility and whether the visibility is from tools attribute.
-   * If tools attribute is not none, it returns tools attribute visibility and true
-   * If tools attribute is none, it returns android attribute visibility and false
+   * Returns visibility and whether the visibility is from tools attribute. If tools attribute is
+   * not none, it returns tools attribute visibility and true If tools attribute is none, it returns
+   * android attribute visibility and false
    */
   fun getCurrentVisibility(): Visibility {
     if (isToolsAttrAvailable()) {
@@ -85,24 +85,21 @@ class NlVisibilityModel(val component: NlComponent) {
   }
 
   /**
-   * Returns true if there's tools attribute visibility that can override android
-   * visibility attribute.
+   * Returns true if there's tools attribute visibility that can override android visibility
+   * attribute.
    */
   fun isToolsAttrAvailable(): Boolean {
     return toolsVisibility != Visibility.NONE
   }
 
-  /**
-   * Update the visibility attribute in the component.
-   */
-  fun writeToComponent(
-    visibility: Visibility,
-    uri: String) {
+  /** Update the visibility attribute in the component. */
+  fun writeToComponent(visibility: Visibility, uri: String) {
     val transaction = component.startAttributeTransaction()
     when (visibility) {
       Visibility.NONE -> transaction.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, null)
       Visibility.VISIBLE -> transaction.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, "visible")
-      Visibility.INVISIBLE -> transaction.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, "invisible")
+      Visibility.INVISIBLE ->
+        transaction.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, "invisible")
       Visibility.GONE -> transaction.setAttribute(uri, SdkConstants.ATTR_VISIBILITY, "gone")
     }
 
@@ -115,10 +112,7 @@ class NlVisibilityModel(val component: NlComponent) {
     NlWriteCommandActionUtil.run(component, "Update visibility", Runnable { transaction.commit() })
   }
 
-  /**
-   * Returns true if the component contains [visibility] && [uri] pair.
-   * False otherwise.
-   */
+  /** Returns true if the component contains [visibility] && [uri] pair. False otherwise. */
   fun contains(visibility: Visibility, uri: String): Boolean {
     if (SdkConstants.ANDROID_URI == uri) {
       return androidVisibility == visibility
@@ -129,18 +123,22 @@ class NlVisibilityModel(val component: NlComponent) {
   }
 }
 
-private fun determineVisibility(childVisibility: Visibility, parentVisibility: Visibility): Visibility {
+private fun determineVisibility(
+  childVisibility: Visibility,
+  parentVisibility: Visibility
+): Visibility {
   return when (parentVisibility) {
     Visibility.NONE -> childVisibility
     Visibility.VISIBLE -> childVisibility
-    Visibility.INVISIBLE -> if (childVisibility == Visibility.GONE) Visibility.GONE else Visibility.INVISIBLE
+    Visibility.INVISIBLE ->
+      if (childVisibility == Visibility.GONE) Visibility.GONE else Visibility.INVISIBLE
     Visibility.GONE -> Visibility.GONE
   }
 }
 
 /**
- * Loops thru all of its parents and return the actual visibility of the component like in Android Device.
- * It takes into account the tools visibility.
+ * Loops thru all of its parents and return the actual visibility of the component like in Android
+ * Device. It takes into account the tools visibility.
  */
 fun getVisibilityFromParents(component: NlComponent): Visibility {
   var visibility = NlVisibilityModel(component).getCurrentVisibility()

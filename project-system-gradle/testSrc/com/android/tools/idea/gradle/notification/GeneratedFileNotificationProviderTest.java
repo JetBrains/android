@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.notification.GeneratedFileNotificationProvider.MyEditorNotificationPanel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.testing.IdeComponents;
@@ -32,6 +31,7 @@ import com.intellij.ide.GeneratedSourceFileChangeTrackerImpl;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.ui.EditorNotificationPanel;
 import java.io.IOException;
 import org.mockito.Mock;
 
@@ -57,16 +57,14 @@ public class GeneratedFileNotificationProviderTest extends PlatformTestCase {
 
     when(myAndroidModuleModel.getAndroidProject()).thenReturn(myAndroidProject);
 
-    myNotificationProvider = new GeneratedFileNotificationProvider(getProject());
+    myNotificationProvider = new GeneratedFileNotificationProvider();
   }
 
   public void testCreateNotificationPanelWithFileInBuildFolder() throws IOException {
     VirtualFile buildFolder = createFolderInProjectRoot(getProject(), "build");
     VirtualFile file = createFile(buildFolder, "test.txt");
-
-    when(myAndroidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
-
-    MyEditorNotificationPanel panel = myNotificationProvider.createNotificationPanel(file, myFileEditor, myAndroidModuleModel);
+    EditorNotificationPanel panel =
+      myNotificationProvider.createNotificationPanel(file, myFileEditor, virtualToIoFile(buildFolder), myGeneratedSourceFileChangeTracker);
     assertEquals("Files under the \"build\" folder are generated and should not be edited.", panel.getText());
   }
 
@@ -74,10 +72,10 @@ public class GeneratedFileNotificationProviderTest extends PlatformTestCase {
     VirtualFile buildFolder = createFolderInProjectRoot(getProject(), "build");
     VirtualFile file = createFile(buildFolder, "test.txt");
 
-    when(myAndroidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
     when(myFileEditor.getUserData(DISABLE_GENERATED_FILE_NOTIFICATION_KEY)).thenReturn(Boolean.TRUE);
 
-    MyEditorNotificationPanel panel = myNotificationProvider.createNotificationPanel(file, myFileEditor, myAndroidModuleModel);
+    EditorNotificationPanel panel =
+      myNotificationProvider.createNotificationPanel(file, myFileEditor, virtualToIoFile(buildFolder), myGeneratedSourceFileChangeTracker);
     assertNull(panel);
   }
 }

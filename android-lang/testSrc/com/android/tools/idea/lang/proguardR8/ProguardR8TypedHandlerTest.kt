@@ -29,7 +29,7 @@ class ProguardR8TypedHandlerTest : ProguardR8TestCase() {
   override fun runTestRunnable(testRunnable: ThrowableRunnable<Throwable>) = tester.runWithAutoPopupEnabled(testRunnable)
 
   override fun setUp() {
-    UITestUtil.replaceIdeEventQueueSafely() // See UsefulTestCase#runBare which should be the stack frame above this one.
+    UITestUtil.replaceIdeEventQueueSafely()  // See UsefulTestCase#runBare which should be the stack frame above this one.
     runInEdtAndWait { super.setUp() }
     tester = CompletionAutoPopupTester(myFixture)
   }

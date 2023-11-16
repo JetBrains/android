@@ -56,6 +56,7 @@ class ComposeIrGenerationExtension(
     private val reportsDestination: String? = null
 ) : IrGenerationExtension {
     var metrics: ModuleMetrics = EmptyModuleMetrics
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun generate(
         moduleFragment: IrModuleFragment,
         pluginContext: IrPluginContext

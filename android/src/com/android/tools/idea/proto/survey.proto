@@ -5,17 +5,37 @@ option java_multiple_files = true;
 
 // An individual option in a survey
 message Option {
-  optional string icon_path = 1;  // path to icon in Android Studio
-  optional string label = 2;      // text displayed to the user
+  // path to icon in Android Studio
+  optional string icon_path = 1;
+  // text displayed to the user
+  optional string label = 2;
 }
 
 // A survey presented to the user
 message Survey {
-  optional string title = 1;         // title of the survey
-  optional string question = 2;      // question posed to user
-  optional int32 interval_days = 3;  // days between survey being asked
-  optional int32 answer_count = 4;   // number of answers to be selected
-  repeated Option options = 5;       // list of survey options
-  optional string name = 6;          // unique name for this survey
-  optional bool random_order = 7;    // randomize order of options for user
+  // Indicates whether exact answer count is required
+  enum AnswerPolicy {
+    UNKNOWN = 0;
+    // user must provide exactly answer_count answers
+    STRICT = 1;
+    // user can provide between 1 and answer_count answers
+    LAX = 2;
+  }
+
+  // title of the survey
+  optional string title = 1;
+  // question posed to user
+  optional string question = 2;
+  // days between survey being asked
+  optional int32 interval_days = 3;
+  // number of answers to be selected
+  optional int32 answer_count = 4;
+  // list of survey options
+  repeated Option options = 5;
+  // unique name for this survey
+  optional string name = 6;
+  // randomize order of options for user
+  optional bool random_order = 7;
+  // answer policy
+  optional AnswerPolicy answer_policy = 8;
 }

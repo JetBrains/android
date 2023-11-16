@@ -15,28 +15,11 @@
  */
 package com.android.tools.idea.lang.agsl
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.highlighting.BraceMatchingUtil
-import com.intellij.lang.LanguageBraceMatching
-import com.intellij.psi.util.elementType
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import org.intellij.lang.annotations.Language
 
 class AgslPairMatcherTest : LightJavaCodeInsightFixtureTestCase() {
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.AGSL_LANGUAGE_SUPPORT.override(true)
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.AGSL_LANGUAGE_SUPPORT.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
-
   @Language("AGSL")
   private val source =
     """
@@ -62,42 +45,26 @@ class AgslPairMatcherTest : LightJavaCodeInsightFixtureTestCase() {
     return substring(0, offset) + "<caret>" + substring(offset)
   }
 
-  /**
-   * Skip the test? We skip it if the registered pair matcher is not of the right language
-   * type. In theory this shouldn't be necessary but in hard to reproduce scenarios it's
-   * been observed (and it's a very temporary state where the language support
-   * is conditional). Remove this when [StudioFlags.AGSL_LANGUAGE_SUPPORT] is removed.
-   */
-  private fun skipTest(): Boolean {
-    val offset = myFixture.caretOffset
-    val language = myFixture.file.findElementAt(offset).elementType?.language ?: return true
-    return LanguageBraceMatching.INSTANCE.forLanguage(language) !is AgslPairMatcher
-  }
-
   fun testBraces() {
     myFixture.configureByText(AgslFileType.INSTANCE, source.insertCaret("(vec2 n) |{"))
-    if (skipTest()) return
     val offset = BraceMatchingUtil.getMatchedBraceOffset(myFixture.editor, true, myFixture.file)
     assertEquals(source.offset("|} // end"), offset)
   }
 
   fun testParentheses() {
     myFixture.configureByText(AgslFileType.INSTANCE, source.insertCaret("|(vec2 n)"))
-    if (skipTest()) return
     val offset = BraceMatchingUtil.getMatchedBraceOffset(myFixture.editor, true, myFixture.file)
     assertEquals(source.offset("(vec2 n|)"), offset)
   }
 
   fun testNestedOuterParentheses() {
     myFixture.configureByText(AgslFileType.INSTANCE, source.insertCaret("n += dot|(n.yx, n.xy + vec2(21.5351, 14.3137))"))
-    if (skipTest()) return
     val offset = BraceMatchingUtil.getMatchedBraceOffset(myFixture.editor, true, myFixture.file)
     assertEquals(source.offset("n += dot(n.yx, n.xy + vec2(21.5351, 14.3137)|)"), offset)
   }
 
   fun testNestedInnerParentheses() {
     myFixture.configureByText(AgslFileType.INSTANCE, source.insertCaret("n += dot(n.yx, n.xy + vec2|(21.5351, 14.3137))"))
-    if (skipTest()) return
     val offset = BraceMatchingUtil.getMatchedBraceOffset(myFixture.editor, true, myFixture.file)
     assertEquals(source.offset("n += dot(n.yx, n.xy + vec2(21.5351, 14.3137|))"), offset)
   }

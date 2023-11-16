@@ -31,7 +31,8 @@ open class GenericInspectorLineModel : InspectorLineModel {
 
   override var parent: InspectorLineModel? = null
 
-  override var hidden by Delegates.observable(false) { _, old, new -> if (old != new) fireValueChanged() }
+  override var hidden by
+    Delegates.observable(false) { _, old, new -> if (old != new) fireValueChanged() }
 
   override var visible = true
     get() = field && !hidden
@@ -73,4 +74,4 @@ open class GenericInspectorLineModel : InspectorLineModel {
  *
  * The model is used for generated separators around title elements in the properties panel.
  */
-class SeparatorLineModel: GenericInspectorLineModel()
+class SeparatorLineModel : GenericInspectorLineModel()

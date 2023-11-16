@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.desugarFailure
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_ALLOW_MULTIPLE_MIN_API_DEX_MARKERS_IN_APK
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.badMinAPIError
+import com.android.tools.idea.run.deployment.liveedit.desugaring.ApiLevel
 import com.android.tools.idea.run.deployment.liveedit.desugaring.MinApiLevel
 import com.android.tools.r8.ExtractMarker
 import com.android.tools.r8.ExtractMarkerCommand
 import java.nio.file.Path
-import kotlin.io.path.absolute
 
 // We store here all information we need when an app is deployed to a device.
-class LiveEditApp(private val apks: Set<Path>, private val deviceMinAPI: MinApiLevel) {
+class LiveEditApp(private val apks: Set<Path>, private val deviceAPILevel: ApiLevel) {
 
   val minAPI : MinApiLevel by lazy(LazyThreadSafetyMode.NONE) { calculateMinAPI(apks) }
   private val logger = LiveEditLogger("LE App")
@@ -42,18 +43,18 @@ class LiveEditApp(private val apks: Set<Path>, private val deviceMinAPI: MinApiL
       minApis.addAll(consumer.minApis)
     }
 
-    if (minApis.size > 1) {
-      desugarFailure("Too many minAPI. Details:\n ${journal.joinToString("\n")}")
+    if (minApis.size > 1 && !COMPOSE_DEPLOY_LIVE_EDIT_ALLOW_MULTIPLE_MIN_API_DEX_MARKERS_IN_APK.get()) {
+      badMinAPIError("Too many minAPI. Details:\n ${journal.joinToString("\n")}")
     }
 
     if (minApis.isEmpty()) {
-      logger.log("APks $apks did not contain R8 markers (not desugared?). Falling back to api=$deviceMinAPI")
-      minApis.add(deviceMinAPI)
+      logger.log("APks $apks did not contain R8 markers (not desugared?). Falling back to device api=$deviceAPILevel")
+      minApis.add(deviceAPILevel)
     }
 
     val duration = (System.nanoTime() - start) / 1_000_000
     logger.log("Found minAPI = $minApis in ${duration}ms")
-    return minApis.first()
+    return minApis.minOf { it }
   }
 
   private fun journal(msg: String) {

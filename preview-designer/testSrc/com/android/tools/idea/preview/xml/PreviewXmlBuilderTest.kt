@@ -22,19 +22,18 @@ class PreviewXmlBuilderTest {
   @Test
   fun testGeneratedXml() {
     val builder = PreviewXmlBuilder("com.foo.bar.CustomView")
-    builder
-      .toolsAttribute("baz", "hello")
-      .androidAttribute("intFoo", "1")
+    builder.toolsAttribute("baz", "hello").androidAttribute("intFoo", "1")
     assertEquals(
-      //language=XML
+      // language=XML
       """
         <com.foo.bar.CustomView
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
             tools:baz="hello"
             android:intFoo="1" />
-      """.trimIndent(),
-      builder.buildString().trimIndent())
+      """
+        .trimIndent(),
+      builder.buildString().trimIndent()
+    )
   }
-
 }

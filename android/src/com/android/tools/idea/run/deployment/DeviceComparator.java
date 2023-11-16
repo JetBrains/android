@@ -20,10 +20,10 @@ import org.jetbrains.annotations.NotNull;
 
 final class DeviceComparator implements Comparator<Device> {
   private static final Comparator<Device> COMPARATOR =
-    Comparator.comparing(Device::getConnectionTime, Comparator.nullsLast(Comparator.reverseOrder()))
-      .thenComparing(device -> device.getLaunchCompatibility().getState())
+    Comparator.comparing((@NotNull Device device) -> device.launchCompatibility().getState())
+      .thenComparing(Device::connectionTime, Comparator.nullsLast(Comparator.reverseOrder()))
       .thenComparing(DeviceComparator::getType)
-      .thenComparing(Device::getName);
+      .thenComparing(Device::name);
 
   @NotNull
   private static Type getType(@NotNull Device device) {

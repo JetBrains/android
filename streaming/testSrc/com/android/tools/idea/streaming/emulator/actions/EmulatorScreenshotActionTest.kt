@@ -17,29 +17,30 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findModelessDialog
+import com.android.tools.adtui.swing.optionsAsString
 import com.android.tools.adtui.swing.selectFirstMatch
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.EDT
 import org.intellij.images.ui.ImageComponent
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.image.BufferedImage
 import java.nio.file.Path
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.JComboBox
 
 /**
@@ -66,17 +67,14 @@ class EmulatorScreenshotActionTest {
   @get:Rule
   val portableUiFontRule = PortableUiFontRule()
 
-  @Before
-  fun setUp() {
-    emulatorView = emulatorViewRule.newEmulatorView()
-    emulator = emulatorViewRule.getFakeEmulator(emulatorView)
-  }
-
   @Test
   fun testAction() {
+    emulatorView = emulatorViewRule.newEmulatorView()
+    emulator = emulatorViewRule.getFakeEmulator(emulatorView)
+
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
-    waitForCondition(500, TimeUnit.SECONDS) { findScreenshotViewer() != null }
+    waitForCondition(500, SECONDS) { findScreenshotViewer() != null }
     val screenshotViewer = findScreenshotViewer()!!
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
@@ -92,6 +90,70 @@ class EmulatorScreenshotActionTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     image = ui.getComponent<ImageComponent>().document.value
     assertAppearance(image, "WithFrame")
+  }
+
+  @Test
+  fun testActionFoldableOpen() {
+    emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
+    emulator = emulatorViewRule.getFakeEmulator(emulatorView)
+
+    emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
+
+    waitForCondition(500, SECONDS) { findScreenshotViewer() != null }
+    val screenshotViewer = findScreenshotViewer()!!
+    val rootPane = screenshotViewer.rootPane
+    val ui = FakeUi(rootPane)
+
+    // Pixel Fold does not have a device frame, so this drop down box should not have a "Show Device Frame" option.
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    assertThat(clipComboBox.optionsAsString()).doesNotContain("Show Device Frame")
+
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val image = ui.getComponent<ImageComponent>().document.value
+    assertAppearance(image, "FoldableOpen")
+  }
+
+  @Test
+  fun testActionFoldableClosed() {
+    emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
+    emulator = emulatorViewRule.getFakeEmulator(emulatorView)
+    emulator.setFolded(true)
+
+    emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
+
+    waitForCondition(500, SECONDS) { findScreenshotViewer() != null }
+    val screenshotViewer = findScreenshotViewer()!!
+    val rootPane = screenshotViewer.rootPane
+    val ui = FakeUi(rootPane)
+
+    // Pixel Fold does not have a device frame, so this drop down box should not have a "Show Device Frame" option.
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    assertThat(clipComboBox.optionsAsString()).doesNotContain("Show Device Frame")
+
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val image = ui.getComponent<ImageComponent>().document.value
+    assertAppearance(image, "FoldableClosed")
+  }
+
+  @Test
+  fun testWearEmulatorWithoutSkinHasPlayCompatibleOption() {
+    emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createWatchAvd(path, skinFolder = null) }
+    emulator = emulatorViewRule.getFakeEmulator(emulatorView)
+
+    emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
+
+    waitForCondition(500, SECONDS) { findScreenshotViewer() != null }
+    val screenshotViewer = findScreenshotViewer()!!
+    val rootPane = screenshotViewer.rootPane
+    val ui = FakeUi(rootPane)
+
+    // This emulator has no skin definition, so the combo box should not have a "Show Device Frame" option.
+    // It should have a "Play compatible" option.
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    assertThat(clipComboBox.optionsAsString()).doesNotContain("Show Device Frame")
+    assertThat(clipComboBox.optionsAsString()).contains("Play Store Compatible")
   }
 
   private fun findScreenshotViewer(): ScreenshotViewer? {

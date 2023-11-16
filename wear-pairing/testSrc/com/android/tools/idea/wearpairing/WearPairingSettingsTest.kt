@@ -16,11 +16,14 @@
 package com.android.tools.idea.wearpairing
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
-
 class WearPairingSettingsTest {
+  @get:Rule val applicationRule = ApplicationRule()
+
   private val phoneDevice = PairingDevice(
     deviceID = "id1", displayName = "My Phone", apiLevel = 30, isWearDevice = false, isEmulator = true, hasPlayStore = true,
     state = ConnectionState.ONLINE
@@ -56,5 +59,27 @@ class WearPairingSettingsTest {
     assertThat(phoneWearPair.wear.state).isEqualTo(ConnectionState.DISCONNECTED)
     assertThat(phoneWearPair.getPeerDevice(phoneDevice.deviceID).deviceID).isEqualTo(wearDevice.deviceID)
     assertThat(phoneWearPair.getPeerDevice(wearDevice.deviceID).deviceID).isEqualTo(phoneDevice.deviceID)
+  }
+
+  @Test
+  fun addListenerShouldReceiveCurrentState() {
+    val pairedDevices = listOf(phoneDevice.toPairingDeviceState(), wearDevice.toPairingDeviceState())
+    val pairedConnectionState = PairingConnectionsState().apply {
+      phoneId = phoneDevice.deviceID
+      wearDeviceIds.add(wearDevice.deviceID)
+    }
+
+    WearPairingManager.getInstance().loadSettings(pairedDevices, listOf(pairedConnectionState))
+
+    var receivedPairingStatus: WearPairingManager.PhoneWearPair? = null
+    WearPairingManager.getInstance().addDevicePairingStatusChangedListener(object : WearPairingManager.PairingStatusChangedListener {
+      override fun pairingStatusChanged(phoneWearPair: WearPairingManager.PhoneWearPair) {
+        receivedPairingStatus = phoneWearPair
+      }
+      override fun pairingDeviceRemoved(phoneWearPair: WearPairingManager.PhoneWearPair) {
+      }
+    })
+
+    assertThat(receivedPairingStatus?.pairingStatus).isEqualTo(WearPairingManager.PairingState.OFFLINE)
   }
 }

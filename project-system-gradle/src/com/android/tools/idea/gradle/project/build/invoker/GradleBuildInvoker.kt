@@ -24,6 +24,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.io.File
 import java.util.concurrent.Executor
 
@@ -93,6 +94,29 @@ interface GradleBuildInvoker {
       rootProjectPath: File,
       gradleTasks: List<String>,
       taskId: ExternalSystemTaskId,
+      executionSettings: GradleExecutionSettings,
+      isWaitForCompletion: Boolean = false,
+
+      /**
+       * If true, the build output window will not automatically be shown on failure.
+       */
+      doNotShowBuildOutputOnFailure: Boolean = false,
+      listener: ExternalSystemTaskNotificationListener? = null
+    ) : this(
+      project = project,
+      taskId = taskId,
+      data = RequestData(mode, rootProjectPath, gradleTasks, executionSettings),
+      isWaitForCompletion = isWaitForCompletion,
+      doNotShowBuildOutputOnFailure = doNotShowBuildOutputOnFailure,
+      listener = listener
+    )
+
+    constructor(
+      mode: BuildMode?,
+      project: Project,
+      rootProjectPath: File,
+      gradleTasks: List<String>,
+      taskId: ExternalSystemTaskId,
       jvmArguments: List<String> = emptyList(),
       commandLineArguments: List<String> = emptyList(),
       env: Map<String, String> = emptyMap(),
@@ -141,7 +165,26 @@ interface GradleBuildInvoker {
       val commandLineArguments: List<String> = emptyList(),
       val env: Map<String, String> = emptyMap(),
       val isPassParentEnvs: Boolean = true,
-    )
+      val executionSettings: GradleExecutionSettings? = null
+    ) {
+      constructor(
+        mode: BuildMode?,
+        rootProjectPath: File,
+        gradleTasks: List<String>,
+        executionSettings: GradleExecutionSettings
+      ) :
+        this(
+          mode,
+          rootProjectPath,
+          gradleTasks,
+          executionSettings.jvmArguments,
+          executionSettings.arguments,
+          executionSettings.env,
+          executionSettings.isPassParentEnvs,
+          executionSettings
+        )
+
+    }
 
     class Builder(
       project: Project,
@@ -159,7 +202,7 @@ interface GradleBuildInvoker {
         gradleTasks: List<String>
       ) : this(project, RequestData(null, rootProjectPath, gradleTasks))
 
-      private fun updateData(update: (RequestData) -> RequestData): Builder {
+      fun updateData(update: (RequestData) -> RequestData): Builder {
         request = request.copy(data = update(request.data))
         return this
       }

@@ -23,7 +23,7 @@ class ProcessModel(val model: Model, fragment: ProcessModelFragment) {
     val name: String = fragment.name ?: "<$id>"
     val threads: List<ThreadModel>
     val counters: List<Counter>
-    private val hasContent: Boolean
+    val hasContent: Boolean
 
     init {
         if (id == InvalidId) throw IllegalArgumentException("Process has invalid id")

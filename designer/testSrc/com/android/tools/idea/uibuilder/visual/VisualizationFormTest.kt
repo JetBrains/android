@@ -20,29 +20,27 @@ import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
 class VisualizationFormTest {
 
-  @Rule
-  @JvmField
-  val rule = AndroidProjectRule.inMemory().onEdt()
+  @Rule @JvmField val rule = AndroidProjectRule.inMemory().onEdt()
 
   @RunsInEdt
   @Test
   fun testInitFormWithLayoutEditor() {
-    val form = VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
+    val form =
+      VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
 
     val file = rule.fixture.addFileToProject("res/layout/test.xml", "")
     rule.fixture.openFileInEditor(file.virtualFile)
     try {
       val editor = FileEditorManager.getInstance(rule.project).selectedEditor!!
-      assertTrue( form.setNextEditor(editor))
-    }
-    finally {
+      assertTrue(form.setNextEditor(editor))
+    } finally {
       FileEditorManager.getInstance(rule.project).closeFile(file.virtualFile)
     }
   }
@@ -50,15 +48,16 @@ class VisualizationFormTest {
   @RunsInEdt
   @Test
   fun testNotInitWithNonLayoutResourceFile() {
-    // Visualization Form doesn't work with non-layout resource files. E.g. drawables, preferences, etc.
-    val form = VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
+    // Visualization Form doesn't work with non-layout resource files. E.g. drawables, preferences,
+    // etc.
+    val form =
+      VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
     val file = rule.fixture.addFileToProject("res/drawable/test.xml", "")
     rule.fixture.openFileInEditor(file.virtualFile)
     try {
       val editor = FileEditorManager.getInstance(rule.project).selectedEditor!!
       assertFalse(form.setNextEditor(editor))
-    }
-    finally {
+    } finally {
       FileEditorManager.getInstance(rule.project).closeFile(file.virtualFile)
     }
   }
@@ -66,7 +65,8 @@ class VisualizationFormTest {
   @RunsInEdt
   @Test
   fun testNotInitWithTextEditor() {
-    val form = VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
+    val form =
+      VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
     assertEmpty(form.surface.models)
 
     val file = rule.fixture.addFileToProject("test.txt", "")
@@ -74,8 +74,7 @@ class VisualizationFormTest {
     try {
       val textEditor = FileEditorManager.getInstance(rule.project).selectedEditor!!
       assertFalse(form.setNextEditor(textEditor))
-    }
-    finally {
+    } finally {
       FileEditorManager.getInstance(rule.project).closeFile(file.virtualFile)
     }
   }

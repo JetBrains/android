@@ -16,7 +16,6 @@
 package com.android.tools.idea.databinding.viewbinding
 
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
-import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -26,7 +25,6 @@ import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -34,7 +32,10 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class ViewBindingShortNameCacheTest {
   private val projectRule =
-    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }))
+    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(
+      namespace = { "test.db" },
+      viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }
+    ))
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
   @get:Rule
@@ -45,17 +46,6 @@ class ViewBindingShortNameCacheTest {
 
   private val fixture
     get() = projectRule.fixture
-
-  @Before
-  fun setUp() {
-    assertThat(facet.isViewBindingEnabled()).isTrue()
-    fixture.addFileToProject("src/main/AndroidManifest.xml", """
-      <?xml version="1.0" encoding="utf-8"?>
-      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
-        <application />
-      </manifest>
-    """.trimIndent())
-  }
 
   @Test
   fun shortNameCacheContainsViewBindingClassesAndFields() {

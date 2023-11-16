@@ -35,10 +35,16 @@ interface PTable {
   /** The table model */
   val tableModel: PTableModel
 
-  /** A context where the consumer can store a reference to a model that otherwise would be hard to identify */
+  /**
+   * A context where the consumer can store a reference to a model that otherwise would be hard to
+   * identify
+   */
   val context: Any?
 
-  /** Returns the number of items in the table. Note this will change after a group is expanded/collapsed */
+  /**
+   * Returns the number of items in the table. Note this will change after a group is
+   * expanded/collapsed
+   */
   val itemCount: Int
 
   /** The font used in the table */
@@ -57,9 +63,9 @@ interface PTable {
    * The grid color used in the table.
    *
    * Note: The 2 columns are NOT divided by a grid line, since the implementation would always show
-   * a vertical line after each column. We don't want a line after the value column.
-   * If a consumer of this interface wants a vertical grid line between the 2 columns, the consumer
-   * must draw this line. Here is the color used for the horizontal grid lines.
+   * a vertical line after each column. We don't want a line after the value column. If a consumer
+   * of this interface wants a vertical grid line between the 2 columns, the consumer must draw this
+   * line. Here is the color used for the horizontal grid lines.
    */
   val gridLineColor: Color
 
@@ -72,10 +78,19 @@ interface PTable {
   /** Returns the parent depth of a specified table item */
   fun depth(item: PTableItem): Int
 
-  /** Returns true if the item is currently expanded. */
+  /** Return true if the group is current open/expanded for showing child items. */
   fun isExpanded(item: PTableGroupItem): Boolean
 
-  /** Toggles the expansion state of the specified [group] */
+  /** Returns true if the expanded item handler popup is currently showing */
+  fun isExpandedRendererPopupShowing(): Boolean
+
+  /**
+   * Return true if the [column] of [item] is currently expanded to show the full value that doesn't
+   * normally fit in the cell.
+   */
+  fun isExpandedRendererItem(item: PTableItem, column: PTableColumn): Boolean
+
+  /** Toggles the expansion state of the specified [PTableGroupItem] */
   fun toggle(item: PTableGroupItem)
 
   /** Set the row [height] corresponding to the [item] and optionally [scrollIntoView] */
@@ -91,14 +106,24 @@ interface PTable {
   fun updateGroupItems(group: PTableGroupItem, modification: PTableGroupModification)
 
   companion object {
-    fun create(tableModel: PTableModel,
-               context: Any? = null,
-               rendererProvider: PTableCellRendererProvider = DefaultPTableCellRendererProvider(),
-               editorProvider: PTableCellEditorProvider = DefaultPTableCellEditorProvider(),
-               customToolTipHook: (MouseEvent) -> String? = { null },
-               updatingUI: () -> Unit = { },
-               nameColumnFraction: ColumnFraction = ColumnFraction()): PTable {
-      return PTableImpl(tableModel, context, rendererProvider, editorProvider, customToolTipHook, updatingUI, nameColumnFraction)
+    fun create(
+      tableModel: PTableModel,
+      context: Any? = null,
+      rendererProvider: PTableCellRendererProvider = DefaultPTableCellRendererProvider(),
+      editorProvider: PTableCellEditorProvider = DefaultPTableCellEditorProvider(),
+      customToolTipHook: (MouseEvent) -> String? = { null },
+      updatingUI: () -> Unit = {},
+      nameColumnFraction: ColumnFraction = ColumnFraction()
+    ): PTable {
+      return PTableImpl(
+        tableModel,
+        context,
+        rendererProvider,
+        editorProvider,
+        customToolTipHook,
+        updatingUI,
+        nameColumnFraction
+      )
     }
   }
 }

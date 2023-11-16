@@ -27,8 +27,8 @@ class LogUtils {
     fun log(clazz: Class<*>, message: String) = log(true, clazz, message)
 
     @JvmStatic
-    fun logIfVerbose(ideServices: IdeProfilerServices, clazz: Class<*>, message: String) = log(
-      ideServices.featureConfig.isVerboseLoggingEnabled, clazz, message)
+    fun logIfInTestingMode(ideServices: IdeProfilerServices, clazz: Class<*>, message: String) = log(
+      ideServices.featureConfig.isTestingModeEnabled, clazz, message)
 
     private fun log(enabled: Boolean, clazz: Class<*>, message: String) {
       if (!enabled) return

@@ -31,6 +31,7 @@ import static org.fest.reflect.core.Reflection.type;
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.bleak.Bleak;
+import com.android.tools.idea.bleak.StudioBleakOptions;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -144,7 +145,6 @@ public class GuiTestRule implements TestRule {
       .around(myRobotTestRule)
       .around(myOuterTimeout) // Rules should be inside this timeout when possible
       .around(new IdeControl(myRobotTestRule::getRobot))
-      .around(new BlockReloading())
       .around(new BazelUndeclaredOutputs())
       .around(myLeakCheck)
       .around(new IdeHandling())
@@ -382,7 +382,7 @@ public class GuiTestRule implements TestRule {
   public IdeFrameFixture openProjectAndWaitForProjectSyncToFinish(@NotNull File projectDir, @NotNull Wait waitForSync) {
     ApplicationManager.getApplication().invokeAndWait(() -> ProjectUtil.openOrImport(projectDir.getAbsolutePath(), null, true));
     Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length != 0);
-    return actAndWaitForGradleProjectSyncToFinish(waitForSync, () -> ideFrame());
+    return actAndWaitForGradleProjectSyncToFinish(waitForSync, this::ideFrame, true);
   }
 
   /**
@@ -628,6 +628,6 @@ public class GuiTestRule implements TestRule {
   }
 
   public void runWithBleak(Runnable scenario) {
-    Bleak.runWithBleak(UiTestBleakOptions.INSTANCE.getDefaults(), scenario);
+    Bleak.runWithBleak(StudioBleakOptions.getDefaults(), scenario);
   }
 }

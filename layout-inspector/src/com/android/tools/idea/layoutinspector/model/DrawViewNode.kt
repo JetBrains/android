@@ -36,10 +36,15 @@ import kotlin.math.max
 import kotlin.math.min
 
 private fun getNormalBorderThickness(scale: Double) = 1f.scale(scale)
+
 fun getEmphasizedBorderThickness(scale: Double) = 2f.scale(scale)
+
 fun getFoldThickness(scale: Double) = 2f.scale(scale)
+
 fun getEmphasizedBorderOutlineThickness(scale: Double) = 4f.scale(scale)
+
 fun getLabelFontSize(scale: Double) = 12f.scale(scale)
+
 private fun getDash(scale: Double) = floatArrayOf(10f.scale(scale), 10f.scale(scale))
 
 private val EMPHASIZED_LINE_COLOR = Color(106, 161, 211)
@@ -51,22 +56,37 @@ private val EMPHASIZED_LINE_OUTLINE_COLOR = Color.white
 fun getDashedStroke(thickness: (Double) -> Float, scale: Double) =
   BasicStroke(thickness(scale), CAP_BUTT, JOIN_MITER, 10.0f, getDash(scale), 0f)
 
-private fun getEmphasizedLineStroke(scale: Double) = BasicStroke(getEmphasizedBorderThickness(scale))
-private fun getEmphasizedImageLineStroke(scale: Double) = getDashedStroke(::getEmphasizedBorderThickness, scale)
-private fun getEmphasizedLineOutlineStroke(scale: Double) = BasicStroke(getEmphasizedBorderOutlineThickness(scale))
-private fun getEmphasizedImageLineOutlineStroke(scale: Double) = getDashedStroke(::getEmphasizedBorderOutlineThickness, scale)
-private fun getSelectedLineStroke(scale: Double) = getEmphasizedLineStroke(scale)
-private fun getSelectedImageLineStroke(scale: Double) = getDashedStroke(::getEmphasizedBorderThickness, scale)
-fun getFoldStroke(scale: Double) = getDashedStroke(::getFoldThickness, scale)
-private fun getNormalLineStroke(scale: Double) = BasicStroke(getNormalBorderThickness(scale))
-private fun getNormalImageLineStroke(scale: Double) = getDashedStroke(::getNormalBorderThickness, scale)
+private fun getEmphasizedLineStroke(scale: Double) =
+  BasicStroke(getEmphasizedBorderThickness(scale))
 
-fun getDrawNodeLabelHeight(scale: Double) = getLabelFontSize(scale) * 1.6f + 2 * getNormalBorderThickness(scale)
+private fun getEmphasizedImageLineStroke(scale: Double) =
+  getDashedStroke(::getEmphasizedBorderThickness, scale)
+
+private fun getEmphasizedLineOutlineStroke(scale: Double) =
+  BasicStroke(getEmphasizedBorderOutlineThickness(scale))
+
+private fun getEmphasizedImageLineOutlineStroke(scale: Double) =
+  getDashedStroke(::getEmphasizedBorderOutlineThickness, scale)
+
+private fun getSelectedLineStroke(scale: Double) = getEmphasizedLineStroke(scale)
+
+private fun getSelectedImageLineStroke(scale: Double) =
+  getDashedStroke(::getEmphasizedBorderThickness, scale)
+
+fun getFoldStroke(scale: Double) = getDashedStroke(::getFoldThickness, scale)
+
+private fun getNormalLineStroke(scale: Double) = BasicStroke(getNormalBorderThickness(scale))
+
+private fun getNormalImageLineStroke(scale: Double) =
+  getDashedStroke(::getNormalBorderThickness, scale)
+
+fun getDrawNodeLabelHeight(scale: Double) =
+  getLabelFontSize(scale) * 1.6f + 2 * getNormalBorderThickness(scale)
 
 /**
- * A node in the hierarchy used to paint the device view. This is separate from the basic hierarchy ([ViewNode.children]) since views
- * can do their own painting interleaved with painting their children, and we need to keep track of the order in which the operations
- * happen.
+ * A node in the hierarchy used to paint the device view. This is separate from the basic hierarchy
+ * ([ViewNode.children]) since views can do their own painting interleaved with painting their
+ * children, and we need to keep track of the order in which the operations happen.
  */
 sealed class DrawViewNode(owner: ViewNode) {
   val unfilteredOwner = owner
@@ -77,21 +97,26 @@ sealed class DrawViewNode(owner: ViewNode) {
   val bounds: Shape
     get() = unfilteredOwner.renderBounds
 
-  // Children at the start of the child list that have canCollapse = true will be drawn as part of the parent rather than as separate nodes.
+  // Children at the start of the child list that have canCollapse = true will be drawn as part of
+  // the parent rather than as separate nodes.
   abstract fun canCollapse(treeSettings: TreeSettings): Boolean
   open val drawWhenCollapsed: Boolean
     get() = true
 
   abstract fun paint(g2: Graphics2D, model: InspectorModel)
-  abstract fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, model: InspectorModel,
-                           viewSettings: RenderSettings, treeSettings: TreeSettings)
+  abstract fun paintBorder(
+    g2: Graphics2D,
+    isSelected: Boolean,
+    isHovered: Boolean,
+    model: InspectorModel,
+    viewSettings: RenderSettings,
+    treeSettings: TreeSettings
+  )
 
   open fun children(access: ViewNode.ReadAccess): Sequence<DrawViewNode> = sequenceOf()
 }
 
-/**
- * A draw view corresponding directly to a ViewNode. Is responsible for painting the border.
- */
+/** A draw view corresponding directly to a ViewNode. Is responsible for painting the border. */
 class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
   override fun canCollapse(treeSettings: TreeSettings): Boolean =
     !unfilteredOwner.isInComponentTree(treeSettings)
@@ -128,21 +153,24 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     val composeCount = composeView?.recompositions?.count ?: 0
     val highlightCount = composeView?.recompositions?.highlightCount ?: 0f
     var showCount = isSelected && treeSettings.showRecompositions && composeCount > 0
-    val showHighlight = treeSettings.showRecompositions && highlightCount > 0f && model.maxHighlight != 0f
+    val showHighlight =
+      treeSettings.showRecompositions && highlightCount > 0f && model.maxHighlight != 0f
 
-    // Draw the label background if necessary (the white border of the label and the label background).
+    // Draw the label background if necessary (the white border of the label and the label
+    // background).
     if (isSelected && viewSettings.drawLabel) {
       g2.font = g2.font.deriveFont(getLabelFontSize(viewSettings.scaleFraction))
       val fontMetrics = g2.fontMetrics
       val textWidth = fontMetrics.stringWidth(owner.unqualifiedName).toFloat()
-      val countWidth = if (showCount) fontMetrics.stringWidth(composeCount.toString()).toFloat() else 0f
+      val countWidth =
+        if (showCount) fontMetrics.stringWidth(composeCount.toString()).toFloat() else 0f
 
-      val border = if (viewSettings.drawBorders || !viewSettings.drawUntransformedBounds) {
-        bounds
-      }
-      else {
-        owner.layoutBounds
-      }
+      val border =
+        if (viewSettings.drawBorders || !viewSettings.drawUntransformedBounds) {
+          bounds
+        } else {
+          owner.layoutBounds
+        }
 
       val textHeight = (fontMetrics.maxAscent).toFloat()
       borderWidth = textHeight * 0.3f
@@ -152,27 +180,48 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
       countX = position.second - countWidth - 2f * borderWidth
       labelY = position.third
 
-      // Only draw the recomposition count if there is room and at least 2 * borderWidth between the label and the count:
-      showCount = showCount && labelX + textWidth + 2f * borderWidth  < countX - 2f * borderWidth
+      // Only draw the recomposition count if there is room and at least 2 * borderWidth between the
+      // label and the count:
+      showCount = showCount && labelX + textWidth + 2f * borderWidth < countX - 2f * borderWidth
 
-      g2.draw(Rectangle2D.Float(labelX, labelY - textHeight - 2f * borderWidth, textWidth + 2f * borderWidth,
-                                textHeight + 2f * borderWidth))
+      g2.draw(
+        Rectangle2D.Float(
+          labelX,
+          labelY - textHeight - 2f * borderWidth,
+          textWidth + 2f * borderWidth,
+          textHeight + 2f * borderWidth
+        )
+      )
       if (showCount) {
-        g2.draw(Rectangle2D.Float(countX, labelY - textHeight - 2f * borderWidth, countWidth + 2f * borderWidth,
-                                  textHeight + 2f * borderWidth))
+        g2.draw(
+          Rectangle2D.Float(
+            countX,
+            labelY - textHeight - 2f * borderWidth,
+            countWidth + 2f * borderWidth,
+            textHeight + 2f * borderWidth
+          )
+        )
       }
 
       g2.color = SELECTED_LINE_COLOR
       val emphasizedBorderThickness = getEmphasizedBorderThickness(viewSettings.scaleFraction)
-      g2.fill(Rectangle2D.Float(labelX - emphasizedBorderThickness / 2f,
-                                labelY - textHeight - 2f * borderWidth - emphasizedBorderThickness / 2f,
-                                textWidth + 2f * borderWidth + emphasizedBorderThickness,
-                                textHeight + 2f * borderWidth + emphasizedBorderThickness))
+      g2.fill(
+        Rectangle2D.Float(
+          labelX - emphasizedBorderThickness / 2f,
+          labelY - textHeight - 2f * borderWidth - emphasizedBorderThickness / 2f,
+          textWidth + 2f * borderWidth + emphasizedBorderThickness,
+          textHeight + 2f * borderWidth + emphasizedBorderThickness
+        )
+      )
       if (showCount) {
-        g2.fill(Rectangle2D.Float(countX - emphasizedBorderThickness / 2f,
-                                  labelY - textHeight - 2f * borderWidth - emphasizedBorderThickness / 2f,
-                                  countWidth + 2f * borderWidth + emphasizedBorderThickness,
-                                  textHeight + 2f * borderWidth + emphasizedBorderThickness))
+        g2.fill(
+          Rectangle2D.Float(
+            countX - emphasizedBorderThickness / 2f,
+            labelY - textHeight - 2f * borderWidth - emphasizedBorderThickness / 2f,
+            countWidth + 2f * borderWidth + emphasizedBorderThickness,
+            textHeight + 2f * borderWidth + emphasizedBorderThickness
+          )
+        )
       }
     }
 
@@ -195,7 +244,12 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
         g2.stroke = getNormalLineStroke(viewSettings.scaleFraction)
       }
     }
-    if (viewSettings.drawBorders || isHovered || showHighlight || (isSelected && !viewSettings.drawUntransformedBounds)) {
+    if (
+      viewSettings.drawBorders ||
+        isHovered ||
+        showHighlight ||
+        (isSelected && !viewSettings.drawUntransformedBounds)
+    ) {
       g2.draw(bounds)
     }
     if (viewSettings.drawUntransformedBounds) {
@@ -205,32 +259,52 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     // Draw the text of the label if necessary.
     if (isSelected && viewSettings.drawLabel) {
       g2.color = Color.WHITE
-      g2.drawString(owner.unqualifiedName, labelX + borderWidth,
-                    labelY - borderWidth - getEmphasizedBorderThickness(viewSettings.scaleFraction) / 2f)
+      g2.drawString(
+        owner.unqualifiedName,
+        labelX + borderWidth,
+        labelY - borderWidth - getEmphasizedBorderThickness(viewSettings.scaleFraction) / 2f
+      )
 
       if (showCount) {
-        g2.drawString(composeCount.toString(), countX + borderWidth,
-                      labelY - borderWidth - getEmphasizedBorderThickness(viewSettings.scaleFraction) / 2f)
+        g2.drawString(
+          composeCount.toString(),
+          countX + borderWidth,
+          labelY - borderWidth - getEmphasizedBorderThickness(viewSettings.scaleFraction) / 2f
+        )
       }
     }
 
     // Draw gradient for recomposition highlights
     if (showHighlight) {
       val rect = bounds.bounds2D
-      g2.paint = GradientPaint(
-        rect.x.toFloat(), rect.y.toFloat(), heatmapColor(model, highlightCount, viewSettings),
-        (rect.x + rect.width).toFloat(), (rect.y + rect.height).toFloat(), heatmapColor(model, 0f, viewSettings))
+      g2.paint =
+        GradientPaint(
+          rect.x.toFloat(),
+          rect.y.toFloat(),
+          heatmapColor(model, highlightCount, viewSettings),
+          (rect.x + rect.width).toFloat(),
+          (rect.y + rect.height).toFloat(),
+          heatmapColor(model, 0f, viewSettings)
+        )
       g2.fill(bounds)
     }
   }
 
-  private fun highlightColor(model: InspectorModel, highlightCount: Float, viewSettings: RenderSettings): Color {
+  private fun highlightColor(
+    model: InspectorModel,
+    highlightCount: Float,
+    viewSettings: RenderSettings
+  ): Color {
     val baseColor = Color(viewSettings.highlightColor)
     val alpha = ((highlightCount * 255f) / model.maxHighlight).toInt().coerceIn(32, 255)
     return Color(baseColor.red, baseColor.green, baseColor.blue, alpha)
   }
 
-  private fun heatmapColor(model: InspectorModel, highlightCount: Float, viewSettings: RenderSettings): Color {
+  private fun heatmapColor(
+    model: InspectorModel,
+    highlightCount: Float,
+    viewSettings: RenderSettings
+  ): Color {
     val baseColor = Color(viewSettings.highlightColor)
     val alpha = ((highlightCount * 192f) / model.maxHighlight).toInt().coerceIn(8, 192)
     return Color(baseColor.red, baseColor.green, baseColor.blue, alpha)
@@ -238,11 +312,14 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
 
   /**
    * Compute the position of the label and recomposition count:
-   * - find the edge with the least slope where one of the ends is at the minimum y. This is the "top".
-   * - find the left side of that segment. The x coordinate of that is the x coordinate of the label.
-   * - find the right side of that segment. The x coordinate of that is the right x coordinate of the recomposition count.
-   * - find where the bottom edge of the label should meet the edge of the border: This is the minimum of halfway across the edge
-   *   and halfway across the label.
+   * - find the edge with the least slope where one of the ends is at the minimum y. This is the
+   *   "top".
+   * - find the left side of that segment. The x coordinate of that is the x coordinate of the
+   *   label.
+   * - find the right side of that segment. The x coordinate of that is the right x coordinate of
+   *   the recomposition count.
+   * - find where the bottom edge of the label should meet the edge of the border: This is the
+   *   minimum of halfway across the edge and halfway across the label.
    * - find the y coordinate of that using the slope of the line.
    *
    * @return (xLeft, xRight, yTop)
@@ -290,18 +367,31 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
 }
 
 /**
- * A draw view that paints an image. The `owner` should be the view that does the painting, and is also the "draw parent" of this node.
+ * A draw view that paints an image. The `owner` should be the view that does the painting, and is
+ * also the "draw parent" of this node.
  */
-class DrawViewImage(@get:VisibleForTesting val image: Image, owner: ViewNode, private val deviceClip: Shape? = null) : DrawViewNode(owner) {
+class DrawViewImage(
+  @get:VisibleForTesting val image: Image,
+  owner: ViewNode,
+  private val deviceClip: Shape? = null
+) : DrawViewNode(owner) {
   override fun canCollapse(treeSettings: TreeSettings) = true
 
   override fun paint(g2: Graphics2D, model: InspectorModel) {
     deviceClip?.let { g2.clip(deviceClip) }
     val bounds = bounds.bounds
     UIUtil.drawImage(
-      g2, image,
-      Rectangle(max(bounds.x, 0), max(bounds.y, 0), bounds.width + min(bounds.x, 0), bounds.height + min(bounds.y, 0)),
-      Rectangle(0, 0, image.getWidth(null), image.getHeight(null)), null)
+      g2,
+      image,
+      Rectangle(
+        max(bounds.x, 0),
+        max(bounds.y, 0),
+        bounds.width + min(bounds.x, 0),
+        bounds.height + min(bounds.y, 0)
+      ),
+      Rectangle(0, 0, image.getWidth(null), image.getHeight(null)),
+      null
+    )
   }
 
   override fun paintBorder(
@@ -336,8 +426,8 @@ class DrawViewImage(@get:VisibleForTesting val image: Image, owner: ViewNode, pr
 }
 
 /**
- * A draw view that draw a semi-transparent grey rectangle. Shown when a window has DIM_BEHIND set and is drawn over another window (e.g.
- * a dialog box).
+ * A draw view that draw a semi-transparent grey rectangle. Shown when a window has DIM_BEHIND set
+ * and is drawn over another window (e.g. a dialog box).
  */
 class Dimmer(val root: ViewNode) : DrawViewNode(root) {
   override fun canCollapse(treeSettings: TreeSettings) = false

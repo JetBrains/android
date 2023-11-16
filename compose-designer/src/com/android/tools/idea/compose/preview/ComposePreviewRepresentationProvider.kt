@@ -29,18 +29,23 @@ import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
+import com.android.tools.idea.compose.preview.actions.StopUiCheckPreviewAction
+import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeDefaultPreview
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStaticPreview
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
+import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
@@ -52,33 +57,75 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.annotations.TestOnly
 
 /** [ToolbarActionGroups] that includes the actions that can be applied to Compose Previews. */
 private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
   ToolbarActionGroups(surface) {
 
-  override fun getNorthGroup(): ActionGroup =
+  override fun getNorthGroup(): ActionGroup = ComposePreviewNorthGroup()
+
+  private inner class ComposePreviewNorthGroup :
     DefaultActionGroup(
       listOfNotNull(
         StopInteractivePreviewAction(),
         StopAnimationInspectorAction(),
+        StopUiCheckPreviewAction(),
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled { ComposeFilterShowHistoryAction() },
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled {
           ComposeFilterTextAction(ComposeViewSingleWordFilter(surface))
         },
-        GroupSwitchAction().visibleOnlyInComposeStaticPreview(),
+        // TODO(b/292057010) Enable group filtering for Gallery mode.
+        GroupSwitchAction().visibleOnlyInComposeDefaultPreview(),
         ComposeViewControlAction(
             layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
-            layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS
-          ) {
-            !isAnyPreviewRefreshing(it.dataContext)
-          }
+            layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS,
+            isSurfaceLayoutActionEnabled = {
+              !isAnyPreviewRefreshing(it.dataContext) &&
+                // If Essentials Mode is enabled, it should not be possible to switch layout.
+                !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+            },
+            onSurfaceLayoutSelected = { selectedOption, dataContext ->
+              val manager = dataContext.getData(COMPOSE_PREVIEW_MANAGER)
+              manager?.let {
+                if (selectedOption == PREVIEW_LAYOUT_GALLERY_OPTION) {
+                  // If turning on Gallery layout option - it should be set in preview.
+                  // TODO (b/292057010) If group filtering is enabled - first element in this group
+                  // should be selected.
+                  val element = it.allPreviewElementsInFileFlow.value.firstOrNull()
+                  element?.let { selected -> it.setMode(PreviewMode.Gallery(selected)) }
+                } else if (it.mode is PreviewMode.Gallery) {
+                  // When switching from Gallery mode to Default layout mode - need to set back
+                  // Default preview mode.
+                  it.setMode(PreviewMode.Default)
+                }
+              }
+            }
+          )
           .visibleOnlyInComposeStaticPreview(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
       )
-    )
+    ) {
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      isEssentialsModeSelected = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+    }
 
-  override fun getNorthEastGroup(): ActionGroup = ComposeNotificationGroup(surface)
+    private var isEssentialsModeSelected: Boolean = false
+      set(value) {
+        if (value == field) return
+        field = value
+        if (!value) return
+        // Gallery mode should be selected when Essentials mode is enabled.
+        // In that case need to select this option in toolbar.
+        (surface.sceneViewLayoutManager as? LayoutManagerSwitcher)?.setLayoutManager(
+          PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager,
+          PREVIEW_LAYOUT_GALLERY_OPTION.sceneViewAlignment
+        )
+      }
+  }
+
+  override fun getNorthEastGroup(): ActionGroup = ComposeNotificationGroup(surface, this)
 }
 
 /** A [PreviewRepresentationProvider] coupled with [ComposePreviewRepresentation]. */
@@ -136,10 +183,15 @@ internal val COMPOSE_PREVIEW_MANAGER = DataKey.create<ComposePreviewManager>("$P
 internal val COMPOSE_PREVIEW_ELEMENT_INSTANCE =
   DataKey.create<ComposePreviewElementInstance>("$PREFIX.PreviewElement")
 
+@TestOnly fun getComposePreviewManagerKeyForTests() = COMPOSE_PREVIEW_MANAGER
+
 /**
  * Returns a list of all [ComposePreviewManager]s related to the current context (which is implied
  * to be bound to a particular file). The search is done among the open preview parts and
  * [PreviewRepresentation]s (if any) of open file editors.
+ *
+ * This call might access the [CommonDataKeys.VIRTUAL_FILE] so it should not be called in the EDT
+ * thread. For actions using it, they should use [ActionUpdateThread.BGT].
  */
 internal fun findComposePreviewManagersForContext(
   context: DataContext
@@ -153,7 +205,7 @@ internal fun findComposePreviewManagersForContext(
   val project = context.getData(CommonDataKeys.PROJECT) ?: return emptyList()
   val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return emptyList()
 
-  return FileEditorManager.getInstance(project)?.getEditors(file)?.mapNotNull {
+  return FileEditorManager.getInstance(project)?.getAllEditors(file)?.mapNotNull {
     it.getComposePreviewManager()
   }
     ?: emptyList()

@@ -35,7 +35,8 @@ data class IdeJavaArtifactCoreImpl(
   override val compileClasspathCore: IdeDependenciesCoreImpl,
   override val runtimeClasspathCore: IdeDependenciesCoreImpl,
   override val unresolvedDependencies: List<IdeUnresolvedDependencyImpl>,
-  override val mockablePlatformJar: File?
+  override val mockablePlatformJar: File?,
+  override val generatedClassPaths: Map<String, File>
 ) : IdeJavaArtifactCore
 
 data class IdeJavaArtifactImpl(

@@ -53,7 +53,7 @@ JObject ServiceManager::GetServiceAsInterface(Jni jni, const char* name, const c
   if (service.IsNull() && !allow_null) {
     auto last_slash = strrchr(type, '/');
     auto type_name = last_slash == nullptr ? type : last_slash + 1;
-    Log::Fatal("Unable to get the \"%s\" service object", type_name);
+    Log::Fatal(SERVICE_NOT_FOUND, "Unable to get the \"%s\" service object", type_name);
   }
   return service;
 }
@@ -62,7 +62,7 @@ JObject ServiceManager::WaitForService(Jni jni, const char* name, bool allow_nul
   Log::D("WaitForService(\"%s\")", name);
   JObject binder = service_manager_class_.CallStaticObjectMethod(jni, wait_for_service_method_, JString(jni, name).ref());
   if (binder.IsNull() && !allow_null) {
-    Log::Fatal("Unable to find the \"%s\" service", name);
+    Log::Fatal(SERVICE_NOT_FOUND, "Unable to find the \"%s\" service", name);
   }
   return binder;
 }

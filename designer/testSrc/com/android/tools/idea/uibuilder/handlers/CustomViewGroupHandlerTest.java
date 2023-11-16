@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.testutils.AsyncTestUtils.waitForCondition;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Collections.emptyList;
 
@@ -20,6 +21,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.intellij.psi.PsiClass;
+import java.util.concurrent.TimeUnit;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
@@ -51,16 +53,23 @@ public class CustomViewGroupHandlerTest extends AndroidTestCase {
     "    }\n" +
     "}";
 
-  private void setUpMyClasses(@NotNull String tagName) {
+  private void setUpMyClasses(@NotNull String tagName) throws Exception {
     myFixture.addClass(innerClass);
     PsiClass psiClass = myFixture.findClass(tagName);
     myTagName = tagName;
     myClassName = PackageClassConverter.getQualifiedName(psiClass);
     ViewHandlerManager manager = ViewHandlerManager.get(getProject());
-    myDefaultHandler = (ViewGroupHandler)manager.getHandlerOrDefault(myTagName);
+    boolean[] wasUpdated = new boolean[1];
+    Runnable updated = () -> { wasUpdated[0] = true; };
+    ViewHandler handler = manager.getHandlerOrDefault(myTagName, updated);
+    if (handler == ViewHandlerManager.TEMP) {
+      waitForCondition(10, TimeUnit.SECONDS, () -> wasUpdated[0]);
+      handler = manager.getHandlerOrDefault(myTagName, updated);
+    }
+    myDefaultHandler = (ViewGroupHandler)handler;
   }
 
-  public void testGetXml() {
+  public void testGetXml() throws Exception {
     setUpMyClasses(MY_ABSOLUTE_LAYOUT);
     ViewHandler handler = new CustomViewGroupHandler(myDefaultHandler, null, myTagName, myClassName,
                                                      null, null, "", null, emptyList(), emptyList());
@@ -74,14 +83,14 @@ public class CustomViewGroupHandlerTest extends AndroidTestCase {
     assertThat(handler.getXml(myTagName, XmlType.COMPONENT_CREATION)).isEqualTo(expected);
   }
 
-  public void testGetSpecifiedXml() {
+  public void testGetSpecifiedXml() throws Exception {
     setUpMyClasses(MY_LINEAR_LAYOUT);
     ViewHandler handler = new CustomViewGroupHandler(myDefaultHandler, null, myTagName, myClassName,
                                                      "<myxml/>", null, "", null, emptyList(), emptyList());
     assertThat(handler.getXml(myTagName, XmlType.COMPONENT_CREATION)).isEqualTo("<myxml/>");
   }
 
-  public void testGetXmlOfInnerClass() {
+  public void testGetXmlOfInnerClass() throws Exception {
     setUpMyClasses(MY_LINEAR_LAYOUT);
     ViewHandler handler = new CustomViewGroupHandler(myDefaultHandler, null, myTagName, myClassName,
                                                      null, null, "", null, emptyList(), emptyList());

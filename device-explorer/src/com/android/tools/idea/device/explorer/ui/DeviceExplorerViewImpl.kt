@@ -16,9 +16,13 @@
 package com.android.tools.idea.device.explorer.ui
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.device.explorer.DeviceExplorerModel
+import com.android.tools.idea.device.explorer.DeviceExplorerTab
 import com.android.tools.idea.deviceprovisioner.DeviceHandleRenderer
 import com.android.tools.idea.deviceprovisioner.toIterable
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DeviceExplorerEvent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -28,7 +32,6 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLoadingPanel
 import icons.AndroidIcons
-import kotlinx.coroutines.flow.collect
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.util.concurrent.CancellationException
@@ -42,6 +45,7 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
   private val listeners: MutableList<DeviceExplorerViewListener> = ArrayList()
   private val loadingPanel: JBLoadingPanel = JBLoadingPanel(BorderLayout(), project)
   private val panel = DeviceExplorerPanel()
+  private var selectedTabIndex: Int = 0
 
   val component: JComponent
     get() = loadingPanel
@@ -65,6 +69,16 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
       }
       else {
         listeners.forEach(Consumer { it.noDeviceSelected() })
+      }
+    }
+    panel.tabPane.addChangeListener {
+      val newSelectedTabIndex = (it.source as JTabbedPane).selectedIndex
+      if (newSelectedTabIndex != selectedTabIndex) {
+        selectedTabIndex = newSelectedTabIndex
+        val tabName = (it.source as JTabbedPane).getTitleAt(newSelectedTabIndex)
+        TAB_TO_ACTION_MAP[tabName]?.let { action ->
+          trackAction(action)
+        }
       }
     }
     showPanel()
@@ -134,6 +148,17 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
     )
   }
 
+  private fun trackAction(action: DeviceExplorerEvent.Action) {
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_EXPLORER)
+        .setDeviceExplorerEvent(
+          DeviceExplorerEvent.newBuilder()
+            .setAction(action)
+        )
+    )
+  }
+
   @TestOnly
   fun getDeviceCombo(): JComboBox<DeviceHandle> = panel.deviceCombo
 
@@ -149,5 +174,12 @@ class DeviceExplorerViewImpl(project: Project, private val model: DeviceExplorer
 
       DeviceHandleRenderer.renderDevice(this, value, list.model.toIterable())
     }
+  }
+
+  companion object {
+    val TAB_TO_ACTION_MAP = mapOf(
+      DeviceExplorerTab.Files.name to DeviceExplorerEvent.Action.FILES_TAB_CLICKED,
+      DeviceExplorerTab.Processes.name to DeviceExplorerEvent.Action.PROCESS_TAB_CLICKED
+    )
   }
 }

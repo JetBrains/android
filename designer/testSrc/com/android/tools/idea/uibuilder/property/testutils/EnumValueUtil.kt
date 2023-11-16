@@ -27,9 +27,11 @@ object EnumValueUtil {
    * @param values the list of [EnumValue] to check
    * @param startIndex check the section starting at this index
    * @param expectedHeader the expected header of this section. Must be in the first value.
-   * @param expectedCount the expected count in this section. A negative value indicates a minimum count.
+   * @param expectedCount the expected count in this section. A negative value indicates a minimum
+   *   count.
    * @param expectedValues the expected values (may be a subset of the complete section)
-   * @param expectedDisplayValues the expected display values (may be a subset of the complete section)
+   * @param expectedDisplayValues the expected display values (may be a subset of the complete
+   *   section)
    */
   fun checkSection(
     values: List<EnumValue>,
@@ -49,8 +51,7 @@ object EnumValueUtil {
         assertThat(header).isNotNull()
         assertThat(header!!.header).isEqualTo(expectedHeader)
         continue
-      }
-      else if (header != null) {
+      } else if (header != null) {
         nextSectionIndex = index
         break
       }
@@ -63,10 +64,13 @@ object EnumValueUtil {
       }
     }
     if (expectedCount >= 0) {
-      assertThat(nextSectionIndex - startIndex).named("Expected Style Count").isEqualTo(expectedCount)
-    }
-    else {
-      assertThat(nextSectionIndex - startIndex).named("Expected Style Count").isAtLeast(abs(expectedCount))
+      assertThat(nextSectionIndex - startIndex)
+        .named("Expected Style Count")
+        .isEqualTo(expectedCount)
+    } else {
+      assertThat(nextSectionIndex - startIndex)
+        .named("Expected Style Count")
+        .isAtLeast(abs(expectedCount))
     }
     return if (nextSectionIndex < values.size) nextSectionIndex else -1
   }

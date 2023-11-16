@@ -27,13 +27,14 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.timing.Wait;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
+import java.util.concurrent.TimeUnit;
 
 
 @RunWith(GuiTestRemoteRunner.class)

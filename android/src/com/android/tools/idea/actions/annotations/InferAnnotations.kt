@@ -654,7 +654,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
         // Do we know something about the argument? If so, pass it to the parameter.
         val resourceTypeMap = argument.getResourceTypes()
         if (resourceTypeMap.isNotEmpty() &&
-          // if we're calling into generic code, like Math.abs(x), we don't want to infer anyhting about x
+          // if we're calling into generic code, like Math.abs(x), we don't want to infer anything about x
           !psiMethod.isGeneralCode()
         ) {
           // If we see a call to some generic method, such as
@@ -1213,7 +1213,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       }
     }
 
-    private val signatureSorter = Comparator<String> { o1, o2 ->
+    val signatureSorter = Comparator<String> { o1, o2 ->
       // Sort outer classes higher than inner classes; this means that "}" beats other characters
       val l1 = o1.length
       val l2 = o2.length

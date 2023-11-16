@@ -34,9 +34,6 @@ import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
-import java.io.DataInput
-import java.io.DataOutput
-import java.util.EnumMap
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.core.util.readString
@@ -44,6 +41,9 @@ import org.jetbrains.kotlin.idea.core.util.writeString
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtEnumEntry
+import java.io.DataInput
+import java.io.DataOutput
+import java.util.EnumMap
 
 /**
  * Represents a Component, Subcomponent, or Module in Dagger.

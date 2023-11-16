@@ -57,7 +57,7 @@ class GradleProject(
  */
 sealed class DeliverableGradleModule(
   val gradleProject: BasicGradleProject,
-  private val projectSyncIssues: List<IdeSyncIssue>,
+  val projectSyncIssues: List<IdeSyncIssue>,
   val exceptions: List<Throwable>
 ) : GradleModelCollection {
 

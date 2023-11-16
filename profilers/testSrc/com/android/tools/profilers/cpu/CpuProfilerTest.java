@@ -113,7 +113,7 @@ public final class CpuProfilerTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Common.Session session1 = sessionsManager.getSelectedSession();
 
-    File trace2 = CpuProfilerTestUtils.getTraceFile("basic.trace");
+    File trace2 = CpuProfilerTestUtils.getTraceFile("art_non_streaming.trace");
     sessionsManager.importSessionFromFile(trace2);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Common.Session session2 = sessionsManager.getSelectedSession();

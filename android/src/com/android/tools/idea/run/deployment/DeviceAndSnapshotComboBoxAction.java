@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.RunManager;
+import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -31,6 +30,7 @@ import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.popup.JBPopup;
+import com.intellij.openapi.util.Key;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.ExperimentalUI;
 import com.intellij.util.ui.JBUI;
@@ -38,12 +38,13 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.UIUtil.FontSize;
 import java.awt.Component;
 import java.awt.Font;
+import java.beans.PropertyChangeEvent;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import javax.swing.GroupLayout;
@@ -56,13 +57,9 @@ import org.jetbrains.annotations.Nullable;
 
 public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   /**
-   * Run configurations that aren't {@link AndroidRunConfiguration} or {@link AndroidTestRunConfiguration} can use this key
-   * to express their applicability for DeviceAndSnapshotComboBoxAction by setting it to true in their user data.
+   * The key for the LaunchCompatibility presentation client property
    */
-  public static final com.intellij.openapi.util.Key<Boolean> DEPLOYS_TO_LOCAL_DEVICE =
-    com.intellij.openapi.util.Key.create("DeviceAndSnapshotComboBoxAction.deploysToLocalDevice");
-
-  private final @NotNull BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
+  static final Key<LaunchCompatibility> LAUNCH_COMPATIBILITY_KEY = new Key<>("DeviceAndSnapshotComboBoxAction.launchCompatibility");
 
   @NotNull
   private final Function<Project, AsyncDevicesGetter> myDevicesGetterGetter;
@@ -77,12 +74,9 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NotNull
   private final Function<Project, RunManager> myGetRunManager;
-  private final @NotNull UpdatableDeviceHelpTooltip myUpdatableDeviceHelpTooltip;
 
   @VisibleForTesting
   static final class Builder {
-    private @Nullable BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
-
     @Nullable
     private Function<Project, AsyncDevicesGetter> myDevicesGetterGetter;
 
@@ -98,18 +92,11 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     private Function<Project, RunManager> myGetRunManager;
 
     Builder() {
-      mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = () -> false;
       myDevicesGetterGetter = project -> null;
       myDevicesSelectedServiceGetInstance = project -> null;
       myExecutionTargetServiceGetInstance = project -> null;
       myNewSelectMultipleDevicesDialog = (project, devices) -> null;
       myGetRunManager = project -> null;
-    }
-
-    @NotNull
-    private Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(@NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
-      mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = selectDeviceSnapshotComboBoxSnapshotsEnabledGet;
-      return this;
     }
 
     @NotNull
@@ -152,7 +139,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @SuppressWarnings("unused")
   private DeviceAndSnapshotComboBoxAction() {
     this(new Builder()
-           .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get)
            .setDevicesGetterGetter(AsyncDevicesGetter::getInstance)
            .setDevicesSelectedServiceGetInstance(DevicesSelectedService::getInstance)
            .setExecutionTargetServiceGetInstance(ExecutionTargetService::getInstance)
@@ -162,9 +148,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NonInjectable
   private DeviceAndSnapshotComboBoxAction(@NotNull Builder builder) {
-    assert builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet != null;
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
-
     assert builder.myDevicesGetterGetter != null;
     myDevicesGetterGetter = builder.myDevicesGetterGetter;
 
@@ -179,18 +162,12 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     assert builder.myGetRunManager != null;
     myGetRunManager = builder.myGetRunManager;
-
-    myUpdatableDeviceHelpTooltip = new UpdatableDeviceHelpTooltip();
   }
 
   @NotNull
   static DeviceAndSnapshotComboBoxAction getInstance() {
     // noinspection CastToConcreteClass
     return (DeviceAndSnapshotComboBoxAction)ActionManager.getInstance().getAction("DeviceAndSnapshotComboBox");
-  }
-
-  boolean areSnapshotsEnabled() {
-    return mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet.getAsBoolean();
   }
 
   @NotNull
@@ -289,16 +266,38 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @NotNull
   @Override
   protected ComboBoxButton createComboBoxButton(@NotNull Presentation presentation) {
-    ComboBoxButton button = new DeviceAndSnapshotComboBoxButton(presentation);
-    myUpdatableDeviceHelpTooltip.installOn(button);
-
-    return button;
+    return new DeviceAndSnapshotComboBoxButton(presentation);
   }
 
   private final class DeviceAndSnapshotComboBoxButton extends ComboBoxButton {
     private DeviceAndSnapshotComboBoxButton(@NotNull Presentation presentation) {
       super(presentation);
       setName("deviceAndSnapshotComboBoxButton");
+    }
+
+    @Override
+    protected void presentationChanged(@NotNull PropertyChangeEvent event) {
+      super.presentationChanged(event);
+      var name = event.getPropertyName();
+
+      if (!Objects.equals(name, LAUNCH_COMPATIBILITY_KEY.toString())) {
+        return;
+      }
+
+      HelpTooltip.dispose(this);
+      var value = event.getNewValue();
+
+      if (value == null) {
+        return;
+      }
+
+      var tooltip = new HelpTooltip();
+
+      if (!TooltipsKt.updateTooltip((LaunchCompatibility)value, tooltip)) {
+        return;
+      }
+
+      tooltip.installOn(this);
     }
 
     @NotNull
@@ -371,29 +370,17 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       .setDevicesSelectedService(myDevicesSelectedServiceGetInstance.apply(project))
       .setDevices(devices)
       .setConfigurationAndSettings(myGetRunManager.apply(project).getSelectedConfiguration())
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet)
       .build();
 
     updater.update();
 
     event.getUpdateSession().compute(this, "Set active device", ActionUpdateThread.EDT, () -> {
-      updateTooltip(project);
 
       if (presentation.isVisible()) {
         setActiveExecutionTarget(project, getSelectedTargets(project, devices));
       }
       return null;
     });
-  }
-
-  private void updateTooltip(@NotNull Project project) {
-    List<Device> selectedDevices = getSelectedDevices(project);
-    if (selectedDevices.size() == 1) {
-      myUpdatableDeviceHelpTooltip.updateTooltip(selectedDevices.get(0));
-    }
-    else {
-      myUpdatableDeviceHelpTooltip.cancel();
-    }
   }
 
   private void setActiveExecutionTarget(@NotNull Project project, @NotNull Set<Target> targets) {

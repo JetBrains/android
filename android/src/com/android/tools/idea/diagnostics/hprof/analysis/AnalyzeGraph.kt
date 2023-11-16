@@ -41,7 +41,7 @@ import java.io.File
 import java.io.PrintWriter
 import java.util.Arrays
 import java.util.BitSet
-import kotlin.math.ln
+import java.util.concurrent.TimeUnit
 import kotlin.math.max
 import kotlin.math.min
 
@@ -669,7 +669,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
      */
 
     // cards represent as small of a power-of-2 sized range as possible while ensuring that card indices can fit in a short
-    val cardBits = if (maxPonum < 65536) 0 else (ln(maxPonum / 65536.0) / ln(2.0) + 1).toInt()
+    val cardBits = if (maxPonum < 65536) 0 else (Math.log(maxPonum / 65536.0) / Math.log(2.0) + 1).toInt()
     val cardSize = 1 shl cardBits
     val ncards = (maxPonum + cardSize - 1) / cardSize
     val ncardChunks = (ncards + 63) / 64

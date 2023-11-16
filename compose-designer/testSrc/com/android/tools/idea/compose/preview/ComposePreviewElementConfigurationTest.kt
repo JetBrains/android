@@ -25,17 +25,17 @@ import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.Wallpaper
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.testing.AndroidProjectRule
-import kotlin.math.sqrt
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import kotlin.math.sqrt
 
 private fun buildState(
   name: String,
@@ -111,13 +111,7 @@ private val deviceProvider: (Configuration) -> Collection<Device> = {
 
 /** Tests checking [ComposePreviewElement] being applied to a [Configuration]. */
 class ComposePreviewElementConfigurationTest {
-  @get:Rule
-  val projectRule =
-    ComposeProjectRule(
-      projectRule = AndroidProjectRule.withSdk(),
-      previewAnnotationPackage = "androidx.compose.ui.tooling.preview",
-      composableAnnotationPackage = "androidx.compose.runtime"
-    )
+  @get:Rule val projectRule = ComposeProjectRule(projectRule = AndroidProjectRule.withSdk())
   private val fixture
     get() = projectRule.fixture
 
@@ -137,8 +131,7 @@ class ComposePreviewElementConfigurationTest {
   fun `test specified device sizes`() {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
     configManager.defaultDevice
-    val configuration =
-      Configuration.create(configManager, null, FolderConfiguration.createDefault())
+    val configuration = Configuration.create(configManager, FolderConfiguration.createDefault())
 
     SingleComposePreviewElementInstance(
         "NoSize",
@@ -200,8 +193,7 @@ class ComposePreviewElementConfigurationTest {
   @Test
   fun `setting a device might set the theme as well`() {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
-    val configuration =
-      Configuration.create(configManager, null, FolderConfiguration.createDefault())
+    val configuration = Configuration.create(configManager, FolderConfiguration.createDefault())
 
     SingleComposePreviewElementInstance(
         "WearOs",
@@ -253,7 +245,7 @@ class ComposePreviewElementConfigurationTest {
   @Test
   fun testApiLevel() {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
-    Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
+    Configuration.create(configManager, FolderConfiguration.createDefault()).also {
       val previewConfiguration =
         PreviewConfiguration.cleanAndGet(30, null, null, null, null, null, null, null, null)
       previewConfiguration.applyConfigurationForTest(
@@ -268,7 +260,7 @@ class ComposePreviewElementConfigurationTest {
 
   private fun assertWallpaperUpdate(expectedWallpaperPath: String?, wallpaperParameterValue: Int?) {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
-    Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
+    Configuration.create(configManager, FolderConfiguration.createDefault()).also {
       val previewConfiguration =
         PreviewConfiguration.cleanAndGet(
           null,
@@ -293,7 +285,7 @@ class ComposePreviewElementConfigurationTest {
 
   private fun assertDeviceMatches(expectedDevice: Device?, deviceSpec: String) {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
-    Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
+    Configuration.create(configManager, FolderConfiguration.createDefault()).also {
       val previewConfiguration =
         PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, deviceSpec)
       previewConfiguration.applyConfigurationForTest(

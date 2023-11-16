@@ -19,6 +19,7 @@ package com.android.tools.idea.testing
 
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
+import com.android.tools.idea.sdk.AndroidSdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runWriteAction
@@ -61,7 +62,7 @@ internal class TestProjectFixtureRuleImpl(
         aggregateAndThrowIfAny {
           usingIdeaTestFixture(tempDirFixture) {
             val tempDirPath = File(tempDirFixture.tempDirPath)
-            val fixtureName = fixtureName ?: "p"
+            val fixtureName = fixtureName ?: description.shortDisplayName
             usingIdeaTestFixture(projectBuilder.fixture) {
               withSdksHandled(testRootDisposable) {
                 val preparedProject = testProject.prepareTestProject(
@@ -93,6 +94,10 @@ private inline fun AggregateAndThrowIfAnyContext.withSdksHandled(testRootDisposa
   val jdk = IdeSdks.getInstance().jdk ?: error("Failed to set JDK")
   Disposer.register(testRootDisposable) {
     runWriteAction { runCatchingAndRecord { ProjectJdkTable.getInstance().removeJdk(jdk) } }
+  }
+  val oldAndroidSdkPath = IdeSdks.getInstance().androidSdkPath
+  Disposer.register(testRootDisposable) {
+    runWriteAction { runCatchingAndRecord { AndroidSdkPathStore.getInstance().androidSdkPath = oldAndroidSdkPath?.absolutePath } }
   }
   runCatchingAndRecord { body() }
   runInEdtAndWait { runCatchingAndRecord { removeAllAndroidSdks() } }

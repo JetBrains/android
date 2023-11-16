@@ -56,10 +56,10 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl
 import com.intellij.util.ThrowableRunnable
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
-import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 
 class LintIdeTest : UsefulTestCase() {
   init {
@@ -329,7 +329,7 @@ class LintIdeTest : UsefulTestCase() {
       assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
       WriteCommandAction.writeCommandAction(myFixture.project)
         .run(
-          ThrowableRunnable {
+          ThrowableRunnable<Throwable?> {
             action.invoke(myFixture.project, myFixture.editor, myFixture.file)
           }
         )
@@ -388,7 +388,7 @@ class LintIdeTest : UsefulTestCase() {
     assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
     WriteCommandAction.writeCommandAction(myFixture.project)
       .run(
-        ThrowableRunnable {
+        ThrowableRunnable<Throwable?> {
           action.invoke(myFixture.project, myFixture.editor, myFixture.file)
         }
       )

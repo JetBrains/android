@@ -16,6 +16,7 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.database.DeviceProcessTable;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
@@ -25,7 +26,6 @@ import com.android.tools.profiler.proto.Transport.GetProcessesRequest;
 import com.android.tools.profiler.proto.Transport.GetProcessesResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.collect.Sets;
-import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;

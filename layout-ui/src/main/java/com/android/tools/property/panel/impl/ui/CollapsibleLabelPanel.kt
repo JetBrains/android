@@ -18,9 +18,9 @@ package com.android.tools.property.panel.impl.ui
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.common.selectionBackground
 import com.android.tools.property.panel.impl.model.CollapsibleLabelModel
+import com.android.tools.property.panel.impl.support.toHtmlString
 import com.android.tools.property.ptable.ColumnFraction
 import com.android.tools.property.ptable.ColumnFractionChangeHandler
-import com.google.common.html.HtmlEscapers
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ToolbarUpdater
@@ -44,9 +44,9 @@ import kotlin.math.roundToInt
 /**
  * A panel to show text and an optional control for collapsing/expanding a section.
  *
- * When the text on this label is too wide for the allowable space, this label can can either
- * show training ellipsis or clip the text. In this way the control can be used in connection
- * with an [ExpandableItemsHandler].
+ * When the text on this label is too wide for the allowable space, this label can can either show
+ * training ellipsis or clip the text. In this way the control can be used in connection with an
+ * [ExpandableItemsHandler].
  *
  * The control for collapsing/expanding a section is represented by a button with an image
  * controlled by the specified [model].
@@ -60,20 +60,30 @@ class CollapsibleLabelPanel(
 ) : JPanel(BorderLayout()) {
   val label = ExpandableLabel()
 
-  // The label wil automatically display ellipsis at the end of a string that is too long for the width
+  // The label wil automatically display ellipsis at the end of a string that is too long for the
+  // width
   private val valueWithTrailingEllipsis = model.name
-  // As html the value will not have ellipsis at the end but simply cut off when the string is too long
-  private val valueWithoutEllipsis = toHtml(model.name)
+  // As html the value will not have ellipsis at the end but simply cut off when the string is too
+  // long
+  private val valueWithoutEllipsis = toHtmlString(model.name)
 
-  private val expandAction = object : AnAction() {
-    override fun actionPerformed(event: AnActionEvent) {
-      toggle()
+  private val expandAction =
+    object : AnAction() {
+      override fun actionPerformed(event: AnActionEvent) {
+        toggle()
+      }
     }
-  }
 
   private val expandButton = IconWithFocusBorder { if (model.expandable) expandAction else null }
   private val actionButtons = mutableListOf<FocusableActionButton>()
-  private val resizeHandler = ColumnFractionChangeHandler(nameColumnFraction, { label.x }, { width }, ::onResizeModeChange)
+  private val resizeHandler =
+    ColumnFractionChangeHandler(
+      nameColumnFraction,
+      { label.x },
+      { width },
+      { 0 },
+      ::onResizeModeChange
+    )
   private var initialized = false
 
   val text: String?
@@ -100,7 +110,7 @@ class CollapsibleLabelPanel(
     add(label, BorderLayout.CENTER)
     model.addValueChangedListener { valueChanged() }
     if (actions.isNotEmpty()) {
-      val buttonPanel = JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(2), 0))
+      val buttonPanel = ButtonPanel()
       actions.forEach {
         val button = FocusableActionButton(it)
         buttonPanel.add(button)
@@ -115,13 +125,15 @@ class CollapsibleLabelPanel(
         }
       }
     }
-    label.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(event: MouseEvent) {
-        if (event.clickCount > 1) {
-          toggle()
+    label.addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseClicked(event: MouseEvent) {
+          if (event.clickCount > 1) {
+            toggle()
+          }
         }
       }
-    })
+    )
     label.addMouseListener(resizeHandler)
     label.addMouseMotionListener(resizeHandler)
     valueChanged()
@@ -130,7 +142,10 @@ class CollapsibleLabelPanel(
 
   override fun updateUI() {
     super.updateUI()
-    if (initialized) { // All locals are uninitialized (label will be null) when updateUI is called from the super class constructor
+    if (
+      initialized
+    ) { // All locals are uninitialized (label will be null) when updateUI is called from the super
+      // class constructor
       label.font = UIUtil.getLabelFont(fontSize)
       if (fontStyle != Font.PLAIN) {
         label.font = label.font.deriveFont(fontStyle)
@@ -154,7 +169,10 @@ class CollapsibleLabelPanel(
   }
 
   private fun onResizeModeChange(newResizeMode: Boolean) {
-    label.cursor = Cursor.getPredefinedCursor(if (newResizeMode) Cursor.W_RESIZE_CURSOR else Cursor.DEFAULT_CURSOR)
+    label.cursor =
+      Cursor.getPredefinedCursor(
+        if (newResizeMode) Cursor.W_RESIZE_CURSOR else Cursor.DEFAULT_CURSOR
+      )
     repaint()
   }
 
@@ -167,13 +185,19 @@ class CollapsibleLabelPanel(
     isVisible = model.visible
     label.isVisible = isVisible
     label.text = if (model.showEllipses) valueWithTrailingEllipsis else valueWithoutEllipsis
-    label.foreground = if (model.enabled) UIUtil.getLabelForeground() else UIUtil.getLabelDisabledForeground()
+    label.foreground =
+      if (model.enabled) UIUtil.getLabelForeground() else UIUtil.getLabelDisabledForeground()
     expandButton.icon = model.icon
     revalidateParent?.revalidate()
     revalidateParent?.repaint()
   }
 
-  private fun toHtml(text: String): String {
-    return "<html><nobr>${HtmlEscapers.htmlEscaper().escape(text)}</nobr></html>"
+  private class ButtonPanel : JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(2), 0)) {
+    override fun doLayout() {
+      super.doLayout()
+      for (component in components) {
+        component.setLocation(component.x, maxOf((height - component.height) / 2, 0))
+      }
+    }
   }
 }

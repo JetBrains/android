@@ -16,7 +16,7 @@
 package com.android.tools.idea.navigator.nodes
 
 import com.android.tools.idea.apk.ApkFacet
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.hasKotlinFacet
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.navigator.AndroidViewNodes
 import com.android.tools.idea.navigator.nodes.android.AndroidManifestsGroupNode
@@ -26,6 +26,7 @@ import com.android.tools.idea.navigator.nodes.android.AndroidSourceTypeNode
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviders
+import com.android.tools.idea.projectsystem.getAllLinkedModules
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.collect.HashMultimap
 import com.intellij.ide.projectView.ViewSettings
@@ -61,9 +62,10 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
     val result = mutableListOf<AbstractTreeNode<*>>()
     val facet = AndroidFacet.getInstance(module) ?: return null
     val project = facet.module.project
-    val androidModuleModel = AndroidModuleModel.get(facet)
+    val androidModel = AndroidModel.get(facet)
     val providers = SourceProviders.getInstance(facet)
-    val sourcesByType = getSourcesBySourceType(providers, androidModuleModel)
+    val kotlinEnabled = module.getAllLinkedModules().any { it.hasKotlinFacet() }
+    val sourcesByType = getSourcesBySourceType(providers, androidModel, kotlinEnabled)
     for (sourceType in sourcesByType.keySet()) {
       when {
         sourceType == AndroidSourceType.CPP -> {
@@ -75,7 +77,7 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
         sourceType == AndroidSourceType.RES || sourceType == AndroidSourceType.GENERATED_RES -> {
           result.add(AndroidResFolderNode(project, facet, sourceType, settings, sourcesByType[sourceType]))
         }
-        sourceType == AndroidSourceType.SHADERS && androidModuleModel == null -> {
+        sourceType == AndroidSourceType.SHADERS && androidModel == null -> {
         }
         sourceType == AndroidSourceType.ASSETS -> {
           result.add(
@@ -108,7 +110,8 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
 
 private fun getSourcesBySourceType(
   providers: SourceProviders,
-  androidModel: AndroidModuleModel?
+  androidModel: AndroidModel?,
+  kotlinEnabled: Boolean
 ): HashMultimap<AndroidSourceType, VirtualFile> {
   val sourcesByType = HashMultimap.create<AndroidSourceType, VirtualFile>()
 
@@ -144,6 +147,14 @@ private fun getSourcesBySourceType(
       sourcesByType.putAll(customType, getSources(customType, providers))
     }
   }
+
+  if (!kotlinEnabled) {
+    // When kotlin is not actually applied to the project, common sources should just go to java type.
+    val commonSources = sourcesByType.get(AndroidSourceType.KOTLIN_AND_JAVA) ?: emptySet()
+    sourcesByType.putAll(AndroidSourceType.JAVA, commonSources)
+    sourcesByType.removeAll(AndroidSourceType.KOTLIN_AND_JAVA)
+  }
+
   return sourcesByType
 }
 

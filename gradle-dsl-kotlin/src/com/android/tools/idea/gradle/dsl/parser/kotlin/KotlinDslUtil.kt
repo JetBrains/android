@@ -56,7 +56,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.parentOfType
-import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
 import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
 import org.jetbrains.kotlin.idea.intentions.branchedTransformations.isNullExpressionOrEmptyBlock
@@ -611,6 +610,14 @@ internal fun findInjections(
     }
     is KtBinaryExpressionWithTypeRHS -> return when (val contentExpression = psiElement.left) {
       is KtArrayAccessExpression -> findInjections(context, contentExpression, includeResolved, injectionElement)
+      else -> noInjections
+    }
+    is KtCallExpression -> return when {
+      isValidBlockName(psiElement.name()) -> {
+        val name = context.dslFile.parser.convertReferencePsi(context, psiElement)
+        val element = context.resolveInternalSyntaxReference(name, true)
+        mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, name))
+      }
       else -> noInjections
     }
     else -> return noInjections

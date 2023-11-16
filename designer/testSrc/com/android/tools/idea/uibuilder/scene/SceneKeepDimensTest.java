@@ -27,8 +27,8 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceUrl;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -106,7 +106,7 @@ public class SceneKeepDimensTest extends SceneTest {
     Configuration configuration = Mockito.mock(Configuration.class);
     when(configuration.getResourceResolver()).thenReturn(resolver);
     when(configuration.getDensity()).thenReturn(Density.XHIGH);
-    when(configuration.getConfigurationManager()).thenReturn(ConfigurationManager.getOrCreateInstance(myModule));
+    when(configuration.getSettings()).thenReturn(ConfigurationManager.getOrCreateInstance(myModule));
     when(configuration.getFullConfig()).thenReturn(FolderConfiguration.createDefault());
     myModel.setConfiguration(configuration);
   }
@@ -132,7 +132,7 @@ public class SceneKeepDimensTest extends SceneTest {
                  "        android:id=\"@+id/textView1\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"220dp\"\n" +
+                 "        android:layout_marginLeft=\"200dp\"\n" +
                  "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "        tools:layout_editor_absoluteY=\"400dp\" />");
   }
@@ -158,7 +158,7 @@ public class SceneKeepDimensTest extends SceneTest {
                  "        android:id=\"@+id/textView2\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginTop=\"220dp\"\n" +
+                 "        android:layout_marginTop=\"200dp\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "        tools:layout_editor_absoluteX=\"700dp\" />");
   }
@@ -184,7 +184,7 @@ public class SceneKeepDimensTest extends SceneTest {
                  "        android:id=\"@+id/textView3\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginRight=\"220dp\"\n" +
+                 "        android:layout_marginRight=\"200dp\"\n" +
                  "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
                  "        tools:layout_editor_absoluteY=\"700dp\" />");
   }
@@ -210,7 +210,7 @@ public class SceneKeepDimensTest extends SceneTest {
                  "        android:id=\"@+id/textView4\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginBottom=\"220dp\"\n" +
+                 "        android:layout_marginBottom=\"200dp\"\n" +
                  "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "        tools:layout_editor_absoluteX=\"700dp\" />");
   }

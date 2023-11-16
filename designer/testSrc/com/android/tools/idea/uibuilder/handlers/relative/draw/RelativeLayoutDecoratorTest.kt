@@ -31,7 +31,7 @@ import com.android.tools.idea.common.scene.SceneMouseInteraction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.SceneTest
 
-class RelativeLayoutDecoratorTest: SceneTest() {
+class RelativeLayoutDecoratorTest : SceneTest() {
 
   private var originalShowOnlySelection = false
 
@@ -46,26 +46,27 @@ class RelativeLayoutDecoratorTest: SceneTest() {
   }
 
   override fun createModel(): ModelBuilder {
-    return model("relative.xml",
-        component(RELATIVE_LAYOUT)
-            .id("@+id/root")
-            .withBounds(0, 0, 1000, 1000)
-            .width("1000dp")
-            .height("1000dp")
-            .withAttribute("android:padding", "20dp")
-            .children(
-                component(PROGRESS_BAR)
-                    .id("@+id/a")
-                    .withBounds(450, 450, 100, 100)
-                    .width("100dp")
-                    .height("100dp")
-            )
+    return model(
+      "relative.xml",
+      component(RELATIVE_LAYOUT)
+        .id("@+id/root")
+        .withBounds(0, 0, 1000, 1000)
+        .width("1000dp")
+        .height("1000dp")
+        .withAttribute("android:padding", "20dp")
+        .children(
+          component(PROGRESS_BAR)
+            .id("@+id/a")
+            .withBounds(450, 450, 100, 100)
+            .width("100dp")
+            .height("100dp")
+        )
     )
   }
 
   fun testBasicScene() {
     val expectedXml =
-"""<ProgressBar
+      """<ProgressBar
     android:id="@+id/a"
     android:layout_width="100dp"
     android:layout_height="100dp"/>"""
@@ -73,7 +74,7 @@ class RelativeLayoutDecoratorTest: SceneTest() {
     myScreen.get("@+id/a").expectXml(expectedXml)
 
     val expectedSerializedList =
-"""DrawNlComponentFrame,0,0,500,500,1,1000,1000
+      """DrawNlComponentFrame,0,0,500,500,1,1000,1000
 Clip,0,0,500,500
 DrawComponentBackground,225,225,50,50,1
 DrawProgressBar,225,225,50,50
@@ -85,17 +86,19 @@ UNClip
   }
 
   fun testNoChild() {
-    val builder = model("relative.xml",
+    val builder =
+      model(
+        "relative.xml",
         component(RELATIVE_LAYOUT)
-            .id("@+id/root")
-            .withBounds(0, 0, 1000, 1000)
-            .width("1000dp")
-            .height("1000dp")
-            .withAttribute("android:padding", "20dp")
-    )
+          .id("@+id/root")
+          .withBounds(0, 0, 1000, 1000)
+          .width("1000dp")
+          .height("1000dp")
+          .withAttribute("android:padding", "20dp")
+      )
 
     val expectedDrawCommand =
-"""DrawNlComponentFrame,0,0,500,500,1,1000,1000
+      """DrawNlComponentFrame,0,0,500,500,1,1000,1000
 Clip,0,0,500,500
 UNClip
 """
@@ -104,33 +107,35 @@ UNClip
   }
 
   fun testCenterAttributes() {
-    val builder = model("relative.xml",
-      component(RELATIVE_LAYOUT)
+    val builder =
+      model(
+        "relative.xml",
+        component(RELATIVE_LAYOUT)
           .id("@+id/root")
           .withBounds(0, 0, 1000, 1000)
           .width("1000dp")
           .height("1000dp")
           .withAttribute("android:padding", "20dp")
           .children(
-              component(PROGRESS_BAR)
-                  .id("@+id/a")
-                  .withBounds(450, 450, 100, 100)
-                  .width("100dp")
-                  .height("100dp")
-                  .withAttribute("android:layout_centerInParent", "true"),
-              component(BUTTON)
-                  .id("@+id/b")
-                  .withBounds(450, 490, 100, 20)
-                  .width("100dp")
-                  .height("20dp")
-                  .text("this is a test")
-                  .withAttribute("android:layout_centerHorizontal", "true")
-                  .withAttribute("android:layout_centerVertical", "true")
+            component(PROGRESS_BAR)
+              .id("@+id/a")
+              .withBounds(450, 450, 100, 100)
+              .width("100dp")
+              .height("100dp")
+              .withAttribute("android:layout_centerInParent", "true"),
+            component(BUTTON)
+              .id("@+id/b")
+              .withBounds(450, 490, 100, 20)
+              .width("100dp")
+              .height("20dp")
+              .text("this is a test")
+              .withAttribute("android:layout_centerHorizontal", "true")
+              .withAttribute("android:layout_centerVertical", "true")
           )
-    )
+      )
 
     val expectedDrawCommand =
-"""DrawNlComponentFrame,0,0,500,500,1,1000,1000
+      """DrawNlComponentFrame,0,0,500,500,1,1000,1000
 Clip,0,0,500,500
 DrawComponentBackground,225,225,50,50,1
 DrawProgressBar,225,225,50,50
@@ -153,37 +158,39 @@ UNClip
   }
 
   fun testAlignParentAttributes() {
-    val builder = model("relative.xml",
-      component(RELATIVE_LAYOUT)
+    val builder =
+      model(
+        "relative.xml",
+        component(RELATIVE_LAYOUT)
           .id("@+id/root")
           .withBounds(0, 0, 1000, 1000)
           .width("1000dp")
           .height("1000dp")
           .withAttribute("android:padding", "20dp")
           .children(
-              component(IMAGE_VIEW)
-                  .id("@+id/c")
-                  .withBounds(450, 530, 60, 20)
-                  .width("100dp")
-                  .height("20dp")
-                  .withAttribute("android:layout_alignParentStart", "true")
-                  .withAttribute("android:layout_alignParentTop", "true")
-                  .withAttribute("android:layout_marginStart", "10dp")
-                  .withAttribute("android:layout_marginTop", "10dp"),
-              component(TEXT_VIEW)
-                  .id("@+id/d")
-                  .withBounds(920, 960, 60, 20)
-                  .width("100dp")
-                  .height("20dp")
-                  .withAttribute("android:layout_alignParentEnd", "true")
-                  .withAttribute("android:layout_alignParentBottom", "true")
-                  .withAttribute("android:layout_marginEnd", "10dp")
-                  .withAttribute("android:layout_marginTop", "10dp")
+            component(IMAGE_VIEW)
+              .id("@+id/c")
+              .withBounds(450, 530, 60, 20)
+              .width("100dp")
+              .height("20dp")
+              .withAttribute("android:layout_alignParentStart", "true")
+              .withAttribute("android:layout_alignParentTop", "true")
+              .withAttribute("android:layout_marginStart", "10dp")
+              .withAttribute("android:layout_marginTop", "10dp"),
+            component(TEXT_VIEW)
+              .id("@+id/d")
+              .withBounds(920, 960, 60, 20)
+              .width("100dp")
+              .height("20dp")
+              .withAttribute("android:layout_alignParentEnd", "true")
+              .withAttribute("android:layout_alignParentBottom", "true")
+              .withAttribute("android:layout_marginEnd", "10dp")
+              .withAttribute("android:layout_marginTop", "10dp")
           )
-    )
+      )
 
     val expectedDrawCommand =
-"""DrawNlComponentFrame,0,0,500,500,1,1000,1000
+      """DrawNlComponentFrame,0,0,500,500,1,1000,1000
 Clip,0,0,500,500
 DrawComponentBackground,225,265,30,10,1
 DrawImageView,225,265,30,10
@@ -201,60 +208,61 @@ UNClip
     checkModelDrawCommand(builder.build(), expectedDrawCommand)
   }
 
-
   fun testAlignWidgetAttribute() {
-    val builder = model("relative.xml",
-      component(RELATIVE_LAYOUT)
+    val builder =
+      model(
+        "relative.xml",
+        component(RELATIVE_LAYOUT)
           .id("@+id/root")
           .withBounds(0, 0, 1000, 1000)
           .width("1000dp")
           .height("1000dp")
           .withAttribute("android:padding", "20dp")
           .children(
-              component(PROGRESS_BAR)
-                  .id("@+id/a")
-                  .withBounds(450, 450, 100, 100)
-                  .width("100dp")
-                  .height("100dp")
-                  .withAttribute("android:layout_centerInParent", "true"),
-              component(CHECK_BOX)
-                  .id("@+id/e")
-                  .withBounds(450, 530,60, 20)
-                  .width("100dp")
-                  .height("20dp")
-                  .withAttribute("android:layout_alignStart", "@+id/a")
-                  .withAttribute("android:layout_alignBottom", "@+id/a")
-                  .withAttribute("android:layout_marginStart", "-10dp")
-                  .withAttribute("android:layout_marginBottom", "-10dp"),
-              component(SEEK_BAR)
-                  .id("@+id/f")
-                  .withBounds(490, 450, 60, 20)
-                  .width("100dp")
-                  .height("20dp")
-                  .withAttribute("android:layout_alignEnd", "@+id/a")
-                  .withAttribute("android:layout_alignTop", "@+id/a")
-                  .withAttribute("android:layout_marginEnd", "-10dp")
-                  .withAttribute("android:layout_marginTop", "-10dp"),
-              component(SWITCH)
-                  .id("@+id/g")
-                  .withBounds(550, 430, 60, 20)
-                  .width("100dp")
-                  .height("20dp")
-                  .text("switch")
-                  .withAttribute("android:layout_toEndOf", "@+id/a")
-                  .withAttribute("android:layout_above", "@+id/a"),
-              component(IMAGE_BUTTON)
-                  .id("@+id/h")
-                  .withBounds(390, 550, 60, 20)
-                  .width("100dp")
-                  .height("20dp")
-                  .withAttribute("android:layout_toStartOf", "@+id/a")
-                  .withAttribute("android:layout_below", "@+id/a")
+            component(PROGRESS_BAR)
+              .id("@+id/a")
+              .withBounds(450, 450, 100, 100)
+              .width("100dp")
+              .height("100dp")
+              .withAttribute("android:layout_centerInParent", "true"),
+            component(CHECK_BOX)
+              .id("@+id/e")
+              .withBounds(450, 530, 60, 20)
+              .width("100dp")
+              .height("20dp")
+              .withAttribute("android:layout_alignStart", "@+id/a")
+              .withAttribute("android:layout_alignBottom", "@+id/a")
+              .withAttribute("android:layout_marginStart", "-10dp")
+              .withAttribute("android:layout_marginBottom", "-10dp"),
+            component(SEEK_BAR)
+              .id("@+id/f")
+              .withBounds(490, 450, 60, 20)
+              .width("100dp")
+              .height("20dp")
+              .withAttribute("android:layout_alignEnd", "@+id/a")
+              .withAttribute("android:layout_alignTop", "@+id/a")
+              .withAttribute("android:layout_marginEnd", "-10dp")
+              .withAttribute("android:layout_marginTop", "-10dp"),
+            component(SWITCH)
+              .id("@+id/g")
+              .withBounds(550, 430, 60, 20)
+              .width("100dp")
+              .height("20dp")
+              .text("switch")
+              .withAttribute("android:layout_toEndOf", "@+id/a")
+              .withAttribute("android:layout_above", "@+id/a"),
+            component(IMAGE_BUTTON)
+              .id("@+id/h")
+              .withBounds(390, 550, 60, 20)
+              .width("100dp")
+              .height("20dp")
+              .withAttribute("android:layout_toStartOf", "@+id/a")
+              .withAttribute("android:layout_below", "@+id/a")
           )
-    )
+      )
 
     val expectedDrawCommand =
-"""DrawNlComponentFrame,0,0,500,500,1,1000,1000
+      """DrawNlComponentFrame,0,0,500,500,1,1000,1000
 Clip,0,0,500,500
 DrawComponentBackground,225,225,50,50,1
 DrawProgressBar,225,225,50,50
@@ -298,58 +306,61 @@ UNClip
   }
 
   fun testShowOnlySelectedComponent() {
-    val builder = model("relative.xml",
-                        component(RELATIVE_LAYOUT)
-                          .id("@+id/root")
-                          .withBounds(0, 0, 1000, 1000)
-                          .width("1000dp")
-                          .height("1000dp")
-                          .withAttribute("android:padding", "20dp")
-                          .children(
-                            component(PROGRESS_BAR)
-                              .id("@+id/a")
-                              .withBounds(450, 450, 100, 100)
-                              .width("100dp")
-                              .height("100dp")
-                              .withAttribute("android:layout_centerInParent", "true"),
-                            component(CHECK_BOX)
-                              .id("@+id/e")
-                              .withBounds(450, 530,60, 20)
-                              .width("100dp")
-                              .height("20dp")
-                              .withAttribute("android:layout_alignStart", "@+id/a")
-                              .withAttribute("android:layout_alignBottom", "@+id/a")
-                              .withAttribute("android:layout_marginStart", "-10dp")
-                              .withAttribute("android:layout_marginBottom", "-10dp"),
-                            component(SEEK_BAR)
-                              .id("@+id/f")
-                              .withBounds(490, 450, 60, 20)
-                              .width("100dp")
-                              .height("20dp")
-                              .withAttribute("android:layout_alignEnd", "@+id/a")
-                              .withAttribute("android:layout_alignTop", "@+id/a")
-                              .withAttribute("android:layout_marginEnd", "-10dp")
-                              .withAttribute("android:layout_marginTop", "-10dp"),
-                            component(SWITCH)
-                              .id("@+id/g")
-                              .withBounds(550, 430, 60, 20)
-                              .width("100dp")
-                              .height("20dp")
-                              .text("switch")
-                              .withAttribute("android:layout_toEndOf", "@+id/a")
-                              .withAttribute("android:layout_above", "@+id/a"),
-                            component(IMAGE_BUTTON)
-                              .id("@+id/h")
-                              .withBounds(390, 550, 60, 20)
-                              .width("100dp")
-                              .height("20dp")
-                              .withAttribute("android:layout_toStartOf", "@+id/a")
-                              .withAttribute("android:layout_below", "@+id/a")
-                          )
-    )
+    val builder =
+      model(
+        "relative.xml",
+        component(RELATIVE_LAYOUT)
+          .id("@+id/root")
+          .withBounds(0, 0, 1000, 1000)
+          .width("1000dp")
+          .height("1000dp")
+          .withAttribute("android:padding", "20dp")
+          .children(
+            component(PROGRESS_BAR)
+              .id("@+id/a")
+              .withBounds(450, 450, 100, 100)
+              .width("100dp")
+              .height("100dp")
+              .withAttribute("android:layout_centerInParent", "true"),
+            component(CHECK_BOX)
+              .id("@+id/e")
+              .withBounds(450, 530, 60, 20)
+              .width("100dp")
+              .height("20dp")
+              .withAttribute("android:layout_alignStart", "@+id/a")
+              .withAttribute("android:layout_alignBottom", "@+id/a")
+              .withAttribute("android:layout_marginStart", "-10dp")
+              .withAttribute("android:layout_marginBottom", "-10dp"),
+            component(SEEK_BAR)
+              .id("@+id/f")
+              .withBounds(490, 450, 60, 20)
+              .width("100dp")
+              .height("20dp")
+              .withAttribute("android:layout_alignEnd", "@+id/a")
+              .withAttribute("android:layout_alignTop", "@+id/a")
+              .withAttribute("android:layout_marginEnd", "-10dp")
+              .withAttribute("android:layout_marginTop", "-10dp"),
+            component(SWITCH)
+              .id("@+id/g")
+              .withBounds(550, 430, 60, 20)
+              .width("100dp")
+              .height("20dp")
+              .text("switch")
+              .withAttribute("android:layout_toEndOf", "@+id/a")
+              .withAttribute("android:layout_above", "@+id/a"),
+            component(IMAGE_BUTTON)
+              .id("@+id/h")
+              .withBounds(390, 550, 60, 20)
+              .width("100dp")
+              .height("20dp")
+              .withAttribute("android:layout_toStartOf", "@+id/a")
+              .withAttribute("android:layout_below", "@+id/a")
+          )
+      )
 
-    val expectedDrawCommand = if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      """Clip,0,0,500,500
+    val expectedDrawCommand =
+      if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+        """Clip,0,0,500,500
 DrawNlComponentFrame,195,275,30,10,3,20,20
 DrawResize,191,271,8,8,0
 DrawResize,191,281,8,8,0
@@ -365,8 +376,8 @@ DrawHorizontalArrowCommand - (225, 280, 280)
 DrawVerticalDashedLineCommand: (225, 225) - (225, 285)
 UNClip
 """
-    } else {
-      """Clip,0,0,500,500
+      } else {
+        """Clip,0,0,500,500
 DrawNlComponentFrame,195,275,30,10,3,20,20
 DrawResize,191,271,8,8,0
 DrawResize,191,281,8,8,0
@@ -382,7 +393,7 @@ DrawHorizontalArrowCommand - (225, 280, 280)
 DrawVerticalDashedLineCommand: (225, 225) - (225, 285)
 UNClip
 """
-    }
+      }
     val model = builder.build()
     SceneContext.get().setShowOnlySelection(true)
     model.surface.selectionModel.setSelection(listOf(model.find("h")!!))

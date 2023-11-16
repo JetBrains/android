@@ -20,14 +20,18 @@ import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
+import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.util.CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP
 import com.android.tools.idea.util.LinkedAndroidModuleGroup
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.DataNode
+import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
+import org.jetbrains.kotlin.idea.gradle.configuration.KotlinTargetData
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 
 object ModuleUtil {
@@ -57,6 +61,12 @@ object ModuleUtil {
   @JvmStatic
   fun DataNode<out ModuleData>.linkAndroidModuleGroup(dataToModuleMap: (ModuleData) -> Module?): LinkedAndroidModuleGroup? {
     val holderModule = dataToModuleMap(data) ?: return null
+
+    // check if it's a kotlin multiplatform module
+    if (ExternalSystemApiUtil.find(this, KotlinTargetData.KEY)?.data?.externalName == "android") {
+      linkKmpAndroidModuleGroup(dataToModuleMap, holderModule)
+      return null
+    }
     // Clear the links, this prevents old links from being used
     holderModule.putUserData(LINKED_ANDROID_MODULE_GROUP, null)
     var unitTestModule : Module? = null
@@ -73,7 +83,7 @@ object ModuleUtil {
       }
     }
     if (mainModule == null) {
-      logger<ModuleUtil>().error("Unexpected - Android module is missing a main source set")
+      logger<ModuleUtil>().error("Unexpected - Android module (${holderModule.name}) is missing a main source set")
       return null
     }
     val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule!!, unitTestModule, androidTestModule, testFixturesModule)
@@ -81,6 +91,50 @@ object ModuleUtil {
       module?.putUserData(LINKED_ANDROID_MODULE_GROUP, androidModuleGroup)
     }
     return androidModuleGroup
+  }
+
+  @JvmStatic
+  fun DataNode<out ModuleData>.linkKmpAndroidModuleGroup(
+      dataToModuleMap: (ModuleData) -> Module?,
+      holderModule: Module
+  ) {
+    // Clear the links, this prevents old links from being used
+    holderModule.putUserData(LINKED_ANDROID_MODULE_GROUP, null)
+    var unitTestModule : Module? = null
+    var androidTestModule : Module? = null
+    var mainModule : Module? = null
+
+    val kotlinMultiplatformAndroidSourceSetData = ExternalSystemApiUtil.findParent(
+      this,
+      ProjectKeys.PROJECT
+    )?.let {
+      ExternalSystemApiUtil.find(
+        it,
+        AndroidProjectKeys.KOTLIN_MULTIPLATFORM_ANDROID_SOURCE_SETS_TABLE
+      )
+    }?.data?.sourceSetsByGradleProjectPath?.get(this.data.id)
+
+    ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY).forEach {
+      when(it.data.externalName.substringAfterLast(":")) {
+        kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.MAIN) ->
+          mainModule = dataToModuleMap(it.data)
+        kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.UNIT_TEST) ->
+          unitTestModule = dataToModuleMap(it.data)
+        kotlinMultiplatformAndroidSourceSetData?.get(KotlinMultiplatformAndroidSourceSetType.ANDROID_TEST) ->
+          androidTestModule = dataToModuleMap(it.data)
+        else -> {
+          // can be anything, just ignore
+        }
+      }
+    }
+    if (mainModule == null) {
+      logger<ModuleUtil>().error("Unexpected - Android module is missing a main source set")
+      return
+    }
+    val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule!!, unitTestModule, androidTestModule, null)
+    androidModuleGroup.getModules().forEach { module ->
+      module.putUserData(LINKED_ANDROID_MODULE_GROUP, androidModuleGroup)
+    }
   }
 
   @JvmStatic

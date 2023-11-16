@@ -16,12 +16,14 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceError
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.intellij.openapi.actionSystem.DataKey
+import javax.swing.Icon
 
 /**
  * Immutable snapshot of relevant parts of a [DeviceHandle] or [DeviceTemplate] for use in
@@ -36,19 +38,29 @@ internal data class DeviceRowData(
   val handle: DeviceHandle?,
   val name: String,
   val type: DeviceType,
+  val icon: Icon,
   val androidVersion: AndroidVersion?,
   val abi: Abi?,
   val status: Status,
-  val isVirtual: Boolean,
+  val error: DeviceError?,
+  val handleType: HandleType,
+  val wearPairingId: String?,
+  val pairingStatus: List<PairingStatus>,
 ) {
   init {
     checkNotNull(handle ?: template) { "Either template or handle must be set" }
+    // Reference these DataKeys so they get registered before we create any DeviceRowDatas
+    DEVICE_ROW_DATA_KEY
+    DEVICE_HANDLE_KEY
   }
 
   fun key() = handle ?: template!!
 
+  val isVirtual
+    get() = handleType == HandleType.VIRTUAL
+
   companion object {
-    fun create(handle: DeviceHandle): DeviceRowData {
+    fun create(handle: DeviceHandle, pairingStatus: List<PairingStatus>): DeviceRowData {
       val state = handle.state
       val properties = state.properties
       return DeviceRowData(
@@ -56,6 +68,7 @@ internal data class DeviceRowData(
         handle = handle,
         name = properties.title,
         type = properties.deviceType ?: DeviceType.HANDHELD,
+        icon = properties.icon,
         androidVersion = properties.androidVersion,
         abi = properties.abi,
         status =
@@ -63,7 +76,16 @@ internal data class DeviceRowData(
             state.isOnline() -> Status.ONLINE
             else -> Status.OFFLINE
           },
-        isVirtual = properties.isVirtual ?: false,
+        error = state.error,
+        handleType =
+          when {
+            handle.reservationAction != null -> HandleType.REMOTE
+            properties.isVirtual == true -> HandleType.VIRTUAL
+            properties.isVirtual == false -> HandleType.PHYSICAL
+            else -> HandleType.UNKNOWN
+          },
+        wearPairingId = properties.wearPairingId,
+        pairingStatus = pairingStatus,
       )
     }
 
@@ -74,19 +96,31 @@ internal data class DeviceRowData(
         handle = null,
         name = properties.title,
         type = properties.deviceType ?: DeviceType.HANDHELD,
+        icon = properties.icon,
         androidVersion = properties.androidVersion,
         abi = properties.abi,
         status = Status.OFFLINE,
-        isVirtual = properties.isVirtual ?: false,
+        error = null,
+        handleType = HandleType.REMOTE,
+        wearPairingId = properties.wearPairingId,
+        pairingStatus = emptyList(),
       )
     }
-
-    private fun String.titlecase() = lowercase().let { it.replaceFirstChar { it.uppercase() } }
   }
 
   enum class Status {
     OFFLINE,
-    ONLINE,
+    ONLINE;
+    override fun toString() = name.titlecase()
+  }
+
+  enum class HandleType {
+    UNKNOWN,
+    PHYSICAL,
+    VIRTUAL,
+    REMOTE;
+
+    override fun toString() = name.titlecase()
   }
 }
 
@@ -98,3 +132,5 @@ internal fun provideRowData(dataId: String, row: DeviceRowData): Any? =
     DEVICE_HANDLE_KEY.`is`(dataId) -> row.handle
     else -> null
   }
+
+internal fun String.titlecase() = lowercase().let { it.replaceFirstChar { it.uppercase() } }

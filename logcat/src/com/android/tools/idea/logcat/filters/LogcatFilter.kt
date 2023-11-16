@@ -18,13 +18,13 @@ package com.android.tools.idea.logcat.filters
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.BUNDLE_NAME
 import com.android.tools.idea.logcat.LogcatBundle.message
-import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.ASSERT
 import com.android.tools.idea.logcat.message.LogLevel.ERROR
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.TextRange.EMPTY_RANGE
 import com.intellij.openapi.util.text.Strings
@@ -36,6 +36,7 @@ import java.time.Duration
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 import java.util.regex.PatternSyntaxException
+import kotlin.text.RegexOption.IGNORE_CASE
 
 private const val STUDIO_SPAM_PREFIX = "studio."
 
@@ -44,7 +45,7 @@ private const val STUDIO_SPAM_PREFIX = "studio."
  */
 internal class LogcatMasterFilter(private val logcatFilter: LogcatFilter?) {
   private val settings = AndroidLogcatSettings.getInstance()
-  private val ignoreSpam = StudioFlags.LOGCAT_IGNORE_STUDIO_SPAM_TAGS.get()
+  private val ignoreSpam = StudioFlags.LOGCAT_IGNORE_STUDIO_TAGS.get()
 
   fun filter(messages: List<LogcatMessage>, zoneId: ZoneId = ZoneId.systemDefault()): List<LogcatMessage> {
     if (logcatFilter == null) {
@@ -59,6 +60,7 @@ internal class LogcatMasterFilter(private val logcatFilter: LogcatFilter?) {
   private fun LogcatMessage.isSpam() =
     settings.ignoredTags.contains(header.tag) || (ignoreSpam && header.tag.startsWith(STUDIO_SPAM_PREFIX))
 }
+
 /**
  * Matches a [LogcatMessage]
  */
@@ -152,42 +154,47 @@ internal abstract class FieldFilter(
 internal data class StringFilter(
   val string: String,
   val field: LogcatFilterField,
+  val matchCase: Boolean,
   override val textRange: TextRange,
 ) : FieldFilter(string, field, textRange, "logcat.filter.completion.hint.key") {
-  override fun matches(message: LogcatMessageWrapper) = field.getValue(message).contains(string, ignoreCase = true)
+  override fun matches(message: LogcatMessageWrapper) = field.getValue(message).contains(string, ignoreCase = !matchCase)
 }
 
 internal data class NegatedStringFilter(
   val string: String,
   val field: LogcatFilterField,
+  val matchCase: Boolean,
   override val textRange: TextRange,
 ) : FieldFilter(string, field, textRange, "logcat.filter.completion.hint.key.negated") {
-  override fun matches(message: LogcatMessageWrapper) = !field.getValue(message).contains(string, ignoreCase = true)
+  override fun matches(message: LogcatMessageWrapper) = !field.getValue(message).contains(string, ignoreCase = !matchCase)
 }
 
 internal data class ExactStringFilter(
   val string: String,
   val field: LogcatFilterField,
+  val matchCase: Boolean,
   override val textRange: TextRange,
 ) : FieldFilter(string, field, textRange, "logcat.filter.completion.hint.key.exact") {
-  override fun matches(message: LogcatMessageWrapper) = field.getValue(message) == string
+  override fun matches(message: LogcatMessageWrapper) = field.getValue(message).equals(string, !matchCase)
 }
 
 internal data class NegatedExactStringFilter(
   val string: String,
   val field: LogcatFilterField,
+  val matchCase: Boolean,
   override val textRange: TextRange,
 ) : FieldFilter(string, field, textRange, "logcat.filter.completion.hint.key.exact.negated") {
-  override fun matches(message: LogcatMessageWrapper) = field.getValue(message) != string
+  override fun matches(message: LogcatMessageWrapper) = !field.getValue(message).equals(string, !matchCase)
 }
 
 internal data class RegexFilter(
   val string: String,
   val field: LogcatFilterField,
+  val matchCase: Boolean,
   override val textRange: TextRange,
 ) : FieldFilter(string, field, textRange, "logcat.filter.completion.hint.key.regex") {
   private val regex = try {
-    string.toRegex()
+    if (matchCase) string.toRegex() else string.toRegex(IGNORE_CASE)
   }
   catch (e: PatternSyntaxException) {
     throw LogcatFilterParseException(PsiErrorElementImpl("Invalid regular expression: $string"))
@@ -199,10 +206,11 @@ internal data class RegexFilter(
 internal data class NegatedRegexFilter(
   val string: String,
   val field: LogcatFilterField,
+  val matchCase: Boolean,
   override val textRange: TextRange,
 ) : FieldFilter(string, field, textRange, "logcat.filter.completion.hint.key.regex.negated") {
   private val regex = try {
-    string.toRegex()
+    if (matchCase) string.toRegex() else string.toRegex(IGNORE_CASE)
   }
   catch (e: PatternSyntaxException) {
     throw LogcatFilterParseException(PsiErrorElementImpl("Invalid regular expression: $string"))
@@ -261,22 +269,22 @@ internal data class AgeFilter(
  * A special filter that matches the appName field in a [LogcatMessage] against a list of package names from the project.
  */
 internal class ProjectAppFilter(
-  private val packageNamesProvider: PackageNamesProvider,
+  private val projectApplicationIdsProvider: ProjectApplicationIdsProvider,
   override val textRange: TextRange,
 ) : LogcatFilter(textRange) {
   private var packageNames: Set<String> = emptySet()
   private var packageNamesRegex: Regex? = null
 
   override val displayText: String
-    get() = when (packageNamesProvider.getPackageNames().size) {
+    get() = when (projectApplicationIdsProvider.getPackageNames().size) {
       0 -> message("logcat.filter.completion.hint.package.mine.empty")
       else -> message(
         "logcat.filter.completion.hint.package.mine.items",
-        packageNamesProvider.getPackageNames().joinToString("<br/>&nbsp;&nbsp;"))
+        projectApplicationIdsProvider.getPackageNames().joinToString("<br/>&nbsp;&nbsp;"))
     }
 
   override fun prepare() {
-    packageNames = packageNamesProvider.getPackageNames()
+    packageNames = projectApplicationIdsProvider.getPackageNames()
     packageNamesRegex = if (packageNames.isNotEmpty()) packageNames.joinToString("|") { it.replace(".", "\\.") }.toRegex() else null
   }
 
@@ -286,9 +294,9 @@ internal class ProjectAppFilter(
            || (header.logLevel >= ERROR && packageNamesRegex?.containsMatchIn(message.logcatMessage.message) == true)
   }
 
-  override fun equals(other: Any?) = other is ProjectAppFilter && packageNamesProvider == other.packageNamesProvider
+  override fun equals(other: Any?) = other is ProjectAppFilter && projectApplicationIdsProvider == other.projectApplicationIdsProvider
 
-  override fun hashCode() = packageNamesProvider.hashCode()
+  override fun hashCode() = projectApplicationIdsProvider.hashCode()
 }
 
 /*
@@ -342,7 +350,7 @@ internal data class StackTraceFilter(override val textRange: TextRange) : Logcat
   override fun matches(message: LogcatMessageWrapper): Boolean = exceptionLinePattern.find(message.logcatMessage.message) != null
 }
 
-internal object EmptyFilter: LogcatFilter(EMPTY_RANGE) {
+internal object EmptyFilter : LogcatFilter(EMPTY_RANGE) {
   override val displayText: String = ""
 
   override fun matches(message: LogcatMessageWrapper): Boolean = true

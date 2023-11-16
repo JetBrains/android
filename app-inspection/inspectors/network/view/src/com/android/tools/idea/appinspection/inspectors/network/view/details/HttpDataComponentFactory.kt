@@ -439,8 +439,8 @@ class HttpDataComponentFactory(
           (typeAndSubType[0] == "text" || typeAndSubType[0] == "application")
       val name = if (showSubType) typeAndSubType[1] else typeAndSubType[0]
       return if (name.isEmpty() || showSubType) {
-        name.toUpperCase(Locale.getDefault())
-      } else name.substring(0, 1).toUpperCase(Locale.getDefault()) + name.substring(1)
+        name.uppercase(Locale.getDefault())
+      } else name.substring(0, 1).uppercase(Locale.getDefault()) + name.substring(1)
     }
   }
 }

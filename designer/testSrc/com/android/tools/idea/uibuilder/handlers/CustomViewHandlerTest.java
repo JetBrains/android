@@ -13,12 +13,14 @@
 // limitations under the License.
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.testutils.AsyncTestUtils.waitForCondition;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Collections.emptyList;
 
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.intellij.psi.PsiClass;
+import java.util.concurrent.TimeUnit;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
@@ -51,16 +53,22 @@ public class CustomViewHandlerTest extends AndroidTestCase {
     "    }\n" +
     "}";
 
-  private void setUpMyClasses(@NotNull String tagName) {
+  private void setUpMyClasses(@NotNull String tagName) throws Exception {
     myFixture.addClass(innerClass);
     PsiClass psiClass = myFixture.findClass(tagName);
     myTagName = tagName;
     myClassName = PackageClassConverter.getQualifiedName(psiClass);
     ViewHandlerManager manager = ViewHandlerManager.get(getProject());
-    myDefaultHandler = manager.getHandlerOrDefault(myTagName);
+    boolean[] wasUpdated = new boolean[1];
+    Runnable updated = () -> { wasUpdated[0] = true; };
+    myDefaultHandler = manager.getHandlerOrDefault(myTagName, updated);
+    if (myDefaultHandler == ViewHandlerManager.TEMP) {
+      waitForCondition(10, TimeUnit.SECONDS, () -> wasUpdated[0]);
+      myDefaultHandler = manager.getHandlerOrDefault(myTagName, updated);
+    }
   }
 
-  public void testGetXml() {
+  public void testGetXml() throws Exception {
     setUpMyClasses(MY_TEXT_VIEW);
     ViewHandler handler = new CustomViewHandler(myDefaultHandler, null, myTagName, myClassName,
                                                 null, null, "", null, emptyList());
@@ -74,14 +82,14 @@ public class CustomViewHandlerTest extends AndroidTestCase {
     assertThat(handler.getXml(myTagName, XmlType.COMPONENT_CREATION)).isEqualTo(expected);
   }
 
-  public void testGetSpecifiedXml() {
+  public void testGetSpecifiedXml() throws Exception {
     setUpMyClasses(MY_CHECKBOX);
     ViewHandler handler = new CustomViewHandler(myDefaultHandler, null, myTagName, myClassName,
                                                 "<myxml/>", null, "", null, emptyList());
     assertThat(handler.getXml(myTagName, XmlType.COMPONENT_CREATION)).isEqualTo("<myxml/>");
   }
 
-  public void testGetXmlOfInnerClass() {
+  public void testGetXmlOfInnerClass() throws Exception {
     setUpMyClasses(MY_CHECKBOX);
     ViewHandler handler = new CustomViewHandler(myDefaultHandler, null, myTagName, myClassName,
                                                 null, null, "", null, emptyList());

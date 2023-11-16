@@ -18,7 +18,7 @@ package com.android.tools.property.panel.impl.model.util
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class FakeAction(text: String): AnAction(text) {
+class FakeAction(text: String) : AnAction(text) {
   var actionPerformedCount = 0
     private set
 

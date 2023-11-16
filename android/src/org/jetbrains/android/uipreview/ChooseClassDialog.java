@@ -27,6 +27,7 @@ import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import java.awt.event.MouseEvent;
 import java.text.Collator;
 import java.util.ArrayList;
@@ -40,8 +41,6 @@ import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.jetbrains.annotations.NotNull;
@@ -67,28 +66,13 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
       }
     }.installOn(myList);
 
+    // The cell renderer is calculated in the background when using PsiClassListCellRenderer so, by the time the dialog
+    // opens we can not yet calculate the right width. With this, we ensure that it is visible in all conditions.
+    myComponent.setPreferredSize(JBUI.size(900, 300));
+
     DefaultListModel<PsiClass> model = new DefaultListModel<>();
     model.addAll(classes);
-    // Add a listener to the model to detect content changes. Even though the content itself never changes (it's always "classes"),\
-    // the UI elements are calculated in a background thread. When the final UI is ready, the contentChanged listener will be called.
-    // When that happens, we call repack to ensure the full UI is visible.
-    model.addListDataListener(new ListDataListener() {
-      @Override
-      public void intervalAdded(ListDataEvent e) { }
 
-      @Override
-      public void intervalRemoved(ListDataEvent e) { }
-
-      @Override
-      public void contentsChanged(ListDataEvent e) {
-        remeasureDialog();
-      }
-
-      private void remeasureDialog() {
-        model.removeListDataListener(this);
-        if (isVisible()) pack();
-      }
-    });
     myList.setModel(model);
     myList.setCellRenderer(new PsiClassListCellRenderer());
 

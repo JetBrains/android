@@ -21,8 +21,8 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
-import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -51,8 +51,11 @@ class ComposeResolverTest {
     val resolver = ComposeResolver(projectRule.project)
     val navigatable = resolver.findComposableNavigatable(composable)
     navigatable!!.navigate(true)
-    fileOpenCaptureRule.checkEditor("MyCompose.kt", 17,
-                                    "Column(modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),")
+    fileOpenCaptureRule.checkEditor(
+      "MyCompose.kt",
+      17,
+      "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),"
+    )
   }
 
   @RunsInEdt
@@ -68,20 +71,26 @@ class ComposeResolverTest {
 
   private fun loadComposeFiles() {
     val fixture = projectRule.fixture
-    fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
+    fixture.testDataPath =
+      TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
     fixture.copyFileToProject("java/com/example/MyCompose.kt")
     fixture.copyFileToProject("java/com/example/composable/MyCompose.kt")
   }
 
   private fun createModel(): InspectorModel =
-    model(projectRule.project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture) {
-      view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
-        compose(-2, "Column", "MyCompose.kt", 49835523, 532, 17) {
-          compose(-3, "Text", "MyCompose.kt", 49835523, 585, 18)
-          compose(-4, "Greeting", "MyCompose.kt", 49835523, 614, 19) {
-            compose(-5, "Text", "MyCompose.kt", 1216697758, 156, 3)
+    model(
+      projectRule.project,
+      FakeTreeSettings(),
+      body =
+        DemoExample.setUpDemo(projectRule.fixture) {
+          view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
+            compose(-2, "Column", "MyCompose.kt", 49835523, 540, 17) {
+              compose(-3, "Text", "MyCompose.kt", 49835523, 593, 18)
+              compose(-4, "Greeting", "MyCompose.kt", 49835523, 622, 19) {
+                compose(-5, "Text", "MyCompose.kt", 1216697758, 164, 3)
+              }
+            }
           }
         }
-      }
-    })
+    )
 }

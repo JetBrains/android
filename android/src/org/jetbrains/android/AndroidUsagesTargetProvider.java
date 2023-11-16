@@ -14,6 +14,7 @@ import com.intellij.usages.UsageTarget;
 import com.intellij.usages.UsageTargetProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.utils.KotlinExceptionWithAttachments;
 
 /**
  * When performing FindUsages or Refactor Renaming on Android Resources, further processing is performed:
@@ -32,7 +33,12 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
     if (contextElement == null) {
       return UsageTarget.EMPTY_ARRAY;
     }
-    PsiElement targetElement = TargetElementUtil.findTargetElement(editor, TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED);
+    PsiElement targetElement = null;
+    try {
+      targetElement = TargetElementUtil.findTargetElement(editor, TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED);
+    }
+    catch (KotlinExceptionWithAttachments e) {
+    }
     ResourceReferencePsiElement resourceReferencePsiElement = null;
     if (targetElement != null) {
       resourceReferencePsiElement = ResourceReferencePsiElement.create(targetElement);

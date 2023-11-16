@@ -19,7 +19,8 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.ImageUtils.ellipticalClip
-import com.android.tools.idea.streaming.coerceAtMost
+import com.android.tools.idea.streaming.core.rotatedByQuadrants
+import com.android.tools.idea.streaming.core.scaled
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.util.containers.ContainerUtil
@@ -173,16 +174,6 @@ internal class VideoDecoder(
     private val pendingPacket: AVPacket = av_packet_alloc()
     private var hasPendingPacket = false
 
-    private val renderingSize: Dimension
-      get() {
-        val videoSize = Dimension(decodingFrame.width(), decodingFrame.height())
-        val maximumSize = maxOutputSize
-        if (maximumSize.width == 0 || maximumSize.height == 0) {
-          return videoSize
-        }
-        return videoSize.coerceAtMost(maximumSize)
-      }
-
     init {
       thisLogger().debug { "Receiving $codecName video stream" }
       val ffmpegCodecName = when (codecName) {
@@ -320,11 +311,12 @@ internal class VideoDecoder(
         throw VideoDecoderException("Could not receive video frame")
       }
 
-      val size = renderingSize
+      val frameWidth = decodingFrame.width()
+      val frameHeight = decodingFrame.height()
       var renderingFrame = renderingFrame
-      if (renderingFrame == null || renderingFrame.width() != size.width || renderingFrame.height() != size.height) {
+      if (renderingFrame == null || renderingFrame.width() != frameWidth || renderingFrame.height() != frameHeight) {
         renderingFrame?.let { av_frame_free(it) }
-        renderingFrame = createRenderingFrame(size).also { this.renderingFrame = it }
+        renderingFrame = createRenderingFrame(frameWidth, frameHeight).also { this.renderingFrame = it }
         if (av_frame_get_buffer(renderingFrame, 4) < 0) {
           throw RuntimeException("av_frame_get_buffer failed")
         }
@@ -333,25 +325,30 @@ internal class VideoDecoder(
         throw RuntimeException("av_frame_make_writable failed")
       }
 
-      sws_scale(getSwsContext(renderingFrame), decodingFrame.data(), decodingFrame.linesize(), 0, decodingFrame.height(),
+      sws_scale(getSwsContext(renderingFrame), decodingFrame.data(), decodingFrame.linesize(), 0, frameHeight,
                 renderingFrame.data(), renderingFrame.linesize())
 
-      val numBytes = av_image_get_buffer_size(renderingFrame.format(), renderingFrame.width(), renderingFrame.height(), 1)
+      val numBytes = av_image_get_buffer_size(renderingFrame.format(), frameWidth, frameHeight, 1)
       val framePixels = renderingFrame.data().get().asByteBufferOfSize(numBytes).asIntBuffer()
-      val imageSize = Dimension(renderingFrame.width(), renderingFrame.height())
+      // Due to video size alignment requirements, the video frame may contain black strips at the top and at the bottom.
+      // These black strips have to be excluded from the rendered image.
+      val rotatedDisplaySize = header.displaySize.rotatedByQuadrants(header.displayOrientation - header.displayOrientationCorrection)
+      val imageHeight = frameWidth.scaled(rotatedDisplaySize.height.toDouble() / rotatedDisplaySize.width).coerceAtMost(frameHeight)
+      val startY = (frameHeight - imageHeight) / 2
+      framePixels.position(startY * frameWidth) // Skip the potential black strip at the top of the frame.
 
       synchronized(imageLock) {
         var image = displayFrame?.image
-        if (image?.width == imageSize.width && image.height == imageSize.height &&
+        if (image?.width == frameWidth && image.height == imageHeight &&
             displayFrame?.orientationCorrection == 0 && header.displayOrientationCorrection == 0 && !header.displayRound) {
           val imagePixels = (image.raster.dataBuffer as DataBufferInt).data
-          framePixels.get(imagePixels)
+          framePixels.get(imagePixels, 0, imageHeight * frameWidth)
         }
         else {
-          val imagePixels = IntArray(imageSize.width * imageSize.height)
-          framePixels.get(imagePixels)
+          val imagePixels = IntArray(frameWidth * imageHeight)
+          framePixels.get(imagePixels, 0, imageHeight * frameWidth)
           val buffer = DataBufferInt(imagePixels, imagePixels.size)
-          val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, imageSize.width, imageSize.height, SAMPLE_MODEL_BIT_MASKS)
+          val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, frameWidth, imageHeight, SAMPLE_MODEL_BIT_MASKS)
           val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
           image = ImageUtils.rotateByQuadrants(BufferedImage(COLOR_MODEL, raster, false, null), header.displayOrientationCorrection)
           if (header.displayRound) {
@@ -370,15 +367,15 @@ internal class VideoDecoder(
       val context = sws_getCachedContext(swsContext, decodingFrame.width(), decodingFrame.height(), decodingFrame.format(),
                                          renderingFrame.width(), renderingFrame.height(), renderingFrame.format(),
                                          SWS_BILINEAR, null, null, null as DoublePointer?) ?:
-             throw VideoDecoderException("Could not allocate SwsContext")
+          throw VideoDecoderException("Could not allocate SwsContext")
       swsContext = context
       return context
     }
 
-    private fun createRenderingFrame(size: Dimension): AVFrame {
+    private fun createRenderingFrame(width: Int, height: Int): AVFrame {
       return av_frame_alloc().apply {
-        width(size.width)
-        height(size.height)
+        width(width)
+        height(height)
         format(AV_PIX_FMT_BGRA)
       }
     }

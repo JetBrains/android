@@ -22,18 +22,17 @@ import com.intellij.ui.AnActionButton
 import java.awt.Component
 import javax.swing.JComponent
 
-/**
- * AnAction for target [BaseCreatePanel].
- */
-class PanelAction(private val panel: BaseCreatePanel, private val motionEditor: MotionEditor)
-  : AnActionButton(panel.name, panel.icon) {
+/** AnAction for target [BaseCreatePanel]. */
+class PanelAction(private val panel: BaseCreatePanel, private val motionEditor: MotionEditor) :
+  AnActionButton(panel.name, panel.icon) {
 
   /**
-   * If current action appears in popup, context should be set, otherwise it will use component which already could be not available.
+   * If current action appears in popup, context should be set, otherwise it will use component
+   * which already could be not available.
    */
   var context: Component? = null
 
   override fun actionPerformed(e: AnActionEvent) {
-    panel.doAction((context ?: e.inputEvent?.component) as? JComponent, motionEditor)
+    panel.doAction((context ?: e.inputEvent?.component) as JComponent, motionEditor)
   }
 }

@@ -28,15 +28,15 @@
     <orderEntry type="library" name="emulator-proto" level="project" />
     <orderEntry type="module-library">
       <library name="ffmpeg" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg:5.1.2-1.5.8">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg:6.0-1.5.9">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg/5.1.2-1.5.8/ffmpeg-5.1.2-1.5.8.jar">
-              <sha256sum>37d53454b3c704bea04d7b8388b6e4c6789a57152f63cee0c414b3dd730d3464</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg/6.0-1.5.9/ffmpeg-6.0-1.5.9.jar">
+              <sha256sum>38c437218569f861fd43f15aa810b3eb9af4bdb02a7003f54c4d454590378079</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg/5.1.2-1.5.8/ffmpeg-5.1.2-1.5.8.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg/6.0-1.5.9/ffmpeg-6.0-1.5.9.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -44,15 +44,15 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="ffmpeg-javacpp" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:javacpp:1.5.8">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:javacpp:1.5.9">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp/1.5.8/javacpp-1.5.8.jar">
-              <sha256sum>27d5eaf8f4433f6404aae0ad34cdbbfac75174e244c11d38222e0d075af33863</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp/1.5.9/javacpp-1.5.9.jar">
+              <sha256sum>1f85780cda084ba11fe0611558397d02486154777226eedee640d2867ce4231d</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp/1.5.8/javacpp-1.5.8.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp/1.5.9/javacpp-1.5.9.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -60,15 +60,15 @@
     </orderEntry>
     <orderEntry type="module-library" scope="RUNTIME">
       <library name="ffmpeg-linux-x64" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg-linux-x86_64:5.1.2-1.5.8">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg-linux-x86_64:6.0-1.5.9">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-linux-x86_64/5.1.2-1.5.8/ffmpeg-linux-x86_64-5.1.2-1.5.8.jar">
-              <sha256sum>5761863f13760b5609ff85ce7780dcdb71c8b8256c1c6b817ece4e5c86ea7f5b</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-linux-x86_64/6.0-1.5.9/ffmpeg-linux-x86_64-6.0-1.5.9.jar">
+              <sha256sum>3b26dc266a24da542c012a08e445b8a212703d152d0f0e4663dd7d253bebe819</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-linux-x86_64/5.1.2-1.5.8/ffmpeg-linux-x86_64-5.1.2-1.5.8.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-linux-x86_64/6.0-1.5.9/ffmpeg-linux-x86_64-6.0-1.5.9.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -76,15 +76,15 @@
     </orderEntry>
     <orderEntry type="module-library" scope="RUNTIME">
       <library name="ffmpeg-macos-aarch64" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg-macosx-arm64:5.1.2-1.5.8">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg-macosx-arm64:6.0-1.5.9">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-macosx-arm64/5.1.2-1.5.8/ffmpeg-macosx-arm64-5.1.2-1.5.8.jar">
-              <sha256sum>64b7c4ccebe0475d0121717fa76218392a77b3c39da77f681d58c48689edddf4</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-macosx-arm64/6.0-1.5.9/ffmpeg-macosx-arm64-6.0-1.5.9.jar">
+              <sha256sum>d627ceb140fa627f131f7ae341c2e0143ba4501f57245578b8bdd3f5f6a6e5d0</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-macosx-arm64/5.1.2-1.5.8/ffmpeg-macosx-arm64-5.1.2-1.5.8.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-macosx-arm64/6.0-1.5.9/ffmpeg-macosx-arm64-6.0-1.5.9.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -92,15 +92,15 @@
     </orderEntry>
     <orderEntry type="module-library" scope="RUNTIME">
       <library name="ffmpeg-macos-x64" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg-macosx-x86_64:5.1.2-1.5.8">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg-macosx-x86_64:6.0-1.5.9">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-macosx-x86_64/5.1.2-1.5.8/ffmpeg-macosx-x86_64-5.1.2-1.5.8.jar">
-              <sha256sum>85f1cb19db3c9c642aed219fed2954390fc368c489f0701b6966207fb3e5dd7c</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-macosx-x86_64/6.0-1.5.9/ffmpeg-macosx-x86_64-6.0-1.5.9.jar">
+              <sha256sum>910f35440b75f341787be21be5e5f72a70a8d43b27022f10a31d833652117534</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-macosx-x86_64/5.1.2-1.5.8/ffmpeg-macosx-x86_64-5.1.2-1.5.8.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-macosx-x86_64/6.0-1.5.9/ffmpeg-macosx-x86_64-6.0-1.5.9.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -108,15 +108,15 @@
     </orderEntry>
     <orderEntry type="module-library" scope="RUNTIME">
       <library name="ffmpeg-windows-x64" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg-windows-x86_64:5.1.2-1.5.8">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg-windows-x86_64:6.0-1.5.9">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-windows-x86_64/5.1.2-1.5.8/ffmpeg-windows-x86_64-5.1.2-1.5.8.jar">
-              <sha256sum>ce354e994754311bb590ed38da0289cad55c68948b44d6b313cf32690246c40e</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-windows-x86_64/6.0-1.5.9/ffmpeg-windows-x86_64-6.0-1.5.9.jar">
+              <sha256sum>c2dba4e82e5ad865412f72b8f02ff5462088666100f9734b46a4023bac3e2a5c</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-windows-x86_64/5.1.2-1.5.8/ffmpeg-windows-x86_64-5.1.2-1.5.8.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-windows-x86_64/6.0-1.5.9/ffmpeg-windows-x86_64-6.0-1.5.9.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -124,15 +124,15 @@
     </orderEntry>
     <orderEntry type="module-library" scope="RUNTIME">
       <library name="javacpp-linux-x64" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:javacpp-linux-x86_64:1.5.8">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:javacpp-linux-x86_64:1.5.9">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-linux-x86_64/1.5.8/javacpp-linux-x86_64-1.5.8.jar">
-              <sha256sum>36b78057cdcc5fa0dc950e29271a58c0a6efc5573bd9bd2845b99cccbb3116a7</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-linux-x86_64/1.5.9/javacpp-linux-x86_64-1.5.9.jar">
+              <sha256sum>433fd379cf807f5507318b77d83ad46c30a77b34beab868d5f925b939d73aef7</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-linux-x86_64/1.5.8/javacpp-linux-x86_64-1.5.8.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-linux-x86_64/1.5.9/javacpp-linux-x86_64-1.5.9.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -140,15 +140,15 @@
     </orderEntry>
     <orderEntry type="module-library" scope="RUNTIME">
       <library name="javacpp-macos-aarch64" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:javacpp-macosx-arm64:1.5.8">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:javacpp-macosx-arm64:1.5.9">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-macosx-arm64/1.5.8/javacpp-macosx-arm64-1.5.8.jar">
-              <sha256sum>c605748036b7158edca0128c3febce6bae7c4b297406563ebae2a0dcbc591261</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-macosx-arm64/1.5.9/javacpp-macosx-arm64-1.5.9.jar">
+              <sha256sum>7a4d4550d047b981636cdb9a686a54878785fd66476eb5d70ad0c66668fe91c3</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-macosx-arm64/1.5.8/javacpp-macosx-arm64-1.5.8.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-macosx-arm64/1.5.9/javacpp-macosx-arm64-1.5.9.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -156,15 +156,15 @@
     </orderEntry>
     <orderEntry type="module-library" scope="RUNTIME">
       <library name="javacpp-macos-x64" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:javacpp-macosx-x86_64:1.5.8">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:javacpp-macosx-x86_64:1.5.9">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-macosx-x86_64/1.5.8/javacpp-macosx-x86_64-1.5.8.jar">
-              <sha256sum>6c4f0bf404787c5a374c573b2445d5d6d8ce620f7c9ef41b2c601d1fe3836d6a</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-macosx-x86_64/1.5.9/javacpp-macosx-x86_64-1.5.9.jar">
+              <sha256sum>a52d5d0bbd59e4c955faf1a2012b9e2b0b66f6ce4a58097c809e1d12add09174</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-macosx-x86_64/1.5.8/javacpp-macosx-x86_64-1.5.8.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-macosx-x86_64/1.5.9/javacpp-macosx-x86_64-1.5.9.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -172,15 +172,15 @@
     </orderEntry>
     <orderEntry type="module-library" scope="RUNTIME">
       <library name="javacpp-windows-x64" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:javacpp-windows-x86_64:1.5.8">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:javacpp-windows-x86_64:1.5.9">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-windows-x86_64/1.5.8/javacpp-windows-x86_64-1.5.8.jar">
-              <sha256sum>1bb08194d76780cd885fbfd27ed24dfb1ca088ee0b7a8aea25a836cb1506eedc</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-windows-x86_64/1.5.9/javacpp-windows-x86_64-1.5.9.jar">
+              <sha256sum>3fa369db5c0cdeb9fe3382512b874a3ccddd5f2799a31b564c438102f1aa7b86</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-windows-x86_64/1.5.8/javacpp-windows-x86_64-1.5.8.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp-windows-x86_64/1.5.9/javacpp-windows-x86_64-1.5.9.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -203,7 +203,6 @@
     <orderEntry type="module" module-name="intellij.platform.lang.core" />
     <orderEntry type="module" module-name="intellij.platform.util.base" />
     <orderEntry type="module" module-name="intellij.platform.ide.util.io" />
-    <orderEntry type="module" module-name="kotlin.idea" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
     <orderEntry type="module" module-name="intellij.platform.ide.core.impl" />
     <orderEntry type="module" module-name="intellij.platform.editor" />
@@ -215,10 +214,12 @@
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.platform.core.impl" />
-    <orderEntry type="module" module-name="intellij.platform.util.ex" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="intellij.platform.concurrency" />
+    <orderEntry type="module" module-name="kotlin.idea" />
+    <orderEntry type="module" module-name="intellij.platform.collaborationTools" />
+    <orderEntry type="library" name="kotlinx-coroutines-guava" level="project" />
   </component>
 </module>

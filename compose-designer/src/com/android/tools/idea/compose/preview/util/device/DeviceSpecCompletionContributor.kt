@@ -111,8 +111,8 @@ class DeviceSpecCompletionContributor : CompletionContributor() {
         .withParent(
           PlatformPatterns.psiElement(PsiErrorElement::class.java)
             .afterLeaf(
-              PlatformPatterns.or(PlatformPatterns.psiElement(DeviceSpecTypes.COLON),
-                                  PlatformPatterns.psiElement(DeviceSpecTypes.COMMA))
+              PlatformPatterns.psiElement(DeviceSpecTypes.COLON)
+                .or(PlatformPatterns.psiElement(DeviceSpecTypes.COMMA))
             )
         )
         .withSuperParent(2, DeviceSpecPsiFile::class.java),

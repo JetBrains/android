@@ -21,6 +21,7 @@ import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.CTRL_LEFT
 import com.android.tools.adtui.swing.FakeUi
@@ -30,7 +31,6 @@ import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.actions.PopupActionGroupAction
 import com.android.tools.idea.logcat.devices.Device
@@ -39,6 +39,7 @@ import com.android.tools.idea.logcat.devices.FakeDeviceComboBoxDeviceTracker
 import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
+import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
 import com.android.tools.idea.logcat.filters.LogcatMasterFilter
 import com.android.tools.idea.logcat.filters.ProjectAppFilter
 import com.android.tools.idea.logcat.filters.StringFilter
@@ -66,6 +67,7 @@ import com.android.tools.idea.logcat.util.logcatEvents
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.logcat.util.onIdle
 import com.android.tools.idea.logcat.util.waitForCondition
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.ApplicationServiceRule
@@ -193,6 +195,9 @@ class LogcatMainPanelTest {
       "Next Occurrence",
       "Soft-Wrap",
       "-",
+      "Import Logs from a File",
+      "Export Logs to a File",
+      "-",
       "Configure Logcat Formatting Options",
       "  Standard View",
       "  Compact View",
@@ -257,7 +262,7 @@ class LogcatMainPanelTest {
     ))
 
     logcatMainPanel.messageProcessor.onIdle {
-      logcatMainPanel.applyFilter(StringFilter("tag1", LINE, EMPTY_RANGE))
+      logcatMainPanel.applyFilter(StringFilter("tag1", LINE, matchCase = true, EMPTY_RANGE))
     }
 
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
@@ -514,14 +519,18 @@ class LogcatMainPanelTest {
     val logcatMainPanel = logcatMainPanel(
       state = LogcatPanelConfig(
         device = null,
+        file = null,
         FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(17))),
         filter = "foo",
+        filterMatchCase = true,
         isSoftWrap = true))
 
     // TODO(aalbert) : Also assert on device field when the combo is rewritten to allow testing.
     assertThat(logcatMainPanel.formattingOptions.tagFormat.maxLength).isEqualTo(17)
-    assertThat(logcatMainPanel.messageProcessor.logcatFilter).isEqualTo(StringFilter("foo", IMPLICIT_LINE, TextRange(0, "foo".length)))
+    assertThat(logcatMainPanel.messageProcessor.logcatFilter)
+      .isEqualTo(StringFilter("foo", IMPLICIT_LINE, matchCase = true, TextRange(0, "foo".length)))
     assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("foo")
+    assertThat(logcatMainPanel.headerPanel.filterMatchCase).isTrue()
     assertThat(logcatMainPanel.isSoftWrapEnabled()).isTrue()
   }
 
@@ -732,7 +741,7 @@ class LogcatMainPanelTest {
   @RunsInEdt
   @Test
   fun usageTracking_noState_standard() {
-    logcatMainPanel(state = null)
+    logcatMainPanel(state = null, logcatSettings = AndroidLogcatSettings(bufferSize = 1000))
 
     assertThat(usageTrackerRule.logcatEvents()).containsExactly(
       LogcatUsageEvent.newBuilder()
@@ -755,15 +764,16 @@ class LogcatMainPanelTest {
                 .setPackageWidth(35))
             .setFilter(
               LogcatFilterEvent.newBuilder()
-                .setPackageProjectTerms(1)))
-        .build())
+                .setPackageProjectTerms(1))
+            .setBufferSize(1000)
+        ).build())
   }
 
   @RunsInEdt
   @Test
   fun usageTracking_noState_compact() {
     androidLogcatFormattingOptions.defaultFormatting = COMPACT
-    logcatMainPanel(state = null)
+    logcatMainPanel(state = null, logcatSettings = AndroidLogcatSettings(bufferSize = 1000))
 
     assertThat(usageTrackerRule.logcatEvents()).containsExactly(
       LogcatUsageEvent.newBuilder()
@@ -786,18 +796,23 @@ class LogcatMainPanelTest {
                 .setPackageWidth(35))
             .setFilter(
               LogcatFilterEvent.newBuilder()
-                .setPackageProjectTerms(1)))
-        .build())
+                .setPackageProjectTerms(1))
+            .setBufferSize(1000)
+        ).build())
   }
 
   @RunsInEdt
   @Test
   fun usageTracking_withState_preset() {
-    logcatMainPanel(state = LogcatPanelConfig(
-      device = null,
-      formattingConfig = FormattingConfig.Preset(COMPACT),
-      "filter",
-      isSoftWrap = false))
+    logcatMainPanel(
+      state = LogcatPanelConfig(
+        device = null,
+        file = null,
+        formattingConfig = FormattingConfig.Preset(COMPACT),
+        "filter",
+        filterMatchCase = true,
+        isSoftWrap = false),
+      logcatSettings = AndroidLogcatSettings(bufferSize = 1000))
 
     assertThat(usageTrackerRule.logcatEvents()).containsExactly(
       LogcatUsageEvent.newBuilder()
@@ -820,18 +835,23 @@ class LogcatMainPanelTest {
                 .setPackageWidth(35))
             .setFilter(
               LogcatFilterEvent.newBuilder()
-                .setImplicitLineTerms(1)))
-        .build())
+                .setImplicitLineTerms(1))
+            .setBufferSize(1000)
+        ).build())
   }
 
   @RunsInEdt
   @Test
   fun usageTracking_withState_custom() {
-    logcatMainPanel(state = LogcatPanelConfig(
-      device = null,
-      formattingConfig = FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(20, hideDuplicates = false, enabled = true))),
-      "filter",
-      isSoftWrap = false))
+    logcatMainPanel(
+      state = LogcatPanelConfig(
+        device = null,
+        file = null,
+        formattingConfig = FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(20, hideDuplicates = false, enabled = true))),
+        "filter",
+        filterMatchCase = true,
+        isSoftWrap = false),
+      logcatSettings = AndroidLogcatSettings(bufferSize = 1000))
 
     assertThat(usageTrackerRule.logcatEvents()).containsExactly(
       LogcatUsageEvent.newBuilder()
@@ -853,8 +873,9 @@ class LogcatMainPanelTest {
                 .setPackageWidth(35))
             .setFilter(
               LogcatFilterEvent.newBuilder()
-                .setImplicitLineTerms(1)))
-        .build())
+                .setImplicitLineTerms(1))
+            .setBufferSize(1000)
+        ).build())
   }
 
   @Test
@@ -1178,11 +1199,34 @@ class LogcatMainPanelTest {
     )
   }
 
+  @RunsInEdt
+  @Test
+  fun countFilterMatches_excludesSystemMessages() {
+    val logcatMainPanel = logcatMainPanel()
+    val messageBacklog = logcatMainPanel.messageBacklog.get()
+    val messages = messageBacklog.messages
+    val filter = StringFilter("Foo", TAG, matchCase = true, EMPTY_RANGE)
+    messageBacklog.addAll(listOf(
+      logcatMessage(tag = "Foo"),
+      LogcatMessage(SYSTEM_HEADER, ""),
+    ))
+
+    assertThat(LogcatMasterFilter(filter).filter(messages)).hasSize(2)
+    assertThat(logcatMainPanel.countFilterMatches(filter)).isEqualTo(1)
+  }
+
   private fun logcatMainPanel(
     splitterPopupActionGroup: ActionGroup = EMPTY_GROUP,
     logcatColors: LogcatColors = LogcatColors(),
     filter: String = "",
-    state: LogcatPanelConfig? = LogcatPanelConfig(device = null, FormattingConfig.Preset(STANDARD), filter = filter, isSoftWrap = false),
+    state: LogcatPanelConfig? = LogcatPanelConfig(
+      device = null,
+      file = null,
+      formattingConfig = FormattingConfig.Preset(STANDARD),
+      filter = filter,
+      filterMatchCase = false,
+      isSoftWrap = false
+    ),
     logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings(),
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
     hyperlinkDetector: HyperlinkDetector? = null,

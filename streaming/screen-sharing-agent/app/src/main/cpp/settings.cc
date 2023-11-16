@@ -17,37 +17,15 @@
 #include "settings.h"
 
 #include "log.h"
+#include "shell_command_executor.h"
 
 namespace screensharing {
 
 using namespace std;
 
-namespace {
-
-// Invokes a shell command and returns its output. Returns when the command finishes execution.
-string ExecuteCommand(const char* command) {
-  string output;
-  FILE* stream = popen(command, "r");
-  if (stream != nullptr) {
-    char buffer[256];
-    while (!feof(stream)) {
-      if (fgets(buffer, size(buffer), stream) != nullptr) {
-        output.append(buffer);
-      }
-    }
-    auto retcode = pclose(stream);
-    if (retcode != 0) {
-      Log::E("\"%s\" returned %d", command, retcode);
-    }
-  }
-  return output;
-}
-
-}  // namespace
-
 std::string Settings::Get(Settings::Table table, const char* key) {
   string command = string("cmd settings get ") + table_names_[static_cast<int>(table)] + " " + key;
-  string value = ExecuteCommand(command.c_str());
+  string value = ExecuteShellCommand(command.c_str());
   while (!value.empty() && value.back() <= ' ') {
     value.erase(value.size() - 1);
   }
@@ -58,9 +36,9 @@ void Settings::Put(Settings::Table table, const char* key, const char* value) {
   string command = *value == 0 ?
       string("cmd settings delete ") + table_names_[static_cast<int>(table)] + " " + key :
       string("cmd settings put ") + table_names_[static_cast<int>(table)] + " " + key + " " + value;
-  ExecuteCommand(command.c_str());
+  ExecuteShellCommand(command);
 }
 
-const char* Settings::table_names_[] = {"system", "secure", "global" };
+const char* Settings::table_names_[] = { "system", "secure", "global" };
 
 }  // namespace screensharing

@@ -15,13 +15,10 @@
  */
 package com.android.tools.compose
 
-import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
 import com.android.tools.compose.code.getComposableFunctionRenderParts
 import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.ItemPresentationProvider
 import org.jetbrains.kotlin.idea.presentation.KotlinFunctionPresentation
-import org.jetbrains.kotlin.idea.presentation.KtFunctionPresenter
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.psi.KtFunction
 
 /**
@@ -29,27 +26,14 @@ import org.jetbrains.kotlin.psi.KtFunction
  *
  * Composable methods will be displayed as "@Composable FunctionName". Other functions will maintain default display text (ie,
  * "functionName(arg1, arg2)".
- *
- * This implementation only modifies composable functions, and otherwise defers to the standard Kotlin presenter (implemented at
- * [KtFunctionPresenter]. Ideally we could just return null here for non-composable functions and the infrastructure would then go to the
- * next presenter; but the way the extension point is implemented means that it only runs the first presenter that's registered. So this
- * class must directly call into the KtFunctionPresenter that it's replacing, or else the overall default presentation for all elements
- * (which is not ideal for functions) will be used.
- *
- * This structure is sufficient for now, since this is the only ItemPresentationProvider for [KtFunction] that we have at the moment. If we
- * end up needing to implement other providers for [KtFunction] in the future, then we should re-evaluate whether the extension point needs
- * to be changed.
  */
 class ComposableItemPresentationProvider : ItemPresentationProvider<KtFunction> {
-  private val ktFunctionPresenter = KtFunctionPresenter()
-
   override fun getPresentation(function: KtFunction): ItemPresentation? {
-    if (function.name?.isNotEmpty() == true && function.descriptor?.hasComposableAnnotation() == true) {
+    if (function.name?.isNotEmpty() == true && function.hasComposableAnnotation()) {
       return ComposableFunctionPresentation(function)
     }
 
-    // Defer to standard Kotlin function presenter for non-compose functions.
-    return ktFunctionPresenter.getPresentation(function)
+    return null
   }
 
   /**

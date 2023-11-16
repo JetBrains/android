@@ -15,19 +15,16 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.devices.DeviceComboBox
+import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
 import com.android.tools.idea.logcat.filters.FilterTextField
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.application.runInEdt
-import com.intellij.openapi.editor.event.DocumentEvent
-import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
-import kotlinx.coroutines.flow.Flow
 import java.awt.Font
 import java.awt.LayoutManager
 import java.awt.event.ComponentAdapter
@@ -46,19 +43,20 @@ internal class LogcatHeaderPanel(
   val logcatPresenter: LogcatPresenter,
   private val filterParser: LogcatFilterParser,
   filter: String,
-  initialDevice: Device?,
+  filterMatchCase: Boolean,
+  initialItem: DeviceComboItem?,
 ) : JPanel() {
-  private val deviceComboBox = DeviceComboBox(project, initialDevice)
-  private val filterTextField = FilterTextField(project, logcatPresenter, filterParser, filter)
+  val deviceComboBox = DeviceComboBox(project, initialItem)
+  private val filterTextField = FilterTextField(project, logcatPresenter, filterParser, filter, filterMatchCase)
   private val helpIcon: JLabel = JLabel(AllIcons.General.ContextHelp)
 
   init {
     filterTextField.apply {
       font = Font.getFont(Font.MONOSPACED)
-      addDocumentListener(object : DocumentListener {
-        override fun documentChanged(event: DocumentEvent) {
+      addFilterChangedListener(object : FilterTextField.FilterChangedListener {
+        override fun onFilterChanged(filter: String, matchCase: Boolean) {
           runInEdt {
-            logcatPresenter.applyFilter(filterParser.parse(text))
+            logcatPresenter.applyFilter(filterParser.parse(filter, matchCase))
           }
         }
       })
@@ -81,15 +79,13 @@ internal class LogcatHeaderPanel(
     }
   }
 
-  fun trackSelectedDevice(): Flow<Device> = deviceComboBox.trackSelectedDevice()
-
   var filter: String
     get() = filterTextField.text
     set(value) {
       filterTextField.text = value
     }
 
-  fun getSelectedDevice(): Device? = deviceComboBox.selectedItem as? Device
+  val filterMatchCase: Boolean get() = filterTextField.matchCase
 
   private fun createWideLayout(): LayoutManager {
     val layout = GroupLayout(this)

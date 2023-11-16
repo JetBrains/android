@@ -85,7 +85,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
   private var treeInitiated: Boolean = false
   private var currentModuleSelectorStyle: ModuleSelectorStyle? = null
 
-  private val navigationPathName: String = BASE_PERSPECTIVE_MODULE_PLACE_NAME
+  val navigationPathName: String = BASE_PERSPECTIVE_MODULE_PLACE_NAME
   val selectedModule: PsModule? get() = myCurrentConfigurable?.editableObject as? PsModule
 
   init {
@@ -227,6 +227,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
     TreeSpeedSearch.installOn(myTree, true) { treePath -> (treePath.lastPathComponent as MasterDetailsComponent.MyNode).displayName }
     ToolTipManager.sharedInstance().registerComponent(myTree)
     myTree.cellRenderer = PsModuleCellRenderer(context)
+    Disposer.register(context) { myTree.cellRenderer = null; treeInitiated = false }
   }
 
   private fun loadTree() {

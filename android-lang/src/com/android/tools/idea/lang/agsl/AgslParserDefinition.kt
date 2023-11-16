@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.lang.agsl
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.lang.agsl.parser.AgslParser
 import com.android.tools.idea.lang.agsl.psi.AgslFile
 import com.intellij.lang.ASTNode
 import com.intellij.lang.ParserDefinition
 import com.intellij.lang.PsiParser
-import com.intellij.lexer.EmptyLexer
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.fileTypes.PlainTextParserDefinition
 import com.intellij.openapi.project.Project
@@ -36,9 +34,8 @@ import com.intellij.psi.tree.TokenSet
  * enabled.
  */
 class AgslParserDefinition :
-  ParserDefinition by if (StudioFlags.AGSL_LANGUAGE_SUPPORT.get()) ActualAgslParserDefinition() else PlainTextParserDefinition() {
-  fun createLexer(): Lexer =
-    if (StudioFlags.AGSL_LANGUAGE_SUPPORT.get()) AgslLexer() else EmptyLexer()
+  ParserDefinition by ActualAgslParserDefinition() {
+  fun createLexer(): Lexer = AgslLexer()
 }
 
 private class ActualAgslParserDefinition : ParserDefinition {
@@ -55,4 +52,4 @@ private class ActualAgslParserDefinition : ParserDefinition {
     ParserDefinition.SpaceRequirements.MAY
 }
 
-private val AGSL_FILE_ELEMENT_TYPE = IFileElementType(AgslLanguage.PRIVATE_AGSL_LANGUAGE)
+private val AGSL_FILE_ELEMENT_TYPE = IFileElementType(AgslLanguage.INSTANCE)

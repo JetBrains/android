@@ -14,14 +14,13 @@
     <orderEntry type="module" module-name="intellij.android.compose-ide-plugin" />
     <orderEntry type="module" module-name="intellij.android.design-plugin" />
     <orderEntry type="module" module-name="android-ndk" />
+    <orderEntry type="module" module-name="git4insights" />
     <orderEntry type="module" module-name="google-cloud-tools-as" />
     <orderEntry type="module" module-name="firebase" />
     <orderEntry type="module" module-name="directaccess" />
     <orderEntry type="module" module-name="firebase-testing" />
-    <orderEntry type="module" module-name="google-appindexing" />
     <orderEntry type="module" module-name="google-cloud-tools-core-as" />
     <orderEntry type="module" module-name="google-login-as" />
-    <orderEntry type="module" module-name="google-samples" />
     <orderEntry type="module" module-name="intellij.android.smali" />
     <orderEntry type="module" module-name="test-recorder" />
     <orderEntry type="module" module-name="url-assistant" />
@@ -39,6 +38,7 @@
     <orderEntry type="library" name="studio-plugin-java-ide-customization" level="project" />
     <orderEntry type="library" name="studio-plugin-junit" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-lombok" level="project" />
     <orderEntry type="library" name="studio-plugin-maven-model" level="project" />
     <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="library" name="studio-plugin-properties" level="project" />
@@ -71,5 +71,6 @@
     <orderEntry type="library" name="studio-plugin-vcs-svn" level="project" />
     <orderEntry type="library" name="studio-plugin-webp" level="project" />
     <orderEntry type="module" module-name="intellij.android.gmd-code-completion" />
+    <orderEntry type="module" module-name="ml.sml-android" />
   </component>
 </module>

@@ -16,14 +16,22 @@
 package com.android.gmdcodecompletion.completions
 
 import com.android.gmdcodecompletion.BuildFileName
-import com.android.gmdcodecompletion.DevicePropertyName
+import com.android.gmdcodecompletion.ConfigurationParameterName
+import com.android.gmdcodecompletion.GmdConfigurationInterfaceInfo.FTL_DEVICE
+import com.android.gmdcodecompletion.GmdConfigurationInterfaceInfo.FTL_EXECUTION
+import com.android.gmdcodecompletion.GmdConfigurationInterfaceInfo.FTL_FIXTURE
+import com.android.gmdcodecompletion.GmdConfigurationInterfaceInfo.FTL_RESULTS
+import com.android.gmdcodecompletion.GmdConfigurationInterfaceInfo.MANAGED_VIRTUAL_DEVICE
 import com.android.gmdcodecompletion.freshFtlDeviceCatalogState
 import com.android.gmdcodecompletion.ftl.FtlDeviceCatalogState
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.testing.caret
+import com.intellij.openapi.module.Module
 import com.intellij.testFramework.TestApplicationManager
 import org.mockito.Answers
 import org.mockito.Mock
@@ -43,11 +51,14 @@ class GroovyDevicePropertyNamePatternMatcherTest : GmdCodeCompletionTestBase() {
     TestApplicationManager.getInstance()
   }
 
-  private val ftlDevicePropertyNames = DevicePropertyName.FTL_DEVICE_PROPERTY.map { "${it.propertyName} = " }.sorted()
-  private val managedVirtualDevicePropertyNames = DevicePropertyName.MANAGED_VIRTUAL_DEVICE_PROPERTY.map { "${it.propertyName} = " }.sorted()
+  private val myFtlConfigurationNames = FTL_DEVICE.availableConfigurations.map { it.propertyName }.sorted()
+  private val myManagedVirtualConfigurationNames = MANAGED_VIRTUAL_DEVICE.availableConfigurations.map { it.propertyName }.sorted()
+  private val myTestOptionsFixtureConfigurationNames = FTL_FIXTURE.availableConfigurations.map { it.propertyName }.sorted()
+  private val myTestOptionsExecutionConfigurationNames = FTL_EXECUTION.availableConfigurations.map { it.propertyName }.sorted()
+  private val myTestOptionsResultsConfigurationNames = FTL_RESULTS.availableConfigurations.map { it.propertyName }.sorted()
 
   fun testGroovyManagedVirtualDevicePropertyName_unfoldedBlockWithLongDsl() {
-    managedVirtualDevicePropertyNameCompletionTestHelper(managedVirtualDevicePropertyNames, """
+    managedVirtualDevicePropertyNameCompletionTestHelper(myManagedVirtualConfigurationNames, """
       android {
         testOptions {
           managedDevices {
@@ -63,7 +74,7 @@ class GroovyDevicePropertyNamePatternMatcherTest : GmdCodeCompletionTestBase() {
   }
 
   fun testGroovyManagedVirtualDevicePropertyName_foldedBlockWithLongDsl() {
-    managedVirtualDevicePropertyNameCompletionTestHelper(managedVirtualDevicePropertyNames, """
+    managedVirtualDevicePropertyNameCompletionTestHelper(myManagedVirtualConfigurationNames, """
       android.testOptions {
         managedDevices.devices {
           testDevice(com.android.build.api.dsl.ManagedVirtualDevice) {
@@ -74,8 +85,20 @@ class GroovyDevicePropertyNamePatternMatcherTest : GmdCodeCompletionTestBase() {
     """.trimIndent())
   }
 
+  fun testGroovyManagedVirtualDevicePropertyName_foldedBlockWithSimplifiedDsl() {
+    managedVirtualDevicePropertyNameCompletionTestHelper(myManagedVirtualConfigurationNames, """
+      android.testOptions {
+        managedDevices.localDevices {
+          testDevice {
+            $caret
+          }
+        }
+      }
+    """.trimIndent())
+  }
+
   fun testGroovyManagedVirtualDevicePropertyName_noRepeatedApiLevel() {
-    val filteredDeviceProperties = managedVirtualDevicePropertyNames.filterNot {
+    val filteredDeviceProperties = myManagedVirtualConfigurationNames.filterNot {
       it.contains("apiLevel") || it.contains("apiPreview")
     }
     managedVirtualDevicePropertyNameCompletionTestHelper(filteredDeviceProperties, """
@@ -91,7 +114,7 @@ class GroovyDevicePropertyNamePatternMatcherTest : GmdCodeCompletionTestBase() {
   }
 
   fun testGroovyManagedVirtualDevicePropertyName_noRepeatedApiPreview() {
-    val filteredDeviceProperties = managedVirtualDevicePropertyNames.filterNot {
+    val filteredDeviceProperties = myManagedVirtualConfigurationNames.filterNot {
       it.contains("apiLevel") || it.contains("apiPreview")
     }
     managedVirtualDevicePropertyNameCompletionTestHelper(filteredDeviceProperties, """
@@ -107,7 +130,7 @@ class GroovyDevicePropertyNamePatternMatcherTest : GmdCodeCompletionTestBase() {
   }
 
   fun testGroovyFtlDevicePropertyName_unfoldedBlockWithSimplifiedDsl() {
-    ftlDevicePropertyNameCompletionTestHelper(ftlDevicePropertyNames, """
+    ftlDevicePropertyNameCompletionTestHelper(myFtlConfigurationNames, """
       firebaseTestLab {
         managedDevices {
           myFtlDevice {
@@ -119,7 +142,7 @@ class GroovyDevicePropertyNamePatternMatcherTest : GmdCodeCompletionTestBase() {
   }
 
   fun testGroovyFtlDevicePropertyName_foldedBlockWithSimplifiedDsl() {
-    ftlDevicePropertyNameCompletionTestHelper(ftlDevicePropertyNames, """
+    ftlDevicePropertyNameCompletionTestHelper(myFtlConfigurationNames, """
       firebaseTestLab.managedDevices {
         myFtlDevice {
           $caret
@@ -128,11 +151,71 @@ class GroovyDevicePropertyNamePatternMatcherTest : GmdCodeCompletionTestBase() {
     """.trimIndent())
   }
 
+  fun testGroovyFtlTestOptionsFixture_foldedBlockWithSimplifiedDsl() {
+    ftlDevicePropertyNameCompletionTestHelper(myTestOptionsFixtureConfigurationNames, """
+      firebaseTestLab.testOptions {
+        fixture {
+          $caret
+        }
+      }
+    """.trimIndent())
+  }
+
+  fun testGroovyFtlTestOptionsExecution_foldedBlockWithSimplifiedDsl() {
+    ftlDevicePropertyNameCompletionTestHelper(myTestOptionsExecutionConfigurationNames, """
+      firebaseTestLab.testOptions {
+        execution {
+          $caret
+        }
+      }
+    """.trimIndent())
+  }
+
+  fun testGroovyFtlTestOptionsResults_foldedBlockWithSimplifiedDsl() {
+    ftlDevicePropertyNameCompletionTestHelper(myTestOptionsResultsConfigurationNames, """
+      firebaseTestLab.testOptions {
+        results {
+          $caret
+        }
+      }
+    """.trimIndent())
+  }
+
+  fun testGroovyFtlTestOptionsFixture_extraDeviceFilesField() {
+    ftlDevicePropertyNameCustomSuffixCompletionTestHelper("""
+      firebaseTestLab.testOptions {
+        fixture {
+          extraDeviceFiles[] = 
+        }
+      }""".trimIndent(), """
+      firebaseTestLab.testOptions {
+        fixture {
+          extraD$caret
+        }
+      }
+    """.trimIndent())
+  }
+
+  fun testGroovyFtlTestOptionsResults_directoriesToPullField() {
+    ftlDevicePropertyNameCustomSuffixCompletionTestHelper("""
+      firebaseTestLab.testOptions {
+        results {
+          directoriesToPull.addAll()
+        }
+      }""".trimIndent(), """
+      firebaseTestLab.testOptions {
+        results {
+          director$caret
+        }
+      }
+    """.trimIndent())
+  }
+
   fun testGroovyFtlDevicePropertyName_noRepeatedField() {
-    ftlDevicePropertyNameCompletionTestHelper(ftlDevicePropertyNames.subList(1, ftlDevicePropertyNames.size), """
+    ftlDevicePropertyNameCompletionTestHelper(myFtlConfigurationNames.subList(1, myFtlConfigurationNames.size), """
       firebaseTestLab.managedDevices {
         myFtlDevice {
-          ${ftlDevicePropertyNames[0]} ""
+          ${myFtlConfigurationNames[0]} = ""
           $caret
         }
       }
@@ -140,7 +223,7 @@ class GroovyDevicePropertyNamePatternMatcherTest : GmdCodeCompletionTestBase() {
   }
 
   fun testGroovyFtlDevicePropertyName_unfoldedBlockWithLongDsl() {
-    ftlDevicePropertyNameCompletionTestHelper(ftlDevicePropertyNames, """
+    ftlDevicePropertyNameCompletionTestHelper(myFtlConfigurationNames, """
       android {
         testOptions {
           managedDevices {
@@ -156,7 +239,7 @@ class GroovyDevicePropertyNamePatternMatcherTest : GmdCodeCompletionTestBase() {
   }
 
   fun testGroovyFtlDevicePropertyName_foldedBlockWithLongDsl() {
-    ftlDevicePropertyNameCompletionTestHelper(ftlDevicePropertyNames, """
+    ftlDevicePropertyNameCompletionTestHelper(myFtlConfigurationNames, """
       android.testOptions {
         managedDevices.devices {
           testDevice(com.google.firebase.testlab.gradle.ManagedDevice) {
@@ -194,23 +277,46 @@ class GroovyDevicePropertyNamePatternMatcherTest : GmdCodeCompletionTestBase() {
 
   private fun assertEmptyDevicePropertyNameSuggestion() {
     val suggestionList = myFixture.lookupElementStrings!!
-    val intersectedList = suggestionList.intersect(DevicePropertyName.values().map { it.propertyName }.toSet())
+    val intersectedList = suggestionList.intersect(ConfigurationParameterName.values().map { it.propertyName }.toSet())
     assertTrue(intersectedList.isEmpty())
   }
 
-  protected fun ftlDevicePropertyNameCompletionTestHelper(
-    expectedProperties: List<String>, buildFileContent: String,
-    deviceCatalogState: FtlDeviceCatalogState = freshFtlDeviceCatalogState()) {
-    val mockFtlService = createFakeFtlDeviceCatalogService()
-    whenever(mockFtlService.state).thenReturn(deviceCatalogState)
-    val mockGradleModelProvider = createFakeGradleModelProvider()
-    whenever(mockGradleModelProvider.getProjectModel(any())).thenReturn(mockProjectBuildModel)
+  private fun ftlDevicePropertyNameCompletionTestSetup(deviceCatalogState: FtlDeviceCatalogState, callBack: () -> Unit) {
+    createFakeFtlDeviceCatalogService().apply {
+      whenever(this.state).thenReturn(deviceCatalogState)
+    }
+    createFakeGradleModelProvider().apply {
+      whenever(this.getProjectModel(any())).thenReturn(mockProjectBuildModel)
+    }
+    val mockGradlePropertyModel = mock<GradlePropertyModel>().apply {
+      whenever(this.name).thenReturn("android.experimental.testOptions.managedDevices.customDevice")
+      whenever(this.valueAsString()).thenReturn("true")
+    }
+    whenever(mockProjectBuildModel.getModuleBuildModel(any(Module::class.java))!!.plugins()).thenReturn(listOf(mockPluginModel))
+    whenever(mockProjectBuildModel.projectBuildModel!!.propertiesModel!!.declaredProperties).thenReturn(listOf(mockGradlePropertyModel))
     whenever(mockProjectBuildModel.projectBuildModel!!.plugins()).thenReturn(listOf(mockPluginModel))
     whenever(mockPluginModel.psiElement!!.text).thenReturn("com.google.firebase.testlab")
+    callBack()
+  }
 
-    gmdCodeCompletionContributorTestHelper(BuildFileName.GROOVY_BUILD_FILE.fileName, buildFileContent) {
-      val prioritizedLookupElements = myFixture.lookupElementStrings!!.subList(0, expectedProperties.size)
-      assertTrue(prioritizedLookupElements == expectedProperties)
+  private fun ftlDevicePropertyNameCompletionTestHelper(
+    expectedProperties: List<String>, buildFileContent: String,
+    deviceCatalogState: FtlDeviceCatalogState = freshFtlDeviceCatalogState()) {
+    ftlDevicePropertyNameCompletionTestSetup(deviceCatalogState) {
+      gmdCodeCompletionContributorTestHelper(BuildFileName.GROOVY_BUILD_FILE.fileName, buildFileContent) {
+        val prioritizedLookupElements = myFixture.lookupElementStrings!!.subList(0, expectedProperties.size)
+        assertTrue(prioritizedLookupElements == expectedProperties)
+      }
+    }
+  }
+
+  private fun ftlDevicePropertyNameCustomSuffixCompletionTestHelper(
+    expectedBuildFileContent: String, buildFileContent: String,
+    deviceCatalogState: FtlDeviceCatalogState = freshFtlDeviceCatalogState()) {
+    ftlDevicePropertyNameCompletionTestSetup(deviceCatalogState) {
+      gmdCodeCompletionContributorTestHelper(BuildFileName.GROOVY_BUILD_FILE.fileName, buildFileContent) {
+        assertTrue(myFixture.editor.document.text == expectedBuildFileContent)
+      }
     }
   }
 }

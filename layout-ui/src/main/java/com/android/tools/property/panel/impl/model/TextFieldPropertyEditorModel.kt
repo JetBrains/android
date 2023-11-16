@@ -21,18 +21,15 @@ import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.property.panel.api.PropertyItem
 import kotlin.properties.Delegates
 
-/**
- * Model for properties that use a Text Editor.
- */
+/** Model for properties that use a Text Editor. */
 open class TextFieldPropertyEditorModel(property: PropertyItem, override val editable: Boolean) :
   BasePropertyEditorModel(property), CommonTextFieldModel {
 
   /**
    * A property change is pending.
    *
-   * Indicates if a change to the property value was initiated, but the value wasn't
-   * immediately registered by the property. Use this value to omit change requests
-   * generated from [focusLost].
+   * Indicates if a change to the property value was initiated, but the value wasn't immediately
+   * registered by the property. Use this value to omit change requests generated from [focusLost].
    */
   protected var pendingValueChange = false
 
@@ -46,7 +43,8 @@ open class TextFieldPropertyEditorModel(property: PropertyItem, override val edi
       updateValueFromProperty()
     }
 
-  override var text by Delegates.observable(property.value.orEmpty()) { _, _, _ -> pendingValueChange = false }
+  override var text by
+    Delegates.observable(property.value.orEmpty()) { _, _, _ -> pendingValueChange = false }
 
   override val editingSupport: EditingSupport
     get() = property.editingSupport
@@ -54,9 +52,7 @@ open class TextFieldPropertyEditorModel(property: PropertyItem, override val edi
   override val placeHolderValue: String
     get() = property.defaultValue ?: ""
 
-  /**
-   * Commit the current text, and return true if focus can be transferred.
-   */
+  /** Commit the current text, and return true if focus can be transferred. */
   open fun commit(): Boolean {
     commitChange()
     return true
@@ -97,9 +93,7 @@ open class TextFieldPropertyEditorModel(property: PropertyItem, override val edi
     return !pendingValueChange
   }
 
-  /**
-   * Return true if the specified text represents the current value of the property.
-   */
+  /** Return true if the specified text represents the current value of the property. */
   protected open fun isCurrentValue(text: String): Boolean {
     return value == text
   }

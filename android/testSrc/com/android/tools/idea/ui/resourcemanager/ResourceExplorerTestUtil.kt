@@ -27,10 +27,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.waitForUpdates
 import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteActionAndWait
-import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.ex.dummy.DummyFileSystem
@@ -115,9 +113,9 @@ fun AndroidProjectRule.getResourceItemFromPath(testFolderPath: String, fileName:
     )
 }
 
-private const val WAIT_TIMEOUT = 3000
+const val WAIT_TIMEOUT = 3000
 
-internal inline fun <reified T : JComponent> waitAndAssert(container: JPanel, crossinline condition: (list: T?) -> Boolean) {
+inline fun <reified T : JComponent> waitAndAssert(container: JPanel, crossinline condition: (list: T?) -> Boolean) {
   val waitForComponentCondition = object : WaitFor(WAIT_TIMEOUT) {
     public override fun condition(): Boolean {
       invokeAndWaitIfNeeded {
@@ -129,7 +127,7 @@ internal inline fun <reified T : JComponent> waitAndAssert(container: JPanel, cr
   assertTrue(waitForComponentCondition.isConditionRealized)
 }
 
-internal fun simulateMouseClick(component: JComponent, point: Point, clickCount: Int) {
+fun simulateMouseClick(component: JComponent, point: Point, clickCount: Int) {
   runInEdtAndWait {
     // A click is done through a mouse pressed & released event, followed by the actual mouse clicked event.
     component.dispatchEvent(MouseEvent(

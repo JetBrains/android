@@ -27,7 +27,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import org.junit.Assert.assertNotEquals
 
-open class SceneComponentTest: SceneTest() {
+open class SceneComponentTest : SceneTest() {
 
   fun testRemoveSceneComponent() {
     val parent = myScene.getSceneComponent("parent")
@@ -45,9 +45,13 @@ open class SceneComponentTest: SceneTest() {
   }
 
   fun testAddSceneComponent() {
-    val sceneComponent = TemporarySceneComponent(myScene, LayoutTestUtilities.createMockComponent().apply {
-      whenever(this.tagName).thenReturn(TEXT_VIEW)
-    })
+    val sceneComponent =
+      TemporarySceneComponent(
+        myScene,
+        LayoutTestUtilities.createMockComponent().apply {
+          whenever(this.tagName).thenReturn(TEXT_VIEW)
+        }
+      )
     val parent = myScene.getSceneComponent("parent")
 
     assertSize(1, parent!!.children)
@@ -81,7 +85,7 @@ open class SceneComponentTest: SceneTest() {
 
     val statesWithoutSelected = DrawState.values().filter { it != DrawState.SELECTED }
     for (isSelected in listOf(true, false)) {
-      for(prioritizeSelected in listOf(true, false)) {
+      for (prioritizeSelected in listOf(true, false)) {
         // Test how the change of isSelected affects the drawState
         root.setPrioritizeSelectedDrawState(prioritizeSelected)
         root.isSelected = isSelected
@@ -110,19 +114,20 @@ open class SceneComponentTest: SceneTest() {
   }
 
   override fun createModel(): ModelBuilder {
-    return model("scene_component_test.xml",
-        component(LINEAR_LAYOUT)
-            .id("@+id/parent")
+    return model(
+      "scene_component_test.xml",
+      component(LINEAR_LAYOUT)
+        .id("@+id/parent")
+        .withBounds(0, 0, 2000, 2000)
+        .matchParentWidth()
+        .matchParentHeight()
+        .children(
+          component(BUTTON)
+            .id("@+id/child")
             .withBounds(0, 0, 2000, 2000)
             .matchParentWidth()
             .matchParentHeight()
-            .children(
-                component(BUTTON)
-                    .id("@+id/child")
-                    .withBounds(0, 0, 2000, 2000)
-                    .matchParentWidth()
-                    .matchParentHeight()
-            )
+        )
     )
   }
 }

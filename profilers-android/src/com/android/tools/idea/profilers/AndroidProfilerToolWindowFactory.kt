@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.profilers
 
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.profilers.tasks.OpenProfilerTaskListener
 import com.android.tools.idea.IdeInfo
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.DumbAware
@@ -24,9 +28,10 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
 import icons.StudioIcons
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.Nls
 
 class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
@@ -38,6 +43,39 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
+    if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+
+      // Create the profiler window.
+      val profilerToolWindow = createProfilerToolWindow(project, toolWindow)
+
+      // Create the home tab.
+      profilerToolWindow.openHomeTab()
+      toolWindow.isAvailable = true
+
+      // If the window is re-opened after all tabs were manually closed, re-create the home tab.
+      project.messageBus.connect().subscribe(
+        ToolWindowManagerListener.TOPIC,
+        object : ToolWindowManagerListener {
+          override fun toolWindowShown(shownToolWindow: ToolWindow) {
+            if (toolWindow === shownToolWindow && toolWindow.isVisible && toolWindow.contentManager.isEmpty) {
+              profilerToolWindow.openHomeTab()
+            }
+          }
+        })
+
+      // Listen for events requesting that a task tab be opened.
+      project.messageBus.connect(toolWindow.disposable).subscribe(OpenProfilerTaskListener.TOPIC, OpenProfilerTaskListener { _, _ ->
+        AndroidCoroutineScope(toolWindow.disposable).launch {
+          withContext(AndroidDispatchers.uiThread) {
+            profilerToolWindow.openTaskTab()
+            toolWindow.activate(null)
+          }
+        }
+      })
+
+      return
+    }
+
     project.messageBus.connect().subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
       override fun stateChanged(toolWindowManager: ToolWindowManager) {
         // We need to query the tool window again, because it might have been unregistered when closing the project.
@@ -68,40 +106,43 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
     const val ID = "Android Profiler"
     @Nls
     private val PROFILER_TOOL_WINDOW_TITLE = if (IdeInfo.getInstance().isAndroidStudio) "Profiler" else AndroidProfilerBundle.message("android.profiler.tool.window.title")
-    private val PROJECT_PROFILER_MAP: MutableMap<Content, AndroidProfilerToolWindow> = HashMap()
+    private val PROJECT_PROFILER_MAP: MutableMap<Project, AndroidProfilerToolWindow> = HashMap()
     private fun createContent(project: Project, toolWindow: ToolWindow) {
-      val wrapper: ToolWindowWrapper = ToolWindowWrapperImpl(project, toolWindow)
-      val view = AndroidProfilerToolWindow(wrapper, project)
+      val view = createProfilerToolWindow(project, toolWindow)
       val contentFactory = ContentFactory.getInstance()
-      val content = contentFactory.createContent(view.component, "", false)
+      val content = contentFactory.createContent(view.profilersPanel, "", false)
       Disposer.register(project, view)
       toolWindow.contentManager.addContent(content)
 
-      PROJECT_PROFILER_MAP[content] = view
-      Disposer.register(content) { PROJECT_PROFILER_MAP.remove(content) }
+      Disposer.register(content) { PROJECT_PROFILER_MAP.remove(project) }
 
       // Forcibly synchronize the Tool Window to a visible state. Otherwise, the Tool Window may not auto-hide correctly.
       toolWindow.show(null)
     }
 
+    private fun createProfilerToolWindow(
+      project: Project,
+      toolWindow: ToolWindow
+    ): AndroidProfilerToolWindow {
+      val wrapper = ToolWindowWrapperImpl(project, toolWindow)
+      val profilerToolWindow = AndroidProfilerToolWindow(wrapper, project)
+      toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER)
+      PROJECT_PROFILER_MAP[project] = profilerToolWindow
+      return profilerToolWindow
+    }
+
     /**
-     * Gets the [AndroidProfilerToolWindow] corresponding to a given [Project] if it was already created by [createContent].
-     * Otherwise, returns null.
+     * Gets the [AndroidProfilerToolWindow] corresponding to a given [Project] if it was already created. Otherwise, returns null.
      */
     @JvmStatic
     fun getProfilerToolWindow(project: Project): AndroidProfilerToolWindow? {
       val window = ToolWindowManager.getInstance(project).getToolWindow(ID) ?: return null
       val contentManager = window.contentManager
-      return if (contentManager.contentCount == 0) {
-        null
-      }
-      else PROJECT_PROFILER_MAP[contentManager.getContent(0)]
+      return if (contentManager.contentCount == 0) null else PROJECT_PROFILER_MAP[project]
     }
 
     fun removeContent(toolWindow: ToolWindow) {
       if (toolWindow.contentManager.contentCount > 0) {
-        val content = toolWindow.contentManager.getContent(0)
-        PROJECT_PROFILER_MAP.remove(content)
         toolWindow.contentManager.removeAllContents(true)
       }
     }

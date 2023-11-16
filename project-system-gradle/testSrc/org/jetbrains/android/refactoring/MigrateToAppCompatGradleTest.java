@@ -15,12 +15,16 @@
  */
 package org.jetbrains.android.refactoring;
 
+import static com.android.tools.idea.testing.TestProjectPaths.ANDROIDX_SIMPLE;
+import static com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_APP_COMPAT;
+
+import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.AgpVersion;
-import com.android.tools.idea.gradle.adtimport.GradleImport;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
+import com.android.sdklib.SdkVersionInfo;
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
@@ -32,13 +36,11 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.PlatformTestUtil;
-import org.jetbrains.annotations.NotNull;
-
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
-
-import static com.android.tools.idea.testing.TestProjectPaths.ANDROIDX_SIMPLE;
-import static com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_APP_COMPAT;
+import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class tests Migration to AppCompat for a Gradle project.
@@ -60,12 +62,12 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
     assertEquals("apply plugin: 'com.android.application'\n" +
                  "\n" +
                  "android {\n" +
-                 "    compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
+                 "    compileSdkVersion " + SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "\n" +
                  "    namespace \"com.example.google.migrate2appcompat\"\n" +
                  "    defaultConfig {\n" +
                  "        applicationId \"com.example.google.migrate2appcompat\"\n" +
                  "        minSdkVersion 23\n" +
-                 "        targetSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
+                 "        targetSdkVersion " + SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "\n" +
                  "    }\n" +
                  "    buildTypes {\n" +
                  "        release {\n" +
@@ -82,18 +84,20 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
     assertEquals("apply plugin: 'com.android.library'\n" +
                  "\n" +
                  "android {\n" +
-                 "    compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
+                 "    compileSdkVersion " +
+                 SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "\n" +
                  "    namespace \"com.example.appandmodules.mylibarybase\"\n" +
                  "    defaultConfig {\n" +
                  "        minSdkVersion 23\n" +
-                 "        targetSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
+                 "        targetSdkVersion " +
+                 SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "\n" +
                  "        versionCode 1\n" +
                  "        versionName \"1.0\"\n" +
                  "    }\n" +
                  "}\n" +
                  "dependencies {\n" +
                  "    api project(':library-debug')\n" +
-                 "    " + configName + " '" + getAppCompatGradleCoordinate() + "'\n" + // Unclear why the indentation does not work on added dependencies?
+                 "    " + configName + " '" + getAppCompatGradleCoordinate() + "'\n" +// Unclear why the indentation does not work on added dependencies?
                  "}\n",
                  getTextForFile("mylibrarybase/build.gradle"));
 
@@ -296,8 +300,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
   }
 
   private static String getAppCompatGradleCoordinate() {
-    return RepositoryUrlManager.get().getArtifactStringCoordinate(GoogleMavenArtifactId.APP_COMPAT_V7,
-                                                                  v -> v.getMajor() == Math.min(28, GradleImport.CURRENT_COMPILE_VERSION),
-                                                                  false);
+    Predicate<Version> filter = v -> Objects.equals(v.getMajor(), Math.min(28, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API));
+    return RepositoryUrlManager.get().getArtifactComponentIdentifier(GoogleMavenArtifactId.APP_COMPAT_V7, filter, false);
   }
 }

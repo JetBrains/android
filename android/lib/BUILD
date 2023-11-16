@@ -54,13 +54,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "spantable",
-    jars = ["spantable.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "instantapps-api",
     jars = ["instantapps-api-1.8.jar"],
     visibility = ["//visibility:public"],

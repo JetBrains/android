@@ -23,21 +23,27 @@ import org.junit.Test
 class PreviewElementProviderTest {
   @Test
   fun testFilteredProvider() = runBlocking {
-    val staticPreviewProvider = StaticPreviewProvider(listOf(
-      TestPreviewElement("PreviewMethod1"),
-      TestPreviewElement("PreviewMethod2"),
-      TestPreviewElement("AMethod")
-    ))
+    val staticPreviewProvider =
+      StaticPreviewProvider(
+        listOf(
+          TestPreviewElement("PreviewMethod1"),
+          TestPreviewElement("PreviewMethod2"),
+          TestPreviewElement("AMethod")
+        )
+      )
 
     var filterWord = "AM"
-    val filtered = FilteredPreviewElementProvider(staticPreviewProvider) {
-      !it.displaySettings.name.contains(filterWord)
-    }
+    val filtered =
+      FilteredPreviewElementProvider(staticPreviewProvider) {
+        !it.displaySettings.name.contains(filterWord)
+      }
 
     Assert.assertEquals(3, staticPreviewProvider.previewElements().count())
     // The filtered provider contains all elements without the word internal
-    Assert.assertEquals(listOf("PreviewMethod1", "PreviewMethod2"),
-                        filtered.previewElements().map { it.displaySettings.name }.toList())
+    Assert.assertEquals(
+      listOf("PreviewMethod1", "PreviewMethod2"),
+      filtered.previewElements().map { it.displaySettings.name }.toList()
+    )
 
     // Now remove all elements with the word Preview
     filterWord = "Preview"
@@ -46,23 +52,28 @@ class PreviewElementProviderTest {
 
   @Test
   fun testMemoized() = runBlocking {
-    var staticPreviewProvider = StaticPreviewProvider(listOf(
-      TestPreviewElement("PreviewMethod1"),
-      TestPreviewElement("PreviewMethod2"),
-      TestPreviewElement("AMethod")
-    ))
+    var staticPreviewProvider =
+      StaticPreviewProvider(
+        listOf(
+          TestPreviewElement("PreviewMethod1"),
+          TestPreviewElement("PreviewMethod2"),
+          TestPreviewElement("AMethod")
+        )
+      )
 
     val modificationTracker = SimpleModificationTracker()
-    val memoized = MemoizedPreviewElementProvider(object : PreviewElementProvider<PreviewElement> {
-      override suspend fun previewElements() = staticPreviewProvider.previewElements()
-    }, modificationTracker)
+    val memoized =
+      MemoizedPreviewElementProvider(
+        object : PreviewElementProvider<PreviewElement> {
+          override suspend fun previewElements() = staticPreviewProvider.previewElements()
+        },
+        modificationTracker
+      )
 
     // Before the first refresh, the list is empty
     Assert.assertEquals(3, memoized.previewElements().count())
 
-    staticPreviewProvider = StaticPreviewProvider(listOf(
-      TestPreviewElement("PreviewMethod1")
-    ))
+    staticPreviewProvider = StaticPreviewProvider(listOf(TestPreviewElement("PreviewMethod1")))
     // Updated the source but did not "refresh" by changing the modification stamp
     Assert.assertEquals(3, memoized.previewElements().count())
     modificationTracker.incModificationCount()

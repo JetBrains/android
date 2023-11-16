@@ -19,28 +19,18 @@ import java.awt.Image
 import java.awt.datatransfer.Transferable
 import javax.swing.tree.TreeCellRenderer
 
-/**
- * A node type with access to various information.
- */
+/** A node type with access to various information. */
 interface NodeType<T> {
-  /**
-   * The class of the node. The actual node can be a derived type.
-   */
+  /** The class of the node. The actual node can be a derived type. */
   val clazz: Class<T>
 
-  /**
-   * Returns the parent of [node], which may be of a different node type.
-   */
+  /** Returns the parent of [node], which may be of a different node type. */
   fun parentOf(node: T): Any?
 
-  /**
-   * Returns the children of [node], which may be of a different node types.
-   */
+  /** Returns the children of [node], which may be of a different node types. */
   fun childrenOf(node: T): List<*>
 
-  /**
-   * Returns a string used for speed search based on [node].
-   */
+  /** Returns a string used for speed search based on [node]. */
   fun toSearchString(node: T): String
 
   /**
@@ -62,26 +52,26 @@ interface NodeType<T> {
   /**
    * Insert [data] into [node] either before [before] or at the end if [before] is null.
    *
-   * The [isMove] specifies if this is a move or copy operation. This is intended as a hint for undo messages.
-   * If the origin of the items being dragged is the component tree; then the items will be supplied in [draggedFromTree].
-   * If the origin is not the component tree the [draggedFromTree] will be empty.
-   * Return true if the insert was successful.
+   * The [isMove] specifies if this is a move or copy operation. This is intended as a hint for undo
+   * messages. If the origin of the items being dragged is the component tree; then the items will
+   * be supplied in [draggedFromTree]. If the origin is not the component tree the [draggedFromTree]
+   * will be empty. Return true if the insert was successful.
    */
-  fun insert(node: T, data: Transferable, before: Any? = null, isMove: Boolean, draggedFromTree: List<Any>): Boolean = false
+  fun insert(
+    node: T,
+    data: Transferable,
+    before: Any? = null,
+    isMove: Boolean,
+    draggedFromTree: List<Any>
+  ): Boolean = false
 
-  /**
-   * Delete this [node] after a successful DnD move operation.
-   */
+  /** Delete this [node] after a successful DnD move operation. */
   fun delete(node: T) {}
 
-  /**
-   * Create a [Transferable] for [node].
-   */
+  /** Create a [Transferable] for [node]. */
   fun createTransferable(node: T): Transferable? = null
 
-  /**
-   * Create a drag [Image] for [node].
-   */
+  /** Create a drag [Image] for [node]. */
   fun createDragImage(node: T): Image? = null
 
   // endregion

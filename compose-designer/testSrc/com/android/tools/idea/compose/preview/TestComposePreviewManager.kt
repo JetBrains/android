@@ -16,8 +16,10 @@
 package com.android.tools.idea.compose.preview
 
 import com.intellij.psi.PsiFile
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
-class TestComposePreviewManager(
+open class TestComposePreviewManager(
   initialInteractiveMode: ComposePreviewManager.InteractiveMode =
     ComposePreviewManager.InteractiveMode.DISABLED
 ) : ComposePreviewManager {
@@ -31,27 +33,15 @@ class TestComposePreviewManager(
       isRefreshing = false,
       interactiveMode = initialInteractiveMode
     )
-  var interactiveMode: ComposePreviewManager.InteractiveMode = initialInteractiveMode
-    set(value) {
-      field = value
-      currentStatus = currentStatus.copy(interactiveMode = value)
-    }
   override fun status(): ComposePreviewManager.Status = currentStatus
 
-  override val availableGroups: Collection<PreviewGroup> = emptyList()
-  override var groupFilter: PreviewGroup = PreviewGroup.ALL_PREVIEW_GROUP
-  override var interactivePreviewElementInstance: ComposePreviewElementInstance? = null
-    private set
-  override var animationInspectionPreviewElementInstance: ComposePreviewElementInstance? = null
+  override val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>> =
+    MutableStateFlow(emptySet())
+  override val allPreviewElementsInFileFlow: StateFlow<Collection<ComposePreviewElementInstance>> =
+    MutableStateFlow(emptySet())
+  override var groupFilter: PreviewGroup = PreviewGroup.All
   override val hasDesignInfoProviders: Boolean = false
   override val previewedFile: PsiFile? = null
-  override suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {
-    interactivePreviewElementInstance = instance
-  }
-
-  override fun stopInteractivePreview() {
-    interactivePreviewElementInstance = null
-  }
 
   override fun invalidate() {}
 
@@ -60,6 +50,13 @@ class TestComposePreviewManager(
   override var isFilterEnabled: Boolean = false
 
   override var atfChecksEnabled: Boolean = false
+
+  override var mode: PreviewMode = PreviewMode.Default
+  override fun setMode(newMode: PreviewMode.Settable) {
+    mode = newMode
+  }
+
+  override fun back() {}
 
   override fun dispose() {}
 }

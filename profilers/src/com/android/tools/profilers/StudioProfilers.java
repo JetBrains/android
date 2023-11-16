@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.transport.manager.StreamQueryUtils;
 import com.android.tools.idea.transport.poller.TransportEventPoller;
@@ -40,6 +41,7 @@ import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
+import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfiler;
@@ -200,7 +202,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
     myClient = client;
     myIdeServices = ideServices;
-    myStage = new NullMonitorStage(this);
+    myStage = createDefaultStage();
     mySessionsManager = new SessionsManager(this);
     mySessionChangeListener = new HashMap<>();
     myDeviceToStreamIds = new HashMap<>();
@@ -242,7 +244,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     });
 
     registerSessionChangeListener(Common.SessionMetaData.SessionType.FULL, () -> {
-      setStage(new StudioMonitorStage(this));
+      if (!ideServices.getFeatureConfig().isTaskBasedUxEnabled()) {
+        setStage(new StudioMonitorStage(this));
+      }
       if (SessionsManager.isSessionAlive(mySelectedSession)) {
         // The session is live - move the timeline to the current time.
         TimeResponse timeResponse = myClient.getTransportClient().getCurrentTime(
@@ -250,7 +254,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
         myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
         if (startupCpuProfilingStarted()) {
-          setStage(new CpuProfilerStage(this));
+          setStage(new CpuProfilerStage(this, CpuCaptureMetadata.CpuProfilerEntryPoint.STARTUP_PROFILING));
         }
         else if (startupMemoryProfilingStarted()) {
           setStage(new MainMemoryProfilerStage(this));
@@ -534,6 +538,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return null;
   }
 
+  public void setDefaultStage() {
+    setStage(createDefaultStage());
+  }
+
   public void setMonitoringStage() {
     setStage(new StudioMonitorStage(this));
   }
@@ -623,7 +631,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (Common.Session.getDefaultInstance().equals(newSession)) {
       // No selected session - go to the null stage.
       myTimeline.setIsPaused(true);
-      setStage(new NullMonitorStage(this));
+      setDefaultStage();
       return;
     }
 
@@ -919,7 +927,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     boolean hasSession = mySelectedSession.getSessionId() != 0;
     boolean isEnergyStageEnabled = hasSession ? mySessionsManager.getSelectedSessionMetaData().getJvmtiEnabled()
                                               : myDevice != null && myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
-    if (getIdeServices().getFeatureConfig().isEnergyProfilerEnabled() && isEnergyStageEnabled) {
+    boolean isPowerProfilerDisabled =
+      getIdeServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode() == PowerProfilerDisplayMode.HIDE;
+
+    if (getIdeServices().getFeatureConfig().isEnergyProfilerEnabled() && isEnergyStageEnabled && isPowerProfilerDisabled) {
       listBuilder.add(EnergyProfilerStage.class);
     }
 
@@ -945,6 +956,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
       // will not happen
     }
+  }
+
+  private StreamingStage createDefaultStage() {
+    return new NullMonitorStage(this);
   }
 
   @NotNull

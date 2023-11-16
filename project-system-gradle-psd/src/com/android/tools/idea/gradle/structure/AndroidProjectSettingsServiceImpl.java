@@ -20,7 +20,6 @@ import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurab
 import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurableKt.canShowPsdOrWarnUser;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getGradleIdentityPathOrNull;
 
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.AndroidGradlePsdBundle;
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurableKt;
@@ -48,6 +47,7 @@ import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 
 /**
  * This subclass of {@linkplain ProjectSettingsService} disables navigation to Project Settings panes that don't apply to
@@ -134,25 +134,23 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
   }
 
   @Override
-  public void chooseJdkLocation() {
-    if (myProject != null) {
+  public void chooseJdkLocation(@Nullable @SystemIndependent String gradleRootProjectPath) {
+    if (myProject.isDisposed()) return;
+
+    if (gradleRootProjectPath != null) {
+      showGradleSettings(myProject, gradleRootProjectPath);
+    } else {
       showGradleSettings(myProject);
-    }
-    else {
-      showNewPsd(
-        new Place()
-          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, AndroidGradlePsdBundle.message("android.sdk.location"))
-      );
     }
   }
 
   @Override
-  public void openAndSelectDependency(@NotNull Module module, @NotNull GradleCoordinate dependency) {
+  public void openAndSelectDependency(@NotNull Module module, @NotNull String dependencyString) {
     showNewPsd(
       new Place()
         .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.getDependenciesPerspectiveDisplayName())
         .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleIdentityPathOrNull(module))
-        .putPath(DeclaredDependenciesPanelKt.MODULE_DEPENDENCIES_PLACE_NAME, dependency.toString())
+        .putPath(DeclaredDependenciesPanelKt.MODULE_DEPENDENCIES_PLACE_NAME, dependencyString)
     );
   }
 

@@ -27,18 +27,14 @@ import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.SimpleTextAttributes
 import icons.StudioIcons
 import junit.framework.Assert
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertNull
 
-/**
- * TODO: Needs to test the cases which use [NlComponentIssueSource] as [IssueSource].
- */
+/** TODO: Needs to test the cases which use [NlComponentIssueSource] as [IssueSource]. */
 class IssueNodeTest {
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun testNoNavigatableWhenNoFile() {
@@ -50,7 +46,9 @@ class IssueNodeTest {
   fun testNavigatableToFile() {
     val file = projectRule.fixture.addFileToProject("path/to/file", "content").virtualFile
 
-    val descriptor = IssueNode(file, TestIssue(), CommonIssueTestParentNode(projectRule.project)).getNavigatable() as OpenFileDescriptor
+    val descriptor =
+      IssueNode(file, TestIssue(), CommonIssueTestParentNode(projectRule.project)).getNavigatable()
+        as OpenFileDescriptor
 
     Assert.assertEquals(projectRule.project, descriptor.project)
     Assert.assertEquals(file, descriptor.file)
@@ -60,13 +58,16 @@ class IssueNodeTest {
   @Suppress("UnstableApiUsage")
   @Test
   fun testNavigatableOfBackedVirtualFile() {
-    val originalFile = projectRule.fixture.addFileToProject("path/to/original/file", "original content").virtualFile
-    val lightVirtualFile = object : LightVirtualFile(), BackedVirtualFile {
-      override fun getOriginFile(): VirtualFile = originalFile
-    }
+    val originalFile =
+      projectRule.fixture.addFileToProject("path/to/original/file", "original content").virtualFile
+    val lightVirtualFile =
+      object : LightVirtualFile(), BackedVirtualFile {
+        override fun getOriginFile(): VirtualFile = originalFile
+      }
 
     val descriptor =
-      IssueNode(lightVirtualFile, TestIssue(), CommonIssueTestParentNode(projectRule.project)).getNavigatable() as OpenFileDescriptor
+      IssueNode(lightVirtualFile, TestIssue(), CommonIssueTestParentNode(projectRule.project))
+        .getNavigatable() as OpenFileDescriptor
 
     Assert.assertEquals(projectRule.project, descriptor.project)
     Assert.assertEquals(originalFile, descriptor.file)
@@ -75,7 +76,12 @@ class IssueNodeTest {
 
   @Test
   fun testPresentation() {
-    val node = IssueNode(null, TestIssue(summary = "Test summary", severity = HighlightSeverity.INFORMATION), null)
+    val node =
+      IssueNode(
+        null,
+        TestIssue(summary = "Test summary", severity = HighlightSeverity.INFORMATION),
+        null
+      )
     node.update()
 
     val expected = PresentationData()
@@ -88,8 +94,18 @@ class IssueNodeTest {
 
   @Test
   fun testSameNode() {
-    val node1 = IssueNode(null, TestIssue(summary = "Test summary", severity = HighlightSeverity.INFORMATION), null)
-    val node2 = IssueNode(null, TestIssue(summary = "Test summary", severity = HighlightSeverity.INFORMATION), null)
+    val node1 =
+      IssueNode(
+        null,
+        TestIssue(summary = "Test summary", severity = HighlightSeverity.INFORMATION),
+        null
+      )
+    val node2 =
+      IssueNode(
+        null,
+        TestIssue(summary = "Test summary", severity = HighlightSeverity.INFORMATION),
+        null
+      )
     Assert.assertEquals(node1, node2)
   }
 
@@ -97,11 +113,14 @@ class IssueNodeTest {
   fun testPresentationWithRegisteredCustomSeverity() {
     val customSeverity = HighlightSeverity("My Severity", HighlightSeverity.ERROR.myVal + 1)
 
-    HighlightDisplayLevel.registerSeverity(customSeverity,
-                                           TextAttributesKey.createTextAttributesKey("test"),
-                                           StudioIcons.Common.ANDROID_HEAD)
+    HighlightDisplayLevel.registerSeverity(
+      customSeverity,
+      TextAttributesKey.createTextAttributesKey("test"),
+      StudioIcons.Common.ANDROID_HEAD
+    )
 
-    val node = IssueNode(null, TestIssue(summary = "Custom severity", severity = customSeverity), null)
+    val node =
+      IssueNode(null, TestIssue(summary = "Custom severity", severity = customSeverity), null)
     node.update()
 
     val expected = PresentationData()
@@ -119,7 +138,8 @@ class IssueNodeTest {
       val severityIcon = HighlightDisplayLevel.find(severity)?.icon ?: continue
 
       val customSeverity = HighlightSeverity("My Severity", severity.myVal + 1)
-      val node = IssueNode(null, TestIssue(summary = "Custom severity", severity = customSeverity), null)
+      val node =
+        IssueNode(null, TestIssue(summary = "Custom severity", severity = customSeverity), null)
       node.update()
 
       val expected = PresentationData()

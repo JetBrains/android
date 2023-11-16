@@ -25,7 +25,7 @@ public class AdbPathUtilTest  {
   @Test
   public void testGetFileName() {
     assertThat(AdbPathUtil.getFileName("")).isEqualTo("");
-    assertThat(AdbPathUtil.getFileName("/")).isEqualTo("");
+    assertThat(AdbPathUtil.getFileName("/")).isEqualTo("/");
     assertThat(AdbPathUtil.getFileName("/foo")).isEqualTo("foo");
     assertThat(AdbPathUtil.getFileName("/foo/bar")).isEqualTo("bar");
     assertThat(AdbPathUtil.getFileName("/foo/blah/bar-test.txt")).isEqualTo("bar-test.txt");

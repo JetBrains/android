@@ -21,78 +21,87 @@ import layoutinspector.snapshots.Metadata
 import java.awt.Dimension
 
 /**
- * Metadata about a layout inspector snapshot that's included in the snapshot itself. Can be used for metrics logging.
+ * Metadata about a layout inspector snapshot that's included in the snapshot itself. Can be used
+ * for metrics logging.
  */
 class SnapshotMetadata(
-    val snapshotVersion: ProtocolVersion,
-    val apiLevel: Int? = null,
-    val processName: String? = null,
-    var containsCompose: Boolean? = null,
-    val liveDuringCapture: Boolean? = null,
-    val source: Metadata.Source? = null,
-    val sourceVersion: String? = null,
-    var saveDuration: Long? = null,
-    var loadDuration: Long? = null,
-    var dpi: Int? = null,
-    var fontScale: Float? = null,
-    var screenDimension: Dimension? = null
+  val snapshotVersion: ProtocolVersion,
+  val apiLevel: Int? = null,
+  val processName: String? = null,
+  var containsCompose: Boolean? = null,
+  val liveDuringCapture: Boolean? = null,
+  val source: Metadata.Source? = null,
+  val sourceVersion: String? = null,
+  var saveDuration: Long? = null,
+  var loadDuration: Long? = null,
+  var dpi: Int? = null,
+  var fontScale: Float? = null,
+  var screenDimension: Dimension? = null,
+  var folderConfig: String? = null,
+  var theme: String? = null
 ) {
-  /**
-   * Convert to the proto used by metrics.
-   */
+  /** Convert to the proto used by metrics. */
   fun toSnapshotInfo(): DynamicLayoutInspectorSnapshotInfo? =
-    DynamicLayoutInspectorSnapshotInfo.newBuilder().apply {
-      snapshotVersion = this@SnapshotMetadata.snapshotVersion.toInt()
+    DynamicLayoutInspectorSnapshotInfo.newBuilder()
+      .apply {
+        snapshotVersion = this@SnapshotMetadata.snapshotVersion.toInt()
 
-      saveSource = when (source) {
-        Metadata.Source.STUDIO -> DynamicLayoutInspectorSnapshotInfo.SaveSource.STUDIO
-        else -> DynamicLayoutInspectorSnapshotInfo.SaveSource.UNKNOWN
+        saveSource =
+          when (source) {
+            Metadata.Source.STUDIO -> DynamicLayoutInspectorSnapshotInfo.SaveSource.STUDIO
+            else -> DynamicLayoutInspectorSnapshotInfo.SaveSource.UNKNOWN
+          }
+        sourceVersion?.let { saveVersion = it }
+        liveDuringCapture?.let { liveWhenSaved = it }
+        saveDuration?.let { saveDurationMs = it.toInt() }
+        loadDuration?.let { loadDurationMs = it.toInt() }
       }
-      sourceVersion?.let { saveVersion = it }
-      liveDuringCapture?.let { liveWhenSaved = it }
-      saveDuration?.let { saveDurationMs = it.toInt() }
-      loadDuration?.let { loadDurationMs = it.toInt() }
-    }.build()
+      .build()
 
-  /**
-   * Convert to the proto saved in a snapshot.
-   */
+  /** Convert to the proto saved in a snapshot. */
   fun toProto(): Metadata =
-    Metadata.newBuilder().apply {
-      this@SnapshotMetadata.apiLevel?.let { apiLevel = it }
-      this@SnapshotMetadata.processName?.let { processName = it }
-      this@SnapshotMetadata.containsCompose?.let { containsCompose = it }
-      this@SnapshotMetadata.liveDuringCapture?.let { liveDuringCapture = it }
-      source = this@SnapshotMetadata.source
-      sourceVersion = ApplicationInfo.getInstance().fullVersion
-      this@SnapshotMetadata.dpi?.let { dpi = it }
-      this@SnapshotMetadata.fontScale?.let { fontScale = it }
-      this@SnapshotMetadata.screenDimension?.let {
-        screenWidth = it.width
-        screenHeight = it.height
+    Metadata.newBuilder()
+      .apply {
+        this@SnapshotMetadata.apiLevel?.let { apiLevel = it }
+        this@SnapshotMetadata.processName?.let { processName = it }
+        this@SnapshotMetadata.containsCompose?.let { containsCompose = it }
+        this@SnapshotMetadata.liveDuringCapture?.let { liveDuringCapture = it }
+        source = this@SnapshotMetadata.source
+        sourceVersion = ApplicationInfo.getInstance().fullVersion
+        this@SnapshotMetadata.dpi?.let { dpi = it }
+        this@SnapshotMetadata.fontScale?.let { fontScale = it }
+        this@SnapshotMetadata.screenDimension?.let {
+          screenWidth = it.width
+          screenHeight = it.height
+        }
+        this@SnapshotMetadata.folderConfig?.let { folderConfig = it }
+        this@SnapshotMetadata.theme?.let { theme = it }
       }
-    }.build()
+      .build()
 }
 
-/**
- * Convert from the proto saved in a snapshot to a normal object.
- */
-fun Metadata.convert(version: ProtocolVersion) = SnapshotMetadata(
-  version,
-  apiLevel,
-  processName,
-  containsCompose,
-  liveDuringCapture,
-  source,
-  sourceVersion,
-  dpi = dpi,
-  fontScale = fontScale,
-  screenDimension = if (screenWidth > 0 && screenHeight > 0) Dimension(screenWidth, screenHeight) else null
-)
+/** Convert from the proto saved in a snapshot to a normal object. */
+fun Metadata.convert(version: ProtocolVersion) =
+  SnapshotMetadata(
+    version,
+    apiLevel,
+    processName,
+    containsCompose,
+    liveDuringCapture,
+    source,
+    sourceVersion,
+    dpi = dpi,
+    fontScale = fontScale,
+    screenDimension =
+      if (screenWidth > 0 && screenHeight > 0) Dimension(screenWidth, screenHeight) else null,
+    folderConfig = folderConfig,
+    theme = theme
+  )
 
-fun ProtocolVersion.toInt() = when(this) {
-  ProtocolVersion.Version1 -> 1
-  ProtocolVersion.Version2 -> 2
-  ProtocolVersion.Version3 -> 3
-  ProtocolVersion.Version4 -> 4
-}
+fun ProtocolVersion.toInt() =
+  when (this) {
+    ProtocolVersion.Version1 -> 1
+    ProtocolVersion.Version2 -> 2
+    ProtocolVersion.Version3 -> 3
+    ProtocolVersion.Version4 -> 4
+  }

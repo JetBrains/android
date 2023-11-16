@@ -15,19 +15,23 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
-import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
-import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.EditorNotifications
 
 /** Action that toggles the Fast Preview state. */
 class ToggleFastPreviewAction : AnAction(null, null, null) {
+  // BGT is needed when calling findComposePreviewManagersForContext because it accesses the
+  // VirtualFile
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val fastPreviewManager = project.fastPreviewManager
@@ -47,21 +51,15 @@ class ToggleFastPreviewAction : AnAction(null, null, null) {
   override fun update(e: AnActionEvent) {
     super.update(e)
 
-    if (!StudioFlags.COMPOSE_FAST_PREVIEW.get()) {
-      // No Fast Preview available
-      e.presentation.isEnabledAndVisible = false
-      return
-    }
-
     val presentation = e.presentation
     val project = e.project
     if (project == null) {
       presentation.isEnabledAndVisible = false
       return
     }
-    if (PreviewPowerSaveManager.isInPowerSaveMode) {
+    if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) {
       presentation.description =
-        message("action.preview.fast.refresh.disabled.in.power.save.description")
+        message("action.preview.fast.refresh.disabled.in.essentials.mode.description")
       presentation.isEnabled = false
     } else {
       presentation.description = message("action.preview.fast.refresh.toggle.description")

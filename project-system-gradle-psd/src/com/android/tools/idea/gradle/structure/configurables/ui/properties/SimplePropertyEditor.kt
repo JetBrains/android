@@ -205,15 +205,6 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       return scope?.getAvailableVariablesFor(propertyContext)
     }
 
-    fun addFocusGainedListener(listener: () -> Unit) {
-      val focusListener = object : FocusListener {
-        override fun focusLost(e: FocusEvent?) = Unit
-        override fun focusGained(e: FocusEvent?) = listener()
-      }
-      editor.editorComponent.addFocusListener(focusListener)
-      addFocusListener(focusListener)
-    }
-
     /**
      * Returns [true] if the value currently being edited in the combo-box editor differs the last manually set value.
      *
@@ -253,11 +244,20 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
         }
       }
 
-      addFocusGainedListener {
-        if (!disposed) {
-          reloadIfNotChanged()
+      val focusListener = object : FocusListener {
+        override fun focusLost(e: FocusEvent?) {
+          if (!disposed && !beingLoaded) {
+            onEditorChanged()
+          }
+        }
+        override fun focusGained(e: FocusEvent?) {
+          if (!disposed) {
+            reloadIfNotChanged()
+          }
         }
       }
+      editor.editorComponent.addFocusListener(focusListener)
+      addFocusListener(focusListener)
     }
   }
 

@@ -20,10 +20,10 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.ThreadState
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import perfetto.protos.PerfettoTrace
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
 class SystemTraceCpuCaptureBuilderTest {
 
@@ -108,6 +108,32 @@ class SystemTraceCpuCaptureBuilderTest {
     // Make sure fake/termination NO_ACTIVITY thread state is not added
     // when there is no states in the thread to begin with.
     assertThat(systemTraceData.getThreadStatesForThread(2).size).isEqualTo(0)
+  }
+
+  @Test
+  fun `buildThreadStateData - main thread name not present`() {
+    val mainThread = ThreadModel(1, 1, "",
+                                 listOf(),
+                                 listOf(
+                                   SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1),
+                                   SchedulingEventModel(ThreadState.NO_ACTIVITY, 0L, 5L, 5L, 5L, 1, 1, 1),
+                                 ))
+    val nonMainThread = ThreadModel(2, 2, "NON_MAIN_THREAD",
+                                    listOf(),
+                                    listOf())
+
+    val processes = mapOf(1 to ProcessModel(
+      1, "Main Process",
+      mapOf(1 to mainThread, 2 to nonMainThread),
+      mapOf(),
+    ))
+
+    val model = TestModel(processes, mapOf(), listOf(), listOf(), listOf())
+    val capture = SystemTraceCpuCaptureBuilder(model).build(1L, 1, Range(0.0, 5.0))
+    val systemTraceData = capture.systemTraceData
+
+    // Because the main thread name was not present, the main thread assumes the name of the process it belongs to.
+    assertThat(systemTraceData.threads.find { it.isMainThread }?.name).isEqualTo("Main Process")
   }
 
   @Test
@@ -260,20 +286,23 @@ class SystemTraceCpuCaptureBuilderTest {
   }
 
   @Test
-  fun buildPowerCountersData() {
+  fun buildPowerCountersDataCumulativeView() {
     val processes = mapOf(
       1 to ProcessModel(
         1, "Process",
         mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
         mapOf()))
 
+    // The rails 'power.rails.ddr.a' & 'power.rails.ddr.c' are used as they are known to be grouped under "Memory".
+    // The 'power.rails.cpu.big' is in a group "CPU Big' by itself.
     val powerRails = listOf(
-      CounterModel("power.rails.foo", sortedMapOf(1L to 100.0, 2L to 200.0)),
-      CounterModel("power.rails.bar", sortedMapOf(3L to 300.0, 4L to 400.0)))
+      CounterModel("power.rails.ddr.a", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("power.rails.ddr.c", sortedMapOf(3L to 300.0, 4L to 400.0)),
+      CounterModel("power.rails.cpu.big", sortedMapOf(5L to 500.0, 6L to 600.0)))
 
     val batteryDrain = listOf(
-      CounterModel("batt.foo", sortedMapOf(1L to 100.0, 2L to 200.0)),
-      CounterModel("batt.bar", sortedMapOf(3L to 300.0, 4L to 400.0)))
+      CounterModel("foo", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("bar", sortedMapOf(3L to 300.0, 4L to 400.0)))
 
     val model = TestModel(processes, emptyMap(), emptyList(), powerRails, batteryDrain, emptyList())
 
@@ -284,7 +313,17 @@ class SystemTraceCpuCaptureBuilderTest {
     assertThat(systemTraceData.powerRailCounters).hasSize(2)
     assertThat(systemTraceData.batteryDrainCounters).hasSize(2)
 
-    assertThat(systemTraceData.powerRailCounters).containsExactly(
+    assertThat(systemTraceData.powerRailCounters["Memory"]!!.cumulativeData).containsExactly(
+      SeriesData(3, 500L),
+      SeriesData(4, 600L))
+      .inOrder()
+
+    assertThat(systemTraceData.powerRailCounters["CPU Big"]!!.cumulativeData).containsExactly(
+      SeriesData(5, 500L),
+      SeriesData(6, 600L))
+      .inOrder()
+
+    assertThat(systemTraceData.batteryDrainCounters).containsExactly(
       "bar", listOf(
       SeriesData(3, 300L),
       SeriesData(4, 400L)),
@@ -292,7 +331,46 @@ class SystemTraceCpuCaptureBuilderTest {
       SeriesData(1, 100L),
       SeriesData(2, 200L)))
       .inOrder()
+  }
 
+  @Test
+  fun buildPowerCountersDataDeltaView() {
+    val processes = mapOf(
+      1 to ProcessModel(
+        1, "Process",
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf()))
+
+    // The rails 'power.rails.ddr.a' & 'power.rails.ddr.c' are used as they are known to be grouped under "Memory".
+    // The 'power.rails.cpu.big' is in a group "CPU Big' by itself.
+    val powerRails = listOf(
+      CounterModel("power.rails.ddr.a", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("power.rails.ddr.c", sortedMapOf(3L to 300.0, 4L to 400.0)),
+      CounterModel("power.rails.cpu.big", sortedMapOf(5L to 500.0, 6L to 600.0)))
+
+    val batteryDrain = listOf(
+      CounterModel("foo", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("bar", sortedMapOf(3L to 300.0, 4L to 400.0)))
+
+    val model = TestModel(processes, emptyMap(), emptyList(), powerRails, batteryDrain, emptyList())
+
+    val builder = SystemTraceCpuCaptureBuilder(model)
+    val capture = builder.build(0L, 1, Range())
+    val systemTraceData = capture.systemTraceData!!
+
+    assertThat(systemTraceData.powerRailCounters).hasSize(2)
+    assertThat(systemTraceData.batteryDrainCounters).hasSize(2)
+
+    assertThat(systemTraceData.powerRailCounters["Memory"]!!.deltaData).containsExactly(
+      SeriesData(4, 100L))
+      .inOrder()
+
+    assertThat(systemTraceData.powerRailCounters["CPU Big"]!!.deltaData).containsExactly(
+      SeriesData(6, 100L))
+      .inOrder()
+
+    // In the DELTA view, only the power rail counters have the delta computed,
+    // while the battery counters stay in CUMULATIVE/raw view.
     assertThat(systemTraceData.batteryDrainCounters).containsExactly(
       "bar", listOf(
       SeriesData(3, 300L),
@@ -382,7 +460,7 @@ class SystemTraceCpuCaptureBuilderTest {
     }
   }
 
-  private class TestModel(
+  class TestModel(
     private val processes: Map<Int, ProcessModel>,
     private val danglingThreads: Map<Int, ThreadModel>,
     private val cpuCores: List<CpuCoreModel>,

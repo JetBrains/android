@@ -14,5 +14,12 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:HdrHistogram",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/base/common:studio.android.sdktools.common[module]",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
+        "//tools/analytics-library/shared:analytics-shared[module]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
     ],
 )

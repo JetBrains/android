@@ -34,10 +34,9 @@ import javax.swing.event.HyperlinkEvent
 
 private const val BORDER_SIZE = 4
 
-/**
- * A panel with text to inform the user what to do when a table is empty.
- */
-class EmptyTablePanel(private val addAction: AnAction, model: TableLineModel) : JPanel(BorderLayout()) {
+/** A panel with text to inform the user what to do when a table is empty. */
+class EmptyTablePanel(private val addAction: AnAction, model: TableLineModel) :
+  JPanel(BorderLayout()) {
   private var textPanel: JEditorPane? = null
 
   init {
@@ -59,11 +58,13 @@ class EmptyTablePanel(private val addAction: AnAction, model: TableLineModel) : 
     add(text, BorderLayout.CENTER)
     background = secondaryPanelBackground
     isVisible = model.itemCount == 0
-    model.tableModel.addListener(object: PTableModelUpdateListener {
-      override fun itemsUpdated(modelChanged: Boolean, nextEditedItem: PTableItem?) {
-        isVisible = model.tableModel.items.isEmpty()
+    model.tableModel.addListener(
+      object : PTableModelUpdateListener {
+        override fun itemsUpdated(modelChanged: Boolean, nextEditedItem: PTableItem?) {
+          isVisible = model.tableModel.items.isEmpty()
+        }
       }
-    })
+    )
   }
 
   override fun updateUI() {
@@ -76,20 +77,21 @@ class EmptyTablePanel(private val addAction: AnAction, model: TableLineModel) : 
     val font = StartupUiUtil.labelFont
     val color = UIUtil.getLabelForeground()
     val disabled = JBUI.CurrentTheme.Label.disabledForeground()
-    val style = "<head><style>" +
-                "body { " +
-                "text-align: center; " +
-                "font-family: \"${font.family}\"; " +
-                "font-size: 100%;" +
-                "font-style: normal; " +
-                "color: rgb(${disabled.red},${disabled.green},${disabled.blue}); " +
-                "} " +
-                "a {" +
-                "color: rgb(${color.red},${color.green},${color.blue}); " +
-                "font-style: bold; " +
-                "text-decoration: none; " +
-                "} " +
-                "</style></head>"
+    val style =
+      "<head><style>" +
+        "body { " +
+        "text-align: center; " +
+        "font-family: \"${font.family}\"; " +
+        "font-size: 100%;" +
+        "font-style: normal; " +
+        "color: rgb(${disabled.red},${disabled.green},${disabled.blue}); " +
+        "} " +
+        "a {" +
+        "color: rgb(${color.red},${color.green},${color.blue}); " +
+        "font-style: bold; " +
+        "text-decoration: none; " +
+        "} " +
+        "</style></head>"
     return "<html>$style<body>Use <a href=\"1\">+</a> to $actionText for easy access</body></html>"
   }
 }

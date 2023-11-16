@@ -28,6 +28,7 @@ import com.android.tools.componenttree.util.fragments
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.NewUiValue
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.UIUtil
@@ -48,35 +49,47 @@ private const val TEST_ROW = 1
 
 class ViewTreeCellRendererTest {
 
-  @get:Rule
-  val rules = RuleChain.outerRule(ApplicationRule()).around(IconLoaderRule())!!
+  @get:Rule val rules = RuleChain.outerRule(ApplicationRule()).around(IconLoaderRule())!!
 
   private val type = ItemNodeType()
   private val renderer = ViewTreeCellRenderer(type)
 
-  private val model = TreeTableModelImpl(listOf(), mapOf(Pair(Item::class.java, type)), SwingUtilities::invokeLater)
+  private val model =
+    TreeTableModelImpl(listOf(), mapOf(Pair(Item::class.java, type)), SwingUtilities::invokeLater)
   private var table: TreeTableImpl? = null
   private var tree: JTree? = null
 
   private val normal = SimpleTextAttributes.REGULAR_ATTRIBUTES
-  private val strikeout = SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(SimpleTextAttributes.STYLE_STRIKEOUT, null, null, null)
+  private val strikeout =
+    SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(
+      SimpleTextAttributes.STYLE_STRIKEOUT,
+      null,
+      null,
+      null
+    )
   private val grey = SimpleTextAttributes.GRAYED_SMALL_ATTRIBUTES
-  private val greyStrikeout = SimpleTextAttributes(SimpleTextAttributes.STYLE_SMALLER or SimpleTextAttributes.STYLE_STRIKEOUT, null)
+  private val greyStrikeout =
+    SimpleTextAttributes(
+      SimpleTextAttributes.STYLE_SMALLER or SimpleTextAttributes.STYLE_STRIKEOUT,
+      null
+    )
 
   @Before
   fun setUp() {
-    table = TreeTableImpl(
-      model,
-      contextPopup = { _, _, _, _ -> },
-      doubleClick = {},
-      painter = null,
-      installKeyboardActions = {},
-      treeSelectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION,
-      installTreeSearch = false,
-      autoScroll = false,
-      expandAllOnRootChange = false,
-      treeHeaderRenderer = null
-    )
+    table = runInEdtAndGet {
+      TreeTableImpl(
+        model,
+        contextPopup = { _, _, _, _ -> },
+        doubleClick = {},
+        painter = null,
+        installKeyboardActions = {},
+        treeSelectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION,
+        installTreeSearch = false,
+        autoScroll = false,
+        expandAllOnRootChange = false,
+        treeHeaderRenderer = null
+      )
+    }
     tree = table!!.tree
   }
 
@@ -89,13 +102,18 @@ class ViewTreeCellRendererTest {
   @Test
   fun testFragmentsWithIdAndTextValue() {
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "\"Hello\"", Palette.TEXT_VIEW)
-    val component = renderAndCheckFragments(item, Fragment("text", normal), Fragment(" \"Hello\"", grey))
+    val component =
+      renderAndCheckFragments(item, Fragment("text", normal), Fragment(" \"Hello\"", grey))
     assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
-    assertThat(component.toolTipText).isEqualTo("""
+    assertThat(component.toolTipText)
+      .isEqualTo(
+        """
       <html>
         TextView<br/>
         text: "Hello"
-      </html>""".trimIndent())
+      </html>"""
+          .trimIndent()
+      )
     assertThat(ViewTreeCellRenderer.computeSearchString(type, item)).isEqualTo("text \"Hello\"")
   }
 
@@ -113,27 +131,39 @@ class ViewTreeCellRendererTest {
     val item = Item(FQCN_TEXT_VIEW, "@id/textView", null, Palette.TEXT_VIEW)
     val component = renderAndCheckFragments(item, Fragment("textView", normal))
     assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
-    assertThat(component.toolTipText).isEqualTo("""
+    assertThat(component.toolTipText)
+      .isEqualTo(
+        """
       <html>
         TextView<br/>
         textView
-      </html>""".trimIndent())
-    assertThat(ViewTreeCellRenderer.computeSearchString(type, item)).isEqualTo("textView - TextView")
+      </html>"""
+          .trimIndent()
+      )
+    assertThat(ViewTreeCellRenderer.computeSearchString(type, item))
+      .isEqualTo("textView - TextView")
   }
 
   @Test
   fun testFragmentsWithTextValueButNoId() {
     val item = Item(FQCN_TEXT_VIEW, null, "\"Hello World\"", Palette.TEXT_VIEW)
-    val component = renderAndCheckFragments(item, Fragment("TextView", normal), Fragment(" \"Hello World\"", grey))
+    val component =
+      renderAndCheckFragments(
+        item,
+        Fragment("TextView", normal),
+        Fragment(" \"Hello World\"", grey)
+      )
     assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
     assertThat(component.toolTipText).isNull()
-    assertThat(ViewTreeCellRenderer.computeSearchString(type, item)).isEqualTo("TextView \"Hello World\"")
+    assertThat(ViewTreeCellRenderer.computeSearchString(type, item))
+      .isEqualTo("TextView \"Hello World\"")
   }
 
   @Test
   fun testFragmentsWithLessThanOptimalSpace() {
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "\"Hello\"", Palette.TEXT_VIEW)
-    val component = renderAndCheckFragments(item, Fragment("text", normal), Fragment(" \"Hello\"", grey))
+    val component =
+      renderAndCheckFragments(item, Fragment("text", normal), Fragment(" \"Hello\"", grey))
     val size = component.preferredSize
     size.width -= 3
     tree!!.size = size
@@ -147,13 +177,18 @@ class ViewTreeCellRendererTest {
   fun testBackgroundColor() {
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
     // Check that background does not depend on enabled and deEmphasized:
-    for ((enabled, deEmphasized) in listOf(Pair(false, false), Pair(true, false), Pair(false, true), Pair(true, true))) {
-      assertThat(getBackgroundColor(item, selected = false, hasFocus = false, enabled, deEmphasized)).isEqualTo(UIUtil.getTreeBackground())
-      assertThat(getBackgroundColor(item, selected = false, hasFocus = true, enabled, deEmphasized)).isEqualTo(UIUtil.getTreeBackground())
-      assertThat(getBackgroundColor(item, selected = true, hasFocus = false, enabled, deEmphasized)).isEqualTo(
-        UIUtil.getTreeBackground(true, false))
-      assertThat(getBackgroundColor(item, selected = true, hasFocus = true, enabled, deEmphasized)).isEqualTo(
-        UIUtil.getTreeBackground(true, true))
+    for ((enabled, deEmphasized) in
+      listOf(Pair(false, false), Pair(true, false), Pair(false, true), Pair(true, true))) {
+      assertThat(
+          getBackgroundColor(item, selected = false, hasFocus = false, enabled, deEmphasized)
+        )
+        .isEqualTo(UIUtil.getTreeBackground())
+      assertThat(getBackgroundColor(item, selected = false, hasFocus = true, enabled, deEmphasized))
+        .isEqualTo(UIUtil.getTreeBackground())
+      assertThat(getBackgroundColor(item, selected = true, hasFocus = false, enabled, deEmphasized))
+        .isEqualTo(UIUtil.getTreeBackground(true, false))
+      assertThat(getBackgroundColor(item, selected = true, hasFocus = true, enabled, deEmphasized))
+        .isEqualTo(UIUtil.getTreeBackground(true, true))
     }
   }
 
@@ -164,35 +199,188 @@ class ViewTreeCellRendererTest {
     val selected = UIUtil.getTreeForeground(true, false)
     val focused = UIUtil.getTreeForeground(true, true)
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
-    assertThat(getForegroundColor(item, selected = false, hasFocus = false, enabled = false, deEmphasized = false)).isEqualTo(faint)
-    assertThat(getForegroundColor(item, selected = false, hasFocus = true, enabled = false, deEmphasized = false)).isEqualTo(faint)
-    assertThat(getForegroundColor(item, selected = true, hasFocus = false, enabled = false, deEmphasized = false)).isEqualTo(selected)
-    assertThat(getForegroundColor(item, selected = true, hasFocus = true, enabled = false, deEmphasized = false)).isEqualTo(focused)
-    assertThat(getForegroundColor(item, selected = false, hasFocus = false, enabled = true, deEmphasized = false)).isEqualTo(normal)
-    assertThat(getForegroundColor(item, selected = false, hasFocus = true, enabled = true, deEmphasized = false)).isEqualTo(normal)
-    assertThat(getForegroundColor(item, selected = true, hasFocus = false, enabled = true, deEmphasized = false)).isEqualTo(selected)
-    assertThat(getForegroundColor(item, selected = true, hasFocus = true, enabled = true, deEmphasized = false)).isEqualTo(focused)
-    assertThat(getForegroundColor(item, selected = false, hasFocus = false, enabled = false, deEmphasized = true)).isEqualTo(faint)
-    assertThat(getForegroundColor(item, selected = false, hasFocus = true, enabled = false, deEmphasized = true)).isEqualTo(faint)
-    assertThat(getForegroundColor(item, selected = true, hasFocus = false, enabled = false, deEmphasized = true)).isEqualTo(selected)
-    assertThat(getForegroundColor(item, selected = true, hasFocus = true, enabled = false, deEmphasized = true)).isEqualTo(focused)
-    assertThat(getForegroundColor(item, selected = false, hasFocus = false, enabled = true, deEmphasized = true)).isEqualTo(faint)
-    assertThat(getForegroundColor(item, selected = false, hasFocus = true, enabled = true, deEmphasized = true)).isEqualTo(faint)
-    assertThat(getForegroundColor(item, selected = true, hasFocus = false, enabled = true, deEmphasized = true)).isEqualTo(selected)
-    assertThat(getForegroundColor(item, selected = true, hasFocus = true, enabled = true, deEmphasized = true)).isEqualTo(focused)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = false,
+          hasFocus = false,
+          enabled = false,
+          deEmphasized = false
+        )
+      )
+      .isEqualTo(faint)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = false,
+          hasFocus = true,
+          enabled = false,
+          deEmphasized = false
+        )
+      )
+      .isEqualTo(faint)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = true,
+          hasFocus = false,
+          enabled = false,
+          deEmphasized = false
+        )
+      )
+      .isEqualTo(selected)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = true,
+          hasFocus = true,
+          enabled = false,
+          deEmphasized = false
+        )
+      )
+      .isEqualTo(focused)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = false,
+          hasFocus = false,
+          enabled = true,
+          deEmphasized = false
+        )
+      )
+      .isEqualTo(normal)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = false,
+          hasFocus = true,
+          enabled = true,
+          deEmphasized = false
+        )
+      )
+      .isEqualTo(normal)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = true,
+          hasFocus = false,
+          enabled = true,
+          deEmphasized = false
+        )
+      )
+      .isEqualTo(selected)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = true,
+          hasFocus = true,
+          enabled = true,
+          deEmphasized = false
+        )
+      )
+      .isEqualTo(focused)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = false,
+          hasFocus = false,
+          enabled = false,
+          deEmphasized = true
+        )
+      )
+      .isEqualTo(faint)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = false,
+          hasFocus = true,
+          enabled = false,
+          deEmphasized = true
+        )
+      )
+      .isEqualTo(faint)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = true,
+          hasFocus = false,
+          enabled = false,
+          deEmphasized = true
+        )
+      )
+      .isEqualTo(selected)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = true,
+          hasFocus = true,
+          enabled = false,
+          deEmphasized = true
+        )
+      )
+      .isEqualTo(focused)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = false,
+          hasFocus = false,
+          enabled = true,
+          deEmphasized = true
+        )
+      )
+      .isEqualTo(faint)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = false,
+          hasFocus = true,
+          enabled = true,
+          deEmphasized = true
+        )
+      )
+      .isEqualTo(faint)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = true,
+          hasFocus = false,
+          enabled = true,
+          deEmphasized = true
+        )
+      )
+      .isEqualTo(selected)
+    assertThat(
+        getForegroundColor(
+          item,
+          selected = true,
+          hasFocus = true,
+          enabled = true,
+          deEmphasized = true
+        )
+      )
+      .isEqualTo(focused)
   }
 
   @Test
   fun testDisabled() {
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "\"Hello\"", Palette.TEXT_VIEW)
     item.enabled = false
-    val component = renderAndCheckFragments(item, Fragment("text", strikeout), Fragment(" \"Hello\"", greyStrikeout))
+    val component =
+      renderAndCheckFragments(
+        item,
+        Fragment("text", strikeout),
+        Fragment(" \"Hello\"", greyStrikeout)
+      )
     assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
-    assertThat(component.toolTipText).isEqualTo("""
+    assertThat(component.toolTipText)
+      .isEqualTo(
+        """
       <html>
         TextView<br/>
         text: "Hello"
-      </html>""".trimIndent())
+      </html>"""
+          .trimIndent()
+      )
     assertThat(ViewTreeCellRenderer.computeSearchString(type, item)).isEqualTo("text \"Hello\"")
   }
 
@@ -205,53 +393,127 @@ class ViewTreeCellRendererTest {
     IconLoader.activate()
     val selectedWithFocus = if (NewUiValue.isEnabled()) normal else white
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
-    assertThat(getIcon(item, selected = false, hasFocus = false, enabled = true, deEmphasized = false)).isSameAs(normal)
-    assertThat(getIcon(item, selected = false, hasFocus = true, enabled = true, deEmphasized = false)).isSameAs(normal)
-    assertThat(getIcon(item, selected = true, hasFocus = false, enabled = true, deEmphasized = false)).isSameAs(normal)
-    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = true, deEmphasized = false)!!, selectedWithFocus)
-    assertIconsEqual(getIcon(item, selected = false, hasFocus = false, enabled = false, deEmphasized = false)!!, faint)
-    assertIconsEqual(getIcon(item, selected = false, hasFocus = true, enabled = false, deEmphasized = false)!!, faint)
-    assertThat(getIcon(item, selected = true, hasFocus = false, enabled = false, deEmphasized = false)).isSameAs(normal)
-    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = false)!!, selectedWithFocus)
-    assertIconsEqual(getIcon(item, selected = false, hasFocus = false, enabled = true, deEmphasized = true)!!, faint)
-    assertIconsEqual(getIcon(item, selected = false, hasFocus = true, enabled = true, deEmphasized = true)!!, faint)
-    assertThat(getIcon(item, selected = true, hasFocus = false, enabled = true, deEmphasized = true)).isSameAs(normal)
-    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = true, deEmphasized = true)!!, selectedWithFocus)
-    assertIconsEqual(getIcon(item, selected = false, hasFocus = false, enabled = false, deEmphasized = true)!!, faint)
-    assertIconsEqual(getIcon(item, selected = false, hasFocus = true, enabled = false, deEmphasized = true)!!, faint)
-    assertThat(getIcon(item, selected = true, hasFocus = false, enabled = false, deEmphasized = true)).isSameAs(normal)
-    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = true)!!, selectedWithFocus)
+    assertThat(
+        getIcon(item, selected = false, hasFocus = false, enabled = true, deEmphasized = false)
+      )
+      .isSameAs(normal)
+    assertThat(
+        getIcon(item, selected = false, hasFocus = true, enabled = true, deEmphasized = false)
+      )
+      .isSameAs(normal)
+    assertThat(
+        getIcon(item, selected = true, hasFocus = false, enabled = true, deEmphasized = false)
+      )
+      .isSameAs(normal)
+    assertIconsEqual(
+      getIcon(item, selected = true, hasFocus = true, enabled = true, deEmphasized = false)!!,
+      selectedWithFocus
+    )
+    assertIconsEqual(
+      getIcon(item, selected = false, hasFocus = false, enabled = false, deEmphasized = false)!!,
+      faint
+    )
+    assertIconsEqual(
+      getIcon(item, selected = false, hasFocus = true, enabled = false, deEmphasized = false)!!,
+      faint
+    )
+    assertThat(
+        getIcon(item, selected = true, hasFocus = false, enabled = false, deEmphasized = false)
+      )
+      .isSameAs(normal)
+    assertIconsEqual(
+      getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = false)!!,
+      selectedWithFocus
+    )
+    assertIconsEqual(
+      getIcon(item, selected = false, hasFocus = false, enabled = true, deEmphasized = true)!!,
+      faint
+    )
+    assertIconsEqual(
+      getIcon(item, selected = false, hasFocus = true, enabled = true, deEmphasized = true)!!,
+      faint
+    )
+    assertThat(
+        getIcon(item, selected = true, hasFocus = false, enabled = true, deEmphasized = true)
+      )
+      .isSameAs(normal)
+    assertIconsEqual(
+      getIcon(item, selected = true, hasFocus = true, enabled = true, deEmphasized = true)!!,
+      selectedWithFocus
+    )
+    assertIconsEqual(
+      getIcon(item, selected = false, hasFocus = false, enabled = false, deEmphasized = true)!!,
+      faint
+    )
+    assertIconsEqual(
+      getIcon(item, selected = false, hasFocus = true, enabled = false, deEmphasized = true)!!,
+      faint
+    )
+    assertThat(
+        getIcon(item, selected = true, hasFocus = false, enabled = false, deEmphasized = true)
+      )
+      .isSameAs(normal)
+    assertIconsEqual(
+      getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = true)!!,
+      selectedWithFocus
+    )
   }
 
   @Suppress("UndesirableClassUsage")
   private fun assertIconsEqual(actual: Icon, expected: Icon) {
-    val expectedImage = BufferedImage(expected.iconWidth, expected.iconHeight, BufferedImage.TYPE_INT_ARGB)
+    val expectedImage =
+      BufferedImage(expected.iconWidth, expected.iconHeight, BufferedImage.TYPE_INT_ARGB)
     expected.paintIcon(null, expectedImage.createGraphics(), 0, 0)
-    val actualImage = BufferedImage(actual.iconWidth, actual.iconHeight, BufferedImage.TYPE_INT_ARGB)
+    val actualImage =
+      BufferedImage(actual.iconWidth, actual.iconHeight, BufferedImage.TYPE_INT_ARGB)
     actual.paintIcon(null, actualImage.createGraphics(), 0, 0)
     ImageDiffUtil.assertImageSimilar("icon", expectedImage, actualImage, 0.0)
   }
 
-  private fun getBackgroundColor(item: Item, selected: Boolean, hasFocus: Boolean, enabled: Boolean, deEmphasized: Boolean): Color {
+  private fun getBackgroundColor(
+    item: Item,
+    selected: Boolean,
+    hasFocus: Boolean,
+    enabled: Boolean,
+    deEmphasized: Boolean
+  ): Color {
     item.enabled = enabled
     item.deEmphasized = deEmphasized
-    val component = renderer.getTreeCellRendererComponent(tree!!, item, selected, false, true, TEST_ROW, hasFocus) as ColoredViewRenderer
+    val component =
+      renderer.getTreeCellRendererComponent(tree!!, item, selected, false, true, TEST_ROW, hasFocus)
+        as ColoredViewRenderer
     component.adjustForPainting()
     return component.background
   }
 
-  private fun getForegroundColor(item: Item, selected: Boolean, hasFocus: Boolean, enabled: Boolean, deEmphasized: Boolean): Color {
+  private fun getForegroundColor(
+    item: Item,
+    selected: Boolean,
+    hasFocus: Boolean,
+    enabled: Boolean,
+    deEmphasized: Boolean
+  ): Color {
     item.enabled = enabled
     item.deEmphasized = deEmphasized
-    val component = renderer.getTreeCellRendererComponent(tree!!, item, selected, false, true, TEST_ROW, hasFocus) as ColoredViewRenderer
+    val component =
+      renderer.getTreeCellRendererComponent(tree!!, item, selected, false, true, TEST_ROW, hasFocus)
+        as ColoredViewRenderer
     component.adjustForPainting()
     return component.foreground
   }
 
-  private fun getIcon(item: Item, selected: Boolean, hasFocus: Boolean, enabled: Boolean, deEmphasized: Boolean): Icon? {
+  private fun getIcon(
+    item: Item,
+    selected: Boolean,
+    hasFocus: Boolean,
+    enabled: Boolean,
+    deEmphasized: Boolean
+  ): Icon? {
     item.enabled = enabled
     item.deEmphasized = deEmphasized
-    val component = renderer.getTreeCellRendererComponent(tree!!, item, selected, false, true, TEST_ROW, hasFocus) as ColoredViewRenderer
+    val component =
+      renderer.getTreeCellRendererComponent(tree!!, item, selected, false, true, TEST_ROW, hasFocus)
+        as ColoredViewRenderer
     component.adjustForPainting()
     return component.icon
   }
@@ -279,7 +541,9 @@ class ViewTreeCellRendererTest {
   }
 
   private fun renderAndCheckFragments(item: Item, vararg fragments: Fragment): ColoredViewRenderer {
-    val component = renderer.getTreeCellRendererComponent(tree!!, item, false, false, true, TEST_ROW, false) as ColoredViewRenderer
+    val component =
+      renderer.getTreeCellRendererComponent(tree!!, item, false, false, true, TEST_ROW, false)
+        as ColoredViewRenderer
     checkFragments(component, *fragments)
     return component
   }

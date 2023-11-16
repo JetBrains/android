@@ -31,7 +31,6 @@
 package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.logcat.LogcatBundle
-import com.android.tools.idea.logcat.LogcatPresenter
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -43,12 +42,12 @@ import com.intellij.openapi.project.DumbAwareAction
 internal class RestartLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.restart.action.text"), null, AllIcons.Actions.Restart) {
 
   override fun update(e: AnActionEvent) {
-    val logcatPresenter = e.getData(LogcatPresenter.LOGCAT_PRESENTER_ACTION) ?: return
+    val logcatPresenter = e.getLogcatPresenter() ?: return
     e.presentation.isEnabled = logcatPresenter.getConnectedDevice() != null
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val logcatPresenter = e.getData(LogcatPresenter.LOGCAT_PRESENTER_ACTION) ?: return
+    val logcatPresenter = e.getLogcatPresenter() ?: return
     logcatPresenter.restartLogcat()
   }
 

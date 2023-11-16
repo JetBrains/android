@@ -24,6 +24,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.refactoring.extractMethod.newImpl.ExtractMethodHelper.addSiblingAfter
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KtFirDiagnostic
+import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KtTypeRendererForSource
 import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.idea.base.resources.KotlinBundle
@@ -39,6 +40,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelectorOrThis
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
+import org.jetbrains.kotlin.types.Variance
 
 /**
  * K2 version of [ComposeUnresolvedFunctionFixContributor].
@@ -96,7 +98,7 @@ class ComposeCreateComposableFunctionQuickFix(
     ): ComposeCreateComposableFunctionQuickFix? {
       val unresolvedCall = diagnostic.psi.parent as? KtCallExpression ?: return null
       val parentFunction = unresolvedCall.getStrictParentOfType<KtNamedFunction>() ?: return null
-      if (!isComposableFunction(parentFunction)) return null
+      if (!parentFunction.isComposableFunction()) return null
 
       val unresolvedName = (unresolvedCall.calleeExpression as? KtSimpleNameExpression)?.getReferencedName() ?: return null
       if (unresolvedName.isBlank() || !unresolvedName[0].isUpperCase()) return null
@@ -123,7 +125,19 @@ class ComposeCreateComposableFunctionQuickFix(
       unresolvedName: String,
       container: KtElement,
     ): KtNamedFunction =
-      error("K2 not supported in Android Studio Flamingo")
+      KtPsiFactory(container).createFunction(
+        KtPsiFactory.CallableBuilder(KtPsiFactory.CallableBuilder.Target.FUNCTION).apply {
+          modifier("@$COMPOSABLE_ANNOTATION_NAME")
+          typeParams(unresolvedCall.typeArguments.mapIndexed { index, _ -> "T$index" })
+          name(unresolvedName)
+          unresolvedCall.valueArguments.forEachIndexed { index, arg ->
+            val type = arg.getArgumentExpression()?.getKtType() ?: builtinTypes.ANY
+            val name = arg.getArgumentName()?.referenceExpression?.getReferencedName() ?: "x$index"
+            param(name, type.render(KtTypeRendererForSource.WITH_SHORT_NAMES, Variance.INVARIANT))
+          }
+          noReturnType()
+          blockBody("TODO(\"Not yet implemented\")")
+        }.asString())
 
     /**
      * For the purpose of creating Composable functions, optimistically guesses

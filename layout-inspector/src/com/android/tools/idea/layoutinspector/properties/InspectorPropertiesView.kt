@@ -32,52 +32,113 @@ val TEXT_RESOURCE_EDITOR = ControlType.CUSTOM_EDITOR_1
 val COLOR_RESOURCE_EDITOR = ControlType.CUSTOM_EDITOR_2
 
 /**
- * Comparator that is sorting [PTableItem] in Android sorting order.
- * This implies layout attributes first and layout_width before layout_height.
+ * Comparator that is sorting [PTableItem] in Android sorting order. This implies layout attributes
+ * first and layout_width before layout_height.
  */
 val androidSortOrder: Comparator<PTableItem> = AttributeComparator { it.name }
 
-class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<InspectorPropertyItem>(VIEW_NAME, model) {
+class InspectorPropertiesView(model: InspectorPropertiesModel) :
+  PropertiesView<InspectorPropertyItem>(VIEW_NAME, model) {
 
-  private val enumSupportProvider = object : EnumSupportProvider<InspectorPropertyItem> {
-    // TODO: Make this a 1 liner
-    override fun invoke(property: InspectorPropertyItem): EnumSupport? = null
-  }
+  private val enumSupportProvider =
+    object : EnumSupportProvider<InspectorPropertyItem> {
+      // TODO: Make this a 1 liner
+      override fun invoke(property: InspectorPropertyItem): EnumSupport? = null
+    }
 
-  private val controlTypeProvider = object : ControlTypeProvider<InspectorPropertyItem> {
-    override fun invoke(property: InspectorPropertyItem): ControlType {
-      return when (property.type) {
-        PropertyType.DRAWABLE,
-        PropertyType.COLOR -> if (property.needsResolutionEditor) COLOR_RESOURCE_EDITOR else ControlType.COLOR_EDITOR
-        PropertyType.LAMBDA,
-        PropertyType.FUNCTION_REFERENCE,
-        PropertyType.SHOW_MORE_LINK -> ControlType.LINK_EDITOR
-        else -> if (property.needsResolutionEditor) TEXT_RESOURCE_EDITOR else ControlType.TEXT_EDITOR
+  private val controlTypeProvider =
+    object : ControlTypeProvider<InspectorPropertyItem> {
+      override fun invoke(property: InspectorPropertyItem): ControlType {
+        return when (property.type) {
+          PropertyType.DRAWABLE,
+          PropertyType.COLOR ->
+            if (property.needsResolutionEditor) COLOR_RESOURCE_EDITOR else ControlType.COLOR_EDITOR
+          PropertyType.LAMBDA,
+          PropertyType.FUNCTION_REFERENCE,
+          PropertyType.SHOW_MORE_LINK -> ControlType.LINK_EDITOR
+          else ->
+            if (property.needsResolutionEditor) TEXT_RESOURCE_EDITOR else ControlType.TEXT_EDITOR
+        }
       }
     }
-  }
 
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
     main.builders.add(SelectedViewBuilder)
-    val attributeSections = setOf(PropertySection.DEFAULT, PropertySection.DECLARED, PropertySection.LAYOUT)
+    val attributeSections =
+      setOf(PropertySection.DEFAULT, PropertySection.DECLARED, PropertySection.LAYOUT)
     val tab = addTab("")
     tab.builders.add(DimensionBuilder)
     tab.builders.add(InlineNotificationBuilder(model))
-    tab.builders.add(InspectorTableBuilder("Declared Attributes", { it.section == PropertySection.DECLARED },
-                                           model, enumSupportProvider, controlTypeProvider))
-    tab.builders.add(InspectorTableBuilder("Layout", { it.section == PropertySection.LAYOUT },
-                                           model, enumSupportProvider, controlTypeProvider, androidSortOrder))
-    tab.builders.add(InspectorTableBuilder("All Attributes", { it.section in attributeSections },
-                                           model, enumSupportProvider, controlTypeProvider, searchable = true))
-    tab.builders.add(InspectorTableBuilder("Parameters", { it.section == PropertySection.PARAMETERS },
-                                           model, enumSupportProvider, controlTypeProvider, searchable = true))
-    tab.builders.add(InspectorTableBuilder("Merged Semantics", { it.section == PropertySection.MERGED },
-                                           model, enumSupportProvider, controlTypeProvider, searchable = true))
-    tab.builders.add(InspectorTableBuilder("Declared Semantics", { it.section == PropertySection.UNMERGED },
-                                           model, enumSupportProvider, controlTypeProvider, searchable = true))
-    tab.builders.add(InspectorTableBuilder("Recomposition", { it.section == PropertySection.RECOMPOSITIONS && showRecompositions(model) },
-                                           model, enumSupportProvider, controlTypeProvider, searchable = true))
+    tab.builders.add(
+      InspectorTableBuilder(
+        "Declared Attributes",
+        { it.section == PropertySection.DECLARED },
+        model,
+        enumSupportProvider,
+        controlTypeProvider
+      )
+    )
+    tab.builders.add(
+      InspectorTableBuilder(
+        "Layout",
+        { it.section == PropertySection.LAYOUT },
+        model,
+        enumSupportProvider,
+        controlTypeProvider,
+        androidSortOrder
+      )
+    )
+    tab.builders.add(
+      InspectorTableBuilder(
+        "All Attributes",
+        { it.section in attributeSections },
+        model,
+        enumSupportProvider,
+        controlTypeProvider,
+        searchable = true
+      )
+    )
+    tab.builders.add(
+      InspectorTableBuilder(
+        "Parameters",
+        { it.section == PropertySection.PARAMETERS },
+        model,
+        enumSupportProvider,
+        controlTypeProvider,
+        searchable = true
+      )
+    )
+    tab.builders.add(
+      InspectorTableBuilder(
+        "Merged Semantics",
+        { it.section == PropertySection.MERGED },
+        model,
+        enumSupportProvider,
+        controlTypeProvider,
+        searchable = true
+      )
+    )
+    tab.builders.add(
+      InspectorTableBuilder(
+        "Declared Semantics",
+        { it.section == PropertySection.UNMERGED },
+        model,
+        enumSupportProvider,
+        controlTypeProvider,
+        searchable = true
+      )
+    )
+    tab.builders.add(
+      InspectorTableBuilder(
+        "Recomposition",
+        { it.section == PropertySection.RECOMPOSITIONS && showRecompositions(model) },
+        model,
+        enumSupportProvider,
+        controlTypeProvider,
+        searchable = true
+      )
+    )
   }
 
   // When TreeSettings.showRecompositions is off, we will want to hide the Recomposition section:

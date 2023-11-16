@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.res
 
+import com.android.tools.res.ids.ResourceIdManager
+import com.android.tools.res.ids.ResourceIdManagerBase
 import com.intellij.openapi.module.Module
 
 /** Studio-specific implementation of [ResourceIdManager]. */

@@ -1,7 +1,27 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT> (IdeBuildImpl)
-        buildName                     : :
-    gradleSupportsDirectTaskInvocation      : true
+MODULE                        : project
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : project
+    LinkedProjectPath             : <ROOT>
+    RootProjectPath               : <ROOT>
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/build/classes/production/project [-]
+        compilerTestOutputPath        : file://<ROOT>/build/classes/test/project [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/.idea/modules/project.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>
+        EXCLUDE_FOLDER                : file://<ROOT>/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/aidl [-]
@@ -9,6 +29,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:appcompat-v7:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/jars/classes.jar
+        component                     : com.android.support:appcompat-v7:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/jni [-]
@@ -26,6 +47,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-compat:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-compat:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/jni [-]
@@ -43,6 +65,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:runtime:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:runtime:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jni [-]
@@ -60,6 +83,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:versionedparcelable:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/jars/classes.jar
+        component                     : com.android.support:versionedparcelable:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/jni [-]
@@ -77,6 +101,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:cursoradapter:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/jars/classes.jar
+        component                     : com.android.support:cursoradapter:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/jni [-]
@@ -94,6 +119,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-core-utils:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-core-utils:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/jni [-]
@@ -111,6 +137,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:documentfile:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/jars/classes.jar
+        component                     : com.android.support:documentfile:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/jni [-]
@@ -128,6 +155,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:loader:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/jars/classes.jar
+        component                     : com.android.support:loader:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/jni [-]
@@ -145,6 +173,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:livedata:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:livedata:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/jni [-]
@@ -162,6 +191,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.core:runtime:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+        component                     : android.arch.core:runtime:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jni [-]
@@ -179,6 +209,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:livedata-core:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:livedata-core:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/jni [-]
@@ -196,6 +227,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:viewmodel:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:viewmodel:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jni [-]
@@ -213,6 +245,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:localbroadcastmanager:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/jars/classes.jar
+        component                     : com.android.support:localbroadcastmanager:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/jni [-]
@@ -230,6 +263,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:print:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/jars/classes.jar
+        component                     : com.android.support:print:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/jni [-]
@@ -247,6 +281,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-fragment:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-fragment:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/jni [-]
@@ -264,6 +299,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-core-ui:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-core-ui:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/jni [-]
@@ -281,6 +317,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:customview:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/jars/classes.jar
+        component                     : com.android.support:customview:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/jni [-]
@@ -298,6 +335,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:viewpager:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jars/classes.jar
+        component                     : com.android.support:viewpager:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jni [-]
@@ -315,6 +353,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:coordinatorlayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:coordinatorlayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/jni [-]
@@ -332,6 +371,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:drawerlayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:drawerlayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/jni [-]
@@ -349,6 +389,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:slidingpanelayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:slidingpanelayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/jni [-]
@@ -366,6 +407,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:interpolator:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/jars/classes.jar
+        component                     : com.android.support:interpolator:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/jni [-]
@@ -383,6 +425,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:swiperefreshlayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:swiperefreshlayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/jni [-]
@@ -400,6 +443,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:asynclayoutinflater:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/jars/classes.jar
+        component                     : com.android.support:asynclayoutinflater:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/jni [-]
@@ -417,6 +461,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-vector-drawable:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-vector-drawable:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/jni [-]
@@ -434,6 +479,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:animated-vector-drawable:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jars/classes.jar
+        component                     : com.android.support:animated-vector-drawable:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jni [-]
@@ -448,15 +494,19 @@ LIBRARY_TABLE
     - library                     : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
         artifactAddress               : com.android.support:support-annotations:28.0.0@jar
+        component                     : com.android.support:support-annotations:28.0.0
     - library                     : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
         artifactAddress               : com.android.support:collections:28.0.0@jar
+        component                     : com.android.support:collections:28.0.0
     - library                     : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
         artifactAddress               : android.arch.lifecycle:common:1.1.1@jar
+        component                     : android.arch.lifecycle:common:1.1.1
     - library                     : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
         artifactAddress               : android.arch.core:common:1.1.1@jar
+        component                     : android.arch.core:common:1.1.1
     - library                     : <ROOT>::lib@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
@@ -470,11 +520,15 @@ LIBRARY_TABLE
         variant                       : basicDebug
 MODULE                        : project
     externalProject               : project (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : project
         qName                         : project
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : project
@@ -714,6 +768,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             lib                           : :lib (DefaultExternalProject)
+                path                          : :lib [-]
+                identityPath                  : :lib [-]
                 name                          : lib
                 qName                         : :lib
                 group                         : project
@@ -849,7 +905,6 @@ MODULE                        : project.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
@@ -894,6 +949,7 @@ MODULE                        : project.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : basicDebug
         applicationId                 : com.example.dependentmodules.app
         testApplicationId             : com.example.dependentmodules.app.test
@@ -1665,6 +1721,7 @@ MODULE                        : project.app
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedBasicDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileBasicDebugUnitTestSources
@@ -1955,7 +2012,6 @@ MODULE                        : project.lib
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :lib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -2000,6 +2056,7 @@ MODULE                        : project.lib
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.dependentmodules.lib.test
     - basicVariant:               : release
@@ -2302,37 +2359,121 @@ MODULE                        : project.lib
                         javaLibrary                   : android.arch.core:common:1.1.1@jar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
                     runtimeClasspath
-                ProvidedDependencies
-                    - provided                    : android.arch.core:common:1.1.1
-                    - provided                    : android.arch.core:runtime:1.1.1@aar
-                    - provided                    : android.arch.lifecycle:common:1.1.1
-                    - provided                    : android.arch.lifecycle:livedata-core:1.1.1@aar
-                    - provided                    : android.arch.lifecycle:livedata:1.1.1@aar
-                    - provided                    : android.arch.lifecycle:runtime:1.1.1@aar
-                    - provided                    : android.arch.lifecycle:viewmodel:1.1.1@aar
-                    - provided                    : com.android.support:animated-vector-drawable:28.0.0@aar
-                    - provided                    : com.android.support:appcompat-v7:28.0.0@aar
-                    - provided                    : com.android.support:asynclayoutinflater:28.0.0@aar
-                    - provided                    : com.android.support:collections:28.0.0
-                    - provided                    : com.android.support:coordinatorlayout:28.0.0@aar
-                    - provided                    : com.android.support:cursoradapter:28.0.0@aar
-                    - provided                    : com.android.support:customview:28.0.0@aar
-                    - provided                    : com.android.support:documentfile:28.0.0@aar
-                    - provided                    : com.android.support:drawerlayout:28.0.0@aar
-                    - provided                    : com.android.support:interpolator:28.0.0@aar
-                    - provided                    : com.android.support:loader:28.0.0@aar
-                    - provided                    : com.android.support:localbroadcastmanager:28.0.0@aar
-                    - provided                    : com.android.support:print:28.0.0@aar
-                    - provided                    : com.android.support:slidingpanelayout:28.0.0@aar
-                    - provided                    : com.android.support:support-annotations:28.0.0
-                    - provided                    : com.android.support:support-compat:28.0.0@aar
-                    - provided                    : com.android.support:support-core-ui:28.0.0@aar
-                    - provided                    : com.android.support:support-core-utils:28.0.0@aar
-                    - provided                    : com.android.support:support-fragment:28.0.0@aar
-                    - provided                    : com.android.support:support-vector-drawable:28.0.0@aar
-                    - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
-                    - provided                    : com.android.support:versionedparcelable:28.0.0@aar
-                    - provided                    : com.android.support:viewpager:28.0.0@aar
+                        androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                            androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                            androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            androidLibrary                : com.android.support:loader:28.0.0@aar
+                            androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:loader:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                            androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                            androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                            androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                            androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                            androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                            androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -2472,37 +2613,123 @@ MODULE                        : project.lib
                         module                        : <ROOT>-:lib-MAIN
                             androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                     runtimeClasspath
-                ProvidedDependencies
-                    - provided                    : android.arch.core:common:1.1.1
-                    - provided                    : android.arch.core:runtime:1.1.1@aar
-                    - provided                    : android.arch.lifecycle:common:1.1.1
-                    - provided                    : android.arch.lifecycle:livedata-core:1.1.1@aar
-                    - provided                    : android.arch.lifecycle:livedata:1.1.1@aar
-                    - provided                    : android.arch.lifecycle:runtime:1.1.1@aar
-                    - provided                    : android.arch.lifecycle:viewmodel:1.1.1@aar
-                    - provided                    : com.android.support:animated-vector-drawable:28.0.0@aar
-                    - provided                    : com.android.support:appcompat-v7:28.0.0@aar
-                    - provided                    : com.android.support:asynclayoutinflater:28.0.0@aar
-                    - provided                    : com.android.support:collections:28.0.0
-                    - provided                    : com.android.support:coordinatorlayout:28.0.0@aar
-                    - provided                    : com.android.support:cursoradapter:28.0.0@aar
-                    - provided                    : com.android.support:customview:28.0.0@aar
-                    - provided                    : com.android.support:documentfile:28.0.0@aar
-                    - provided                    : com.android.support:drawerlayout:28.0.0@aar
-                    - provided                    : com.android.support:interpolator:28.0.0@aar
-                    - provided                    : com.android.support:loader:28.0.0@aar
-                    - provided                    : com.android.support:localbroadcastmanager:28.0.0@aar
-                    - provided                    : com.android.support:print:28.0.0@aar
-                    - provided                    : com.android.support:slidingpanelayout:28.0.0@aar
-                    - provided                    : com.android.support:support-annotations:28.0.0
-                    - provided                    : com.android.support:support-compat:28.0.0@aar
-                    - provided                    : com.android.support:support-core-ui:28.0.0@aar
-                    - provided                    : com.android.support:support-core-utils:28.0.0@aar
-                    - provided                    : com.android.support:support-fragment:28.0.0@aar
-                    - provided                    : com.android.support:support-vector-drawable:28.0.0@aar
-                    - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
-                    - provided                    : com.android.support:versionedparcelable:28.0.0@aar
-                    - provided                    : com.android.support:viewpager:28.0.0@aar
+                        androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                            androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                            androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            androidLibrary                : com.android.support:loader:28.0.0@aar
+                            androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:loader:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                            androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                            androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                            androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                            androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                            androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:animated-vector-drawable:28.0.0@aar
+                            androidLibrary                : com.android.support:support-vector-drawable:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        module                        : <ROOT>-:lib-MAIN
+                            androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                 ApplicationId                 : com.example.dependentmodules.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -2515,6 +2742,7 @@ MODULE                        : project.lib
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources

@@ -22,8 +22,7 @@ import com.intellij.util.messages.Topic
 abstract class IssueProvider {
 
   // Unfortunately we have to use Runnable here for java interop
-  @VisibleForTesting
-  val listeners = mutableListOf<Runnable>()
+  @VisibleForTesting val listeners = mutableListOf<Runnable>()
   abstract fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>)
 
   fun addListener(listener: Runnable) = listeners.add(listener)
@@ -39,13 +38,19 @@ fun interface IssueProviderListener {
   companion object {
     @Topic.ProjectLevel
     @JvmField
-    val TOPIC: Topic<IssueProviderListener> = Topic(IssueProviderListener::class.java.name,
-                                                    IssueProviderListener::class.java,
-                                                    Topic.BroadcastDirection.NONE)
+    val TOPIC: Topic<IssueProviderListener> =
+      Topic(
+        IssueProviderListener::class.java.name,
+        IssueProviderListener::class.java,
+        Topic.BroadcastDirection.NONE
+      )
+
+    @Topic.ProjectLevel
+    @JvmField
+    val UI_CHECK: Topic<IssueProviderListener> =
+      Topic("UI Check", IssueProviderListener::class.java, Topic.BroadcastDirection.NONE)
   }
 
-  /**
-   * Updates the list of issues coming from the given source.
-   */
+  /** Updates the list of issues coming from the given source. */
   fun issueUpdated(source: Any, issues: List<Issue>)
 }

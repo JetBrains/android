@@ -23,7 +23,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeMultiVariantData;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -34,9 +34,6 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
-import com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt;
-import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.ApiConstraint;
@@ -115,7 +112,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
       // Wrap list with a mutable list since we'll be removing the files as we see them
       files = Lists.newArrayList(files);
     }
-    for (Module module : Arrays.stream(modules).map(AndroidLintIdeProject::getMainModule).distinct().collect(Collectors.toList())) {
+    for (Module module : Arrays.stream(modules).map(ModuleSystemUtil::getMainModule).distinct().collect(Collectors.toList())) {
       addProjects(client, module, files, moduleMap, libraryMap, projectMap, projects, false);
     }
 
@@ -133,15 +130,6 @@ public class AndroidLintIdeProject extends LintIdeProject {
     else {
       return projects;
     }
-  }
-
-  @NotNull
-  private static Module getMainModule(@NotNull Module module) {
-    GradleProjectPath path = GradleProjectPathKt.getGradleProjectPath(module);
-    if (path == null) return module;
-    GradleSourceSetProjectPath pathToMain = GradleProjectPathKt.toSourceSetPath(path, IdeModuleWellKnownSourceSet.MAIN);
-    Module mainModule = GradleProjectPathKt.resolveIn(pathToMain, module.getProject());
-    return mainModule != null ? mainModule : module;
   }
 
   /**
@@ -230,7 +218,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
   private static void addAndroidModules(Set<AndroidFacet> androidFacets, Set<Module> seen, Graph<Module> graph, Module module) {
     Iterator<Module> iterator = graph.getOut(module);
     while (iterator.hasNext()) {
-      Module dep = getMainModule(iterator.next());
+      Module dep = ModuleSystemUtil.getMainModule(iterator.next());
       AndroidFacet facet = AndroidFacet.getInstance(dep);
       if (facet != null) {
         androidFacets.add(facet);
@@ -309,7 +297,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     if (facet != null) {
       LintModelVariant variant = project.getBuildVariant();
       if (variant != null) {
-        List<LintModelDependency> roots = variant.getMainArtifact().getDependencies().getCompileDependencies().getRoots();
+        List<LintModelDependency> roots = variant.getArtifact().getDependencies().getCompileDependencies().getRoots();
         addGradleLibraryProjects(client, files, libraryMap, projects, facet, project, projectMap, dependencies, roots);
       }
     }
@@ -344,7 +332,8 @@ public class AndroidLintIdeProject extends LintIdeProject {
     }
     else if (AndroidModel.isRequired(facet)) {
       AndroidModel androidModel = AndroidModel.get(facet);
-      if (androidModel instanceof GradleAndroidModel) {
+      if (androidModel instanceof GradleAndroidModel &&
+          ((GradleAndroidModel)androidModel).getAndroidProject().getProjectType() != IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM) {
         GradleAndroidModel model = (GradleAndroidModel)androidModel;
         String variantName = model.getSelectedVariantName();
 
@@ -374,7 +363,13 @@ public class AndroidLintIdeProject extends LintIdeProject {
   private static LintModelModule getLintModuleModel(AndroidFacet facet, boolean shallowModel) {
     final var project = facet.getModule().getProject();
     final var cacheValueManager = CachedValuesManager.getManager(project);
-    return cacheValueManager.getCachedValue(facet, () -> buildModuleModel(facet, shallowModel));
+    // This if statement may seem redundant, but is needed to ensure the cached value providers (the lambdas) are distinct classes that do
+    // not hold any state other than facet (i.e. they do not depend on shallowModel).
+    if (shallowModel) {
+      return cacheValueManager.getCachedValue(facet, () -> buildModuleModel(facet, true));
+    } else {
+      return cacheValueManager.getCachedValue(facet, () -> buildModuleModel(facet, false));
+    }
   }
 
   @NotNull
@@ -672,7 +667,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
   }
 
   private static class LintGradleProject extends LintModelModuleProject {
-    private final GradleAndroidModel myAndroidModuleModel;
+    private final GradleAndroidModel myGradleAndroidModel;
     private final AndroidFacet myFacet;
 
     /**
@@ -684,12 +679,12 @@ public class AndroidLintIdeProject extends LintIdeProject {
       @NonNull File referenceDir,
       @NonNull LintModelVariant variant,
       @NonNull AndroidFacet facet,
-      @NonNull GradleAndroidModel androidModuleModel) {
+      @NonNull GradleAndroidModel gradleAndroidModel) {
       super(client, dir, referenceDir, variant, null);
       gradleProject = true;
       mergeManifests = true;
       myFacet = facet;
-      myAndroidModuleModel = androidModuleModel;
+      myGradleAndroidModel = gradleAndroidModel;
     }
 
     @NonNull
@@ -714,7 +709,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
 
     @Override
     public int getBuildSdk() {
-      String compileTarget = myAndroidModuleModel.getAndroidProject().getCompileTarget();
+      String compileTarget = myGradleAndroidModel.getAndroidProject().getCompileTarget();
       AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
       if (version != null) {
         return version.getFeatureLevel();
@@ -731,7 +726,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     @Nullable
     @Override
     public String getBuildTargetHash() {
-      return myAndroidModuleModel.getAndroidProject().getCompileTarget();
+      return myGradleAndroidModel.getAndroidProject().getCompileTarget();
     }
   }
 

@@ -35,7 +35,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.List;
+import java.util.Collections;
 
 /**
  * This test class benchmarks the speed of app startup.
@@ -76,7 +76,7 @@ public class $className {
     private void benchmark(CompilationMode compilationMode) {
         rule.measureRepeated(
             "$targetPackageName",
-            List.of(new StartupTimingMetric()),
+            Collections.singletonList(new StartupTimingMetric()),
             compilationMode,
             StartupMode.COLD,
             10,

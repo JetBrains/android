@@ -22,6 +22,11 @@ import com.android.tools.datastore.DataStoreService
 import com.android.tools.datastore.DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.database.DeviceProcessTable
+import com.android.tools.idea.io.grpc.ManagedChannel
+import com.android.tools.idea.io.grpc.Server
+import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
+import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest
 import com.android.tools.profiler.proto.Transport.GetDevicesRequest
@@ -32,11 +37,6 @@ import com.android.tools.profiler.proto.Transport.TimeRequest
 import com.android.tools.profiler.proto.Transport.TimeResponse
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.truth.Truth.assertThat
-import com.android.tools.idea.io.grpc.ManagedChannel
-import com.android.tools.idea.io.grpc.Server
-import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
-import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder
-import com.android.tools.idea.io.grpc.stub.StreamObserver
 import org.junit.After
 import org.junit.Before
 import org.junit.Test

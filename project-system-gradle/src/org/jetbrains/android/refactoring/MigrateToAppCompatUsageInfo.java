@@ -15,7 +15,12 @@
  */
 package org.jetbrains.android.refactoring;
 
+import static org.apache.commons.lang3.ObjectUtils.max;
+
 import com.android.annotations.NonNull;
+import com.android.ide.common.gradle.Component;
+import com.android.ide.common.gradle.RichVersion;
+import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -609,21 +614,25 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
           newVersion = mapEntry.getNewBaseVersion();
         }
 
+        Component component = mapEntry.toComponent(
+          myGetLibraryRevisionFunction.apply(mapEntry.getNewGroupName(), mapEntry.getNewArtifactName(), newVersion));
+        String newValue = component.toIdentifier();
+        if (newValue == null) {
+          return null;
+        }
 
         PsiElement parent = element.getParent();
         if (element instanceof GrReferenceExpression && parent != null) {
           // This is likely to be an expression that resolves to the artifact, replace it with a literal
           GrLiteral newLiteral = GroovyPsiElementFactory
             .getInstance(getProject())
-            .createLiteralFromValue(mapEntry.toCompactNotation(
-              myGetLibraryRevisionFunction.apply(mapEntry.getNewGroupName(), mapEntry.getNewArtifactName(), newVersion)));
+            .createLiteralFromValue(newValue);
           parent.replace(newLiteral);
         }
         else {
           // this was declared as a string literal for example
           // implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-          element.getReference().handleElementRename(mapEntry.toCompactNotation(
-            myGetLibraryRevisionFunction.apply(mapEntry.getNewGroupName(), mapEntry.getNewArtifactName(), newVersion)));
+          element.getReference().handleElementRename(newValue);
         }
       } else if (element instanceof GrString) {
         String newVersion;
@@ -641,12 +650,17 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
           newVersion = mapEntry.getNewBaseVersion();
         }
 
+        Component component = mapEntry.toComponent(
+          myGetLibraryRevisionFunction.apply(mapEntry.getNewGroupName(), mapEntry.getNewArtifactName(), newVersion));
+        String newValue = component.toIdentifier();
+        if (newValue == null) {
+          return null;
+        }
+
         // This is just a literal string, replace it
         GrLiteral newLiteral = GroovyPsiElementFactory
           .getInstance(getProject())
-          .createLiteralFromValue(
-            mapEntry.toCompactNotation(
-              myGetLibraryRevisionFunction.apply(mapEntry.getNewGroupName(), mapEntry.getNewArtifactName(), newVersion)));
+          .createLiteralFromValue(newValue);
         element.replace(newLiteral);
       }
       return null;
@@ -658,22 +672,9 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
     @VisibleForTesting
     @Nullable
     static String getHighestVersion(@Nullable String a, @NotNull String defaultVersion) {
-      if (a == null) {
-        return defaultVersion;
-      }
-
-      if (a.startsWith("$")) {
-        // This is a variable, can not compute the highest version
-        return null;
-      }
-
-      GradleCoordinate versionA = GradleCoordinate.parseVersionOnly(a);
-      GradleCoordinate versionB = GradleCoordinate.parseVersionOnly(defaultVersion);
-      if (GradleCoordinate.COMPARE_PLUS_HIGHER.compare(versionA, versionB) >= 0) {
-        return a;
-      }
-
-      return defaultVersion;
+      if (a == null) return defaultVersion;
+      if (a.startsWith("$")) return null;
+      return max(RichVersion.Companion.parse(a).getLowerBound(), Version.Companion.parse(defaultVersion)).toString();
     }
 
     /**

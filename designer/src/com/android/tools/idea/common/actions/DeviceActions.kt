@@ -15,22 +15,20 @@
  */
 package com.android.tools.idea.common.actions
 
-import com.android.sdklib.devices.Device
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.DesignerActions
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.DeviceMenuAction
-import com.android.tools.idea.configurations.DeviceMenuAction2
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.isActionSupported
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-abstract class SwitchDeviceAction: AnAction() {
+abstract class SwitchDeviceAction : AnAction() {
   final override fun update(e: AnActionEvent) {
     if (isActionEventFromJTextField(e)) {
       e.presentation.isEnabled = false
@@ -59,14 +57,13 @@ abstract class SwitchDeviceAction: AnAction() {
     switchDevice(surface, config)
   }
 
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
+
   abstract fun switchDevice(surface: DesignSurface<*>, config: Configuration)
 }
 
-
-/**
- * Change {@link DesignSurface}'s device list to next one.
- */
-class NextDeviceAction private constructor(): SwitchDeviceAction() {
+/** Change {@link DesignSurface}'s device list to next one. */
+class NextDeviceAction private constructor() : SwitchDeviceAction() {
 
   override fun switchDevice(surface: DesignSurface<*>, config: Configuration) {
     val devices = getSortedDevices(config)
@@ -74,11 +71,12 @@ class NextDeviceAction private constructor(): SwitchDeviceAction() {
       return
     }
     val currentDevice = config.device
-    val nextDevice = when (val index = devices.indexOf(config.device)) {
-      -1 -> devices.first() // If current device is not in the list, we navigate to first device
-      devices.lastIndex -> devices.first()
-      else -> devices[index + 1]
-    }
+    val nextDevice =
+      when (val index = devices.indexOf(config.device)) {
+        -1 -> devices.first() // If current device is not in the list, we navigate to first device
+        devices.lastIndex -> devices.first()
+        else -> devices[index + 1]
+      }
     config.setDevice(nextDevice, true)
     if (currentDevice != nextDevice) {
       surface.zoomToFit()
@@ -88,12 +86,13 @@ class NextDeviceAction private constructor(): SwitchDeviceAction() {
   companion object {
     @JvmStatic
     fun getInstance(): NextDeviceAction {
-      return ActionManager.getInstance().getAction(DesignerActions.ACTION_NEXT_DEVICE) as NextDeviceAction
+      return ActionManager.getInstance().getAction(DesignerActions.ACTION_NEXT_DEVICE)
+        as NextDeviceAction
     }
   }
 }
 
-class PreviousDeviceAction private constructor(): SwitchDeviceAction() {
+class PreviousDeviceAction private constructor() : SwitchDeviceAction() {
 
   override fun switchDevice(surface: DesignSurface<*>, config: Configuration) {
     val devices = getSortedDevices(config)
@@ -101,11 +100,12 @@ class PreviousDeviceAction private constructor(): SwitchDeviceAction() {
       return
     }
     val currentDevice = config.device
-    val previousDevice = when (val index = devices.indexOf(config.device)) {
-      -1 -> devices.first() // If current device is not in the list, we navigate to first device
-      0 -> devices.last()
-      else -> devices[index - 1]
-    }
+    val previousDevice =
+      when (val index = devices.indexOf(config.device)) {
+        -1 -> devices.first() // If current device is not in the list, we navigate to first device
+        0 -> devices.last()
+        else -> devices[index - 1]
+      }
     config.setDevice(previousDevice, true)
     if (currentDevice != previousDevice) {
       surface.zoomToFit()
@@ -115,16 +115,10 @@ class PreviousDeviceAction private constructor(): SwitchDeviceAction() {
   companion object {
     @JvmStatic
     fun getInstance(): PreviousDeviceAction {
-      return ActionManager.getInstance().getAction(DesignerActions.ACTION_PREVIOUS_DEVICE) as PreviousDeviceAction
+      return ActionManager.getInstance().getAction(DesignerActions.ACTION_PREVIOUS_DEVICE)
+        as PreviousDeviceAction
     }
   }
 }
 
-private fun getSortedDevices(config: Configuration): List<Device> {
-  return if (StudioFlags.NELE_NEW_DEVICE_MENU.get()) {
-    DeviceMenuAction2.getSortedMajorDevices(config)
-  }
-  else {
-    DeviceMenuAction.getSortedDevicesInMenu(config)
-  }
-}
+private fun getSortedDevices(config: Configuration) = DeviceMenuAction.getSortedMajorDevices(config)

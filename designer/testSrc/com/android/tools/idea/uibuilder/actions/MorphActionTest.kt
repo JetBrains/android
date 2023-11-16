@@ -19,44 +19,43 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlComponentBackend
 import com.android.tools.idea.common.model.NlComponentBackendXml
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.util.XmlTagUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import javax.swing.JButton
 import javax.swing.JList
-import kotlin.test.assertEquals
 
 class MorphComponentActionTest {
   private val androidProjectRule = AndroidProjectRule.inMemory()
   private val popupRule = JBPopupRule()
 
-  @get:Rule
-  val rule = RuleChain(androidProjectRule, popupRule)
+  @get:Rule val rule = RuleChain(androidProjectRule, popupRule)
 
   @Test
   fun testPopupTrigger() {
     val xmlTag = runReadAction {
       XmlTagUtil.createTag(
         androidProjectRule.project,
-        //language=xml
+        // language=xml
         """
             <LinearLayout
               xmlns:android="http://schemas.android.com/apk/res/android"
               android:attribute="value"
               android:attribute2="value2">
             </LinearLayout>
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
     }
 
     val model = Mockito.mock(NlModel::class.java)
@@ -69,45 +68,37 @@ class MorphComponentActionTest {
     Mockito.`when`(component.children).thenReturn(listOf())
     Mockito.`when`(component.childCount).thenReturn(0)
     Mockito.`when`(component.tagDeprecated).thenReturn(xmlTag)
-    Mockito.`when`(component.backend).thenReturn(NlComponentBackendXml.getForTest(androidProjectRule.project, xmlTag))
+    Mockito.`when`(component.backend)
+      .thenReturn(NlComponentBackendXml.getForTest(androidProjectRule.project, xmlTag))
 
-    val morphComponentAction = MorphComponentAction(component) {
-      listOf(
-        "Suggestion1",
-        "Suggestion2",
-        "Suggestion3"
-      )
-    }
+    val morphComponentAction =
+      MorphComponentAction(component) { listOf("Suggestion1", "Suggestion2", "Suggestion3") }
 
-    invokeAndWaitIfNeeded {
-      morphComponentAction.actionPerformed(TestActionEvent())
-    }
+    invokeAndWaitIfNeeded { morphComponentAction.actionPerformed(TestActionEvent()) }
 
     val fakeComponentPopup = popupRule.fakePopupFactory.getPopup<Unit>(0) as FakeComponentPopup
-    val fakeUi =
-      FakeUi(fakeComponentPopup.contentPanel)
+    val fakeUi = FakeUi(fakeComponentPopup.contentPanel)
     val componentList = fakeUi.findComponent<JList<*>>()!!
     val componentListString = StringBuilder()
     for (i in 0 until componentList.model.size) {
       if (componentList.selectedIndex == i) {
         componentListString.append(">")
       }
-      componentListString
-        .appendLine(componentList.model.getElementAt(i).toString())
+      componentListString.appendLine(componentList.model.getElementAt(i).toString())
     }
     assertEquals(
       """
         >Suggestion1
         Suggestion2
         Suggestion3
-      """.trimIndent(), componentListString.toString().trim()
+      """
+        .trimIndent(),
+      componentListString.toString().trim()
     )
 
-    fakeUi.findComponent<JButton> { it.text == "Apply" }!!.also {
-      invokeAndWaitIfNeeded {
-        it.doClick()
-      }
-    }
+    fakeUi
+      .findComponent<JButton> { it.text == "Apply" }!!
+      .also { invokeAndWaitIfNeeded { it.doClick() } }
 
     assertEquals(
       """
@@ -116,9 +107,9 @@ class MorphComponentActionTest {
           android:attribute="value"
           android:attribute2="value2">
         </Suggestion1>
-      """.trimIndent(),
+      """
+        .trimIndent(),
       runReadAction { xmlTag.text }
     )
-
   }
 }

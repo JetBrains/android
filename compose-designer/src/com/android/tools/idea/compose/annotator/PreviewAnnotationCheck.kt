@@ -35,10 +35,10 @@ import com.android.tools.idea.compose.pickers.preview.utils.DEVICE_BY_ID_PREFIX
 import com.android.tools.idea.compose.pickers.preview.utils.DEVICE_BY_NAME_PREFIX
 import com.android.tools.idea.compose.pickers.preview.utils.DEVICE_BY_SPEC_PREFIX
 import com.android.tools.idea.compose.pickers.preview.utils.getSdkDevices
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec
 import com.android.tools.idea.compose.preview.getContainingComposableUMethod
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
@@ -82,9 +82,7 @@ internal object PreviewAnnotationCheck {
       annotationEntry.toUElement() as? UAnnotation
         ?: return failedCheck("Can't get annotation UElement")
     if (!hasValidTarget(annotation))
-      return failedCheck(
-        "Preview target must be a composable function${if (StudioFlags.COMPOSE_MULTIPREVIEW.get()) " or an annotation class" else ""}"
-      )
+      return failedCheck("Preview target must be a composable function or an annotation class")
     val deviceValueExpression =
       annotation.findDeclaredAttributeValue(PARAMETER_DEVICE) ?: return Passed
     val deviceValue =
@@ -321,8 +319,7 @@ internal object PreviewAnnotationCheck {
 
 private fun hasValidTarget(annotation: UAnnotation) =
   annotation.getContainingComposableUMethod() != null ||
-    (StudioFlags.COMPOSE_MULTIPREVIEW.get() &&
-      annotation.getContainingUClass()?.isAnnotationType == true)
+    (annotation.getContainingUClass()?.isAnnotationType == true)
 
 /**
  * Regex to match a string with the [DeviceSpec.OPERATOR] between two other non-empty strings. E.g:

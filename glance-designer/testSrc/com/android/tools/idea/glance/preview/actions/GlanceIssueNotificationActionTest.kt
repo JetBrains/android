@@ -25,11 +25,11 @@ import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.psi.PsiFile
-import javax.swing.JLabel
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JLabel
 
 class GlanceIssueNotificationActionTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()

@@ -42,9 +42,11 @@ import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.Screenshot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_ORANGE
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
@@ -71,7 +73,8 @@ import kotlin.io.path.pathString
 
 private val TEST_DATA_PATH = Path.of("tools", "adt", "idea", "layout-inspector", "testData")
 private const val DIFF_THRESHOLD = 0.2
-private val activityMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+private val activityMain =
+  ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 
 class RenderLogicTest {
   private lateinit var treeSettings: TreeSettings
@@ -85,7 +88,7 @@ class RenderLogicTest {
     val renderImage: BufferedImage,
     val renderDimension: Dimension,
     val centerTransform: AffineTransform
-    )
+  )
 
   @Before
   fun setUp() {
@@ -93,27 +96,27 @@ class RenderLogicTest {
     renderSettings = FakeRenderSettings()
   }
 
-  @get:Rule
-  val testName = TestName()
+  @get:Rule val testName = TestName()
 
   val projectRule = ProjectRule()
 
   @get:Rule
   val chain = RuleChain.outerRule(projectRule).around(EdtRule()).around(IconLoaderRule())!!
 
-  @get:Rule
-  val fontRule = PortableUiFontRule()
+  @get:Rule val fontRule = PortableUiFontRule()
 
   @Test
   fun testPaintBorders() {
-    val (_, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (_, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintBordersConfig()
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
   }
 
   @Test
   fun testPaintBordersScaled() {
-    val (_, renderSettings, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (_, renderSettings, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintBordersConfig()
     renderSettings.scalePercent = 50
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
@@ -121,7 +124,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintBordersRotated() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintBordersConfig()
     renderModel.layerSpacing = 3
     renderModel.rotate(0.3, 0.6)
     paint(renderImage, centerTransform, renderLogic, renderDimension)
@@ -130,7 +134,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintBordersSpacingLow() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintBordersConfig()
     renderModel.layerSpacing = 1
     renderModel.rotate(0.3, 0.6)
     paint(renderImage, centerTransform, renderLogic, renderDimension)
@@ -139,7 +144,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintBordersSpacingHigh() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintBordersConfig()
     renderModel.layerSpacing = 15
     renderModel.rotate(0.3, 0.6)
     paint(renderImage, centerTransform, renderLogic, renderDimension)
@@ -148,7 +154,15 @@ class RenderLogicTest {
 
   @Test
   fun testPaintBordersSelectedNoLabel() {
-    val (inspectorModel, renderSettings, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (
+      inspectorModel,
+      renderSettings,
+      renderModel,
+      renderLogic,
+      renderImage,
+      renderDimension,
+      centerTransform) =
+      createPaintBordersConfig()
     val rootNode = inspectorModel[ROOT]!!
     renderSettings.drawLabel = false
     renderModel.layerSpacing = 3
@@ -159,7 +173,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintBordersLabel() {
-    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintBordersConfig()
     inspectorModel.setSelection(inspectorModel[COMPOSE1], SelectionOrigin.INTERNAL)
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
@@ -167,7 +182,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintBordersRecompositionCount() {
-    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintBordersConfig()
     treeSettings.showRecompositions = true
     inspectorModel.setSelection(inspectorModel[COMPOSE1], SelectionOrigin.INTERNAL)
     paint(renderImage, centerTransform, renderLogic, renderDimension)
@@ -176,7 +192,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintBordersLabelHidesRecompositionCount() {
-    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintBordersConfig()
     val composeNode = inspectorModel[COMPOSE1] as ComposeViewNode
     composeNode.qualifiedName = "LongName" // hides the recomposition count
     treeSettings.showRecompositions = true
@@ -187,7 +204,15 @@ class RenderLogicTest {
 
   @Test
   fun testPaintBordersRecompositionCountNoBorders() {
-    val (inspectorModel, renderSettings, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (
+      inspectorModel,
+      renderSettings,
+      _,
+      renderLogic,
+      renderImage,
+      renderDimension,
+      centerTransform) =
+      createPaintBordersConfig()
     treeSettings.showRecompositions = true
     renderSettings.drawBorders = false
     inspectorModel.setSelection(inspectorModel[COMPOSE1], SelectionOrigin.INTERNAL)
@@ -197,7 +222,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintBordersHovered() {
-    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintBordersConfig()
     val rootNode = inspectorModel[ROOT]!!
     inspectorModel.hoveredNode = rootNode
     inspectorModel.setSelection(inspectorModel[COMPOSE1], SelectionOrigin.INTERNAL)
@@ -207,7 +233,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintBordersRecompositionHighlight() {
-    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintBordersConfig()
     val composeNode = inspectorModel[COMPOSE1] as ComposeViewNode
     treeSettings.showRecompositions = true
     inspectorModel.maxHighlight = 17f
@@ -218,7 +245,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintBordersRecompositionHighlightLowCount() {
-    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintBordersConfig()
     val composeNode = inspectorModel[COMPOSE1] as ComposeViewNode
     treeSettings.showRecompositions = true
     inspectorModel.maxHighlight = 17f
@@ -229,7 +257,15 @@ class RenderLogicTest {
 
   @Test
   fun testPaintBordersRecompositionHighlightOrange() {
-    val (inspectorModel, renderSettings, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (
+      inspectorModel,
+      renderSettings,
+      _,
+      renderLogic,
+      renderImage,
+      renderDimension,
+      centerTransform) =
+      createPaintBordersConfig()
     val composeNode = inspectorModel[COMPOSE1] as ComposeViewNode
     treeSettings.showRecompositions = true
     inspectorModel.maxHighlight = 17f
@@ -241,7 +277,15 @@ class RenderLogicTest {
 
   @Test
   fun testPaintBordersRecompositionHighlightOrangeLowCount() {
-    val (inspectorModel, renderSettings, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (
+      inspectorModel,
+      renderSettings,
+      _,
+      renderLogic,
+      renderImage,
+      renderDimension,
+      centerTransform) =
+      createPaintBordersConfig()
     val composeNode = inspectorModel[COMPOSE1] as ComposeViewNode
     treeSettings.showRecompositions = true
     inspectorModel.maxHighlight = 17f
@@ -253,7 +297,15 @@ class RenderLogicTest {
 
   @Test
   fun testPaintBordersRecompositionHighlightNoBorder() {
-    val (inspectorModel, renderSettings, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
+    val (
+      inspectorModel,
+      renderSettings,
+      _,
+      renderLogic,
+      renderImage,
+      renderDimension,
+      centerTransform) =
+      createPaintBordersConfig()
     val composeNode = inspectorModel[COMPOSE1] as ComposeViewNode
     treeSettings.showRecompositions = true
     renderSettings.drawBorders = false
@@ -265,14 +317,16 @@ class RenderLogicTest {
 
   @Test
   fun testPaintImages() {
-    val (_, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintImagesConfig()
+    val (_, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintImagesConfig()
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
   }
 
   @Test
   fun testPaintImagesRootSelected() {
-    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintImagesConfig()
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintImagesConfig()
     val rootView = inspectorModel[ROOT]!!
     inspectorModel.setSelection(rootView, SelectionOrigin.INTERNAL)
     paint(renderImage, centerTransform, renderLogic, renderDimension)
@@ -281,7 +335,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintImagesView1Selected() {
-    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintImagesConfig()
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintImagesConfig()
     val view = inspectorModel[VIEW1]
     inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
     paint(renderImage, centerTransform, renderLogic, renderDimension)
@@ -290,7 +345,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintImagesView2Selected() {
-    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintImagesConfig()
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintImagesConfig()
     val view = inspectorModel[VIEW2]
     inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
     paint(renderImage, centerTransform, renderLogic, renderDimension)
@@ -299,7 +355,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintImagesView2SelectedLabelsOff() {
-    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintImagesConfig()
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintImagesConfig()
     val view = inspectorModel[VIEW2]
     renderSettings.drawLabel = false
     inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
@@ -309,8 +366,14 @@ class RenderLogicTest {
 
   @Test
   fun testPaintFold() {
-    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintFoldConfig(130, 250)
-    inspectorModel.foldInfo = InspectorModel.FoldInfo(97, InspectorModel.Posture.HALF_OPEN, InspectorModel.FoldOrientation.VERTICAL)
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintFoldConfig(130, 250)
+    inspectorModel.foldInfo =
+      InspectorModel.FoldInfo(
+        97,
+        InspectorModel.Posture.HALF_OPEN,
+        InspectorModel.FoldOrientation.VERTICAL
+      )
     renderSettings.drawFold = true
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
@@ -318,8 +381,15 @@ class RenderLogicTest {
 
   @Test
   fun testPaintFoldRotated() {
-    val (inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintFoldConfig(130, 250)
-    inspectorModel.foldInfo = InspectorModel.FoldInfo(97, InspectorModel.Posture.HALF_OPEN, InspectorModel.FoldOrientation.VERTICAL)
+    val (
+      inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintFoldConfig(130, 250)
+    inspectorModel.foldInfo =
+      InspectorModel.FoldInfo(
+        97,
+        InspectorModel.Posture.HALF_OPEN,
+        InspectorModel.FoldOrientation.VERTICAL
+      )
     renderSettings.drawFold = true
     renderModel.layerSpacing = 10
     renderModel.rotate(0.5, 0.7)
@@ -329,8 +399,15 @@ class RenderLogicTest {
 
   @Test
   fun testPaintFoldRotatedHovered() {
-    val (inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintFoldConfig(130, 250)
-    inspectorModel.foldInfo = InspectorModel.FoldInfo(97, InspectorModel.Posture.HALF_OPEN, InspectorModel.FoldOrientation.VERTICAL)
+    val (
+      inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintFoldConfig(130, 250)
+    inspectorModel.foldInfo =
+      InspectorModel.FoldInfo(
+        97,
+        InspectorModel.Posture.HALF_OPEN,
+        InspectorModel.FoldOrientation.VERTICAL
+      )
     renderSettings.drawFold = true
     renderModel.layerSpacing = 10
     renderModel.rotate(0.5, 0.7)
@@ -341,8 +418,15 @@ class RenderLogicTest {
 
   @Test
   fun testPaintFoldRotatedHoveredSelected() {
-    val (inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintFoldConfig(130, 250)
-    inspectorModel.foldInfo = InspectorModel.FoldInfo(97, InspectorModel.Posture.HALF_OPEN, InspectorModel.FoldOrientation.VERTICAL)
+    val (
+      inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintFoldConfig(130, 250)
+    inspectorModel.foldInfo =
+      InspectorModel.FoldInfo(
+        97,
+        InspectorModel.Posture.HALF_OPEN,
+        InspectorModel.FoldOrientation.VERTICAL
+      )
     renderSettings.drawFold = true
     renderModel.layerSpacing = 10
     renderModel.rotate(0.5, 0.7)
@@ -354,8 +438,15 @@ class RenderLogicTest {
 
   @Test
   fun testPaintFoldRotatedSelected() {
-    val (inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintFoldConfig(130, 250)
-    inspectorModel.foldInfo = InspectorModel.FoldInfo(97, InspectorModel.Posture.HALF_OPEN, InspectorModel.FoldOrientation.VERTICAL)
+    val (
+      inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintFoldConfig(130, 250)
+    inspectorModel.foldInfo =
+      InspectorModel.FoldInfo(
+        97,
+        InspectorModel.Posture.HALF_OPEN,
+        InspectorModel.FoldOrientation.VERTICAL
+      )
     renderSettings.drawFold = true
     renderModel.layerSpacing = 10
     renderModel.rotate(0.5, 0.7)
@@ -367,8 +458,14 @@ class RenderLogicTest {
 
   @Test
   fun testPaintFoldNoFold() {
-    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintFoldConfig(130, 250)
-    inspectorModel.foldInfo = InspectorModel.FoldInfo(97, InspectorModel.Posture.HALF_OPEN, InspectorModel.FoldOrientation.VERTICAL)
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintFoldConfig(130, 250)
+    inspectorModel.foldInfo =
+      InspectorModel.FoldInfo(
+        97,
+        InspectorModel.Posture.HALF_OPEN,
+        InspectorModel.FoldOrientation.VERTICAL
+      )
     renderSettings.drawFold = false
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
@@ -376,8 +473,14 @@ class RenderLogicTest {
 
   @Test
   fun testPaintFoldHorizontal() {
-    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintFoldConfig(450, 100)
-    inspectorModel.foldInfo = InspectorModel.FoldInfo(97, InspectorModel.Posture.HALF_OPEN, InspectorModel.FoldOrientation.HORIZONTAL)
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintFoldConfig(450, 100)
+    inspectorModel.foldInfo =
+      InspectorModel.FoldInfo(
+        97,
+        InspectorModel.Posture.HALF_OPEN,
+        InspectorModel.FoldOrientation.HORIZONTAL
+      )
     renderSettings.drawFold = true
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
@@ -385,7 +488,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintWithHiddenSystemViews() {
-    val (_, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintWithHiddenSystemViews()
+    val (_, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintWithHiddenSystemViews()
     renderSettings.drawLabel = false
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
@@ -393,7 +497,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintWithHiddenSystemViewsRotated() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintWithHiddenSystemViews()
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintWithHiddenSystemViews()
     renderSettings.drawLabel = false
     renderModel.layerSpacing = 3
     renderModel.rotate(0.3, 0.2)
@@ -403,7 +508,9 @@ class RenderLogicTest {
 
   @Test
   fun testPaintWithHiddenSystemViewsSelected() {
-    val (inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintWithHiddenSystemViews()
+    val (
+      inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintWithHiddenSystemViews()
     renderSettings.drawLabel = false
     renderModel.rotate(0.3, 0.2)
     val windowRoot = inspectorModel[ROOT]!!
@@ -414,16 +521,20 @@ class RenderLogicTest {
 
   @Test
   fun testPaintOverlay() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
-    renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintBordersConfig()
+    renderModel.overlay =
+      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
   }
 
   @Test
   fun testPaintOverlayAlpha20() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
-    renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintBordersConfig()
+    renderModel.overlay =
+      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
     renderModel.overlayAlpha = 0.2f
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
@@ -431,8 +542,10 @@ class RenderLogicTest {
 
   @Test
   fun testPaintOverlayAlpha90() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintBordersConfig()
-    renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintBordersConfig()
+    renderModel.overlay =
+      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
     renderModel.overlayAlpha = 0.9f
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
@@ -440,7 +553,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintMultiWindow() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintMultiWindowConfig()
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintMultiWindowConfig()
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
     renderModel.refresh()
@@ -450,7 +564,9 @@ class RenderLogicTest {
 
   @Test
   fun testPaintMultiWindowSelected() {
-    val (inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintMultiWindowConfig()
+    val (
+      inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintMultiWindowConfig()
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
     renderModel.refresh()
@@ -461,7 +577,9 @@ class RenderLogicTest {
 
   @Test
   fun testPaintMultiWindowRotated() {
-    val (inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintMultiWindowConfig()
+    val (
+      inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintMultiWindowConfig()
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
     renderModel.refresh()
@@ -473,7 +591,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintMultiWindowDimBehind() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintMultiWindowConfig(WINDOW_MANAGER_FLAG_DIM_BEHIND)
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintMultiWindowConfig(WINDOW_MANAGER_FLAG_DIM_BEHIND)
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
     renderModel.refresh()
@@ -483,7 +602,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintMultiWindowDimBehindRotated() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintMultiWindowConfig(WINDOW_MANAGER_FLAG_DIM_BEHIND)
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintMultiWindowConfig(WINDOW_MANAGER_FLAG_DIM_BEHIND)
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
     renderModel.refresh()
@@ -494,7 +614,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintWithImagesBetweenChildren() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintImagesBetweenChildrenConfig()
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintImagesBetweenChildrenConfig()
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
     renderModel.refresh()
@@ -504,7 +625,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintWithImagesBetweenChildrenRotated() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintImagesBetweenChildrenConfig()
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintImagesBetweenChildrenConfig()
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
     renderModel.refresh()
@@ -516,7 +638,9 @@ class RenderLogicTest {
 
   @Test
   fun testPaintWithImagesBetweenChildrenRootSelected() {
-    val (inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintImagesBetweenChildrenConfig()
+    val (
+      inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintImagesBetweenChildrenConfig()
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
     renderModel.refresh()
@@ -529,7 +653,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintWithRootImageOnly() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintWithRootImageOnlyConfig()
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintWithRootImageOnlyConfig()
     renderSettings.drawLabel = false
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
@@ -540,7 +665,9 @@ class RenderLogicTest {
 
   @Test
   fun testPaintWithRootImageOnlyRootSelected() {
-    val (inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintWithRootImageOnlyConfig()
+    val (
+      inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintWithRootImageOnlyConfig()
     renderSettings.drawLabel = false
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
@@ -552,7 +679,9 @@ class RenderLogicTest {
 
   @Test
   fun testPaintWithRootImageOnlyView1Selected() {
-    val (inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintWithRootImageOnlyConfig()
+    val (
+      inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintWithRootImageOnlyConfig()
     renderSettings.drawLabel = false
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
@@ -564,14 +693,16 @@ class RenderLogicTest {
 
   @Test
   fun testPaintTransformed() {
-    val (_, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintTransformedConfig()
+    val (_, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintTransformedConfig()
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
   }
 
   @Test
   fun testPaintTransformedView1Selected() {
-    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintTransformedConfig()
+    val (inspectorModel, _, _, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintTransformedConfig()
     inspectorModel.setSelection(inspectorModel[VIEW1], SelectionOrigin.INTERNAL)
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
@@ -579,7 +710,15 @@ class RenderLogicTest {
 
   @Test
   fun testPaintTransformedUntransformed() {
-    val (inspectorModel, renderSettings, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintTransformedConfig()
+    val (
+      inspectorModel,
+      renderSettings,
+      _,
+      renderLogic,
+      renderImage,
+      renderDimension,
+      centerTransform) =
+      createPaintTransformedConfig()
     renderSettings.drawUntransformedBounds = true
     inspectorModel.setSelection(inspectorModel[VIEW1], SelectionOrigin.INTERNAL)
     paint(renderImage, centerTransform, renderLogic, renderDimension)
@@ -588,7 +727,15 @@ class RenderLogicTest {
 
   @Test
   fun testPaintTransformedOnlyUntransformed() {
-    val (inspectorModel, renderSettings, _, renderLogic, renderImage, renderDimension, centerTransform) = createPaintTransformedConfig()
+    val (
+      inspectorModel,
+      renderSettings,
+      _,
+      renderLogic,
+      renderImage,
+      renderDimension,
+      centerTransform) =
+      createPaintTransformedConfig()
     renderSettings.drawUntransformedBounds = true
     renderSettings.drawBorders = false
     inspectorModel.setSelection(inspectorModel[VIEW1], SelectionOrigin.INTERNAL)
@@ -598,7 +745,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintTransformedOutsideRoot() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintTransformedOutsideRootConfig()
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintTransformedOutsideRootConfig()
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
     renderModel.refresh()
@@ -608,7 +756,9 @@ class RenderLogicTest {
 
   @Test
   fun testPaintTransformedOutsideRootView1Selected() {
-    val (inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintTransformedOutsideRootConfig()
+    val (
+      inspectorModel, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintTransformedOutsideRootConfig()
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
     renderModel.refresh()
@@ -619,7 +769,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintRound() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintRoundConfig()
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintRoundConfig()
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
     renderModel.refresh()
@@ -629,7 +780,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintWithChildrenOutsideParent() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintWithChildrenOutsideParentConfig()
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintWithChildrenOutsideParentConfig()
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
     renderModel.refresh()
@@ -639,7 +791,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintWithChildrenOutsideParentRotated() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintWithChildrenOutsideParentConfig()
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintWithChildrenOutsideParentConfig()
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
     renderModel.refresh()
@@ -651,7 +804,8 @@ class RenderLogicTest {
 
   @Test
   fun testPaintWithChildAboveSibling() {
-    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) = createPaintWithChildAboveSiblingConfig()
+    val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
+      createPaintWithChildAboveSiblingConfig()
     treeSettings.hideSystemNodes = false
     // need to refresh to apply the treeSettings.hideSystemNodes
     renderModel.refresh()
@@ -661,11 +815,17 @@ class RenderLogicTest {
     assertSimilar(renderImage, testName.methodName)
   }
 
-  private fun paint(image: BufferedImage, transform: AffineTransform, renderLogic: RenderLogic, renderDimension: Dimension) {
+  private fun paint(
+    image: BufferedImage,
+    transform: AffineTransform,
+    renderLogic: RenderLogic,
+    renderDimension: Dimension
+  ) {
     val graphics = image.createGraphics()
     // add a gray background
     graphics.color = Color(250, 250, 250)
-    graphics.fillRect(0, 0, renderDimension.width, renderDimension.height)
+    graphics.fillRect(
+      0, 0, renderDimension.width, renderDimension.height)
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     // add transform to center render in buffered image
     graphics.transform = transform
@@ -676,25 +836,36 @@ class RenderLogicTest {
   }
 
   /**
-   * Check that the generated [renderImage] is similar to the one stored on disk.
-   * If the image stored on disk does not exist, it is created.
+   * Check that the generated [renderImage] is similar to the one stored on disk. If the image
+   * stored on disk does not exist, it is created.
    */
   private fun assertSimilar(renderImage: BufferedImage, imageName: String) {
     val testDataPath = TEST_DATA_PATH.resolve(this.javaClass.simpleName)
-    ImageDiffUtil.assertImageSimilar(TestUtils.resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString), renderImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(
+      TestUtils.resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString),
+      renderImage,
+      DIFF_THRESHOLD
+    )
   }
 
-  /**
-   * Re-used to generate all configs starting from an [InspectorModel] and [Dimension].
-   */
-  private fun createPaintConfig(inspectorModel: InspectorModel, renderDimension: Dimension): TestConfig {
-    val renderModel = RenderModel(inspectorModel, treeSettings) { mock() }
+  /** Re-used to generate all configs starting from an [InspectorModel] and [Dimension]. */
+  private fun createPaintConfig(
+    inspectorModel: InspectorModel,
+    renderDimension: Dimension
+  ): TestConfig {
+    val renderModel = RenderModel(inspectorModel, mock(), treeSettings) { DisconnectedClient }
     val renderLogic = RenderLogic(renderModel, renderSettings)
 
-    // center the render in the buffered image
-    val centerTransform = AffineTransform().apply {
-      translate(renderDimension.width / 2.0, renderDimension.height / 2.0)
-    }
+    val centerTransform =
+      AffineTransform().apply {
+        // center the render in the buffered image
+        translate(renderDimension.width / 2.0, renderDimension.height / 2.0)
+        // make the center of the view correspond to the center of the buffered image
+        translate(
+          -renderModel.model.screenDimension.width / 2.0,
+          -renderModel.model.screenDimension.height / 2.0
+        )
+      }
 
     return TestConfig(
       inspectorModel,
@@ -710,9 +881,7 @@ class RenderLogicTest {
   private fun createPaintBordersConfig(): TestConfig {
     val inspectorModel = model {
       view(ROOT, 0, 0, 100, 150) {
-        view(VIEW1, 10, 15, 25, 25) {
-          image()
-        }
+        view(VIEW1, 10, 15, 25, 25) { image() }
         compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
       }
     }
@@ -722,19 +891,18 @@ class RenderLogicTest {
   }
 
   private fun createPaintImagesConfig(): TestConfig {
-    val image1 = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image1.png").toFile())
-    val image2 = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image2.png").toFile())
-    val image3 = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image3.png").toFile())
+    val image1 =
+      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image1.png").toFile())
+    val image2 =
+      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image2.png").toFile())
+    val image3 =
+      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image3.png").toFile())
 
     val inspectorModel = model {
       view(ROOT, 0, 0, 385, 504) {
         image(image1)
-        view(VIEW1, 0, 0, 385, 385) {
-          image(image2)
-        }
-        view(VIEW2, 96, 240, 193, 264) {
-          image(image3)
-        }
+        view(VIEW1, 0, 0, 385, 385) { image(image2) }
+        view(VIEW2, 96, 240, 193, 264) { image(image3) }
       }
     }
 
@@ -759,9 +927,7 @@ class RenderLogicTest {
   private fun createPaintWithHiddenSystemViews(): TestConfig {
     val inspectorModel = model {
       view(ROOT, 0, 0, 100, 150, layout = null) {
-        view(VIEW1, 10, 15, 25, 25, layout = activityMain) {
-          image()
-        }
+        view(VIEW1, 10, 15, 25, 25, layout = activityMain) { image() }
       }
     }
 
@@ -771,17 +937,13 @@ class RenderLogicTest {
 
   private fun createPaintMultiWindowConfig(layoutFlag: Int = 0): TestConfig {
     val inspectorModel = model {
-      view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 0, 0, 50, 50) {
-          image()
-        }
-      }
+      view(ROOT, 0, 0, 100, 200) { view(VIEW1, 0, 0, 50, 50) { image() } }
     }
 
-    // Second window. Root doesn't overlap with top of first window--verify they're on separate levels in the drawing.
-    val window2 = window(VIEW2, VIEW2, 60, 60, 30, 30, layoutFlags = layoutFlag) {
-      view(VIEW3, 70, 70, 10, 10)
-    }
+    // Second window. Root doesn't overlap with top of first window--verify they're on separate
+    // levels in the drawing.
+    val window2 =
+      window(VIEW2, VIEW2, 60, 60, 30, 30, layoutFlags = layoutFlag) { view(VIEW3, 70, 70, 10, 10) }
 
     inspectorModel.update(window2, listOf(ROOT, VIEW2), 0)
 
@@ -808,13 +970,9 @@ class RenderLogicTest {
 
     val inspectorModel = model {
       view(ROOT, 0, 0, 40, 40) {
-        view(VIEW1, 0, 0, 40, 40) {
-          image(image2)
-        }
+        view(VIEW1, 0, 0, 40, 40) { image(image2) }
         image(image1)
-        view(VIEW2, 20, 20, 20, 20) {
-          image(image3)
-        }
+        view(VIEW2, 20, 20, 20, 20) { image(image3) }
       }
     }
 
@@ -823,7 +981,8 @@ class RenderLogicTest {
   }
 
   private fun createPaintWithRootImageOnlyConfig(): TestConfig {
-    val image1 = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image1.png").toFile())
+    val image1 =
+      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image1.png").toFile())
     val inspectorModel = model {
       view(ROOT, 0, 0, 327, 450) {
         image(image1)
@@ -845,7 +1004,14 @@ class RenderLogicTest {
 
     val inspectorModel = model {
       view(ROOT, 0, 0, 400, 600) {
-        view(VIEW1, 50, 100, 300, 300, bounds = Polygon(intArrayOf(90, 270, 310, 130), intArrayOf(180, 140, 320, 360), 4)) {
+        view(
+          VIEW1,
+          50,
+          100,
+          300,
+          300,
+          bounds = Polygon(intArrayOf(90, 270, 310, 130), intArrayOf(180, 140, 320, 360), 4)
+        ) {
           image(image1)
         }
       }
@@ -864,7 +1030,14 @@ class RenderLogicTest {
 
     val inspectorModel = model {
       view(ROOT, 0, 0, 100, 100) {
-        view(VIEW1, 20, 20, 60, 60, bounds = Polygon(intArrayOf(-20, 80, 80, -20), intArrayOf(-50, -50, 150, 150), 4)) {
+        view(
+          VIEW1,
+          20,
+          20,
+          60,
+          60,
+          bounds = Polygon(intArrayOf(-20, 80, 80, -20), intArrayOf(-50, -50, 150, 150), 4)
+        ) {
           image(image1)
         }
       }
@@ -877,29 +1050,38 @@ class RenderLogicTest {
   private fun createPaintRoundConfig(): TestConfig {
     val screenshot = Screenshot("wear.png", BitmapType.RGB_565)
 
-    val viewLayoutEvent = LayoutInspectorViewProtocol.LayoutEvent.newBuilder().apply {
-      screenshotBuilder.apply {
-        type = LayoutInspectorViewProtocol.Screenshot.Type.BITMAP
-        bytes = ByteString.copyFrom(screenshot.bytes)
-      }
-    }.build()
+    val viewLayoutEvent =
+      LayoutInspectorViewProtocol.LayoutEvent.newBuilder()
+        .apply {
+          screenshotBuilder.apply {
+            type = LayoutInspectorViewProtocol.Screenshot.Type.BITMAP
+            bytes = ByteString.copyFrom(screenshot.bytes)
+          }
+        }
+        .build()
 
     val inspectorModel = model {}
-    val folderConfiguration = FolderConfiguration().apply {
-      screenRoundQualifier = ScreenRoundQualifier(ScreenRound.ROUND)
-      screenWidthQualifier = ScreenWidthQualifier.getQualifier("454")
-      screenHeightQualifier = ScreenHeightQualifier.getQualifier("454")
-      densityQualifier = DensityQualifier(Density.MEDIUM)
-    }
+    val folderConfiguration =
+      FolderConfiguration().apply {
+        screenRoundQualifier = ScreenRoundQualifier(ScreenRound.ROUND)
+        screenWidthQualifier = ScreenWidthQualifier.getQualifier("454")
+        screenHeightQualifier = ScreenHeightQualifier.getQualifier("454")
+        densityQualifier = DensityQualifier(Density.MEDIUM)
+      }
 
-    val window = ViewAndroidWindow(
-      projectRule.project, mock(),
-      view(1, 0, 0, 454, 454) {
-        view(2, 10, 10, 100, 100)
-        view(3, 300, 400, 50, 50)
-      },
-      viewLayoutEvent, folderConfiguration, { false }, {}
-    )
+    val window =
+      ViewAndroidWindow(
+        mock(),
+        mock(),
+        view(1, 0, 0, 454, 454) {
+          view(2, 10, 10, 100, 100)
+          view(3, 300, 400, 50, 50)
+        },
+        viewLayoutEvent,
+        folderConfiguration,
+        { false },
+        {}
+      )
     inspectorModel.update(window, listOf(1L), 2)
     inspectorModel.windows[1L]?.refreshImages(1.0)
 
@@ -924,9 +1106,7 @@ class RenderLogicTest {
   private fun createPaintWithChildAboveSiblingConfig(): TestConfig {
     val inspectorModel = model {
       view(ROOT, 0, 0, 20, 40) {
-        view(VIEW1, 0, 0, 20, 20) {
-          view(VIEW2, 0, 0, 20, 40)
-        }
+        view(VIEW1, 0, 0, 20, 20) { view(VIEW2, 0, 0, 20, 40) }
         view(VIEW3, 0, 20, 20, 20)
       }
     }

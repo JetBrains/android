@@ -1,35 +1,25 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
 buildscript {
   repositories {
     // This will be populated by AndroidGradleTestCase
   }
-
   dependencies {
-    classpath 'com.android.tools.build:gradle:2.2.0'
-  }
+    classpath 'com.android.tools.build:gradle:1.5.0'
 
-  allprojects {
-    repositories {
-      // This will be populated by AndroidGradleTestCase
-    }
+    // NOTE: Do not place your application dependencies here; they belong
+    // in the individual module build.gradle files
   }
 }
 
-apply plugin: 'com.android.application'
-
-android {
-  compileSdkVersion 23
-
-  defaultConfig {
-    applicationId "com.android.runnerarguments"
-    minSdkVersion 19
-    targetSdkVersion 23
-    testInstrumentationRunnerArguments size:"medium", foo:"bar"
-    testOptions {
-      animationsDisabled true
-    }
+allprojects {
+  repositories {
+    // This will be populated by AndroidGradleTestCase
   }
 }
 
-dependencies {
-  androidTestImplementation 'junit:junit:4.12'
-}
+println("This is a runnerArguments application!")
+
+// This is added to test regex replacement and kept as a comment to minimize interference
+// id 'com.android.library' version 'VERSION_TO_BE_REPLACED' apply false
+// id 'com.android.application' version 'VERSION_TO_BE_REPLACED' apply false

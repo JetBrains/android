@@ -10,25 +10,25 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor;
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunProfileState;
+import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger;
+import com.android.tools.idea.execution.common.stats.RunStats;
+import com.android.tools.idea.execution.common.stats.RunStatsService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState;
 import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.editor.RunConfigurationWithDebugger;
-import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.util.LaunchUtils;
-import com.android.tools.idea.stats.RunStats;
-import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.Futures;
@@ -104,6 +104,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       // Start up debugger auto attach.
       AttachOnWaitForDebuggerMonitor.getInstance(project);
     }
+
+    putUserData(DeployableToDevice.getKEY(), getDeployTargetContext().getCurrentDeployTargetProvider().canDeployToLocalDevice());
   }
 
   @Override
@@ -217,14 +219,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   protected abstract List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet);
 
-  /**
-   * Subclasses should override to adjust the launch options.
-   */
-  @NotNull
-  protected LaunchOptions.Builder getLaunchOptions() {
-    return LaunchOptions.builder()
-      .setClearLogcatBeforeStart(CLEAR_LOGCAT);
-  }
 
   @Override
   public Collection<Module> getValidModules() {
@@ -311,8 +305,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     // Save the stats so that before-run task can access it
     env.putUserData(RunStats.KEY, stats);
-    Optional<AndroidConfigurationExecutor> provided = AndroidConfigurationExecutor.Provider.EP_NAME.getExtensionList().stream()
-      .map(it -> it.createAndroidConfigurationExecutor(facet, env, deviceFutures))
+    Optional<AndroidConfigurationExecutor> provided = AndroidConfigurationExecutor.Provider.EP_NAME.extensions()
+      .map(it -> it.createAndroidConfigurationExecutor(env))
       .filter(Objects::nonNull)
       .findFirst();
     if (provided.isPresent()) {
@@ -425,4 +419,5 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public ProfilerState getProfilerState() {
     return myProfilerState;
   }
+
 }

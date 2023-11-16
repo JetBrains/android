@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.util
 
 import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
-import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
-import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
@@ -26,7 +24,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Files
 
 class GradleProjectSystemUtilSoftwareVersionsTest {
   @get:Rule

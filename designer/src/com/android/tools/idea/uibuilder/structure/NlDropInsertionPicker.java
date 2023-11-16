@@ -16,9 +16,7 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlComponentUtil;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.annotations.VisibleForTesting;
 import java.awt.Point;
 import java.awt.Rectangle;

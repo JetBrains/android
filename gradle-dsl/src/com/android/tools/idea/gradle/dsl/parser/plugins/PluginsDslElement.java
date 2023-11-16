@@ -15,15 +15,28 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.plugins;
 
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.BOOLEAN;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.STRING;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
+
+import com.android.tools.idea.gradle.dsl.model.PluginModelImpl;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.collect.ImmutableMap;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class PluginsDslElement extends GradleDslElementList {
   public static final PropertiesElementDescription<PluginsDslElement> PLUGINS =
-    new PropertiesElementDescription<>("plugins", PluginsDslElement.class, PluginsDslElement::new);
+    new PropertiesElementDescription<>("plugins", PluginsDslElement.class, PluginsDslElement::new, AndroidPluginsDslElementSchema::new);
 
   public PluginsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
@@ -32,5 +45,23 @@ public class PluginsDslElement extends GradleDslElementList {
   @Override
   public boolean isBlockElement() {
     return true;
+  }
+
+  public static final class AndroidPluginsDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+      return ImmutableMap.of();
+    }
+
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return Stream.of(new Object[][]{
+        {"id", property, new ModelPropertyDescription(PluginModelImpl.ID, STRING), VAR},
+        {"apply", property, new ModelPropertyDescription(PluginModelImpl.APPLY, BOOLEAN), VAR},
+        {"version", property, new ModelPropertyDescription(PluginModelImpl.VERSION, STRING), VAR},
+      }).collect(toModelMap());
+    }
   }
 }

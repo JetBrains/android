@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.welcome;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
-
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
@@ -26,13 +24,15 @@ import com.android.tools.idea.welcome.wizard.StudioFirstRunWelcomeScreen;
 import com.android.tools.idea.welcome.wizard.deprecated.FirstRunWizardHost;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
-import java.util.Collection;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.util.Collection;
+
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 
 public class FirstRunWizardFixture extends AbstractWizardFixture<FirstRunWizardFixture> {
 

@@ -16,7 +16,6 @@
 package com.android.tools.rendering.parsers
 
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.intellij.openapi.project.Project
 
 /** Implementation agnostic representation of a xml tag. Used in rendering pipeline. */
 interface RenderXmlTag {
@@ -51,8 +50,6 @@ interface RenderXmlTag {
   fun getNamespaceByPrefix(prefix: String): String
 
   fun getPrefixByNamespace(namespace: String): String?
-
-  val project: Project
 
   val containingFileNameWithoutExtension: String
 

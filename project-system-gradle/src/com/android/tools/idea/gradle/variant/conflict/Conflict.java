@@ -21,11 +21,10 @@ import com.google.common.collect.Multimap;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class Conflict {
   @NotNull private final Module mySource;

@@ -93,29 +93,30 @@ class ViewGroupPlaceholderTest : SceneTest() {
   }
 
   override fun createModel(): ModelBuilder {
-    return model("view_group.xml",
-                 component(SdkConstants.LINEAR_LAYOUT)
-                   .withBounds(0, 0, 1000, 1000)
-                   .matchParentWidth()
-                   .matchParentHeight()
-                   .children(
-                     component(SdkConstants.VIEW_GROUP)
-                       .withBounds(0, 0, 400, 400)
-                       .id("@id/viewGroup")
-                       .width("200dp")
-                       .height("200dp")
-                       .children(
-                         component(SdkConstants.TEXT_VIEW)
-                           .withBounds(0, 0, 200, 200)
-                           .width("100dp")
-                           .height("100dp")
-                       ),
-                     component(SdkConstants.TEXT_VIEW)
-                       .withBounds(400, 0, 200, 200)
-                       .id("@id/textView")
-                       .width("100dp")
-                       .height("100dp")
-                   )
+    return model(
+      "view_group.xml",
+      component(SdkConstants.LINEAR_LAYOUT)
+        .withBounds(0, 0, 1000, 1000)
+        .matchParentWidth()
+        .matchParentHeight()
+        .children(
+          component(SdkConstants.VIEW_GROUP)
+            .withBounds(0, 0, 400, 400)
+            .id("@id/viewGroup")
+            .width("200dp")
+            .height("200dp")
+            .children(
+              component(SdkConstants.TEXT_VIEW)
+                .withBounds(0, 0, 200, 200)
+                .width("100dp")
+                .height("100dp")
+            ),
+          component(SdkConstants.TEXT_VIEW)
+            .withBounds(400, 0, 200, 200)
+            .id("@id/textView")
+            .width("100dp")
+            .height("100dp")
+        )
     )
   }
 }

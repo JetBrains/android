@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.testing.AgpIntegrationTestUtil.maybeCreateJdkOverride
+import com.android.tools.idea.testing.JdkUtils.overrideProjectGradleJdkPathWithVersion
 import com.android.tools.idea.util.androidFacet
-import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.projectRoots.ProjectJdkTable
-import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
@@ -124,21 +120,9 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
     preLoad: ((projectRoot: File) -> Unit)? = null
   ) {
     val resolvedAgpVersion = agpVersion.resolve()
-    val jdkOverride: Sdk? = maybeCreateJdkOverride(resolvedAgpVersion.jdkVersion)
-    if (jdkOverride != null) {
-      Disposer.register(delegateTestCase.testRootDisposable) {
-        runWriteActionAndWait {
-          ProjectJdkTable.getInstance().removeJdk(jdkOverride)
-        }
-      }
-    }
 
     fun afterCreate(project: Project) {
-      if (jdkOverride != null) {
-        runWriteActionAndWait {
-          ProjectRootManager.getInstance(project).projectSdk = jdkOverride
-        }
-      }
+      overrideProjectGradleJdkPathWithVersion(Projects.getBaseDirPath(project), resolvedAgpVersion.jdkVersion)
     }
 
     GradleProjectImporter.withAfterCreate(afterCreate = ::afterCreate) {

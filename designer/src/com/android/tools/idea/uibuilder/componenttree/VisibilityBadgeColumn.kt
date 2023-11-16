@@ -47,14 +47,12 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * A BadgeItem for displaying visibility icons in the 3rd column of the component TreeTable.
- */
+/** A BadgeItem for displaying visibility icons in the 3rd column of the component TreeTable. */
 class VisibilityBadgeColumn(private val badgeUpdated: () -> Unit) : IconColumn("Visibility") {
-  private val unsetIcon = ColoredIconGenerator.generateDeEmphasizedIcon(StudioIcons.LayoutEditor.Properties.VISIBLE)
+  private val unsetIcon =
+    ColoredIconGenerator.generateDeEmphasizedIcon(StudioIcons.LayoutEditor.Properties.VISIBLE)
 
-  override fun getIcon(item: Any): Icon? =
-    (item as? NlComponent)?.combinedVisibility?.icon
+  override fun getIcon(item: Any): Icon? = (item as? NlComponent)?.combinedVisibility?.icon
 
   override fun getHoverIcon(item: Any): Icon? =
     if ((item as? NlComponent)?.combinedVisibility == Visibility.NONE) unsetIcon else null
@@ -77,29 +75,39 @@ class VisibilityBadgeColumn(private val badgeUpdated: () -> Unit) : IconColumn("
   }
 }
 
-private enum class Visibility { NONE, VISIBLE, INVISIBLE, GONE, TOOLS_VISIBLE, TOOLS_INVISIBLE, TOOLS_GONE }
+private enum class Visibility {
+  NONE,
+  VISIBLE,
+  INVISIBLE,
+  GONE,
+  TOOLS_VISIBLE,
+  TOOLS_INVISIBLE,
+  TOOLS_GONE
+}
 
 private val Visibility.icon: Icon?
-  get() = when (this) {
-    Visibility.VISIBLE -> StudioIcons.LayoutEditor.Properties.VISIBLE
-    Visibility.INVISIBLE -> StudioIcons.LayoutEditor.Properties.INVISIBLE
-    Visibility.GONE -> StudioIcons.LayoutEditor.Properties.GONE
-    Visibility.TOOLS_VISIBLE -> StudioIcons.LayoutEditor.Properties.VISIBLE_TOOLS_ATTRIBUTE
-    Visibility.TOOLS_INVISIBLE -> StudioIcons.LayoutEditor.Properties.INVISIBLE_TOOLS_ATTRIBUTE
-    Visibility.TOOLS_GONE -> StudioIcons.LayoutEditor.Properties.GONE_TOOLS_ATTRIBUTE
-    else -> null
-  }
+  get() =
+    when (this) {
+      Visibility.VISIBLE -> StudioIcons.LayoutEditor.Properties.VISIBLE
+      Visibility.INVISIBLE -> StudioIcons.LayoutEditor.Properties.INVISIBLE
+      Visibility.GONE -> StudioIcons.LayoutEditor.Properties.GONE
+      Visibility.TOOLS_VISIBLE -> StudioIcons.LayoutEditor.Properties.VISIBLE_TOOLS_ATTRIBUTE
+      Visibility.TOOLS_INVISIBLE -> StudioIcons.LayoutEditor.Properties.INVISIBLE_TOOLS_ATTRIBUTE
+      Visibility.TOOLS_GONE -> StudioIcons.LayoutEditor.Properties.GONE_TOOLS_ATTRIBUTE
+      else -> null
+    }
 
 private val Visibility.value: String?
-  get() = when (this) {
-    Visibility.TOOLS_VISIBLE,
-    Visibility.VISIBLE -> "visible"
-    Visibility.TOOLS_INVISIBLE,
-    Visibility.INVISIBLE -> "invisible"
-    Visibility.TOOLS_GONE,
-    Visibility.GONE -> "gone"
-    else -> null
-  }
+  get() =
+    when (this) {
+      Visibility.TOOLS_VISIBLE,
+      Visibility.VISIBLE -> "visible"
+      Visibility.TOOLS_INVISIBLE,
+      Visibility.INVISIBLE -> "invisible"
+      Visibility.TOOLS_GONE,
+      Visibility.GONE -> "gone"
+      else -> null
+    }
 
 private var NlComponent.toolsVisibility: Visibility
   get() = runReadAction {
@@ -111,7 +119,9 @@ private var NlComponent.toolsVisibility: Visibility
     }
   }
   set(value) = runWriteAction {
-    NlWriteCommandActionUtil.run(this, "Update tools visibility") { setAttribute(TOOLS_URI, ATTR_VISIBILITY, value.value) }
+    NlWriteCommandActionUtil.run(this, "Update tools visibility") {
+      setAttribute(TOOLS_URI, ATTR_VISIBILITY, value.value)
+    }
   }
 
 private var NlComponent.androidVisibility: Visibility
@@ -124,7 +134,9 @@ private var NlComponent.androidVisibility: Visibility
     }
   }
   set(value) {
-    NlWriteCommandActionUtil.run(this, "Update visibility") { setAttribute(ANDROID_URI, ATTR_VISIBILITY, value.value) }
+    NlWriteCommandActionUtil.run(this, "Update visibility") {
+      setAttribute(ANDROID_URI, ATTR_VISIBILITY, value.value)
+    }
   }
 
 private val NlComponent.combinedVisibility: Visibility
@@ -139,10 +151,11 @@ private val NlComponent.combinedVisibility: Visibility
 private class VisibilityPanel(item: NlComponent, private val badgeUpdated: () -> Unit) : JPanel() {
   init {
     val android = JPanel()
-    val androidVisibility = Ref(item.androidVisibility, android) {
-      item.androidVisibility = it
-      badgeUpdated()
-    }
+    val androidVisibility =
+      Ref(item.androidVisibility, android) {
+        item.androidVisibility = it
+        badgeUpdated()
+      }
     android.layout = BoxLayout(android, BoxLayout.X_AXIS)
     android.border = JBUI.Borders.emptyLeft(3)
     android.alignmentX = LEFT_ALIGNMENT
@@ -151,10 +164,11 @@ private class VisibilityPanel(item: NlComponent, private val badgeUpdated: () ->
     android.add(VButton(androidVisibility, Visibility.INVISIBLE))
     android.add(VButton(androidVisibility, Visibility.GONE))
     val tools = JPanel()
-    val toolsVisibility = Ref(item.toolsVisibility, tools) {
-      item.toolsVisibility = it
-      badgeUpdated()
-    }
+    val toolsVisibility =
+      Ref(item.toolsVisibility, tools) {
+        item.toolsVisibility = it
+        badgeUpdated()
+      }
     tools.layout = BoxLayout(tools, BoxLayout.X_AXIS)
     tools.border = JBUI.Borders.emptyLeft(3)
     tools.alignmentX = LEFT_ALIGNMENT
@@ -171,9 +185,7 @@ private class VisibilityPanel(item: NlComponent, private val badgeUpdated: () ->
     add(tools)
   }
 
-  /**
-   * A reference to a Visibility value with a [setter] for updating the associated component.
-   */
+  /** A reference to a Visibility value with a [setter] for updating the associated component. */
   private class Ref(initialValue: Visibility, val panel: JPanel, val setter: (Visibility) -> Unit) {
     var value: Visibility = initialValue
       set(value) {
@@ -194,36 +206,39 @@ private class VisibilityPanel(item: NlComponent, private val badgeUpdated: () ->
   }
 
   /**
-   * A button swing component that detects hovering and clicks; for setting [Visibility] in the [VisibilityPanel].
+   * A button swing component that detects hovering and clicks; for setting [Visibility] in the
+   * [VisibilityPanel].
    */
-  private class VButton(val ref: Ref, val visibility: Visibility) : JBLabel(visibility.icon ?: AllIcons.General.Remove) {
+  private class VButton(val ref: Ref, val visibility: Visibility) :
+    JBLabel(visibility.icon ?: AllIcons.General.Remove) {
     private var isHovering = false
 
     init {
       border = JBUI.Borders.empty(6, 6)
       toolTipText = visibility.value ?: "Remove attribute"
-      addMouseListener(object : MouseAdapter() {
-        override fun mouseEntered(event: MouseEvent) {
-          isHovering = true
-          repaint()
-        }
+      addMouseListener(
+        object : MouseAdapter() {
+          override fun mouseEntered(event: MouseEvent) {
+            isHovering = true
+            repaint()
+          }
 
-        override fun mouseExited(event: MouseEvent) {
-          isHovering = false
-          repaint()
-        }
+          override fun mouseExited(event: MouseEvent) {
+            isHovering = false
+            repaint()
+          }
 
-        override fun mouseClicked(event: MouseEvent) {
-          ref.value = visibility
+          override fun mouseClicked(event: MouseEvent) {
+            ref.value = visibility
+          }
         }
-      })
+      )
     }
 
     override fun paintComponent(g: Graphics) {
       if (visibility == ref.value) {
         paintBackground(g, JBUI.CurrentTheme.ActionButton.pressedBackground())
-      }
-      else if (isHovering) {
+      } else if (isHovering) {
         paintBackground(g, JBUI.CurrentTheme.ActionButton.hoverBackground())
       }
       super.paintComponent(g)
@@ -236,12 +251,14 @@ private class VisibilityPanel(item: NlComponent, private val badgeUpdated: () ->
 
       try {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-        g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE)
+        g2.setRenderingHint(
+          RenderingHints.KEY_STROKE_CONTROL,
+          RenderingHints.VALUE_STROKE_NORMALIZE
+        )
         g2.color = color
         val arc = DarculaUIUtil.BUTTON_ARC.get()
         g2.fillRoundRect(rect.x, rect.y, rect.width, rect.height, arc, arc)
-      }
-      finally {
+      } finally {
         g2.dispose()
       }
     }

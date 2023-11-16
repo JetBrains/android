@@ -79,6 +79,7 @@ interface IdeBaseArtifactCore : Serializable {
   val generatedSourceFolders: Collection<File>
   val isTestArtifact: Boolean
   val unresolvedDependencies: List<IdeUnresolvedDependency>
+  val generatedClassPaths: Map<String, File>
 }
 
 sealed interface IdeBaseArtifact : IdeBaseArtifactCore {

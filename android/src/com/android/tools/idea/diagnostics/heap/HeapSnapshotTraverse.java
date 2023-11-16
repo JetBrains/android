@@ -18,6 +18,7 @@ package com.android.tools.idea.diagnostics.heap;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.isPrimitive;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMask;
 import static com.google.common.math.LongMath.isPowerOfTwo;
+import static com.google.common.math.LongMath.log2;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
 import com.android.tools.analytics.UsageTracker;
@@ -29,13 +30,14 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.LowMemoryWatcher;
+import com.intellij.openapi.util.Pair;
 import com.intellij.util.containers.WeakList;
 import com.intellij.util.messages.MessageBusConnection;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -80,6 +82,7 @@ public final class HeapSnapshotTraverse implements Disposable {
   @NotNull private final HeapSnapshotStatistics statistics;
   private volatile boolean shouldAbortTraversal = false;
   private int lastObjectId = 0;
+  private final boolean isExtendedReportCollection;
 
   public HeapSnapshotTraverse(@NotNull final HeapSnapshotStatistics statistics) {
     this(new HeapTraverseChildProcessor(statistics), statistics);
@@ -99,6 +102,7 @@ public final class HeapSnapshotTraverse implements Disposable {
     heapTraverseChildProcessor = childProcessor;
     iterationId = getNextIterationId();
     this.statistics = statistics;
+    this.isExtendedReportCollection = statistics.getExtendedReportStatistics() != null;
   }
 
   @TestOnly
@@ -106,6 +110,10 @@ public final class HeapSnapshotTraverse implements Disposable {
     WeakList<Object> classes = new WeakList<>();
     classes.addAll(roots);
     return walkObjects(maxDepth, () -> classes);
+  }
+
+  StatusCode walkObjects() {
+    return walkObjects(MAX_DEPTH, getLoadedClassesComputable);
   }
 
   /**
@@ -150,11 +158,10 @@ public final class HeapSnapshotTraverse implements Disposable {
             return StatusCode.WRONG_ROOT_OBJECT_ID;
           }
 
-          HeapTraverseNode.putOrUpdateObjectIdToTraverseNodeMap(rootObjectId, root, HeapTraverseNode.RefWeight.DEFAULT.getValue(), 0L, 0L,
-                                                                0,
-                                                                rootTag,
-                                                                statistics.getConfig().getComponentsSet().getComponentOfObject(root) !=
-                                                                null);
+          putOrUpdateObjectIdToTraverseNodeMap(rootObjectId, root, HeapTraverseNode.RefWeight.DEFAULT.getValue(), 0L, 0L,
+                                               0,
+                                               statistics.getConfig().getComponentsSet().getComponentOfObject(root) !=
+                                               null, false, 0);
         }
         // By this moment all the reachable heap objects are enumerated in topological order and
         // marked as visited. Order id, visited and the iteration id are stored in objects tags.
@@ -192,7 +199,11 @@ public final class HeapSnapshotTraverse implements Disposable {
           long currentObjectSize = getObjectSize(currentObject);
           String currentObjectClassName = currentObject.getClass().getName();
 
-          statistics.addObjectToTotal(currentObjectSize);
+          boolean isPlatformObject = isPlatformObject(currentObject, currentObjectClassName);
+          if (isPlatformObject) {
+            node.isRetainedByPlatform = true;
+          }
+          statistics.addObjectToTotal(currentObjectSize, isPlatformObject, node.isRetainedByPlatform);
 
           if (statistics.getConfig().collectDisposerTreeInfo && currentObject instanceof Disposable) {
             //noinspection deprecation
@@ -201,34 +212,46 @@ public final class HeapSnapshotTraverse implements Disposable {
             }
           }
 
+          ComponentsSet.ComponentCategory previousOwnershipCategory = getCategoryByComponentMask(node.ownedByComponentMask);
           // if it's a root of a component
           boolean objectIsAComponentRoot = currentObjectComponent != null;
           if (objectIsAComponentRoot) {
             updateComponentRootMasks(node, currentObjectComponent, HeapTraverseNode.RefWeight.DEFAULT);
           }
+          ComponentsSet.ComponentCategory category = getCategoryByComponentMask(node.ownedByComponentMask);
+
+          if (objectIsAComponentRoot && isExtendedReportCollection && statistics.getExtendedReportStatistics() != null) {
+            assert category != null;
+            addLinkFromCategoryRootToComponentRoot(currentObjectComponent, currentObjectClassName, category);
+            updateCurrentNodeOwningRootsSetHashcode(node, currentObjectComponent, currentObjectClassName, previousOwnershipCategory,
+                                                    category);
+          }
 
           // If current object is retained by any components - propagate their stats.
           processMask(node.retainedMask,
-                      (index) -> statistics.addRetainedObjectSizeToComponent(index, currentObjectSize));
+                      (index) -> statistics.addRetainedObjectSizeToComponent(index, currentObjectSize, isPlatformObject,
+                                                                             node.isRetainedByPlatform));
           // If current object is retained by any component categories - propagate their stats.
           processMask(node.retainedMaskForCategories,
                       (index) -> statistics.addRetainedObjectSizeToCategoryComponent(index,
-                                                                                     currentObjectSize
+                                                                                     currentObjectSize, isPlatformObject,
+                                                                                     node.isRetainedByPlatform
                       ));
 
-          AtomicInteger categoricalOwnedMask = new AtomicInteger();
-          processMask(node.ownedByComponentMask,
-                      (index) -> categoricalOwnedMask.set(
-                        categoricalOwnedMask.get() |
-                        1 <<
-                        statistics.getConfig().getComponentsSet().getComponents().get(index)
-                          .getComponentCategory().getId()));
-          if (categoricalOwnedMask.get() != 0 && isPowerOfTwo(categoricalOwnedMask.get())) {
-            processMask(categoricalOwnedMask.get(),
-                        (index) -> statistics.addOwnedObjectSizeToCategoryComponent(index,
-                                                                                    currentObjectSize,
-                                                                                    currentObjectClassName, node.isMergePoint));
+          if (category != null) {
+            statistics.addOwnedObjectSizeToCategoryComponent(category.getId(),
+                                                             currentObjectSize,
+                                                             currentObjectClassName, objectIsAComponentRoot, isPlatformObject,
+                                                             node.isRetainedByPlatform);
+            if (isExtendedReportCollection && statistics.getExtendedReportStatistics() != null) {
+              statistics.getExtendedReportStatistics()
+                .addOwnedObjectSizeToCategoryRoots(category.getId(), node.owningRootsSetHashcode, currentObjectSize);
+            }
           }
+          else {
+            node.owningRootsSetHashcode = 0;
+          }
+
           if (node.ownedByComponentMask == 0) {
             int uncategorizedComponentId =
               statistics.getConfig().getComponentsSet().getUncategorizedComponent().getId();
@@ -236,20 +259,30 @@ public final class HeapSnapshotTraverse implements Disposable {
               statistics.getConfig().getComponentsSet().getUncategorizedComponent().getComponentCategory()
                 .getId();
             statistics.addOwnedObjectSizeToComponent(uncategorizedComponentId, currentObjectSize,
-                                                     currentObjectClassName, false);
+                                                     currentObjectClassName, false, isPlatformObject, node.isRetainedByPlatform);
             statistics.addOwnedObjectSizeToCategoryComponent(uncategorizedCategoryId,
-                                                             currentObjectSize, currentObjectClassName, false);
+                                                             currentObjectSize, currentObjectClassName, false, isPlatformObject,
+                                                             node.isRetainedByPlatform);
           }
           else if (isPowerOfTwo(node.ownedByComponentMask)) {
+            int componentId = log2(node.ownedByComponentMask, RoundingMode.UP);
+            if (isExtendedReportCollection && statistics.getExtendedReportStatistics() != null) {
+              statistics.getExtendedReportStatistics()
+                .addOwnedObjectSizeToComponentRoots(statistics.getComponentStats().get(componentId).getComponent(),
+                                                    node.owningRootsSetHashcode,
+                                                    currentObjectSize);
+            }
+
             // if only owned by one component
-            processMask(node.ownedByComponentMask,
-                        (index) -> statistics.addOwnedObjectSizeToComponent(index, currentObjectSize,
-                                                                            currentObjectClassName, objectIsAComponentRoot));
+            statistics.addOwnedObjectSizeToComponent(componentId, currentObjectSize,
+                                                     currentObjectClassName, objectIsAComponentRoot, isPlatformObject,
+                                                     node.isRetainedByPlatform);
           }
           else {
             // if owned by multiple components -> add to shared
             statistics.addObjectSizeToSharedComponent(node.ownedByComponentMask, currentObjectSize,
-                                                      currentObjectClassName, node.isMergePoint);
+                                                      currentObjectClassName, node.isMergePoint, isPlatformObject,
+                                                      node.isRetainedByPlatform);
           }
 
           // propagate to referred objects
@@ -273,6 +306,96 @@ public final class HeapSnapshotTraverse implements Disposable {
       messageBusConnection.disconnect();
     }
     return StatusCode.NO_ERROR;
+  }
+
+  static boolean isPlatformObject(@NotNull final String className) {
+    return className.startsWith("org.jetbrains") ||
+           className.startsWith("com.intellij") ||
+           className.startsWith("com.jetbrains") ||
+           className.startsWith("org.intellij");
+  }
+
+  static boolean isPlatformObject(@NotNull final Object obj, @NotNull final String objClassName) {
+    if (obj instanceof Class<?>) {
+      return isPlatformObject(((Class<?>)obj).getName());
+    }
+    return isPlatformObject(objClassName);
+  }
+
+  private void putOrUpdateObjectIdToTraverseNodeMap(int id,
+                                                    @NotNull final Object obj,
+                                                    byte refWeight,
+                                                    long ownedByComponentMask,
+                                                    long retainedMask,
+                                                    int retainedMaskForCategories,
+                                                    boolean isMergePoint,
+                                                    boolean isRetainedByPlatform,
+                                                    int owningRootsSetHashcode) {
+    HeapTraverseNode.putOrUpdateObjectIdToTraverseNodeMap(id, obj,
+                                                          refWeight, ownedByComponentMask,
+                                                          retainedMask,
+                                                          retainedMaskForCategories,
+                                                          isMergePoint,
+                                                          isRetainedByPlatform);
+    if (isExtendedReportCollection) {
+      HeapTraverseNode.putOrUpdateObjectIdToExtendedTraverseNodeMap(id, owningRootsSetHashcode);
+    }
+  }
+
+  private void addLinkFromCategoryRootToComponentRoot(@NotNull final ComponentsSet.Component currentObjectComponent,
+                                                      @NotNull final String currentObjectClassName,
+                                                      @NotNull final ComponentsSet.ComponentCategory currentObjectCategory) {
+    assert statistics.getExtendedReportStatistics() != null;
+    ExtendedReportStatistics.CategoryHistogram categoryHistogram =
+      statistics.getExtendedReportStatistics().categoryHistograms.get(currentObjectCategory.getId());
+    ExtendedReportStatistics.ClusterHistogram componentHistogram =
+      statistics.getExtendedReportStatistics().componentHistograms.get(currentObjectComponent.getId());
+    categoryHistogram.registerClusterRootIfNeeded(currentObjectClassName);
+    componentHistogram.registerClusterRootIfNeeded(currentObjectClassName);
+    // root ids that are used in sets are per-category, so we need to keep per-category root class enumeration aligned with
+    // per-component root class enumeration.
+    int categoryRootId = categoryHistogram.rootClassNameToId.get(currentObjectClassName);
+    int componentRootID = componentHistogram.rootClassNameToId.get(currentObjectClassName);
+    categoryHistogram.categoryRootIdToComponentRootId.putIfAbsent(categoryRootId,
+                                                                  new Pair<>(currentObjectComponent.getId(), componentRootID));
+  }
+
+  private void updateCurrentNodeOwningRootsSetHashcode(@NotNull final HeapTraverseNode node,
+                                                       @NotNull final ComponentsSet.Component currentObjectComponent,
+                                                       @NotNull final String currentObjectClassName,
+                                                       @Nullable final ComponentsSet.ComponentCategory previousOwnershipCategory,
+                                                       @NotNull final ComponentsSet.ComponentCategory category) {
+    assert statistics.getExtendedReportStatistics() != null;
+    int rootId = statistics.getExtendedReportStatistics().categoryHistograms.get(
+      currentObjectComponent.getComponentCategory().getId()).rootClassNameToId.get(currentObjectClassName);
+    int rootIdHashcode = statistics.getExtendedReportStatistics().getOwningRootsSetHashcode(rootId);
+
+    if (previousOwnershipCategory == category) {
+      node.owningRootsSetHashcode = statistics.getExtendedReportStatistics()
+        .joinOwningRootsAndReturnHashcode(node.owningRootsSetHashcode, rootIdHashcode);
+    }
+    else {
+      node.owningRootsSetHashcode = rootIdHashcode;
+    }
+  }
+
+  // Returns null if componentMask is empty, or set bits belong to different categories
+  private ComponentsSet.ComponentCategory getCategoryByComponentMask(long componentMask) {
+    ComponentsSet.ComponentCategory result = null;
+    int trailingZeros = Long.numberOfTrailingZeros(componentMask);
+    componentMask >>= Long.numberOfTrailingZeros(componentMask);
+    for (int i = trailingZeros; componentMask != 0; i++, componentMask >>= 1) {
+      if ((componentMask & 1) != 0) {
+        ComponentsSet.ComponentCategory currentCategory = statistics.getComponentStats().get(i).getComponent().getComponentCategory();
+        if (result == null) {
+          result = currentCategory;
+        }
+        else if (result != currentCategory) {
+          return null;
+        }
+      }
+    }
+    return result;
   }
 
   private void updateComponentRootMasks(HeapTraverseNode node,
@@ -483,30 +606,47 @@ public final class HeapSnapshotTraverse implements Disposable {
         ownershipWeight = HeapTraverseNode.RefWeight.NON_COMPONENT;
       }
 
-      HeapTraverseNode currentNode = HeapTraverseNode.getObjectIdToTraverseNodeMapElement(objectId, HeapTraverseNode.class);
+      HeapTraverseNode currentNode =
+        HeapTraverseNode.getObjectIdToTraverseNodeMapElement(objectId,
+                                                             HeapTraverseNode.class);
       if (currentNode == null) {
         currentNode = new HeapTraverseNode(value, ownershipWeight, parentNode.ownedByComponentMask, parentNode.retainedMask,
-                                           parentNode.retainedMaskForCategories, tag, false);
+                                           parentNode.retainedMaskForCategories, false, parentNode.isRetainedByPlatform,
+                                           parentNode.owningRootsSetHashcode);
       }
 
       currentNode.retainedMask &= parentNode.retainedMask;
       currentNode.retainedMaskForCategories &= parentNode.retainedMaskForCategories;
+      currentNode.isRetainedByPlatform &= parentNode.isRetainedByPlatform;
 
       if (ownershipWeight.compareTo(currentNode.ownershipWeight) > 0) {
         currentNode.ownershipWeight = ownershipWeight;
         currentNode.ownedByComponentMask = parentNode.ownedByComponentMask;
         currentNode.isMergePoint = false;
+        currentNode.owningRootsSetHashcode = parentNode.owningRootsSetHashcode;
       }
       else if (ownershipWeight.compareTo(currentNode.ownershipWeight) == 0) {
         if (currentNode.ownedByComponentMask != 0 && parentNode.ownedByComponentMask != currentNode.ownedByComponentMask) {
           currentNode.isMergePoint = true;
         }
         currentNode.ownedByComponentMask |= parentNode.ownedByComponentMask;
+        if (isExtendedReportCollection &&
+            statistics.getExtendedReportStatistics() != null &&
+            ((parentNode.ownedByComponentMask == currentNode.ownedByComponentMask) ||
+             (getCategoryByComponentMask(currentNode.ownedByComponentMask) != null))) {
+          currentNode.owningRootsSetHashcode = statistics.getExtendedReportStatistics()
+            .joinOwningRootsAndReturnHashcode(currentNode.owningRootsSetHashcode, parentNode.owningRootsSetHashcode);
+        }
+        else {
+          currentNode.owningRootsSetHashcode = 0;
+        }
       }
 
-      HeapTraverseNode.putOrUpdateObjectIdToTraverseNodeMap(objectId, value, currentNode.ownershipWeight.getValue(),
-                                                            currentNode.ownedByComponentMask, currentNode.retainedMask,
-                                                            currentNode.retainedMaskForCategories, tag, currentNode.isMergePoint);
+      putOrUpdateObjectIdToTraverseNodeMap(objectId, value,
+                                           currentNode.ownershipWeight.getValue(),
+                                           currentNode.ownedByComponentMask, currentNode.retainedMask,
+                                           currentNode.retainedMaskForCategories, currentNode.isMergePoint,
+                                           currentNode.isRetainedByPlatform, currentNode.owningRootsSetHashcode);
     }, fieldCache);
   }
 

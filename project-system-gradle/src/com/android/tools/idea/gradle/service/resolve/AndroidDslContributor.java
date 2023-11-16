@@ -450,12 +450,12 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
 
     // 2 - If we found it, check the type of the module
     if (found != null) {
-      GradleAndroidModel androidModuleModel = GradleAndroidModel.get(found);
-      if (androidModuleModel != null) {
-        if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
+      GradleAndroidModel gradleAndroidModel = GradleAndroidModel.get(found);
+      if (gradleAndroidModel != null) {
+        if (gradleAndroidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
           return ANDROID_FQCN;
         }
-        else if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY) {
+        else if (gradleAndroidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY) {
           return ANDROID_LIB_FQCN;
         }
       }

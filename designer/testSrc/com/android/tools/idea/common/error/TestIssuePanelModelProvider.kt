@@ -16,7 +16,5 @@
 package com.android.tools.idea.common.error
 
 class TestIssuePanelModelProvider : DesignerCommonIssuePanelModelProvider {
-  private val _model: DesignerCommonIssueModel = DesignerCommonIssueModel()
-  override val model: DesignerCommonIssueModel
-    get() = _model
+  override fun createModel() = DesignerCommonIssueModel()
 }

@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgToMapTran
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgumentMethodTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
@@ -67,12 +68,17 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements Mo
                                          @Nullable String config) {
     GradleNameElement name = GradleNameElement.create(configurationName);
     GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, name, PROJECT);
-    GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, GradleNameElement.empty());
-    mapArguments.setNewLiteral(PATH, path);
-    if (config != null) {
-      mapArguments.setNewLiteral(CONFIGURATION, config);
+    if (config == null) {
+      GradleDslLiteral pathLiteral = new GradleDslLiteral(methodCall.getArgumentsElement(), GradleNameElement.empty());
+      pathLiteral.setValue(path);
+      methodCall.addNewArgument(pathLiteral);
     }
-    methodCall.addNewArgument(mapArguments);
+    else {
+      GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, GradleNameElement.empty());
+      mapArguments.setNewLiteral(PATH, path);
+      mapArguments.setNewLiteral(CONFIGURATION, config);
+      methodCall.addNewArgument(mapArguments);
+    }
     parent.setNewElement(methodCall);
     return new ModuleDependencyModelImpl(configurationName, methodCall, DependenciesModelImpl.Maintainers.SINGLE_ITEM_MAINTAINER);
   }

@@ -1,7 +1,27 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT> (IdeBuildImpl)
-        buildName                     : :
-    gradleSupportsDirectTaskInvocation      : true
+MODULE                        : project
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : project
+    LinkedProjectPath             : <ROOT>
+    RootProjectPath               : <ROOT>
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/build/classes/production/project [-]
+        compilerTestOutputPath        : file://<ROOT>/build/classes/test/project [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/.idea/modules/project.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>
+        EXCLUDE_FOLDER                : file://<ROOT>/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : <ROOT>::library@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
@@ -22,11 +42,15 @@ LIBRARY_TABLE
         variant                       : debug
 MODULE                        : project
     externalProject               : project (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : project
         qName                         : project
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : project
@@ -146,6 +170,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             library                       : :library (DefaultExternalProject)
+                path                          : :library [-]
+                identityPath                  : :library [-]
                 name                          : library
                 qName                         : :library
                 group                         : project
@@ -265,6 +291,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             library-remote                : :library-remote (DefaultExternalProject)
+                path                          : :library-remote [-]
+                identityPath                  : :library-remote [-]
                 name                          : library-remote
                 qName                         : :library-remote
                 group                         : com.example.google
@@ -378,6 +406,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             lint                          : :lint (DefaultExternalProject)
+                path                          : :lint [-]
+                identityPath                  : :lint [-]
                 name                          : lint
                 qName                         : :lint
                 group                         : project
@@ -404,29 +434,29 @@ MODULE                        : project
                                 - gradleOutputDirs            : <ROOT>/lint/build/classes/java/main [-]
                                 patterns                      : FilePatternSetImpl
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/lint/lint-checks/30.4.0-alpha09/lint-checks-30.4.0-alpha09.jar
+                            file                          : <M2>/com/android/tools/lint/lint-checks/<VERSION>/lint-checks-<VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/lint/lint-api/30.4.0-alpha09/lint-api-30.4.0-alpha09.jar
+                            file                          : <M2>/com/android/tools/lint/lint-api/<VERSION>/lint-api-<VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/lint/lint-model/30.4.0-alpha09/lint-model-30.4.0-alpha09.jar
+                            file                          : <M2>/com/android/tools/lint/lint-model/<VERSION>/lint-model-<VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/external/com-intellij/intellij-core/30.4.0-alpha09/intellij-core-30.4.0-alpha09.jar
+                            file                          : <M2>/com/android/tools/external/com-intellij/intellij-core/<VERSION>/intellij-core-<VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/com/android/tools/external/com-intellij/kotlin-compiler/<KOTLIN_VERSION>/kotlin-compiler-<KOTLIN_VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/external/org-jetbrains/uast/30.4.0-alpha09/uast-30.4.0-alpha09.jar
+                            file                          : <M2>/com/android/tools/external/org-jetbrains/uast/<VERSION>/uast-<VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/build/manifest-merger/30.4.0-alpha09/manifest-merger-30.4.0-alpha09.jar
+                            file                          : <M2>/com/android/tools/build/manifest-merger/<VERSION>/manifest-merger-<VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/common/30.4.0-alpha09/common-30.4.0-alpha09.jar
+                            file                          : <M2>/com/android/tools/common/<VERSION>/common-<VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/layoutlib/layoutlib-api/30.4.0-alpha09/layoutlib-api-30.4.0-alpha09.jar
+                            file                          : <M2>/com/android/tools/layoutlib/layoutlib-api/<VERSION>/layoutlib-api-<VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/sdk-common/30.4.0-alpha09/sdk-common-30.4.0-alpha09.jar
+                            file                          : <M2>/com/android/tools/sdk-common/<VERSION>/sdk-common-<VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/sdklib/30.4.0-alpha09/sdklib-30.4.0-alpha09.jar
+                            file                          : <M2>/com/android/tools/sdklib/<VERSION>/sdklib-<VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/commons-io/commons-io/2.4/commons-io-2.4.jar
                             source                        : <M2>/commons-io/commons-io/2.4/commons-io-2.4-sources.jar
@@ -444,11 +474,11 @@ MODULE                        : project
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/annotations/30.4.0-alpha09/annotations-30.4.0-alpha09.jar
+                            file                          : <M2>/com/android/tools/annotations/<VERSION>/annotations-<VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/com/google/guava/guava/30.1-jre/guava-30.1-jre.jar
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/repository/30.4.0-alpha09/repository-30.4.0-alpha09.jar
+                            file                          : <M2>/com/android/tools/repository/<VERSION>/repository-<VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
@@ -517,6 +547,8 @@ MODULE                        : project
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
             lintpublish                   : :lintpublish (DefaultExternalProject)
+                path                          : :lintpublish [-]
+                identityPath                  : :lintpublish [-]
                 name                          : lintpublish
                 qName                         : :lintpublish
                 group                         : project
@@ -623,6 +655,8 @@ MODULE                        : project
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
             lintpublish-remote            : :lintpublish-remote (DefaultExternalProject)
+                path                          : :lintpublish-remote [-]
+                identityPath                  : :lintpublish-remote [-]
                 name                          : lintpublish-remote
                 qName                         : :lintpublish-remote
                 group                         : project
@@ -734,7 +768,7 @@ MODULE                        : project
         externalSystemId              : GRADLE
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 7.4.0-alpha09
+        agpVersion                    : 7.4.1
         gradlePath                    : :app
         gradleVersion                 : 7.5
         buildFile                     : <ROOT>/app/build.gradle
@@ -754,9 +788,8 @@ MODULE                        : project.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
-    ModelVersion                  : 7.4.0-alpha09
+    ModelVersion                  : 7.4.1
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -799,6 +832,7 @@ MODULE                        : project.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.app
         testApplicationId             : com.example.app.test
@@ -1059,6 +1093,7 @@ MODULE                        : project.app
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -1083,7 +1118,7 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.library
     GradleModuleModel
-        agpVersion                    : 7.4.0-alpha09
+        agpVersion                    : 7.4.1
         gradlePath                    : :library
         gradleVersion                 : 7.5
         buildFile                     : <ROOT>/library/build.gradle
@@ -1103,9 +1138,8 @@ MODULE                        : project.library
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :library
-    ModelVersion                  : 7.4.0-alpha09
+    ModelVersion                  : 7.4.1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/library/build [-]
@@ -1148,6 +1182,7 @@ MODULE                        : project.library
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.library.test
     - basicVariant:               : release
@@ -1383,6 +1418,7 @@ MODULE                        : project.library
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -1401,7 +1437,7 @@ MODULE                        : project.library
     externalProject               : :library (DefaultExternalProject) (*seen*)
 MODULE                        : project.library-remote
     GradleModuleModel
-        agpVersion                    : 7.4.0-alpha09
+        agpVersion                    : 7.4.1
         gradlePath                    : :library-remote
         gradleVersion                 : 7.5
         buildFile                     : <ROOT>/library-remote/build.gradle
@@ -1421,9 +1457,8 @@ MODULE                        : project.library-remote
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :library-remote
-    ModelVersion                  : 7.4.0-alpha09
+    ModelVersion                  : 7.4.1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/library-remote/build [-]
@@ -1466,6 +1501,7 @@ MODULE                        : project.library-remote
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.library.test
     - basicVariant:               : release
@@ -1701,6 +1737,7 @@ MODULE                        : project.library-remote
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources

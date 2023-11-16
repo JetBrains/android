@@ -15,13 +15,21 @@
  */
 package com.android.tools.adtui.workbench;
 
+import com.android.tools.adtui.workbench.AttachedToolWindow.AttachedToolWindowPanel;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.ui.NewUiValue;
+import com.intellij.util.ui.FocusUtil;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
 import java.util.Collection;
 import java.util.Optional;
+import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * All the settings of an {@link AttachedToolWindow} are shared globally for all instances
@@ -29,8 +37,10 @@ import org.jetbrains.annotations.NotNull;
  * This class is responsible for notifying other {@link WorkBench}es that something has
  * changed.
  */
-public class WorkBenchManager {
-  private Multimap<String, WorkBench> myWorkBenches;
+public class WorkBenchManager implements Disposable {
+  private final Multimap<String, WorkBench<?>> myWorkBenches;
+  private WorkBench<?> myActiveWorkBench = null;
+  private AttachedToolWindowPanel myActiveToolWindow = null;
 
   public static WorkBenchManager getInstance() {
     return ApplicationManager.getApplication().getService(WorkBenchManager.class);
@@ -38,19 +48,32 @@ public class WorkBenchManager {
 
   public WorkBenchManager() {
     myWorkBenches = Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
+    if (NewUiValue.isEnabled()) {
+      FocusUtil.addFocusOwnerListener(this, evt -> findActiveToolWindow());
+    }
   }
 
-  public void register(@NotNull WorkBench workBench) {
+  @Override
+  public void dispose() {
+    myWorkBenches.clear();
+    myActiveWorkBench = null;
+    myActiveToolWindow = null;
+  }
+
+  public void register(@NotNull WorkBench<?> workBench) {
     myWorkBenches.put(workBench.getName(), workBench);
   }
 
-  public void unregister(@NotNull WorkBench workBench) {
+  public void unregister(@NotNull WorkBench<?> workBench) {
     myWorkBenches.remove(workBench.getName(),workBench);
+    if (myActiveWorkBench == workBench) {
+      resetActiveToolWindow();
+    }
   }
 
   public void storeDefaultLayout() {
     for (String name : myWorkBenches.keySet()) {
-      Optional<WorkBench> workbench = myWorkBenches.get(name).stream().findFirst();
+      Optional<WorkBench<?>> workbench = myWorkBenches.get(name).stream().findFirst();
       if (workbench.isPresent()) {
         workbench.get().storeDefaultLayout();
         updateOtherWorkBenches(workbench.get());
@@ -60,7 +83,7 @@ public class WorkBenchManager {
 
   public void restoreDefaultLayout() {
     for (String name : myWorkBenches.keySet()) {
-      Optional<WorkBench> workbench = myWorkBenches.get(name).stream().findFirst();
+      Optional<WorkBench<?>> workbench = myWorkBenches.get(name).stream().findFirst();
       if (workbench.isPresent()) {
         workbench.get().restoreDefaultLayout();
         updateOtherWorkBenches(workbench.get());
@@ -68,8 +91,50 @@ public class WorkBenchManager {
     }
   }
 
-  public void updateOtherWorkBenches(@NotNull WorkBench workBench) {
-    Collection<WorkBench> workBenches = myWorkBenches.get(workBench.getName());
+  public void updateOtherWorkBenches(@NotNull WorkBench<?> workBench) {
+    Collection<WorkBench<?>> workBenches = myWorkBenches.get(workBench.getName());
     workBenches.stream().filter(bench -> bench != workBench).forEach(WorkBench::updateModel);
+  }
+
+  @TestOnly
+  public AttachedToolWindow<?> getActiveToolWindow() {
+    return myActiveToolWindow != null ? myActiveToolWindow.getToolWindow() : null;
+  }
+
+  // Visible such that the document reference in AttachToolWindow is valid.
+  void findActiveToolWindow() {
+    if (myWorkBenches.isEmpty()) {
+      resetActiveToolWindow();
+      return;
+    }
+    Component component = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+    if (component == null) {
+      resetActiveToolWindow();
+      return;
+    }
+    AttachedToolWindowPanel panel = (AttachedToolWindowPanel)SwingUtilities.getAncestorOfClass(AttachedToolWindowPanel.class, component);
+    if (panel == null) {
+      resetActiveToolWindow();
+      return;
+    }
+    WorkBench<?> workBench = (WorkBench<?>)SwingUtilities.getAncestorOfClass(WorkBench.class, component);
+    if (workBench == null || !myWorkBenches.containsValue(workBench)) {
+      resetActiveToolWindow();
+      return;
+    }
+    if (myActiveToolWindow != panel) {
+      resetActiveToolWindow();
+    }
+    myActiveWorkBench = workBench;
+    myActiveToolWindow = panel;
+    panel.setActive(true);
+  }
+
+  private void resetActiveToolWindow() {
+    if (myActiveToolWindow != null) {
+      myActiveToolWindow.setActive(false);
+    }
+    myActiveWorkBench = null;
+    myActiveToolWindow = null;
   }
 }

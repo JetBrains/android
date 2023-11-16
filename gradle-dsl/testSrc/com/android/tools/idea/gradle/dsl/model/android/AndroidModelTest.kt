@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
@@ -25,6 +26,8 @@ import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMake
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.annotations.SystemDependent
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import java.io.File
 
@@ -32,6 +35,15 @@ import java.io.File
  * Tests for [AndroidModelImpl].
  */
 class AndroidModelTest : GradleFileModelTestCase() {
+
+  @Before
+  override fun before() {
+    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true)
+    super.before()
+  }
+
+  @After
+  fun onAfter() = StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride()
 
   private fun runBasicAndroidBlockTest(buildFile: TestFileName) {
     writeToBuildFile(buildFile)
@@ -75,6 +87,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
   @Test
   fun testAndroidBlockWithApplicationStatementsWithParentheses() {
     isIrrelevantForKotlinScript("no distinction between method calls and application statements")
+    isIrrelevantForDeclarative("no parenthesis assignment")
     runBasicAndroidBlockTest(TestFile.ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES)
   }
 
@@ -817,6 +830,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   private fun doTestAddAndApplyOneBuildTypeBlock(name : String, expected : TestFileName) {
+    skipDeclarativeTemporary()
     writeToBuildFile(TestFile.ADD_AND_APPLY_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
     val android = buildModel.android()

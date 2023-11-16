@@ -21,11 +21,10 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinWithAndroidWithGradleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.NotificationCenterPanelFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -35,10 +34,8 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
-import javax.swing.JButton;
 import kotlin.KotlinVersion;
 import org.fest.swing.exception.WaitTimedOutError;
-import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout;
 import org.junit.Rule;
@@ -60,7 +57,7 @@ public class AddKotlinTest {
    * <p>
    * TT ID: 30f26a59-108e-49cc-bec0-586f518ea3cb
    * <p>
-   *   <pre>
+   * <pre>
    *   Test Steps:
    *   1. Import LinkProjectWithKotlin project, which doesn't support Kotlin
    *      and wait for project sync to finish.
@@ -126,30 +123,20 @@ public class AddKotlinTest {
                                                     ProjectWithKotlinTestUtil.OBJECT_NAME,
                                                     ProjectWithKotlinTestUtil.TYPE_OBJECT);
 
-    EditorNotificationPanelFixture editorNotificationPanelFixture =
-      ideFrameFixture.getEditor().awaitNotification("Kotlin not configured");
-    editorNotificationPanelFixture.performActionWithoutWaitingForDisappearance("Configure");
+    //Verifying if the notification is being displayed/popped up.
+    assertThat(NotificationCenterPanelFixture.find(ideFrameFixture, ".*Configure Kotlin.*").isVisible())
+      .isTrue();
 
+    ideFrameFixture.getProjectView()
+      .selectAndroidPane();
+
+    // Configuring Kotlin manually to avoid the flakiness being caused while clicking the hyperlink / JEditorPane link
     // As default, "All modules containing Kotlin files" option is selected for now.
-    ConfigureKotlinDialogFixture cfgKotlin = ConfigureKotlinDialogFixture.find(ideFrameFixture.robot());
-    // OK button can take a while to be enabled. We just wait for the button to be available, and
-    // then we explicitly wait a long time for it to be enabled. This lets us have a less
-    // strict wait for the button to be clickable.
-    JButton okButton = GuiTests.waitUntilShowing(
-      ideFrameFixture.robot(),
-      cfgKotlin.target(),
-      Matchers.byText(JButton.class, "OK")
-    );
-
-    JButtonFixture okButtonFixture = new JButtonFixture(
-      ideFrameFixture.robot(),
-      okButton
-    );
-    Wait.seconds(TimeUnit.MINUTES.toSeconds(5))
-      .expecting("OK button to be enabled")
-      .until(() -> okButtonFixture.isEnabled());
-
-    okButtonFixture.click();
+    ideFrameFixture.invokeMenuPath("Tools", "Kotlin", "Configure Kotlin in Project");
+    ConfigureKotlinWithAndroidWithGradleDialogFixture cfgKotlin = ConfigureKotlinWithAndroidWithGradleDialogFixture.find(ideFrameFixture);
+    assertThat(cfgKotlin.clickRadioButtonWithName("All modules"))
+      .isTrue();
+    cfgKotlin.clickOkAndWaitDialogDisappear();
 
     // TODO: the following is a hack. See http://b/79752752 for removal of the hack
     // The Kotlin plugin version chosen is done with a network request. This does not work
@@ -158,7 +145,7 @@ public class AddKotlinTest {
     Wait.seconds(15)
       .expecting("Gradle Kotlin plugin version to be set")
       .until(() ->
-        ideFrameFixture.getEditor().open("build.gradle").getCurrentFileContents().contains("kotlin_version")
+               ideFrameFixture.getEditor().open("build.gradle").getCurrentFileContents().contains("kotlin_version")
       );
 
     String buildGradleContents = ideFrameFixture.getEditor()
@@ -167,8 +154,8 @@ public class AddKotlinTest {
 
     KotlinVersion kotlinVersion = KotlinPluginLayout.getInstance().getStandaloneCompilerVersion().getKotlinVersion();
     String newBuildGradleContents = buildGradleContents.replaceAll(
-      "kotlin_version.*=.*",
-      "kotlin_version = '" + kotlinVersion + '\'')
+        "kotlin_version.*=.*",
+        "kotlin_version = '" + kotlinVersion + '\'')
       .replaceAll(
         "mavenCentral\\(\\)",
         ""
@@ -185,7 +172,8 @@ public class AddKotlinTest {
           Writer buildGradleWriter = new OutputStreamWriter(buildGradleOutput, StandardCharsets.UTF_8)
         ) {
           buildGradleWriter.write(newBuildGradleContents);
-        } catch (IOException writeError) {
+        }
+        catch (IOException writeError) {
           ioErrors.set(writeError);
         }
       });
@@ -199,6 +187,7 @@ public class AddKotlinTest {
 
     ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
-    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(180)).isBuildSuccessful()).isTrue();
+    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(180)).isBuildSuccessful())
+      .isTrue();
   }
 }

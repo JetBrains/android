@@ -40,7 +40,7 @@ sealed class AndroidResourceDomFileDescription<T : DomElement>(
     resourceFolderType: ResourceFolderType
   ) : this(rootElementClass, rootTagName, EnumSet.of<ResourceFolderType>(resourceFolderType))
 
-  private val resourceFolderTypes: EnumSet<ResourceFolderType> = EnumSet.copyOf(resourceFolderTypes)
+  val resourceFolderTypes: EnumSet<ResourceFolderType> = EnumSet.copyOf(resourceFolderTypes)
 
   override fun isMyFile(file: XmlFile, module: Module?): Boolean {
     for (folderType in resourceFolderTypes) {
@@ -111,7 +111,7 @@ abstract class MultipleKnownRootsResourceDomFileDescription<T : DomElement>(
     rootElementClass: Class<T>,
     resourceFolderType: ResourceFolderType,
     vararg tagNames: String
-  ) : this(rootElementClass, resourceFolderType, setOf(*tagNames))
+  ) : this(rootElementClass, resourceFolderType, java.util.Set.of(*tagNames))
 
   final override fun acceptsOtherRootTagNames() = true
   final override fun isMyFile(file: XmlFile, module: Module?) = super.isMyFile(file, module) && tagNames.contains(file.rootTag?.name)

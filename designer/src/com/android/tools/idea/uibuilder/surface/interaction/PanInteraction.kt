@@ -30,7 +30,7 @@ import java.awt.Point
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
 
-class PanInteraction(private val pannable: Pannable): Interaction() {
+class PanInteraction(private val pannable: Pannable) : Interaction() {
 
   private var isGrabbing = false
   private var pannableOriginalPosition: Point? = Point()
@@ -40,14 +40,14 @@ class PanInteraction(private val pannable: Pannable): Interaction() {
     begin(event.info.x, event.info.y, event.info.modifiersEx)
     if (event is MousePressedEvent) {
       setupOriginalPoint(event)
-      isGrabbing = event.info.modifiersEx and (InputEvent.BUTTON1_DOWN_MASK or InputEvent.BUTTON2_DOWN_MASK) > 0
+      isGrabbing =
+        event.info.modifiersEx and (InputEvent.BUTTON1_DOWN_MASK or InputEvent.BUTTON2_DOWN_MASK) >
+          0
     }
   }
 
-  /**
-   * Setup original position as the start point of scrolling.
-   */
-  private fun <T: MouseEvent> setupOriginalPoint(event: InteractionInputEvent<T>) {
+  /** Setup original position as the start point of scrolling. */
+  private fun <T : MouseEvent> setupOriginalPoint(event: InteractionInputEvent<T>) {
     val mouseEvent = event.eventObject
     pannableOriginalPosition = pannable.scrollPosition.location
     startPoint.setLocation(mouseEvent.xOnScreen, mouseEvent.yOnScreen)
@@ -56,12 +56,16 @@ class PanInteraction(private val pannable: Pannable): Interaction() {
   override fun update(event: InteractionEvent) {
     when (event) {
       is MousePressedEvent -> {
-        if (event.info.modifiersEx and (InputEvent.BUTTON1_DOWN_MASK or InputEvent.BUTTON2_DOWN_MASK) > 0) {
+        if (
+          event.info.modifiersEx and
+            (InputEvent.BUTTON1_DOWN_MASK or InputEvent.BUTTON2_DOWN_MASK) > 0
+        ) {
           setupOriginalPoint(event)
           isGrabbing = true
         }
       }
-      // Note: below 3 conditions cannot be merged. Kotlin treats the union type is InteractionEvent, not InteractionInputEvent<MouseEvent>
+      // Note: below 3 conditions cannot be merged. Kotlin treats the union type is
+      // InteractionEvent, not InteractionInputEvent<MouseEvent>
       is MouseMovedEvent -> updateMouseScrollEvent(event)
       is MouseDraggedEvent -> updateMouseScrollEvent(event)
       is MouseReleasedEvent -> updateMouseScrollEvent(event)
@@ -69,12 +73,12 @@ class PanInteraction(private val pannable: Pannable): Interaction() {
     }
   }
 
-  /**
-   * Scroll by the given Swing [MouseEvent].
-   */
-  private fun <T: MouseEvent> updateMouseScrollEvent(event: InteractionInputEvent<T>) {
+  /** Scroll by the given Swing [MouseEvent]. */
+  private fun <T : MouseEvent> updateMouseScrollEvent(event: InteractionInputEvent<T>) {
     val mouseEvent = event.eventObject
-    if (mouseEvent.modifiersEx and (InputEvent.BUTTON1_DOWN_MASK or InputEvent.BUTTON2_DOWN_MASK) > 0) {
+    if (
+      mouseEvent.modifiersEx and (InputEvent.BUTTON1_DOWN_MASK or InputEvent.BUTTON2_DOWN_MASK) > 0
+    ) {
       // left or middle mouse is pressing.
       isGrabbing = true
       // surface original position can be null in tests
@@ -83,8 +87,7 @@ class PanInteraction(private val pannable: Pannable): Interaction() {
       val screenY = mouseEvent.yOnScreen
       newPosition.translate(startPoint.x - screenX, startPoint.y - screenY)
       pannable.scrollPosition = newPosition
-    }
-    else {
+    } else {
       isGrabbing = false
     }
   }
@@ -98,5 +101,6 @@ class PanInteraction(private val pannable: Pannable): Interaction() {
   }
 
   override fun getCursor(): Cursor? =
-    AdtUiCursorsProvider.getInstance().getCursor(if (isGrabbing) AdtUiCursorType.GRABBING else AdtUiCursorType.GRAB)
+    AdtUiCursorsProvider.getInstance()
+      .getCursor(if (isGrabbing) AdtUiCursorType.GRABBING else AdtUiCursorType.GRAB)
 }

@@ -27,11 +27,10 @@ import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.DeviceMenuAction;
-import com.android.tools.idea.configurations.DeviceMenuAction2;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.configurations.NightModeMenuAction;
-import com.android.tools.idea.configurations.SystemUiModeAction;
 import com.android.tools.idea.configurations.OrientationMenuAction;
+import com.android.tools.idea.configurations.SystemUiModeAction;
 import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.android.tools.idea.flags.StudioFlags;
@@ -111,7 +110,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     if (StudioFlags.NELE_OVERLAY_PROVIDER.get()
         && OverlayConfiguration.EP_NAME.hasAnyExtensions()) {
       group.addSeparator();
-      OverlayMenuAction overlayAction = new OverlayMenuAction(mySurface);
+      OverlayMenuAction overlayAction = new OverlayMenuAction(mySurface.getOverlayConfiguration(), mySurface::repaint);
       group.add(overlayAction);
     }
 
@@ -128,17 +127,10 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     }
 
     group.addSeparator();
-    if (StudioFlags.NELE_NEW_DEVICE_MENU.get()) {
-      DeviceMenuAction2 menuAction2 = new DeviceMenuAction2(() -> mySurface.getConfigurations().stream().findFirst().orElse(null),
-                                                            (oldDevice, newDevice) -> mySurface.zoomToFit());
-      appendShortcutText(menuAction2, NextDeviceAction.getInstance());
-      group.add(menuAction2);
-    }
-    else {
-      DeviceMenuAction menuAction = new DeviceMenuAction(mySurface::getConfiguration, (oldDevice, newDevice) -> mySurface.zoomToFit());
-      appendShortcutText(menuAction, NextDeviceAction.getInstance());
-      group.add(menuAction);
-    }
+    DeviceMenuAction menuAction = new DeviceMenuAction(() -> mySurface.getConfigurations().stream().findFirst().orElse(null),
+                                                       (oldDevice, newDevice) -> mySurface.zoomToFit());
+    appendShortcutText(menuAction, NextDeviceAction.getInstance());
+    group.add(menuAction);
 
     group.add(new TargetMenuAction(mySurface::getConfiguration));
     group.add(new ThemeMenuAction(mySurface::getConfiguration));

@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.surface.layout
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
-import org.jetbrains.annotations.NotNull
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
@@ -26,20 +25,22 @@ import java.awt.LayoutManager
 import java.awt.Point
 
 /**
- * [LayoutManager] responsible for positioning and measuring all the [PositionableContent] in a [DesignSurface]
+ * [LayoutManager] responsible for positioning and measuring all the [PositionableContent] in a
+ * [DesignSurface]
  *
- * For now, the PositionableContentLayoutManager does not contain actual Swing components so we do not need to layout them, just calculate the
- * size of the layout.
- * Eventually, PositionableContent will end up being actual Swing components and we will not need this specialized LayoutManager.
+ * For now, the PositionableContentLayoutManager does not contain actual Swing components so we do
+ * not need to layout them, just calculate the size of the layout. Eventually, PositionableContent
+ * will end up being actual Swing components and we will not need this specialized LayoutManager.
  */
 abstract class PositionableContentLayoutManager : LayoutManager {
   /**
-   * Method called by the [PositionableContentLayoutManager] to make sure that the layout of the [PositionableContent]s
-   * to ask them to be laid out within the [SceneViewPanel].
+   * Method called by the [PositionableContentLayoutManager] to make sure that the layout of the
+   * [PositionableContent]s to ask them to be laid out within the [SceneViewPanel].
    */
   abstract fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension)
 
-  private fun Container.findSceneViewPeerPanels(): Collection<SceneViewPeerPanel> = components.filterIsInstance<SceneViewPeerPanel>()
+  private fun Container.findSceneViewPeerPanels(): Collection<SceneViewPeerPanel> =
+    components.filterIsInstance<SceneViewPeerPanel>()
   private val Container.availableSize: Dimension
     get() = Dimension(size.width - insets.horizontal, size.height - insets.vertical)
 
@@ -51,17 +52,32 @@ abstract class PositionableContentLayoutManager : LayoutManager {
     layoutContainer(sceneViewPeerPanels.map { it.positionableAdapter }, parent.availableSize)
   }
 
-  open fun minimumLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension = Dimension(0, 0)
+  open fun minimumLayoutSize(
+    content: Collection<PositionableContent>,
+    availableSize: Dimension
+  ): Dimension = Dimension(0, 0)
   final override fun minimumLayoutSize(parent: Container): Dimension =
-    minimumLayoutSize(parent.findSceneViewPeerPanels().map { it.positionableAdapter }, parent.availableSize)
+    minimumLayoutSize(
+      parent.findSceneViewPeerPanels().map { it.positionableAdapter },
+      parent.availableSize
+    )
 
-  abstract fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension
+  abstract fun preferredLayoutSize(
+    content: Collection<PositionableContent>,
+    availableSize: Dimension
+  ): Dimension
   final override fun preferredLayoutSize(parent: Container): Dimension =
-    preferredLayoutSize(parent.findSceneViewPeerPanels().map { it.positionableAdapter }, parent.availableSize)
+    preferredLayoutSize(
+      parent.findSceneViewPeerPanels().map { it.positionableAdapter },
+      parent.availableSize
+    )
 
   override fun addLayoutComponent(name: String?, comp: Component?) {}
   override fun removeLayoutComponent(comp: Component?) {}
 
-  abstract fun getMeasuredPositionableContentPosition(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int)
-    : Map<PositionableContent, Point>
+  abstract fun getMeasuredPositionableContentPosition(
+    content: Collection<PositionableContent>,
+    availableWidth: Int,
+    availableHeight: Int
+  ): Map<PositionableContent, Point>
 }

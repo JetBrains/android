@@ -32,7 +32,10 @@ import javax.swing.JComponent
  *
  * In case of a warning the user can proceed with the deployment and choose not to show this dialog during the current session.
  */
-class SelectedDevicesErrorDialog(private val project: Project, private val devices: List<Device>) : DialogWrapper(project) {
+internal class SelectedDevicesErrorDialog internal constructor(
+  private val project: Project,
+  private val devices: Iterable<Device>
+) : DialogWrapper(project) {
   companion object {
     @JvmField
     internal val DO_NOT_SHOW_WARNING_ON_DEPLOYMENT = com.intellij.openapi.util.Key.create<Boolean>("do.not.show.warning.on.deployment")

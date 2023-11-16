@@ -49,7 +49,6 @@ import java.awt.image.BufferedImage
 import java.awt.image.ColorModel
 import java.awt.image.ImageObserver
 import java.awt.image.VolatileImage
-import java.util.function.Predicate
 import javax.swing.JLabel
 import javax.swing.JRootPane
 import javax.swing.SwingUtilities
@@ -230,11 +229,7 @@ class FakeUi @JvmOverloads constructor(
 
   inline fun <reified T: Any> findComponent(crossinline predicate: (T) -> Boolean = { true }): T? = root.findDescendant(predicate)
 
-  fun <T: Any> findComponent(type: Class<T>, predicate: Predicate<T>): T? = root.findDescendant(type, predicate::test)
-
   inline fun <reified T: Any> getComponent(crossinline predicate: (T) -> Boolean = { true }): T = root.getDescendant(predicate)
-
-  fun <T: Any> getComponent(type: Class<T>, predicate: Predicate<T>): T = root.getDescendant(type, predicate::test)
 
   /**
    * Returns all components of the given type satisfying the given predicate in the breadth-first

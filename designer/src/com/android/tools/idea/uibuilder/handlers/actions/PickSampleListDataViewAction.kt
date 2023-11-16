@@ -24,37 +24,38 @@ import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction
 import icons.StudioIcons
 
-class PickSampleListDataViewAction(private val namespace: String?, private val attribute: String)
-  : DirectViewAction(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE, "Sample Data") {
+class PickSampleListDataViewAction(private val namespace: String?, private val attribute: String) :
+  DirectViewAction(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE, "Sample Data") {
 
-  override fun perform(editor: ViewEditor,
-                       handler: ViewHandler,
-                       component: NlComponent,
-                       selectedChildren: MutableList<NlComponent>,
-                       modifiers: Int) {
+  override fun perform(
+    editor: ViewEditor,
+    handler: ViewHandler,
+    component: NlComponent,
+    selectedChildren: MutableList<NlComponent>,
+    modifiers: Int
+  ) {
     val tag = component.tag ?: return
     val types = HashSet<ResourceType>()
     types.add(ResourceType.SAMPLE_DATA)
 
-    val dialog = createResourcePickerDialog(
-      dialogTitle = "Pick Sample Data",
-      currentValue = null,
-      facet = component.model.facet,
-      resourceTypes = types,
-      defaultResourceType = null,
-      showColorStateLists = true,
-      showSampleData = true,
-      showThemeAttributes = true,
-      file = tag.containingFile.virtualFile
-    )
+    val dialog =
+      createResourcePickerDialog(
+        dialogTitle = "Pick Sample Data",
+        currentValue = null,
+        facet = component.model.facet,
+        resourceTypes = types,
+        defaultResourceType = null,
+        showColorStateLists = true,
+        showSampleData = true,
+        showThemeAttributes = true,
+        file = tag.containingFile.virtualFile
+      )
 
     if (dialog.showAndGet()) {
       if (dialog.resourceName != null) {
         val attr = component.startAttributeTransaction()
         attr.setAttribute(namespace, attribute, dialog.resourceName)
-        NlWriteCommandActionUtil.run(component, "Update Image") {
-          attr.commit()
-        }
+        NlWriteCommandActionUtil.run(component, "Update Image") { attr.commit() }
       }
     }
   }

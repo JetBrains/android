@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.time.FakeClock
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.testing.AndroidExecutorsRule
@@ -33,7 +31,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
 
 class AppInsightsProjectLevelControllerTest {
 
@@ -44,9 +41,7 @@ class AppInsightsProjectLevelControllerTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(executorsRule).around(controllerRule)!!
 
-  @get:Rule val flagRule = FlagRule(StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED, true)
-
-  private val client: TestCrashlyticsClient
+  private val client: TestAppInsightsClient
     get() = controllerRule.client
 
   private val clock: FakeClock
@@ -55,11 +50,12 @@ class AppInsightsProjectLevelControllerTest {
   @Test
   fun `when controller is initialized it emits a loading state and starts an issue fetch`() =
     runBlocking {
+      controllerRule.updateConnections(listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION))
       val model = controllerRule.consumeNext()
       assertThat(model)
         .isEqualTo(
           AppInsightsState(
-            Selection(VARIANT1, listOf(VARIANT1, VARIANT2, PLACEHOLDER_CONNECTION)),
+            Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)),
             TEST_FILTERS,
             LoadingState.Loading
           )
@@ -80,7 +76,8 @@ class AppInsightsProjectLevelControllerTest {
       assertThat(controllerRule.consumeNext())
         .isEqualTo(
           AppInsightsState(
-            connections = Selection(VARIANT1, listOf(VARIANT1, VARIANT2, PLACEHOLDER_CONNECTION)),
+            connections =
+              Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)),
             filters =
               TEST_FILTERS.copy(
                 versions =
@@ -124,14 +121,19 @@ class AppInsightsProjectLevelControllerTest {
     // discard initial loading state, already tested above
     val model = controllerRule.consumeInitialState()
 
-    controllerRule.selectFirebaseConnection(VARIANT2)
+    controllerRule.selectFirebaseConnection(CONNECTION2)
 
     assertThat(controllerRule.consumeNext())
       .isEqualTo(
         model.copy(
-          connections = model.connections.select(VARIANT2),
+          connections = model.connections.select(CONNECTION2),
           issues = LoadingState.Loading,
-          filters = model.filters.copy(versions = MultiSelection.emptySelection())
+          filters =
+            model.filters.copy(
+              versions = MultiSelection.emptySelection(),
+              devices = MultiSelection.emptySelection(),
+              operatingSystems = MultiSelection.emptySelection()
+            )
         )
       )
     client.completeIssuesCallWith(
@@ -149,7 +151,7 @@ class AppInsightsProjectLevelControllerTest {
     assertThat(controllerRule.consumeNext())
       .isEqualTo(
         model.copy(
-          connections = model.connections.select(VARIANT2),
+          connections = model.connections.select(CONNECTION2),
           filters =
             TEST_FILTERS.copy(
               versions =
@@ -185,15 +187,15 @@ class AppInsightsProjectLevelControllerTest {
 
       // Ensure the initial state.
       assertThat(model.connections)
-        .isEqualTo(Selection(VARIANT1, listOf(VARIANT1, VARIANT2, PLACEHOLDER_CONNECTION)))
+        .isEqualTo(Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)))
 
       // Available connections get changed but active connection remains, thus no new fetch.
-      controllerRule.updateConnections(listOf((VARIANT1)))
+      controllerRule.updateConnections(listOf((CONNECTION1)))
 
       assertThat(controllerRule.consumeNext())
         .isEqualTo(
           model.copy(
-            connections = Selection(VARIANT1, listOf(VARIANT1)),
+            connections = Selection(CONNECTION1, listOf(CONNECTION1)),
             filters =
               TEST_FILTERS.copy(
                 versions =
@@ -219,16 +221,16 @@ class AppInsightsProjectLevelControllerTest {
 
       // Ensure the initial state.
       assertThat(model.connections)
-        .isEqualTo(Selection(VARIANT1, listOf(VARIANT1, VARIANT2, PLACEHOLDER_CONNECTION)))
+        .isEqualTo(Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)))
 
       // Available connections get changed. Since "VARIANT1" has been removed from the available
       // connections list, active connection falls to "VARIANT2". Thus, new fetch.
-      controllerRule.updateConnections(listOf(VARIANT2))
+      controllerRule.updateConnections(listOf(CONNECTION2))
 
       assertThat(controllerRule.consumeNext())
         .isEqualTo(
           model.copy(
-            connections = Selection(VARIANT2, listOf(VARIANT2)),
+            connections = Selection(CONNECTION2, listOf(CONNECTION2)),
             issues = LoadingState.Loading,
             filters = TEST_FILTERS
           )
@@ -248,7 +250,7 @@ class AppInsightsProjectLevelControllerTest {
       assertThat(controllerRule.consumeNext())
         .isEqualTo(
           model.copy(
-            connections = Selection(VARIANT2, listOf(VARIANT2)),
+            connections = Selection(CONNECTION2, listOf(CONNECTION2)),
             filters =
               TEST_FILTERS.copy(
                 versions =
@@ -281,20 +283,19 @@ class AppInsightsProjectLevelControllerTest {
     // discard initial loading state, already tested above
     val model = controllerRule.consumeInitialState()
 
-    // mock the inferrer so it prefers VARIANT2
-    `when`(controllerRule.connectionInferrer.canBecomeActiveConnection(PLACEHOLDER_CONNECTION))
-      .thenReturn(false)
-    `when`(controllerRule.connectionInferrer.canBecomeActiveConnection(VARIANT2)).thenReturn(true)
+    val unpreferredConnection = CONNECTION1.copy(isPreferred = false)
+    val preferredConnection = CONNECTION2.copy(isPreferred = true)
 
     // Available connections get changed. Since "VARIANT1" has been removed from the available
-    // connections list, active connection should fall to VARIANT2 given the preference of the
-    // inferrer.
-    controllerRule.updateConnections(listOf(PLACEHOLDER_CONNECTION, VARIANT2))
+    // connections list, active connection should fall to the preferred connection given the
+    // preference setting.
+    controllerRule.updateConnections(listOf(unpreferredConnection, preferredConnection))
 
     assertThat(controllerRule.consumeNext())
       .isEqualTo(
         model.copy(
-          connections = Selection(VARIANT2, listOf(PLACEHOLDER_CONNECTION, VARIANT2)),
+          connections =
+            Selection(preferredConnection, listOf(unpreferredConnection, preferredConnection)),
           issues = LoadingState.Loading,
           filters = TEST_FILTERS
         )
@@ -314,7 +315,8 @@ class AppInsightsProjectLevelControllerTest {
     assertThat(controllerRule.consumeNext())
       .isEqualTo(
         model.copy(
-          connections = Selection(VARIANT2, listOf(PLACEHOLDER_CONNECTION, VARIANT2)),
+          connections =
+            Selection(preferredConnection, listOf(unpreferredConnection, preferredConnection)),
           filters =
             TEST_FILTERS.copy(
               versions =
@@ -331,7 +333,7 @@ class AppInsightsProjectLevelControllerTest {
     verify(client)
       .listTopOpenIssues(
         argThat {
-          it.connection == CONNECTION2 &&
+          it.connection == preferredConnection &&
             it.filters.versions == setOf(Version.ALL) &&
             it.filters.interval.duration == Duration.ofDays(30)
         },
@@ -350,7 +352,7 @@ class AppInsightsProjectLevelControllerTest {
 
       // Ensure the initial state.
       assertThat(model.connections)
-        .isEqualTo(Selection(VARIANT1, listOf(VARIANT1, VARIANT2, PLACEHOLDER_CONNECTION)))
+        .isEqualTo(Selection(CONNECTION1, listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)))
 
       // Available connections get changed. Since "VARIANT1" and "VARIANT2" have been removed
       // from the available connections list, active connection falls to the placeholder one,
@@ -1459,6 +1461,45 @@ class AppInsightsProjectLevelControllerTest {
       assertThat(state.issues.selected().pendingRequests).isEqualTo(0)
       assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
     }
+
+  @Test
+  fun `when visibility type gets selected it propagates to the model`() = runBlocking {
+    // discard initial loading state, already tested above
+    controllerRule.consumeInitialState()
+
+    controllerRule.selectVisibilityType(VisibilityType.USER_PERCEIVED)
+
+    var model = controllerRule.consumeNext()
+    assertThat(model.filters.visibilityType.selected).isEqualTo(VisibilityType.USER_PERCEIVED)
+    assertThat(model.issues).isEqualTo(LoadingState.Loading)
+
+    client.completeIssuesCallWith(
+      LoadingState.Ready(
+        IssueResponse(
+          emptyList(),
+          listOf(DEFAULT_FETCHED_VERSIONS),
+          listOf(DEFAULT_FETCHED_DEVICES),
+          listOf(DEFAULT_FETCHED_OSES),
+          DEFAULT_FETCHED_PERMISSIONS
+        )
+      )
+    )
+
+    model = controllerRule.consumeNext()
+    assertThat(model.filters.visibilityType.selected).isEqualTo(VisibilityType.USER_PERCEIVED)
+    assertThat(model.issues).isInstanceOf(LoadingState.Ready::class.java)
+    assertThat(model.issues.map { it.value })
+      .isEqualTo(LoadingState.Ready(Selection<AppInsightsIssue>(null, emptyList())))
+
+    verify(client)
+      .listTopOpenIssues(
+        argThat { it.filters.visibilityType == VisibilityType.USER_PERCEIVED },
+        any(),
+        any(),
+        any()
+      )
+    return@runBlocking
+  }
 }
 
 private fun LoadingState<Timed<Selection<AppInsightsIssue>>>.selected() =

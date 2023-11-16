@@ -40,13 +40,14 @@ import org.junit.runner.RunWith;
 public class AddDebugAndReleaseSourceSetToProjectTest {
 
   @Rule
-  public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
-  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
-  protected static final String DEBUG_IMPORT_CLASS_NAME = "com.google.myapplication.DebugTest.BuildVariantDebugClass";
-  protected static final String DEBUG_IMPORT_CLASS_STRING_USAGE = "BuildVariantDebugClass testingClassDebug = new BuildVariantDebugClass();";
-  protected static final String RELEASE_IMPORT_CLASS_NAME = "com.google.myapplication.ReleaseTest.BuildVariantReleaseClass";
-  protected static final String RELEASE_IMPORT_CLASS_STRING_USAGE = "BuildVariantReleaseClass testClassRelease = new BuildVariantReleaseClass();";
+  private final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
+  private final String DEBUG_IMPORT_CLASS_NAME = "com.google.myapplication.DebugTest.BuildVariantDebugClass";
+  private final String DEBUG_IMPORT_CLASS_STRING_USAGE = "BuildVariantDebugClass testingClassDebug = new BuildVariantDebugClass();";
+  private final String RELEASE_IMPORT_CLASS_NAME = "com.google.myapplication.ReleaseTest.BuildVariantReleaseClass";
+  private final String RELEASE_IMPORT_CLASS_STRING_USAGE = "BuildVariantReleaseClass testClassRelease = new BuildVariantReleaseClass();";
+  private String FILE_CONTENTS_BEFORE_CHANGES;
 
   @Before
   public void setUp() throws Exception {
@@ -124,31 +125,38 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
       .selectAndroidPane();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
+    FILE_CONTENTS_BEFORE_CHANGES = editor.open("/app/src/main/java/com/google/myapplication/MainActivity.java")
+        .getCurrentFileContents();
+
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
-    editor.open("/app/src/main/java/com/google/myapplication/MainActivity.java")
-      .moveBetween("super.onCreate(savedInstanceState);", "")
+    editor.moveBetween("super.onCreate(savedInstanceState);", "")
       .enterText("\n" + DEBUG_IMPORT_CLASS_STRING_USAGE);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    editor.moveBetween("BuildVariantDebugC", "lass");
-    guiTest.waitForBackgroundTasks();
-    guiTest.robot().waitForIdle();
-    TimeUnit.SECONDS.sleep(5);
+    editor.moveBetween("BuildVariantDebugC", "lass")
+        .waitUntilErrorAnalysisFinishes();
+
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, KeyEvent.ALT_MASK);
     guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
-
     guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     assertThat(editor.getCurrentFileContents()).contains("import " + DEBUG_IMPORT_CLASS_NAME + ";");
 
     ideFrame.requestProjectSyncAndWaitForSyncToFinish();
 
-    // Release source set test (Steps 8-15)
+    // Clearing the file to previous state
+    editor.open("/app/src/main/java/com/google/myapplication/MainActivity.java")
+      .replaceFileContents(FILE_CONTENTS_BEFORE_CHANGES);
 
+    // Release source set test (Steps 8-15)
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
     ideFrame.getBuildVariantsWindow()
       .selectVariantForModule("My_Application.app", "release");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    ideFrame.getBuildVariantsWindow()
+        .hide(); // Hiding the tool-window to avoid change pane issues.
 
     ideFrame.requestProjectSyncAndWaitForSyncToFinish();
     GuiTests.refreshFiles();
@@ -181,18 +189,21 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
       .moveBetween("super.onCreate(savedInstanceState);", "")
       .enterText("\n" + RELEASE_IMPORT_CLASS_STRING_USAGE);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    editor.moveBetween("BuildVariantReleaseC", "lass");
+    editor.moveBetween("BuildVariantReleaseC", "lass")
+        .waitUntilErrorAnalysisFinishes();
+
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, KeyEvent.ALT_MASK);
     guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
-    TimeUnit.SECONDS.sleep(5);
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, KeyEvent.ALT_MASK);
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     assertThat(editor.getCurrentFileContents()).contains("import " + RELEASE_IMPORT_CLASS_NAME + ";");
 
     // Testing toggle between release and debug projects (Step 15)
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
     ideFrame.getBuildVariantsWindow()
-      .selectVariantForModule("My_Application.app", "debug");
+      .selectVariantForModule("My_Application.app", "debug (default)");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
     ideFrame.getProjectView()

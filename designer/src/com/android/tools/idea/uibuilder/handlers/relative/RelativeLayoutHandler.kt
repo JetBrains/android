@@ -50,25 +50,29 @@ import com.google.common.collect.ImmutableList
  */
 class RelativeLayoutHandler : ViewGroupHandler() {
 
-  override fun createDragHandler(editor: ViewEditor, layout: SceneComponent, components: List<NlComponent>, type: DragType): DragHandler? {
+  override fun createDragHandler(
+    editor: ViewEditor,
+    layout: SceneComponent,
+    components: List<NlComponent>,
+    type: DragType
+  ): DragHandler? {
     if (layout.drawWidth == 0 || layout.drawHeight == 0) {
       return null
     }
     return RelativeDragHandler(editor, this, layout, components, type)
   }
 
-  override fun onChildRemoved(
-    layout: NlComponent,
-    newChild: NlComponent,
-    insertType: InsertType
-  ) {
+  override fun onChildRemoved(layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
     RELATIVE_LAYOUT_ATTRIBUTES.forEach { newChild.removeAndroidAttribute(it) }
   }
 
   override fun cleanUpAttributes(component: NlComponent, attributes: NlAttributesHolder) {
-    with (attributes) {
-      if (getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL) == SdkConstants.VALUE_TRUE &&
-          getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL) == SdkConstants.VALUE_TRUE) {
+    with(attributes) {
+      if (
+        getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL) ==
+          SdkConstants.VALUE_TRUE &&
+          getAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL) == SdkConstants.VALUE_TRUE
+      ) {
         removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL)
         removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL)
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_IN_PARENT, SdkConstants.VALUE_TRUE)
@@ -88,10 +92,8 @@ class RelativeLayoutHandler : ViewGroupHandler() {
 
   override fun handlesPainting(): Boolean = true
 
-  override fun createInteraction(screenView: ScreenView,
-                                 x: Int,
-                                 y: Int,
-                                 component: NlComponent) = SceneInteraction(screenView)
+  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent) =
+    SceneInteraction(screenView)
 
   override fun createTargets(sceneComponent: SceneComponent): List<Target> {
     val listBuilder = ImmutableList.Builder<Target>()
@@ -102,7 +104,10 @@ class RelativeLayoutHandler : ViewGroupHandler() {
     return listBuilder.build()
   }
 
-  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent): List<Target> {
+  override fun createChildTargets(
+    parentComponent: SceneComponent,
+    childComponent: SceneComponent
+  ): List<Target> {
     val listBuilder = ImmutableList.builder<Target>()
     listBuilder.add(RelativeDragTarget())
 
@@ -111,7 +116,9 @@ class RelativeLayoutHandler : ViewGroupHandler() {
       .filterNot { it == AnchorTarget.Type.BASELINE }
       .forEach { listBuilder.add(RelativeAnchorTarget(it, false)) }
     RelativeWidgetTarget.Type.values()
-      .filter { it !== RelativeWidgetTarget.Type.BASELINE || childComponent.nlComponent.getBaseline() != -1 }
+      .filter {
+        it !== RelativeWidgetTarget.Type.BASELINE || childComponent.nlComponent.getBaseline() != -1
+      }
       .forEach { listBuilder.add(RelativeWidgetTarget(it)) }
     return listBuilder.build()
   }
@@ -122,20 +129,24 @@ class RelativeLayoutHandler : ViewGroupHandler() {
     actions.add(ToggleAutoConnectAction())
   }
 
-  override fun getPlaceholders(sceneComponent: SceneComponent, draggedComponents: List<SceneComponent>) =
-    listOf(RelativePlaceholder(sceneComponent))
+  override fun getPlaceholders(
+    sceneComponent: SceneComponent,
+    draggedComponents: List<SceneComponent>
+  ) = listOf(RelativePlaceholder(sceneComponent))
 }
 
-private val RESIZE_TARGETS = listOf(
-  ResizeBaseTarget.Type.LEFT_TOP,
-  ResizeBaseTarget.Type.LEFT_BOTTOM,
-  ResizeBaseTarget.Type.RIGHT_TOP,
-  ResizeBaseTarget.Type.RIGHT_BOTTOM
-)
+private val RESIZE_TARGETS =
+  listOf(
+    ResizeBaseTarget.Type.LEFT_TOP,
+    ResizeBaseTarget.Type.LEFT_BOTTOM,
+    ResizeBaseTarget.Type.RIGHT_TOP,
+    ResizeBaseTarget.Type.RIGHT_BOTTOM
+  )
 
-val MARGINS_ATTRS = arrayOf(
-  SdkConstants.ATTR_LAYOUT_MARGIN_START,
-  SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
-  SdkConstants.ATTR_LAYOUT_MARGIN_END,
-  SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
-)
+val MARGINS_ATTRS =
+  arrayOf(
+    SdkConstants.ATTR_LAYOUT_MARGIN_START,
+    SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
+    SdkConstants.ATTR_LAYOUT_MARGIN_END,
+    SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
+  )

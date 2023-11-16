@@ -16,8 +16,8 @@
 package com.android.tools.idea.sqlite.model
 
 import com.intellij.mock.MockVirtualFile
-import java.sql.JDBCType
 import junit.framework.TestCase
+import java.sql.JDBCType
 
 class ModelTest : TestCase() {
   fun testSqliteAffinityFromString() {

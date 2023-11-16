@@ -18,10 +18,8 @@ package com.android.tools.idea.layoutinspector.util
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-/**
- * A [CountDownLatch] that throws an error on timeout.
- */
-class ReportingCountDownLatch(count: Int): CountDownLatch(count) {
+/** A [CountDownLatch] that throws an error on timeout. */
+class ReportingCountDownLatch(count: Int) : CountDownLatch(count) {
   private var failure: Throwable? = null
 
   override fun await() = error("Please specify timeout")
@@ -35,15 +33,12 @@ class ReportingCountDownLatch(count: Int): CountDownLatch(count) {
     return true
   }
 
-  /**
-   * Run [runnable] on the EDT and forward exceptions to [await].
-   */
+  /** Run [runnable] on the EDT and forward exceptions to [await]. */
   fun runInEdt(runnable: () -> Unit) {
     com.intellij.openapi.application.runInEdt {
       try {
         runnable()
-      }
-      catch (ex: Throwable) {
+      } catch (ex: Throwable) {
         failure = ex
       }
     }

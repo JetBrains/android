@@ -17,8 +17,11 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.ide.common.gradle.Version
-import com.google.common.annotations.VisibleForTesting
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.gradle.repositories.search.ArbitraryModulesSearchQuery
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
+import com.android.tools.idea.gradle.repositories.search.FoundArtifact
+import com.android.tools.idea.gradle.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.helpers.parseGradleVersion
@@ -31,10 +34,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
 import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
 import com.android.tools.idea.gradle.structure.model.meta.annotated
-import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
-import com.android.tools.idea.gradle.repositories.search.FoundArtifact
-import com.android.tools.idea.gradle.repositories.search.SearchQuery
-import com.android.tools.idea.gradle.repositories.search.SearchRequest
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
@@ -153,7 +153,7 @@ class ArtifactRepositorySearchForm(
     clearResults()
 
     val searchQuery = getQuery().also { currentSearchQuery = it }
-    val request = SearchRequest(searchQuery.toSearchQeury(), 50, 0)
+    val request = SearchRequest(searchQuery.toSearchQuery(), 50, 0)
 
     repositorySearch.search(request).continueOnEdt { results ->
       val foundArtifacts = results.artifacts.sorted().takeUnless { it.isEmpty() } ?: let {
@@ -326,4 +326,4 @@ fun String.parseArtifactSearchQuery(): ArtifactSearchQuery {
   }
 }
 
-private fun ArtifactSearchQuery.toSearchQeury() = SearchQuery(groupId = groupId, artifactName = artifactName)
+private fun ArtifactSearchQuery.toSearchQuery() = ArbitraryModulesSearchQuery(groupId = groupId, artifactName = artifactName)

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
@@ -42,6 +43,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.UsefulTestCase
+import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -141,7 +143,7 @@ interface AndroidProjectRule : TestRule {
     fun onDisk(fixtureName: String? = null): Typed<JavaCodeInsightTestFixture, Nothing> {
       val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = false)
       val fixtureRule =
-        FixtureRuleImpl(::createJavaCodeInsightTestFixtureAndAddModules, withAndroidSdk = false, fixtureName = fixtureName ?: "p")
+        FixtureRuleImpl(::createJavaCodeInsightTestFixtureAndAddModules, withAndroidSdk = false, fixtureName = fixtureName)
       val projectEnvironmentRule = ProjectEnvironmentRuleImpl { fixtureRule.project }
       return chain(
         testEnvironmentRule,
@@ -152,12 +154,19 @@ interface AndroidProjectRule : TestRule {
 
     /**
      * Returns an [AndroidProjectRule] that uses a fixture on disk
-     * using a [JavaTestFixtureFactory] with an Android SDK.
+     * using a [JavaTestFixtureFactory] with an Android SDK, using the latest Android platform version.
      */
     @JvmStatic
-    fun withSdk(): Typed<JavaCodeInsightTestFixture, Nothing> {
+    fun withSdk(): Typed<JavaCodeInsightTestFixture, Nothing> = withSdk(Sdks.getLatestAndroidPlatform())
+
+    /**
+     * Returns an [AndroidProjectRule] that uses a fixture on disk
+     * using a [JavaTestFixtureFactory] with an Android SDK using the given Android platform version.
+     */
+    @JvmStatic
+    fun withSdk(androidPlatformVersion: AndroidVersion): Typed<JavaCodeInsightTestFixture, Nothing> {
       val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = true)
-      val fixtureRule = FixtureRuleImpl(::createJavaCodeInsightTestFixtureAndAddModules, withAndroidSdk = true, fixtureName = "p")
+      val fixtureRule = FixtureRuleImpl(::createJavaCodeInsightTestFixtureAndAddModules, withAndroidSdk = true, androidPlatformVersion = androidPlatformVersion)
       val projectEnvironmentRule = ProjectEnvironmentRuleImpl { fixtureRule.project }
       return chain(
         testEnvironmentRule,
@@ -203,7 +212,7 @@ interface AndroidProjectRule : TestRule {
 
       val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = false)
       val fixtureRule =
-        FixtureRuleImpl(::createFixture, withAndroidSdk = false, initAndroid = false, fixtureName = "p")
+        FixtureRuleImpl(::createFixture, withAndroidSdk = false, initAndroid = false)
       val projectEnvironmentRule = ProjectEnvironmentRuleImpl { fixtureRule.project }
       return chain(
         testEnvironmentRule,
@@ -426,6 +435,12 @@ class FixtureRuleImpl<T: CodeInsightTestFixture>(
   private val withAndroidSdk: Boolean = false,
 
   /**
+   * Version of the android platform to use e.g. `android-33`.
+   * Only has effect when `withAndroidSdk = true`.
+   */
+  private val androidPlatformVersion: AndroidVersion = Sdks.getLatestAndroidPlatform(),
+
+  /**
    * true iff the default module should be a valid Android module
    * (if it should have an Android manifest and the Android facet attached).
    */
@@ -479,7 +494,8 @@ class FixtureRuleImpl<T: CodeInsightTestFixture>(
   }
 
   private fun doBeforeActions(description: Description) {
-    _fixture = fixtureFactory(fixtureName ?: description.displayName)
+    val projectName = fixtureName ?: description.shortDisplayName
+    _fixture = fixtureFactory(projectName)
 
     fixture.setUp()
     // Initialize an Android manifest
@@ -493,7 +509,7 @@ class FixtureRuleImpl<T: CodeInsightTestFixture>(
     val facet = facetManager.createFacet(type, facetName, null)
     runInEdtAndWait {
       if (withAndroidSdk) {
-        Sdks.addLatestAndroidSdk(fixture.testRootDisposable, module)
+        Sdks.addAndroidSdk(fixture.testRootDisposable, module, androidPlatformVersion)
       }
       val facetModel = facetManager.createModifiableModel()
       facetModel.addFacet(facet)
@@ -514,6 +530,17 @@ class ProjectEnvironmentRuleImpl(
     val settings = CodeStyle.getSettings(project()).clone()
     applyAndroidCodeStyleSettings(settings)
     CodeStyleSettingsManager.getInstance(project()).setTemporarySettings(settings)
+
+    // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib")
+    // ddmlib might sometimes leak the DCM thread. adblib will address this when fully replaces ddmlib
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device Client Monitor")
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device List Monitor")
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "fake-adb-server-connection-pool")
+    // AdbService is application-level and so executor threads are reported as leaked
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "AdbService Executor")
+    // MonitorThread from ddmlib is often created during unrelated tests
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Monitor")
   }
 
   override fun after(description: Description) {

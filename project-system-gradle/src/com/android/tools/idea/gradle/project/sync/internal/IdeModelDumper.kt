@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
+import com.android.tools.idea.gradle.model.IdeExtraSourceProvider
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
@@ -42,7 +43,6 @@ import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
 import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.IdeExtraSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
@@ -152,16 +152,16 @@ fun ProjectDumper.dumpAndroidIdeModel(
   }
 }
 
-fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(androidModuleModel: GradleAndroidModel, projectPath: String) {
+fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(gradleAndroidModel: GradleAndroidModel, projectPath: String) {
   nest(File(projectPath), "PROJECT") {
     with(ideModelDumper(this)) {
-      androidModuleModel.let { androidModuleModel ->
-        dump(androidModuleModel.androidProject)
-        dumpLibraryTable(androidModuleModel.project)
+      gradleAndroidModel.let { gradleAndroidModel ->
+        dump(gradleAndroidModel.androidProject)
+        dumpLibraryTable(gradleAndroidModel.project)
         // Dump all the fetched Ide variants.
         head("IdeVariants")
         nest {
-          androidModuleModel.variants.forEach { ideVariant ->
+          gradleAndroidModel.variants.forEach { ideVariant ->
             dump(ideVariant)
           }
         }
@@ -192,7 +192,6 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     fun dump(ideAndroidModel: IdeAndroidProject) {
       prop("RootBuildId") { ideAndroidModel.projectPath.rootBuildId.path.toPrintablePath() }
       prop("BuildId") { ideAndroidModel.projectPath.buildId.path.toPrintablePath() }
-      prop("BuildName") { ideAndroidModel.projectPath.buildName }
       prop("ProjectPath") { ideAndroidModel.projectPath.projectPath }
       prop("ModelVersion") { ideAndroidModel.agpVersion.replaceKnownPatterns() }
       prop("ProjectType") { ideAndroidModel.projectType.toString() }
@@ -403,7 +402,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
           }
           nest {
             // All the dependencies are included in unresolvedDependencies so we only need to dump the first level of children
-            dependency.dependencies?.map { ideDependencies.unresolvedDependencies[it] }?.forEach { nestedDependency ->
+            dependency.dependencies?.map { ideDependencies.lookup(it) }?.forEach { nestedDependency ->
               ideDependencies.resolver.resolve(nestedDependency).forEach { lib ->
                 prop(lib.toLibraryType()) { lib.toDisplayString() }
               }
@@ -424,6 +423,9 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
       ideBaseArtifact.classesFolder.map { it.path.toPrintablePath() }.sorted().forEach {
         prop("ClassesFolder") { it }
+      }
+      ideBaseArtifact.generatedClassPaths.map { it.value.toPrintablePath() }.sorted().forEach {
+        prop("GeneratedClassPaths") { it }
       }
       ideBaseArtifact.variantSourceProvider?.let {
         head("VariantSourceProvider")
@@ -727,6 +729,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("UseAndroidX") { agpFlags.useAndroidX.toString() }
         prop("UsesCompose") { agpFlags.usesCompose.toString() }
         prop("MlModelBindingEnabled") { agpFlags.mlModelBindingEnabled.toString() }
+        prop("EnableVcsInfo") { agpFlags.enableVcsInfo.toString() }
       }
     }
 
@@ -753,18 +756,18 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     private fun IdeApiVersion.dump(name: String) {
       head(name)
       nest {
-        prop("ApiLevel") { apiLevel.toString().replaceCurrentSdkVersion() }
+        prop("ApiLevel") { apiLevel.toString().replaceCurrentSdkVersion(apiLevel, codename) }
         prop("CodeName") { codename }
-        prop("ApiString") { apiString.replaceCurrentSdkVersion() }
+        prop("ApiString") { apiString.replaceCurrentSdkVersion(apiLevel, codename) }
       }
     }
 
     fun AndroidVersion.dump(name: String) {
       head(name)
       nest {
-        prop("ApiLevel") { apiLevel.toString().replaceCurrentSdkVersion() }
+        prop("ApiLevel") { apiLevel.toString().replaceCurrentSdkVersion(apiLevel, codename) }
         prop("CodeName") { codename }
-        prop("ApiString") { apiString.replaceCurrentSdkVersion() }
+        prop("ApiString") { apiString.replaceCurrentSdkVersion(apiLevel, codename) }
       }
     }
 
@@ -773,6 +776,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       nest {
         prop("AnimationsDisabled") { testOptions.animationsDisabled.toString() }
         prop("Execution") { testOptions.execution?.toString() }
+        prop("InstrumentedTestTaskName") { testOptions.instrumentedTestTaskName }
       }
     }
 

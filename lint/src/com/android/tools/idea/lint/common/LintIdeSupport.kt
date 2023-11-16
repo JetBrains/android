@@ -18,8 +18,8 @@ package com.android.tools.idea.lint.common
 import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
 import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
+import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.AgpVersion
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.client.api.LintClient.Companion.CLIENT_STUDIO
@@ -40,11 +40,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
-import java.io.File
-import java.util.EnumSet
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.isGradleFile
 import org.toml.lang.psi.TomlFileType
+import java.io.File
+import java.util.EnumSet
+import com.android.ide.common.gradle.Module as ExternalModule
 
 /**
  * Extension point for the general lint support to look up services it does not directly depend
@@ -152,14 +153,14 @@ abstract class LintIdeSupport {
   }
 
   // Gradle
-  open fun updateToLatest(module: Module, gc: GradleCoordinate) {}
+  open fun updateToLatestStable(module: Module, externalModule: ExternalModule) {}
   open fun recommendedAgpVersion(project: Project): AgpVersion? = null
   open fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean = false
   open fun updateAgpToLatest(project: Project) {}
   open fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project): Boolean = false
   open fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {}
+  open fun resolveDynamicDependency(project: Project, dependency: Dependency): String? = null
 
-  open fun resolveDynamic(project: Project, gc: GradleCoordinate): String? = null
   // Analytics
   open fun canRequestFeedback(): Boolean = false
 
@@ -169,6 +170,9 @@ abstract class LintIdeSupport {
   open fun logSession(lint: LintDriver, lintResult: LintEditorResult) {}
 
   open fun logSession(lint: LintDriver, module: Module?, lintResult: LintBatchResult) {}
+
+  open fun logQuickFixInvocation(project: Project, issue: Issue, fixDescription: String) {}
+  open fun logTooltipLink(url: String, issue: Issue, project: Project) {}
 
   // XML processing
   open fun ensureNamespaceImported(

@@ -54,8 +54,8 @@ class ProguardR8InspectionSuppressor : InspectionSuppressor {
   }
 
   private fun getCommentsBefore(element: PsiElement) = generateSequence(
-    PsiTreeUtil.getPrevSiblingOfType(element, PsiComment::class.java)) {
-    PsiTreeUtil.getPrevSiblingOfType(it, PsiComment::class.java)
+    PsiTreeUtil.getPrevSiblingOfType<PsiComment>(element, PsiComment::class.java)) {
+    PsiTreeUtil.getPrevSiblingOfType<PsiComment>(it, PsiComment::class.java)
   }
 }
 

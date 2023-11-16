@@ -22,7 +22,6 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
-import org.jetbrains.kotlin.analysis.utils.printer.parentOfType
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
@@ -59,11 +58,6 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
       val key = grandParent.text
       val catalog = findVersionCatalog(key.substringBefore("."), sourceElement.project)
       if (catalog != null && grandParent.containingFile.name.endsWith(SdkConstants.DOT_KTS)) {
-        val target = findCatalogKey(catalog, key.substringAfter("."))
-        if (target != null) {
-          return target
-        }
-
         // If you have dashes in the library name, Gradle will convert this into dotted notation, and will actually
         // create a "group" DSL object for the libraries sharing the same prefix. But we typically don't have a
         // TOML object for this; e.g. we may have "constraint-layout=X", and maybe "constraint-solver=Y"; if we've
@@ -71,9 +65,7 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
         // a key named "constraint" in the TOML file, we'll look for the whole reference instead.
         val argument = grandParent.getParentOfType<KtValueArgument>(true) ?: return null
         val fullKey = argument.text
-        if (fullKey != key) {
-          return findCatalogKey(catalog, fullKey.substringAfter("."))
-        }
+        return findCatalogKey(catalog, fullKey.substringAfter("."))
       }
       return null
     }
@@ -88,12 +80,9 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
       val catalog = findVersionCatalog(parent.text.substringBefore("."), parent.project)
       if (catalog != null && grandParent.containingFile.name.endsWith(SdkConstants.DOT_GRADLE)) {
         val key = parent.text
-        if(key != null) {
-          findCatalogKey(catalog, key.substringAfter("."))?.let { return it }
-
-          // if we did not find element by key maybe we searched by partial key - so we need to take whole
-          // e.g. libs.const|raint.layout => key = libs.constraint, wholeKey = libs.constraint.layout
-          // where real key name is constraint-layout
+        if (key != null) {
+          // search by whole key: attempting to find elements (e.g. the `plugins` table) by subkey is inconsistent with the
+          // platform and also vulnerable to users defining keys which are effectively prefixes of each other.
           val wholeKey = getWholeKey(sourceElement)
           if (wholeKey != null) {
             findCatalogKey(catalog, wholeKey.substringAfter("."))?.let { return it }
@@ -128,7 +117,7 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
    * - GrArgumentList for 'api libs.my.lib'
    * - GrCommandArgumentList 'alias(libs.plugins.myplugin)'
    */
-  private fun getWholeKey(sourceElement: PsiElement): String? {
+  fun getWholeKey(sourceElement: PsiElement): String? {
     var currElement = sourceElement
     while (currElement.parent != null) {
       if (currElement.parent is GrArgumentList || currElement.parent is GrCommandArgumentList) {

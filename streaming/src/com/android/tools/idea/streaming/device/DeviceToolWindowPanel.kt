@@ -16,17 +16,17 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.AnyThread
-import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
-import com.android.tools.idea.streaming.AbstractDisplayPanel
-import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
-import com.android.tools.idea.streaming.DeviceId
-import com.android.tools.idea.streaming.RunningDevicePanel
-import com.android.tools.idea.streaming.STREAMING_SECONDARY_TOOLBAR_ID
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.AbstractDisplayPanel
+import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.RunningDevicePanel
+import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
+import com.android.tools.idea.streaming.core.htmlColored
+import com.android.tools.idea.streaming.core.installFileDropHandler
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionState
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListener
 import com.android.tools.idea.streaming.device.screenshot.DeviceScreenshotOptions
-import com.android.tools.idea.streaming.installFileDropHandler
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.google.wireless.android.sdk.stats.DeviceInfo
@@ -35,47 +35,70 @@ import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import icons.StudioIcons
+import com.intellij.ui.JBColor
 import java.awt.EventQueue
+import javax.swing.Icon
 import javax.swing.JComponent
-
-private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.Avd.DEVICE_PHONE)
 
 /**
  * Provides view of one physical device in the Running Devices tool window.
  */
 internal class DeviceToolWindowPanel(
   private val project: Project,
-  private val deviceClient: DeviceClient,
+  val deviceClient: DeviceClient,
 ) : RunningDevicePanel(DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID) {
 
-  private var displayPanel: DeviceDisplayPanel? = null
-  private var contentDisposable: Disposable? = null
-  private var primaryDeviceView: DeviceView? = null
-  private val deviceSerialNumber: String
+  val deviceSerialNumber: String
     get() = deviceClient.deviceSerialNumber
-  private val deviceConfig
-    get() = deviceClient.deviceConfig
 
   override val title: String
     get() = deviceClient.deviceName
 
-  override val icon
-    get() = ICON
+  override val description: String
+    get() {
+      val properties = deviceClient.deviceHandle.state.properties
+      val api = properties.androidVersion?.apiStringWithoutExtension ?: "${deviceClient.deviceConfig.apiLevel}"
+      return "${properties.title} API $api ${"($deviceSerialNumber)".htmlColored(JBColor.GRAY)}"
+    }
 
-  override val isClosable = false
+  override val icon: Icon
+    get() = ExecutionUtil.getLiveIndicator(deviceClient.deviceHandle.state.properties.icon)
+
+  override val isClosable: Boolean = StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()
 
   val component: JComponent
     get() = this
 
   override val preferredFocusableComponent: JComponent
-    get() = primaryDeviceView ?: this
+    get() = primaryDisplayView ?: this
 
   override var zoomToolbarVisible = false
     set(value) {
       field = value
       displayPanel?.zoomToolbarVisible = value
     }
+
+  private var displayPanel: DeviceDisplayPanel? = null
+  private var contentDisposable: Disposable? = null
+  override var primaryDisplayView: DeviceView? = null
+    private set
+  private val deviceConfig
+    get() = deviceClient.deviceConfig
+  private val deviceStateListener = object : DeviceController.DeviceStateListener {
+    override fun onSupportedDeviceStatesChanged(deviceStates: List<FoldingState>) {
+      updateMainToolbarLater()
+    }
+
+    override fun onDeviceStateChanged(deviceState: Int) {
+      updateMainToolbarLater()
+    }
+
+    private fun updateMainToolbarLater() {
+      EventQueue.invokeLater {
+        mainToolbar.updateActionsImmediately()
+      }
+    }
+  }
 
   override fun setDeviceFrameVisible(visible: Boolean) {
     // Showing device frame is not supported for physical devices.
@@ -97,14 +120,14 @@ internal class DeviceToolWindowPanel(
     val disposable = Disposer.newDisposable()
     contentDisposable = disposable
 
-    savedUiState as DeviceUiState?
-    val initialOrientation = savedUiState?.orientation ?: UNKNOWN_ORIENTATION
+    val uiState = savedUiState as DeviceUiState? ?: DeviceUiState()
+    val initialOrientation = uiState.orientation
     val primaryDisplayPanel = DeviceDisplayPanel(disposable, deviceClient, initialOrientation, project, zoomToolbarVisible)
-    savedUiState?.zoomScrollState?.let { primaryDisplayPanel.zoomScrollState = it }
+    uiState.zoomScrollState?.let { primaryDisplayPanel.zoomScrollState = it }
 
     displayPanel = primaryDisplayPanel
     val deviceView = primaryDisplayPanel.displayView
-    primaryDeviceView = deviceView
+    primaryDisplayView = deviceView
     mainToolbar.targetComponent = deviceView
     secondaryToolbar.targetComponent = deviceView
     centerPanel.addToCenter(primaryDisplayPanel)
@@ -115,10 +138,17 @@ internal class DeviceToolWindowPanel(
           mainToolbar.updateActionsImmediately()
           secondaryToolbar.updateActionsImmediately()
         }
+        when (connectionState) {
+          ConnectionState.CONNECTED -> deviceClient.deviceController?.addDeviceStateListener(deviceStateListener)
+          ConnectionState.DISCONNECTED -> deviceClient.deviceController?.removeDeviceStateListener(deviceStateListener)
+          else -> {}
+        }
       }
     })
 
     installFileDropHandler(this, id.serialNumber, deviceView, project)
+
+    restoreActiveNotifications(uiState)
   }
 
   /**
@@ -128,7 +158,8 @@ internal class DeviceToolWindowPanel(
     mirroringEnded(DeviceMirroringSession.DeviceKind.PHYSICAL)
 
     val uiState = DeviceUiState()
-    uiState.orientation = primaryDeviceView?.displayOrientationQuadrants ?: 0
+    saveActiveNotifications(uiState)
+    uiState.orientation = primaryDisplayView?.displayOrientationQuadrants ?: 0
     uiState.zoomScrollState = displayPanel?.zoomScrollState
 
     contentDisposable?.let { Disposer.dispose(it) }
@@ -136,7 +167,7 @@ internal class DeviceToolWindowPanel(
 
     centerPanel.removeAll()
     displayPanel = null
-    primaryDeviceView = null
+    primaryDisplayView = null
     mainToolbar.targetComponent = this
     secondaryToolbar.targetComponent = this
     return uiState
@@ -144,12 +175,12 @@ internal class DeviceToolWindowPanel(
 
   override fun getData(dataId: String): Any? {
     return when (dataId) {
-      DEVICE_VIEW_KEY.name, DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDeviceView
+      DEVICE_VIEW_KEY.name -> primaryDisplayView
       DEVICE_CLIENT_KEY.name -> deviceClient
       DEVICE_CONTROLLER_KEY.name -> deviceClient.deviceController
       DEVICE_HANDLE_KEY.name -> deviceClient.deviceHandle
       ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
-          primaryDeviceView?.let { if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceConfig, it) else null }
+          primaryDisplayView?.let { if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceConfig, it) else null }
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->
           deviceClient.deviceController?.let {
             ScreenRecorderAction.Parameters(deviceClient.deviceName, deviceSerialNumber, deviceConfig.featureLevel, null, it)
@@ -158,8 +189,8 @@ internal class DeviceToolWindowPanel(
     }
   }
 
-  class DeviceUiState : UiState {
-    var orientation = 0
+  class DeviceUiState : UiState() {
+    var orientation = UNKNOWN_ORIENTATION
     var zoomScrollState: AbstractDisplayPanel.ZoomScrollState? = null
   }
 }

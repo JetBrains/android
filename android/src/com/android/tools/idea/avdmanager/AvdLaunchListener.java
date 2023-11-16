@@ -41,7 +41,9 @@ public interface AvdLaunchListener {
 
   enum RequestType {
     /** AVD started by a direct user action in Device Manager. */
-    DIRECT,
+    DIRECT_DEVICE_MANAGER,
+    /** AVD started by a direct user action in Running Devices. */
+    DIRECT_RUNNING_DEVICES,
     /** AVD started as a side effect of some other action, e.g., launching an app or a test. */
     INDIRECT,
   }

@@ -110,7 +110,7 @@ class TasksPageView(
   }
 
   val treeHeaderLabel: JLabel = JBLabel().apply { font = font.deriveFont(Font.BOLD) }
-  private val tasksLegendPanel = JPanel().apply {
+  val tasksLegendPanel = JPanel().apply {
     border = JBUI.Borders.emptyRight(5)
     layout = HorizontalLayout(10)
     isOpaque = false

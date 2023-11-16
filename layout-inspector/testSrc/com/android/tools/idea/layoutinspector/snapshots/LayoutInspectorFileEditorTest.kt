@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.snapshots
 
+import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
@@ -26,16 +27,17 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.EditorRenderSettings
-import com.android.tools.idea.layoutinspector.util.CheckUtil
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.TestAndroidModel
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.flatten
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -47,11 +49,15 @@ private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 @RunsInEdt
 class LayoutInspectorFileEditorTest {
-  val projectRule = ProjectRule()
+  val projectRule = AndroidProjectRule.inMemory()
   val disposableRule = DisposableRule()
 
   @get:Rule
-  val chain = RuleChain.outerRule(PortableUiFontRule()).around(projectRule).around(disposableRule).around(EdtRule())!!
+  val chain =
+    RuleChain.outerRule(PortableUiFontRule())
+      .around(projectRule)
+      .around(disposableRule)
+      .around(EdtRule())!!
 
   @Test
   fun editorShowsVersionError() {
@@ -72,48 +78,69 @@ class LayoutInspectorFileEditorTest {
       doLayout()
       paint(graphics)
     }
-    CheckUtil.assertImageSimilarPerPlatform(TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH), "snapshotVersionError", generatedImage,
-                                            0.01)
+    ImageDiffUtil.assertImageSimilarPerPlatform(
+      TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH),
+      "snapshotVersionError",
+      generatedImage,
+      0.01
+    )
   }
 
   @Test
   fun editorCreatesCorrectSettings() {
-    val editor = LayoutInspectorFileEditor(
-      projectRule.project,
-      TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/snapshot.li")
-    )
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    AndroidModel.set(facet, TestAndroidModel("com.google.samples.apps.sunflower"))
+    val editor =
+      LayoutInspectorFileEditor(
+        projectRule.project,
+        TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/snapshot.li")
+      )
     Disposer.register(disposableRule.disposable, editor)
     val editorComponent = editor.component
 
-    val inspector = DataManager.getDataProvider(
-      editorComponent.flatten(false).firstIsInstance<WorkBench<*>>()
-    )?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
+    val inspector =
+      DataManager.getDataProvider(
+          editorComponent.flatten(false).first { it is WorkBench<*> } as WorkBench<*>
+        )
+        ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
 
     val settings = inspector.renderLogic.renderSettings
     assertThat(settings).isInstanceOf(EditorRenderSettings::class.java)
 
     assertThat(inspector.treeSettings).isInstanceOf(EditorTreeSettings::class.java)
-    assertThat(inspector.currentClient.capabilities).containsExactly(Capability.SUPPORTS_SYSTEM_NODES)
+    assertThat(inspector.currentClient.capabilities)
+      .containsExactly(Capability.SUPPORTS_SYSTEM_NODES)
+    assertThat(inspector.inspectorModel.resourceLookup.hasResolver).isTrue()
   }
 
   @Test
   fun editorCreatesCorrectSettingsForCompose() {
-    val editor = LayoutInspectorFileEditor(
-      projectRule.project,
-      TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/compose-snapshot.li")
-    )
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    AndroidModel.set(facet, TestAndroidModel("com.example.mysemantics"))
+    val editor =
+      LayoutInspectorFileEditor(
+        projectRule.project,
+        TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/compose-snapshot.li")
+      )
     Disposer.register(disposableRule.disposable, editor)
     val editorComponent = editor.component
 
-    val inspector = DataManager.getDataProvider(
-      editorComponent.flatten(false).firstIsInstance<WorkBench<*>>()
-    )?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
+    val inspector =
+      DataManager.getDataProvider(
+          editorComponent.flatten(false).first { it is WorkBench<*> } as WorkBench<*>
+        )
+        ?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
 
     val settings = inspector.renderLogic.renderSettings
     assertThat(settings).isInstanceOf(EditorRenderSettings::class.java)
 
     assertThat(inspector.treeSettings).isInstanceOf(EditorTreeSettings::class.java)
-    assertThat(inspector.currentClient.capabilities).containsExactly(
-      Capability.SUPPORTS_SYSTEM_NODES, Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_SEMANTICS)
+    assertThat(inspector.currentClient.capabilities)
+      .containsExactly(
+        Capability.SUPPORTS_SYSTEM_NODES,
+        Capability.SUPPORTS_COMPOSE,
+        Capability.SUPPORTS_SEMANTICS
+      )
+    assertThat(inspector.inspectorModel.resourceLookup.hasResolver).isTrue()
   }
 }

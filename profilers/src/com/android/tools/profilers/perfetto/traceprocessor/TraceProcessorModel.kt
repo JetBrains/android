@@ -19,9 +19,11 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.*
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.PowerCounterTracksResult
 import com.android.tools.profilers.cpu.ThreadState
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CounterModel
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreModel
+import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.powerRailDisplayNameMappings
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.android.tools.profilers.cpu.systemtrace.SchedulingEventModel
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
@@ -32,8 +34,6 @@ import java.io.Serializable
 import java.util.Deque
 import java.util.LinkedList
 import java.util.concurrent.TimeUnit
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
-import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.powerRailDisplayNameMappings
 
 class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializable {
 

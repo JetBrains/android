@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
@@ -282,6 +281,7 @@ class RenderTemplateModel private constructor(
         Language.Java
     }
 
-    fun getComposeKotlinVersion(isMaterial3: Boolean): String = "1.8.10"
+    fun getComposeKotlinVersion(isMaterial3: Boolean): String = "1.9.0"
+
   }
 }

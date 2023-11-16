@@ -16,34 +16,53 @@
 package com.android.tools.idea.uibuilder.property.support
 
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.HeaderEnumValue
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-class FontEnumSupportTest : AndroidTestCase() {
+class FontEnumSupportTest {
   private var file: VirtualFile? = null
 
-  override fun setUp() {
-    super.setUp()
-    myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/customfont.ttf")
-    myFixture.copyFileToProject("fonts/my_circular_font_family_1.xml", "res/font/my_circular_font_family_1.xml")
-    myFixture.copyFileToProject("fonts/my_circular_font_family_2.xml", "res/font/my_circular_font_family_2.xml")
-    file = myFixture.copyFileToProject("fonts/roboto.xml", "res/font/roboto.xml")
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
+
+  @Before
+  fun setUp() {
+    val fixture = projectRule.fixture
+    projectRule.fixture.testDataPath = AndroidTestBase.getModulePath("android") + "/testData"
+    fixture.copyFileToProject("fonts/customfont.ttf", "res/font/customfont.ttf")
+    fixture.copyFileToProject(
+      "fonts/my_circular_font_family_1.xml",
+      "res/font/my_circular_font_family_1.xml"
+    )
+    fixture.copyFileToProject(
+      "fonts/my_circular_font_family_2.xml",
+      "res/font/my_circular_font_family_2.xml"
+    )
+    file = fixture.copyFileToProject("fonts/roboto.xml", "res/font/roboto.xml")
   }
 
-  override fun tearDown() {
+  @After
+  fun tearDown() {
     file = null
-    super.tearDown()
   }
 
   private fun createEnumSupport(): FontEnumSupport {
-    val configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file!!)
+    val configuration =
+      ConfigurationManager.getOrCreateInstance(projectRule.module).getConfiguration(file!!)
     val resourceResolver = configuration.resourceResolver
-    return FontEnumSupport(myFacet, resourceResolver)
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    return FontEnumSupport(facet, resourceResolver)
   }
 
+  @Test
   fun testFindPossibleValues() {
     val values = createEnumSupport().values
     checkHeader(values[0], "Project")
@@ -80,7 +99,12 @@ class FontEnumSupportTest : AndroidTestCase() {
     assertThat((enumValue as HeaderEnumValue).header).isEqualTo(header)
   }
 
-  private fun checkEnumValue(enumValue: EnumValue, value: String, display: String, indented: Boolean = true) {
+  private fun checkEnumValue(
+    enumValue: EnumValue,
+    value: String,
+    display: String,
+    indented: Boolean = true
+  ) {
     assertThat(enumValue.value).isEqualTo(value)
     assertThat(enumValue.display).isEqualTo(display)
     assertThat(enumValue.indented).isEqualTo(indented)

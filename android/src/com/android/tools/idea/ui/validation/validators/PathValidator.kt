@@ -33,7 +33,6 @@ import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.nio.file.Path
 import java.util.Locale
-import kotlin.streams.toList
 
 private val logger: Logger get() = logger<PathValidator>()
 

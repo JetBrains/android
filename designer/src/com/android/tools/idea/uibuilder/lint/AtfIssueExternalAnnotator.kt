@@ -59,7 +59,11 @@ class AtfIssueExternalAnnotator : ExternalAnnotator<PsiFile, CommonPanelIssueSet
     return collectedInfo.getUserData(ATF_ISSUES)
   }
 
-  override fun apply(file: PsiFile, annotationResult: CommonPanelIssueSet?, holder: AnnotationHolder) {
+  override fun apply(
+    file: PsiFile,
+    annotationResult: CommonPanelIssueSet?,
+    holder: AnnotationHolder
+  ) {
     CommonLintUserDataHandler.resetLatch(ATF_ISSUES_LATCH, file)
     showIssuesInCommonProblemsPanel(annotationResult, holder)
   }

@@ -26,6 +26,7 @@ import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWi
 import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.android.tools.idea.gradle.util.GradleInvocationParams.addAndroidStudioPluginVersion;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
@@ -91,6 +92,7 @@ public class CommandLineArgs {
     // Sent to plugin starting with Studio 3.0
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD));
 
+    addAndroidStudioPluginVersion(args);
     // Skip download of source and javadoc jars during Gradle sync, this flag only has effect on AGP 3.5.
     //noinspection deprecation AGP 3.6 and above do not download sources at all.
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD, true));
@@ -115,11 +117,18 @@ public class CommandLineArgs {
     if (isTestingMode) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
       application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, ArrayUtilRt.toStringArray(args));
-    }
-
-    if (StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isTestingMode) {
+    } else {
       myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     }
+
+    // If we are going to skip processing runtime classpaths for some artifacts we need to
+    // tell AGP to stop using the runtime classpath to constrain the compile classpath.
+    // If we don't do this then we will still be computing the runtime classpath indirectly.
+    if (StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get() &&
+        GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES) {
+      args.add(createProjectProperty("android.experimental.dependency.excludeLibraryComponentsFromConstraints", true));
+    }
+
     return args;
   }
 }

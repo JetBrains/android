@@ -36,7 +36,7 @@ class HostPanelTest : NavTestCase() {
                                                        "        app:navGraph=\"@navigation/nav\" />\n" +
                                                        "\n" +
                                                        "</LinearLayout>")
-    val model = model("nav.xml") { navigation() }
+    val model = modelBuilder("nav.xml") { navigation() }.build(false)
     waitForResourceRepositoryUpdates()
     val panel = HostPanel(model.surface as NavDesignSurface)
     val listModel = panel.list.model as DefaultListModel

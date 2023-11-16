@@ -17,13 +17,14 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.model.DrawViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_PERCENT
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.actionSystem.DataKey
 import org.jetbrains.annotations.TestOnly
 import java.awt.Image
 import java.awt.Rectangle
@@ -37,8 +38,6 @@ import kotlin.math.hypot
 import kotlin.math.min
 import kotlin.math.sqrt
 
-val DEVICE_VIEW_MODEL_KEY = DataKey.create<RenderModel>(RenderModel::class.qualifiedName!!)
-
 data class ViewDrawInfo(
   val bounds: Shape,
   val transform: AffineTransform,
@@ -49,17 +48,16 @@ data class ViewDrawInfo(
 
 private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolean)
 
-/**
- * Class defining what is being rendered by [RenderLogic].
- */
+/** Class defining what is being rendered by [RenderLogic]. */
 class RenderModel(
   val model: InspectorModel,
+  val notificationModel: NotificationModel,
   val treeSettings: TreeSettings,
-  private val client: (() -> InspectorClient?)? = null
+  private val currentClientProvider: () -> InspectorClient
 ) {
   /**
-   * The last rendered level hovered over. This is different from [InspectorModel.hoveredNode], since this differentiates between different
-   * layers owned by the same ViewNode.
+   * The last rendered level hovered over. This is different from [InspectorModel.hoveredNode],
+   * since this differentiates between different layers owned by the same ViewNode.
    */
   var hoveredDrawInfo: ViewDrawInfo? = null
     set(value) {
@@ -89,8 +87,7 @@ class RenderModel(
   val isRotated
     get() = xOff != 0.0 || yOff != 0.0
 
-  @VisibleForTesting
-  var hitRects = listOf<ViewDrawInfo>()
+  @VisibleForTesting var hitRects = listOf<ViewDrawInfo>()
 
   val modificationListeners = mutableListOf<() -> Unit>()
 
@@ -122,7 +119,7 @@ class RenderModel(
       if (new == null) {
         overlay = null
       }
-      if (client?.invoke()?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) != true) {
+      if (!currentClientProvider().capabilities.contains(InspectorClient.Capability.SUPPORTS_SKP)) {
         resetRotation()
       }
     }
@@ -132,18 +129,28 @@ class RenderModel(
   val isActive
     get() = !model.isEmpty
 
+  fun selectView(x: Double, y: Double): ViewNode? {
+    val view = findTopViewAt(x, y)
+    model.setSelection(view, SelectionOrigin.INTERNAL)
+    currentClientProvider().stats.selectionMadeFromImage(view)
+    return view
+  }
+
+  fun clearSelection() {
+    model.setSelection(null, SelectionOrigin.INTERNAL)
+  }
+
   /**
-   * Find all the views drawn under the given point, in order from closest to farthest from the front, except
-   * if the view is an image drawn by a parent at a different depth, the depth of the parent is used rather than
-   * the depth of the child.
+   * Find all the views drawn under the given point, in order from closest to farthest from the
+   * front, except if the view is an image drawn by a parent at a different depth, the depth of the
+   * parent is used rather than the depth of the child.
    */
   fun findViewsAt(x: Double, y: Double): Sequence<ViewNode> =
-    findDrawInfoAt(x, y)
-      .mapNotNull { it.node.findFilteredOwner(treeSettings) }
-      .distinct()
+    findDrawInfoAt(x, y).mapNotNull { it.node.findFilteredOwner(treeSettings) }.distinct()
 
   fun findDrawInfoAt(x: Double, y: Double): Sequence<ViewDrawInfo> =
-    hitRects.asReversed()
+    hitRects
+      .asReversed()
       .asSequence()
       .filter { it.bounds.contains(x, y) }
       .sortedByDescending { it.hitLevel }
@@ -158,7 +165,7 @@ class RenderModel(
   }
 
   fun refresh() {
-    client?.invoke()?.stats?.currentMode3D = isRotated
+    currentClientProvider().stats.currentMode3D = isRotated
     if (model.isEmpty) {
       visibleBounds = Rectangle()
       maxDepth = 0
@@ -182,17 +189,25 @@ class RenderModel(
     if (maxDepth > 0) {
       // Only consider the bounds of visible nodes here, unlike model.root.transitiveBounds.
       ViewNode.readAccess {
-        visibleBounds = model.root.flatten()
-          .filter { model.isVisible(it) }
-          .map { it.transitiveBounds.bounds }
-          .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } } ?: Rectangle()
+        visibleBounds =
+          model.root
+            .flatten()
+            .filter { model.isVisible(it) }
+            .map { it.transitiveBounds.bounds }
+            .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } }
+            ?: Rectangle()
 
         fun lowestVisible(node: ViewNode): Sequence<ViewNode> {
-          return if (model.isVisible(node)) sequenceOf(node) else node.children.asSequence().flatMap { lowestVisible(it) }
+          return if (model.isVisible(node)) sequenceOf(node)
+          else node.children.asSequence().flatMap { lowestVisible(it) }
         }
 
-        rootBounds = model.root.children.flatMap { lowestVisible(it) }.map { it.renderBounds.bounds }
-          .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } } ?: Rectangle()
+        rootBounds =
+          model.root.children
+            .flatMap { lowestVisible(it) }
+            .map { it.renderBounds.bounds }
+            .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } }
+            ?: Rectangle()
       }
 
       root.layoutBounds.x = rootBounds.x
@@ -200,15 +215,15 @@ class RenderModel(
       root.layoutBounds.width = rootBounds.width
       root.layoutBounds.height = rootBounds.height
 
-      // Don't allow rotation to completely edge-on, since some rendering can have problems in that situation. See issue 158452416.
+      // Don't allow rotation to completely edge-on, since some rendering can have problems in that
+      // situation. See issue 158452416.
       // You might say that this is ( •_•)>⌐■-■ / (⌐■_■) an edge-case.
       magnitude = min(0.98, hypot(xOff, yOff))
       angle = if (abs(xOff) < 0.00001) PI / 2.0 else atan(yOff / xOff)
 
-      transform.translate(-rootBounds.x.toDouble(), -rootBounds.y.toDouble())
+      // Transformation related to 3D view.
       transform.rotate(angle)
-    }
-    else {
+    } else {
       visibleBounds = Rectangle()
     }
     rebuildRectsForLevel(transform, magnitude, angle, levelLists, newHitRects)
@@ -221,9 +236,10 @@ class RenderModel(
    * The nodes will be placed in the level that is:
    * 1. At least [minLevel].
    * 2. Not overlapping with any existing nodes in [levelListCollector], except as in (4).
-   * 3. If the node is non-collapsible, the same level as other sibling nodes, unless siblings themselves overlap, in which case above
-   *    previous siblings.
-   * 4. If the node is collapsible and the highest overlapping level is [minLevel], then at [minLevel].
+   * 3. If the node is non-collapsible, the same level as other sibling nodes, unless siblings
+   *    themselves overlap, in which case above previous siblings.
+   * 4. If the node is collapsible and the highest overlapping level is [minLevel], then at
+   *    [minLevel].
    */
   private fun ViewNode.ReadAccess.buildLevelLists(
     nodes: Sequence<DrawViewNode>,
@@ -235,84 +251,109 @@ class RenderModel(
       return
     }
 
-    // Nodes from this set of siblings should be in the same level, but if they overlap or there are collapsible nodes included, they may
-    // not be. Collapsible nodes that aren't drawn on top of any siblings will in siblingGroups[0], which is reserved for that purpose.
-    // Otherwise, any nodes that overlap with others will be in the list after the latest list with overlapping nodes. E.g. if you have
-    // A, B, C, D, E, where B can merge with the parent, C overlaps A and D overlaps C, the result would be [[B], [A, E], [C], [D]].
+    // Nodes from this set of siblings should be in the same level, but if they overlap or there are
+    // collapsible nodes included, they may
+    // not be. Collapsible nodes that aren't drawn on top of any siblings will in siblingGroups[0],
+    // which is reserved for that purpose.
+    // Otherwise, any nodes that overlap with others will be in the list after the latest list with
+    // overlapping nodes. E.g. if you have
+    // A, B, C, D, E, where B can merge with the parent, C overlaps A and D overlaps C, the result
+    // would be [[B], [A, E], [C], [D]].
     val siblingGroups = mutableListOf(mutableListOf<DrawViewNode>())
 
     for (node in nodes) {
       // first check whether this node overlaps with any already-placed sibling nodes.
-      // Starting from the highest level and going down, find the first level where something intersects with this view. The target will
-      // be the next level above that (that is, the last level, starting from the top, where there's space).
-      // For nodes already in the list we need to consider the bounds of their children as well, since this node and a previous sibling
-      // can't be drawn at the same level if the previous sibling's children will be drawn before this node.
-      val reversedIndex = siblingGroups.reversed().indexOfFirst { it.any { sibling -> sibling.intersects(node, true) } }
+      // Starting from the highest level and going down, find the first level where something
+      // intersects with this view. The target will
+      // be the next level above that (that is, the last level, starting from the top, where there's
+      // space).
+      // For nodes already in the list we need to consider the bounds of their children as well,
+      // since this node and a previous sibling
+      // can't be drawn at the same level if the previous sibling's children will be drawn before
+      // this node.
+      val reversedIndex =
+        siblingGroups.reversed().indexOfFirst {
+          it.any { sibling -> sibling.intersects(node, true) }
+        }
       val siblingListIndex =
-        if (reversedIndex == -1)
-          if (node.canCollapse(treeSettings)) 0 else 1
+        if (reversedIndex == -1) if (node.canCollapse(treeSettings)) 0 else 1
         else siblingGroups.size - reversedIndex
       siblingGroups.getOrAddSublist(siblingListIndex).add(node)
     }
 
-    // Add the collapsible nodes first, one at a time, since they don't need to be at the same level as each other.
+    // Add the collapsible nodes first, one at a time, since they don't need to be at the same level
+    // as each other.
     for (node in siblingGroups[0]) {
       if (node.findFilteredOwner(treeSettings).let { it != null && !model.isVisible(it) }) {
         // It's hidden, just recurse
         buildLevelLists(node.children(this), levelListCollector, minLevel)
         continue
       }
-      val newLevelIndex = if (levelListCollector.isEmpty()) -1 else levelListCollector
-        .subList(minLevel, levelListCollector.size)
-        .indexOfLast { levelList -> levelList.any { (existing, _) -> existing.intersects(node) } }
+      val newLevelIndex =
+        if (levelListCollector.isEmpty()) -1
+        else
+          levelListCollector.subList(minLevel, levelListCollector.size).indexOfLast { levelList ->
+            levelList.any { (existing, _) -> existing.intersects(node) }
+          }
 
       // Check if this node actually collapses into the parent
-      if ((newLevelIndex == 0 && (levelListCollector.getOrNull(minLevel)?.any {
-          it.node.findFilteredOwner(treeSettings) == node.findFilteredOwner(treeSettings)
-        } == true) || (newLevelIndex == -1 && node.findFilteredOwner(treeSettings) == null))) {
+      if (
+        (newLevelIndex == 0 &&
+          (levelListCollector.getOrNull(minLevel)?.any {
+            it.node.findFilteredOwner(treeSettings) == node.findFilteredOwner(treeSettings)
+          } == true) || (newLevelIndex == -1 && node.findFilteredOwner(treeSettings) == null))
+      ) {
         if (node.drawWhenCollapsed) {
           levelListCollector.getOrAddSublist(minLevel).add(LevelListItem(node, true))
         }
         buildLevelLists(node.children(this), levelListCollector, minLevel)
-      }
-      else {
+      } else {
         // Otherwise, add to the next available level
-        levelListCollector.getOrAddSublist(newLevelIndex + minLevel + 1).add(LevelListItem(node, false))
+        levelListCollector
+          .getOrAddSublist(newLevelIndex + minLevel + 1)
+          .add(LevelListItem(node, false))
         buildLevelLists(node.children(this), levelListCollector, newLevelIndex + minLevel + 1)
       }
     }
 
     for (siblingGroup in siblingGroups.subList(1, siblingGroups.size)) {
-      val filteredGroup = siblingGroup.filter {
-        val owner = it.findFilteredOwner(treeSettings)
-        owner == null || model.isVisible(owner)
-      }
+      val filteredGroup =
+        siblingGroup.filter {
+          val owner = it.findFilteredOwner(treeSettings)
+          owner == null || model.isVisible(owner)
+        }
       // Find the lowest level that this level can sit on the existing nodes and add them there
-      val newLevelIndex = levelListCollector
-        .subList(minLevel, levelListCollector.size)
-        .indexOfLast { levelList -> levelList.any { (existing, _) -> filteredGroup.any { existing.intersects(it) } } } + minLevel + 1
-      filteredGroup.mapTo(levelListCollector.getOrAddSublist(newLevelIndex)) { LevelListItem(it, false) }
+      val newLevelIndex =
+        levelListCollector.subList(minLevel, levelListCollector.size).indexOfLast { levelList ->
+          levelList.any { (existing, _) -> filteredGroup.any { existing.intersects(it) } }
+        } + minLevel + 1
+      filteredGroup.mapTo(levelListCollector.getOrAddSublist(newLevelIndex)) {
+        LevelListItem(it, false)
+      }
 
       // recurse on each set of children (including for hidden nodes)
       for (sibling in siblingGroup) {
         val owner = sibling.findFilteredOwner(treeSettings)
         val hidden = owner != null && !model.isVisible(owner)
-        buildLevelLists(sibling.children(this), levelListCollector, if (hidden) minLevel else newLevelIndex)
+        buildLevelLists(
+          sibling.children(this),
+          levelListCollector,
+          if (hidden) minLevel else newLevelIndex
+        )
       }
     }
   }
 
-  private fun <T> MutableList<MutableList<T>>.getOrAddSublist(index: Int): MutableList<T> = getOrElse(index) {
-    mutableListOf<T>().also { add(it) }
-  }
+  private fun <T> MutableList<MutableList<T>>.getOrAddSublist(index: Int): MutableList<T> =
+    getOrElse(index) { mutableListOf<T>().also { add(it) } }
 
   private fun DrawViewNode.intersects(other: DrawViewNode, useTransitiveBounds: Boolean = false) =
     (if (useTransitiveBounds) unfilteredOwner.transitiveBounds else bounds).overlap(other.bounds)
 
-  @TestOnly
-  fun testOverlap(shape1: Shape, shape2: Shape): Boolean = shape1.overlap(shape2)
+  @TestOnly fun testOverlap(shape1: Shape, shape2: Shape): Boolean = shape1.overlap(shape2)
 
-  // Most shapes are simply Rectangles. For Rectangles use Rectangle#overlap, which is a lot  faster than using Area#intersect.
+  // Most shapes are simply Rectangles. For Rectangles use Rectangle#overlap, which is a lot  faster
+  // than using Area#intersect.
   private fun Shape.overlap(other: Shape): Boolean {
     val r1 = this as? Rectangle
     val r2 = other as? Rectangle
@@ -327,12 +368,17 @@ class RenderModel(
   // Rectangle has an intersects(Rectangle) method but ad hoc tests has shown this is faster.
   private fun Rectangle.overlap(other: Rectangle): Boolean =
     x < other.x + other.width &&
-    other.x < x + width &&
-    y < other.y + other.height &&
-    other.y < y + height
+      other.x < x + width &&
+      y < other.y + other.height &&
+      other.y < y + height
 
   private fun Shape.overlap(other: Rectangle): Boolean =
-    this.intersects(other.x.toDouble(), other.y.toDouble(), other.width.toDouble(), other.height.toDouble())
+    this.intersects(
+      other.x.toDouble(),
+      other.y.toDouble(),
+      other.width.toDouble(),
+      other.height.toDouble()
+    )
 
   private fun rebuildRectsForLevel(
     transform: AffineTransform,
@@ -349,10 +395,10 @@ class RenderModel(
         val viewTransform = AffineTransform(transform)
 
         val sign = if (xOff < 0) -1 else 1
+        // Transformations related to 3D view.
         viewTransform.translate(magnitude * (level - maxDepth / 2) * layerSpacing * sign, 0.0)
         viewTransform.scale(sqrt(1.0 - magnitude * magnitude), 1.0)
         viewTransform.rotate(-angle)
-        viewTransform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
         val rect = viewTransform.createTransformedShape(view.unfilteredOwner.renderBounds)
         newHitRects.add(ViewDrawInfo(rect, viewTransform, view, hitLevel, isCollapsed))
@@ -368,8 +414,6 @@ class RenderModel(
     }
   }
 
-  /**
-   * Fire the modification listeners manually.
-   */
+  /** Fire the modification listeners manually. */
   fun fireModified() = modificationListeners.forEach { it() }
 }

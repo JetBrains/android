@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.compose.preview.animation.actions
 
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.animation.AnimationPreviewState
-import com.android.tools.idea.compose.preview.animation.ComposeAnimationEventTracker
+import com.android.tools.idea.compose.preview.animation.AnimationTracker
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
-import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -30,7 +29,7 @@ import java.util.function.Supplier
 class FreezeAction(
   private val previewState: AnimationPreviewState,
   val state: ElementState,
-  val tracker: ComposeAnimationEventTracker
+  val tracker: AnimationTracker
 ) :
   ToggleAction(
     Supplier { message("animation.inspector.action.freeze") },
@@ -40,10 +39,10 @@ class FreezeAction(
   override fun setSelected(e: AnActionEvent, frozen: Boolean) {
     state.frozen = frozen
     if (frozen) {
-      tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.LOCK_ANIMATION)
+      tracker.lockAnimation()
       e.presentation.text = message("animation.inspector.action.unfreeze")
     } else {
-      tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.UNLOCK_ANIMATION)
+      tracker.unlockAnimation()
       e.presentation.text = message("animation.inspector.action.freeze")
     }
   }

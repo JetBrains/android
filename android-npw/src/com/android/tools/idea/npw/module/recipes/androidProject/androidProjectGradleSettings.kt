@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidProject
 
+import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.wizard.template.renderIf
 
 fun androidProjectGradleSettings(appTitle: String,
+                                 agpVersion: AgpVersion,
                                  useGradleKts: Boolean): String {
   require(!appTitle.contains("\\")) { "Backslash should not be present in the application title" }
   return renderIf(appTitle.isNotBlank()) {
     val escapedAppTitle = appTitle.replace("$", "\\$")
-
+    val injectedRepositories = EmbeddedDistributionPaths.getInstance().getNewProjectLocalMavenRepos(agpVersion).let { repos ->
+      if(repos.isEmpty()) "" else repos.joinToString("") { "\n    maven { url = uri(\"${it.toURI()}\") }" }
+    }
     """
 pluginManagement {
-  repositories {
+  repositories {$injectedRepositories
     google()
     mavenCentral()
     gradlePluginPortal()
@@ -33,7 +38,7 @@ pluginManagement {
 }
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-  repositories {
+  repositories {$injectedRepositories
     google()
     mavenCentral()
   }

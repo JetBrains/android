@@ -183,6 +183,10 @@ open class IssueNotificationAction(
     return JBUI.insets(1)
   }
 
+  open fun shouldHide(status: ComposeStatus, dataContext: DataContext) : Boolean {
+    return status.icon == null && StringUtil.isEmpty(status.title)
+  }
+
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent = IssueNotificationActionButton(this, presentation, place)
 
   override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
@@ -196,7 +200,7 @@ open class IssueNotificationAction(
     val presentation = e.presentation
     createStatusInfo(project, e.dataContext)?.let {
       presentation.apply {
-        if (it.icon == null && StringUtil.isEmpty(it.title)) {
+        if (shouldHide(it, e.dataContext)) {
           isEnabledAndVisible = false
           return@let
         }

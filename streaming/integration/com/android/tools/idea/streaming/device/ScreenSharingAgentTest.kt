@@ -20,12 +20,11 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getBinPath
 import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.adtui.swing.FakeKeyboard
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.asdriver.tests.Adb
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.device.DeviceView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.tests.IdeaTestSuiteBase
@@ -39,6 +38,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
+import icons.StudioIcons
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.junit.AfterClass
 import org.junit.BeforeClass
@@ -52,6 +52,7 @@ import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.VK_SHIFT
 import java.nio.file.Files
 import java.util.regex.Pattern
 import javax.swing.JScrollPane
@@ -314,9 +315,9 @@ class ScreenSharingAgentTest {
           for (y in 150..250 step 10) {
             val rotation = (((x + y) / 10) % 10 + 1).let { if (it % 2 == 0) it / 2 else (it + 1) / -2 }
             // Java fakes horizontal scrolling by saying the shift key is down
-            fakeUi.keyboard.press(FakeKeyboard.Key.SHIFT)
+            fakeUi.keyboard.press(VK_SHIFT)
             fakeUi.mouse.wheel(x, y, rotation)
-            fakeUi.keyboard.release(FakeKeyboard.Key.SHIFT)
+            fakeUi.keyboard.release(VK_SHIFT)
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
             waitForLog(Point(x, y).scrollLog(h = rotation * ANDROID_SCROLL_ADJUSTMENT_FACTOR), INPUT_TIMEOUT)
@@ -382,7 +383,9 @@ class ScreenSharingAgentTest {
     private val testRootDisposable
       get() = disposableRule.disposable
     private val emptyDeviceConfiguration =
-      DeviceConfiguration(DeviceProperties.Builder().buildBase())
+      DeviceConfiguration(DeviceProperties.Builder().apply {
+        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+      }.buildBase())
 
     @JvmStatic
     @BeforeClass
@@ -431,6 +434,7 @@ class ScreenSharingAgentTest {
           waitForLog("Success", LONG_DEVICE_OPERATION_TIMEOUT)
         }
       }
+      System.clearProperty(AndroidSdkUtils.ADB_PATH_PROPERTY)
     }
 
     @JvmStatic

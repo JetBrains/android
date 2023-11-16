@@ -17,6 +17,7 @@ package com.android.tools.idea.fonts;
 
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
+import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.openapi.application.ApplicationManager;

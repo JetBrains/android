@@ -18,9 +18,7 @@ package com.android.tools.idea.logcat
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTrackerFactory
@@ -32,12 +30,13 @@ import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
+import com.android.tools.idea.sdk.AndroidEnvironmentChecker
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -46,11 +45,13 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl.MockToolWindow
+import com.intellij.util.io.delete
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
+import java.nio.file.Files
+import kotlin.test.fail
 
 
 @RunsInEdt
@@ -82,12 +83,10 @@ class LogcatToolWindowFactoryTest {
   }
 
   @Test
-  fun isApplicable_nonAndroidEnvironment() {
-    val mockIdeInfo = spy(IdeInfo.getInstance())
-    whenever(mockIdeInfo.isAndroidStudio).thenReturn(false)
-    ApplicationManager.getApplication().replaceService(IdeInfo::class.java, mockIdeInfo, disposableRule.disposable)
+  fun isLibraryToolWindow() {
+    val toolWindow = LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find { it.id == "Logcat" } ?: fail("Tool window not found")
 
-    assertThat(logcatToolWindowFactory().isApplicable(project)).isFalse()
+    assertThat(toolWindow.librarySearchClass).isEqualTo(AndroidEnvironmentChecker::class.qualifiedName)
   }
 
   @Test
@@ -113,8 +112,10 @@ class LogcatToolWindowFactoryTest {
   fun createChildComponent_parsesState() {
     val logcatPanelConfig = LogcatPanelConfig(
       device = null,
-      FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(15))),
+      file = null,
+      formattingConfig = FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(15))),
       "filter",
+      filterMatchCase = true,
       isSoftWrap = false)
 
     val logcatMainPanel = logcatToolWindowFactory()
@@ -160,11 +161,33 @@ class LogcatToolWindowFactoryTest {
     val content = toolWindow.contentManager.contents.first()
     val logcatMainPanel: LogcatMainPanel = TreeWalker(content.component).descendants().filterIsInstance<LogcatMainPanel>().first()
     waitForCondition {
-      logcatMainPanel.headerPanel.getSelectedDevice() != null
+      logcatMainPanel.headerPanel.deviceComboBox.getSelectedDevice() != null
     }
     assertThat(content.tabName).isEqualTo("com.test (device1)")
-    assertThat(logcatMainPanel.headerPanel.getSelectedDevice()?.deviceId).isEqualTo("device1")
+    assertThat(logcatMainPanel.headerPanel.deviceComboBox.getSelectedDevice()?.deviceId).isEqualTo("device1")
     assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:com.test")
+  }
+
+  @Test
+  fun showLogcatFile_opensLogcatPanel() {
+    // Use a real file because the path gets serialized and deserilized and depends on the file system being used.
+    val path = Files.createTempFile("logcat", "txt")
+    Disposer.register(disposable) { path.delete() }
+    val toolWindow = MockToolWindow(project)
+    logcatToolWindowFactory().init(toolWindow)
+
+    project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcatFile(path, "name")
+    waitForCondition {
+      toolWindow.contentManager.contentCount == 1
+    }
+
+    val content = toolWindow.contentManager.contents.first()
+    val logcatMainPanel: LogcatMainPanel = TreeWalker(content.component).descendants().filterIsInstance<LogcatMainPanel>().first()
+    waitForCondition {
+      logcatMainPanel.headerPanel.deviceComboBox.getSelectedFile() != null
+    }
+    assertThat(content.tabName).isEqualTo("name")
+    assertThat(logcatMainPanel.headerPanel.deviceComboBox.getSelectedFile()).isEqualTo(path)
   }
 
   private fun logcatToolWindowFactory(

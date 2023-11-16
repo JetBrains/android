@@ -22,19 +22,23 @@ import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFileType
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.android.tools.idea.uibuilder.type.AnimationListFileType
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
-val ANIMATION_TYPES = listOf(AnimatedStateListFileType, AnimatedStateListTempFileType, AnimatedVectorFileType, AnimationListFileType)
+val ANIMATION_TYPES =
+  listOf(
+    AnimatedStateListFileType,
+    AnimatedStateListTempFileType,
+    AnimatedVectorFileType,
+    AnimationListFileType
+  )
 
 class PreviewEditorActionManagerProviderTest {
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun noSceneViewContextToolbarForAllAnimations() {

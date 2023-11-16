@@ -35,7 +35,7 @@ private val ACTION_STROKE = SwingStroke(scaledSwingLength(3f), BasicStroke.CAP_B
 
 abstract class DrawActionBase(protected val scale: Scale,
                               protected val color: Color,
-                              private val isPopAction: Boolean,
+                              protected val isPopAction: Boolean,
                               level: Int = 0) : CompositeDrawCommand(level) {
 
   final override fun buildCommands(): List<DrawCommand> {

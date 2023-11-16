@@ -29,17 +29,21 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.resources.RClassNaming;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
+import com.android.tools.dom.attrs.AttributeDefinition;
+import com.android.tools.dom.attrs.AttributeDefinitions;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.lint.common.LintIdeClient;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.lint.checks.ApiLookup;
+import com.android.tools.res.LocalResourceRepository;
+import com.android.tools.sdk.AndroidTargetData;
+import com.android.xml.AttrNameSplitter;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -47,12 +51,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.android.tools.dom.attrs.AttributeDefinition;
-import com.android.tools.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidPlatforms;
-import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,16 +90,6 @@ public class ResolutionUtils {
     ResourceUrl url = ResourceUrl.parse(styleResourceUrl);
     assert url != null : styleResourceUrl;
     return url.namespace != null ? url.namespace + ':' + url.name : url.name;
-  }
-
-  /**
-   * @return name without qualifier
-   * e.g. for "android:Theme" returns "Theme" or for "AppTheme" returns "AppTheme"
-   */
-  @NotNull
-  public static String getNameFromQualifiedName(@NotNull String qualifiedName) {
-    int colonIndex = qualifiedName.indexOf(':');
-    return colonIndex != -1 ? qualifiedName.substring(colonIndex + 1) : qualifiedName;
   }
 
   /**
@@ -168,7 +159,7 @@ public class ResolutionUtils {
 
       definitions = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getAttributeDefinitions();
     }
-    return definitions.getAttrDefByName(getNameFromQualifiedName(name));
+    return definitions.getAttrDefByName(AttrNameSplitter.findLocalName(name));
   }
 
   /**
@@ -201,7 +192,7 @@ public class ResolutionUtils {
         // not an android value
         return -1;
       }
-      return apiLookup.getFieldVersions("android/R$" + resUrl.type, IdeResourcesUtil.getFieldNameByResourceName(resUrl.name)).min();
+      return apiLookup.getFieldVersions("android/R$" + resUrl.type, RClassNaming.getFieldNameByResourceName(resUrl.name)).min();
     }
   }
 
@@ -220,7 +211,7 @@ public class ResolutionUtils {
     Map<String, StyleItemResourceValue> allItems = new HashMap<>();
     String themeName = getQualifiedNameFromResourceUrl(themeUrl);
     do {
-      StyleResourceValue theme = resolver.getStyle(getNameFromQualifiedName(themeName), themeName.startsWith(PREFIX_ANDROID));
+      StyleResourceValue theme = resolver.getStyle(AttrNameSplitter.findLocalName(themeName), themeName.startsWith(PREFIX_ANDROID));
       if (theme == null) {
         break;
       }

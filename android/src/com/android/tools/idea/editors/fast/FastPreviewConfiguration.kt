@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.fast
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.Service
@@ -35,7 +34,7 @@ class FastPreviewConfiguration : SimplePersistentStateComponent<FastPreviewConfi
   }
 
   var isEnabled
-    get() = StudioFlags.COMPOSE_FAST_PREVIEW.get() && state.fastPreviewEnabled
+    get() = state.fastPreviewEnabled
     set(value) {
       if (state.fastPreviewEnabled != value) {
         state.fastPreviewEnabled = value

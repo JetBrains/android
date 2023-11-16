@@ -23,34 +23,40 @@ import java.awt.Point
 import kotlin.math.max
 
 /**
- * This layout puts the previews in the same group together and list them vertically.
- * It centres every preview in the middle of the window.
+ * This layout puts the previews in the same group together and list them vertically. It centres
+ * every preview in the middle of the window.
  *
- * [canvasTopPadding] is the top padding from the surface.
- * [previewFramePaddingProvider] is to provide the horizontal and vertical paddings of every "preview frame". The "preview frame" is a
- * preview with its toolbars. The input value is the scale value of the current [PositionableContent].
+ * [canvasTopPadding] is the top padding from the surface. [previewFramePaddingProvider] is to
+ * provide the horizontal and vertical paddings of every "preview frame". The "preview frame" is a
+ * preview with its toolbars. The input value is the scale value of the current
+ * [PositionableContent].
  */
-class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadding: Int,
-                                      @SwingCoordinate private val previewFramePaddingProvider: (scale: Double) -> Int,
-                                      private val transform: (Collection<PositionableContent>) -> List<List<PositionableContent>>)
-  : SurfaceLayoutManager {
+class GroupedListSurfaceLayoutManager(
+  @SwingCoordinate private val canvasTopPadding: Int,
+  @SwingCoordinate private val previewFramePaddingProvider: (scale: Double) -> Int,
+  private val transform: (Collection<PositionableContent>) -> List<List<PositionableContent>>
+) : SurfaceLayoutManager {
 
-  override fun getPreferredSize(content: Collection<PositionableContent>,
-                                @SwingCoordinate availableWidth: Int,
-                                @SwingCoordinate availableHeight: Int,
-                                @SwingCoordinate dimension: Dimension?) =
-    getSize(content, PositionableContent::contentSize, { 1.0 }, dimension)
+  override fun getPreferredSize(
+    content: Collection<PositionableContent>,
+    @SwingCoordinate availableWidth: Int,
+    @SwingCoordinate availableHeight: Int,
+    @SwingCoordinate dimension: Dimension?
+  ) = getSize(content, PositionableContent::contentSize, { 1.0 }, dimension)
 
-  override fun getRequiredSize(content: Collection<PositionableContent>,
-                               @SwingCoordinate availableWidth: Int,
-                               @SwingCoordinate availableHeight: Int,
-                               @SwingCoordinate dimension: Dimension?) =
-    getSize(content, PositionableContent::scaledContentSize, { scale }, dimension)
+  override fun getRequiredSize(
+    content: Collection<PositionableContent>,
+    @SwingCoordinate availableWidth: Int,
+    @SwingCoordinate availableHeight: Int,
+    @SwingCoordinate dimension: Dimension?
+  ) = getSize(content, PositionableContent::scaledContentSize, { scale }, dimension)
 
   @SurfaceScale
-  override fun getFitIntoScale(content: Collection<PositionableContent>,
-                               @SwingCoordinate availableWidth: Int,
-                               @SwingCoordinate availableHeight: Int): Double {
+  override fun getFitIntoScale(
+    content: Collection<PositionableContent>,
+    @SwingCoordinate availableWidth: Int,
+    @SwingCoordinate availableHeight: Int
+  ): Double {
     if (content.isEmpty()) {
       // No content. Use 100% as zoom level
       return 1.0
@@ -59,27 +65,36 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     // Find the scale to put all the previews into the screen without any margin and padding.
     val totalRawHeight = content.sumOf { it.contentSize.height }
     val maxRawWidth = content.maxOf { it.contentSize.width }
-    // The zoom-to-fit scale can not be larger than this scale, since it may need some margins and/or paddings.
-    val upperBound = minOf(availableHeight.toDouble() / totalRawHeight, availableWidth.toDouble() / maxRawWidth)
+    // The zoom-to-fit scale can not be larger than this scale, since it may need some margins
+    // and/or paddings.
+    val upperBound =
+      minOf(availableHeight.toDouble() / totalRawHeight, availableWidth.toDouble() / maxRawWidth)
 
     if (upperBound <= MINIMUM_SCALE) {
       return MINIMUM_SCALE
     }
     // binary search between MINIMUM_SCALE to upper bound.
-    return getMaxZoomToFitScale(content, MINIMUM_SCALE, upperBound, availableWidth, availableHeight, Dimension())
+    return getMaxZoomToFitScale(
+      content,
+      MINIMUM_SCALE,
+      upperBound,
+      availableWidth,
+      availableHeight,
+      Dimension()
+    )
   }
 
-  /**
-   * Binary search to find the largest scale for [width] x [height] space.
-   */
+  /** Binary search to find the largest scale for [width] x [height] space. */
   @SurfaceScale
-  private fun getMaxZoomToFitScale(content: Collection<PositionableContent>,
-                                   @SurfaceScale min: Double,
-                                   @SurfaceScale max: Double,
-                                   @SwingCoordinate width: Int,
-                                   @SwingCoordinate height: Int,
-                                   cache: Dimension,
-                                   depth: Int = 0): Double {
+  private fun getMaxZoomToFitScale(
+    content: Collection<PositionableContent>,
+    @SurfaceScale min: Double,
+    @SurfaceScale max: Double,
+    @SwingCoordinate width: Int,
+    @SwingCoordinate height: Int,
+    cache: Dimension,
+    depth: Int = 0
+  ): Double {
     if (depth >= MAX_ITERATION_TIMES) {
       return min
     }
@@ -92,16 +107,17 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     val dim = getSize(content, { contentSize.scaleBy(scale) }, { scale }, cache)
     return if (dim.width <= width && dim.height <= height) {
       getMaxZoomToFitScale(content, scale, max, width, height, cache, depth + 1)
-    }
-    else {
+    } else {
       getMaxZoomToFitScale(content, min, scale, width, height, cache, depth + 1)
     }
   }
 
-  private fun getSize(content: Collection<PositionableContent>,
-                      sizeFunc: PositionableContent.() -> Dimension,
-                      scaleFunc: PositionableContent.() -> Double,
-                      dimension: Dimension?): Dimension {
+  private fun getSize(
+    content: Collection<PositionableContent>,
+    sizeFunc: PositionableContent.() -> Dimension,
+    scaleFunc: PositionableContent.() -> Double,
+    dimension: Dimension?
+  ): Dimension {
     val dim = dimension ?: Dimension()
 
     val verticalList = transform(content).flatten()
@@ -130,10 +146,12 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     return dim
   }
 
-  override fun measure(content: Collection<PositionableContent>,
-                       availableWidth: Int,
-                       availableHeight: Int,
-                       keepPreviousPadding: Boolean): Map<PositionableContent, Point> {
+  override fun measure(
+    content: Collection<PositionableContent>,
+    availableWidth: Int,
+    availableHeight: Int,
+    keepPreviousPadding: Boolean
+  ): Map<PositionableContent, Point> {
     val verticalList = transform(content).flatten()
     if (verticalList.isEmpty()) {
       return emptyMap()
@@ -158,7 +176,9 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     val positionMap = mutableMapOf<PositionableContent, Point>()
 
     // centralizes the contents when total height is smaller than window height.
-    val startY: Int = if (totalHeight + canvasTopPadding > availableHeight) canvasTopPadding else (availableHeight - totalHeight) / 2
+    val startY: Int =
+      if (totalHeight + canvasTopPadding > availableHeight) canvasTopPadding
+      else (availableHeight - totalHeight) / 2
 
     var nextY = startY
     for (view in verticalList) {
@@ -173,7 +193,11 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
     return positionMap
   }
 
-  private fun MutableMap<PositionableContent, Point>.setContentPosition(content: PositionableContent, x: Int, y: Int) {
+  private fun MutableMap<PositionableContent, Point>.setContentPosition(
+    content: PositionableContent,
+    x: Int,
+    y: Int
+  ) {
     // The new compose layout consider the toolbar size as the anchor of location.
     val margin = content.margin
     val shiftedX = x + margin.left

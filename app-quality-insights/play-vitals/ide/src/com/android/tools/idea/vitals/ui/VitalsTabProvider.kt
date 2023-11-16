@@ -19,9 +19,14 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsModel
+import com.android.tools.idea.insights.VITALS_KEY
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
+import com.android.tools.idea.vitals.ui.icons.VitalsIcons
 import com.google.gct.login.GoogleLogin
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.components.service
@@ -35,23 +40,38 @@ import javax.swing.JPanel
 import kotlinx.coroutines.launch
 
 class VitalsTabProvider : AppInsightsTabProvider {
-  override val tabDisplayName = "Play Vitals"
+  private val loggedOutErrorStateComponent = loggedOutErrorStateComponent()
+  override val displayName = VITALS_KEY.displayName
 
-  // TODO(b/271918057): use real icon.
-  override val tabIcon = StudioIcons.Avd.DEVICE_PLAY_STORE
+  override val icon = StudioIcons.Avd.DEVICE_PLAY_STORE
 
   override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel) {
     tabPanel.setComponent(placeholderContent())
-    val configManager = project.service<VitalsConfigurationManager>()
+    val configManager = project.service<VitalsConfigurationService>().manager
+    val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
     AndroidCoroutineScope(tabPanel, AndroidDispatchers.uiThread).launch {
       configManager.configuration.collect { appInsightsModel ->
         when (appInsightsModel) {
           AppInsightsModel.Unauthenticated -> {
-            tabPanel.setComponent(loggedOutErrorStateComponent())
+            tracker.logZeroState(
+              AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.newBuilder()
+                .apply {
+                  emptyState =
+                    AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.EmptyState
+                      .NO_LOGIN
+                }
+                .build()
+            )
+            tabPanel.setComponent(loggedOutErrorStateComponent)
           }
           is AppInsightsModel.Authenticated -> {
             tabPanel.setComponent(
-              VitalsTab(appInsightsModel.controller, project, Clock.systemDefaultZone())
+              VitalsTab(
+                appInsightsModel.controller,
+                project,
+                Clock.systemDefaultZone(),
+                AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
+              )
             )
           }
         }
@@ -61,7 +81,9 @@ class VitalsTabProvider : AppInsightsTabProvider {
 
   override fun isApplicable() = StudioFlags.PLAY_VITALS_ENABLED.get()
 
-  // TODO(b/274775776): implement 0 state screen
+  override fun getConfigurationManager(project: Project) =
+    project.service<VitalsConfigurationService>().manager
+
   private fun placeholderContent(): JPanel =
     object : JPanel() {
       private val text =
@@ -69,7 +91,11 @@ class VitalsTabProvider : AppInsightsTabProvider {
             override fun isStatusVisible() = true
           }
           .also {
-            it.appendLine("Initializing Play Vitals", SimpleTextAttributes.GRAYED_ATTRIBUTES, null)
+            it.appendLine(
+              "Waiting for initial sync...",
+              SimpleTextAttributes.GRAYED_ATTRIBUTES,
+              null
+            )
             it.attachTo(this)
           }
 
@@ -79,7 +105,6 @@ class VitalsTabProvider : AppInsightsTabProvider {
       }
     }
 
-  // TODO(b/274775776): revisit this 0 state screen
   @Suppress("DialogTitleCapitalization")
   private fun loggedOutErrorStateComponent(): JPanel {
     val loggedOutText =
@@ -87,31 +112,28 @@ class VitalsTabProvider : AppInsightsTabProvider {
           override fun isStatusVisible() = true
         }
         .apply {
-          // TODO(b/271918057): use real icon.
           appendLine(
-            StudioIcons.Avd.DEVICE_PLAY_STORE,
+            VitalsIcons.PLAY_CONSOLE_ICON,
             "",
             SimpleTextAttributes.REGULAR_ATTRIBUTES,
             null
           )
           appendLine(
-            "See real-world app quality insights here",
+            "See insights from Play Console with Android Vitals",
             SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES,
             null
           )
           appendLine("Log in", SimpleTextAttributes.LINK_ATTRIBUTES) {
             GoogleLogin.instance.logIn()
           }
-          appendText(" to Android Studio to connect to your Play Store account.")
+          appendText(" to Android Studio to connect to your Play Console account.")
           appendLine("")
           appendLine(
             AllIcons.General.ContextHelp,
             "More Info",
             SimpleTextAttributes.LINK_ATTRIBUTES
           ) {
-            BrowserUtil.browse(
-              " https://d.android.com/r/studio-ui/app-quality-insights/crashlytics/help "
-            )
+            BrowserUtil.browse("https://d.android.com/r/studio-ui/debug/aqi-android-vitals")
           }
         }
 

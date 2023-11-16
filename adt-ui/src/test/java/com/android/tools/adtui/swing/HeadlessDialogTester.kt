@@ -46,7 +46,6 @@ import com.intellij.ui.ComponentUtil
 import com.intellij.ui.SpeedSearchBase
 import com.intellij.ui.ToolbarService
 import com.intellij.ui.components.JBLayeredPane
-import com.intellij.util.Consumer
 import com.intellij.util.ExceptionUtil
 import com.intellij.util.ReflectionUtil
 import com.intellij.util.containers.ContainerUtil
@@ -57,7 +56,6 @@ import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.EventQueue
-import java.awt.GraphicsEnvironment
 import java.awt.KeyboardFocusManager
 import java.awt.Point
 import java.awt.Toolkit
@@ -72,6 +70,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
+import java.util.function.Consumer
 import java.util.function.Predicate
 import javax.swing.JComponent
 import javax.swing.JDialog
@@ -107,7 +106,7 @@ fun findModelessDialog(predicate: Predicate<DialogWrapper>): DialogWrapper? = mo
  * @param dialogInteractor user code for interacting with the dialog
  */
 fun createModalDialogAndInteractWithIt(dialogCreator: Runnable, dialogInteractor: Consumer<DialogWrapper>) {
-  createModalDialogAndInteractWithIt(modalDialogStack.size + 1, dialogCreator, dialogInteractor::consume)
+  createModalDialogAndInteractWithIt(modalDialogStack.size + 1, dialogCreator, dialogInteractor::accept)
 }
 
 private fun createModalDialogAndInteractWithIt(modalDepth: Int, dialogCreator: Runnable, dialogInteractor: Consumer<DialogWrapper>) {
@@ -121,7 +120,7 @@ private fun createModalDialogAndInteractWithIt(modalDepth: Int, dialogCreator: R
           val dialog = modalDialogStack.last()
           EventQueue.invokeLater {
             try {
-              dialogInteractor.consume(dialog)
+              dialogInteractor.accept(dialog)
             }
             finally {
               if (dialog.isShowing) {
@@ -193,33 +192,33 @@ private val dispatchEventMethod = ReflectionUtil.getDeclaredMethod(EventQueue::c
  */
 private class HeadlessDialogWrapperPeerFactory : DialogWrapperPeerFactory() {
   override fun createPeer(wrapper: DialogWrapper, project: Project?, canBeParent: Boolean): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, project, canBeParent)
+    return HeadlessDialogWrapperPeer(wrapper, project)
   }
 
   override fun createPeer(wrapper: DialogWrapper,
                           project: Project?,
                           canBeParent: Boolean,
                           ideModalityType: IdeModalityType): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, project, canBeParent, ideModalityType)
+    return HeadlessDialogWrapperPeer(wrapper, project, ideModalityType)
   }
 
   override fun createPeer(wrapper: DialogWrapper, canBeParent: Boolean): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, null, canBeParent)
+    return HeadlessDialogWrapperPeer(wrapper, null)
   }
 
   override fun createPeer(wrapper: DialogWrapper, parent: Component, canBeParent: Boolean): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, null, canBeParent)
+    return HeadlessDialogWrapperPeer(wrapper, null)
   }
 
   override fun createPeer(wrapper: DialogWrapper, canBeParent: Boolean, ideModalityType: IdeModalityType): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, null, canBeParent, ideModalityType)
+    return HeadlessDialogWrapperPeer(wrapper, null, ideModalityType)
   }
 
   override fun createPeer(wrapper: DialogWrapper,
                           owner: Window,
                           canBeParent: Boolean,
                           ideModalityType: IdeModalityType): DialogWrapperPeer {
-    return HeadlessDialogWrapperPeer(wrapper, null, canBeParent, ideModalityType)
+    return HeadlessDialogWrapperPeer(wrapper, null, ideModalityType)
   }
 }
 
@@ -234,10 +233,8 @@ private class HeadlessDialogWrapperPeerFactory : DialogWrapperPeerFactory() {
 private class HeadlessDialogWrapperPeer(
   private val wrapper: DialogWrapper,
   private var project: Project?,
-  canBeParent: Boolean,
   ideModalityType: IdeModalityType = IdeModalityType.IDE
 ) : DialogWrapperPeer() {
-  private val canBeParent: Boolean
   private val disposeActions = arrayListOf<Runnable>()
   private val rootPane = createRootPane()
   private var modal = true
@@ -249,8 +246,6 @@ private class HeadlessDialogWrapperPeer(
 
   init {
     modal = ideModalityType != IdeModalityType.MODELESS
-    val headless = isHeadlessEnv
-    this.canBeParent = headless || canBeParent
   }
 
   override fun isHeadless(): Boolean {
@@ -461,12 +456,6 @@ private class HeadlessDialogWrapperPeer(
       disposeActions.add(Runnable { StackingPopupDispatcher.getInstance().restorePersistentPopups() })
     }
   }
-
-  private val isHeadlessEnv: Boolean
-    get() {
-      val app = getApplication()
-      return if (app == null) GraphicsEnvironment.isHeadless() else app.isUnitTestMode || app.isHeadlessEnvironment
-    }
 
   private inner class AnCancelAction : AnAction(), DumbAware {
 

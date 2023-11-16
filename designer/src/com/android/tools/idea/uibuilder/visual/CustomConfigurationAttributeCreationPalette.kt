@@ -60,13 +60,14 @@ private const val HORIZONTAL_BORDER = 12
 private const val FIELD_VERTICAL_BORDER = 3
 
 /**
- * The panel for creating a [CustomConfigurationAttribute]. When a [CustomConfigurationAttribute] is created the
- * [createdCallback] is triggered.
+ * The panel for creating a [CustomConfigurationAttribute]. When a [CustomConfigurationAttribute] is
+ * created the [createdCallback] is triggered.
  */
-class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
-                                                  private val facet: AndroidFacet,
-                                                  private val createdCallback: (CustomConfigurationAttribute) -> Unit)
-  : AdtPrimaryPanel(BorderLayout()) {
+class CustomConfigurationAttributeCreationPalette(
+  private val file: PsiFile,
+  private val facet: AndroidFacet,
+  private val createdCallback: (CustomConfigurationAttribute) -> Unit
+) : AdtPrimaryPanel(BorderLayout()) {
 
   private var configurationName: String = DEFAULT_CUSTOM_PREVIEW_NAME
   private var selectedDevice: Device? = null
@@ -79,18 +80,23 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
 
   private var defaultFocusComponent: JComponent? = null
 
-  private val createAction = object : AbstractAction() {
-    override fun actionPerformed(e: ActionEvent?) {
-      createdCallback(CustomConfigurationAttribute(configurationName,
-                                                   selectedDevice?.id,
-                                                   selectedApiTarget?.version?.apiLevel,
-                                                   selectedOrientation,
-                                                   selectedLocale?.toString(),
-                                                   selectedTheme,
-                                                   selectedUiMode,
-                                                   selectedNightMode))
+  private val createAction =
+    object : AbstractAction() {
+      override fun actionPerformed(e: ActionEvent?) {
+        createdCallback(
+          CustomConfigurationAttribute(
+            configurationName,
+            selectedDevice?.id,
+            selectedApiTarget?.version?.apiLevel,
+            selectedOrientation,
+            selectedLocale?.toString(),
+            selectedTheme,
+            selectedUiMode,
+            selectedNightMode
+          )
+        )
+      }
     }
-  }
 
   init {
     add(createHeader(), BorderLayout.NORTH)
@@ -145,11 +151,13 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
     val panel = AdtPrimaryPanel(BorderLayout())
     // It is okay to have duplicated name
     val editTextField = JBTextField(configurationName)
-    editTextField.document.addDocumentListener(object : DocumentAdapter() {
-      override fun textChanged(e: DocumentEvent) {
-        configurationName = e.document.getText(0, e.document.length) ?: ""
+    editTextField.document.addDocumentListener(
+      object : DocumentAdapter() {
+        override fun textChanged(e: DocumentEvent) {
+          configurationName = e.document.getText(0, e.document.length) ?: ""
+        }
       }
-    })
+    )
 
     editTextField.isFocusable = true
     panel.add(editTextField, BorderLayout.CENTER)
@@ -162,8 +170,14 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
   private fun createDeviceOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
 
-    val groupedDevices = groupDevices(ConfigurationManager.getOrCreateInstance(facet.module).devices.filter { !it.isDeprecated })
-    val devices = groupedDevices.toSortedMap(Comparator { d1, d2 -> d1.orderOfOption - d2.orderOfOption }).flatMap { it.value }
+    val groupedDevices =
+      groupDevices(
+        ConfigurationManager.getOrCreateInstance(facet.module).devices.filter { !it.isDeprecated }
+      )
+    val devices =
+      groupedDevices
+        .toSortedMap(Comparator { d1, d2 -> d1.orderOfOption - d2.orderOfOption })
+        .flatMap { it.value }
     val boxModel = MyComboBoxModel(devices, { it.displayName })
     val box = CommonComboBox(boxModel)
     box.addActionListener { selectedDevice = boxModel.selectedValue }
@@ -180,9 +194,8 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
     val apiLevels = ConfigurationManager.getOrCreateInstance(facet.module).targets.reversed()
     if (apiLevels.isEmpty()) {
       val noApiLevelLabel = JBLabel("No available API Level")
-     panel.add(noApiLevelLabel, BorderLayout.CENTER)
-    }
-    else {
+      panel.add(noApiLevelLabel, BorderLayout.CENTER)
+    } else {
       val boxModel = MyComboBoxModel(apiLevels, { it.version.apiLevel.toString() })
       val box = CommonComboBox(boxModel)
       box.addActionListener { selectedApiTarget = boxModel.selectedValue }
@@ -212,10 +225,14 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
   private fun createLocaleOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
 
-    val locales = listOf(null) + ConfigurationManager.getOrCreateInstance(facet.module).localesInProject
-    val boxModel = MyComboBoxModel(locales,
-                                   { it?.toLocaleId() ?: Locale.getLocaleLabel(it, false) },
-                                   { Locale.getLocaleLabel(it, false)!!} )
+    val locales =
+      listOf(null) + ConfigurationManager.getOrCreateInstance(facet.module).localesInProject
+    val boxModel =
+      MyComboBoxModel(
+        locales,
+        { it?.toLocaleId() ?: Locale.getLocaleLabel(it, false) },
+        { Locale.getLocaleLabel(it, false)!! }
+      )
     val box = CommonComboBox(boxModel)
     box.addActionListener { selectedLocale = boxModel.selectedValue }
     selectedLocale = boxModel.selectedValue
@@ -229,8 +246,10 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
   private fun createThemeOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
 
-    val themeResolver = ThemeResolver(
-      ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(file.virtualFile))
+    val themeResolver =
+      ThemeResolver(
+        ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(file.virtualFile)
+      )
     val filter = createFilter(themeResolver, emptySet())
 
     val projectTheme = getProjectThemeNames(themeResolver, filter)
@@ -251,7 +270,8 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
 
   private fun createUiModeOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    val legalUiModes = UiMode.values().filter { (selectedApiTarget?.version?.apiLevel ?: 1) >= it.since() }
+    val legalUiModes =
+      UiMode.values().filter { (selectedApiTarget?.version?.apiLevel ?: 1) >= it.since() }
     val modes = if (legalUiModes.isEmpty()) listOf(UiMode.NORMAL) else legalUiModes
 
     val boxModel = MyComboBoxModel(modes, { it.longDisplayValue!! })
@@ -280,9 +300,11 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
     return panel
   }
 
-  private fun createFieldNameBorder(): Border = JBUI.Borders.empty(FIELD_VERTICAL_BORDER, HORIZONTAL_BORDER, FIELD_VERTICAL_BORDER, 0)
+  private fun createFieldNameBorder(): Border =
+    JBUI.Borders.empty(FIELD_VERTICAL_BORDER, HORIZONTAL_BORDER, FIELD_VERTICAL_BORDER, 0)
 
-  private fun createFieldComponentBorder(): Border = JBUI.Borders.empty(FIELD_VERTICAL_BORDER, 0, FIELD_VERTICAL_BORDER, HORIZONTAL_BORDER)
+  private fun createFieldComponentBorder(): Border =
+    JBUI.Borders.empty(FIELD_VERTICAL_BORDER, 0, FIELD_VERTICAL_BORDER, HORIZONTAL_BORDER)
 
   private fun createAddButtonPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
@@ -308,8 +330,11 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
 }
 
 @Suppress("UNCHECKED_CAST")
-private class MyComboBoxModel<T>(items: List<T>, selectedNameFunc: (T) -> String, optionNameFunc: (T) -> String = selectedNameFunc)
-  : DefaultComboBoxModel<MyBoxItemWrapper<T>>(), CommonComboBoxModel<MyBoxItemWrapper<T>> {
+private class MyComboBoxModel<T>(
+  items: List<T>,
+  selectedNameFunc: (T) -> String,
+  optionNameFunc: (T) -> String = selectedNameFunc
+) : DefaultComboBoxModel<MyBoxItemWrapper<T>>(), CommonComboBoxModel<MyBoxItemWrapper<T>> {
   init {
     items.forEach { addElement(MyBoxItemWrapper(it, optionNameFunc)) }
   }
@@ -329,23 +354,22 @@ private class MyComboBoxModel<T>(items: List<T>, selectedNameFunc: (T) -> String
   override fun removeListener(listener: ValueChangedListener) = Unit
 }
 
-/**
- * Wrapper the given item to have better display name.
- */
+/** Wrapper the given item to have better display name. */
 private class MyBoxItemWrapper<T>(val item: T, private val optionNameFunc: (T) -> String) {
   override fun toString(): String = optionNameFunc(item)
 }
 
 // The order of options in device dropdown button.
 private val DeviceGroup?.orderOfOption: Int
-  get() = when(this) {
-    DeviceGroup.NEXUS_XL -> 0
-    DeviceGroup.NEXUS_TABLET -> 1
-    DeviceGroup.WEAR -> 2
-    DeviceGroup.TV -> 3
-    DeviceGroup.AUTOMOTIVE -> 4
-    DeviceGroup.GENERIC -> 5
-    DeviceGroup.NEXUS -> 6
-    DeviceGroup.OTHER -> 7
-    else -> 8
-  }
+  get() =
+    when (this) {
+      DeviceGroup.NEXUS_XL -> 0
+      DeviceGroup.NEXUS_TABLET -> 1
+      DeviceGroup.WEAR -> 2
+      DeviceGroup.TV -> 3
+      DeviceGroup.AUTOMOTIVE -> 4
+      DeviceGroup.GENERIC -> 5
+      DeviceGroup.NEXUS -> 6
+      DeviceGroup.OTHER -> 7
+      else -> 8
+    }

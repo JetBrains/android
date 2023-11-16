@@ -28,28 +28,30 @@ import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JPanel
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class SelectorMenuActionTest {
 
-  @Rule
-  @JvmField
-  val rule = AndroidProjectRule.inMemory()
+  @Rule @JvmField val rule = AndroidProjectRule.inMemory()
 
   @Test
   fun testShowWhenAnimatedSelectorToolbarIsNotSelectingTransition() {
-    // The design surface is used to preview <animated-selector> file which is not selecting a transition.
-    // Not selecting a transition means it is previewing the state as same as a selector. It should show the menu in this case.
+    // The design surface is used to preview <animated-selector> file which is not selecting a
+    // transition.
+    // Not selecting a transition means it is previewing the state as same as a selector. It should
+    // show the menu in this case.
     val action = SelectorMenuAction()
     val surface = NlDesignSurface.builder(rule.project, rule.testRootDisposable).build()
     val toolbar = mock<AnimatedSelectorToolbar>()
-    DataManager.registerDataProvider(surface) { if (it == ANIMATION_TOOLBAR.name) toolbar else null }
+    DataManager.registerDataProvider(surface) {
+      if (it == ANIMATION_TOOLBAR.name) toolbar else null
+    }
     whenever(toolbar.isTransitionSelected()).thenReturn(false)
 
     val context = createContext(surface, toolbar)
@@ -57,17 +59,20 @@ class SelectorMenuActionTest {
     val event = AnActionEvent.createFromDataContext("", presentation, context)
     action.update(event)
 
-    assertTrue { presentation.isEnabledAndVisible }
+    assertTrue(presentation.isEnabledAndVisible)
     assertNull(presentation.description)
   }
 
   @Test
   fun testHideWhenAnimatedSelectorToolbarIsSelectingTransition() {
-    // The design surface is used to preview <animated-selector> file which is selecting a transition. It shouldn't show the menu.
+    // The design surface is used to preview <animated-selector> file which is selecting a
+    // transition. It shouldn't show the menu.
     val action = SelectorMenuAction()
     val surface = NlDesignSurface.builder(rule.project, rule.testRootDisposable).build()
     val toolbar = mock<AnimatedSelectorToolbar>()
-    DataManager.registerDataProvider(surface) { if (it == ANIMATION_TOOLBAR.name) toolbar else null }
+    DataManager.registerDataProvider(surface) {
+      if (it == ANIMATION_TOOLBAR.name) toolbar else null
+    }
     whenever(toolbar.isTransitionSelected()).thenReturn(true)
 
     val context = createContext(surface, toolbar)
@@ -75,8 +80,8 @@ class SelectorMenuActionTest {
     val event = AnActionEvent.createFromDataContext("", presentation, context)
     action.update(event)
 
-    assertFalse { presentation.isEnabled }
-    assertTrue { presentation.isVisible }
+    assertFalse(presentation.isEnabled)
+    assertTrue(presentation.isVisible)
     assertEquals("Cannot select the state when previewing a transition", presentation.description)
   }
 
@@ -86,14 +91,16 @@ class SelectorMenuActionTest {
     val action = SelectorMenuAction()
     val surface = NlDesignSurface.builder(rule.project, rule.testRootDisposable).build()
     val toolbar = mock<AnimationToolbar>()
-    DataManager.registerDataProvider(surface) { if (it == ANIMATION_TOOLBAR.name) toolbar else null }
+    DataManager.registerDataProvider(surface) {
+      if (it == ANIMATION_TOOLBAR.name) toolbar else null
+    }
 
     val context = createContext(surface, toolbar)
     val presentation = PresentationFactory().getPresentation(action)
     val event = AnActionEvent.createFromDataContext("", presentation, context)
     action.update(event)
 
-    assertFalse { presentation.isEnabledAndVisible }
+    assertFalse(presentation.isEnabledAndVisible)
     assertNull(presentation.description)
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.toml
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -31,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 import com.intellij.psi.PsiElement
 import org.toml.lang.psi.TomlArray
+import org.toml.lang.psi.TomlArrayTable
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKey
@@ -54,41 +56,61 @@ class TomlDslParser(
   override fun parse() {
     fun getVisitor(context: GradlePropertiesDslElement, name: GradleNameElement): TomlRecursiveVisitor = object : TomlRecursiveVisitor() {
       override fun visitTable(element: TomlTable) {
-          val key = element.header.key
-          if (key != null) {
-            key.doWithContext(context) { segment, context ->
-              val map = GradleDslExpressionMap(context, element, GradleNameElement.from(segment, this@TomlDslParser), true)
-              context.addParsedElement(map)
-              getVisitor(map, GradleNameElement.empty()).let { visitor -> element.entries.forEach { it.accept(visitor) } }
-            }
+        element.header.key?.doWithContext(context) { segment, context ->
+          if (segment.name == null) return@doWithContext
+          val nameElement = GradleNameElement.from(segment, this@TomlDslParser)
+          val description = context.getMapDescription(segment.name!!)
+          val map = context.getPropertyElement(description) ?: context.createChildDslElement(nameElement, element) {
+            GradleDslExpressionMap(context, element, nameElement, true)
           }
-          else {
-            super.visitTable(element)
-          }
+          map.psiElement = element // element must point to the last table psi
+          getVisitor(map, GradleNameElement.empty()).let { visitor -> element.entries.forEach { it.accept(visitor) } }
+        }
       }
 
       override fun visitArray(element: TomlArray) {
-        val list = GradleDslExpressionList(context, element, true, name)
-        context.addParsedElement(list)
+        val list = context.createChildDslElement(name, element) { GradleDslExpressionList(context, element, true, name) }
+        list.externalSyntax = ExternalNameSyntax.ASSIGNMENT
         getVisitor(list, GradleNameElement.empty()).let { visitor -> element.elements.forEach { it.accept(visitor) } }
       }
 
       override fun visitInlineTable(element: TomlInlineTable) {
-        val map = GradleDslExpressionMap(context, element, name, true)
-        context.addParsedElement(map)
+        val map = context.createChildDslElement(name, element) { GradleDslExpressionMap(context, element, name, true) }
         getVisitor(map, GradleNameElement.empty()).let { visitor -> element.entries.forEach { it.accept(visitor) } }
       }
 
       override fun visitLiteral(element: TomlLiteral) {
         val literal = GradleDslLiteral(context, element, name, element, LITERAL)
+        literal.externalSyntax = ExternalNameSyntax.ASSIGNMENT
         context.addParsedElement(literal)
       }
 
       override fun visitKeyValue(element: TomlKeyValue) {
-          element.key.doWithContext(context) { segment, context ->
-            val key = GradleNameElement.from(segment, this@TomlDslParser)
-            getVisitor(context, key).let { element.value?.accept(it) }
-          }
+        element.key.doWithContext(context) { segment, context ->
+          val key = GradleNameElement.from(segment, this@TomlDslParser)
+          getVisitor(context, key).let { element.value?.accept(it) }
+        }
+      }
+
+      override fun visitArrayTable(element: TomlArrayTable) {
+        element.header.key?.doWithContext(context) { segment, context ->
+          val name = segment.name ?: return@doWithContext
+          val nameElement = GradleNameElement.from(segment, this@TomlDslParser)
+          val description = context.getChildPropertiesElementDescription(name)
+                            ?: PropertiesElementDescription(name,
+                                                            GradleDslExpressionList::class.java,
+                                                            ::GradleDslExpressionList)
+
+          val list: GradlePropertiesDslElement = context.getPropertyElement(description)
+                                                 ?: context.createChildDslElement(nameElement, element) {
+                                                   GradleDslExpressionList(context, GradleNameElement.create(name))
+                                                 }
+          val map = GradleDslExpressionMap(context, element, GradleNameElement.empty(), true)
+
+          list.addParsedElement(map)
+          context.addParsedElement(list)
+          getVisitor(map, GradleNameElement.empty()).let { visitor -> element.entries.forEach { it.accept(visitor) } }
+        }
       }
     }
     psiFile.accept(getVisitor(dslFile, GradleNameElement.empty()))
@@ -121,7 +143,7 @@ class TomlDslParser(
             text == "nan" || text == "+nan" -> Double.NaN
             text == "-nan" -> Double.NaN // no distinct NaN value available
             text.contains("[eE.]".toRegex()) -> text.toDouble()
-            else -> text.replace("_", "").toLong(10)
+            else -> text.replace("_", "").let { it.toIntOrNull(10) ?: it.toLong(10) }
           }
         }
         is TomlLiteralKind.DateTime -> literal.text // No Gradle Dsl representation of Toml DateTime
@@ -147,15 +169,47 @@ class TomlDslParser(
                                     nameElement: GradleNameElement?): GradlePropertiesDslElement? {
     return null
   }
+
+  fun TomlKey.doWithContext(context: GradlePropertiesDslElement, thunk: (TomlKeySegment, GradlePropertiesDslElement) -> Unit) {
+    val lastSegmentIndex = segments.size - 1
+    var currentContext = context
+    segments.forEachIndexed { i, segment ->
+      if (i == lastSegmentIndex) return thunk(segment, currentContext)
+      if (segment.name == null) return
+      val description = currentContext.getMapDescription(segment.name!!)
+
+      val nameElement = GradleNameElement.from(segment, this@TomlDslParser)
+      currentContext = currentContext.getPropertyElement(description) ?: currentContext.createChildDslElement(nameElement, segment) {
+        GradleDslExpressionMap(currentContext, segment, nameElement, true)
+      }
+    }
+  }
 }
 
-fun TomlKey.doWithContext(context: GradlePropertiesDslElement, thunk: (TomlKeySegment, GradlePropertiesDslElement) -> Unit) {
-  val lastSegmentIndex = segments.size - 1
-  var currentContext = context
-  segments.forEachIndexed { i, segment ->
-    if (i == lastSegmentIndex) return thunk(segment, currentContext)
-    val description = PropertiesElementDescription(segment.name, GradleDslExpressionMap::class.java, ::GradleDslExpressionMap)
-    currentContext = currentContext.ensurePropertyElement(description)
-    if (currentContext.psiElement == null) currentContext.psiElement = segment
+
+fun GradlePropertiesDslElement.createChildDslElement(elementName: GradleNameElement,
+                                                     psiElement: PsiElement,
+                                                     defaultConstructor: () -> GradlePropertiesDslElement): GradlePropertiesDslElement {
+  val result = when (val description = getChildPropertiesElementDescription(elementName.name())) {
+    null -> defaultConstructor.invoke()
+    else -> {
+      val element = description.constructor.construct(this, elementName)
+      element.psiElement = psiElement
+      element
+    }
   }
+  result.externalSyntax = ExternalNameSyntax.ASSIGNMENT
+  addParsedElement(result)
+  return result
+}
+
+fun GradlePropertiesDslElement.getMapDescription(name: String): PropertiesElementDescription<*> {
+  var description = getChildPropertiesElementDescription(name) ?: PropertiesElementDescription(name,
+                                                                                               GradleDslExpressionMap::class.java,
+                                                                                               ::GradleDslExpressionMap)
+  if (description.name == null) {
+    // null means all names are acceptable, but we need to search for our particular name in order to update if it's there
+    description = description.copyWithName(name)
+  }
+  return description
 }

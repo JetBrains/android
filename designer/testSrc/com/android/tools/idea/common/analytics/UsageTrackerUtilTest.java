@@ -48,15 +48,15 @@ package com.android.tools.idea.common.analytics;
 
  import com.android.ide.common.rendering.api.ResourceNamespace;
  import com.android.ide.common.rendering.api.ResourceReference;
+ import com.android.tools.dom.attrs.AttributeDefinition;
+ import com.android.tools.dom.attrs.AttributeDefinitions;
+ import com.android.tools.dom.attrs.StyleableDefinition;
  import com.intellij.openapi.util.text.StringUtil;
  import com.intellij.testFramework.ServiceContainerUtil;
  import java.util.HashMap;
  import java.util.Map;
  import java.util.Set;
  import org.jetbrains.android.AndroidTestCase;
- import com.android.tools.dom.attrs.AttributeDefinition;
- import com.android.tools.dom.attrs.AttributeDefinitions;
- import com.android.tools.dom.attrs.StyleableDefinition;
  import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
  import org.jetbrains.android.resourceManagers.LocalResourceManager;
  import org.jetbrains.android.resourceManagers.ModuleResourceManagers;

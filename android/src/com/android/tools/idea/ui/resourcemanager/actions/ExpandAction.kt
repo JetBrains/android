@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.actions
 
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
 import org.jetbrains.android.util.AndroidBundle.message
@@ -47,4 +48,6 @@ open class ExpandAction :
       }
     }
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }

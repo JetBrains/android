@@ -74,18 +74,24 @@ public class BuildVariantUpdater {
    */
   public void updateSelectedBuildVariant(@NotNull Module moduleToUpdate,
                                          @NotNull String selectedBuildVariant) {
-    updateSelectedVariant(moduleToUpdate, new SwitchVariantRequest(getModuleIdForSyncRequest(moduleToUpdate), selectedBuildVariant, null));
+    String moduleId = getModuleIdForSyncRequest(moduleToUpdate);
+    if (moduleId != null) {
+      updateSelectedVariant(moduleToUpdate, new SwitchVariantRequest(moduleId, selectedBuildVariant, null));
+    }
   }
 
   /**
    * Updates a module's structure when the user selects an ABI from the tool window.
    */
   public void updateSelectedAbi(@NotNull Module moduleToUpdate,
-                                   @NotNull String selectedAbiName) {
-    updateSelectedVariant(moduleToUpdate,
-                          new SwitchVariantRequest(getModuleIdForSyncRequest(moduleToUpdate),
-                                                   null,
-                                                   selectedAbiName));
+                                @NotNull String selectedAbiName) {
+    String moduleId = getModuleIdForSyncRequest(moduleToUpdate);
+    if (moduleId != null) {
+      updateSelectedVariant(moduleToUpdate,
+                            new SwitchVariantRequest(moduleId,
+                                                     null,
+                                                     selectedAbiName));
+    }
   }
 
   /**
@@ -94,22 +100,26 @@ public class BuildVariantUpdater {
   public void updateSelectedVariantAndAbi(@NotNull Module module,
                                           @NotNull String selectedVariant,
                                           @NotNull String selectedAbiName) {
-    updateSelectedVariant(module,
-                          new SwitchVariantRequest(getModuleIdForSyncRequest(module),
-                                                   selectedVariant,
-                                                   selectedAbiName));
+    String moduleId = getModuleIdForSyncRequest(module);
+    if (moduleId != null) {
+      updateSelectedVariant(module,
+                            new SwitchVariantRequest(
+                              moduleId,
+                              selectedVariant,
+                              selectedAbiName));
+    }
   }
 
   /**
    * Updates a module's structure when the user selects a build variant or ABI.
    */
   private void updateSelectedVariant(@NotNull Module moduleToUpdate,
-                                        @NotNull SwitchVariantRequest variantAndAbi) {
+                                     @NotNull SwitchVariantRequest variantAndAbi) {
     @Nullable ExternalProjectInfo data =
       ProjectDataManager.getInstance().getExternalProjectData(myProject, GradleConstants.SYSTEM_ID, myProject.getBasePath());
 
     DataNode<ProjectData> variantProjectDataNode =
-      StudioFlags.GRADLE_SYNC_ENABLE_CACHED_VARIANTS.get() &&data != null
+      StudioFlags.GRADLE_SYNC_ENABLE_CACHED_VARIANTS.get() && data != null
       ? VariantSwitcher.findVariantProjectData(moduleToUpdate, variantAndAbi, data)
       : null;
 
@@ -118,7 +128,7 @@ public class BuildVariantUpdater {
     // 2. Build files were not changed, variant to select doesn't exist, which can only happen with single-variant sync, request Variant-only Sync.
     // 3. Build files were not changed, variant to select exists, do module setup for affected modules.
     if (GradleSyncState.getInstance(myProject).isSyncNeeded().equals(YES)) {
-      requestGradleSync(myProject, variantAndAbi);
+      requestGradleSync(myProject, variantAndAbi, false);
       return;
     }
 
@@ -131,7 +141,7 @@ public class BuildVariantUpdater {
 
     // Build file is not changed, the cached variants should be cached and reused.
     AndroidGradleProjectResolver.saveCurrentlySyncedVariantsForReuse(myProject);
-    requestGradleSync(myProject, variantAndAbi);
+    requestGradleSync(myProject, variantAndAbi, false);
   }
 
   // TODO(b/215522894): Unfortunately, some Kotlin resolvers stash non-persisted data into the user data of data notes.
@@ -171,14 +181,15 @@ public class BuildVariantUpdater {
     };
   }
 
-  private static void requestGradleSync(@NotNull Project project,
-                                        @NotNull SwitchVariantRequest requestedVariantChange) {
+  public static void requestGradleSync(
+    @NotNull Project project,
+    SwitchVariantRequest requestedVariantChange,
+    boolean importDefaultVariants
+  ) {
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(
-      TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER,
-      requestedVariantChange);
+      TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER, requestedVariantChange, importDefaultVariants);
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener());
   }
-
 
   private static void setupCachedVariant(@NotNull Project project,
                                          @NotNull DataNode<ProjectData> variantData) {

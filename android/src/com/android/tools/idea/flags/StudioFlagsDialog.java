@@ -30,6 +30,7 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.SpinnerLongValueProperty;
 import com.android.tools.idea.observable.ui.SpinnerValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
@@ -51,11 +52,9 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBIntSpinner;
 import com.intellij.ui.LightColors;
 import com.intellij.ui.SearchTextField;
-import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.NamedColorUtil;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
@@ -78,8 +77,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
+import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
@@ -149,7 +150,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
       // Location is set on a callback, size is set using preferred size
       // Note that these values are ignored if the window bounds have been persisted
       // in a previous invocation (see getDimensionServiceKey)
-      setInitialLocationCallback(() -> bounds.getLocation());
+      setInitialLocationCallback(bounds::getLocation);
       myRootPanel.setPreferredSize(bounds.getSize());
     }
   }
@@ -303,77 +304,16 @@ public final class StudioFlagsDialog extends DialogWrapper {
   @NotNull
   private FlagEditor<?> createFlagEditor(Flag<?> flag) {
     if (flag.get().getClass() == Boolean.class) {
-      Flag<Boolean> boolFlag = ((Flag<Boolean>)flag);
-      return new FlagEditor<Boolean>() {
-        FlagProperty<Boolean> myFlagProperty = new FlagProperty<>(boolFlag);
-
-        @NotNull
-        @Override
-        public FlagProperty<Boolean> flagProperty() {
-          return myFlagProperty;
-        }
-
-        @NotNull
-        @Override
-        public JComponent editorComponent() {
-          JPanel choicesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
-          JRadioButton onButton = new JRadioButton("On");
-          JRadioButton offButton = new JRadioButton("Off");
-
-          ButtonGroup group = new ButtonGroup();
-          group.add(onButton);
-          group.add(offButton);
-
-          myBindings.bind(new SelectedProperty(onButton), myFlagProperty);
-          myBindings.bind(new SelectedProperty(offButton), not(myFlagProperty));
-          onButton.addActionListener(l -> myFlagProperty.set(true));
-          offButton.addActionListener(l -> myFlagProperty.set(false));
-
-          choicesPanel.add(onButton);
-          choicesPanel.add(offButton);
-          return choicesPanel;
-        }
-      };
+      return createBooleanFlagEditor((Flag<Boolean>)flag);
     }
     else if (flag.get().getClass() == String.class) {
-      Flag<String> stringFlag = ((Flag<String>)flag);
-      return new FlagEditor<String>() {
-        FlagProperty<String> myFlagProperty = new FlagProperty<>(stringFlag);
-
-        @NotNull
-        @Override
-        public FlagProperty<String> flagProperty() {
-          return myFlagProperty;
-        }
-
-        @NotNull
-        @Override
-        public JComponent editorComponent() {
-          JTextField textField = new JTextField();
-          myBindings.bindTwoWay(new TextProperty(textField), myFlagProperty);
-          return textField;
-        }
-      };
+      return createStringFlagEditor((Flag<String>)flag);
     }
     else if (flag.get().getClass() == Integer.class) {
-      Flag<Integer> intFlag = ((Flag<Integer>)flag);
-      return new FlagEditor<Integer>() {
-        FlagProperty<Integer> myFlagProperty = new FlagProperty<>(intFlag);
-
-        @NotNull
-        @Override
-        public FlagProperty<Integer> flagProperty() {
-          return myFlagProperty;
-        }
-
-        @NotNull
-        @Override
-        public JComponent editorComponent() {
-          JBIntSpinner spinner = new JBIntSpinner(intFlag.get(), Integer.MIN_VALUE, Integer.MAX_VALUE);
-          myBindings.bindTwoWay(new SpinnerValueProperty(spinner), myFlagProperty);
-          return spinner;
-        }
-      };
+      return createIntegerFlagEditor((Flag<Integer>)flag);
+    }
+    else if (flag.get().getClass() == Long.class) {
+      return createLongFlagEditor((Flag<Long>)flag);
     }
     else if (flag.get().getClass().isEnum()) {
       return createEnumFlagEditor((Flag<Enum>)flag);
@@ -384,12 +324,110 @@ public final class StudioFlagsDialog extends DialogWrapper {
     }
   }
 
+  @NotNull
+  private FlagEditor<String> createStringFlagEditor(Flag<String> flag) {
+    return new FlagEditor<>() {
+      final FlagProperty<String> myFlagProperty = new FlagProperty<>(flag);
+
+      @NotNull
+      @Override
+      public FlagProperty<String> flagProperty() {
+        return myFlagProperty;
+      }
+
+      @NotNull
+      @Override
+      public JComponent editorComponent() {
+        JTextField textField = new JTextField();
+        myBindings.bindTwoWay(new TextProperty(textField), myFlagProperty);
+        return textField;
+      }
+    };
+  }
+
+  @NotNull
+  private FlagEditor<Integer> createIntegerFlagEditor(Flag<Integer> flag) {
+    return new FlagEditor<>() {
+      final FlagProperty<Integer> myFlagProperty = new FlagProperty<>(flag);
+
+      @NotNull
+      @Override
+      public FlagProperty<Integer> flagProperty() {
+        return myFlagProperty;
+      }
+
+      @NotNull
+      @Override
+      public JComponent editorComponent() {
+        JBIntSpinner spinner = new JBIntSpinner(flag.get(), Integer.MIN_VALUE, Integer.MAX_VALUE);
+        myBindings.bindTwoWay(new SpinnerValueProperty(spinner), myFlagProperty);
+        return spinner;
+      }
+    };
+  }
+
+  @NotNull
+  private FlagEditor<Long> createLongFlagEditor(Flag<Long> flag) {
+    return new FlagEditor<>() {
+      final FlagProperty<Long> myFlagProperty = new FlagProperty<>(flag);
+
+      @NotNull
+      @Override
+      public FlagProperty<Long> flagProperty() {
+        return myFlagProperty;
+      }
+
+      @NotNull
+      @Override
+      public JComponent editorComponent() {
+        SpinnerNumberModel model = new SpinnerNumberModel(flag.get(), (Long)Long.MIN_VALUE, (Long)Long.MAX_VALUE, (Long)1L);
+        JSpinner spinner = new JSpinner(model);
+        myBindings.bindTwoWay(new SpinnerLongValueProperty(spinner), myFlagProperty);
+        return spinner;
+      }
+    };
+  }
+
+  @NotNull
+  private FlagEditor<Boolean> createBooleanFlagEditor(Flag<Boolean> flag) {
+    return new FlagEditor<>() {
+      final FlagProperty<Boolean> myFlagProperty = new FlagProperty<>(flag);
+
+      @NotNull
+      @Override
+      public FlagProperty<Boolean> flagProperty() {
+        return myFlagProperty;
+      }
+
+      @NotNull
+      @Override
+      public JComponent editorComponent() {
+        JPanel choicesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+        JRadioButton onButton = new JRadioButton("On");
+        JRadioButton offButton = new JRadioButton("Off");
+
+        ButtonGroup group = new ButtonGroup();
+        group.add(onButton);
+        group.add(offButton);
+
+        myBindings.bind(new SelectedProperty(onButton), myFlagProperty);
+        myBindings.bind(new SelectedProperty(offButton), not(myFlagProperty));
+        onButton.addActionListener(l -> myFlagProperty.set(true));
+        offButton.addActionListener(l -> myFlagProperty.set(false));
+
+        choicesPanel.add(onButton);
+        choicesPanel.add(offButton);
+        return choicesPanel;
+      }
+    };
+  }
+
   private <T extends Enum<T>> FlagEditor<T> createEnumFlagEditor(Flag<T> flag) {
     @SuppressWarnings("unchecked")
     Class<T> enumClass = (Class<T>)flag.get().getClass();
 
-    return new FlagEditor<T>() {
-      FlagProperty<T> myFlagProperty = new FlagProperty<>(flag);
+    return new FlagEditor<>() {
+      final FlagProperty<T> myFlagProperty = new FlagProperty<>(flag);
 
       @NotNull
       @Override

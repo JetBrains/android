@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -49,7 +50,9 @@ final class DeviceManagerWelcomeScreenAction extends DumbAwareAction {
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
 
-    if (myIsChromeOSAndIsNotHWAccelerated.getAsBoolean() || event.getProject() != null) {
+    if (StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get() ||
+        myIsChromeOSAndIsNotHWAccelerated.getAsBoolean() ||
+        event.getProject() != null) {
       presentation.setEnabledAndVisible(false);
       return;
     }

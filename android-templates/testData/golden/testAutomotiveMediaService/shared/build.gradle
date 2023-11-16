@@ -1,0 +1,18 @@
+plugins {
+    id 'com.android.library'
+}
+android {
+    namespace 'template.test.pkg.shared'
+    compileSdkVersion 34
+
+    defaultConfig {
+        minSdkVersion 23
+        targetSdkVersion 34
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+}
+
+dependencies {
+    implementation libs.media
+}

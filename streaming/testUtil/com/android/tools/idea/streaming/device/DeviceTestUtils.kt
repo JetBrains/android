@@ -17,6 +17,8 @@ package com.android.tools.idea.streaming.device
 
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.intellij.openapi.util.SystemInfo
+import icons.StudioIcons
+import org.junit.Assume.assumeTrue
 
 /**
  * Checks if the current platform is suitable for tests depending on the FFmpeg library.
@@ -25,12 +27,16 @@ import com.intellij.openapi.util.SystemInfo
  */
 fun isFFmpegAvailableToTest(): Boolean = !SystemInfo.isWindows
 
+/** Makes the test run only when the FFmpeg library is functional in the test environment. */
+fun assumeFFmpegAvailable() = assumeTrue(isFFmpegAvailableToTest())
+
 /**
  * Creates a [DeviceConfiguration] for testing purposes.
  */
 fun createDeviceConfiguration(propertyMap: Map<String, String>): DeviceConfiguration {
   val properties = DeviceProperties.Builder()
   properties.readCommonProperties(propertyMap)
+  properties.icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
   return DeviceConfiguration(properties.buildBase())
 }
 

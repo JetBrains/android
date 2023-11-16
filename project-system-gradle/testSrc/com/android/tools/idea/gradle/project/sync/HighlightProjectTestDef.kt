@@ -15,14 +15,20 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.resources.ResourceType
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl.Companion.wellKnownOrCreate
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
+import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.executeAndSave
+import com.android.tools.idea.testing.insertText
+import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
@@ -30,6 +36,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.PathUtil
+import org.jetbrains.android.augment.ResourceLightField
 import java.io.File
 
 data class HighlightProjectTestDef(
@@ -79,6 +86,16 @@ data class HighlightProjectTestDef(
         )
       ),
       HighlightProjectTestDef(
+        TestProject.CUSTOM_NAMESPACE,
+        modulesAndFiles = mapOf(
+          GradleSourceSetProjectPath(
+            "/",
+            ":app",
+            IdeModuleWellKnownSourceSet.MAIN
+          ) to listOf("src/main/java/google/simpleapplication/MyActivity.java")
+        )
+      ),
+      HighlightProjectTestDef(
         TestProject.NON_TRANSITIVE_R_CLASS_SYMBOL,
         checkHighlighting = ::validateNonTransitiveRClass,
         modulesAndFiles = mapOf(
@@ -99,7 +116,28 @@ data class HighlightProjectTestDef(
             IdeModuleWellKnownSourceSet.ANDROID_TEST
           ) to listOf("src/androidTest/java/com/example/app/ExampleInstrumentedTest.kt")
         )
-      )
+      ),
+      HighlightProjectTestDef(
+        TestProject.ANDROID_KOTLIN_MULTIPLATFORM,
+        modulesAndFiles = mapOf(
+          GradleSourceSetProjectPath(
+            "/",
+            ":kmpFirstLib",
+            wellKnownOrCreate("androidInstrumentedTest")
+          ) to listOf("src/androidInstrumentedTest/kotlin/com/example/kmpfirstlib/test/KmpAndroidFirstLibActivityTest.kt")
+        )
+      ),
+      HighlightProjectTestDef(
+        TestProject.ANDROID_KOTLIN_MULTIPLATFORM,
+        checkHighlighting = ::validateRClassResolutionInKmpAndroid,
+        modulesAndFiles = mapOf(
+          GradleSourceSetProjectPath(
+            "/",
+            ":kmpFirstLib",
+            wellKnownOrCreate("androidInstrumentedTest")
+          ) to listOf("src/androidInstrumentedTest/kotlin/com/example/kmpfirstlib/test/KmpAndroidFirstLibActivityTest.kt")
+        )
+      ),
     )
 
     private fun validateNonTransitiveRClass(fixture: JavaCodeInsightTestFixture) {
@@ -115,6 +153,24 @@ data class HighlightProjectTestDef(
         "[UNRESOLVED_REFERENCE] Unresolved reference: R",
         "[UNRESOLVED_REFERENCE] Unresolved reference: view_in_lib"
       )
+    }
+
+    private fun validateRClassResolutionInKmpAndroid(fixture: JavaCodeInsightTestFixture) {
+      fixture.moveCaret("fun testJavaResources() {|")
+      fixture.type("\n    androidx.appcompat.R.")
+      fixture.completeBasic()
+      assertThat(fixture.lookupElementStrings).containsAllOf(
+        "drawable", "layout"
+      )
+      fixture.editor.executeAndSave { insertText("drawable.tooltip_frame_light") }
+      fixture.moveCaret("tooltip_|frame_light")
+      val elementAtCaret = fixture.elementAtCaret
+      assertThat(elementAtCaret).isInstanceOf(ResourceLightField::class.java)
+      assertThat((elementAtCaret as ResourceLightField).resourceType).isEqualTo(ResourceType.DRAWABLE)
+      assertThat(elementAtCaret.parent.parent).isInstanceOf(TransitiveAarRClass::class.java)
+      assertThat(
+        (elementAtCaret.parent.parent as TransitiveAarRClass).packageName
+      ).isEqualTo("androidx.appcompat")
     }
   }
 }

@@ -7,50 +7,56 @@
     <orderEntry type="module" module-name="android.sdktools.lint-api" exported="" />
     <orderEntry type="module-library">
       <library name="liblint-checks-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:liblint-checks-proto.lib:223.0.1.0">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:liblint-checks-proto.lib:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/liblint-checks-proto.lib/223.0.1.0/liblint-checks-proto.lib-223.0.1.0.jar">
-              <sha256sum>45d2ea7affbb9b6628189f02186fbb06411e49407b4153b48566c27fc236f46b</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/liblint-checks-proto.lib/231.0.1.4/liblint-checks-proto.lib-231.0.1.4.jar">
+              <sha256sum>e116cc979f3d94a029dea8a60a79acbb799130992ef9d771a6f2320c1d3af3b1</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/liblint-checks-proto.lib/223.0.1.0/liblint-checks-proto.lib-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/liblint-checks-proto.lib/231.0.1.4/liblint-checks-proto.lib-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/liblint-checks-proto.lib/231.0.1.4/liblint-checks-proto.lib-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="">
       <library name="precompiled-lint-checks" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint-checks:223.0.1.0">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint-checks:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-checks/223.0.1.0/studio.android.sdktools.lint-checks-223.0.1.0.jar">
-              <sha256sum>ec845145016270a7bd44c28c82af221f03b75cfe3a2f7e6ef68a346a1e0cada6</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-checks/231.0.1.4/studio.android.sdktools.lint-checks-231.0.1.4.jar">
+              <sha256sum>abea74ce16af08eb9abc99cf53001063a27732bed68cb3c986449590f76b74f3</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-checks/223.0.1.0/studio.android.sdktools.lint-checks-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-checks/231.0.1.4/studio.android.sdktools.lint-checks-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-checks/231.0.1.4/studio.android.sdktools.lint-checks-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-lint-checks-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint-checks_test:223.0.1.0">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint-checks_test:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-checks_test/223.0.1.0/studio.android.sdktools.lint-checks_test-223.0.1.0.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-checks_test/231.0.1.4/studio.android.sdktools.lint-checks_test-231.0.1.4.jar">
               <sha256sum>c4ed2e61a0d749743fcd7c647714f0ec3f2c948e2c681bdfe663628e8db09638</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-checks_test/223.0.1.0/studio.android.sdktools.lint-checks_test-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-checks_test/231.0.1.4/studio.android.sdktools.lint-checks_test-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-checks_test/231.0.1.4/studio.android.sdktools.lint-checks_test-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
   </component>

@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 8.0.0-dev">
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/gradle/run/AndroidDeviceSpecUtil.kt"
-            line="51"/>
-    </issue>
+<issues format="5" by="lint 8.2.0-dev">
 
     <issue
         id="AvoidByLazy"
@@ -23,62 +15,6 @@
         <location
             file="src/org/jetbrains/android/refactoring/namespaces/NamespacesRefactoringsUtil.kt"
             line="65"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantUpdater.java"
-            line="78"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantUpdater.java"
-            line="87"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantUpdater.java"
-            line="99"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
-            line="133"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
-            line="262"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
-            line="315"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantView.java"
-            line="403"/>
     </issue>
 
 </issues>

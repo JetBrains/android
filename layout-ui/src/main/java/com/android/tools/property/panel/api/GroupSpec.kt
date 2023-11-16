@@ -20,9 +20,8 @@ import com.android.tools.property.ptable.PTableItem
 /**
  * A definition of a group in a table.
  *
- * A group has a [name] and a [itemFilter] which matches the items which make
- * up the group. A non editable value can be displayed in the table by
- * supplying a [value].
+ * A group has a [name] and a [itemFilter] which matches the items which make up the group. A non
+ * editable value can be displayed in the table by supplying a [value].
  */
 interface GroupSpec<P : PropertyItem> {
   val name: String

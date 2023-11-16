@@ -17,9 +17,10 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
-import javax.swing.JRootPane;
-import javax.swing.text.JTextComponent;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import javax.swing.text.JTextComponent;
 
 public class ConfigureAndroidSampleProjectStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureAndroidSampleProjectStepFixture, W> {

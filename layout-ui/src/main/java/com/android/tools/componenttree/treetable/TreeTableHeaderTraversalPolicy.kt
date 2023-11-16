@@ -23,23 +23,28 @@ import javax.swing.LayoutFocusTraversalPolicy
 /**
  * A [FocusTraversalPolicy] that supports editable columns in a [TreeTableHeader].
  *
- * When navigating through the header, an attempt is made to navigate to a header column.
- * If a focus candidate can be found from a column editor the header is left in an editing state
- * and the focus will be transferred to the first (or last) component in the column.
- * This implementation allows multiple focusable component in a single column.
+ * When navigating through the header, an attempt is made to navigate to a header column. If a focus
+ * candidate can be found from a column editor the header is left in an editing state and the focus
+ * will be transferred to the first (or last) component in the column. This implementation allows
+ * multiple focusable component in a single column.
  */
-class TreeTableHeaderTraversalPolicy(private val header: TreeTableHeader) : LayoutFocusTraversalPolicy() {
+class TreeTableHeaderTraversalPolicy(private val header: TreeTableHeader) :
+  LayoutFocusTraversalPolicy() {
 
   override fun getComponentAfter(aContainer: Container, aComponent: Component): Component? {
     if (header.isEditing) {
-      super.getComponentAfter(aContainer, aComponent)?.let { return it }
+      super.getComponentAfter(aContainer, aComponent)?.let {
+        return it
+      }
     }
     return editNextEditableCell(forwards = true, alreadyInHeader = true)
   }
 
   override fun getComponentBefore(aContainer: Container, aComponent: Component): Component? {
     if (header.isEditing) {
-      super.getComponentBefore(aContainer, aComponent)?.let { return it }
+      super.getComponentBefore(aContainer, aComponent)?.let {
+        return it
+      }
     }
     return editNextEditableCell(forwards = false, alreadyInHeader = true)
   }
@@ -50,11 +55,12 @@ class TreeTableHeaderTraversalPolicy(private val header: TreeTableHeader) : Layo
       return null
     }
     val columns = header.columnCount
-    var column = when {
-      alreadyInHeader && header.isEditing -> header.editingColumn.next(forwards)
-      forwards -> 0
-      else -> columns - 1
-    }
+    var column =
+      when {
+        alreadyInHeader && header.isEditing -> header.editingColumn.next(forwards)
+        forwards -> 0
+        else -> columns - 1
+      }
 
     while (column in 0 until columns) {
       if (header.editCellAt(column)) {
@@ -73,17 +79,16 @@ class TreeTableHeaderTraversalPolicy(private val header: TreeTableHeader) : Layo
     return null
   }
 
-  private fun Int.next(forwards: Boolean) =
-    this + if (forwards) 1 else -1
+  private fun Int.next(forwards: Boolean) = this + if (forwards) 1 else -1
 
-  // Note: When an editor was just created, the label and the new editor are the only children of the table.
+  // Note: When an editor was just created, the label and the new editor are the only children of
+  // the table.
   // The editor created may be composed of multiple focusable components.
   // Use LayoutFocusTraversalPolicy to identify the next focus candidate.
   private fun getFocusCandidateFromNewlyCreatedEditor(forwards: Boolean): Component? =
     if (forwards) {
       super.getFirstComponent(header)
-    }
-    else {
+    } else {
       super.getLastComponent(header)
     }
 

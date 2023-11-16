@@ -399,7 +399,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
         @Nullable
         @Override
         public String getData() {
-          return "com.google.android.gms.play-services:9.4.0";
+          return "com.google.android.gms:play-services:9.4.0";
         }
 
         @NonNull
@@ -430,7 +430,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
       assertEquals("Unresolved dependencies", message.getGroup());
       assertThat(message.getMessage())
         .containsMatch(
-          Pattern.compile("Failed to resolve: com.google.android.gms.play-services:.*Affected Modules:",
+          Pattern.compile("Failed to resolve: com.google.android.gms:play-services:.*Affected Modules:",
                           Pattern.DOTALL));
 
       assertEquals(
@@ -439,6 +439,7 @@ public class UnresolvedDependenciesReporterIntegrationTest {
             .newBuilder()
             .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK)
+            .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK)
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
             .build()),
         SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY, messages));

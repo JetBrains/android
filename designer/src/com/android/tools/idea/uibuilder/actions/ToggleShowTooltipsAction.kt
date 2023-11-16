@@ -25,18 +25,21 @@ import com.intellij.util.ui.LafIconLookup
 class ToggleShowTooltipsAction(label: String = "Show Tooltips") :
   ToggleViewAction(null, LafIconLookup.getIcon("checkmark"), label, label) {
 
-  override fun isSelected(editor: ViewEditor,
-                          handler: ViewHandler,
-                          parent: NlComponent,
-                          selectedChildren: MutableList<NlComponent>): Boolean {
+  override fun isSelected(
+    editor: ViewEditor,
+    handler: ViewHandler,
+    parent: NlComponent,
+    selectedChildren: MutableList<NlComponent>
+  ): Boolean {
     return Scene.getTooltipVisibility()
   }
-  override fun setSelected(editor: ViewEditor,
-                           handler: ViewHandler,
-                           parent: NlComponent,
-                           selectedChildren: MutableList<NlComponent>,
-                           selected: Boolean) {
+  override fun setSelected(
+    editor: ViewEditor,
+    handler: ViewHandler,
+    parent: NlComponent,
+    selectedChildren: MutableList<NlComponent>,
+    selected: Boolean
+  ) {
     Scene.setTooltipVisibility(selected)
   }
-
 }

@@ -16,7 +16,6 @@
 package com.android.tools.idea
 
 import com.android.tools.idea.MaterialVdIconsProvider.Status
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.material.icons.MaterialIconsCopyHandler
 import com.android.tools.idea.material.icons.MaterialVdIcons
 import com.android.tools.idea.material.icons.MaterialVdIconsLoader
@@ -139,14 +138,11 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
         refreshUiCallback(icons, status)
 
         if (status == Status.FINISHED) {
-          if (StudioFlags.ASSET_COPY_MATERIAL_ICONS.get()) {
-            // When finished loading, copy icons to the Android/Sdk directory.
-            copyBundledIcons(metadata, icons, backgroundExecutor, progressIndicator)
-          }
-          if (StudioFlags.ASSET_DOWNLOAD_MATERIAL_ICONS.get()) {
-            // Then, download the most recent metadata file and any new icons.
-            updateMetadataAndIcons(metadata, backgroundExecutor, progressIndicator)
-          }
+          // When finished loading, copy icons to the Android/Sdk directory.
+          copyBundledIcons(metadata, icons, backgroundExecutor, progressIndicator)
+
+          // Then, download the most recent metadata file and any new icons.
+          updateMetadataAndIcons(metadata, backgroundExecutor, progressIndicator)
         }
       }
     }, EdtExecutorService.getScheduledExecutorInstance())
@@ -224,7 +220,7 @@ private fun createBackgroundExecutor() = ThreadPoolExecutor(
   1,
   1,
   TimeUnit.MINUTES,
-  LinkedBlockingQueue(),
+  LinkedBlockingQueue<Runnable>(),
   ThreadFactoryBuilder().setNameFormat(
     "${MaterialVdIconsProvider::class.java.simpleName}-backgroundMaterialIconsTasks-%d"
   ).build()

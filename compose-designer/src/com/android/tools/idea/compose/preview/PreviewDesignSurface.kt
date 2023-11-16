@@ -21,23 +21,24 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
-import com.android.tools.idea.compose.preview.scene.COMPOSE_SCREEN_VIEW_PROVIDER
+import com.android.tools.idea.compose.preview.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
+import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
@@ -76,6 +77,14 @@ private val GROUP_BY_GROUP_ID_TRANSFORM:
     if (nulls != null) listOf(nulls) + groups.values.toList() else groups.values.toList()
   }
 
+/** Toolbar option to select [LayoutMode.Gallery] layout. */
+internal val PREVIEW_LAYOUT_GALLERY_OPTION =
+  SurfaceLayoutManagerOption(
+    message("gallery.mode.title"),
+    GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
+    DesignSurface.SceneViewAlignment.LEFT,
+  )
+
 /** List of available layouts for the Compose Preview Surface. */
 internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
   if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
@@ -100,6 +109,7 @@ internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
         ),
         DesignSurface.SceneViewAlignment.LEFT
       ),
+      PREVIEW_LAYOUT_GALLERY_OPTION
     )
   } else {
     listOf(
@@ -111,8 +121,9 @@ internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
       SurfaceLayoutManagerOption(
         message("new.grid.layout.title"),
         GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
-        DesignSurface.SceneViewAlignment.LEFT
+        DesignSurface.SceneViewAlignment.LEFT,
       ),
+      PREVIEW_LAYOUT_GALLERY_OPTION
     )
   }
 
@@ -132,7 +143,8 @@ private fun createPreviewDesignSurfaceBuilder(
   delegateInteractionHandler: InteractionHandler,
   dataProvider: DataProvider,
   parentDisposable: Disposable,
-  sceneComponentProvider: ComposeSceneComponentProvider
+  sceneComponentProvider: ComposeSceneComponentProvider,
+  screenViewProvider: ScreenViewProvider
 ): NlDesignSurface.Builder =
   NlDesignSurface.builder(project, parentDisposable)
     .setNavigationHandler(navigationHandler)
@@ -153,6 +165,7 @@ private fun createPreviewDesignSurfaceBuilder(
         .also {
           it.setListenResourceChange(false) // don't re-render on resource changes
           it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
+          it.setRenderingTopic(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW)
         }
     }
     .setDelegateDataProvider(dataProvider)
@@ -163,7 +176,7 @@ private fun createPreviewDesignSurfaceBuilder(
     .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.AUTO_HIDE)
     .setSupportedActions(COMPOSE_SUPPORTED_ACTIONS)
     .setShouldRenderErrorsPanel(true)
-    .setScreenViewProvider(COMPOSE_SCREEN_VIEW_PROVIDER, false)
+    .setScreenViewProvider(screenViewProvider, false)
     .setMaxFitIntoZoomLevel(2.0) // Set fit into limit to 200%
     .setMinScale(0.01) // Allow down to 1% zoom level
 
@@ -174,7 +187,8 @@ internal fun createMainDesignSurfaceBuilder(
   delegateInteractionHandler: InteractionHandler,
   dataProvider: DataProvider,
   parentDisposable: Disposable,
-  sceneComponentProvider: ComposeSceneComponentProvider
+  sceneComponentProvider: ComposeSceneComponentProvider,
+  screenViewProvider: ScreenViewProvider
 ) =
   createPreviewDesignSurfaceBuilder(
       project,
@@ -182,6 +196,7 @@ internal fun createMainDesignSurfaceBuilder(
       delegateInteractionHandler,
       dataProvider, // Will be overridden by the preview provider
       parentDisposable,
-      sceneComponentProvider
+      sceneComponentProvider,
+      screenViewProvider
     )
     .setLayoutManager(DEFAULT_PREVIEW_LAYOUT_MANAGER)

@@ -146,11 +146,11 @@ val tabbedPaneFocus = JBUI.CurrentTheme.TabbedPane.ENABLED_SELECTED_COLOR
 val tabbedPaneHoverHighlight = JBUI.CurrentTheme.TabbedPane.HOVER_COLOR
 
 /**
- * Color of the text used to display help information.
+ * Color of the text used to display cpu capture display usage instructions.
  *
  * Example: Keyboard/mouse shortcut descriptions in Summary tab of a cpu profiling capture.
  */
-val helpText = JBColor.namedColor("Editor.foreground", JBColor(Gray._80, Gray._160))
+val usageInstructionsText = JBColor.namedColor("Editor.foreground", JBColor(Gray._80, Gray._160))
 
 /**
  * Color of deadline-missed jank event when hovered

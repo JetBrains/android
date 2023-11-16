@@ -22,12 +22,12 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Separator
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
+import java.util.UUID
+import java.util.concurrent.CountDownLatch
 
 private const val FAKE_MANUFACTURER_NAME = "FakeManufacturer"
 

@@ -37,13 +37,14 @@ public class CreateLoginActivityTest {
   //Using 'Empty Views Activity' instead of 'Empty Activity' because of b/263821848
   protected static final String EMPTY_VIEWS_ACTIVITY_TEMPLATE = "Empty Views Activity";
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   @Before
   public void setUp() throws Exception {
     WizardUtils.createNewProject(guiTest, EMPTY_VIEWS_ACTIVITY_TEMPLATE); // Default projects are created with androidx dependencies
-    guiTest.robot().waitForIdle();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
+
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>TT ID: fb8a268b-b089-409b-b6d9-fd02d3dbf2f9
@@ -66,7 +67,6 @@ public class CreateLoginActivityTest {
    *      and asks users to login or register with their credentials is added to the project
    * </pre>
    */
-  @RunIn(TestGroup.FAT_BAZEL)
   @Test
   public void activityTemplate() {
     // Create a new project with Login Activity.

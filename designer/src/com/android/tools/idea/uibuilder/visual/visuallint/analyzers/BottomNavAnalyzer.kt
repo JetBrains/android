@@ -18,19 +18,20 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
+import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
-private const val BOTTOM_NAVIGATION_CLASS_NAME = "com.google.android.material.bottomnavigation.BottomNavigationView"
-private const val NAVIGATION_RAIL_URL = "https://d.android.com/r/studio-ui/designer/material/navigation-rail"
-private const val NAVIGATION_DRAWER_URL = "https://d.android.com/r/studio-ui/designer/material/navigation-drawer"
+private const val BOTTOM_NAVIGATION_CLASS_NAME =
+  "com.google.android.material.bottomnavigation.BottomNavigationView"
+private const val NAVIGATION_RAIL_URL =
+  "https://d.android.com/r/studio-ui/designer/material/navigation-rail"
+private const val NAVIGATION_DRAWER_URL =
+  "https://d.android.com/r/studio-ui/designer/material/navigation-drawer"
 
-/**
- * [VisualLintAnalyzer] for issues where a BottomNavigationView is wider than 600dp.
- */
+/** [VisualLintAnalyzer] for issues where a BottomNavigationView is wider than 600dp. */
 object BottomNavAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BOTTOM_NAV
@@ -38,7 +39,10 @@ object BottomNavAnalyzer : VisualLintAnalyzer() {
   override val backgroundEnabled: Boolean
     get() = BottomNavAnalyzerInspection.bottomNavBackground
 
-  override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
+  override fun findIssues(
+    renderResult: RenderResult,
+    model: NlModel
+  ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
     while (viewsToAnalyze.isNotEmpty()) {
@@ -67,10 +71,17 @@ object BottomNavAnalyzer : VisualLintAnalyzer() {
         .addLink("navigation drawer", NAVIGATION_DRAWER_URL)
         .add(" for breakpoints >= 600dp.")
     }
-    return VisualLintIssueContent(view, "Bottom navigation bar is not recommended for breakpoints over 600dp", content)
+    return VisualLintIssueContent(
+      view,
+      "Bottom navigation bar is not recommended for breakpoints over 600dp",
+      content
+    )
   }
 }
 
-object BottomNavAnalyzerInspection: VisualLintInspection(VisualLintErrorType.BOTTOM_NAV, "bottomNavBackground") {
-  var bottomNavBackground = true
+class BottomNavAnalyzerInspection :
+  VisualLintInspection(VisualLintErrorType.BOTTOM_NAV, "bottomNavBackground") {
+  companion object {
+    var bottomNavBackground = true
+  }
 }

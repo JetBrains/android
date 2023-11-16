@@ -30,13 +30,13 @@ import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
 import com.intellij.openapi.diagnostic.Logger
 
-/**
- * CoordinatorLayout drag handler
- */
-class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
-                             layout: SceneComponent,
-                             components: List<NlComponent>,
-                             type: DragType
+/** CoordinatorLayout drag handler */
+class CoordinatorDragHandler(
+  editor: ViewEditor,
+  handler: ViewGroupHandler,
+  layout: SceneComponent,
+  components: List<NlComponent>,
+  type: DragType
 ) : DragHandler(editor, handler, layout, components, type) {
   private var sceneComponent: SceneComponent
   private val dragTarget = CoordinatorDragTarget()
@@ -45,8 +45,11 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
   init {
     assert(components.size == 1)
     val dragged = components[0]
-    sceneComponent = layout.scene.getSceneComponent(dragged) ?:
-        TemporarySceneComponent(layout.scene, dragged).apply { setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h)) }
+    sceneComponent =
+      layout.scene.getSceneComponent(dragged)
+        ?: TemporarySceneComponent(layout.scene, dragged).apply {
+          setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h))
+        }
 
     sceneComponent.setTargetProvider { listOf(dragTarget) }
     sceneComponent.updateTargets()
@@ -62,11 +65,23 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
     dragTarget.mouseDown(x, y)
 
     snapTargets.clear()
-    snapTargets.addAll(sceneComponent.parent?.children?.
-        map({ it.targets })?.flatten()?.filterIsInstance<CoordinatorSnapTarget>()?.toList() ?: emptyList())
+    snapTargets.addAll(
+      sceneComponent.parent
+        ?.children
+        ?.map({ it.targets })
+        ?.flatten()
+        ?.filterIsInstance<CoordinatorSnapTarget>()
+        ?.toList()
+        ?: emptyList()
+    )
   }
 
-  override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int, sceneContext: SceneContext): String? {
+  override fun update(
+    @AndroidDpCoordinate x: Int,
+    @AndroidDpCoordinate y: Int,
+    modifiers: Int,
+    sceneContext: SceneContext
+  ): String? {
     val ret = super.update(x, y, modifiers, sceneContext)
 
     @AndroidDpCoordinate val dx = x + startX - sceneComponent.drawWidth / 2
@@ -76,14 +91,20 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
     return ret
   }
 
-  override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int,
-                      insertType: InsertType) {
+  override fun commit(
+    @AndroidCoordinate x: Int,
+    @AndroidCoordinate y: Int,
+    modifiers: Int,
+    insertType: InsertType
+  ) {
     editor.insertChildren(layout.nlComponent, components, -1, insertType)
 
     when (insertType) {
       InsertType.CREATE -> dragWidgetFromPalette(x, y)
       InsertType.MOVE -> dragWidgetFromComponentTree(x, y)
-      else -> Logger.getInstance(javaClass.name).error("Unexpected InsertType in ${javaClass.name}#commit}")
+      else ->
+        Logger.getInstance(javaClass.name)
+          .error("Unexpected InsertType in ${javaClass.name}#commit}")
     }
 
     layout.scene.removeComponent(sceneComponent)

@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.service.notification
 
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
+import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mockStatic
+import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.eq
-import org.mockito.Mockito.mockStatic
 
 class UseJdkAsProjectJdkListenerTest {
   @JvmField
@@ -38,9 +38,9 @@ class UseJdkAsProjectJdkListenerTest {
     val suffix = ".id.suffix"
     val listener = UseJdkAsProjectJdkListener(project, jdkPath, suffix)
     assertThat(listener.id).isEqualTo("${UseJdkAsProjectJdkListener.baseId()}$suffix")
-    mockStatic(AndroidStudioGradleInstallationManager::class.java).use {
+    mockStatic<JdkUtils>().use {
       listener.changeGradleProjectSetting()
-      it.verify { AndroidStudioGradleInstallationManager.setJdkAsProjectJdk(eq(project), eq(jdkPath)) }
+      it.verify { JdkUtils.setProjectGradleJdk(eq(project), eq(project.basePath.orEmpty()), eq(jdkPath)) }
     }
   }
 }

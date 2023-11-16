@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.SdkConstants
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.UpgradeGradleVersionsQuickFix
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
@@ -28,7 +28,6 @@ import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.application.ApplicationNamesInfo
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.util.GradleVersion
@@ -61,9 +60,7 @@ class OldAndroidPluginIssueChecker: GradleIssueChecker {
     if (parsedMessage == null) return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION)
     val composer = BuildIssueComposer(parsedMessage)
     if (withMinimumVersion) {
       val jdk = IdeSdks.getInstance().jdk

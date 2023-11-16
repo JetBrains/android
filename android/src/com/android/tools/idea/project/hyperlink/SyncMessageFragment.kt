@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.project.hyperlink
 
-import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
 import javax.swing.event.HyperlinkEvent

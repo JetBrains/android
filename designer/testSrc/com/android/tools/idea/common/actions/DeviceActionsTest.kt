@@ -15,32 +15,28 @@
  */
 package com.android.tools.idea.common.actions
 
+import com.android.sdklib.devices.Device
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.surface.TestDesignSurface
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.configurations.DeviceChangeListener
 import com.android.tools.idea.configurations.DeviceMenuAction
-import com.android.tools.idea.configurations.DeviceMenuAction2
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.configurations.SetDeviceAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.ApplicationRule
-import junit.framework.Assert.assertEquals
 import org.intellij.lang.annotations.Language
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
 class NextDeviceActionTest {
 
-  @JvmField
-  @Rule
-  val appRule = ApplicationRule()
+  @JvmField @Rule val appRule = ApplicationRule()
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
-
+  @JvmField @Rule val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
 
   @Test
   fun testNextDeviceAction() {
@@ -70,14 +66,9 @@ class NextDeviceActionTest {
 
 class PreviousDeviceActionTest {
 
-  @JvmField
-  @Rule
-  val appRule = ApplicationRule()
+  @JvmField @Rule val appRule = ApplicationRule()
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
-
+  @JvmField @Rule val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
 
   @Test
   fun testPreviousDeviceAction() {
@@ -105,22 +96,26 @@ class PreviousDeviceActionTest {
   }
 }
 
-private fun getSetDeviceActions(config: Configuration): List<DeviceMenuAction.SetDeviceAction> {
-  val menuAction = if (StudioFlags.NELE_NEW_DEVICE_MENU.get()) {
-    DeviceMenuAction2({ config }, { _, _ -> }).apply { updateActions(DataContext.EMPTY_CONTEXT) }
-  }
-  else {
-    DeviceMenuAction({ config }, { _, _ -> }).apply { updateActions(DataContext.EMPTY_CONTEXT) }
-  }
+private fun getSetDeviceActions(config: Configuration): List<SetDeviceAction> {
+  val menuAction =
+    DeviceMenuAction(
+        { config },
+        object : DeviceChangeListener {
+          override fun onDeviceChanged(oldDevice: Device?, newDevice: Device?) {}
+        }
+      )
+      .apply { updateActions(DataContext.EMPTY_CONTEXT) }
 
-  return menuAction.getChildren(null)
+  return menuAction
+    .getChildren(null)
     .map { if (it is ActionGroup) it.getChildren(null) else arrayOf(it) }
     .flatMap { it.toList() }
-    .filterIsInstance<DeviceMenuAction.SetDeviceAction>()
+    .filterIsInstance<SetDeviceAction>()
 }
 
 @Language("XML")
-private const val LAYOUT_FILE_CONTENT = """
+private const val LAYOUT_FILE_CONTENT =
+  """
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent"
   android:layout_height="match_parent"

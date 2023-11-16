@@ -38,6 +38,7 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
         "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-test-framework[test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",

@@ -15,11 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.cpp;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabel;
-import static com.google.common.truth.Truth.assertThat;
-import static org.fest.reflect.core.Reflection.field;
-import static org.fest.reflect.core.Reflection.method;
-
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -37,6 +32,11 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabel;
+import static com.google.common.truth.Truth.assertThat;
+import static org.fest.reflect.core.Reflection.field;
+import static org.fest.reflect.core.Reflection.method;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class NdkSxsTest {

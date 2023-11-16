@@ -19,8 +19,8 @@ import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.intellij.util.ui.JBInsets
+import org.junit.Assert.assertEquals
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class GridSurfaceLayoutManagerTest {
 
@@ -29,12 +29,13 @@ class GridSurfaceLayoutManagerTest {
     val tolerance = 0.01
     val manager = GridSurfaceLayoutManager(0, 0, 0, 0, false)
 
-    val contents = listOf(
-      TestPositionableContent(0, 0, 100, 100),
-      TestPositionableContent(0, 0, 100, 100),
-      TestPositionableContent(0, 0, 100, 100),
-      TestPositionableContent(0, 0, 100, 100)
-    )
+    val contents =
+      listOf(
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100)
+      )
 
     // Fit perfectly. (2 x 2)
     assertEquals(1.0, manager.getFitIntoScale(contents, 200, 200), tolerance)
@@ -55,69 +56,74 @@ class GridSurfaceLayoutManagerTest {
 
     // Test some cases that the every content have different sizes.
     run {
-      val content = listOf(
-        TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 400, 100)
-      )
+      val content =
+        listOf(
+          TestPositionableContent(0, 0, 100, 100),
+          TestPositionableContent(0, 0, 100, 100),
+          TestPositionableContent(0, 0, 100, 100),
+          TestPositionableContent(0, 0, 100, 100),
+          TestPositionableContent(0, 0, 400, 100)
+        )
       // Fit in 50%. (4, 1)
       assertEquals(0.5, manager.getFitIntoScale(content, 200, 100), tolerance)
     }
     run {
-      val content = listOf(
-        TestPositionableContent(0, 0, 100, 100),
-        TestPositionableContent(0, 0, 200, 100),
-        TestPositionableContent(0, 0, 200, 100),
-        TestPositionableContent(0, 0, 100, 100),
-      )
+      val content =
+        listOf(
+          TestPositionableContent(0, 0, 100, 100),
+          TestPositionableContent(0, 0, 200, 100),
+          TestPositionableContent(0, 0, 200, 100),
+          TestPositionableContent(0, 0, 100, 100),
+        )
       // Fit in 50%. (2, 2)
       assertEquals(0.5, manager.getFitIntoScale(content, 300, 100), tolerance)
     }
     run {
-      val content = listOf(
-        TestPositionableContent(0, 0, 100, 200),
-        TestPositionableContent(0, 0, 200, 100),
-        TestPositionableContent(0, 0, 200, 100),
-        TestPositionableContent(0, 0, 100, 200),
-      )
+      val content =
+        listOf(
+          TestPositionableContent(0, 0, 100, 200),
+          TestPositionableContent(0, 0, 200, 100),
+          TestPositionableContent(0, 0, 200, 100),
+          TestPositionableContent(0, 0, 100, 200),
+        )
       // Fit in 75%. (2 x 2). The total height of original size is 400.
       assertEquals(0.75, manager.getFitIntoScale(content, 300, 300), tolerance)
     }
 
     run {
       // Simulate the case of using Validation Tool.
-      val gridSurfaceLayoutManager = GridSurfaceLayoutManager(
-        NlConstants.DEFAULT_SCREEN_OFFSET_X,
-        NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-        100,
-        48,
-        false
-      )
+      val gridSurfaceLayoutManager =
+        GridSurfaceLayoutManager(
+          NlConstants.DEFAULT_SCREEN_OFFSET_X,
+          NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+          100,
+          48,
+          false
+        )
       // Phone, foldable, tablet, and desktop.
-      val content = listOf(
-        TestPositionableContent(0, 0, 411, 891),
-        TestPositionableContent(0, 0, 673, 841),
-        TestPositionableContent(0, 0, 1280, 800),
-        TestPositionableContent(0, 0, 1920, 1080)
-      )
+      val content =
+        listOf(
+          TestPositionableContent(0, 0, 411, 891),
+          TestPositionableContent(0, 0, 673, 841),
+          TestPositionableContent(0, 0, 1280, 800),
+          TestPositionableContent(0, 0, 1920, 1080)
+        )
       assertEquals(0.15, gridSurfaceLayoutManager.getFitIntoScale(content, 400, 900), tolerance)
       assertEquals(0.25, gridSurfaceLayoutManager.getFitIntoScale(content, 900, 900), tolerance)
     }
   }
 
-
   @Test
   fun testZoomToFitValueIsIndependentOfContentScale() {
     val manager = GridSurfaceLayoutManager(0, 0, 0, 0)
 
-    val contents = List(4) {
-      TestPositionableContent(0, 0, 100, 100, 1.0) { scale ->
-        val value = (10 * scale).toInt()
-        JBInsets(value, value, value, value)
+    val contents =
+      List(4) {
+        TestPositionableContent(0, 0, 100, 100, 1.0) { scale ->
+          val value = (10 * scale).toInt()
+          JBInsets(value, value, value, value)
+        }
       }
-    }
 
     val width = 1000
     val height = 1000

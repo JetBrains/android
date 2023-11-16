@@ -19,12 +19,11 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.projectsystem.getAndroidFacets
-import com.android.tools.idea.projectsystem.gradle.internalGetGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.VisibleForTesting
 
 class SelectedVariantCollector(private val project: Project) {
 
@@ -50,9 +49,9 @@ fun getSelectedVariantDetails(androidModel: GradleAndroidModel, selectedAbi: Str
 internal fun AndroidFacet.findSelectedVariant(): SelectedVariant? {
   val module = holderModule
   val moduleId = module.getModuleIdForSyncRequest() ?: return null
-  val androidModuleModel = GradleAndroidModel.get(this)
+  val gradleAndroidModel = GradleAndroidModel.get(this)
   val ndkModuleModel = NdkModuleModel.get(module)
-  val variantDetails = androidModuleModel?.let { getSelectedVariantDetails(androidModuleModel, ndkModuleModel?.selectedAbi) }
+  val variantDetails = gradleAndroidModel?.let { getSelectedVariantDetails(gradleAndroidModel, ndkModuleModel?.selectedAbi) }
   val ndkFacet = NdkFacet.getInstance(module)
   if (ndkFacet != null && ndkModuleModel != null) {
     // Note, we lose ABI selection if cached models are not available.
@@ -64,8 +63,12 @@ internal fun AndroidFacet.findSelectedVariant(): SelectedVariant? {
 
 
 @JvmName("getModuleIdForSyncRequest")
-@VisibleForTesting
-fun Module.getModuleIdForSyncRequest(): String {
-  val gradleProjectPath = internalGetGradleProjectPath() ?: error("Module $name is not a Gradle module.")
-  return Modules.createUniqueModuleId(gradleProjectPath.buildRoot, gradleProjectPath.path)
+fun Module.getModuleIdForSyncRequest(): String? {
+  val gradleProjectPath = getGradleProjectPath()
+  if (gradleProjectPath != null) {
+    return Modules.createUniqueModuleId(gradleProjectPath.buildRoot, gradleProjectPath.path)
+  }
+
+  Logger.getInstance(SelectedVariantCollector::class.java).warn("Module ${name} is not a Gradle module")
+  return null
 }

@@ -38,6 +38,7 @@ import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.layoutlib.isLayoutLibTarget
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
@@ -178,7 +179,7 @@ private fun createApiLevelEnumProvider(module: Module): EnumValuesProvider = {
       ?: AndroidVersion.VersionCodes.BASE
   configurationManager
     ?.targets
-    ?.filter { ConfigurationManager.isLayoutLibTarget(it) && it.version.apiLevel >= minTargetSdk }
+    ?.filter { it.isLayoutLibTarget && it.version.apiLevel >= minTargetSdk }
     ?.map { target ->
       EnumValue.item(
         target.version.apiLevel.toString(),

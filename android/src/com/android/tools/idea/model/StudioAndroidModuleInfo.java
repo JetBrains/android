@@ -21,6 +21,8 @@ import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryM
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.module.AndroidModuleInfo;
+import com.android.tools.sdk.AndroidPlatform;
 import com.android.utils.concurrency.AsyncSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -35,7 +37,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
-import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

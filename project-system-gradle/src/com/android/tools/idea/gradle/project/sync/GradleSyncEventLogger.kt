@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants
 import com.android.ide.common.gradle.Version
-import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeArtifactDependency
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleVersions
-import com.android.tools.idea.stats.withProjectId
 import com.google.common.collect.Ordering
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -80,8 +79,8 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
       ModuleManager.getInstance(project).modules.mapNotNull { module -> GradleAndroidModel.get(module) }.forEach { model ->
         val dependencies = model.selectedMainCompileDependencies
 
-        kotlinVersion = ordering.max(kotlinVersion, dependencies.javaLibraries.findVersion("org.jetbrains.kotlin:kotlin-stdlib"))
-        ktxVersion = ordering.max(ktxVersion, dependencies.androidLibraries.findVersion("androidx.core:core-ktx"))
+        kotlinVersion = ordering.max(kotlinVersion, dependencies.javaLibraries.findVersion("org.jetbrains.kotlin", "kotlin-stdlib"))
+        ktxVersion = ordering.max(ktxVersion, dependencies.androidLibraries.findVersion("androidx.core", "core-ktx"))
       }
 
       val kotlinSupport = KotlinSupport.newBuilder()
@@ -138,9 +137,9 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
   }
 }
 
-private fun Collection<IdeArtifactDependency<*>>.findVersion(artifact: String): Version? {
-  val library = firstOrNull { library -> library.target.artifactAddress.startsWith(artifact) } ?: return null
-  return GradleCoordinate.parseCoordinateString(library.target.artifactAddress)?.lowerBoundVersion
+private fun Collection<IdeArtifactDependency<*>>.findVersion(group: String, name: String): Version? {
+  val library = firstOrNull { library -> library.target.component?.let { it.group == group && it.name == name } ?: false } ?: return null
+  return library.target.component?.version
 }
 
 private fun GradleSyncStats.Builder.updateUserRequestedParallelSyncMode(project: Project, rootProjectPath: @SystemIndependent String) {

@@ -18,10 +18,11 @@ package com.android.tools.idea.configurations;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.editors.theme.ResolutionUtils;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.xml.AttrNameSplitter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -175,8 +176,7 @@ public class ThemeMenuAction extends DropDownAction {
     if (configuration == null) {
       return null;
     }
-    ConfigurationManager configurationManager = configuration.getConfigurationManager();
-    String theme = configurationManager.computePreferredTheme(configuration);
+    String theme = configuration.computePreferredTheme();
     return convertToNonResourcePrefixName(theme);
   }
 
@@ -197,7 +197,7 @@ public class ThemeMenuAction extends DropDownAction {
 
   @NotNull
   private static String getThemeLabel(@NotNull String theme) {
-    return ResolutionUtils.getNameFromQualifiedName(theme.substring(theme.indexOf('/') + 1));
+    return AttrNameSplitter.findLocalName(theme.substring(theme.indexOf('/') + 1));
   }
 
   private static boolean isSameTheme(@Nullable String left, @Nullable String right) {

@@ -19,7 +19,9 @@ import com.android.tools.adtui.chart.linechart.LineChart
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.adtui.model.trackgroup.TrackModel
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode
 import com.android.tools.profilers.ProfilerTrackRendererType
+import com.android.tools.profilers.cpu.systemtrace.PowerCounterData
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -28,7 +30,8 @@ class PowerRailTrackRendererTest {
   @Test
   fun render() {
     val powerRailTrackModel = TrackModel.newBuilder(
-      PowerRailTrackModel(POWER_RAIL_COUNTERS, Range()), ProfilerTrackRendererType.ANDROID_POWER_RAIL, "Power Rails"
+      PowerRailTrackModel(PowerCounterData(POWER_RAIL_DELTA_VALUES, POWER_RAIL_CUMULATIVE_VALUES), Range(), PowerProfilerDisplayMode.DELTA),
+      ProfilerTrackRendererType.ANDROID_POWER_RAIL, "Power Rails"
     ).build()
     val component = PowerRailTrackRenderer().render(powerRailTrackModel)
     assertThat(component.componentCount).isEqualTo(1)
@@ -36,10 +39,18 @@ class PowerRailTrackRendererTest {
   }
 
   companion object {
-    private val POWER_RAIL_COUNTERS = listOf(
+    private val POWER_RAIL_CUMULATIVE_VALUES = listOf(
       SeriesData(0L, 1000L),
       SeriesData(1000L, 2000L),
-      SeriesData(2000L, 3000L)
+      SeriesData(2000L, 3000L),
+      SeriesData(3000L, 5000L)
+    )
+
+    private val POWER_RAIL_DELTA_VALUES = listOf(
+      SeriesData(0L, 1000L),
+      SeriesData(1000L, 1000L),
+      SeriesData(2000L, 1000L),
+      SeriesData(3000L, 2000L)
     )
   }
 }

@@ -15,43 +15,71 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.idea.gradle.model.ClasspathType
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet
+import com.android.tools.idea.gradle.model.IdeUnresolvedKmpAndroidModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnknownLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
 import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
+/**
+ * Small data class to store information for mapping projects to dependencies.
+ */
+internal data class ClasspathIdentifier(
+  val buildId: BuildId,
+  val projectPath: String,
+  val artifact: IdeModuleSourceSet,
+  val classpathType: ClasspathType,
+)
+
 class InternedModels(private val buildRootDirectory: File?) {
+  private val lock = ReentrantLock()
+
+  @GuardedBy("lock")
   private val strings: MutableMap<String, String> = HashMap()
+  @GuardedBy("lock")
   private val libraries: MutableList<IdeUnresolvedLibrary> = mutableListOf()
 
   // Library names are expected to be unique, and thus we track already allocated library names to be able to uniqualize names when
   // necessary.
+  @GuardedBy("lock")
   private val allocatedLibraryNames: MutableSet<String> = HashSet()
 
   // Different modules (Gradle projects) may (usually do) share the same libraries. We create up to two library instances in this case.
   // One is when the library is used as a regular dependency and one when it is used as a "provided" dependency. This is going to change
   // when we add support for dependency graphs and different entities are used to represent libraries and dependencies.
   // We use mutable [Instances] objects to keep record of already instantiated and named library objects for each of the cases.
+  @GuardedBy("lock")
   private val androidLibraries: MutableMap<IdeAndroidLibraryImpl, Pair<LibraryReference, IdeAndroidLibraryImpl>> = HashMap()
+  @GuardedBy("lock")
   private val javaLibraries: MutableMap<IdeJavaLibraryImpl, Pair<LibraryReference, IdeJavaLibraryImpl>> = HashMap()
+  @GuardedBy("lock")
   private val moduleLibraries: MutableMap<IdeUnresolvedLibrary, Pair<LibraryReference, IdeUnresolvedLibrary>> = HashMap()
+  @GuardedBy("lock")
   private val unknownLibraries: MutableMap<IdeUnresolvedLibrary, Pair<LibraryReference, IdeUnresolvedLibrary>> = HashMap()
+
   var artifactToLibraryReferenceMap: Map<File, LibraryReference>? = null ; private set
+
+  @GuardedBy("lock")
+  internal val projectReferenceToArtifactClasspathMap: MutableMap<ClasspathIdentifier, Pair<IdeDependenciesCoreDirect, Int>> = HashMap()
 
   fun lookup(reference: LibraryReference): IdeUnresolvedLibrary = libraries[reference.libraryIndex]
 
-  fun intern(string: String): String {
-    return strings.getOrPut(string) { string }
+  fun intern(string: String) = lock.withLock {
+    strings.getOrPut(string) { string }
   }
 
   /**
@@ -96,6 +124,10 @@ class InternedModels(private val buildRootDirectory: File?) {
     return moduleLibraries.createOrGetLibrary(moduleLibrary) { it }
   }
 
+  fun getOrCreate(moduleLibrary: IdeUnresolvedKmpAndroidModuleLibrary): LibraryReference {
+    return moduleLibraries.createOrGetLibrary(moduleLibrary) { it }
+  }
+
   /**
    * Interns [unknownLibrary].
    */
@@ -114,12 +146,14 @@ class InternedModels(private val buildRootDirectory: File?) {
     unnamed: T,
     factory: (unnamed: T) -> T
   ): LibraryReference {
-    return computeIfAbsent(unnamed) {
-      val library = factory(unnamed)
-      val index = libraries.size
-      libraries.add(library)
-      LibraryReference(index) to library
-    }.first
+    return lock.withLock {
+      computeIfAbsent(unnamed) {
+        val library = factory(unnamed)
+        val index = libraries.size
+        libraries.add(library)
+        LibraryReference(index) to library
+      }.first
+    }
   }
 
   fun createLibraryTable(): IdeUnresolvedLibraryTableImpl {
@@ -129,8 +163,8 @@ class InternedModels(private val buildRootDirectory: File?) {
   /**
    * Prepares [ModelCache] for running any post-processors previously returned in [IdeModelWithPostProcessor] instances.
    */
-  fun prepare(lock: ReentrantLock) {
-    artifactToLibraryReferenceMap = lock.withLock {
+  fun prepare() {
+    artifactToLibraryReferenceMap =
       createLibraryTable()
         .libraries
         .mapIndexed { index, ideLibrary ->
@@ -145,11 +179,20 @@ class InternedModels(private val buildRootDirectory: File?) {
           }
         }
         .toMap()
-    }
   }
 
   private fun nameLibrary(unnamed: IdeArtifactLibrary) =
     allocatedLibraryNames.generateLibraryName(projectBasePath = buildRootDirectory, artifactAddress = unnamed.artifactAddress)
+
+  internal fun addProjectReferenceToArtifactClasspath(id: ClasspathIdentifier, pair: Pair<IdeDependenciesCoreDirect, Int>) {
+    lock.withLock {
+      projectReferenceToArtifactClasspathMap.putIfAbsent(id, pair)
+    }
+  }
+
+  internal fun getProjectReferenceToArtifactClasspath(classpathId: ClasspathIdentifier) = lock.withLock {
+    projectReferenceToArtifactClasspathMap[classpathId]
+  }
 }
 
 private fun MutableSet<String>.generateLibraryName(projectBasePath: File?, artifactAddress: String): String {

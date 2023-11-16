@@ -42,10 +42,13 @@ import javax.swing.JPanel
 /**
  * An [InspectorBuilder] for all widget attributes specified in its [ViewHandler].
  *
- * First the custom panel is shown if applicable, followed by the attributes
- * defined in the [ViewHandler] of the View.
+ * First the custom panel is shown if applicable, followed by the attributes defined in the
+ * [ViewHandler] of the View.
  */
-class ViewInspectorBuilder(project: Project, private val editorProvider: EditorProvider<NlPropertyItem>) {
+class ViewInspectorBuilder(
+  project: Project,
+  private val editorProvider: EditorProvider<NlPropertyItem>
+) {
   private val viewHandlerManager = ViewHandlerManager.get(project)
   private val cachedCustomPanels = mutableMapOf<String, CustomPanel>()
 
@@ -57,11 +60,15 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
     cachedCustomPanels.clear()
   }
 
-  fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, getTitleLine: () -> InspectorLineModel) {
+  fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>,
+    getTitleLine: () -> InspectorLineModel
+  ) {
     val tagName = getTagName(properties) ?: return
     if (tagName in TAG_EXCEPTIONS) return
     val firstComponent = getFirstComponent(properties) ?: return
-    val handler = viewHandlerManager.getHandler(firstComponent) ?: return
+    val handler = viewHandlerManager.getHandler(firstComponent) {} ?: return
 
     val attributes = handler.inspectorProperties
     val custom = setupCustomPanel(tagName, properties)
@@ -79,15 +86,23 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
       .forEach { inspector.addEditor(editorProvider.createEditor(it), titleLine) }
   }
 
-  private fun findProperty(propertyName: String, properties: PropertiesTable<NlPropertyItem>): NlPropertyItem? {
+  private fun findProperty(
+    propertyName: String,
+    properties: PropertiesTable<NlPropertyItem>
+  ): NlPropertyItem? {
     // TODO: Handle other namespaces
     val attrName = StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX)
     val property = findPropertyByName(attrName, properties)
     val isDesignProperty = propertyName.startsWith(TOOLS_NS_NAME_PREFIX)
-    return if (isDesignProperty) property?.designProperty ?: properties.getOrNull(TOOLS_URI, attrName) else property
+    return if (isDesignProperty)
+      property?.designProperty ?: properties.getOrNull(TOOLS_URI, attrName)
+    else property
   }
 
-  private fun findPropertyByName(attrName: String, properties: PropertiesTable<NlPropertyItem>): NlPropertyItem? {
+  private fun findPropertyByName(
+    attrName: String,
+    properties: PropertiesTable<NlPropertyItem>
+  ): NlPropertyItem? {
     if (attrName == ATTR_SRC) {
       val srcCompat = properties.getOrNull(AUTO_URI, ATTR_SRC_COMPAT)
       if (srcCompat != null) {
@@ -96,15 +111,17 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
     }
     // TODO: Handle other namespaces
     return properties.getOrNull(ANDROID_URI, attrName)
-           ?: properties.getOrNull(AUTO_URI, attrName)
-           ?: properties.getOrNull("", attrName)
+      ?: properties.getOrNull(AUTO_URI, attrName) ?: properties.getOrNull("", attrName)
   }
 
   private fun getFirstComponent(properties: PropertiesTable<NlPropertyItem>): NlComponent? {
     return properties.first?.components?.firstOrNull()
   }
 
-  private fun setupCustomPanel(tagName: String, properties: PropertiesTable<NlPropertyItem>): JPanel? {
+  private fun setupCustomPanel(
+    tagName: String,
+    properties: PropertiesTable<NlPropertyItem>
+  ): JPanel? {
     val panel = cachedCustomPanels[tagName] ?: createCustomPanel(tagName)
     if (panel == SampleCustomPanel.INSTANCE) return null
 
@@ -115,7 +132,7 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
   }
 
   private fun createCustomPanel(tagName: String): CustomPanel {
-    val handler = viewHandlerManager.getHandler(tagName)
+    val handler = viewHandlerManager.getHandler(tagName) {}
     val panel = handler?.customPanel ?: SampleCustomPanel.INSTANCE
     cachedCustomPanels[tagName] = panel
     return panel

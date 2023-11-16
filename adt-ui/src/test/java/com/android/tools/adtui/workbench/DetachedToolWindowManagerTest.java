@@ -34,9 +34,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.KeyboardFocusManager;
+import java.util.Collections;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import java.util.Collections;
 import org.mockito.Mock;
 
 public class DetachedToolWindowManagerTest extends WorkBenchTestCase {

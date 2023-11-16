@@ -387,6 +387,7 @@ class ComposerLambdaMemoization(
         return result
     }
 
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun irCurrentComposer(): IrExpression {
         val currentComposerSymbol = getTopLevelPropertyGetter(
             ComposeFqNames.fqNameFor("currentComposer")
@@ -996,6 +997,7 @@ class ComposerLambdaMemoization(
         return this
     }
 
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun IrExpression?.isNullOrStable() = this == null || stabilityOf(this).knownStable()
 }
 

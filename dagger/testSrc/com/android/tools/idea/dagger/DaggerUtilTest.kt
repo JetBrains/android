@@ -34,7 +34,6 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
 import com.intellij.testFramework.fixtures.ModuleFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
-import java.io.File
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -47,6 +46,7 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.After
 import org.junit.Before
+import java.io.File
 
 class DaggerUtilBuiltInAnnotationSearchTest : DaggerUtilTest() {
   override val daggerBuiltInSearchEnabled = true

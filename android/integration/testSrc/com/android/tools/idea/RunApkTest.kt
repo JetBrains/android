@@ -28,7 +28,7 @@ class RunApkTest {
 
   @Test
   fun runApkTest() {
-    val project = "tools/adt/idea/android/integration/testData/helloworldapk";
+    val project = AndroidProjectWithoutGradle("tools/adt/idea/android/integration/testData/helloworldapk")
 
     system.installation.setGlobalSdk(system.sdk)
 
@@ -37,34 +37,28 @@ class RunApkTest {
     // failures in this test, so we force auto-creation at the API level that we expect.
     system.installation.addVmOption("-Dtesting.android.platform.to.autocreate=31")
 
-    // TODO: figure out if this is even needed, and if not, remove "//tools/base/build-system:gradle-distrib-7.2"
-    // from the BUILD file.
-    //project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip")
-
     system.runAdb { adb ->
-      system.runEmulator(Emulator.SystemImage.API_31) { emulator ->
+      system.runEmulator(Emulator.SystemImage.API_33) { emulator ->
+        println("Waiting for boot")
+        emulator.waitForBoot()
+
+        // If you try to run the app too early, you'll see this error in Android Studio: "Error
+        // while waiting for device: emu0 is already running. If that is not the case, delete
+        // <testtemppath>/home/.android/avd/emu0.avd/*.lock and try again."
+        println("Waiting for device")
+        adb.waitForDevice(emulator)
+
         system.runStudioFromApk(project) { studio ->
           studio.waitForIndex()
+          println("Finished waiting for index");
 
-          println("Waiting for boot")
-          emulator.waitForBoot()
-          // If you try to run the app too early, you'll see this error in Android Studio: "Error
-          // while waiting for device: emu0 is already running. If that is not the case, delete
-          // <testtemppath>/home/.android/avd/emu0.avd/*.lock and try again."
-          println("Waiting for device")
-
-          // TODO: Tue 11/22/2022 - this sometimes just fails, perhaps because the device is never ready?
-          adb.waitForDevice(emulator)
-
-          // TODO: figure out how to definitively tell that the emulator is ready to run the app
-          println("Waiting for 10000 seconds before running the app so that the emulator is ready")
-          Thread.sleep(10000)
+          studio.waitForProjectInit()
 
           println("Running the app")
           studio.executeAction("Run")
 
           adb.runCommand("logcat") {
-            waitForLog(".*Hello Minimal World!.*", 600.seconds);
+            waitForLog(".*Hello Minimal World!.*", 300.seconds);
           }
         }
       }

@@ -41,12 +41,12 @@ public class AndroidLintInspectionBaseTest extends LightJavaCodeInsightFixtureAd
     AndroidLintInspectionBase inspection;
 
     inspection = new AndroidLintHardcodedTextInspection();
-    assertEquals("Internationalization", inspection.getGroupDisplayName());
+    assertEquals("Android Lint: Internationalization", inspection.getGroupDisplayName());
     assertEquals("Android\nLint\nInternationalization", Joiner.on("\n").join(inspection.getGroupPath()));
 
     inspection = new AndroidLintTypographyDashesInspection();
-    assertEquals("Usability", inspection.getGroupDisplayName());
-    assertEquals("Android\nLint\nUsability", Joiner.on("\n").join(inspection.getGroupPath()));
+    assertEquals("Android Lint: Usability", inspection.getGroupDisplayName());
+    assertEquals("Android\nLint\nUsability\nTypography", Joiner.on("\n").join(inspection.getGroupPath()));
   }
 
   public void testVendor() {

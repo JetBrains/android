@@ -32,54 +32,54 @@ import java.awt.BorderLayout
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
 
-/**
- * UI of the [CustomViewPreviewRepresentation].
- */
+/** UI of the [CustomViewPreviewRepresentation]. */
 internal class CustomViewPreviewView(
   surfaceBuilder: NlDesignSurface.Builder,
   parentDisposable: Disposable,
   project: Project,
   psiFile: PsiFile,
 ) {
-  internal val surface = surfaceBuilder.build().apply {
-    name = "Custom View"
-  }
+  internal val surface = surfaceBuilder.build().apply { name = "Custom View" }
 
-  private val actionsToolbar = invokeAndWaitIfNeeded {
-    ActionsToolbar(parentDisposable, surface)
-  }
+  private val actionsToolbar = invokeAndWaitIfNeeded { ActionsToolbar(parentDisposable, surface) }
 
-  internal val notificationsPanel = NotificationPanel(
-    ExtensionPointName.create("com.android.tools.idea.customview.preview.customViewEditorNotificationProvider")
-  )
+  internal val notificationsPanel =
+    NotificationPanel(
+      ExtensionPointName.create(
+        "com.android.tools.idea.customview.preview.customViewEditorNotificationProvider"
+      )
+    )
 
-  private val editorPanel = JPanel(BorderLayout()).apply {
-    add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
+  private val editorPanel =
+    JPanel(BorderLayout()).apply {
+      add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
 
-    val overlayPanel = object : JPanel() {
-      // Since the overlay panel is transparent, we can not use optimized drawing or it will produce rendering artifacts.
-      override fun isOptimizedDrawingEnabled(): Boolean = false
+      val overlayPanel =
+        object : JPanel() {
+          // Since the overlay panel is transparent, we can not use optimized drawing or it will
+          // produce rendering artifacts.
+          override fun isOptimizedDrawingEnabled(): Boolean = false
+        }
+
+      overlayPanel.apply {
+        layout = OverlayLayout(this)
+
+        add(notificationsPanel)
+        add(surface)
+      }
+
+      add(overlayPanel, BorderLayout.CENTER)
     }
 
-    overlayPanel.apply {
-      layout = OverlayLayout(this)
-
-      add(notificationsPanel)
-      add(surface)
-    }
-
-    add(overlayPanel, BorderLayout.CENTER)
-  }
-
-  /**
-   * [WorkBench] used to contain all the preview elements.
-   */
+  /** [WorkBench] used to contain all the preview elements. */
   internal val workbench: WorkBench<DesignSurface<*>> =
-    object : WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable), DataProvider {
-      override fun getData(dataId: String): Any? = if (DESIGN_SURFACE.`is`(dataId)) surface else null
-    }.apply {
-      val issuePanelSplitter = IssuePanelSplitter(psiFile.virtualFile, surface, editorPanel)
-      init(issuePanelSplitter, surface, listOf(), false)
-    }
-
+    object :
+        WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable), DataProvider {
+        override fun getData(dataId: String): Any? =
+          if (DESIGN_SURFACE.`is`(dataId)) surface else null
+      }
+      .apply {
+        val issuePanelSplitter = IssuePanelSplitter(psiFile.virtualFile, surface, editorPanel)
+        init(issuePanelSplitter, surface, listOf(), false)
+      }
 }

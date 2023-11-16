@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose.intentions
 
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
@@ -37,7 +38,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
     package androidx.compose.foundation.layout
 
-    import androidx.compose.Composable
+    import $COMPOSABLE_ANNOTATION_FQ_NAME
 
     inline fun Row(content: @Composable () -> Unit) {}
     inline fun Column(content: @Composable () -> Unit) {}
@@ -89,7 +90,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -106,8 +107,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
       import androidx.compose.foundation.layout.Box
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -132,7 +133,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -145,8 +146,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
       import androidx.compose.foundation.layout.Box
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -164,7 +165,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -177,8 +178,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
       import androidx.compose.foundation.layout.Box
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -196,7 +197,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -209,8 +210,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
       import androidx.compose.foundation.layout.Box
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -228,7 +229,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -241,8 +242,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
       import androidx.compose.foundation.layout.Box
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -264,7 +265,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
       import androidx.compose.foundation.layout.Box
 
       @Composable
@@ -280,7 +281,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
     package com.example
 
-    import androidx.compose.Composable
+    import $COMPOSABLE_ANNOTATION_FQ_NAME
     import androidx.compose.foundation.layout.Box
 
     @Composable
@@ -296,7 +297,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
     package com.example
 
-    import androidx.compose.Composable
+    import $COMPOSABLE_ANNOTATION_FQ_NAME
     import androidx.compose.foundation.layout.Box
 
     @Composable
@@ -314,7 +315,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
     package com.example
 
-    import androidx.compose.Composable
+    import $COMPOSABLE_ANNOTATION_FQ_NAME
     import androidx.compose.foundation.layout.Box
 
     @Composable
@@ -342,7 +343,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -355,8 +356,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
       import androidx.compose.foundation.layout.Box
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -374,7 +375,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -389,8 +390,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
       import androidx.compose.foundation.layout.Box
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -410,9 +411,9 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
     package com.example
 
-    import androidx.compose.Composable
     import androidx.compose.foundation.layout.Box
     import androidx.compose.foundation.layout.Column
+    import $COMPOSABLE_ANNOTATION_FQ_NAME
 
     @Composable
     fun NewsStory() {
@@ -427,9 +428,9 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
         package com.example
 
-        import androidx.compose.Composable
         import androidx.compose.foundation.layout.Box
         import androidx.compose.foundation.layout.Column
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Composable
         fun NewsStory() {
@@ -450,9 +451,9 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
     package com.example
 
-    import androidx.compose.Composable
     import androidx.compose.foundation.layout.Box
     import androidx.compose.foundation.layout.Column
+    import $COMPOSABLE_ANNOTATION_FQ_NAME
 
     @Composable
     fun NewsStory() {
@@ -468,9 +469,9 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
         package com.example
 
-        import androidx.compose.Composable
         import androidx.compose.foundation.layout.Box
         import androidx.compose.foundation.layout.Column
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Composable
         fun NewsStory() {
@@ -496,7 +497,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
     package com.example
 
-    import androidx.compose.Composable
+    import $COMPOSABLE_ANNOTATION_FQ_NAME
     import androidx.compose.foundation.layout.Box
 
     @Composable
@@ -512,7 +513,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
     package com.example
 
-    import androidx.compose.Composable
+    import $COMPOSABLE_ANNOTATION_FQ_NAME
     import androidx.compose.foundation.layout.Box
 
     @Composable
@@ -537,7 +538,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
     package com.example
 
-    import androidx.compose.Composable
+    import $COMPOSABLE_ANNOTATION_FQ_NAME
     import androidx.compose.foundation.layout.Box
 
     <selection>
@@ -564,7 +565,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
     package com.example
 
-    import androidx.compose.Composable
+    import $COMPOSABLE_ANNOTATION_FQ_NAME
     import androidx.compose.foundation.layout.Box
 
 
@@ -595,7 +596,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -608,8 +609,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
       import androidx.compose.foundation.layout.Box
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -630,7 +631,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -643,8 +644,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
       import androidx.compose.foundation.layout.Row
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -665,7 +666,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -678,8 +679,8 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
       import androidx.compose.foundation.layout.Column
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {

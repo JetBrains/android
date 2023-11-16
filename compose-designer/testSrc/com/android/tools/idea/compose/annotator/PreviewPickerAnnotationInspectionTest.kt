@@ -17,7 +17,8 @@ package com.android.tools.idea.compose.annotator
 
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.compose.preview.namespaceVariations
+import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -30,38 +31,17 @@ import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
-@RunWith(Parameterized::class)
-internal class PreviewPickerAnnotationInspectionTest(
-  previewAnnotationPackage: String,
-  composableAnnotationPackage: String
-) {
-  companion object {
-    @Suppress("unused") // Used by JUnit via reflection
-    @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
-    val namespaces = namespaceVariations
-  }
+internal class PreviewPickerAnnotationInspectionTest {
 
-  private val composableAnnotationFqName = "$composableAnnotationPackage.Composable"
-  private val previewToolingPackage = previewAnnotationPackage
-
-  @get:Rule
-  val rule =
-    ComposeProjectRule(
-      previewAnnotationPackage = previewAnnotationPackage,
-      composableAnnotationPackage = composableAnnotationPackage
-    )
+  @get:Rule val rule = ComposeProjectRule()
 
   private val fixture
     get() = rule.fixture
@@ -90,8 +70,8 @@ internal class PreviewPickerAnnotationInspectionTest(
       KotlinFileType.INSTANCE,
       // language=kotlin
       """
-        import $composableAnnotationFqName
-        import $previewToolingPackage.Preview
+        import $COMPOSABLE_ANNOTATION_FQN
+        import $PREVIEW_TOOLING_PACKAGE.Preview
 
         @Preview(
           // Legacy DeviceSpec has a 'shape' parameter
@@ -129,8 +109,8 @@ Missing parameter: dpi.""",
       KotlinFileType.INSTANCE,
       // language=kotlin
       """
-        import $composableAnnotationFqName
-        import $previewToolingPackage.Preview
+        import $COMPOSABLE_ANNOTATION_FQN
+        import $PREVIEW_TOOLING_PACKAGE.Preview
 
         @Preview(
           device = "spec:width=1080px,height=1920px"
@@ -170,8 +150,8 @@ Missing parameter: height.""",
       KotlinFileType.INSTANCE,
       // language=kotlin
       """
-        import $composableAnnotationFqName
-        import $previewToolingPackage.Preview
+        import $COMPOSABLE_ANNOTATION_FQN
+        import $PREVIEW_TOOLING_PACKAGE.Preview
 
         const val heightPx = "1900ABCpx"
 
@@ -200,8 +180,7 @@ Parameter: height should have Float(dp/px) value.""",
     replaceWithMessage: String
   ) {
     val info = annotateAndGetLintInfo()
-    assertNotNull(info)
-    assertEquals(affectedText, info.text)
+    assertEquals(affectedText, info!!.text)
     assertEquals(errorDescription, info.description)
 
     val fixAction = info.findRegisteredQuickFix { desc, _ -> desc.action }
@@ -218,7 +197,7 @@ Parameter: height should have Float(dp/px) value.""",
   private fun annotateAndGetLintInfo(): HighlightInfo? =
     fixture
       .doHighlighting()
-      .filter { it.severity == HighlightSeverity.WARNING }
+      .filter { it.inspectionToolId != null && it.severity == HighlightSeverity.ERROR }
       .let {
         assert(it.size <= 1)
         it.firstOrNull()

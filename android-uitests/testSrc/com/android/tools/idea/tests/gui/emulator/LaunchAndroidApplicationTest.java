@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.emulator;
 
+import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;

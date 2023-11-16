@@ -24,24 +24,35 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.VfsTestUtil
+import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 import java.io.FileNotFoundException
 import kotlin.io.path.Path
 
 object JdkTableUtils {
 
+  /**
+   * Simple JDK model used to create a jdk.table entry during tests
+   * @param name The jdk.table entry JDK name
+   * @param path The jdk.table entry JDK absolute path system independent
+   * @param rootsType The jdk.table entry JDK roots type
+   */
   data class Jdk(
     val name: String,
-    val path: String,
+    val path: @SystemIndependent String?,
     val rootsType: JdkRootsType = VALID
   )
 
+  /**
+   * Represents the different roots path type for the jdk.table entry that will be taken into consideration during the creation of it
+   */
   enum class JdkRootsType {
     VALID,
     INVALID,
@@ -52,6 +63,12 @@ object JdkTableUtils {
     ProjectJdkTable.getInstance()
       .allJdks
       .filter { it.sdkType is JavaSdk }
+      .forEach { SdkConfigurationUtil.removeSdk(it) }
+  }
+
+  fun removeAllSdkFromJdkTable() {
+    ProjectJdkTable.getInstance()
+      .allJdks
       .forEach { SdkConfigurationUtil.removeSdk(it) }
   }
 
@@ -71,13 +88,19 @@ object JdkTableUtils {
     }
   }
 
+  fun populateJdkTableWith(jdk: Jdk, tempDir: File) {
+    populateJdkTableWith(listOf(jdk), tempDir)
+  }
+
   fun populateJdkTableWith(
     jdks: List<Jdk>,
     tempDir: File
   ) {
     jdks.forEach { (name, path, rootsType) ->
-      val jdkPath = findOrCreateTempDir(path, tempDir).path
-      val createdJdk = JavaSdk.getInstance().createJdk(name, jdkPath)
+      val jdkPath = findOrCreateTempDir(path.orEmpty(), tempDir).path
+      val createdJdk = (JavaSdk.getInstance().createJdk(name, jdkPath) as ProjectJdkImpl).apply {
+        homePath = path
+      }
       when (rootsType) {
         INVALID -> replaceJdkRoots(createdJdk, roots = generateCorruptedJdkRoots(createdJdk, tempDir))
         DETACHED -> replaceJdkRoots(createdJdk, roots = emptyList())

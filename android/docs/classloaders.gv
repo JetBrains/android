@@ -1,0 +1,141 @@
+// A graph showing the hierarchy of ClassLoaders and DelegatingClassLoader.Loaders within StudioModuleClassLoader
+digraph {
+  compound=true;
+  node [shape=box, margin=0.2];
+
+  "ClassLoader of android plugin" [style="filled"];
+  LayoutlibClassLoader [style="filled"];
+  FilteringClassLoader [style="filled"];
+  FirewalledResourcesClassLoader [style="filled"];
+
+  ClassLoaderLoaderParent [style="filled", color="lightblue", label="ClassLoaderLoader"];
+
+  UrlClassLoader [style="filled", color="lightpink"];
+  ClassLoaderLoaderJar [style="filled", color="lightblue", label="ClassLoaderLoader"];
+  NameRemapperLoader [style="filled", color="lightblue"];
+
+  FakeSavedStateRegistryLoader [style="filled", color="lightblue"];
+
+  PseudoClassLocatorForLoaderNonProject [style="filled", color="lightgreen", label="PseudoClassLocatorForLoader"];
+
+  AsmTransformingLoaderNonProject [style="filled", color="lightblue", label="AsmTransformingLoader"];
+  ListeningLoaderNonProject1 [style="filled", color="lightblue", label="ListeningLoader"];
+  ClassBinaryCacheLoader [style="filled", color="lightblue"];
+  ListeningLoaderNonProject2 [style="filled", color="lightblue", label="ListeningLoader"];
+
+  ProjectSystemClassLoader [style="filled", color="lightblue"];
+
+  ListeningLoaderProject [style="filled", color="lightblue", label="ListeningLoader"];
+  PseudoClassLocatorForLoaderProject [style="filled", color="lightgreen", label="PseudoClassLocatorForLoader"];
+  AsmTransformingLoaderProject [style="filled", color="lightblue", label="AsmTransformingLoader"];
+
+  OverlayLoader [style="filled", color="lightblue"];
+  ListeningLoaderOverlay1 [style="filled", color="lightblue", label="ListeningLoader"];
+  ListeningLoaderOverlay2 [style="filled", color="lightblue", label="ListeningLoader"];
+  PseudoClassLocatorForLoaderOverlay [style="filled", color="lightgreen", label="PseudoClassLocatorForLoader"];
+  AsmTransformingLoaderOverlay [style="filled", color="lightblue", label="AsmTransformingLoader"];
+
+  MultiLoader [style="filled", color="lightblue"];
+  RecyclerViewAdapterLoader [style="filled", color="lightblue"];
+  MultiLoader2 [style="filled", color="lightblue", label="MultiLoader"];
+
+  ModuleClassLoaderImpl [style="filled", color="lightblue"];
+  LibraryResourceClassLoader [style="filled", color="lightpink"];
+  StudioModuleClassLoader [style="filled", color="lightpink"];
+
+  subgraph cluster_parent_loader {
+    graph [style="dashed, rounded", label="parentLoader", margin="16pt"];
+    ClassLoaderLoaderParent;
+    subgraph cluster_parent {
+      graph [style="dashed, rounded", label="parent", margin="16pt"];
+      LayoutlibClassLoader; "ClassLoader of android plugin" [style="filled"];
+    }
+  }
+
+  subgraph cluster_non_project {
+    graph [style="dashed, rounded", label="nonProjectLoader", margin="16pt"];
+    FakeSavedStateRegistryLoader; AsmTransformingLoaderNonProject; ListeningLoaderNonProject1; ClassBinaryCacheLoader; ListeningLoaderNonProject2; PseudoClassLocatorForLoaderNonProject;
+    subgraph cluster_jar {
+      graph [style="dashed, rounded", label="jarLoader", margin="16pt"];
+      NameRemapperLoader; ClassLoaderLoaderJar; UrlClassLoader;
+    }
+  }
+
+  subgraph cluster_project {
+    graph [style="dashed, rounded", label="projectLoader", margin="16pt"];
+    ListeningLoaderProject; PseudoClassLocatorForLoaderProject; AsmTransformingLoaderProject;
+  }
+
+  subgraph cluster_overlay {
+    graph [style="dashed, rounded", label="overlayLoader", margin="16pt"];
+    OverlayLoader; ListeningLoaderOverlay1; ListeningLoaderOverlay2; PseudoClassLocatorForLoaderOverlay; AsmTransformingLoaderOverlay;
+  }
+
+
+  LayoutlibClassLoader -> "ClassLoader of android plugin";
+  FilteringClassLoader -> LayoutlibClassLoader;
+  FirewalledResourcesClassLoader -> FilteringClassLoader;
+
+  ClassLoaderLoaderParent -> LayoutlibClassLoader;
+
+  NameRemapperLoader -> ClassLoaderLoaderJar -> UrlClassLoader;
+
+  FakeSavedStateRegistryLoader -> NameRemapperLoader;
+
+  PseudoClassLocatorForLoaderNonProject -> ClassLoaderLoaderParent;
+  PseudoClassLocatorForLoaderNonProject -> LayoutlibClassLoader;
+  PseudoClassLocatorForLoaderNonProject -> NameRemapperLoader;
+
+  AsmTransformingLoaderNonProject -> FakeSavedStateRegistryLoader
+  AsmTransformingLoaderNonProject -> PseudoClassLocatorForLoaderNonProject
+
+  ListeningLoaderNonProject2 -> ClassBinaryCacheLoader -> ListeningLoaderNonProject1 -> AsmTransformingLoaderNonProject;
+
+  ListeningLoaderProject -> ProjectSystemClassLoader;
+
+  PseudoClassLocatorForLoaderProject -> ProjectSystemClassLoader;
+  PseudoClassLocatorForLoaderProject -> ListeningLoaderNonProject2;
+  PseudoClassLocatorForLoaderProject -> ClassLoaderLoaderParent;
+  PseudoClassLocatorForLoaderProject -> LayoutlibClassLoader;
+
+  AsmTransformingLoaderProject -> ListeningLoaderProject;
+  AsmTransformingLoaderProject -> PseudoClassLocatorForLoaderProject;
+
+  ListeningLoaderOverlay2 -> ListeningLoaderOverlay1 -> OverlayLoader;
+
+  PseudoClassLocatorForLoaderOverlay -> ProjectSystemClassLoader;
+  PseudoClassLocatorForLoaderOverlay -> ListeningLoaderNonProject2;
+  PseudoClassLocatorForLoaderOverlay -> ClassLoaderLoaderParent;
+  PseudoClassLocatorForLoaderOverlay -> LayoutlibClassLoader;
+
+  AsmTransformingLoaderOverlay -> ListeningLoaderOverlay2;
+  AsmTransformingLoaderOverlay -> PseudoClassLocatorForLoaderOverlay;
+
+  MultiLoader -> AsmTransformingLoaderOverlay;
+  MultiLoader -> AsmTransformingLoaderProject;
+
+  MultiLoader2 -> MultiLoader;
+  MultiLoader2 -> ListeningLoaderNonProject2;
+  MultiLoader2 -> RecyclerViewAdapterLoader;
+
+  ModuleClassLoaderImpl -> MultiLoader2;
+
+  LibraryResourceClassLoader -> FirewalledResourcesClassLoader;
+  LibraryResourceClassLoader -> ModuleClassLoaderImpl;
+  StudioModuleClassLoader -> LibraryResourceClassLoader;
+  StudioModuleClassLoader -> ModuleClassLoaderImpl;
+
+  "ClassLoader" [style="filled"];
+  "DelegatingClassLoader.Loader" [style="filled", color="lightblue"];
+  PseudoClassLocator [style="filled", color="lightgreen"];
+  "ClassLoader with R-classes" [style="filled", color="lightpink"];
+  subgraph cluster_legend {
+  graph [style="dashed, rounded", label="Legend", margin="16pt", orientation=i];
+  "ClassLoader"; "DelegatingClassLoader.Loader" ; PseudoClassLocator; "ClassLoader with R-classes";
+  }
+  {
+  // This is to make the nodes position vertically
+    edge [style=invisible];
+  "ClassLoader" -> "DelegatingClassLoader.Loader" -> PseudoClassLocator -> "ClassLoader with R-classes" [arrowhead=none];
+  }
+}

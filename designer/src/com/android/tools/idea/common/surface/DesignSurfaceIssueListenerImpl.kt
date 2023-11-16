@@ -28,10 +28,10 @@ import kotlin.math.min
 private const val MARGIN = 20
 
 /**
- * The [IssueListener] of [DesignSurface].
- * TODO?: Consider to move as inner class of [DesignSurface]?
+ * The [IssueListener] of [DesignSurface]. TODO?: Consider to move as inner class of
+ * [DesignSurface]?
  */
-class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListener{
+class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListener {
   override fun onIssueSelected(issue: Issue) {
     when (val source = issue.source) {
       is NlComponentIssueSource -> {
@@ -47,7 +47,10 @@ class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListe
       is VisualLintIssueProvider.VisualLintIssueSource -> {
         // Repaint DesignSurface when issue is selected to update visibility of WarningLayer
         surface.repaint()
-        val sceneViews = surface.sceneManagers.filter { source.models.contains(it.model) }.flatMap { it.sceneViews }
+        val sceneViews =
+          surface.sceneManagers
+            .filter { source.models.contains(it.model) }
+            .flatMap { it.sceneViews }
         if (sceneViews.isEmpty()) {
           return
         }
@@ -62,7 +65,11 @@ class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListe
           maxY = max(maxY, it.y + it.scaledContentSize.height)
         }
         val currentScale = surface.scale
-        val size = Dimension(((maxX - minX + 2 * MARGIN) / currentScale).toInt(), ((maxY - minY + 2 * MARGIN) / currentScale).toInt())
+        val size =
+          Dimension(
+            ((maxX - minX + 2 * MARGIN) / currentScale).toInt(),
+            ((maxY - minY + 2 * MARGIN) / currentScale).toInt()
+          )
         val scale = surface.getFitContentIntoWindowScale(size)
 
         surface.setScale(scale)

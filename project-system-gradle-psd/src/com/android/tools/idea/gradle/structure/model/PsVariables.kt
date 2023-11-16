@@ -84,7 +84,7 @@ open class PsVariables (
       } ?: listOf()
 
   override fun getVariableScopes(): List<PsVariablesScope> =
-    parentScope?.getVariableScopes().orEmpty() + listOf(this as PsVariablesScope)
+    parentScope?.getVariableScopes().orEmpty() + listOf<PsVariablesScope>(this as PsVariablesScope)
 
   override fun getNewVariableName(preferredName: String) =
     generateSequence(0, { it + 1 })

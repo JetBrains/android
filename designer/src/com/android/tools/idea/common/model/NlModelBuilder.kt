@@ -16,8 +16,8 @@
 package com.android.tools.idea.common.model
 
 import com.android.annotations.concurrency.Slow
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.configurations.Configuration
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
@@ -29,39 +29,43 @@ import java.util.function.BiFunction
 import java.util.function.Consumer
 
 /**
- * Interface to be implemented by factories that can produce {@link NlModel}s from {@link NlModelBuilder}.
- * The main use is to allow to re-use the builder for testing and produce <code>SyncNlModel</code> instead of {@link NlModel}.
+ * Interface to be implemented by factories that can produce {@link NlModel}s from {@link
+ * NlModelBuilder}. The main use is to allow to re-use the builder for testing and produce
+ * <code>SyncNlModel</code> instead of {@link NlModel}.
  */
 interface NlModelFactoryInterface {
   fun build(nlModelBuilder: NlModelBuilder): NlModel
 }
 
-/**
- * An {@link NlModel} builder
- */
+/** An {@link NlModel} builder */
 // TODO: Migrate next to NlModel if/when NlModel is migrated to Kotlin
-class NlModelBuilder(val facet: AndroidFacet, val file: VirtualFile, val configuration: Configuration) {
-  private var modelFactory: NlModelFactoryInterface = object : NlModelFactoryInterface {
-    override fun build(nlModelBuilder: NlModelBuilder): NlModel = with(nlModelBuilder) {
-      NlModel.create(
-        parentDisposable,
-        modelTooltip,
-        facet,
-        file,
-        configuration,
-        componentRegistrar,
-        xmlFileProvider,
-        modelUpdater,
-        dataContext)
+class NlModelBuilder
+(val facet: AndroidFacet, val file: VirtualFile, val configuration: Configuration) {
+  private var modelFactory: NlModelFactoryInterface =
+    object : NlModelFactoryInterface {
+      override fun build(nlModelBuilder: NlModelBuilder): NlModel =
+        with(nlModelBuilder) {
+          NlModel.create(
+            parentDisposable,
+            modelTooltip,
+            facet,
+            file,
+            configuration,
+            componentRegistrar,
+            xmlFileProvider,
+            modelUpdater,
+            dataContext
+          )
+        }
     }
-  }
 
   private var parentDisposable: Disposable? = null
   private var modelTooltip: String? = null
   private var componentRegistrar: Consumer<NlComponent> = Consumer {}
-  private var xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile> = BiFunction { project, virtualFile ->
-    getDefaultFile(project, virtualFile)
-  }
+  private var xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile> =
+    BiFunction { project, virtualFile ->
+      getDefaultFile(project, virtualFile)
+    }
   private var modelUpdater: NlModel.NlModelUpdaterInterface? = null
   private var dataContext: DataContext = DataContext.EMPTY_CONTEXT
 
@@ -86,9 +90,10 @@ class NlModelBuilder(val facet: AndroidFacet, val file: VirtualFile, val configu
     this.componentRegistrar = componentRegistrar
   }
 
-  fun withXmlProvider(xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile>): NlModelBuilder = also {
-    this.xmlFileProvider = xmlFileProvider
-  }
+  fun withXmlProvider(xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile>): NlModelBuilder =
+    also {
+      this.xmlFileProvider = xmlFileProvider
+    }
 
   fun withModelUpdater(modelUpdater: NlModel.NlModelUpdaterInterface): NlModelBuilder = also {
     this.modelUpdater = modelUpdater
@@ -98,8 +103,7 @@ class NlModelBuilder(val facet: AndroidFacet, val file: VirtualFile, val configu
     this.dataContext = dataContext
   }
 
-  @Slow
-  fun build(): NlModel = modelFactory.build(this)
+  @Slow fun build(): NlModel = modelFactory.build(this)
 
   companion object {
     public fun getDefaultFile(project: Project, virtualFile: VirtualFile) =

@@ -23,8 +23,8 @@ import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotification
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -39,8 +39,7 @@ import org.mockito.Mockito
 class ComposeWarningTest {
   private lateinit var model: InspectorModel
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().initAndroid(true)
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().initAndroid(true)
 
   private val moduleSystem: DefaultModuleSystem
     get() = projectRule.module.getModuleSystem() as DefaultModuleSystem
@@ -51,19 +50,25 @@ class ComposeWarningTest {
   @Before
   fun before() {
     model = model(projectRule.project) {}
-    projectRule.fixture.addFileToProject("/AndroidManifest.xml", """
+    projectRule.fixture.addFileToProject(
+      "/AndroidManifest.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.app">
         <application />
       </manifest>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val projectSystem = projectRule.project.getProjectSystem() as DefaultProjectSystem
     val moduleSystem = Mockito.spy(DefaultModuleSystem(projectRule.module))
     projectSystem.setModuleSystem(moduleSystem.module, moduleSystem)
     moduleSystem.usesCompose = true
-    val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("No banner")
-    bannerService.notificationListeners.add { lastNotification = bannerService.notifications.lastOrNull() }
-    composeWarning = ComposeWarning(projectRule.project)
+    val notificationModel = NotificationModel(projectRule.project)
+    notificationModel.notificationListeners.add {
+      lastNotification = notificationModel.notifications.lastOrNull()
+    }
+    composeWarning = ComposeWarning(projectRule.project, notificationModel)
   }
 
   @Test
@@ -84,13 +89,15 @@ class ComposeWarningTest {
   @Test
   fun testComposeAppWithLegacyApiLevel() {
     composeWarning.performCheck(createClientFor(LEGACY_DEVICE, "com.example.app"))
-    assertThat(lastNotification?.message).isEqualTo("To see compose nodes in the inspector please use a device with API >= 29")
+    assertThat(lastNotification?.message)
+      .isEqualTo("To see compose nodes in the inspector please use a device with API >= 29")
   }
 
   @Test
   fun testComposeAppWithLegacyDeviceWithModernApiLevel() {
     composeWarning.performCheck(createClientFor(MODERN_DEVICE, "com.example.app"))
-    assertThat(lastNotification?.message).isEqualTo("Cannot display compose nodes, try restarting the application")
+    assertThat(lastNotification?.message)
+      .isEqualTo("Cannot display compose nodes, try restarting the application")
   }
 
   private fun createClientFor(device: DeviceDescriptor, appName: String): LegacyClient {

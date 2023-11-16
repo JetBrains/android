@@ -45,34 +45,36 @@ object IconProvider {
   private fun getIconForViewNode(viewName: String): Icon {
     // Remove "AppCompat" and "Material" prefixes from the simple tag name such that we get
     // e.g. the ImageView icon for an AppCompatImageIcon etc.
-    val simpleName = viewName.substringAfterLast('.').removePrefix("AppCompat").removePrefix("Material")
+    val simpleName =
+      viewName.substringAfterLast('.').removePrefix("AppCompat").removePrefix("Material")
     if (simpleName == ROOT_NAME) {
       return UNKNOWN_VIEW
     }
     return AndroidDomElementDescriptorProvider.getIconForViewTag(simpleName) ?: UNKNOWN_VIEW
   }
 
-  private fun getIconForComposeViewNode(nodeName: String): Icon = when (nodeName) {
-    "AppBar" -> APP_BAR_LAYOUT
-    "BasicText" -> TEXT_VIEW
-    "Box" -> VIEW
-    "Button" -> BUTTON
-    "Card" -> CARD_VIEW
-    "Checkbox" -> CHECK_BOX
-    "Column" -> LINEAR_LAYOUT_VERT
-    "CoreText" -> TEXT_VIEW
-    "Divider" -> HORIZONTAL_DIVIDER
-    "Icon" -> IMAGE_VIEW
-    "IconButton" -> IMAGE_BUTTON
-    "Image" -> IMAGE_VIEW
-    "Layout"-> VIEW
-    "Row" -> LINEAR_LAYOUT_HORZ
-    "Scaffold" -> COORDINATOR_LAYOUT
-    "ScrollableColumn" -> NESTED_SCROLL_VIEW
-    "Surface" -> VIEW
-    "Spacer" -> SPACE
-    "Tab" -> TAB_ITEM
-    "Text" -> TEXT_VIEW
-    else -> COMPOSABLE_FUNCTION
-  }
+  private fun getIconForComposeViewNode(nodeName: String): Icon =
+    when (nodeName) {
+      "AppBar" -> APP_BAR_LAYOUT
+      "BasicText" -> TEXT_VIEW
+      "Box" -> VIEW
+      "Button" -> BUTTON
+      "Card" -> CARD_VIEW
+      "Checkbox" -> CHECK_BOX
+      "Column" -> LINEAR_LAYOUT_VERT
+      "CoreText" -> TEXT_VIEW
+      "Divider" -> HORIZONTAL_DIVIDER
+      "Icon" -> IMAGE_VIEW
+      "IconButton" -> IMAGE_BUTTON
+      "Image" -> IMAGE_VIEW
+      "Layout" -> VIEW
+      "Row" -> LINEAR_LAYOUT_HORZ
+      "Scaffold" -> COORDINATOR_LAYOUT
+      "ScrollableColumn" -> NESTED_SCROLL_VIEW
+      "Surface" -> VIEW
+      "Spacer" -> SPACE
+      "Tab" -> TAB_ITEM
+      "Text" -> TEXT_VIEW
+      else -> COMPOSABLE_FUNCTION
+    }
 }

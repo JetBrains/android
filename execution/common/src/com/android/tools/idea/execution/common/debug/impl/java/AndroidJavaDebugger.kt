@@ -21,7 +21,6 @@ import com.android.tools.idea.execution.common.debug.AndroidDebuggerConfigurable
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter.attachDebuggerToClientAndShowTab
 import com.android.tools.idea.execution.common.debug.impl.AndroidDebuggerImplBase
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
@@ -31,11 +30,7 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugProcessStarter
 import com.intellij.xdebugger.XDebugSession
-import java.awt.BorderLayout
 import java.util.concurrent.TimeUnit
-import javax.swing.JCheckBox
-import javax.swing.JComponent
-import javax.swing.JPanel
 
 class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
   override fun getId(): String {

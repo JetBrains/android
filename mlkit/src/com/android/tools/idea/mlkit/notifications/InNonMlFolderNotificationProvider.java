@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.mlkit.notifications;
 
+import static com.android.tools.idea.mlkit.viewer.TfliteModelFileType.TFLITE_EXTENSION;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.LoggingUtils;
 import com.android.tools.idea.mlkit.MlUtils;
@@ -54,59 +56,45 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import java.awt.*;
+import java.io.IOException;
+import java.util.List;
+
 /**
  * Notifies users that a model file is not in the correct ml folder in order to use ML Model Binding feature.
  */
 public class InNonMlFolderNotificationProvider implements EditorNotificationProvider {
+
   private static final Key<String> HIDDEN_KEY = Key.create("ml.incorrect.folder.notification.panel.hidden");
 
+  @Nullable
   @Override
-  public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
-                                                                                                                 @NotNull VirtualFile file) {
-    return fileEditor -> {
-      if (!StudioFlags.ML_MODEL_BINDING.get()
-          || fileEditor.getUserData(HIDDEN_KEY) != null
+  public Function<FileEditor, EditorNotificationPanel> collectNotificationData(@NotNull Project project, @NotNull VirtualFile file) {
+    if (!TFLITE_EXTENSION.equals(file.getExtension())) return null;
+    if (!StudioFlags.ML_MODEL_BINDING.get()) return null;
+    Module module = ModuleUtilCore.findModuleForFile(file, project);
+    if (module == null || MlUtils.isModelFileInMlModelsFolder(module, file)) {
+      return null;
+    }
+    List<NamedModuleTemplate> moduleTemplateList = ContainerUtil.filter(
+      ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(file),
+      template -> !template.getPaths().getMlModelsDirectories().isEmpty());
+    if (moduleTemplateList.isEmpty()) {
+      return null;
+    }
+    return (fileEditor) -> {
+      if (fileEditor.getUserData(HIDDEN_KEY) != null
           || !(fileEditor instanceof TfliteModelFileEditor)) {
         return null;
       }
-
-      Module module = ModuleUtilCore.findModuleForFile(file, project);
-      if (module == null || MlUtils.isModelFileInMlModelsFolder(module, file)) {
-        return null;
-      }
-
-      List<NamedModuleTemplate> moduleTemplateList = ContainerUtil.filter(
-        ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(file),
-        template -> !template.getPaths().getMlModelsDirectories().isEmpty());
-      if (moduleTemplateList.isEmpty()) {
-        return null;
-      }
-
       EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning);
       panel.setText("This TensorFlow Lite model is not in a configured ml-model directory, so ML Model Binding is disabled. To use " +
                     "ML Model Binding consider moving the file.");
       panel.createActionLabel("Move File", () -> {
         MoveModelFileDialog moveModelFileDialog = new MoveModelFileDialog(moduleTemplateList);
         if (moveModelFileDialog.showAndGet()) {
-          WriteAction.run(() -> {
-            VirtualFile mlVirtualDir = null;
-            try {
-              mlVirtualDir = VfsUtil.createDirectoryIfMissing(moveModelFileDialog.getSelectedMlDirectoryPath());
-              if (mlVirtualDir != null) {
-                PsiDirectory mlPsiDir = PsiDirectoryFactory.getInstance(project).createDirectory(mlVirtualDir);
-                if (!CopyFilesOrDirectoriesHandler.checkFileExist(
-                  mlPsiDir, null, PsiManager.getInstance(project).findFile(file), file.getName(), "Move")) {
-                  file.move(this, mlVirtualDir);
-                  EditorNotifications.getInstance(project).updateNotifications(file);
-                  LoggingUtils.logEvent(EventType.MODEL_IMPORT_FROM_MOVE_FILE_BUTTON, file);
-                }
-              }
-            }
-            catch (IOException e) {
-              Logger.getInstance(InNonMlFolderNotificationProvider.class)
-                .error(String.format("Error moving %s to %s.", file, mlVirtualDir), e);
-            }
-          });
+          WriteAction.run(() -> onMoveFile(moveModelFileDialog, project, file));
         }
       });
       panel.createActionLabel("Hide notification", () -> {
@@ -115,6 +103,26 @@ public class InNonMlFolderNotificationProvider implements EditorNotificationProv
       });
       return panel;
     };
+  }
+
+  private void onMoveFile(MoveModelFileDialog moveModelFileDialog, Project project, VirtualFile file) {
+    VirtualFile mlVirtualDir = null;
+    try {
+      mlVirtualDir = VfsUtil.createDirectoryIfMissing(moveModelFileDialog.getSelectedMlDirectoryPath());
+      if (mlVirtualDir != null) {
+        PsiDirectory mlPsiDir = PsiDirectoryFactory.getInstance(project).createDirectory(mlVirtualDir);
+        if (!CopyFilesOrDirectoriesHandler.checkFileExist(
+          mlPsiDir, null, PsiManager.getInstance(project).findFile(file), file.getName(), "Move")) {
+          file.move(this, mlVirtualDir);
+          EditorNotifications.getInstance(project).updateNotifications(file);
+          LoggingUtils.logEvent(EventType.MODEL_IMPORT_FROM_MOVE_FILE_BUTTON, file);
+        }
+      }
+    }
+    catch (IOException e) {
+      Logger.getInstance(InNonMlFolderNotificationProvider.class)
+        .error(String.format("Error moving %s to %s.", file, mlVirtualDir), e);
+    }
   }
 
   private static class MoveModelFileDialog extends DialogWrapper {

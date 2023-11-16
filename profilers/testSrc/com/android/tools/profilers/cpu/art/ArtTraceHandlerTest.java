@@ -99,7 +99,7 @@ public class ArtTraceHandlerTest {
 
   private static CaptureNode parseCaptureNode() throws IOException {
     ArtTraceHandler handler = new ArtTraceHandler();
-    VmTraceParser parser = new VmTraceParser(CpuProfilerTestUtils.getTraceFile("basic.trace"), handler);
+    VmTraceParser parser = new VmTraceParser(CpuProfilerTestUtils.getTraceFile("art_non_streaming.trace"), handler);
     parser.parse();
 
     Map<CpuThreadInfo, CaptureNode> trees = handler.getThreadsGraph();

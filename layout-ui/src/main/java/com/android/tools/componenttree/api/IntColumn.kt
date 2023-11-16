@@ -35,9 +35,9 @@ import javax.swing.table.TableCellRenderer
  * @param tooltip tooltip to show when hovering over the column.
  * @param leftDivider show a divider line to the left of the column.
  *
- * Warning: Use this if the component tree only has data in this column from a single [NodeType].
- * If multiple [NodeType]s should show data in this column, then a custom implementation of [ColumnInfo]
- * should be created possibly using [IntColumn].
+ * Warning: Use this if the component tree only has data in this column from a single [NodeType]. If
+ * multiple [NodeType]s should show data in this column, then a custom implementation of
+ * [ColumnInfo] should be created possibly using [IntColumn].
  */
 inline fun <reified T> createIntColumn(
   name: String,
@@ -50,8 +50,20 @@ inline fun <reified T> createIntColumn(
   leftDivider: Boolean = false,
   foreground: Color? = null,
   headerRenderer: TableCellRenderer? = null
-): ColumnInfo = SingleTypeIntColumn(name, T::class.java, getter, maxInt, minInt, action, popup, tooltip, leftDivider, foreground,
-                                    headerRenderer)
+): ColumnInfo =
+  SingleTypeIntColumn(
+    name,
+    T::class.java,
+    getter,
+    maxInt,
+    minInt,
+    action,
+    popup,
+    tooltip,
+    leftDivider,
+    foreground,
+    headerRenderer
+  )
 
 /**
  * A [ColumnInfo] implementation with Int values.
@@ -71,8 +83,7 @@ class SingleTypeIntColumn<T>(
   override val foreground: Color?,
   override val headerRenderer: TableCellRenderer?
 ) : IntColumn(name) {
-  override fun getInt(item: Any): Int =
-    cast(item)?.let { getter(it) } ?: 0
+  override fun getInt(item: Any): Int = cast(item)?.let { getter(it) } ?: 0
 
   override val maxInt: Int?
     get() = getMaxInt()
@@ -88,11 +99,9 @@ class SingleTypeIntColumn<T>(
     cast(item)?.let { popup(it, component, x, y) }
   }
 
-  override fun getTooltipText(item: Any): String? =
-    cast(item)?.let { tooltip(it) }
+  override fun getTooltipText(item: Any): String? = cast(item)?.let { tooltip(it) }
 
-  private fun cast(item: Any): T? =
-    if (itemClass.isInstance(item)) itemClass.cast(item) else null
+  private fun cast(item: Any): T? = if (itemClass.isInstance(item)) itemClass.cast(item) else null
 }
 
 /**
@@ -100,9 +109,7 @@ class SingleTypeIntColumn<T>(
  *
  * Zero values are not shown.
  */
-abstract class IntColumn(
-  override val name: String
-) : ColumnInfo {
+abstract class IntColumn(override val name: String) : ColumnInfo {
   abstract fun getInt(item: Any): Int
 
   open val maxInt: Int? = null
@@ -132,9 +139,7 @@ abstract class IntColumn(
     return component.preferredSize.width
   }
 
-  private fun maxInt(data: Sequence<*>): Int =
-    data.filterNotNull().maxOfOrNull { getInt(it) } ?: 0
+  private fun maxInt(data: Sequence<*>): Int = data.filterNotNull().maxOfOrNull { getInt(it) } ?: 0
 
-  private fun minInt(data: Sequence<*>): Int =
-    data.filterNotNull().minOfOrNull { getInt(it) } ?: 0
+  private fun minInt(data: Sequence<*>): Int = data.filterNotNull().minOfOrNull { getInt(it) } ?: 0
 }

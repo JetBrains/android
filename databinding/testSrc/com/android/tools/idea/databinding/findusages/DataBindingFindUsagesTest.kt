@@ -20,35 +20,29 @@ import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.ex.EditorEx
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.usages.PsiElementUsageTarget
 import com.intellij.usages.UsageTargetUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 
 /**
  * Checking that DataBinding elements appear in Android Resource Usages.
  *
  * Currently we only support Android Resources usages including DataBinding elements, and not the other way around.
  */
-@RunsInEdt
 class DataBindingFindUsagesTest() {
 
-  private val projectRule = AndroidProjectRule.withSdk()
-
-  // The tests need to run on the EDT thread but we must initialize the project rule off of it
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  val projectRule = AndroidProjectRule.withSdk()
 
-  // Legal cast because project rule is initialized with onDisk
-  private val fixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
+  private val fixture by lazy { projectRule.fixture }
 
   private val facet
     get() = projectRule.module.androidFacet!!
@@ -114,10 +108,7 @@ class DataBindingFindUsagesTest() {
     )
 
     fixture.configureFromExistingVirtualFile(classFile.virtualFile)
-    val targets = UsageTargetUtil.findUsageTargets {
-      dataId: String? -> (fixture.editor as EditorEx).dataContext.getData(dataId!!)
-    }
-    val presentation = fixture.getUsageViewTreeTextRepresentation((targets.first() as PsiElementUsageTarget).element)
+    val presentation = getUsagePresentationAtCursor()
 
     assertThat(presentation).isEqualTo("""
       <root> (5)
@@ -202,10 +193,7 @@ class DataBindingFindUsagesTest() {
     )
 
     fixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
-    val targets = UsageTargetUtil.findUsageTargets {
-      dataId: String? -> (fixture.editor as EditorEx).dataContext.getData(dataId!!)
-    }
-    val presentation = fixture.getUsageViewTreeTextRepresentation((targets.first() as PsiElementUsageTarget).element)
+    val presentation = getUsagePresentationAtCursor()
 
     assertThat(presentation).isEqualTo("""
       <root> (2)
@@ -225,5 +213,127 @@ class DataBindingFindUsagesTest() {
              13System.out.println(binding.button.getId());
 
     """.trimIndent())
+  }
+
+  @Test
+  fun duplicateIdInTwoLayoutFiles() {
+    val layoutFile1 = fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+            <Button
+                android:id="@+id/button"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent" />
+        </LinearLayout>
+      </layout>
+    """.trimIndent())
+
+    val layoutFile2 = fixture.addFileToProject(
+      "res/layout/activity_main2.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+            <Button
+                android:id="@+id/button"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent" />
+        </LinearLayout>
+      </layout>
+    """.trimIndent())
+
+    fixture.addFileToProject(
+      "src/java/test/db/MainActivity.java",
+      // language=JAVA
+      """
+      package test.db;
+
+      import android.app.Activity;
+      import android.os.Bundle;
+
+      import test.db.databinding.ActivityMainBinding;
+
+      public class MainActivity extends Activity {
+          @Override
+          protected void onCreate(Bundle savedInstanceState) {
+              super.onCreate(savedInstanceState);
+              ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
+              System.out.println(binding.button.getId());
+              setContentView(binding.getRoot());
+          }
+      }
+    """.trimIndent()
+    )
+
+    // Find usages for layout 1 should have three; both xml files (because they both reference the same id), and the binding class usage.
+    fixture.configureFromExistingVirtualFile(layoutFile1.virtualFile)
+    ApplicationManager.getApplication().invokeAndWait { fixture.moveCaret("@+id/but|ton") }
+    val presentationLayout1 = getUsagePresentationAtCursor()
+
+    assertThat(presentationLayout1).contains("<root> (3)")
+    assertThat(presentationLayout1).contains(
+      """
+      |  Resource declaration in Android resources XML (2)
+      |   app (2)
+      |    res/layout (2)
+      |     activity_main.xml (1)
+      |      7android:id="@+id/button"
+      |     activity_main2.xml (1)
+      |      7android:id="@+id/button"
+      """.trimMargin()
+    )
+    assertThat(presentationLayout1).contains(
+      """
+      |  Unclassified (1)
+      |   app (1)
+      |    java.test.db (1)
+      |     MainActivity (1)
+      |      onCreate(Bundle) (1)
+      |       13System.out.println(binding.button.getId());
+      """.trimMargin()
+    )
+
+    // Find usages for layout 2 should not include the binding class reference
+    fixture.configureFromExistingVirtualFile(layoutFile2.virtualFile)
+    ApplicationManager.getApplication().invokeAndWait { fixture.moveCaret("@+id/but|ton") }
+    val presentationLayout2 = getUsagePresentationAtCursor()
+
+    assertThat(presentationLayout2).contains("<root> (2)")
+    assertThat(presentationLayout2).contains(
+      """
+      |  Resource declaration in Android resources XML (2)
+      |   app (2)
+      |    res/layout (2)
+      |     activity_main.xml (1)
+      |      7android:id="@+id/button"
+      |     activity_main2.xml (1)
+      |      7android:id="@+id/button"
+      """.trimMargin()
+    )
+    assertThat(presentationLayout2).doesNotContain("binding.button")
+  }
+
+  private fun getUsagePresentationAtCursor(): String {
+    val targets = runReadAction {
+      UsageTargetUtil.findUsageTargets { dataId ->
+        (fixture.editor as EditorEx).dataContext.getData(dataId)
+      }
+    }
+
+    var presentation: String? = null
+    ApplicationManager.getApplication().invokeAndWait {
+      presentation = fixture.getUsageViewTreeTextRepresentation((targets.first() as PsiElementUsageTarget).element)
+    }
+
+    return presentation!!
   }
 }

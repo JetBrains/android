@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
-import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
@@ -39,8 +37,8 @@ import javax.swing.border.MatteBorder
 /** Bottom control panel. */
 class BottomPanel(
   val previewState: AnimationPreviewState,
-  surface: DesignSurface<*>,
-  private val tracker: ComposeAnimationEventTracker
+  rootComponent: JComponent,
+  private val tracker: AnimationTracker
 ) : JPanel(BorderLayout()) {
 
   var clockTimeMs = 0
@@ -51,7 +49,7 @@ class BottomPanel(
 
   private val westToolbar =
     DefaultToolbarImpl(
-      surface,
+      rootComponent,
       "ResetCoordinationTimeline",
       listOf(ClockTimeLabel(), Separator()) +
         if (COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) listOf(ResetTimelineAction())
@@ -91,7 +89,7 @@ class BottomPanel(
     ) {
     override fun actionPerformed(e: AnActionEvent) {
       resetListeners.forEach { it() }
-      tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.RESET_TIMELINE)
+      tracker.resetTimeline()
     }
 
     override fun updateButton(e: AnActionEvent) {

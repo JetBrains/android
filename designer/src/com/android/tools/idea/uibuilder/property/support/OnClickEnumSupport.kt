@@ -30,8 +30,8 @@ import org.jetbrains.android.dom.converters.OnClickConverter
 /**
  * [EnumSupport] for the "onClick" attribute.
  *
- * Find the activity class for this XML layout file and find all
- * methods matching the signature for the "onClick" attribute.
+ * Find the activity class for this XML layout file and find all methods matching the signature for
+ * the "onClick" attribute.
  */
 class OnClickEnumSupport(val model: NlModel) : EnumSupport {
 
@@ -65,15 +65,13 @@ class OnClickEnumSupport(val model: NlModel) : EnumSupport {
       }
       val activityClass = facade.findClass(activityClassName, module.moduleScope)
       classes = if (activityClass != null) listOf(activityClass) else emptyList()
-    }
-    else {
+    } else {
       var scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)
       val activityClass = facade.findClass(CLASS_ACTIVITY, scope)
       if (activityClass != null) {
         scope = GlobalSearchScope.moduleScope(module)
         classes = ClassInheritorsSearch.search(activityClass, scope, true).findAll()
-      }
-      else {
+      } else {
         classes = emptyList()
       }
     }
@@ -82,6 +80,8 @@ class OnClickEnumSupport(val model: NlModel) : EnumSupport {
 
   private fun getMethodNames(psiClass: PsiClass): List<String> =
     psiClass.methods
-      .filter { psiClass == it.containingClass && OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(it) }
+      .filter {
+        psiClass == it.containingClass && OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(it)
+      }
       .map { it.name }
 }

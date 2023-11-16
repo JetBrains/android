@@ -26,9 +26,9 @@ import com.android.resources.ResourceType
 import com.android.resources.ResourceType.STYLEABLE
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.AndroidRClassBase
-import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.ResourceRepositoryRClass
 import com.android.tools.idea.res.SmallAarRClass
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.res.getResourceTypeForResourceTag

@@ -37,6 +37,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
 import org.jetbrains.annotations.VisibleForTesting
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -51,12 +52,13 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
+import javax.swing.Timer
 
 /**
  * Creates a popup that displays a title, a description, a list of actions as an overflow menu and a list of links at the bottom.
  * The list of actions or links can be empty.
  */
-interface InformationPopup {
+interface InformationPopup : Disposable {
 
   val popupComponent: JComponent
 
@@ -68,10 +70,10 @@ interface InformationPopup {
   fun hidePopup()
 
   /**
-   * Shows the popup from a parent view (like an action) from a given input event
+   * Shows the popup from a parent view (like an action) from a given input event.
    *
    * @param disposableParent the [Disposable] parent that triggers the popup
-   * @param event the given [InputEvent] to position the it
+   * @param event the given [InputEvent] to position the popup
    */
   fun showPopup(disposableParent: Disposable, event: InputEvent)
 
@@ -99,7 +101,7 @@ class InformationPopupImpl(
   description: String,
   additionalActions: List<AnAction>,
   links: Collection<AnActionLink>
-) : InformationPopup, Disposable {
+) : InformationPopup {
 
   /**
    * Keeps the popup open until the mouse reaches the popup area.
@@ -111,14 +113,20 @@ class InformationPopupImpl(
 
   override var onMouseEnteredCallback = {}
 
+  private val hidePopupTimer = Timer(POPUP_DISMISS_TIMEOUT_MS) {
+    hidePopup()
+  }
+
   override val popupComponent: JComponent by lazy {
     createContentPanel(title, description, additionalActions, links, hidePopup = ::hidePopup).apply {
       addMouseListener(object : MouseAdapter() {
 
         override fun mouseEntered(e: MouseEvent?) {
           onMouseEnteredCallback()
-          // The popup should stay open meanwhile the mouse is navigating into the popup area
+          // The popup should stay open when the mouse is moving on the popup area.
           hasEnteredPopup = true
+          // Stops the timer count to prevent the popup to be closed when the mouse is on the popup area.
+          hidePopupTimer.stop()
         }
       })
     }
@@ -128,6 +136,9 @@ class InformationPopupImpl(
     if (popup?.isDisposed == false) {
       Disposer.dispose(this)
     }
+    // The timer will continue to launch its callback on every time-out.
+    // Stopping it avoids polling as the popup is hidden already.
+    hidePopupTimer.stop()
   }
 
   override fun showPopup(disposableParent: Disposable, event: InputEvent) {
@@ -138,23 +149,31 @@ class InformationPopupImpl(
       .setCancelOnWindowDeactivation(true)
       .setCancelOnMouseOutCallback { e ->
         if (!hasEnteredPopup) {
-          // We can't rely on AbstractPopup$Canceller because it doesn't take into account of the padding between the button and the popup.
-          val padding = (JBUIScale.sysScale() * POPUP_PADDING).toInt()
           val popupParent = event.component
           val point = SwingUtilities.convertPoint(e.component, e.point, popupParent)
-          // We add padding around the parent, because we added a gap (POPUP_PADDING) between the parent and the popup.
-          // We add it on all four sides because it's just a nicer experience.
-          return@setCancelOnMouseOutCallback !Rectangle(-padding, -padding, popupParent.width + 2 * padding,
-                                                        popupParent.height + 2 * padding).contains(point)
+          if (!point.isIntoArea(component = popupParent)) {
+            // Starts the timer count to close the popup when the mouse is not on the popup area.
+            hidePopupTimer.start()
+          }
+          hasEnteredPopup = false
+
+          return@setCancelOnMouseOutCallback false
         }
 
         popup?.let { openPopup ->
-          // Verify that the mouse is not currently over the popup window or any of the owned windows (sub-popups)
-          val popupWindow =  SwingUtilities.getWindowAncestor(openPopup.content) ?: return@setCancelOnMouseOutCallback true
-          val currentWindow = SwingUtilities.getWindowAncestor(e.component) ?: return@setCancelOnMouseOutCallback true
+          val popupWindow = SwingUtilities.getWindowAncestor(openPopup.content)
+          val currentWindow = SwingUtilities.getWindowAncestor(e.component)
+          if (popupWindow != null && currentWindow != null) {
+            if (currentWindow != popupWindow && !popupWindow.ownedWindows.contains(currentWindow)) {
+              // Starts the timer count to close the popup if the mouse is currently not over the popup window
+              // or any of the owned windows (sub-popups).
+              hidePopupTimer.start()
+            }
+          }
+        } ?: hidePopupTimer.start()
 
-          currentWindow != popupWindow && !popupWindow.ownedWindows.contains(currentWindow)
-        } ?: true
+        // This callback always returns false as the popup timer is taking care to close the popup already.
+        return@setCancelOnMouseOutCallback false
       }
       .createPopup()
 
@@ -186,6 +205,19 @@ class InformationPopupImpl(
       owner.height + JBUIScale.scale(POPUP_PADDING)
     )
   )
+
+  private fun Point.isIntoArea(component: Component): Boolean {
+    // We can't rely on AbstractPopup$Canceller because it doesn't take into account of the padding between the button and the popup.
+    val padding = (JBUIScale.sysScale() * POPUP_PADDING).toInt()
+    // We add padding around the parent, because we added a gap (POPUP_PADDING) between the parent and the popup.
+    // We add it on all four sides because it's just a nicer experience.
+    return Rectangle(
+      -padding,
+      -padding,
+      component.width + 2 * padding,
+      component.height + 2 * padding
+    ).contains(this)
+  }
 
   private fun getPopupPreferredSize(): Dimension {
     val size: Dimension = popupComponent.preferredSize
@@ -288,5 +320,6 @@ class InformationPopupImpl(
     private const val POPUP_DESCRIPTION_TOP_AND_BOTTOM_INDENT = 10
     private const val POPUP_DESCRIPTION_LEFT_INDENT = 10
     private const val POPUP_DESCRIPTION_RIGHT_INDENT = 6
+    private const val POPUP_DISMISS_TIMEOUT_MS = 400
   }
 }

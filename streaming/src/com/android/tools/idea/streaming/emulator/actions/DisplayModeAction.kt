@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.emulator.actions
 import com.android.emulator.control.DisplayModeValue
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.awt.EventQueue
 
@@ -41,6 +42,8 @@ internal sealed class DisplayModeAction(
       })
     }
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   class Desktop : DisplayModeAction(DisplayModeValue.DESKTOP)
 

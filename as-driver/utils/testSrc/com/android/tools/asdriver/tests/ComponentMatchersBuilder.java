@@ -29,8 +29,20 @@ public class ComponentMatchersBuilder {
 
   public ComponentMatchersBuilder() { }
 
-  public ComponentMatchersBuilder addComponentTextMatch(String text) {
-    ASDriver.ComponentTextMatch textBuilder = ASDriver.ComponentTextMatch.newBuilder().setText(text).build();
+  public ComponentMatchersBuilder addComponentTextExactMatch(String text) {
+    return addComponentTextMatch(text, ASDriver.ComponentTextMatch.MatchMode.EXACT);
+  }
+
+  public ComponentMatchersBuilder addComponentTextContainsMatch(String text) {
+    return addComponentTextMatch(text, ASDriver.ComponentTextMatch.MatchMode.CONTAINS);
+  }
+
+  public ComponentMatchersBuilder addComponentTextRegexMatch(String regex) {
+    return addComponentTextMatch(regex, ASDriver.ComponentTextMatch.MatchMode.REGEX);
+  }
+
+  private ComponentMatchersBuilder addComponentTextMatch(String text, ASDriver.ComponentTextMatch.MatchMode matchMode) {
+    ASDriver.ComponentTextMatch textBuilder = ASDriver.ComponentTextMatch.newBuilder().setText(text).setMatchMode(matchMode).build();
     ASDriver.ComponentMatcher.Builder componentMatcher = ASDriver.ComponentMatcher.newBuilder().setComponentTextMatch(textBuilder);
 
     builders.add(componentMatcher);

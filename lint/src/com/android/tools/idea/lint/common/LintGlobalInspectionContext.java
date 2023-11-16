@@ -119,11 +119,13 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
       Tools tool = globalTools.get(0);
       String id = tool.getShortName().substring(LINT_INSPECTION_PREFIX.length());
       Issue issue = LintIdeIssueRegistry.get().getIssue(id);
-      if (issue != null && !issue.isEnabledByDefault()) {
+      if (issue != null) {
         issues = Collections.singleton(issue);
-        issue.setEnabledByDefault(true);
-        // And turn it back off again in cleanup
-        myEnabledIssue = issue;
+        if (!issue.isEnabledByDefault()) {
+          issue.setEnabledByDefault(true);
+          // And turn it back off again in cleanup
+          myEnabledIssue = issue;
+        }
       }
     }
 

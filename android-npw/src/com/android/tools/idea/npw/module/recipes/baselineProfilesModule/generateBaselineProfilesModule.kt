@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.BP_PLUGIN_FILTERING_SUPPORTED
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_BASELINE_PROFILE
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_MACROBENCHMARK
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.createModule
@@ -40,37 +42,32 @@ import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import java.io.File
 
 const val GMD_DEVICE = "Pixel 6"
-const val GMD_API = 31
+const val GMD_API = 34
+const val GMD_SYSTEM_IMAGE_SOURCE = "google"
 const val GENERATOR_CLASS_NAME = "BaselineProfileGenerator"
 const val MACROBENCHMARKS_CLASS_NAME = "StartupBenchmarks"
 const val BENCHMARKS_CLASS_NAME = "StartupBenchmarks"
 const val RUN_CONFIGURATION_NAME = "Generate Baseline Profile"
 const val PROFILE_INSTALLER_MIN_REV = "1.3.0-beta01"
-const val BASELINE_PROFILES_PLUGIN_MIN_REV = "1.2.0-SNAPSHOT" // TODO(b/269581369): Need to update prebuilts to the latest public version of the plugin
-const val MACROBENCHMARK_MIN_REV = "1.2.0-alpha09"
+const val BASELINE_PROFILES_PLUGIN_MIN_REV = "1.2.0-beta01"
+const val MACROBENCHMARK_MIN_REV = "1.2.0-beta01"
 
 fun RecipeExecutor.generateBaselineProfilesModule(
   newModule: ModuleTemplateData,
   useGradleKts: Boolean,
   targetModule: Module,
   useGmd: Boolean,
-  useVersionCatalog: Boolean
+  useVersionCatalog: Boolean,
+  agpVersion: AgpVersion,
 ) {
   val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project) ?: return
   val targetModuleAndroidModel = projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return
   val targetModuleGradleModel = GradleAndroidModel.get(targetModule) ?: return
   val targetApplicationId = targetModuleAndroidModel.namespace().valueAsString() ?: "com.example.application"
 
-  // TODO(b/269581369): Remove once alpha build of the plugin is released.
-  projectBuildModel.projectSettingsModel?.pluginManagement()?.repositories()?.addMavenRepositoryByUrl(
-    "https://androidx.dev/snapshots/builds/9664109/artifacts/repository",
-    "AndroidX Snapshot Repository"
-  )
-  projectBuildModel.applyChanges()
-
   addClasspathDependency("androidx.benchmark:benchmark-baseline-profile-gradle-plugin:+", BASELINE_PROFILES_PLUGIN_MIN_REV)
 
-  val gmdSpec = if (useGmd) GmdSpec(GMD_DEVICE, GMD_API) else null
+  val gmdSpec = if (useGmd) GmdSpec(GMD_DEVICE, GMD_API, GMD_SYSTEM_IMAGE_SOURCE) else null
 
   val flavors = getTargetModelProductFlavors(targetModuleGradleModel)
   val variants = generateBuildVariants(flavors, "release")
@@ -102,13 +99,16 @@ fun RecipeExecutor.generateBaselineProfilesModule(
 
   // Only do the actions for the default executor, not when just finding references.
   if (this !is FindReferencesRecipeExecutor) {
-    setupRunConfigurations(variants, targetModule)
+    setupRunConfigurations(variants, targetModule, agpVersion)
   }
 }
 
 @VisibleForTesting
 fun RecipeExecutor.updateTargetModule(newModule: ModuleTemplateData, targetModule: Module) {
   val targetModuleDir = AndroidRootUtil.getModuleDirPath(targetModule)?.let { File(it) } ?: return
+
+  // This needs to be added, because many projects don't define this plugin in plugins { } block, and therefore it fails with unknown version.
+  applyPluginInModule("com.android.application", targetModule, newModule.projectTemplateData.agpVersion)
 
   applyPluginInModule("androidx.baselineprofile", targetModule, BASELINE_PROFILES_PLUGIN_MIN_REV)
 
@@ -194,6 +194,7 @@ fun RecipeExecutor.createTestClasses(
 fun setupRunConfigurations(
   variants: List<String>,
   targetModule: Module,
+  agpVersion: AgpVersion,
   runManager: RunManager = RunManager.getInstance(targetModule.project)
 ) {
   val project = targetModule.project
@@ -212,7 +213,7 @@ fun setupRunConfigurations(
         it.rawCommandLine = runConfigurationGradleTask(
           moduleName = targetModule.getModuleNameForGradleTask(),
           flavorName = variantName,
-          filterArgument = BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_BASELINE_PROFILE,
+          filterArgument = runConfigurationFilterArgument(agpVersion),
         )
         it.settings.externalProjectPath = project.basePath
       }
@@ -232,8 +233,8 @@ fun setupRunConfigurations(
 
 @VisibleForTesting
 fun Module.getModuleNameForGradleTask(): String {
-  // name of the whole project
-  val projectName = project.name
+  // name of the whole project replacing spaces, because that's not allowed for Gradle modules
+  val projectName = project.name.replace(' ', '_')
 
   // module name contains also the whole project name, so we need to remove it, so we can use it to a Gradle task
   return name.removePrefix("$projectName.")
@@ -255,6 +256,15 @@ fun runConfigurationGradleTask(
     append(" -P${BaselineProfilesMacrobenchmarkCommon.FILTER_INSTR_ARG}=$filterArgument")
   }
 }
+
+/**
+ * This parameter allows filtering only Baseline Profile generators as part of the run configuration (Gradle task).
+ * If not added, the task would fail, because Macrobenchmarks by default can't run on an emulator (GMD).
+ * Baseline profiles Gradle plugin adds this filtering parameter automatically from AGP 8.2.0, so we need to prevent adding it from then
+ */
+@VisibleForTesting
+fun runConfigurationFilterArgument(agpVersion: AgpVersion): String? =
+  if (agpVersion >= BP_PLUGIN_FILTERING_SUPPORTED) null else FILTER_ARG_BASELINE_PROFILE
 
 @VisibleForTesting
 fun baselineProfileTaskName(variantName: String?): String =

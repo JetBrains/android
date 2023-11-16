@@ -19,7 +19,7 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.ROOT
-import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_BLUE
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_BLUE
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
@@ -30,14 +30,18 @@ import org.junit.Test
 class SessionStatisticsTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   @Test
   fun doNotSaveEmptyData() {
-    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, areMultipleProjectsOpen = { false }, isAutoConnectEnabled = { true })
+    val stats =
+      SessionStatisticsImpl(
+        APP_INSPECTION_CLIENT,
+        areMultipleProjectsOpen = { false },
+        isAutoConnectEnabled = { true },
+        isEmbeddedLayoutInspector = { true },
+      )
     val data = DynamicLayoutInspectorSession.newBuilder()
     stats.frameReceived()
     stats.save(data)
@@ -52,6 +56,7 @@ class SessionStatisticsTest {
     assertThat(result.attach.clientType).isEqualTo(APP_INSPECTION_CLIENT)
     assertThat(result.attach.multipleProjectsOpen).isFalse()
     assertThat(result.attach.autoConnectEnabled).isTrue()
+    assertThat(result.attach.isEmbeddedLayoutInspector).isTrue()
     assertThat(result.attach.debuggerAttached).isFalse()
     assertThat(result.attach.debuggerPausedDuringAttach).isFalse()
   }
@@ -65,7 +70,13 @@ class SessionStatisticsTest {
         }
       }
     }
-    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, areMultipleProjectsOpen = { true }, isAutoConnectEnabled = { true })
+    val stats =
+      SessionStatisticsImpl(
+        APP_INSPECTION_CLIENT,
+        areMultipleProjectsOpen = { true },
+        isAutoConnectEnabled = { true },
+        isEmbeddedLayoutInspector = { true }
+      )
     val compose1 = model[COMPOSE1]
     stats.start()
     model.notifyModified(structuralChange = true)
@@ -75,7 +86,7 @@ class SessionStatisticsTest {
     stats.showRecompositions = true
     stats.frameReceived()
     stats.frameReceived()
-    stats.gotoSourceFromDoubleClick()
+    stats.gotoSourceFromTreeDoubleClick()
     stats.selectionMadeFromComponentTree(compose1)
     stats.debuggerInUse(false)
 
@@ -100,6 +111,7 @@ class SessionStatisticsTest {
     assertThat(result.attach.success).isTrue()
     assertThat(result.attach.multipleProjectsOpen).isTrue()
     assertThat(result.attach.autoConnectEnabled).isTrue()
+    assertThat(result.attach.isEmbeddedLayoutInspector).isTrue()
     assertThat(result.attach.debuggerAttached).isTrue()
     assertThat(result.attach.debuggerPausedDuringAttach).isFalse()
   }
@@ -108,12 +120,12 @@ class SessionStatisticsTest {
   fun testHasMultipleProjectsIsUpdated() {
     var hasMultipleProjects = false
     var isAutoConnectEnabled = false
-    val stats = SessionStatisticsImpl(
-      APP_INSPECTION_CLIENT,
-      areMultipleProjectsOpen = { hasMultipleProjects },
-      isAutoConnectEnabled = { isAutoConnectEnabled }
-    )
-
+    val stats =
+      SessionStatisticsImpl(
+        APP_INSPECTION_CLIENT,
+        areMultipleProjectsOpen = { hasMultipleProjects },
+        isAutoConnectEnabled = { isAutoConnectEnabled }
+      )
 
     stats.start()
 

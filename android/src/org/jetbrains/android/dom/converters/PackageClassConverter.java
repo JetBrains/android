@@ -608,11 +608,14 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
 
     @NotNull
     private LocalQuickFix[] collectFixesFromMavenClassRegistry(@NotNull String className, @NotNull Project project) {
+      PsiFile containingFile = myElement.getContainingFile();
+
       Collection<LocalQuickFix> fixes =
         MavenClassResolverUtils.collectFixesFromMavenClassRegistry(
           myMavenClassRegistryManager,
           className,
-          project
+          project,
+          containingFile != null ? containingFile.getFileType() : null
         );
 
       return fixes.toArray(LocalQuickFix.EMPTY_ARRAY);

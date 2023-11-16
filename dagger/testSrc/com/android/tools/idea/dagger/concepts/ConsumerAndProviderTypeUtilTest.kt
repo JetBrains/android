@@ -22,7 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.PsiPrimitiveType
+import com.intellij.psi.PsiTypes
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.KtClass
@@ -81,7 +81,7 @@ class ConsumerAndProviderTypeUtilTest {
     val lazyIntType = myFixture.findParentElement<KtParameter>("lazy|Int").psiType!!
 
     val fooType = myFixture.findParentElement<KtClass>("class F|oo").toPsiType()
-    val integerType = PsiPrimitiveType.INT.getBoxedType(/* context= */ psiFile)
+    val integerType = PsiTypes.intType().getBoxedType(/* context= */ psiFile)
 
     assertThat(lazyFooType.typeInsideDaggerWrapper()).isEqualTo(fooType)
     assertThat(providerFooType.typeInsideDaggerWrapper()).isEqualTo(fooType)

@@ -2,7 +2,7 @@
 package com.android.tools.idea.rendering.webp;
 
 import com.android.tools.adtui.webp.WebpNativeLibHelper;
-import com.android.tools.idea.rendering.RenderSecurityManagerOverrides;
+import com.android.tools.rendering.security.RenderSecurityManagerOverrides;
 import org.jetbrains.annotations.NotNull;
 
 public class WebpRenderSecurityManagerOverrides implements RenderSecurityManagerOverrides {

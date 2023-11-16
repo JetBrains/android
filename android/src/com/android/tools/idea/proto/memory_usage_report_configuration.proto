@@ -3,27 +3,50 @@ syntax = "proto2";
 option java_package = "com.android.tools.idea.serverflags.protos";
 option java_multiple_files = true;
 
+// Configuration of the component, for which the memory usage report will
+// be collected.
 message MemoryUsageComponent {
+  // Label of the component
   optional string label = 1;
 
+  // Names of the packages attributed to the component
   repeated string package_names = 2;
+  // Names of the classes attributed to the component
   repeated string class_names = 3;
+  // The number of bytes after which an extended report will be collected
   optional int64 extended_report_threshold_bytes = 4;
+  // The names of the classes whose instances will be counted and included in
+  // the memory report
+  repeated string tracked_fqns = 5;
 }
 
-// A high level component category
+// Configuration of the category, for which the memory usage report will
+// be collected. Category is a higher level abstraction, has multiple
+// sub-components.
 message MemoryUsageComponentCategory {
+  // Label of the category
   optional string label = 1;
 
+  // Child components of the category
   repeated MemoryUsageComponent components = 2;
+  // The number of bytes after which an extended report will be collected
   optional int64 extended_report_threshold_bytes = 3;
+  // The names of the classes whose instances will be counted and included in
+  // the memory report
+  repeated string tracked_fqns = 4;
 }
 
 // Configuration for specifying the list of categories against which a report on
 // memory usage will be built.
 message MemoryUsageReportConfiguration {
+  // List of high-level categories
   repeated MemoryUsageComponentCategory categories = 1;
+  // The number of the shared components that will be included in the memory
+  // report (biggest first).
   optional int32 shared_components_limit = 2;
+
+  // The number of bytes used by shared/uncategorized objects after which an
+  // extended report will be collected
   optional int64 shared_cluster_extended_report_threshold_bytes = 3;
   optional int64 uncategorized_component_extended_report_threshold_bytes = 4;
 }

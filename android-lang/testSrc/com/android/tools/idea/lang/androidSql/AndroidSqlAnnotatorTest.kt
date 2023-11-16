@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.com.android.tools.idea.lang.androidSql
+package com.android.tools.idea.lang.androidSql
 
-import com.android.tools.idea.lang.androidSql.AndroidSqlAnnotator
-import com.android.tools.idea.lang.androidSql.AndroidSqlFileType
-import com.android.tools.idea.lang.androidSql.createStubRoomClasses
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors

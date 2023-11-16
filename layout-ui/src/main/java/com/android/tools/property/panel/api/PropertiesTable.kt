@@ -19,9 +19,7 @@ import com.android.tools.property.panel.impl.support.PropertiesTableImpl
 import com.google.common.collect.ImmutableTable
 import com.google.common.collect.Table
 
-/**
- * Table of properties indexed by namespace and name.
- */
+/** Table of properties indexed by namespace and name. */
 interface PropertiesTable<P : PropertyItem> {
 
   /**
@@ -45,34 +43,22 @@ interface PropertiesTable<P : PropertyItem> {
    */
   fun put(property: P)
 
-  /**
-   * Return a map from name to property given the specified [namespace].
-   */
+  /** Return a map from name to property given the specified [namespace]. */
   fun getByNamespace(namespace: String): Map<String, P>
 
-  /**
-   * Return true if this table is empty.
-   */
+  /** Return true if this table is empty. */
   val isEmpty: Boolean
 
-  /**
-   * Return an arbitrary property from the table.
-   */
+  /** Return an arbitrary property from the table. */
   val first: P?
 
-  /**
-   * Return the number of properties in the table.
-   */
+  /** Return the number of properties in the table. */
   val size: Int
 
-  /**
-   * Return all properties in the table
-   */
+  /** Return all properties in the table */
   val values: Collection<P>
 
-  /**
-   * Return all namespaces in the table
-   */
+  /** Return all namespaces in the table */
   val namespaces: Collection<String>
 
   /**
@@ -81,15 +67,14 @@ interface PropertiesTable<P : PropertyItem> {
    * Which is using a [Table] as a backing store.
    */
   companion object {
-    fun <T: PropertyItem> create(table: Table<String, String, T>): PropertiesTable<T> {
+    fun <T : PropertyItem> create(table: Table<String, String, T>): PropertiesTable<T> {
       return PropertiesTableImpl(table)
     }
 
     private val EMPTY_TABLE = create(ImmutableTable.of())
 
     fun <T : PropertyItem> emptyTable(): PropertiesTable<T> {
-      @Suppress("UNCHECKED_CAST")
-      return EMPTY_TABLE as PropertiesTable<T>
+      @Suppress("UNCHECKED_CAST") return EMPTY_TABLE as PropertiesTable<T>
     }
   }
 }

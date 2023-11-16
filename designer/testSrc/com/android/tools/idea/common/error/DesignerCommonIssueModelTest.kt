@@ -23,15 +23,13 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.tree.LeafState
 import com.intellij.util.concurrency.Invoker
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
 class DesignerCommonIssueModelTest {
 
-  @JvmField
-  @Rule
-  val rule = EdtAndroidProjectRule(AndroidProjectRule.inMemory())
+  @JvmField @Rule val rule = EdtAndroidProjectRule(AndroidProjectRule.inMemory())
 
   @Test
   fun test() {
@@ -57,8 +55,10 @@ class DesignerCommonIssueModelTest {
   }
 }
 
-class TestNode(private val name: String = "", parentDescriptor: NodeDescriptor<DesignerCommonIssueNode>? = null)
-  : DesignerCommonIssueNode(null, parentDescriptor) {
+class TestNode(
+  private val name: String = "",
+  parentDescriptor: NodeDescriptor<DesignerCommonIssueNode>? = null
+) : DesignerCommonIssueNode(null, parentDescriptor) {
 
   private val children = mutableListOf<DesignerCommonIssueNode>()
 

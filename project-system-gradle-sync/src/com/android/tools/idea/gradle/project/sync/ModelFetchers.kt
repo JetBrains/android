@@ -20,7 +20,15 @@ import com.android.builder.model.ModelBuilderParameter
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.Variant
+import com.android.builder.model.v2.ide.ArtifactDependencies
+import com.android.builder.model.v2.ide.ArtifactDependenciesAdjacencyList
+import com.android.builder.model.v2.ide.Edge
+import com.android.builder.model.v2.ide.GraphItem
+import com.android.builder.model.v2.ide.Library
+import com.android.builder.model.v2.ide.UnresolvedDependency
+import com.android.builder.model.v2.models.ClasspathParameterConfig
 import com.android.builder.model.v2.models.VariantDependencies
+import com.android.builder.model.v2.models.VariantDependenciesAdjacencyList
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
@@ -78,23 +86,43 @@ internal fun BuildController.findVariantModel(
   }
 }
 
+internal fun getClasspathConfigForProject(
+  skipRuntimeClasspathForLibrariesFlag: Boolean,
+  projectType: IdeAndroidProjectType,
+  hasNoInboundDependencies: Boolean
+): ClasspathParameterConfig = when {
+  hasNoInboundDependencies -> ClasspathParameterConfig.ALL
+  skipRuntimeClasspathForLibrariesFlag && projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY ->
+    ClasspathParameterConfig.ANDROID_TEST_ONLY
+  else -> ClasspathParameterConfig.ALL
+}
+
 /**
  * Valid only for [VariantDependencies] using model parameter for the given [BasicGradleProject] using .
  */
 internal fun BuildController.findVariantDependenciesV2Model(
   project: BasicGradleProject,
   variantName: String,
-  projectType: IdeAndroidProjectType,
-  skipRuntimeClasspathForLibraries: Boolean
-): VariantDependencies? {
-  val shouldSkipRuntimeClasspath = skipRuntimeClasspathForLibraries && projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
-  return findModel(
+  useNewDependencyGraphModel: Boolean,
+  classpathConfig: ClasspathParameterConfig
+): VariantDependenciesCompat? {
+  fun <T> findModel(clazz: Class<T>, classpathConfig: ClasspathParameterConfig) = findModel(
     project,
-    VariantDependencies::class.java,
+    clazz,
     com.android.builder.model.v2.models.ModelBuilderParameter::class.java
   ) {
     it.variantName = variantName
-    it.dontBuildRuntimeClasspath = shouldSkipRuntimeClasspath
+    classpathConfig.applyTo(it)
+  }
+
+  return if (useNewDependencyGraphModel) {
+    findModel(VariantDependenciesAdjacencyList::class.java, classpathConfig)?.let {
+      VariantDependenciesCompat.AdjacencyList(it)
+    }
+  } else {
+    findModel(VariantDependencies::class.java, classpathConfig)?.let {
+      VariantDependenciesCompat.GraphItemList(it)
+    }
   }
 }
 
@@ -164,4 +192,47 @@ internal fun BuildController.findKotlinModelsForAndroidProject(root: Model, vari
     it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
   }
   return AllKotlinModels(kotlinModel, kaptModel)
+}
+
+sealed class VariantDependenciesCompat(
+  val mainArtifact: ArtifactDependenciesCompat,
+  val androidTestArtifact: ArtifactDependenciesCompat?,
+  val unitTestArtifact: ArtifactDependenciesCompat?,
+  val testFixturesArtifact: ArtifactDependenciesCompat?,
+  val libraries: Map<String, Library>,
+) {
+  class AdjacencyList(variantDependencies: VariantDependenciesAdjacencyList) : VariantDependenciesCompat(
+    ArtifactDependenciesCompat.AdjacencyList(variantDependencies.mainArtifact),
+    variantDependencies.androidTestArtifact?.let { ArtifactDependenciesCompat.AdjacencyList(it) },
+    variantDependencies.unitTestArtifact?.let { ArtifactDependenciesCompat.AdjacencyList(it) },
+    variantDependencies.testFixturesArtifact?.let { ArtifactDependenciesCompat.AdjacencyList(it) },
+    variantDependencies.libraries
+  )
+  class GraphItemList(variantDependencies: VariantDependencies) : VariantDependenciesCompat(
+    ArtifactDependenciesCompat.GraphItemList(variantDependencies.mainArtifact),
+    variantDependencies.androidTestArtifact?.let { ArtifactDependenciesCompat.GraphItemList(it) },
+    variantDependencies.unitTestArtifact?.let { ArtifactDependenciesCompat.GraphItemList(it) },
+    variantDependencies.testFixturesArtifact?.let { ArtifactDependenciesCompat.GraphItemList(it) },
+    variantDependencies.libraries,
+  )
+}
+
+sealed class ArtifactDependenciesCompat(val compileDependencies: DependencyGraphCompat,
+                                        val runtimeDependencies: DependencyGraphCompat?,
+                                        val unresolvedDependencies: List<UnresolvedDependency>) {
+  class AdjacencyList(artifactDependencies: ArtifactDependenciesAdjacencyList) : ArtifactDependenciesCompat(
+    DependencyGraphCompat.AdjacencyList(artifactDependencies.compileDependencies),
+    artifactDependencies.runtimeDependencies?.let {DependencyGraphCompat.AdjacencyList(it)},
+    artifactDependencies.unresolvedDependencies
+  )
+  class GraphItemList(artifactDependencies: ArtifactDependencies) : ArtifactDependenciesCompat(
+    DependencyGraphCompat.GraphItemList(artifactDependencies.compileDependencies),
+    artifactDependencies.runtimeDependencies?.let {DependencyGraphCompat.GraphItemList(it)},
+    artifactDependencies.unresolvedDependencies
+  )
+}
+
+sealed class DependencyGraphCompat {
+  data class AdjacencyList(val edges: List<Edge>) : DependencyGraphCompat()
+  data class GraphItemList(val graphItems: List<GraphItem>) : DependencyGraphCompat()
 }

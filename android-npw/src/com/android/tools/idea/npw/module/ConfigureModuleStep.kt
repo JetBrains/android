@@ -59,11 +59,12 @@ import com.android.tools.idea.templates.determineVersionCatalogUseForNewModule
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.KTS
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.Groovy
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.KTS
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.ui.WizardUtils.WIZARD_BORDER.SMALL
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.ui.components.JBTextField
 import kotlinx.coroutines.Dispatchers
@@ -84,7 +85,8 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   val formFactor: FormFactor,
   private val minSdkLevel: Int = SdkVersionInfo.LOWEST_ACTIVE_API,
   basePackage: String? = getSuggestedProjectPackage(),
-  title: String
+  title: String,
+  parentDisposable: Disposable? = null
 ) : SkippableWizardStep<ModuleModelKind>(model, title, formFactor.icon) {
   protected val bindings = BindingsManager()
   protected val listeners = ListenerManager()
@@ -98,6 +100,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   private val buildConfigurationLanguage: OptionalValueProperty<BuildConfigurationLanguageForNewModule> = OptionalValueProperty(
     if(model.project.hasKtsUsage()) KTS else Groovy)
 
+  private val disposable by lazy { parentDisposable ?: this }
   private val androidVersionsInfo = AndroidVersionsInfo()
   private var installRequests: List<UpdatablePackage> = listOf()
   private var installLicenseRequests: List<RemotePackage> = listOf()
@@ -109,15 +112,10 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   protected val buildConfigurationLanguageCombo: JComboBox<BuildConfigurationLanguageForNewModule> = BuildConfigurationLanguageComboProvider().createComponent()
 
   protected val validatorPanel: ValidatorPanel by lazy {
-    ValidatorPanel(this, createMainPanel()).apply {
+    ValidatorPanel(disposable, createMainPanel()).apply {
       registerValidator(model.moduleName, moduleValidator)
       registerValidator(model.packageName, PackageNameValidator())
-
-      val isAndroidX = BoolValueProperty(true)
-      registerValidator(model.androidSdkInfo, ApiVersionValidator(this, formFactor) {
-        isAndroidX.set(model.project.isAndroidx())
-        isAndroidX.get()
-        }, isAndroidX)
+      registerValidator(model.androidSdkInfo, ApiVersionValidator(model.project.isAndroidx(), formFactor))
 
       val minKtsAgpVersion = AgpVersion.parse(KTS_AGP_MIN_VERSION)
       registerValidator(agpVersion, createValidator { version ->
@@ -136,7 +134,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
         } else OK
       })
 
-      AndroidCoroutineScope(this).launch(Dispatchers.IO) {
+      AndroidCoroutineScope(disposable).launch(Dispatchers.IO) {
         val agpVersionValue = determineAgpVersion(model.project, false)
         val versionCatalogUseValue = determineVersionCatalogUse(model.project)
         val versionCatalogUseForNewModuleValue = determineVersionCatalogUseForNewModule(model.project, model.isNewProject)
@@ -152,7 +150,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       FormScalingUtil.scaleComponentTree(this@ConfigureModuleStep.javaClass, this)
     }
   }
-  private val rootPanel: JScrollPane by lazy {
+  protected val rootPanel: JScrollPane by lazy {
     wrapWithVScroll(validatorPanel, SMALL)
   }
 

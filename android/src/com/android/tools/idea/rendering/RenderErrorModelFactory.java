@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.android.tools.rendering.RenderResult;
 import com.intellij.openapi.actionSystem.DataContext;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,7 @@ public class RenderErrorModelFactory {
     List<RenderErrorModel.Issue> issues = new ArrayList<>();
     for (RenderErrorContributor.Provider provider : RenderErrorContributor.Provider.EP_NAME.getExtensions()) {
       if (provider.isApplicable(result.getProject())) {
-        issues.addAll(provider.getContributor(surface, result, dataContext).reportIssues());
+        issues.addAll(provider.getContributor(surface, result).reportIssues());
       }
     }
     return new RenderErrorModel(issues);

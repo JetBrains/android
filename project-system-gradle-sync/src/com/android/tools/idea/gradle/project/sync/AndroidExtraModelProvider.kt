@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
@@ -26,10 +27,10 @@ import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.GradleBuild
-import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.File
 import java.net.URLClassLoader
+import java.time.Instant
 
 /**
  * An entry point for Android Gradle sync.
@@ -67,16 +68,6 @@ private class BuildModelsAndMap(val models: Set<GradleBuild>, val map: IdeCompos
  * initializers (without having these values serialized).
  */
 private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionOptions) {
-  init {
-    if (!syncOptions.flags.studioHeapAnalysisLightweightMode) {
-      if (syncOptions.flags.studioHprofOutputDirectory.isNotEmpty()) {
-        captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, "before_sync")
-      }
-      if (syncOptions.flags.studioHeapAnalysisOutputDirectory.isNotEmpty()) {
-        analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, "before_sync", false)
-      }
-    }
-  }
 
   private var buildModelsAndMap: BuildModelsAndMap? = null
   private val seenBuildModels: MutableSet<GradleBuild> = mutableSetOf()
@@ -88,6 +79,7 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
     buildModel: GradleBuild,
     consumer: ProjectImportModelProvider.BuildModelConsumer
   ) {
+    recordCheckpointData(MeasurementCheckpoint.ANDROID_STARTED)
     // Flatten the platform's handling of included builds. We need all models together to resolve cross `includeBuild` dependencies
     // correctly. This, unfortunately, makes assumptions about the order in which these methods are invoked. If broken it will be caught
     // by any test attempting to sync a composite build.
@@ -119,19 +111,31 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
         ),
         consumer
       ).populateBuildModels()
-      if (syncOptions.flags.studioFlagOutputSyncStats) {
-        println(syncCounters)
-      }
-      if (syncOptions.flags.studioHprofOutputDirectory.isNotEmpty()) {
-        captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, "after_sync")
-      }
-      if (syncOptions.flags.studioHeapAnalysisOutputDirectory.isNotEmpty()) {
-        analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, "after_sync", syncOptions.flags.studioHeapAnalysisLightweightMode)
-      }
+      recordCheckpointData(MeasurementCheckpoint.ANDROID_FINISHED)
       if (syncOptions.flags.studioDebugMode) {
         populateDebugInfo(buildModel, consumer)
       }
    }
+  }
+
+  private fun recordCheckpointData(checkpoint: MeasurementCheckpoint) {
+    if (syncOptions.flags.studioFlagSyncStatsOutputDirectory.isNotEmpty()) {
+      writeCheckpointTimestamp(syncOptions.flags.studioFlagSyncStatsOutputDirectory, checkpoint)
+      if (checkpoint == MeasurementCheckpoint.ANDROID_FINISHED) {
+        writeStatsToFile(syncOptions.flags.studioFlagSyncStatsOutputDirectory, syncCounters)
+      }
+    }
+    if (syncOptions.flags.studioHprofOutputDirectory.isNotEmpty()) {
+      captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, checkpoint)
+    }
+    if (syncOptions.flags.studioHeapAnalysisOutputDirectory.isNotEmpty()) {
+      if (syncOptions.flags.studioHeapAnalysisLightweightMode) {
+        captureHeapHistogramOfCurrentProcess(syncOptions.flags.studioHeapAnalysisOutputDirectory, checkpoint)
+      }
+      else {
+        analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, checkpoint)
+      }
+    }
   }
 
   fun populateProjectModels(
@@ -206,8 +210,8 @@ private fun checkGradleVersionIsAtLeast(controller: BuildController,
                                         version: String): Boolean {
   val buildEnvironment = controller.findModel(buildModel, BuildEnvironment::class.java)
                          ?: error("Cannot get BuildEnvironment model")
-  val parsedGradleVersion = GradleVersion.version(buildEnvironment.gradle.gradleVersion)
-  return parsedGradleVersion.baseVersion >= GradleVersion.version(version)
+  val parsedGradleVersion = GradleVersion.parse(buildEnvironment.gradle.gradleVersion)
+  return parsedGradleVersion.compareIgnoringQualifiers(version) >= 0
 }
 
 private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildren: (T) -> List<T>): List<T> = sequence {
@@ -223,3 +227,13 @@ private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildre
   }
 }
   .toList()
+
+private fun writeStatsToFile(directory: String, syncCounters: SyncCounters) {
+  File(directory).resolve("${Instant.now().toEpochMilli()}_sync_stats").writeText(syncCounters.toString())
+  println(syncCounters)
+}
+
+private fun writeCheckpointTimestamp(directory: String, checkpoint: MeasurementCheckpoint) {
+  val now = Instant.now()
+  File(directory).resolve("${now.toEpochMilli()}_${checkpoint.name}").writeText(now.toString())
+}

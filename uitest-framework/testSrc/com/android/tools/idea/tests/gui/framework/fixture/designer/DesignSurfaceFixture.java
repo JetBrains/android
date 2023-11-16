@@ -22,16 +22,17 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
-import java.awt.Point;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.swing.JPanel;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surface extends DesignSurface<?>>
   extends ComponentFixture<T, Surface> {
@@ -46,7 +47,7 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
   }
 
   public final void waitForRenderToFinish() {
-    waitForRenderToFinish(Wait.seconds(10));
+    waitForRenderToFinish(Wait.seconds(20));
   }
 
   public void waitForRenderToFinish(@NotNull Wait wait) {

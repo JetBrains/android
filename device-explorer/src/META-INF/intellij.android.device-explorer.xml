@@ -17,7 +17,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="Device Explorer" displayType="BALLOON"/>
 
-    <applicationConfigurable groupId="tools.android" id="device.file.explorer"
+    <applicationConfigurable groupId="tools.android" id="device.explorer"
                              provider="com.android.tools.idea.device.explorer.files.options.DeviceFileExplorerConfigurableProvider"
                              bundle="messages.DeviceFileExplorerBundle"
                              key="configurable.name.android.device.file.explorer"/>
@@ -25,17 +25,16 @@
     <projectService serviceImplementation="com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService"/>
     <projectService serviceImplementation="com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService"/>
 
-    <projectService serviceImplementation="com.android.tools.idea.device.explorer.files.adbimpl.AdbDeviceFileSystemService"/>
+    <applicationService serviceImplementation="com.android.tools.idea.device.explorer.files.options.DeviceFileExplorerSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.device.explorer.monitor.options.DeviceMonitorSettings"/>
     <projectService serviceInterface="com.android.tools.idea.device.explorer.files.DeviceExplorerFileManager"
                     serviceImplementation="com.android.tools.idea.device.explorer.files.DeviceExplorerFileManagerImpl" />
-    <projectService serviceInterface="com.android.tools.idea.device.explorer.files.fs.DeviceFileDownloaderService"
-                    serviceImplementation="com.android.tools.idea.device.explorer.files.fs.DeviceFileDownloaderServiceImpl" />
 
-    <facet.toolWindow id="Device Explorer"
-                facetIdList="android,apk"
-                anchor="right"
-                secondary="true"
-                icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
-                factoryClass="com.android.tools.idea.device.explorer.DeviceExplorerToolWindowFactory"/>
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
+    <android.toolWindow id="Device Explorer"
+                        anchor="right"
+                        secondary="true"
+                        icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
+                        factoryClass="com.android.tools.idea.device.explorer.DeviceExplorerToolWindowFactory"/>
   </extensions>
 </idea-plugin>

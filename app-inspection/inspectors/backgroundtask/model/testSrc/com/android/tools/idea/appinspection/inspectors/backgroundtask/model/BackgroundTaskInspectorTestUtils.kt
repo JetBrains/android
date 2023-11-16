@@ -24,9 +24,9 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.google.common.truth.Truth.assertThat
-import javax.swing.tree.DefaultMutableTreeNode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.emptyFlow
+import javax.swing.tree.DefaultMutableTreeNode
 
 object BackgroundTaskInspectorTestUtils {
   private class FakeAppInspectorMessenger(override val scope: CoroutineScope) :

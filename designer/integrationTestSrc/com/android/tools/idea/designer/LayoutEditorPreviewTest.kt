@@ -29,17 +29,16 @@ import java.util.concurrent.TimeUnit
 /** Ensures that Layout Editor Preview works for an XML file. */
 class LayoutEditorPreviewTest {
 
-  @get:Rule
-  val system = AndroidSystem.standard()
+  @get:Rule val system = AndroidSystem.standard()
 
-  @get:Rule
-  var watcher = MemoryDashboardNameProviderWatcher()
+  @get:Rule var watcher = MemoryDashboardNameProviderWatcher()
 
   private fun AndroidStudio.waitForSuccessfulRender(xmlName: String) {
-    system.installation.ideaLog
-      .waitForMatchingLine(
-        ".*RenderResult\\{renderResult=Result\\{status=SUCCESS, errorMessage=null, throwable=null, data=null\\}, psiFile=XmlFile:$xmlName.*",
-        10, TimeUnit.SECONDS)
+    system.installation.ideaLog.waitForMatchingLine(
+      ".*RenderResult\\{renderResult=Result\\{status=SUCCESS, errorMessage=null, throwable=null, data=null\\}, sourceFile=XmlFile:$xmlName.*",
+      10,
+      TimeUnit.SECONDS
+    )
   }
 
   private fun AndroidStudio.openAndWaitForRender(path: Path) {
@@ -58,7 +57,7 @@ class LayoutEditorPreviewTest {
 
     // Enable additional logging
     system.installation.addVmOption(
-      "-Didea.log.debug.categories=#com.android.tools.idea.rendering.RenderResult"
+      "-Didea.log.debug.categories=#com.android.tools.rendering.RenderResult"
     )
 
     // Create a maven repo and set it up in the installation and environment
@@ -73,11 +72,16 @@ class LayoutEditorPreviewTest {
       studio.executeAction("MakeGradleProject")
       studio.waitForBuild()
 
-      studio.openAndWaitForRender(project.targetProject.resolve("app/src/main/res/layout/simple_layout.xml"))
+      studio.openAndWaitForRender(
+        project.targetProject.resolve("app/src/main/res/layout/simple_layout.xml")
+      )
       studio.executeAction("CloseAllEditors")
-      studio.openAndWaitForRender(project.targetProject.resolve("app/src/main/res/layout/normal_layout.xml"))
+      studio.openAndWaitForRender(
+        project.targetProject.resolve("app/src/main/res/layout/normal_layout.xml")
+      )
       studio.executeAction("CloseAllEditors")
-      val complexLayoutFile = project.targetProject.resolve("app/src/main/res/layout/complex_layout.xml")
+      val complexLayoutFile =
+        project.targetProject.resolve("app/src/main/res/layout/complex_layout.xml")
       studio.openAndWaitForRender(complexLayoutFile)
       studio.editFile(complexLayoutFile.toString(), "\\s*<!--EASY TEXT FIND", "")
       studio.editFile(complexLayoutFile.toString(), "\\s*EASY TEXT FIND-->", "")

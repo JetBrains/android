@@ -21,17 +21,15 @@ import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.handlers.grid.targets.GridDragTarget
 import com.google.common.collect.ImmutableList
 
-/**
- * Handler for the `<android.support.v7.widget.GridLayout>` layout from AppCompat
- */
+/** Handler for the `<android.support.v7.widget.GridLayout>` layout from AppCompat */
 class GridLayoutV7Handler : GridLayoutHandler() {
 
   override val namespace = SdkConstants.AUTO_URI
 
-  override fun getGradleCoordinateId(viewTag: String) = if (viewTag.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX))
-    AndroidxNameUtils.getCoordinateMapping(SdkConstants.GRID_LAYOUT_LIB_ARTIFACT)
-  else
-    SdkConstants.GRID_LAYOUT_LIB_ARTIFACT
+  override fun getGradleCoordinateId(viewTag: String) =
+    if (viewTag.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX))
+      AndroidxNameUtils.getCoordinateMapping(SdkConstants.GRID_LAYOUT_LIB_ARTIFACT)
+    else SdkConstants.GRID_LAYOUT_LIB_ARTIFACT
 
   override fun createDragTarget(listBuilder: ImmutableList.Builder<Target>) {
     listBuilder.add(GridDragTarget(isSupportLibrary = true))

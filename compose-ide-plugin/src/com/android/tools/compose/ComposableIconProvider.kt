@@ -15,13 +15,11 @@
  */
 package com.android.tools.compose
 
-import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
 import com.intellij.openapi.util.Iconable
 import com.intellij.psi.PsiElement
 import com.intellij.ui.RowIcon
 import icons.StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
 import org.jetbrains.kotlin.idea.KotlinIconProvider
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.idea.util.hasMatchingExpected
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFunction
@@ -29,13 +27,13 @@ import org.jetbrains.kotlin.psi.psiUtil.hasActualModifier
 import javax.swing.Icon
 
 /**
- * Returns Composable function icon for [KtFunction] elements that are composable, and fall back to the Kotlin plugin's default
- * [KotlinIconProvider] otherwise. This may be used in various places across the IDE; one example is in the "Add Import" menu.
+ * Returns Composable function icon for [KtFunction] elements that are composable, or null otherwise to allow fallback to any
+ * other providers. This may be used in various places across the IDE; one example is in the "Add Import" menu.
  */
 class ComposableIconProvider : KotlinIconProvider() {
 
   override fun getIcon(psiElement: PsiElement, flags: Int): Icon? {
-    if (psiElement is KtFunction && psiElement.descriptor?.hasComposableAnnotation() == true) {
+    if (psiElement is KtFunction && psiElement.hasComposableAnnotation()) {
       if (flags and Iconable.ICON_FLAG_VISIBILITY > 0) {
         return createRowIcon(COMPOSABLE_FUNCTION, getVisibilityIcon(psiElement.modifierList))
       }
@@ -43,7 +41,7 @@ class ComposableIconProvider : KotlinIconProvider() {
       return COMPOSABLE_FUNCTION
     }
 
-    return super.getIcon(psiElement, flags)
+    return null
   }
 
   override fun isMatchingExpected(declaration: KtDeclaration): Boolean {

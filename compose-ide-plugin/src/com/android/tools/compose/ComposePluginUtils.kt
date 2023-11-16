@@ -16,25 +16,38 @@
 
 package com.android.tools.compose
 
+import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
+import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
+import androidx.compose.compiler.plugins.kotlin.k1.hasComposableAnnotation
+import com.android.tools.idea.kotlin.findAnnotation
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated
+import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.symbols.KtCallableSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtLocalVariableSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.receiverType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
-import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
-import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
+import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.nj2k.postProcessing.type
+import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
@@ -42,6 +55,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
+import org.jetbrains.kotlin.util.OperatorNameConventions
 
 fun isComposeEnabled(element: PsiElement): Boolean = element.getModuleSystem()?.usesCompose ?: false
 
@@ -73,7 +87,8 @@ internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): F
 }
 
 internal fun KtDeclaration.returnTypeFqName(): FqName? = if (isK2Plugin()) {
-  analyze(this) { asFqName(this@returnTypeFqName.getReturnKtType()) }
+  if (this !is KtCallableDeclaration) null
+  else analyze(this) { asFqName(this@returnTypeFqName.getReturnKtType()) }
 }
 else {
   this.type()?.fqName
@@ -89,9 +104,37 @@ internal fun KtElement.callReturnTypeFqName() = if (isK2Plugin()) {
   }
 }
 else {
-  // TODO(jaebaek): `getReturnType()` uses IJ JS parts. Replace it with `resolveToCall(BodyResolveMode.PARTIAL)?.resultingDescriptor?.returnType?.fqName`.
-  resolveToCall(BodyResolveMode.PARTIAL)?.getReturnType()?.fqName
+  resolveToCall(BodyResolveMode.PARTIAL)?.resultingDescriptor?.returnType?.fqName
 }
 
 // TODO(274630452): When the upstream APIs are available, implement it based on `fullyExpandedType` and `KtTypeRenderer`.
 private fun KtAnalysisSession.asFqName(type: KtType) = type.expandedClassSymbol?.classIdIfNonLocal?.asSingleFqName()
+
+internal fun KtFunction.hasComposableAnnotation() = if (isK2Plugin()) {
+  findAnnotation(ComposeFqNames.Composable) != null
+} else {
+  descriptor?.hasComposableAnnotation() == true
+}
+
+internal fun KtAnalysisSession.isComposableInvocation(callableSymbol: KtCallableSymbol): Boolean {
+  fun hasComposableAnnotation(annotated: KtAnnotated?) =
+    annotated != null && annotated.hasAnnotation(ComposeClassIds.Composable)
+
+  val type = callableSymbol.returnType
+  if (hasComposableAnnotation(type)) return true
+  val functionSymbol = callableSymbol as? KtFunctionSymbol
+  if (functionSymbol != null &&
+      functionSymbol.isOperator &&
+      functionSymbol.name == OperatorNameConventions.INVOKE
+    ) {
+    functionSymbol.receiverType?.let { receiverType ->
+      if (hasComposableAnnotation(receiverType)) return true
+    }
+  }
+  return when (callableSymbol) {
+    is KtValueParameterSymbol -> false
+    is KtLocalVariableSymbol -> false
+    is KtPropertySymbol -> hasComposableAnnotation(callableSymbol.getter)
+    else -> hasComposableAnnotation(callableSymbol)
+  }
+}

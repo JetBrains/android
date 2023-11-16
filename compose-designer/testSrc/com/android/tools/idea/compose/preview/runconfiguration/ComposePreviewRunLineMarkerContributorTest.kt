@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.AndroidProjectTypes
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.psi.PsiElement
@@ -27,6 +28,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
@@ -44,14 +46,15 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
+    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.override(true)
   }
 
   override fun tearDown() {
     super.tearDown()
-    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
+    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.clearOverride()
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = false
   }
 
   override fun configureAdditionalModules(
@@ -73,8 +76,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         "src/Test.kt",
         // language=kotlin
         """
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
 
         @Composable
         @Preview
@@ -89,6 +92,30 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
     assertNotNull(contributor.getInfo(functionIdentifier))
   }
 
+  fun testGetInfoWhenEssentialsModeIsEnabled() {
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = true
+    val file =
+      myFixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
+        import androidx.compose.ui.tooling.preview.Preview
+
+        @Composable
+        @Preview
+        fun Preview1() {
+        }
+      """
+          .trimIndent()
+      )
+
+    val functionIdentifier = file.findFunctionIdentifier("Preview1")
+    // Although the function is a valid preview, a run line marker should not be created, because
+    // Essentials Mode is enabled
+    assertNull(contributor.getInfo(functionIdentifier))
+  }
+
   fun testGetInfoLibraryModule() {
     val modulePath = getAdditionalModulePath("myLibrary")
 
@@ -97,8 +124,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         "$modulePath/src/main/java/com/example/mylibrary/TestLibraryFile.kt",
         // language=kotlin
         """
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
 
         @Composable
         @Preview
@@ -120,7 +147,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         // language=kotlin
         """
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview
         annotation class MyAnnotation() {}
@@ -145,7 +172,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         // language=kotlin
         """
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         annotation class MyNotPreviewAnnotation() {}
 
@@ -169,7 +196,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         "src/TestNotPreview.kt",
         // language=kotlin
         """
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
         import androidx.compose.ui.tooling.preview.Preview
 
         @Preview

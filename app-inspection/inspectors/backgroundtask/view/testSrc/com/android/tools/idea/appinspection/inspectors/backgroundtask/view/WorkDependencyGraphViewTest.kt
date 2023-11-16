@@ -27,7 +27,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.util.concurrency.EdtExecutorService
-import java.awt.event.ActionEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
@@ -40,6 +39,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.awt.event.ActionEvent
 
 class WorkDependencyGraphViewTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()

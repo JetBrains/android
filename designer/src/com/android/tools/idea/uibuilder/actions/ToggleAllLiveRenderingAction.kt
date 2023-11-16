@@ -25,17 +25,20 @@ import com.intellij.util.ui.LafIconLookup
 
 class ToggleAllLiveRenderingAction(label: String = "Live Rendering") :
   ToggleViewAction(null, LafIconLookup.getIcon("checkmark"), label, label) {
-  override fun isSelected(editor: ViewEditor,
-                          handler: ViewHandler,
-                          parent: NlComponent,
-                          selectedChildren: MutableList<NlComponent>): Boolean =
-    editor.scene.isLiveRenderingEnabled
+  override fun isSelected(
+    editor: ViewEditor,
+    handler: ViewHandler,
+    parent: NlComponent,
+    selectedChildren: MutableList<NlComponent>
+  ): Boolean = editor.scene.isLiveRenderingEnabled
 
-  override fun setSelected(editor: ViewEditor,
-                           handler: ViewHandler,
-                           parent: NlComponent,
-                           selectedChildren: MutableList<NlComponent>,
-                           selected: Boolean) {
+  override fun setSelected(
+    editor: ViewEditor,
+    handler: ViewHandler,
+    parent: NlComponent,
+    selectedChildren: MutableList<NlComponent>,
+    selected: Boolean
+  ) {
     // We also persist the settings to the RenderSettings
     RenderSettings.getProjectSettings(editor.model.project).useLiveRendering = selected
 
@@ -49,5 +52,4 @@ class ToggleAllLiveRenderingAction(label: String = "Live Rendering") :
       }
     surface.requestRender()
   }
-
 }

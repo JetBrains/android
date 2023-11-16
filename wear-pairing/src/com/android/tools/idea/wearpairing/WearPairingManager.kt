@@ -25,14 +25,11 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
-import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.AvdManagerConnection.getDefaultAvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
@@ -74,7 +71,7 @@ private val LOG get() = logger<WearPairingManager>()
 @Service(
   Service.Level.APP
 )
-class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
+class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, ObservablePairedDevicesList {
   enum class PairingState {
     UNKNOWN,
     OFFLINE, // One or both device are offline/disconnected
@@ -212,17 +209,17 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   @Synchronized
-  fun addDevicePairingStatusChangedListener(listener: PairingStatusChangedListener) {
+  override fun addDevicePairingStatusChangedListener(listener: PairingStatusChangedListener) {
     pairingStatusListeners.addIfAbsent(listener)
     if (pairingStatusListeners.size > 2) { // We should have no more than two pairing details panels listening
       LOG.error("Memory leak adding listeners")
     }
 
-    updateDevicesChannel.trySend(Unit)
+    pairedDevicesList.forEach(listener::pairingStatusChanged)
   }
 
   @Synchronized
-  fun removeDevicePairingStatusChangedListener(listener: PairingStatusChangedListener) {
+  override fun removeDevicePairingStatusChangedListener(listener: PairingStatusChangedListener) {
     pairingStatusListeners.remove(listener)
   }
 
@@ -248,9 +245,6 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
                                        wearDevice: IDevice,
                                        connect: Boolean = true): PhoneWearPair {
     LOG.warn("Starting device bridge {connect = $connect}")
-    if (!StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
-      removeAllPairedDevices(phone.deviceID, restartWearGmsCore = false)
-    }
     removeAllPairedDevices(wear.deviceID, restartWearGmsCore = false)
 
     val hostPort = NetUtils.tryToFindAvailableSocketPort(5602)
@@ -299,6 +293,20 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     getPairsForDevice(deviceID).forEach {
       removePairedDevices(it, restartWearGmsCore = restartWearGmsCore)
     }
+  }
+
+  suspend fun removePairedDevices(
+    phoneId: String,
+    wearId: String,
+    restartWearGmsCore: Boolean = true
+  ) {
+    val phoneWearPair =
+      mutex.withLock {
+        pairedDevicesList.find { it.phone.deviceID == phoneId && it.wear.deviceID == wearId }
+      }
+      ?: return
+
+    removePairedDevices(phoneWearPair, restartWearGmsCore)
   }
 
   suspend fun removePairedDevices(phoneWearPair: PhoneWearPair, restartWearGmsCore: Boolean = true) {
@@ -419,7 +427,7 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     connectedDevicesProvider().find { it.getDeviceID() == deviceId }?.apply {
       return Futures.immediateFuture(this)
     }
-    return getDefaultAvdManagerConnection().startAvd(project, avdInfo, RequestType.DIRECT)
+    return getDefaultAvdManagerConnection().startAvd(project, avdInfo, RequestType.DIRECT_DEVICE_MANAGER)
   }
 
   private fun findAdb() : AndroidDebugBridge? {
@@ -631,4 +639,9 @@ fun WearPairingManager.removePairedDevicesAsync(phoneWearPair: WearPairingManage
   GlobalScope.launch(Dispatchers.IO) {
     removePairedDevices(phoneWearPair, restartWearGmsCore)
   }
+}
+
+interface ObservablePairedDevicesList {
+  fun addDevicePairingStatusChangedListener(listener: WearPairingManager.PairingStatusChangedListener)
+  fun removeDevicePairingStatusChangedListener(listener: WearPairingManager.PairingStatusChangedListener)
 }

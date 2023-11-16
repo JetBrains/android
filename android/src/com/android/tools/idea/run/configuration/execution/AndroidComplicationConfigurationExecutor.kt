@@ -25,6 +25,7 @@ import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
@@ -50,14 +51,18 @@ import java.io.File
 private const val COMPLICATION_MIN_DEBUG_SURFACE_VERSION = 2
 private const val COMPLICATION_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
 
-open class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment,
-                                                    deviceFutures: DeviceFutures,
-                                                    appRunSettings: AppRunSettings,
-                                                    applicationIdProvider: ApplicationIdProvider,
-                                                    apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deviceFutures,
-                                                                                                                 appRunSettings,
-                                                                                                                 applicationIdProvider,
-                                                                                                                 apkProvider) {
+class AndroidComplicationConfigurationExecutor(
+  environment: ExecutionEnvironment,
+  deviceFutures: DeviceFutures,
+  appRunSettings: AppRunSettings,
+  applicationIdProvider: ApplicationIdProvider,
+  apkProvider: ApkProvider,
+  deployer: ApplicationDeployer
+) : AndroidWearConfigurationExecutor(environment, deviceFutures,
+                                     appRunSettings,
+                                     applicationIdProvider,
+                                     apkProvider,
+                                     deployer) {
   private val complicationLaunchOptions = appRunSettings.componentLaunchOptions as ComplicationLaunchOptions
 
   @WorkerThread
@@ -118,7 +123,8 @@ open class AndroidComplicationConfigurationExecutor(environment: ExecutionEnviro
     val watchFaceInfo = complicationLaunchOptions.watchFaceInfo
 
     val apkInfo = ApkInfo(File(watchFaceInfo.apk), watchFaceInfo.appId)
-    return getApplicationDeployer(console).fullDeploy(device, apkInfo, appRunSettings.deployOptions, indicator).app
+    console.println("Installing test WatchFace...")
+    return applicationDeployer.fullDeploy(device, apkInfo, appRunSettings.deployOptions, indicator).app
   }
 
   override fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit {

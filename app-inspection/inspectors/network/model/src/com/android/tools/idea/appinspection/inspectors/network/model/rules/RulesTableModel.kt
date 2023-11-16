@@ -19,34 +19,32 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import javax.swing.JTable
 
-class RulesTableModel : ListTableModel<RuleData>() {
-
-  init {
-    columnInfos =
-      arrayOf(
-        object : ColumnInfo<RuleData, Boolean>("Active") {
-          override fun valueOf(item: RuleData): Boolean {
-            return item.isActive
-          }
-
-          override fun setValue(item: RuleData, value: Boolean) {
-            item.isActive = value
-          }
-
-          override fun getWidth(table: JTable) = 60
-          override fun isCellEditable(item: RuleData) = true
-          override fun getColumnClass() = Boolean::class.java
-        },
-        object : ColumnInfo<RuleData, String>("Name") {
-          override fun valueOf(item: RuleData): String {
-            return item.name
-          }
-        },
-        object : ColumnInfo<RuleData, String>("URL") {
-          override fun valueOf(item: RuleData): String {
-            return item.criteria.url
-          }
+class RulesTableModel(items: MutableList<RuleData>) :
+  ListTableModel<RuleData>(
+    arrayOf(
+      object : ColumnInfo<RuleData, Boolean>("Active") {
+        override fun valueOf(item: RuleData): Boolean {
+          return item.isActive
         }
-      )
-  }
-}
+
+        override fun setValue(item: RuleData, value: Boolean) {
+          item.isActive = value
+        }
+
+        override fun getWidth(table: JTable) = 60
+        override fun isCellEditable(item: RuleData) = true
+        override fun getColumnClass() = Boolean::class.java
+      },
+      object : ColumnInfo<RuleData, String>("Name") {
+        override fun valueOf(item: RuleData): String {
+          return item.name
+        }
+      },
+      object : ColumnInfo<RuleData, String>("URL") {
+        override fun valueOf(item: RuleData): String {
+          return item.criteria.url
+        }
+      }
+    ),
+    items
+  )

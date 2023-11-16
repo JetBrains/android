@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.rendering.RenderResult
+
 /**
  * Extension implementing some heuristics to detect custom View rendering errors. This allows to
  * identify render errors better.

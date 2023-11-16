@@ -16,26 +16,25 @@
 package com.android.tools.idea.tests.gui.editors;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ApkViewerFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.PaneFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
+
 @RunWith(GuiTestRemoteRunner.class)
 public class ApkViewerTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private static final String APK_NAME = "app-debug.apk";
+  private final String APK_FILE_PATH = "app/build/outputs/apk/debug/app-debug.apk";
 
   /***
    * To verify that the file handle to apk is released by the APK analyzer after analyzing and
@@ -52,43 +51,47 @@ public class ApkViewerTest {
    *   6. Make some changes in source code, and re-build APK and verify the build is successful.
    * </pre>
    */
-  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void testFileHandleRelease() throws Exception {
-    final String SIMPLE_APP = "SimpleApplication";
-    final String APP = "app";
-    final String BUILD = "build";
-    final String OUTPUTS = "outputs";
-    final String APK = "apk";
-    final String DEBUG = "debug";
-    final String APK_FILE_PATH = String.format("%s/%s/%s/%s/%s/%s",
-                                               APP, BUILD, OUTPUTS, APK, DEBUG, APK_NAME);
-
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    ProjectViewFixture projectView = ideFrame
-      .invokeAndWaitForBuildAction(Wait.seconds(180), "Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
-      .requestProjectSyncAndWaitForSyncToFinish()
-      .getProjectView();
+    ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300), "Build", "Build Bundle(s) / APK(s)", "Build APK(s)");
+    GuiTests.waitForProjectIndexingToFinish(ideFrame.getProject());
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    PaneFixture paneFixture = projectView.selectProjectPane();
-    paneFixture.clickPath(SIMPLE_APP, APP, BUILD, OUTPUTS, APK, DEBUG);
+    ideFrame.robot()
+      .waitForIdle();
+    ideFrame.requestFocusIfLost();
 
     EditorFixture editor = ideFrame.getEditor();
+    guiTest.waitForBackgroundTasks();
+
+    ideFrame.getProjectView()
+      .selectProjectPane()
+      .hasPath(APK_FILE_PATH);
+
     editor.open(APK_FILE_PATH);
     ApkViewerFixture apkViewer = editor.getApkViewer(APK_NAME);
     apkViewer.clickApkEntry("resources.arsc");
     apkViewer.clickApkEntry("AndroidManifest.xml");
+    apkViewer.clickApkEntry("classes.dex");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     editor.close();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     // Open source code and make some changes, then trigger a build.
     // Build should be successful.
-    ideFrame.getEditor()
+    editor
       .open("app/src/main/java/google/simpleapplication/MyActivity.java")
       .moveBetween("setContentView(R.layout.activity_my);", "")
       .enterText("\nSystem.out.println(\"Hello.\");")
       .close();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    ideFrame.invokeAndWaitForBuildAction(Wait.seconds(180), "Build", "Build Bundle(s) / APK(s)", "Build APK(s)");
+    ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300), "Build", "Build Bundle(s) / APK(s)", "Build APK(s)");
+    GuiTests.waitForProjectIndexingToFinish(ideFrame.getProject());
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 }

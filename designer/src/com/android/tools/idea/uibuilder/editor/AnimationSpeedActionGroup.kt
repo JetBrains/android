@@ -29,29 +29,34 @@ import java.awt.RenderingHints
 import javax.swing.Icon
 
 /**
- * The action group contains the actions to change the animation speed. Use the callback to receive the speed factor when it is changed.
+ * The action group contains the actions to change the animation speed. Use the callback to receive
+ * the speed factor when it is changed.
  */
-class AnimationSpeedActionGroup(callback: (Double) -> Unit) : ActionGroup(null, true), TooltipDescriptionProvider {
+class AnimationSpeedActionGroup(callback: (Double) -> Unit) :
+  ActionGroup(null, true), TooltipDescriptionProvider {
   private val speedActions: Array<AnAction>
   private var currentSpeed: PlaySpeed
 
   init {
     currentSpeed = PlaySpeed.x1
     val speedIcon = SpeedIcon(currentSpeed.displayName)
-    speedActions = PlaySpeed.values().map {
-      object : AnAction(it.displayName), Toggleable {
-        override fun update(e: AnActionEvent) {
-          val selected = it == currentSpeed
-          Toggleable.setSelected(e.presentation, selected)
-        }
+    speedActions =
+      PlaySpeed.values()
+        .map {
+          object : AnAction(it.displayName), Toggleable {
+            override fun update(e: AnActionEvent) {
+              val selected = it == currentSpeed
+              Toggleable.setSelected(e.presentation, selected)
+            }
 
-        override fun actionPerformed(e: AnActionEvent) {
-          currentSpeed = it
-          speedIcon.text = currentSpeed.displayName
-          callback(it.speedFactor)
+            override fun actionPerformed(e: AnActionEvent) {
+              currentSpeed = it
+              speedIcon.text = currentSpeed.displayName
+              callback(it.speedFactor)
+            }
+          }
         }
-      }
-    }.toTypedArray()
+        .toTypedArray()
     templatePresentation.icon = speedIcon
   }
 
@@ -69,7 +74,10 @@ private class SpeedIcon(var text: String) : Icon {
     g.color = JBUI.CurrentTheme.Arrow.foregroundColor(c.isEnabled)
     g.font = g.font.deriveFont(Font.BOLD, JBUI.scaleFontSize(14f).toFloat())
 
-    (g as Graphics2D).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+    (g as Graphics2D).setRenderingHint(
+      RenderingHints.KEY_TEXT_ANTIALIASING,
+      RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+    )
 
     val metrics = g.fontMetrics
     val strWidth = metrics.stringWidth(text)

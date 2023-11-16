@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedKmpAndroidModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import org.jetbrains.annotations.TestOnly
 import java.io.File
@@ -44,6 +45,21 @@ data class IdePreResolvedModuleLibraryImpl(
 
   @get:TestOnly
   val displayName: String get() = moduleLibraryDisplayName(buildId, projectPath, variant, sourceSet)
+}
+
+class IdeUnresolvedKmpAndroidModuleLibraryImpl(
+  override val buildId: String,
+  override val projectPath: String,
+  override val lintJar: File?,
+): IdeUnresolvedKmpAndroidModuleLibrary, Serializable {
+
+  // Used for serialization by the IDE.
+  @Suppress("unused")
+  constructor() : this(
+    buildId = "",
+    projectPath = "",
+    lintJar = null,
+  )
 }
 
 data class IdeUnresolvedModuleLibraryImpl(

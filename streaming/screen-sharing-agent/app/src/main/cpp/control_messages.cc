@@ -56,8 +56,8 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case StopClipboardSyncMessage::TYPE:
       return unique_ptr<ControlMessage>(StopClipboardSyncMessage::Deserialize(stream));
 
-    case ClipboardChangedNotification::TYPE:
-      return unique_ptr<ControlMessage>(ClipboardChangedNotification::Deserialize(stream));
+    case RequestDeviceStateMessage::TYPE:
+      return unique_ptr<ControlMessage>(RequestDeviceStateMessage::Deserialize(stream));
 
     default:
       Log::Fatal("Unexpected message type %d", type);
@@ -88,8 +88,10 @@ MotionEventMessage* MotionEventMessage::Deserialize(Base128InputStream& stream) 
     pointers.resize(MAX_POINTERS);
   }
   int32_t action = stream.ReadInt32();
+  int32_t button_state = stream.ReadInt32();
+  int32_t action_button = stream.ReadInt32();
   int32_t display_id = stream.ReadInt32();
-  return new MotionEventMessage(std::move(pointers), action, display_id);
+  return new MotionEventMessage(std::move(pointers), action, button_state, action_button, display_id);
 }
 
 KeyEventMessage* KeyEventMessage::Deserialize(Base128InputStream& stream) {
@@ -115,7 +117,7 @@ SetDeviceOrientationMessage* SetDeviceOrientationMessage::Deserialize(Base128Inp
 SetMaxVideoResolutionMessage* SetMaxVideoResolutionMessage::Deserialize(Base128InputStream& stream) {
   int32_t width = stream.ReadInt32();
   int32_t height = stream.ReadInt32();
-  return new SetMaxVideoResolutionMessage(width, height);
+  return new SetMaxVideoResolutionMessage(Size(width, height));
 }
 
 StopVideoStreamMessage* StopVideoStreamMessage::Deserialize(Base128InputStream& stream) {
@@ -136,9 +138,24 @@ StopClipboardSyncMessage* StopClipboardSyncMessage::Deserialize(Base128InputStre
   return new StopClipboardSyncMessage();
 }
 
+RequestDeviceStateMessage* RequestDeviceStateMessage::Deserialize(Base128InputStream& stream) {
+  int state = stream.ReadInt32() - 1; // Subtracting 1 to account for shifted encoding.
+  return new RequestDeviceStateMessage(state);
+}
+
 void ClipboardChangedNotification::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteBytes(text_);
+}
+
+void SupportedDeviceStatesNotification::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteBytes(text_);
+}
+
+void DeviceStateNotification::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteInt32(device_state_);
 }
 
 }  // namespace screensharing

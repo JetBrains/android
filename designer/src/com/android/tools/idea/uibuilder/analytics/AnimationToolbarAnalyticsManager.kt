@@ -29,12 +29,13 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
-
-/**
- * Handles analytics that are common across animation toolbar.
- */
-class AnimationToolbarAnalyticsManager @VisibleForTesting constructor(private val logger: Consumer<AndroidStudioEvent.Builder>,
-                                                                      private val asynchronous: Boolean) {
+/** Handles analytics that are common across animation toolbar. */
+class AnimationToolbarAnalyticsManager
+@VisibleForTesting
+constructor(
+  private val logger: Consumer<AndroidStudioEvent.Builder>,
+  private val asynchronous: Boolean
+) {
   constructor() : this(Consumer { eventBuilder -> UsageTracker.log(eventBuilder) }, true)
 
   companion object {
@@ -49,21 +50,24 @@ class AnimationToolbarAnalyticsManager @VisibleForTesting constructor(private va
   }
 
   fun trackAction(type: AnimationToolbarType, action: AnimationToolbarAction) {
-    val toolbarType = when (type) {
-      AnimationToolbarType.LIMITED -> AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION
-      AnimationToolbarType.UNLIMITED -> AnimationPreviewEvent.ToolbarType.UNLIMITED_ANIMATION
-      AnimationToolbarType.ANIMATED_SELECTOR -> AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR
-    }
+    val toolbarType =
+      when (type) {
+        AnimationToolbarType.LIMITED -> AnimationPreviewEvent.ToolbarType.LIMITED_ANIMATION
+        AnimationToolbarType.UNLIMITED -> AnimationPreviewEvent.ToolbarType.UNLIMITED_ANIMATION
+        AnimationToolbarType.ANIMATED_SELECTOR ->
+          AnimationPreviewEvent.ToolbarType.ANIMATED_SELECTOR
+      }
 
-    val userAction = when (action) {
-      AnimationToolbarAction.PLAY -> AnimationPreviewEvent.UserAction.PLAY
-      AnimationToolbarAction.PAUSE -> AnimationPreviewEvent.UserAction.PAUSE
-      AnimationToolbarAction.STOP -> AnimationPreviewEvent.UserAction.STOP
-      AnimationToolbarAction.FRAME_FORWARD -> AnimationPreviewEvent.UserAction.FRAME_FORWARD
-      AnimationToolbarAction.FRAME_BACKWARD -> AnimationPreviewEvent.UserAction.FRAME_BACKWARD
-      AnimationToolbarAction.SELECT_ANIMATION -> AnimationPreviewEvent.UserAction.SELECT_ANIMATION
-      AnimationToolbarAction.FRAME_CONTROL -> AnimationPreviewEvent.UserAction.FRAME_CONTROL
-    }
+    val userAction =
+      when (action) {
+        AnimationToolbarAction.PLAY -> AnimationPreviewEvent.UserAction.PLAY
+        AnimationToolbarAction.PAUSE -> AnimationPreviewEvent.UserAction.PAUSE
+        AnimationToolbarAction.STOP -> AnimationPreviewEvent.UserAction.STOP
+        AnimationToolbarAction.FRAME_FORWARD -> AnimationPreviewEvent.UserAction.FRAME_FORWARD
+        AnimationToolbarAction.FRAME_BACKWARD -> AnimationPreviewEvent.UserAction.FRAME_BACKWARD
+        AnimationToolbarAction.SELECT_ANIMATION -> AnimationPreviewEvent.UserAction.SELECT_ANIMATION
+        AnimationToolbarAction.FRAME_CONTROL -> AnimationPreviewEvent.UserAction.FRAME_CONTROL
+      }
 
     tracker.logToolbarEvent(toolbarType, userAction)
   }
@@ -71,39 +75,53 @@ class AnimationToolbarAnalyticsManager @VisibleForTesting constructor(private va
 
 @VisibleForTesting
 interface AnimationToolbarUsageTracker {
-  fun logToolbarEvent(toolbarType: AnimationPreviewEvent.ToolbarType, userAction: AnimationPreviewEvent.UserAction)
+  fun logToolbarEvent(
+    toolbarType: AnimationPreviewEvent.ToolbarType,
+    userAction: AnimationPreviewEvent.UserAction
+  )
 }
 
-private class AsyncTracker(private val executor: Executor, val delegator: AnimationToolbarUsageTracker) : AnimationToolbarUsageTracker {
-  override fun logToolbarEvent(toolbarType: AnimationPreviewEvent.ToolbarType, userAction: AnimationPreviewEvent.UserAction) {
+private class AsyncTracker(
+  private val executor: Executor,
+  val delegator: AnimationToolbarUsageTracker
+) : AnimationToolbarUsageTracker {
+  override fun logToolbarEvent(
+    toolbarType: AnimationPreviewEvent.ToolbarType,
+    userAction: AnimationPreviewEvent.UserAction
+  ) {
     try {
       executor.execute { delegator.logToolbarEvent(toolbarType, userAction) }
-    }
-    catch (e: RejectedExecutionException) {
+    } catch (e: RejectedExecutionException) {
       // We are hitting the throttling limit
     }
   }
 }
 
-private class AnimationToolbarUsageTrackerImpl(private val eventLogger: Consumer<AndroidStudioEvent.Builder>)
-  : AnimationToolbarUsageTracker {
+private class AnimationToolbarUsageTrackerImpl(
+  private val eventLogger: Consumer<AndroidStudioEvent.Builder>
+) : AnimationToolbarUsageTracker {
 
-  override fun logToolbarEvent(toolbarType: AnimationPreviewEvent.ToolbarType,
-                               userAction: AnimationPreviewEvent.UserAction) {
-    val animationEvent = AnimationPreviewEvent.newBuilder()
-      .setToolbarType(toolbarType)
-      .setUserAction(userAction)
-      .build()
+  override fun logToolbarEvent(
+    toolbarType: AnimationPreviewEvent.ToolbarType,
+    userAction: AnimationPreviewEvent.UserAction
+  ) {
+    val animationEvent =
+      AnimationPreviewEvent.newBuilder()
+        .setToolbarType(toolbarType)
+        .setUserAction(userAction)
+        .build()
 
-    val layoutEditorEvent = LayoutEditorEvent.newBuilder()
-      .setType(LayoutEditorEvent.LayoutEditorEventType.ANIMATION_PREVIEW)
-      .setAnimationPreviewEvent(animationEvent)
-      .build()
+    val layoutEditorEvent =
+      LayoutEditorEvent.newBuilder()
+        .setType(LayoutEditorEvent.LayoutEditorEventType.ANIMATION_PREVIEW)
+        .setAnimationPreviewEvent(animationEvent)
+        .build()
 
-    val studioEvent: AndroidStudioEvent.Builder = AndroidStudioEvent.newBuilder()
-      .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)
-      .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
-      .setLayoutEditorEvent(layoutEditorEvent)
+    val studioEvent: AndroidStudioEvent.Builder =
+      AndroidStudioEvent.newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)
+        .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
+        .setLayoutEditorEvent(layoutEditorEvent)
 
     eventLogger.accept(studioEvent)
   }

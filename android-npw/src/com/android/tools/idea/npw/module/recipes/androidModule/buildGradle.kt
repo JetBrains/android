@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule
 
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.FormFactor
-import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.has
 import com.android.tools.idea.wizard.template.renderIf
 
 fun buildGradle(
-  gradlePluginVersion: GradlePluginVersion,
+  agpVersion: AgpVersion,
   isKts: Boolean,
   isLibraryProject: Boolean,
   isDynamicFeature: Boolean,
@@ -45,7 +45,7 @@ fun buildGradle(
   useVersionCatalog: Boolean
 ): String {
   val androidConfigBlock = androidConfig(
-    gradlePluginVersion = gradlePluginVersion,
+    agpVersion = agpVersion  ,
     buildApiString = buildApiString,
     minApi = minApi,
     targetApi = targetApi,

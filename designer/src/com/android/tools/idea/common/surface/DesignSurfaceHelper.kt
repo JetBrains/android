@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 @file:JvmName("DesignSurfaceHelper")
+
 package com.android.tools.idea.common.surface
 
-import com.android.SdkConstants.DOT_XML
-import com.android.SdkConstants.FD_RES_DRAWABLE
-import com.android.SdkConstants.FD_RES_LAYOUT
+import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
@@ -54,63 +53,89 @@ import javax.swing.JComponent
 private val logger: Logger by lazy { Logger.getInstance("DesignSurfaceHelper") }
 
 fun moduleContainsResource(facet: AndroidFacet, type: ResourceType, name: String): Boolean {
-  return StudioResourceRepositoryManager.getModuleResources(facet).hasResources(ResourceNamespace.TODO(), type, name)
+  return StudioResourceRepositoryManager.getModuleResources(facet)
+    .hasResources(ResourceNamespace.TODO(), type, name)
 }
 
 fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, asset: String) {
-  val path = MaterialDesignIcons.getPathForBasename(asset) ?: run {
-    logger.warn("Cannot find the material icon path for $asset")
-    return@copyVectorAssetToMainModuleSourceSet
-  }
+  val path =
+    MaterialDesignIcons.getPathForBasename(asset)
+      ?: run {
+        logger.warn("Cannot find the material icon path for $asset")
+        return@copyVectorAssetToMainModuleSourceSet
+      }
 
   try {
-    val inputStream = IconGenerator::class.java.classLoader.getResourceAsStream(path) ?: run {
-      logger.warn("Cannot load the material icon for $asset")
-      return@copyVectorAssetToMainModuleSourceSet
+    val inputStream =
+      IconGenerator::class.java.classLoader.getResourceAsStream(path)
+        ?: run {
+          logger.warn("Cannot load the material icon for $asset")
+          return@copyVectorAssetToMainModuleSourceSet
+        }
+    InputStreamReader(inputStream, Charsets.UTF_8).use { reader ->
+      createResourceFile(
+        project,
+        facet,
+        FD_RES_DRAWABLE,
+        asset + DOT_XML,
+        CharStreams.toString(reader)
+      )
     }
-    InputStreamReader(inputStream, Charsets.UTF_8).use {
-      reader -> createResourceFile(project, facet, FD_RES_DRAWABLE, asset + DOT_XML, CharStreams.toString(reader))
-    }
-  }
-  catch (exception: IOException) {
+  } catch (exception: IOException) {
     logger.warn(exception)
   }
 }
 
-fun copyLayoutToMainModuleSourceSet(project: Project, facet: AndroidFacet, layout: String, @Language("XML") xml: String) {
+fun copyLayoutToMainModuleSourceSet(
+  project: Project,
+  facet: AndroidFacet,
+  layout: String,
+  @Language("XML") xml: String
+) {
   val message = "Do you want to copy layout $layout to your main module source set?"
 
-  if (Messages.showYesNoDialog(project, message, "Copy Layout", Messages.getQuestionIcon()) == Messages.NO) {
+  if (
+    Messages.showYesNoDialog(project, message, "Copy Layout", Messages.getQuestionIcon()) ==
+      Messages.NO
+  ) {
     return
   }
 
   createResourceFile(project, facet, FD_RES_LAYOUT, layout + DOT_XML, xml)
 }
 
-private fun createResourceFile(project: Project,
-                               facet: AndroidFacet,
-                               resourceDirectory: String,
-                               resourceFileName: String,
-                               resourceFileContent: CharSequence) {
+private fun createResourceFile(
+  project: Project,
+  facet: AndroidFacet,
+  resourceDirectory: String,
+  resourceFileName: String,
+  resourceFileContent: CharSequence
+) {
   WriteCommandAction.runWriteCommandAction(project) {
     try {
-      val directory = getResourceDirectoryChild(project, facet, resourceDirectory) ?: return@runWriteCommandAction
+      val directory =
+        getResourceDirectoryChild(project, facet, resourceDirectory) ?: return@runWriteCommandAction
 
-      val document = FileDocumentManager.getInstance().getDocument(directory.createChildData(project, resourceFileName))!!
+      val document =
+        FileDocumentManager.getInstance()
+          .getDocument(directory.createChildData(project, resourceFileName))!!
 
       if (document is DocumentImpl && SystemInfo.isWindows) {
         document.setAcceptSlashR(true)
       }
       document.setText(resourceFileContent)
-    }
-    catch (exception: IOException) {
+    } catch (exception: IOException) {
       logger.warn(exception)
     }
   }
 }
 
 @Throws(IOException::class)
-private fun getResourceDirectoryChild(project: Project, facet: AndroidFacet, child: String): VirtualFile? {
+private fun getResourceDirectoryChild(
+  project: Project,
+  facet: AndroidFacet,
+  child: String
+): VirtualFile? {
   val resourceDirectory = ResourceFolderManager.getInstance(facet).primaryFolder
 
   if (resourceDirectory == null) {
@@ -118,27 +143,35 @@ private fun getResourceDirectoryChild(project: Project, facet: AndroidFacet, chi
     return null
   }
 
-  return resourceDirectory.findChild(child) ?: return resourceDirectory.createChildDirectory(project, child)
+  return resourceDirectory.findChild(child)
+    ?: return resourceDirectory.createChildDirectory(project, child)
 }
 
 /**
- * If a native crash caused by layoutlib is detected, show an error message instead of the design surface in the workbench.
- * This includes a hyperlink that will re-enable the design surface and run the {@link Runnable} argument.
+ * If a native crash caused by layoutlib is detected, show an error message instead of the design
+ * surface in the workbench. This includes a hyperlink that will re-enable the design surface and
+ * run the {@link Runnable} argument.
  */
 fun WorkBench<DesignSurface<*>>.handleLayoutlibNativeCrash(runnable: Runnable) {
-  val message = "The preview has been disabled following a crash in the rendering engine. If the problem persists, please report the issue."
-  val actionData = ActionData("Re-enable rendering") {
-    Bridge.setNativeCrash(false)
-    showLoading("Loading...")
-    runnable.run()
-  }
+  val message =
+    "The preview has been disabled following a crash in the rendering engine. If the problem persists, please report the issue."
+  val actionData =
+    ActionData("Re-enable rendering") {
+      Bridge.setNativeCrash(false)
+      showLoading("Loading...")
+      runnable.run()
+    }
   loadingStopped(message, actionData)
 }
 
 /**
- * Create an [AWTEventListener] which checks the mouse position to determine if the [zoomControlComponent] should be shown.
+ * Create an [AWTEventListener] which checks the mouse position to determine if the
+ * [zoomControlComponent] should be shown.
  */
-fun createZoomControlAutoHiddenListener(zoomControlPaneOwner: JComponent, zoomControlComponent: JComponent): AWTEventListener {
+fun createZoomControlAutoHiddenListener(
+  zoomControlPaneOwner: JComponent,
+  zoomControlComponent: JComponent
+): AWTEventListener {
   return AWTEventListener { event ->
     val id: Int = event.id
     if (id == MouseEvent.MOUSE_ENTERED) {
@@ -157,37 +190,38 @@ fun createZoomControlAutoHiddenListener(zoomControlPaneOwner: JComponent, zoomCo
 }
 
 /**
- * Find the scale value which can display all the [contentSize] on the screen.
- * This function tries to fit both width and height of [contentSize] into the current scroll pane of [DesignSurface].
+ * Find the scale value which can display all the [contentSize] on the screen. This function tries
+ * to fit both width and height of [contentSize] into the current scroll pane of [DesignSurface].
  */
 @SurfaceScale
 fun DesignSurface<*>.getFitContentIntoWindowScale(contentSize: Dimension): Double {
   val availableWidth = extentSize.width
   val availableHeight = extentSize.height
 
-  @SurfaceScale val scaleX: Double = if (size.width == 0) 1.0 else availableWidth.toDouble() / contentSize.width
-  @SurfaceScale val scaleY: Double = if (size.height == 0) 1.0 else availableHeight.toDouble() / contentSize.height
+  @SurfaceScale
+  val scaleX: Double = if (size.width == 0) 1.0 else availableWidth.toDouble() / contentSize.width
+  @SurfaceScale
+  val scaleY: Double =
+    if (size.height == 0) 1.0 else availableHeight.toDouble() / contentSize.height
   return minOf(scaleX, scaleY, myMaxFitIntoScale)
 }
 
-/**
- * Helper function to set the visibilities of all [SceneView]s in the [DesignSurface].
- */
+/** Helper function to set the visibilities of all [SceneView]s in the [DesignSurface]. */
 fun DesignSurface<*>.updateSceneViewVisibilities(visibilityFunc: (SceneView) -> Boolean) {
   val sceneViews = sceneManagers.flatMap { it.sceneViews }
   sceneViews.forEach { view -> view.isVisible = visibilityFunc(view) }
   revalidateScrollArea()
 }
 
-/**
- * Obtain the [DesignSurface] associated to a [FileEditor] if any.
- */
+/** Obtain the [DesignSurface] associated to a [FileEditor] if any. */
 fun FileEditor.getDesignSurface(): DesignSurface<*>? =
   when (this) {
     is TextEditorWithPreview -> previewEditor.getDesignSurface()
-    // Check if there is a design surface in the context of presentation. For example, Compose and CustomView preview.
-    is SourceCodePreview -> currentRepresentation?.component?.let {
-      DataManager.getInstance().getDataContext(it).getData(DESIGN_SURFACE)
-    }
+    // Check if there is a design surface in the context of presentation. For example, Compose and
+    // CustomView preview.
+    is SourceCodePreview ->
+      currentRepresentation?.component?.let {
+        DataManager.getInstance().getDataContext(it).getData(DESIGN_SURFACE)
+      }
     else -> DataManager.getInstance().getDataContext(component).getData(DESIGN_SURFACE)
   }

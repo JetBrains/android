@@ -34,7 +34,7 @@ fun DeviceInfo.Builder.fillFrom(deviceProperties: DeviceProperties): DeviceInfo.
   manufacturer = notNullize(deviceProperties.manufacturer)
   model = notNullize(deviceProperties.model)
   buildVersionRelease = notNullize(deviceProperties.androidRelease)
-  buildApiLevelFull = notNullize(deviceProperties.androidVersion?.apiString)
+  buildApiLevelFull = notNullize(deviceProperties.androidVersion?.apiStringWithoutExtension)
   cpuAbi = CommonMetricsData.applicationBinaryInterfaceFromString(deviceProperties.abi?.toString())
   deviceType = deviceProperties.getDeviceInfoType()
   return this

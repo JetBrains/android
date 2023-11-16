@@ -1,10 +1,14 @@
 MODULE                        : gradle_project_1
     externalProject               : gradle_project_1 (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : gradle_project_1
         qName                         : gradle_project_1
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : gradle_project_1
@@ -144,7 +148,6 @@ MODULE                        : gradle_project_1.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>/gradle_project_1
     BuildId                       : <ROOT>/gradle_project_1
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
@@ -189,6 +192,7 @@ MODULE                        : gradle_project_1.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : google.simpleapplication
         testApplicationId             : google.simpleapplication.test
@@ -884,6 +888,7 @@ MODULE                        : gradle_project_1.app
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -1155,11 +1160,15 @@ MODULE                        : gradle_project_1.app.main
 MODULE                        : gradle_project_1.app.unitTest
 MODULE                        : gradle_project_name
     externalProject               : gradle_project_name (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : gradle_project_name
         qName                         : gradle_project_name
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : gradle_project_name
@@ -1299,7 +1308,6 @@ MODULE                        : gradle_project_name.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>/gradle_project_2
     BuildId                       : <ROOT>/gradle_project_2
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
@@ -1344,6 +1352,7 @@ MODULE                        : gradle_project_name.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : google.simpleapplication
         testApplicationId             : google.simpleapplication.test
@@ -2039,6 +2048,7 @@ MODULE                        : gradle_project_name.app
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources

@@ -21,12 +21,12 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.Configurable
 import com.android.ide.common.util.PathString
 import com.android.resources.ResourceType
-import com.android.tools.idea.res.LocalResourceRepository
-import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository
-import com.android.tools.idea.res.MultiResourceRepository
 import com.android.tools.idea.res.PsiResourceItem
 import com.android.tools.idea.res.ResourceFolderRepository
 import com.android.tools.idea.util.toVirtualFile
+import com.android.tools.res.LocalResourceRepository
+import com.android.tools.res.LocalResourceRepository.EmptyRepository
+import com.android.tools.res.MultiResourceRepository
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlin.coroutines.resume
@@ -61,6 +61,11 @@ interface StringResourceRepository {
    * Schedules the given [Runnable] to run once pending updates to the underlying repository finish.
    */
   fun invokeAfterPendingUpdatesFinish(key: StringResourceKey, callback: Runnable)
+
+  /**
+   * Gets a set of [Locale] objects for which this [StringResourceRepository] contains at least one resource.
+   */
+  fun getTranslatedLocales(): Set<Locale>
 
   /** Suspends execution until updates to the repository for the given [key] are complete. */
   suspend fun waitForUpdates(key: StringResourceKey)
@@ -158,8 +163,15 @@ private class StringResourceRepositoryImpl(repository: LocalResourceRepository) 
       key.getRepository()
           .invokeAfterPendingUpdatesFinish(EdtExecutorService.getInstance(), callback)
 
+  override fun getTranslatedLocales(): Set<Locale> =
+    resourceDirectoryRepositoryMap.values
+      .flatMap { it.getFolderConfigurations(ResourceType.STRING) }
+      .mapNotNull { it.localeQualifier }
+      .map(Locale::create)
+      .toSet()
+
   override suspend fun waitForUpdates(key: StringResourceKey) {
-    suspendCoroutine { cont ->
+    suspendCoroutine<Unit> { cont ->
       key.getRepository().invokeAfterPendingUpdatesFinish(EdtExecutorService.getInstance()) {
         cont.resume(Unit)
       }

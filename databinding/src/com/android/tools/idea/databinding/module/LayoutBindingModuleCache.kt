@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding.module
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.resources.ResourceType
 import com.android.tools.idea.databinding.BindingLayout
 import com.android.tools.idea.databinding.BindingLayoutGroup
@@ -23,6 +24,7 @@ import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.DataBindingModeTrackingService
 import com.android.tools.idea.databinding.ViewBindingEnabledTrackingService
 import com.android.tools.idea.databinding.index.BindingLayoutType
+import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.psiclass.BindingClassConfig
 import com.android.tools.idea.databinding.psiclass.BindingImplClassConfig
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
@@ -30,7 +32,6 @@ import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -41,6 +42,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiManager
+import com.intellij.util.indexing.FileBasedIndex
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.facet.AndroidFacet
@@ -75,7 +77,7 @@ class LayoutBindingModuleCache(private val module: Module) {
 
   @GuardedBy("lock")
   private var _viewBindingEnabled = false
-  private var viewBindingEnabled: Boolean
+  var viewBindingEnabled: Boolean
     get() = synchronized(lock) {
       return _viewBindingEnabled
     }
@@ -196,9 +198,12 @@ class LayoutBindingModuleCache(private val module: Module) {
         return _bindingLayoutGroups
       }
 
+      // Note: LocalResourceRepository and BindingXmlIndex are updated at different times,
+      // so we must incorporate both into the modification count (see b/283753328).
+      val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
+      val bindingIndexModificationCount = FileBasedIndex.getInstance().getIndexModificationStamp(BindingXmlIndex.NAME, module.project)
+      val modificationCount = moduleResources.modificationCount + bindingIndexModificationCount
       synchronized(lock) {
-        val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
-        val modificationCount = moduleResources.modificationCount
         if (modificationCount != lastResourcesModificationCount) {
           val layoutResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
           _bindingLayoutGroups = layoutResources.values()

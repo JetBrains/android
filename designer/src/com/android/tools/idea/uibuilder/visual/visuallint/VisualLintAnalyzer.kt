@@ -15,33 +15,37 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
+import android.view.accessibility.AccessibilityNodeInfo
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.parsers.PsiXmlTag
-import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
+import com.android.tools.rendering.RenderResult
+import com.android.tools.rendering.parsers.TagSnapshot
 import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
-/**
- * Base class for all Visual Linting analyzers.
- */
+/** Base class for all Visual Linting analyzers. */
 abstract class VisualLintAnalyzer {
   abstract val type: VisualLintErrorType
   abstract val backgroundEnabled: Boolean
 
   /**
-   * Analyze the given [RenderResult] for visual lint issues and return found [VisualLintRenderIssue]s
+   * Analyze the given [RenderResult] for visual lint issues and return found
+   * [VisualLintRenderIssue]s
    */
-  fun analyze(renderResult: RenderResult, model: NlModel, severity: HighlightSeverity,
-              runningInBackground: Boolean): List<VisualLintRenderIssue> {
+  fun analyze(
+    renderResult: RenderResult,
+    model: NlModel,
+    severity: HighlightSeverity,
+    runningInBackground: Boolean
+  ): List<VisualLintRenderIssue> {
     if (runningInBackground && !backgroundEnabled) {
       return emptyList()
     }
@@ -62,7 +66,11 @@ abstract class VisualLintAnalyzer {
   }
 
   /** Create [VisualLintRenderIssue] for the given [VisualLintIssueContent]. */
-  private fun createIssue(content: VisualLintIssueContent, model: NlModel, severity: HighlightSeverity): VisualLintRenderIssue {
+  private fun createIssue(
+    content: VisualLintIssueContent,
+    model: NlModel,
+    severity: HighlightSeverity
+  ): VisualLintRenderIssue {
     val component = componentFromViewInfo(content.view, model)
     VisualLintUsageTracker.getInstance().trackIssueCreation(type, model.facet)
     return VisualLintRenderIssue.builder()
@@ -88,14 +96,30 @@ abstract class VisualLintAnalyzer {
   protected fun nameWithId(viewInfo: ViewInfo): String {
     val tagSnapshot = (viewInfo.cookie as? TagSnapshot)
     val name = tagSnapshot?.tagName?.substringAfterLast('.') ?: viewInfo.className
-    val id = tagSnapshot?.getAttribute(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI)?.let { ResourceUrl.parse(it)?.name }
+    val id =
+      tagSnapshot?.getAttribute(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI)?.let {
+        ResourceUrl.parse(it)?.name
+      }
     return id?.let { "$id <$name>" } ?: "<$name>"
   }
 
   protected fun componentFromViewInfo(viewInfo: ViewInfo?, model: NlModel): NlComponent? {
-    val tag = (viewInfo?.cookie as? TagSnapshot)?.tag as? PsiXmlTag ?: return null
+    val accessibilityNodeInfo = viewInfo?.accessibilityObject
+    if (accessibilityNodeInfo is AccessibilityNodeInfo) {
+      return model.findViewByAccessibilityId(accessibilityNodeInfo.sourceNodeId)
+    }
+    val tag =
+      (viewInfo?.cookie as? TagSnapshot)?.tag as? PsiXmlTag ?: return model.components.firstOrNull()
     return model.findViewByTag(tag.psiXmlTag)
   }
 
-  data class VisualLintIssueContent(val view: ViewInfo?, val message: String, val descriptionProvider: (Int) -> HtmlBuilder)
+  protected fun checkIsClass(viewInfo: ViewInfo, clazz: Class<*>): Boolean {
+    return clazz.isInstance(viewInfo.viewObject) || clazz.canonicalName == viewInfo.className
+  }
+
+  data class VisualLintIssueContent(
+    val view: ViewInfo?,
+    val message: String,
+    val descriptionProvider: (Int) -> HtmlBuilder
+  )
 }

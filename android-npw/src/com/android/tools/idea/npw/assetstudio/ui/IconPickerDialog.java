@@ -230,6 +230,8 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
       new SearchTextField.FindAction().registerCustomShortcutSet(action.getShortcutSet(), getRootPane(), myDisposable);
     }
 
+    myContentPanel.setPreferredSize(JBUI.size(800, 600));
+
     init();
 
     myIconTable.getEmptyText().setText("Loading icons...");
@@ -248,6 +250,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
         myStylesBox.addItemListener(myStylesBoxListener);
         myCategoriesBox.addItemListener(myCategoriesBoxListener);
       }
+      pack();
       return null;
     }, getDisposable(), metadataUrlProvider, iconsUrlProvider);
   }

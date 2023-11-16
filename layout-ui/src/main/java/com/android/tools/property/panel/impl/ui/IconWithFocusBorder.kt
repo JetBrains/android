@@ -41,20 +41,22 @@ import kotlin.properties.Delegates
  *
  * Specify [actionToPerform] when clicked or activated via the keyboard.
  */
-open class IconWithFocusBorder(private val actionToPerform: () -> AnAction?) : JBLabel(), DataProvider {
+open class IconWithFocusBorder(private val actionToPerform: () -> AnAction?) :
+  JBLabel(), DataProvider {
 
   init {
     background = secondaryPanelBackground
     isFocusable = false
-    @Suppress("LeakingThis")
-    super.addFocusListener(ImageFocusListener(this))
+    @Suppress("LeakingThis") super.addFocusListener(ImageFocusListener(this))
     registerActionKey({ iconClicked(null) }, KeyStrokes.SPACE, "space")
     registerActionKey({ iconClicked(null) }, KeyStrokes.ENTER, "enter")
-    super.addMouseListener(object : MouseAdapter() {
-      override fun mousePressed(event: MouseEvent) {
-        iconClicked(event)
+    super.addMouseListener(
+      object : MouseAdapter() {
+        override fun mousePressed(event: MouseEvent) {
+          iconClicked(event)
+        }
       }
-    })
+    )
   }
 
   var readOnly by Delegates.observable(false) { _, _, _ -> updateFocusability() }
@@ -74,12 +76,18 @@ open class IconWithFocusBorder(private val actionToPerform: () -> AnAction?) : J
     }
     val action = actionToPerform() ?: return
     if (action is ActionGroup) {
-      val popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, action)
+      val popupMenu =
+        ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, action)
       val location = locationFromEvent(mouseEvent)
       popupMenu.component.show(this, location.x, location.y)
-    }
-    else {
-      val event = AnActionEvent.createFromAnAction(action, mouseEvent, ActionPlaces.UNKNOWN, DataManager.getInstance().getDataContext(this))
+    } else {
+      val event =
+        AnActionEvent.createFromAnAction(
+          action,
+          mouseEvent,
+          ActionPlaces.UNKNOWN,
+          DataManager.getInstance().getDataContext(this)
+        )
       action.actionPerformed(event)
     }
   }

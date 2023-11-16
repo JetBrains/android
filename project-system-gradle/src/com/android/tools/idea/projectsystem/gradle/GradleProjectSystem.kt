@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.AndroidProjectTypes
 import com.android.sdklib.AndroidVersion
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider
@@ -35,11 +34,7 @@ import com.android.tools.idea.gradle.util.OutputType
 import com.android.tools.idea.gradle.util.getOutputFilesFromListingFile
 import com.android.tools.idea.gradle.util.getOutputListingFile
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.model.AndroidManifestIndex
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.ClassJarProvider
-import com.android.tools.idea.model.logManifestIndexQueryError
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
@@ -55,9 +50,8 @@ import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.projectsystem.SourceProvidersImpl
 import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
 import com.android.tools.idea.projectsystem.emptySourceProvider
-import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.projectsystem.androidFacetsForNonHolderModules
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
@@ -75,16 +69,12 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.impl.scopes.ModulesScope
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
@@ -142,7 +132,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       ?.let { VfsUtil.findFileByIoFile(it, true) }
   }
 
-  override fun getModuleSystem(module: Module): AndroidModuleSystem {
+  override fun getModuleSystem(module: Module): GradleModuleSystem {
     return GradleModuleSystem(module, myProjectBuildModelHandler, moduleHierarchyProvider.createForModule(module))
   }
 
@@ -247,68 +237,78 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   /**
-   * Stores information about package names.
+   * Stores information about all the gradle projects.
    *
-   * 1. It stores information about scopes that should be searched using manifest index.
-   * 2. It stores mapping information from package name to [AndroidFacet]s that have that package name.
+   * [packageToModule] stores mapping information from package name to [Module]s that have that package name.
    */
-  internal class PackageNameInfo(val indexQueryScope: GlobalSearchScope, val packageInfo: Map<String, List<AndroidFacet>>)
+  internal class GradleProjectCensus(
+    val packageToModule: Map<String, Collection<Module>>,
+    val namespacesWithPrefixes: Set<String>,
+    val applicationIdToModule: Map<String, Collection<Module>>
+  )
 
-  private fun getPackageNameInfo(project: Project): PackageNameInfo {
+  private fun getGradleProjectCensus(project: Project): GradleProjectCensus {
     return CachedValuesManager.getManager(project).getCachedValue(project, CachedValueProvider {
-      val modulesWithoutNamespaceInModel = mutableSetOf<Module>()
-      val facetsFromModuleSystem = mutableMapOf<String, MutableList<AndroidFacet>>()
+      val packageToModule = mutableMapOf<String, MutableList<Module>>()
+      val applicationIdsToModule = mutableMapOf<String, MutableList<Module>>()
 
-      for (androidFacet in project.androidFacetsForNonHolderModules()) {
-        val namespace = GradleAndroidModel.get(androidFacet)?.androidProject?.namespace
-        if (namespace == null) {
-          modulesWithoutNamespaceInModel.add(androidFacet.module)
+      for (androidFacet in project.getAndroidFacets()) {
+        val model = GradleAndroidModel.get(androidFacet) ?: continue
+        val mainModule = androidFacet.mainModule
+        val androidTestModule = androidFacet.androidTestModule
+        model.androidProject.namespace?.let { namespace ->
+          packageToModule.getOrPut(namespace) { mutableListOf() }.add(mainModule)
+
         }
-        else {
-          val facets = facetsFromModuleSystem[namespace] ?: mutableListOf()
-          facets.add(androidFacet)
-          facetsFromModuleSystem[namespace] = facets
+        if (androidTestModule != null) {
+          model.androidProject.testNamespace?.let { namespace ->
+              packageToModule.getOrPut(namespace) { mutableListOf() }.add(androidTestModule)
+          }
+        }
+        // Collect application IDs into sets as they might be duplicated
+        val mainApplicationIds = mutableSetOf<String>()
+        val testApplicationIds = mutableSetOf<String>()
+        for (variant in model.androidProject.basicVariants) {
+          variant.applicationId?.let { mainApplicationIds.add(it) }
+          variant.testApplicationId?.let { testApplicationIds.add(it) }
+        }
+        for (applicationId in mainApplicationIds) {
+          applicationIdsToModule.getOrPut(applicationId) { mutableListOf() }.add(mainModule)
+        }
+        if (androidTestModule != null) {
+          for (applicationId in testApplicationIds) {
+            applicationIdsToModule.getOrPut(applicationId) { mutableListOf() }.add(androidTestModule)
+          }
         }
       }
-      val indexQueryScope = ModulesScope(modulesWithoutNamespaceInModel, project)
+      val namespacesWithPrefixes = HashSet<String>()
+      for (namespace in packageToModule.keys) {
+        var packageName = namespace
+        while (true) {
+          if (!namespacesWithPrefixes.add(packageName)) break
+          val lastDot = packageName.lastIndexOf('.').takeIf { it > 0 } ?: break
+          packageName = packageName.substring(0, lastDot)
+        }
+      }
       return@CachedValueProvider CachedValueProvider.Result(
-        PackageNameInfo(indexQueryScope, facetsFromModuleSystem), ProjectSyncModificationTracker.getInstance(project)
+        GradleProjectCensus(packageToModule, namespacesWithPrefixes, applicationIdsToModule), ProjectSyncModificationTracker.getInstance(project)
       )
     })
   }
 
   override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): List<AndroidFacet> {
-    val packageNameInfo = getPackageNameInfo(project)
+    val census = getGradleProjectCensus(project)
+    return census.packageToModule[packageName]?.mapNotNull { it.androidFacet } ?: emptyList()
+  }
 
-    val facetsFromModuleSystem = packageNameInfo.packageInfo[packageName] ?: emptyList()
-    if (GlobalSearchScope.isEmptyScope(packageNameInfo.indexQueryScope)) {
-      // No need to query the index, all package names (namespace(s)) are specified in Gradle build files.
-      return facetsFromModuleSystem
-    }
-
-    try {
-      val facetsFromManifestIndex = DumbService.getInstance(project).runReadActionInSmartMode<List<AndroidFacet>> {
-        AndroidManifestIndex.queryByPackageName(project, packageName, packageNameInfo.indexQueryScope)
-      }
-      return facetsFromManifestIndex + facetsFromModuleSystem
-    }
-    catch (e: IndexNotReadyException) {
-      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-      //  We need to refactor the callers of this to require a *smart*
-      //  read action, at which point we can remove this try-catch.
-      logManifestIndexQueryError(e)
-    }
-    // If the index is unavailable fall back to direct filtering of the package names returned by the module system which is supposed
-    // to work in the dumb mode (i.e. it fallback to slow manifest parsing if the index is not available).
-    return project.androidFacetsForNonHolderModules().filter { it.getModuleSystem().getPackageName() == packageName }.toList()
+  override fun isNamespaceOrParentPackage(packageName: String): Boolean {
+    val census = getGradleProjectCensus(project)
+    return census.namespacesWithPrefixes.contains(packageName)
   }
 
   override fun getKnownApplicationIds(project: Project): Set<String> {
-    val model = getModel(project) ?: return emptySet()
-
-    val ids = model.allApplicationIds
-    ids.add(model.applicationId)
-    return ids
+    val census = getGradleProjectCensus(project)
+    return census.applicationIdToModule.keys
   }
 
   /**
@@ -316,20 +316,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
    */
   override fun supportsProfilingMode() = true
 
-  // TODO(b/228120633) reimplement this in a more efficient way
-  private fun getModel(project: Project): AndroidModel? {
-    if (project.isDisposed) {
-      return null
-    }
-
-    val module = ModuleManager.getInstance(project).modules.firstOrNull {
-      !it.isDisposed && AndroidFacet.getInstance(it)?.let { facet ->
-        facet.properties.PROJECT_TYPE == AndroidProjectTypes.PROJECT_TYPE_APP
-      } == true
-    } ?: return null
-
-    return AndroidModel.get(module)
-  }
 }
 
 private val IdeAndroidArtifact.scopeType: ScopeType

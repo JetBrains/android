@@ -16,7 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

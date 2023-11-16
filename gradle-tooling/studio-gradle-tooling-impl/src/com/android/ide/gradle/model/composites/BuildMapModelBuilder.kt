@@ -21,12 +21,11 @@ class BuildMapModelBuilder : ToolingModelBuilder {
   private fun buildBuildMap(project: Project): BuildMap = BuildMapImpl(getBuildMap(project))
 
   private fun getBuildMap(project: Project): Map<String, File> {
-    if (GradleVersion.version(project.gradle.gradleVersion) < GradleVersion.version("3.1")) return emptyMap()
     if (GradleVersion.version(project.gradle.gradleVersion) < GradleVersion.version("3.3")) {
       return mapOf(project.name to project.projectDir)
     }
     val projectInternal = project as? ProjectInternal ?: return emptyMap()
-    val name = projectInternal.identityPath.name ?: return emptyMap()
+    val name = projectInternal.identityPath.path ?: return emptyMap()
     return mapOf(name to project.projectDir)
   }
 }

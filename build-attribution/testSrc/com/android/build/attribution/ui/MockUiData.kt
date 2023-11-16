@@ -38,11 +38,10 @@ import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.buildanalyzer.common.TaskCategoryIssue
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import org.mockito.Mockito
 import java.time.Duration
 import java.util.Calendar
@@ -83,6 +82,7 @@ class MockUiData(
   override var downloadsData: DownloadsAnalyzer.Result = DownloadsAnalyzer.ActiveResult(repositoryResults = emptyList())
   override val showTaskCategoryInfo = createTaskCategoryInfo
   override val criticalPathTaskCategories = mockCriticalPathTaskCategoriesUiData().takeIf { showTaskCategoryInfo }
+  override var windowsDefenderWarningData = WindowsDefenderCheckService.WindowsDefenderWarningData(false, false, emptyList())
 
   fun mockBuildOverviewData(
     javaVersionUsed: Int? = null,
@@ -135,7 +135,7 @@ class MockUiData(
     override val name = taskCategory.displayName()
     override val taskCategory = taskCategory
     override val criticalPathTasks = tasks
-    override val criticalPathDuration = TimeWithPercentage(tasks.sumByLong { it.executionTime.timeMs }, criticalPathDurationMs)
+    override val criticalPathDuration = TimeWithPercentage(tasks.sumOf { it.executionTime.timeMs }, criticalPathDurationMs)
     override val issues = tasks.flatMap { it.issues }.groupBy { it.type }.map { (k, v) -> createIssuesGroup(k, v) }
     override val warningCount = tasks.count { it.hasWarning }
     override val infoCount = tasks.count { it.hasInfo }
@@ -167,7 +167,7 @@ class MockUiData(
   fun createPluginData(name: String, tasks: List<TaskUiData>) = object : CriticalPathPluginUiData {
     override val name = name
     override val criticalPathTasks = tasks
-    override val criticalPathDuration = TimeWithPercentage(tasks.sumByLong { it.executionTime.timeMs }, criticalPathDurationMs)
+    override val criticalPathDuration = TimeWithPercentage(tasks.sumOf { it.executionTime.timeMs }, criticalPathDurationMs)
     override val issues = tasks.flatMap { it.issues }.groupBy { it.type }.map { (k, v) -> createIssuesGroup(k, v) }
     override val warningCount = tasks.count { it.hasWarning }
     override val infoCount = tasks.count { it.hasInfo }

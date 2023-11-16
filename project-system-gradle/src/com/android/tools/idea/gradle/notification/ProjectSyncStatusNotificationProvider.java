@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.notification;
 
-import static com.android.tools.idea.gradle.util.AndroidProjectUtilKt.isAndroidProject;
 import static com.android.utils.BuildScriptUtil.isDefaultGradleBuildFile;
 import static com.android.utils.BuildScriptUtil.isGradleSettingsFile;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES;
@@ -25,7 +24,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ThreeState.YES;
 
 import com.android.repository.Revision;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.HideAndroidBannerAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -92,7 +90,7 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
   @Override
   public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
                                                                                                                  @NotNull VirtualFile file) {
-    NotificationPanel.Type newPanelType = notificationPanelType(project);
+    NotificationPanel.Type newPanelType = notificationPanelType();
     if (newPanelType == NotificationPanel.Type.NONE) return null;
 
     return fileEditor -> {
@@ -102,10 +100,8 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
 
   @VisibleForTesting
   @NotNull
-  NotificationPanel.Type notificationPanelType(@NotNull Project project) {
-    if ((!IdeInfo.getInstance().isAndroidStudio() && !isAndroidProject(project))
-        || !myProjectInfo.isBuildWithGradle()
-        || shouldHideBanner()) {
+  NotificationPanel.Type notificationPanelType() {
+    if (!myProjectInfo.isBuildWithGradle() || shouldHideBanner()) {
       return NotificationPanel.Type.NONE;
     }
     if (mySyncState.isSyncInProgress()) {
@@ -154,7 +150,6 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
       VERSION_CATALOG_PROJECT() {
         @Override
         @Nullable NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
-          if (!IdeInfo.getInstance().isAndroidStudio()) return null;
           if (VersionCatalogProjectNotificationPanel.userAllowsShow(project)) {
             File ioFile = virtualToIoFile(file);
             if (!isDefaultGradleBuildFile(ioFile) && !isGradleSettingsFile(ioFile) && !ioFile.getName().endsWith("versions.toml")) {
@@ -169,7 +164,6 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
         @Override
         @Nullable
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
-          if (!IdeInfo.getInstance().isAndroidStudio()) return null;
           if (ProjectStructureNotificationPanel.userAllowsShow()) {
             File ioFile = virtualToIoFile(file);
             if (!isDefaultGradleBuildFile(ioFile) && !isGradleSettingsFile(ioFile)) {
@@ -209,7 +203,6 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
         @Override
         @Nullable
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
-          if (!IdeInfo.getInstance().isAndroidStudio()) return null;
           boolean buildFilesModified = GradleFiles.getInstance(project).areExternalBuildFilesModified();
           String text = (buildFilesModified ? "External build files" : "Gradle files") +
                         " have changed since last project sync. A project sync may be necessary for the IDE to work properly.";

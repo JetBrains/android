@@ -46,7 +46,8 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
+    val modelsProvider =
+      CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val actions = modelsProvider.createActions(file, myFacet).getChildren(null)
 
     assertSize(1, actions)
@@ -58,9 +59,11 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
+    val modelsProvider =
+      CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
-    val config = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.virtualFile)
+    val config =
+      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.virtualFile)
 
     assertSize(1, nlModels)
     assertEquals(config, nlModels[0].configuration)
@@ -71,18 +74,22 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
+    val modelsProvider =
+      CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val configurationManager = ConfigurationManager.getOrCreateInstance(myModule)
     val defaultConfig = configurationManager.getConfiguration(file.virtualFile)
 
-    val attributes = CustomConfigurationAttribute("Preview",
-                                                  "pixel_3",
-                                                  SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
-                                                  ScreenOrientation.PORTRAIT,
-                                                  Locale.ANY.toString(),
-                                                  configurationManager.computePreferredTheme(defaultConfig),
-                                                  UiMode.NORMAL,
-                                                  NightMode.NOTNIGHT)
+    val attributes =
+      CustomConfigurationAttribute(
+        "Preview",
+        "pixel_3",
+        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+        ScreenOrientation.PORTRAIT,
+        Locale.ANY.toString(),
+        defaultConfig.computePreferredTheme(),
+        UiMode.NORMAL,
+        NightMode.NOTNIGHT
+      )
     modelsProvider.addCustomConfigurationAttributes(attributes)
 
     assertSize(1, modelsProvider.customConfigSet.customConfigAttributes)
@@ -106,21 +113,26 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
+    val modelsProvider =
+      CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val configurationManager = ConfigurationManager.getOrCreateInstance(myModule)
     val defaultConfig = configurationManager.getConfiguration(defaultFile.virtualFile)
 
-    val attributes = CustomConfigurationAttribute("Preview",
-                                                  "pixel_3",
-                                                  SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
-                                                  ScreenOrientation.PORTRAIT,
-                                                  Locale.create("en").toString(),
-                                                  configurationManager.computePreferredTheme(defaultConfig),
-                                                  UiMode.NORMAL,
-                                                  NightMode.NOTNIGHT)
+    val attributes =
+      CustomConfigurationAttribute(
+        "Preview",
+        "pixel_3",
+        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+        ScreenOrientation.PORTRAIT,
+        Locale.create("en").toString(),
+        defaultConfig.computePreferredTheme(),
+        UiMode.NORMAL,
+        NightMode.NOTNIGHT
+      )
     modelsProvider.addCustomConfigurationAttributes(attributes)
 
-    // Create models, first one is default one and second one is custom one, which should associate to en file.
+    // Create models, first one is default one and second one is custom one, which should associate
+    // to en file.
     val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myFacet)
     assertEquals(defaultFile.virtualFile, nlModels[0].virtualFile)
     assertEquals(enFile.virtualFile, nlModels[1].virtualFile)
@@ -133,22 +145,26 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-
-    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
+    val modelsProvider =
+      CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val configurationManager = ConfigurationManager.getOrCreateInstance(myModule)
     val defaultConfig = configurationManager.getConfiguration(defaultFile.virtualFile)
 
-    val attributes = CustomConfigurationAttribute("Preview",
-                                                  "pixel_3",
-                                                  SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
-                                                  ScreenOrientation.LANDSCAPE,
-                                                  Locale.ANY.toString(),
-                                                  configurationManager.computePreferredTheme(defaultConfig),
-                                                  UiMode.NORMAL,
-                                                  NightMode.NOTNIGHT)
+    val attributes =
+      CustomConfigurationAttribute(
+        "Preview",
+        "pixel_3",
+        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+        ScreenOrientation.LANDSCAPE,
+        Locale.ANY.toString(),
+        defaultConfig.computePreferredTheme(),
+        UiMode.NORMAL,
+        NightMode.NOTNIGHT
+      )
     modelsProvider.addCustomConfigurationAttributes(attributes)
 
-    // Create models, first one is default one and second one is custom one, which should associate to en file.
+    // Create models, first one is default one and second one is custom one, which should associate
+    // to en file.
     val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myFacet)
     assertEquals(defaultFile.virtualFile, nlModels[0].virtualFile)
     assertEquals(landFile.virtualFile, nlModels[1].virtualFile)
@@ -164,7 +180,8 @@ class CustomModelsProviderTest : LayoutTestCase() {
     val sourceConfig = manager.getConfiguration(file.virtualFile)
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
-    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
+    val modelsProvider =
+      CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     // The first NlModel use the sourceConfig. Do not test it.
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet).drop(1)
 
@@ -181,7 +198,8 @@ class CustomModelsProviderTest : LayoutTestCase() {
 }
 
 @Language("Xml")
-private const val LAYOUT_FILE_CONTENT = """
+private const val LAYOUT_FILE_CONTENT =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent"

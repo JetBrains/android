@@ -97,7 +97,7 @@ class ListenerCollectionTest {
     assertEquals(1, calls.size.toLong())
     assertFalse(called.get()) // The call was added but the listener has not executed the method yet.
 
-    calls.forEach(Consumer { it.run() })
+    calls.forEach(Consumer<Runnable> { it.run() })
     assertTrue(called.get()) // The call was added but the listener has not executed the method yet.
   }
 }

@@ -24,7 +24,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ScrollHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import java.awt.Cursor;
@@ -49,7 +48,7 @@ public class ScrollInteraction extends Interaction {
    * accelerates until it reaches {@link #MAX_SCROLL_MULTIPLIER}
    */
   private int myScrollMultiplier = 1;
-  private SceneView mySceneView;
+  private final SceneView mySceneView;
 
   public ScrollInteraction(@NonNull SceneView sceneView, @NonNull ScrollHandler scrollHandler) {
     mySceneView = sceneView;
@@ -68,10 +67,9 @@ public class ScrollInteraction extends Interaction {
 
     // Find the component that is the lowest in the hierarchy and can take the scrolling events
     while (currentComponent != null) {
-      ViewHandler viewHandler = NlComponentHelperKt.getViewHandler(currentComponent);
-      if (viewHandler instanceof ViewGroupHandler) {
-        ViewGroupHandler viewGroupHandler = (ViewGroupHandler)viewHandler;
-        scrollHandler = viewGroupHandler.createScrollHandler(editor, currentComponent);
+      ViewGroupHandler viewHandler = NlComponentHelperKt.getViewGroupHandler(currentComponent, () -> {});
+      if (viewHandler != null) {
+        scrollHandler = viewHandler.createScrollHandler(editor, currentComponent);
 
         if (scrollHandler != null) {
           break;

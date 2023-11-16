@@ -24,7 +24,7 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 
 class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
-  private val componentModel = InspectorPropertiesModel()
+  private val componentModel = InspectorPropertiesModel(parentDisposable)
   private val componentView = InspectorPropertiesView(componentModel)
   private val properties = PropertiesPanel<InspectorPropertyItem>(this)
   private val filterKeyListener = createFilterKeyListener()
@@ -40,7 +40,9 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
 
   override fun getComponent() = properties.component
 
-  override fun dispose() {}
+  override fun dispose() {
+    componentModel.layoutInspector = null
+  }
 
   override fun getGearActions() = listOf(DimensionUnitAction)
 
@@ -56,11 +58,17 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
     return componentModel.layoutInspector?.currentClient?.isConnected ?: false
   }
 
-  private fun createFilterKeyListener() = object : KeyAdapter() {
-    override fun keyPressed(event: KeyEvent) {
-      if (properties.filter.isNotEmpty() && event.keyCode == KeyEvent.VK_ENTER && event.modifiers == 0 && properties.enterInFilter()) {
-        event.consume()
+  private fun createFilterKeyListener() =
+    object : KeyAdapter() {
+      override fun keyPressed(event: KeyEvent) {
+        if (
+          properties.filter.isNotEmpty() &&
+            event.keyCode == KeyEvent.VK_ENTER &&
+            event.modifiers == 0 &&
+            properties.enterInFilter()
+        ) {
+          event.consume()
+        }
       }
     }
-  }
 }

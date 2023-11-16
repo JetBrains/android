@@ -25,6 +25,8 @@ import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.CURRENT_TIM
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.CURRENT_TIMESTAMP
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.DOT
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.DOUBLE_QUOTE_STRING_LITERAL
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.EQ
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.FALSE
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.FROM
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.GTE
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.IDENTIFIER
@@ -42,6 +44,7 @@ import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.SEMICOLON
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.SINGLE_QUOTE_STRING_LITERAL
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.STAR
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.TABLE
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.TRUE
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.WHERE
 import com.android.tools.idea.lang.androidSql.psi.UNTERMINATED_BACKTICK_LITERAL
 import com.android.tools.idea.lang.androidSql.psi.UNTERMINATED_BRACKET_LITERAL
@@ -340,5 +343,43 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
     assertThat(AndroidSqlLexer.getValidStringValue("\$foo")).isEqualTo("'\$foo'")
     assertThat(AndroidSqlLexer.getValidStringValue("foo''bar")).isEqualTo("'foo''''bar'")
     assertThat(AndroidSqlLexer.getValidStringValue("\"foo''bar\"")).isEqualTo("'\"foo''''bar\"'")
+  }
+
+  fun testBooleanLiterals() {
+    assertTokenTypes(
+      "select foo from bar where baz = true",
+      "select" to SELECT,
+      SPACE,
+      "foo" to IDENTIFIER,
+      SPACE,
+      "from" to FROM,
+      SPACE,
+      "bar" to IDENTIFIER,
+      SPACE,
+      "where" to WHERE,
+      SPACE,
+      "baz" to IDENTIFIER,
+      SPACE,
+      "=" to EQ,
+      SPACE,
+      "true" to TRUE)
+
+    assertTokenTypes(
+      "select foo from bar where baz = false",
+      "select" to SELECT,
+      SPACE,
+      "foo" to IDENTIFIER,
+      SPACE,
+      "from" to FROM,
+      SPACE,
+      "bar" to IDENTIFIER,
+      SPACE,
+      "where" to WHERE,
+      SPACE,
+      "baz" to IDENTIFIER,
+      SPACE,
+      "=" to EQ,
+      SPACE,
+      "false" to FALSE)
   }
 }

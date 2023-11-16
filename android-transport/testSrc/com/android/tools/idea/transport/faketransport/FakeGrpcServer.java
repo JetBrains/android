@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.transport.faketransport;
 
+import com.android.tools.idea.io.grpc.BindableService;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
@@ -54,8 +56,6 @@ import com.android.tools.profiler.proto.NetworkProfiler.NetworkStartResponse;
 import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopRequest;
 import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopResponse;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.android.tools.idea.io.grpc.BindableService;
-import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.profiler.proto.Trace;
 import java.util.ArrayList;
 import java.util.HashMap;

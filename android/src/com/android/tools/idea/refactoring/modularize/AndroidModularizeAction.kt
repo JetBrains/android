@@ -17,7 +17,6 @@ package com.android.tools.idea.refactoring.modularize
 
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.intellij.ide.highlighter.JavaFileType
-import org.jetbrains.kotlin.idea.KotlinFileType
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
@@ -26,6 +25,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.actions.BaseJavaRefactoringAction
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.kotlin.idea.KotlinFileType
 
 // open for testing
 

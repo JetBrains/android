@@ -29,24 +29,26 @@ open class PFormTableImpl(model: TableModel) : JBTable(model) {
     focusTraversalPolicy = PTableFocusTraversalPolicy(this)
     super.resetDefaultFocusTraversalKeys()
 
-    super.addFocusListener(object : FocusAdapter() {
-      override fun focusGained(event: FocusEvent) {
-        when (event.cause) {
-          FocusEvent.Cause.TRAVERSAL_FORWARD -> transferFocusToFirstEditor()
-          FocusEvent.Cause.TRAVERSAL_BACKWARD -> transferFocusToLastEditor()
-          else -> return  // keep focus on the table
+    super.addFocusListener(
+      object : FocusAdapter() {
+        override fun focusGained(event: FocusEvent) {
+          when (event.cause) {
+            FocusEvent.Cause.TRAVERSAL_FORWARD -> transferFocusToFirstEditor()
+            FocusEvent.Cause.TRAVERSAL_BACKWARD -> transferFocusToLastEditor()
+            else -> return // keep focus on the table
+          }
         }
       }
-    })
+    )
   }
 
   private fun transferFocusToFirstEditor() {
     if (isEmpty || hasAnyEditableCells()) {
       // If this table is empty just move the focus to the next component after the table.
-      // If there is an editable cell, use the PTableFocusTraversalPolicy to start editing the first editable cell.
+      // If there is an editable cell, use the PTableFocusTraversalPolicy to start editing the first
+      // editable cell.
       transferFocus()
-    }
-    else {
+    } else {
       // If no cells are editable, accept focus in the table and select the first row.
       setRowSelectionInterval(0, 0)
       scrollCellIntoView(0, 0)
@@ -56,11 +58,11 @@ open class PFormTableImpl(model: TableModel) : JBTable(model) {
   private fun transferFocusToLastEditor() {
     if (isEmpty || hasAnyEditableCells()) {
       // If this table is empty just move the focus to the next component before the table.
-      // If there is an editable cell, use the PTableFocusTraversalPolicy to start editing the last editable cell.
+      // If there is an editable cell, use the PTableFocusTraversalPolicy to start editing the last
+      // editable cell.
       val editor = focusTraversalPolicy.getLastComponent(this)
       editor?.requestFocusInWindow() ?: transferFocusBackward()
-    }
-    else {
+    } else {
       // If no cells are editable, accept focus in the table and select the last row.
       setRowSelectionInterval(rowCount - 1, rowCount - 1)
       scrollCellIntoView(rowCount - 1, rowCount - 1)

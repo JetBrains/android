@@ -121,7 +121,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Trace.TraceInf
     // If CPU profiler is not yet open, we need to do it.
     boolean needsToOpenCpuProfiler = !(myProfilers.getStage() instanceof CpuProfilerStage);
     if (needsToOpenCpuProfiler) {
-      myProfilers.setStage(new CpuProfilerStage(myProfilers));
+      myProfilers.setStage(new CpuProfilerStage(myProfilers, CpuCaptureMetadata.CpuProfilerEntryPoint.ONGOING_SESSION_SELECTION));
     }
 
     // If the capture is in progress we jump to its start range

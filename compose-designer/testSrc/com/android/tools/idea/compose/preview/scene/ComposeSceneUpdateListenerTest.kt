@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.scene
 
-import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.PreviewConfiguration
+import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
@@ -106,12 +106,13 @@ internal class ComposeSceneUpdateListenerTest {
 
   @Test
   fun `check hasAnimations is not updated in interactive`() {
-    val previewManager = TestComposePreviewManager(ComposePreviewManager.InteractiveMode.READY)
+    val previewManager =
+      TestComposePreviewManager().apply { setMode(PreviewMode.Interactive(composable)) }
     val fakeView = FakeView(true)
     updateAnimationInspectorToolbarIcon(fakeView, previewManager, composable) { logTracker }
     assertFalse(composable.hasAnimations)
 
-    previewManager.interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
+    previewManager.setMode(PreviewMode.Default)
     updateAnimationInspectorToolbarIcon(fakeView, previewManager, composable) { logTracker }
     assertTrue(composable.hasAnimations)
   }

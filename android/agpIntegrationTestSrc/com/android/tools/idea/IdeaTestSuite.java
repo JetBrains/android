@@ -23,9 +23,6 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses({
-  com.android.tools.idea.IdeaTestSuite.class,  // a suite mustn't contain itself
-})
 public class IdeaTestSuite extends IdeaTestSuiteBase {
 
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();

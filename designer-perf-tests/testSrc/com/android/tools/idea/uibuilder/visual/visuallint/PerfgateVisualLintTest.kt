@@ -66,9 +66,9 @@ class PerfgateVisualLintTest {
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     DesignerTypeRegistrar.register(LayoutFileType)
     val visualLintInspections = arrayOf(
-      BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
-      TextFieldSizeAnalyzerInspection, OverlapAnalyzerInspection, LongTextAnalyzerInspection,
-      ButtonSizeAnalyzerInspection, WearMarginAnalyzerInspection
+      BoundsAnalyzerInspection(), BottomNavAnalyzerInspection(), BottomAppBarAnalyzerInspection(),
+      TextFieldSizeAnalyzerInspection(), OverlapAnalyzerInspection(), LongTextAnalyzerInspection(),
+      ButtonSizeAnalyzerInspection(), WearMarginAnalyzerInspection()
     )
     projectRule.fixture.enableInspections(*visualLintInspections)
   }
@@ -89,12 +89,12 @@ class PerfgateVisualLintTest {
     val visualLintIssueProvider = VisualLintIssueProvider(projectRule.fixture.testRootDisposable)
 
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, dashboardLayout)
+    val nlModel = SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, null, facet, dashboardLayout)
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintingBenchmark.measureOperation(measures = listOf(ElapsedTimeMeasurement(Metric("phone_background_linting_time")),
                                                               MemoryUseMeasurement(Metric("phone_background_linting_memory_use")))) {
       VisualLintService.getInstance(projectRule.project)
-        .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, visualLintIssueProvider, listOf(nlModel), visualLintExecutorService)
+        .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, visualLintIssueProvider, listOf(nlModel), emptyMap(), visualLintExecutorService)
       // Wait for visual lint tasks to complete
       visualLintExecutorService.waitForTasksToComplete()
     }
@@ -109,12 +109,12 @@ class PerfgateVisualLintTest {
 
     val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
     val wearConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")
-    val wearModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, wearLayout, wearConfiguration)
+    val wearModel = SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, null, facet, wearLayout, wearConfiguration)
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintingBenchmark.measureOperation(measures = listOf(ElapsedTimeMeasurement(Metric("wear_background_linting_time")),
                                                               MemoryUseMeasurement(Metric("wear_background_linting_memory_use")))) {
       VisualLintService.getInstance(projectRule.project)
-        .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, visualLintIssueProvider, listOf(wearModel), visualLintExecutorService)
+        .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, visualLintIssueProvider, listOf(wearModel), emptyMap(), visualLintExecutorService)
       // Wait for visual lint tasks to complete
       visualLintExecutorService.waitForTasksToComplete()
     }

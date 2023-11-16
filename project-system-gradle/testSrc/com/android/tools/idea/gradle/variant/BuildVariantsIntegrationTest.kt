@@ -20,6 +20,7 @@ import com.android.testutils.AssumeUtil.assumeNotWindows
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariants
@@ -40,6 +41,7 @@ import com.android.tools.idea.testing.switchVariant
 import com.google.common.base.Charsets
 import com.google.common.io.Files.asCharSource
 import com.google.common.truth.Expect
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath
@@ -649,6 +651,61 @@ class BuildVariantsIntegrationTest {
       expect.that(project.saveAndDump()).isEqualTo(allReleaseSnapshot)
     }
   }
+
+  @Test
+  fun `re-import variants to default`() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.TRANSITIVE_DEPENDENCIES)
+
+    // Add app2 module
+    FileUtil.writeToFile(File(preparedProject.root, FileUtil.join("app2", SdkConstants.FN_BUILD_GRADLE)), """
+      apply plugin: 'com.android.application'
+
+      android {
+          compileSdkVersion ${BuildEnvironment.getInstance().compileSdkVersion}
+          namespace "com.example"
+      }
+    """.trimIndent())
+    val settingsFile = File(preparedProject.root, SdkConstants.FN_SETTINGS_GRADLE)
+    val settingsText = asCharSource(settingsFile, Charsets.UTF_8).read()
+    FileUtil.writeToFile(settingsFile, settingsText.trim { it <= ' ' } + ", \":app2\"")
+    val manifest = File(preparedProject.root, FileUtil.join("app2", "src", "main", SdkConstants.ANDROID_MANIFEST_XML))
+    FileUtil.writeToFile(manifest, """
+      <?xml version="1.0" encoding="utf-8"?>
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+      </manifest>
+    """.trimIndent())
+
+    preparedProject.open { project ->
+      // Switch app module variant to release
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      expect.thatModuleVariantIs(project, ":app2", "debug")
+      switchVariant(project, ":app", "release")
+      expect.thatModuleVariantIs(project, ":app", "release")
+      expect.thatModuleVariantIs(project, ":app2", "debug")
+
+      // Validate all variants reset to default (debug)
+      var request = GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER, importDefaultVariants = true)
+      project.requestSyncAndWait(syncRequest = request)
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      expect.thatModuleVariantIs(project, ":app2", "debug")
+
+      // Switch both modules to release variant
+      switchVariant(project, ":app", "release")
+      switchVariant(project, ":app2", "release")
+      expect.thatModuleVariantIs(project, ":app", "release")
+      expect.thatModuleVariantIs(project, ":app2", "release")
+
+      // Validate all variants get set to default (debug)
+      request = GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER, importDefaultVariants = true)
+      project.requestSyncAndWait(syncRequest = request)
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      expect.thatModuleVariantIs(project, ":app2", "debug")
+    }
+  }
 }
 
 private fun Module.selectedModelVariant(): String? = GradleAndroidModel.get(this)?.selectedVariant?.name
@@ -677,7 +734,7 @@ private fun Expect.consistentConfigurationOf(project: Project) {
 
 private fun Expect.thatModuleVariantIs(project: Project, gradlePath: String, variant: String, abi: String? = null) {
   val module = project.gradleModule(gradlePath)
-  withMessage("Selected variant in AndroidModuleModel $gradlePath").that(module?.selectedModelVariant()).isEqualTo(variant)
+  withMessage("Selected variant in AndroidModel $gradlePath").that(module?.selectedModelVariant()).isEqualTo(variant)
   withMessage("Selected variant in AndroidFacet $gradlePath").that(module?.selectedFacetVariant()).isEqualTo(variant)
   if (abi != null) {
     withMessage("Selected variant in NdkModuleModel $gradlePath")

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,9 +24,6 @@ import org.jetbrains.annotations.Nullable;
  * Project import logic used by UI elements
  */
 public final class ProjectImportUtil {
-
-  private static final Logger LOG = Logger.getInstance(ProjectImportUtil.class);
-
   private static final String[] GRADLE_SUPPORTED_FILES =
     new String[]{SdkConstants.FN_BUILD_GRADLE, SdkConstants.FN_BUILD_GRADLE_KTS, SdkConstants.FN_SETTINGS_GRADLE,
       SdkConstants.FN_SETTINGS_GRADLE_KTS};

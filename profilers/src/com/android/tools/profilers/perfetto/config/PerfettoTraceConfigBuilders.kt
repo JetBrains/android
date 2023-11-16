@@ -66,6 +66,9 @@ object PerfettoTraceConfigBuilders {
   // Small helper method to do conversion from mb to kb.
   private fun Int.mbToKb(): Int = this * 1024
 
+  @JvmStatic
+  fun getBatteryCountersCount() = batteryCounters.size
+
   /**
    * Constructs a Perfetto TraceConfig utilized for cpu tracing (System Trace).
    */

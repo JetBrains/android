@@ -28,7 +28,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.TruthJUnit.assume;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.util.io.FileUtil.createIfNotExists;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -38,7 +38,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -240,7 +240,7 @@ public class GradleSyncTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     // Change the SDK in the project. We expect the IDE to have the same SDK as the project.
-    LocalProperties localProperties = new LocalProperties(ideFrame.getProject());
+    LocalProperties localProperties = new LocalProperties(ideFrame.getProjectPath());
     localProperties.setAndroidSdkPath(secondSdkPath);
     localProperties.save();
 
@@ -254,7 +254,7 @@ public class GradleSyncTest {
     assertThat(ideSdks.getAndroidSdkPath()).isEqualTo(secondSdkPath);
 
     // Set the project's SDK to be the original one. Now we will choose the IDE's SDK.
-    localProperties = new LocalProperties(ideFrame.getProject());
+    localProperties = new LocalProperties(ideFrame.getProjectPath());
     localProperties.setAndroidSdkPath(originalSdkPath);
     localProperties.save();
 
@@ -265,7 +265,7 @@ public class GradleSyncTest {
       messages.click("Use Android Studio's SDK");
     });
 
-    localProperties = new LocalProperties(ideFrame.getProject());
+    localProperties = new LocalProperties(ideFrame.getProjectPath());
     assertThat(localProperties.getAndroidSdkPath()).isEqualTo(secondSdkPath);
   }
 
@@ -386,7 +386,7 @@ public class GradleSyncTest {
     assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED);
 
     // But the models should still be present
-    assertThat(AndroidModuleModel.get(ideFrame.getModule("app"))).isNotNull();
+    assertThat(GradleAndroidModel.get(ideFrame.getModule("app"))).isNotNull();
     assertThat(GradleFacet.getInstance(ideFrame.getModule("app"))).isNotNull();
     ideFrame.closeProject();
   }

@@ -20,6 +20,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.PathUtil.toSystemIndependentName;
 import static org.junit.Assert.assertNotNull;
 
+import com.android.sdklib.AndroidTargetHash;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
@@ -43,6 +45,7 @@ import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.util.ArrayUtil;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -54,10 +57,13 @@ public final class Sdks {
   }
 
   @NotNull
+  public static AndroidVersion getLatestAndroidPlatform() {
+    return Objects.requireNonNull(AndroidTargetHash.getPlatformVersion(TestUtils.getLatestAndroidPlatform()));
+  }
+
+  @NotNull
   public static Sdk addLatestAndroidSdk(@NotNull Disposable parentDisposable, @NotNull Module module) {
-    Sdk androidSdk = createLatestAndroidSdk(parentDisposable, "SDK", true);
-    ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
-    return androidSdk;
+    return addAndroidSdk(parentDisposable, module, getLatestAndroidPlatform());
   }
 
   public static Sdk createLatestAndroidSdk() {
@@ -65,9 +71,19 @@ public final class Sdks {
   }
 
   public static Sdk createLatestAndroidSdk(@Nullable Disposable parentDisposable, String name, boolean addToSdkTable) {
-    String sdkPath = TestUtils.getSdk().toString();
-    String platformDir = TestUtils.getLatestAndroidPlatform();
+    return createAndroidSdk(parentDisposable, name, addToSdkTable, getLatestAndroidPlatform());
+  }
 
+  @NotNull
+  public static Sdk addAndroidSdk(@NotNull Disposable parentDisposable, @NotNull Module module, @NotNull AndroidVersion androidPlatformVersion) {
+    Sdk androidSdk = createAndroidSdk(parentDisposable, "SDK", true, androidPlatformVersion);
+    ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
+    return androidSdk;
+  }
+
+  public static Sdk createAndroidSdk(@Nullable Disposable parentDisposable, String name, boolean addToSdkTable, @NotNull AndroidVersion androidPlatformVersion) {
+    String sdkPath = TestUtils.getSdk().toString();
+    String platformDir = AndroidTargetHash.getPlatformHashString(androidPlatformVersion);
     Sdk sdk = ProjectJdkTable.getInstance().createSdk(name, AndroidSdkType.getInstance());
     if (addToSdkTable) {
       ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(sdk));
@@ -85,15 +101,16 @@ public final class Sdks {
     VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/data/res");
     sdkModificator.addRoot(resFolder, OrderRootType.CLASSES);
 
-    VirtualFile androidSrcFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/sources/" + platformDir);
-    if (androidSrcFolder != null) {
-      sdkModificator.addRoot(androidSrcFolder, OrderRootType.SOURCES);
-    }
-
-    VirtualFile docsFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/docs/reference");
-    if (docsFolder != null) {
-      sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
-    }
+    // TODO nvuksic Uncomment once we publish docs and sources with android SDK
+    //VirtualFile androidSrcFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/sources/" + platformDir);
+    //if (androidSrcFolder != null) {
+    //  sdkModificator.addRoot(androidSrcFolder, OrderRootType.SOURCES);
+    //}
+    //
+    //VirtualFile docsFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/docs/reference");
+    //if (docsFolder != null) {
+    //  sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
+    //}
 
     AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
     AndroidSdkData sdkData = getSdkData(sdkPath);
@@ -116,6 +133,12 @@ public final class Sdks {
 
   @NotNull
   public static IAndroidTarget findLatestAndroidTarget(@NotNull File sdkPath) {
+    return findAndroidTarget(sdkPath, getLatestAndroidPlatform());
+  }
+
+  @NotNull
+  public static IAndroidTarget findAndroidTarget(@NotNull File sdkPath, @NotNull AndroidVersion version) {
+    String versionHashString = AndroidTargetHash.getPlatformHashString(version);
     AndroidSdkData sdkData = getSdkData(sdkPath);
     assertNotNull(sdkData);
     IAndroidTarget[] targets = sdkData.getTargets(false /* do not include add-ons */);
@@ -123,7 +146,7 @@ public final class Sdks {
 
     // Use the latest platform, which is checked-in as a full SDK. Older platforms may not be checked in full, to save space.
     Optional<IAndroidTarget> found =
-      Arrays.stream(targets).filter(target -> target.hashString().equals(TestUtils.getLatestAndroidPlatform())).findFirst();
+      Arrays.stream(targets).filter(target -> target.hashString().equals(versionHashString)).findFirst();
 
     IAndroidTarget target = found.isPresent() ? found.get() : null;
     assertNotNull(target);

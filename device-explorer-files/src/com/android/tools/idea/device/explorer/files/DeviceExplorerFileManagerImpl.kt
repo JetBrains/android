@@ -188,7 +188,7 @@ class DeviceExplorerFileManagerImpl @NonInjectable @VisibleForTesting constructo
   }
 
   override suspend fun openFile(localPath: Path) {
-    val file = findFile(localPath)
+    val file = findFile(localPath, true)
     withContext(uiThread) {
       FileTypeChooser.getKnownFileTypeOrAssociate(file, project) ?: cancelAndThrow()
       OpenFileAction.openFile(file, project)

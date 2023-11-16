@@ -25,6 +25,7 @@ import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.platform.ide.bootstrap.hideSplashBeforeShow
 import com.intellij.ui.AppUIUtil
 import icons.StudioIllustrations
 import java.awt.Color
@@ -143,9 +144,9 @@ class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
   override fun createCenterPanel(): JComponent = content
 
   companion object {
-    private const val ENABLE_DIALOG_PROPERTY = "enable.android.analytics.consent.dialog.for.test"
+    const val ENABLE_DIALOG_PROPERTY = "enable.android.analytics.consent.dialog.for.test"
 
-    private val isConsentDialogEnabledInTests
+    val isConsentDialogEnabledInTests
       get() = Boolean.getBoolean(ENABLE_DIALOG_PROPERTY)
 
     // If the user hasn't opted in, we will ask IJ to check if the user has
@@ -195,6 +196,7 @@ class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
         val consent = list[0]
 
         val dialog = ConsentDialog(consent)
+        hideSplashBeforeShow(dialog.window)
         dialog.isModal = true
         dialog.show()
 

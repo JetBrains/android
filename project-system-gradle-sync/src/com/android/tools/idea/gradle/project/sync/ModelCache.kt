@@ -32,7 +32,7 @@ import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePropertiesModel
-import com.android.ide.gradle.model.LegacyApplicationIdModel
+import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
@@ -54,7 +54,6 @@ import com.intellij.openapi.util.io.FileUtil
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.annotations.SystemIndependent
 import java.io.File
-import java.util.concurrent.locks.ReentrantLock
 
 interface ModelCache {
   val libraryLookup: (LibraryReference) -> IdeUnresolvedLibrary
@@ -64,7 +63,7 @@ interface ModelCache {
     fun variantFrom(
       androidProject: IdeAndroidProjectImpl,
       variant: Variant,
-      legacyApplicationIdModel: LegacyApplicationIdModel?,
+      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       modelVersion: AgpVersion?,
       androidModuleId: ModuleId
     ): ModelResult<IdeVariantWithPostProcessor>
@@ -72,11 +71,11 @@ interface ModelCache {
     fun androidProjectFrom(
       rootBuildId: BuildId,
       buildId: BuildId,
-      buildName: String,
       projectPath: String,
       project: AndroidProject,
-      legacyApplicationIdModel: LegacyApplicationIdModel?,
+      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
+      defaultVariantName: String?
     ): ModelResult<IdeAndroidProjectImpl>
 
     fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl
@@ -94,7 +93,7 @@ interface ModelCache {
       androidProject: IdeAndroidProjectImpl,
       basicVariant: BasicVariant,
       variant: com.android.builder.model.v2.ide.Variant,
-      legacyApplicationIdModel: LegacyApplicationIdModel?
+      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
     ): ModelResult<IdeVariantCoreImpl>
 
     /**
@@ -104,10 +103,10 @@ interface ModelCache {
       ownerBuildId: BuildId,
       ownerProjectPath: String,
       variant: IdeVariantCoreImpl,
-      variantDependencies: VariantDependencies,
+      variantDependencies: VariantDependenciesCompat,
       bootClasspath: Collection<String>,
       androidProjectPathResolver: AndroidProjectPathResolver,
-      buildNameMap: Map<String, BuildId>
+      buildPathMap: Map<String, BuildId>
     ): ModelResult<IdeVariantWithPostProcessor>
 
     fun androidProjectFrom(
@@ -117,8 +116,9 @@ interface ModelCache {
       project: com.android.builder.model.v2.models.AndroidProject,
       androidVersion: Versions,
       androidDsl: AndroidDsl,
-      legacyApplicationIdModel: LegacyApplicationIdModel?,
+      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
+      defaultVariantName: String?
     ): ModelResult<IdeAndroidProjectImpl>
   }
 
@@ -131,24 +131,22 @@ interface ModelCache {
     @JvmStatic
     fun createForTests(useV2BuilderModels: Boolean): ModelCache {
       val internedModels = InternedModels(null)
-      val modelCacheLock = ReentrantLock()
       return if (useV2BuilderModels) {
         modelCacheV2Impl(
           internedModels,
-          modelCacheLock,
           AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION),
           syncTestMode = SyncTestMode.PRODUCTION,
           false,
         )
       } else {
-        modelCacheV1Impl(internedModels, BuildFolderPaths(), modelCacheLock)
+        modelCacheV1Impl(internedModels, BuildFolderPaths())
       }
     }
 
     @JvmStatic
     fun createForPostBuildModels(): V1 {
       val internedModels = InternedModels(null)
-      return modelCacheV1Impl(internedModels, BuildFolderPaths(), ReentrantLock())
+      return modelCacheV1Impl(internedModels, BuildFolderPaths())
     }
   }
 }
@@ -218,6 +216,8 @@ internal fun convertArtifactName(name: String): IdeArtifactName = when (name) {
  */
 internal fun convertToLibraryName(libraryArtifactAddress: String, projectBasePath: File?): String {
   when {
+    // TODO(xof): there are other magic prefixes like "__local_asars__", "__wrapped_aars__" (post AGP-7.3) and "artifacts" (pre AGP-7.3)
+    //  that might be constructed from LibraryService
     libraryArtifactAddress.startsWith("$LOCAL_AARS:") -> libraryArtifactAddress.removePrefix("$LOCAL_AARS:")
     libraryArtifactAddress.startsWith("$LOCAL_JARS:") -> libraryArtifactAddress.removePrefix("$LOCAL_JARS:")
     else -> null

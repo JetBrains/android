@@ -54,8 +54,8 @@ import java.util.IdentityHashMap
 /**
  * Compose lambda name prefix.
  *
- * The kotlin plugin for Compose will create a custom mangled name for @Composable
- * lambdas that have no captured scope (i.e. has no referenced to variables that were passed in).
+ * The kotlin plugin for Compose will create a custom mangled name for @Composable lambdas that have
+ * no captured scope (i.e. has no referenced to variables that were passed in).
  */
 private const val LAMBDA_PREFIX = "lambda-"
 private const val COMPOSABLE_ANNOTATION = "androidx.compose.runtime.Composable"
@@ -71,9 +71,7 @@ private inline fun <T> analyzeIfK2(startElement: KtElement, block: KtAnalysisSes
     (null as KtAnalysisSession?).block()
   }
 
-/**
- * Service to find the [SourceLocation] of a lambda found in Compose.
- */
+/** Service to find the [SourceLocation] of a lambda found in Compose. */
 class LambdaResolver(project: Project) : ComposeResolver(project) {
   private val visitor = LambdaVisitor()
 
@@ -81,10 +79,14 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
    * Find the lambda [SourceLocation].
    *
    * The compiler will generate a synthetic class for each lambda invocation.
-   * @param packageName the class name of the enclosing class of the lambda. This is the first part of the synthetic class name.
+   *
+   * @param packageName the class name of the enclosing class of the lambda. This is the first part
+   *   of the synthetic class name.
    * @param fileName the name of the enclosing file (without the path).
-   * @param lambdaName the second part of the synthetic class name i.e. without the enclosed class name
-   * @param functionName the function called if this is a function reference, empty if this is a lambda expression
+   * @param lambdaName the second part of the synthetic class name i.e. without the enclosed class
+   *   name
+   * @param functionName the function called if this is a function reference, empty if this is a
+   *   lambda expression
    * @param startLine the starting line of the lambda invoke method as seen by JVMTI (1 based)
    * @param startLine the last line of the lambda invoke method as seen by JVMTI (1 based)
    */
@@ -101,14 +103,19 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
       return unknown(fileName)
     }
     val ktFile = findKotlinFile(fileName) { it == packageName } ?: return unknown(fileName)
-    val doc = ktFile.virtualFile?.let { FileDocumentManager.getInstance().getDocument(it) } ?: return unknown(fileName, ktFile)
+    val doc =
+      ktFile.virtualFile?.let { FileDocumentManager.getInstance().getDocument(it) }
+        ?: return unknown(fileName, ktFile)
 
     analyzeIfK2(ktFile) {
       val possible = findPossibleLambdas(ktFile, doc, functionName, startLine, endLine)
       val lambda = selectLambdaFromSynthesizedName(possible, lambdaName)
       val checkedStartLine = min(startLine - 1, doc.lineCount)
-      val navigatable = lambda?.navigationElement as? Navigatable ?: OpenFileDescriptor(project, ktFile.virtualFile, checkedStartLine, 0)
-      val actualLine = 1 + if (lambda != null) doc.getLineNumber(lambda.startOffset) else checkedStartLine
+      val navigatable =
+        lambda?.navigationElement as? Navigatable
+          ?: OpenFileDescriptor(project, ktFile.virtualFile, checkedStartLine, 0)
+      val actualLine =
+        1 + if (lambda != null) doc.getLineNumber(lambda.startOffset) else checkedStartLine
       return SourceLocation("${fileName}:$actualLine", navigatable)
     }
   }
@@ -117,9 +124,11 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     SourceLocation("$fileName:unknown", ktFile)
 
   /**
-   * Return all the lambda/callable reference expressions from [ktFile] that are contained entirely within the line range.
+   * Return all the lambda/callable reference expressions from [ktFile] that are contained entirely
+   * within the line range.
    *
-   * If the line range contains multiple lines then make sure all internal lines are fully covered by the returned lambdas.
+   * If the line range contains multiple lines then make sure all internal lines are fully covered
+   * by the returned lambdas.
    *
    * @return a map from a lambda or callable reference to the nesting level from a top element.
    */
@@ -130,28 +139,40 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     startLine: Int,
     endLine: Int
   ): Map<KtExpression, Int> {
-    val offsetRange = try {
-      doc.getLineStartOffset(startLine - 1)..(doc.getLineEndOffset(endLine - 1))
-    }
-    catch (ex: IndexOutOfBoundsException) {
-      return emptyMap()
-    }
+    val offsetRange =
+      try {
+        doc.getLineStartOffset(startLine - 1)..(doc.getLineEndOffset(endLine - 1))
+      } catch (ex: IndexOutOfBoundsException) {
+        return emptyMap()
+      }
     if (offsetRange.isEmpty()) {
       return emptyMap()
     }
-    val internalRange = if (endLine <= startLine) IntRange.EMPTY else try {
-      doc.getLineEndOffset(startLine - 1)..(doc.getLineStartOffset(endLine - 1))
-    }
-    catch (ex: IndexOutOfBoundsException) {
-      IntRange.EMPTY
-    }
+    val internalRange =
+      if (endLine <= startLine) IntRange.EMPTY
+      else
+        try {
+          doc.getLineEndOffset(startLine - 1)..(doc.getLineStartOffset(endLine - 1))
+        } catch (ex: IndexOutOfBoundsException) {
+          IntRange.EMPTY
+        }
     val possible = IdentityHashMap<KtExpression, Int>()
-    visitor.forEachLambda(this@findPossibleLambdas, ktFile) { expr, nesting, hasComposableSibling, recurse ->
+    visitor.forEachLambda(this@findPossibleLambdas, ktFile) {
+      expr,
+      nesting,
+      hasComposableSibling,
+      recurse ->
       val range = IntRange(expr.startOffset, expr.endOffset)
       val codeRange = codeRangeOf(expr)
-      if (typeMatch(expr, functionName) && offsetRange.contains(codeRange) && range.contains(internalRange)) {
-        // If an argument has a @Composable sibling argument we can no longer trust the nesting level.
-        // Because it may be mangled by the compose kotlin plugin instead of the kotlin compiler itself.
+      if (
+        typeMatch(expr, functionName) &&
+          offsetRange.contains(codeRange) &&
+          range.contains(internalRange)
+      ) {
+        // If an argument has a @Composable sibling argument we can no longer trust the nesting
+        // level.
+        // Because it may be mangled by the compose kotlin plugin instead of the kotlin compiler
+        // itself.
         possible[expr] = if (hasComposableSibling) -1 else nesting
       }
       recurse()
@@ -175,8 +196,8 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     range.isEmpty() || (contains(range.first) && contains(range.last))
 
   /**
-   * Attempt to go back from the right curly brace in a lambda to the first expression part
-   * that is a code element as described in [isCodeElement].
+   * Attempt to go back from the right curly brace in a lambda to the first expression part that is
+   * a code element as described in [isCodeElement].
    */
   private fun lastCodeElement(lambda: KtLambdaExpression): PsiElement? {
     var expr = lambda.rightCurlyBrace as? PsiElement ?: return null
@@ -195,9 +216,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     return expr
   }
 
-  /**
-   * Non code elements are: whitespace, an end parenthesis ")", or an end bracket "}"
-   */
+  /** Non code elements are: whitespace, an end parenthesis ")", or an end bracket "}" */
   private fun isCodeElement(expr: PsiElement): Boolean {
     if (expr is PsiWhiteSpace) {
       return false
@@ -208,32 +227,42 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
   }
 
   private fun typeMatch(expression: KtExpression, functionName: String): Boolean =
-    if (functionName.isNotEmpty()) expression is KtCallableReferenceExpression &&
-                                   expression.callableReference.getReferencedName() == functionName
+    if (functionName.isNotEmpty())
+      expression is KtCallableReferenceExpression &&
+        expression.callableReference.getReferencedName() == functionName
     else expression is KtLambdaExpression
 
   /**
-   * Select the most likely lambda from the [lambdas] found from line numbers, by using the synthetic name [lambdaName].
+   * Select the most likely lambda from the [lambdas] found from line numbers, by using the
+   * synthetic name [lambdaName].
    */
-  private fun KtAnalysisSession?.selectLambdaFromSynthesizedName(lambdas: Map<KtExpression, Int>, lambdaName: String): KtExpression? {
+  private fun KtAnalysisSession?.selectLambdaFromSynthesizedName(
+    lambdas: Map<KtExpression, Int>,
+    lambdaName: String
+  ): KtExpression? {
     when (lambdas.size) {
       0 -> return null
       1 -> return lambdas.keys.single() // no need investigate the lambdaName
     }
-    val candidates = if (lambdaName.startsWith(LAMBDA_PREFIX)) {
-      // This lambda was inside a lambda with a mangled name created by the compose kotlin plugin. We cannot trust the nesting level.
-      // If all the lambdas found in the line range has the same nesting level we can still select the correct one from the name.
-      val nesting = lambdas.values.toSet().singleOrNull() ?: return null
-      if (nesting == -1) {
-        // A nesting value of -1 means all of the lambdas may have a separate custom mangled name i.e. it is impossible to choose.
-        return null
+    val candidates =
+      if (lambdaName.startsWith(LAMBDA_PREFIX)) {
+        // This lambda was inside a lambda with a mangled name created by the compose kotlin plugin.
+        // We cannot trust the nesting level.
+        // If all the lambdas found in the line range has the same nesting level we can still select
+        // the correct one from the name.
+        val nesting = lambdas.values.toSet().singleOrNull() ?: return null
+        if (nesting == -1) {
+          // A nesting value of -1 means all of the lambdas may have a separate custom mangled name
+          // i.e. it is impossible to choose.
+          return null
+        }
+        lambdas.keys
+      } else {
+        // There are no lambda names created by the compose kotlin plugin, so we can select lambdas
+        // with the correct nesting level:
+        val wantedNestingLevel = lambdaName.count { it == '$' }
+        lambdas.entries.filter { it.value == wantedNestingLevel }.map { it.key }
       }
-      lambdas.keys
-    } else {
-      // There are no lambda names created by the compose kotlin plugin, so we can select lambdas with the correct nesting level:
-      val wantedNestingLevel = lambdaName.count { it == '$' }
-      lambdas.entries.filter { it.value == wantedNestingLevel }.map { it.key }
-    }
     when (candidates.size) {
       0 -> return null // the nesting level didn't match
       1 -> return candidates.first() // only one match for the nesting level, return that match
@@ -243,10 +272,15 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     val selector = findDesiredLambdaSelectorFromName(lambdaName) ?: return null
     val index = selector - 1
     val nestedUnderTopElement = mutableListOf<KtExpression>()
-    visitor.forEachLambda(this@selectLambdaFromSynthesizedName, topElement, excludeTopElements = true) { expression, _, _, _ ->
+    visitor.forEachLambda(
+      this@selectLambdaFromSynthesizedName,
+      topElement,
+      excludeTopElements = true
+    ) { expression, _, _, _ ->
       nestedUnderTopElement.add(expression)
     }
-    val candidate = if (index in nestedUnderTopElement.indices) nestedUnderTopElement[index] else return null
+    val candidate =
+      if (index in nestedUnderTopElement.indices) nestedUnderTopElement[index] else return null
     return if (lambdas.contains(candidate)) candidate else null
   }
 
@@ -263,9 +297,9 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
   /**
    * Find the closest parent element of interest that contains this [lambda].
    *
-   * The last index in the synthetic name will be an index of a lambda inside
-   * the closest parent that is either a class, method, variable, or another lambda.
-   * Find the parent such that we can enumerate the lambdas inside this parent element.
+   * The last index in the synthetic name will be an index of a lambda inside the closest parent
+   * that is either a class, method, variable, or another lambda. Find the parent such that we can
+   * enumerate the lambdas inside this parent element.
    */
   private fun findParentElement(lambda: KtExpression): KtElement? {
     var next = lambda.parent as? KtElement
@@ -275,22 +309,20 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
         is KtNamedFunction,
         is KtProperty,
         is KtLambdaExpression -> return next
-
         else -> next = next.parent as? KtElement
       }
     }
     return null
   }
 
-  /**
-   * Visitor for finding lambda expressions and function references
-   */
+  /** Visitor for finding lambda expressions and function references */
   private class LambdaVisitor : KtTreeVisitor<VisitorData>() {
     private var nesting = 0
     private var foundComposableSibling = false
 
     /**
-     * For each lambda or function reference found in [startElement] call [callable] with the arguments:
+     * For each lambda or function reference found in [startElement] call [callable] with the
+     * arguments:
      * - the lambda expression found
      * - the nesting level starting at [startElement]
      * - true if a previous sibling lambda was annotated as @Composable
@@ -307,51 +339,48 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     ) {
       nesting = 0
       foundComposableSibling = false
-      startElement.acceptChildren(this@LambdaVisitor, VisitorData(analysisSession, excludeTopElements, callable))
+      startElement.acceptChildren(
+        this@LambdaVisitor,
+        VisitorData(analysisSession, excludeTopElements, callable)
+      )
     }
 
     override fun visitLambdaExpression(expression: KtLambdaExpression, data: VisitorData): Void? {
-      foundComposableSibling = foundComposableSibling || data.analysisSession.hasComposableAnnotation(expression)
+      foundComposableSibling =
+        foundComposableSibling || data.analysisSession.hasComposableAnnotation(expression)
       data.callable(expression, nesting, foundComposableSibling) {
-        nestedOperation(nesting + 1) {
-          super.visitLambdaExpression(expression, data)
-        }
+        nestedOperation(nesting + 1) { super.visitLambdaExpression(expression, data) }
       }
       return null
     }
 
-    override fun visitCallableReferenceExpression(expression: KtCallableReferenceExpression, data: VisitorData): Void? {
+    override fun visitCallableReferenceExpression(
+      expression: KtCallableReferenceExpression,
+      data: VisitorData
+    ): Void? {
       data.callable(expression, nesting, foundComposableSibling) {
-        nestedOperation(nesting + 1) {
-          super.visitCallableReferenceExpression(expression, data)
-        }
+        nestedOperation(nesting + 1) { super.visitCallableReferenceExpression(expression, data) }
       }
       return null
     }
 
     override fun visitClass(klass: KtClass, data: VisitorData): Void? {
       if (!data.excludeTopElements) {
-        nestedOperation(0) {
-          super.visitClass(klass, data)
-        }
+        nestedOperation(0) { super.visitClass(klass, data) }
       }
       return null
     }
 
     override fun visitProperty(property: KtProperty, data: VisitorData): Void? {
       if (!data.excludeTopElements) {
-        nestedOperation(0) {
-          super.visitProperty(property, data)
-        }
+        nestedOperation(0) { super.visitProperty(property, data) }
       }
       return null
     }
 
     override fun visitNamedFunction(function: KtNamedFunction, data: VisitorData): Void? {
       if (!data.excludeTopElements) {
-        nestedOperation(0) {
-          super.visitNamedFunction(function, data)
-        }
+        nestedOperation(0) { super.visitNamedFunction(function, data) }
       }
       return null
     }
@@ -366,12 +395,16 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
       foundComposableSibling = foundComposableSiblingBefore
     }
 
-    private fun KtAnalysisSession?.hasComposableAnnotation(expression: KtLambdaExpression): Boolean {
+    private fun KtAnalysisSession?.hasComposableAnnotation(
+      expression: KtLambdaExpression
+    ): Boolean {
       val argument = expression.parent as? KtValueArgument ?: return false
       val call = argument.getStrictParentOfType<KtCallExpression>() ?: return false
       if (this != null) {
         // K2 plugin - use Analysis API in existing analysis session.
-        return call.resolveCall()?.singleFunctionCallOrNull()
+        return call
+          .resolveCall()
+          ?.singleFunctionCallOrNull()
           ?.argumentMapping
           ?.get(argument.getArgumentExpression())
           ?.symbol

@@ -16,8 +16,8 @@
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.model
 
 import com.google.common.truth.Truth.assertThat
-import javax.swing.tree.DefaultMutableTreeNode
 import org.junit.Test
+import javax.swing.tree.DefaultMutableTreeNode
 
 class BackgroundTaskCategoryNodeTest {
 

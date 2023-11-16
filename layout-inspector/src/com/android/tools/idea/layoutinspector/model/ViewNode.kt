@@ -31,10 +31,10 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 // This must have the same value as WindowManager.FLAG_DIM_BEHIND
-@VisibleForTesting
-const val WINDOW_MANAGER_FLAG_DIM_BEHIND = 0x2
+@VisibleForTesting const val WINDOW_MANAGER_FLAG_DIM_BEHIND = 0x2
 
-private val systemPackagePrefixes = setOf("android.", "androidx.", "com.android.", "com.google.android.")
+private val systemPackagePrefixes =
+  setOf("android.", "androidx.", "com.android.", "com.google.android.")
 
 /**
  * A view node represents a view in the view hierarchy as seen on the device.
@@ -42,9 +42,11 @@ private val systemPackagePrefixes = setOf("android.", "androidx.", "com.android.
  * @param drawId the View.getUniqueDrawingId which is also the id found in the skia image
  * @param qualifiedName the qualified class name of the view
  * @param layout reference to the layout xml containing this view
- * @param layoutBounds the bounds used by android for layout. Always a rectangle.
- * x and y are the left and top edges of the view from the device left and top edge, ignoring post-layout transformations
- * @param renderBounds the actual bounds of this view as shown on the screen, including any post-layout transformations.
+ * @param layoutBounds the bounds used by android for layout. Always a rectangle. x and y are the
+ *   left and top edges of the view from the device left and top edge, ignoring post-layout
+ *   transformations
+ * @param renderBounds the actual bounds of this view as shown on the screen, including any
+ *   post-layout transformations.
  * @param viewId the id set by the developer in the View.id attribute
  * @param textValue the text value if present
  * @param layoutFlags flags from WindowManager.LayoutParams
@@ -60,26 +62,41 @@ open class ViewNode(
   var layoutFlags: Int
 ) {
   @TestOnly
-  constructor(drawId: Long,
-              qualifiedName: String,
-              layout: ResourceReference?,
-              layoutBounds: Rectangle,
-              viewId: ResourceReference?,
-              textValue: String,
-              layoutFlags: Int) : this(drawId, qualifiedName, layout, layoutBounds, layoutBounds, viewId, textValue, layoutFlags)
+  constructor(
+    drawId: Long,
+    qualifiedName: String,
+    layout: ResourceReference?,
+    layoutBounds: Rectangle,
+    viewId: ResourceReference?,
+    textValue: String,
+    layoutFlags: Int
+  ) : this(
+    drawId,
+    qualifiedName,
+    layout,
+    layoutBounds,
+    layoutBounds,
+    viewId,
+    textValue,
+    layoutFlags
+  )
 
   /** constructor for synthetic nodes */
-  constructor(qualifiedName: String): this(-1, qualifiedName, null, Rectangle(), Rectangle(), null, "", 0)
+  constructor(
+    qualifiedName: String
+  ) : this(-1, qualifiedName, null, Rectangle(), Rectangle(), null, "", 0)
 
-  @Suppress("LeakingThis")
-  val treeNode = TreeViewNode(this)
+  @Suppress("LeakingThis") val treeNode = TreeViewNode(this)
 
-  /** Returns true if this [ViewNode] is found in a layout in the framework or in a system layout from appcompat */
+  /**
+   * Returns true if this [ViewNode] is found in a layout in the framework or in a system layout
+   * from appcompat
+   */
   open val isSystemNode: Boolean
     get() =
       (layout == null && systemPackagePrefixes.any { qualifiedName.startsWith(it) }) ||
-      layout?.namespace == ResourceNamespace.ANDROID ||
-      layout?.name?.startsWith("abc_") == true
+        layout?.namespace == ResourceNamespace.ANDROID ||
+        layout?.name?.startsWith("abc_") == true
 
   /** Returns true if this [ViewNode] has merged semantics */
   open val hasMergedSemantics: Boolean
@@ -102,18 +119,22 @@ open class ViewNode(
    * - null
    */
   fun findClosestUnfilteredNode(treeSettings: TreeSettings): ViewNode? =
-    if (treeSettings.hideSystemNodes) readAccess { parentSequence.firstOrNull { !it.isSystemNode } } else this
+    if (treeSettings.hideSystemNodes) readAccess { parentSequence.firstOrNull { !it.isSystemNode } }
+    else this
 
   /** Returns true if the node appears in the component tree. False if it currently filtered out */
-  fun isInComponentTree(treeSettings: TreeSettings): Boolean =
-    treeSettings.isInComponentTree(this)
+  fun isInComponentTree(treeSettings: TreeSettings): Boolean = treeSettings.isInComponentTree(this)
 
-  /** Returns true if the node represents a call from a parent node with a single call and it itself is making a single call */
+  /**
+   * Returns true if the node represents a call from a parent node with a single call and it itself
+   * is making a single call
+   */
   open fun isSingleCall(treeSettings: TreeSettings): Boolean = false
 
   /**
-   *  The rectangular bounds of this node's transformed bounds plus the transitive bounds of all children.
-   *  [calculateTransitiveBounds] must be called before accessing this, but that should be done automatically soon after creation.
+   * The rectangular bounds of this node's transformed bounds plus the transitive bounds of all
+   * children. [calculateTransitiveBounds] must be called before accessing this, but that should be
+   * done automatically soon after creation.
    */
   lateinit var transitiveBounds: Rectangle
     private set
@@ -123,20 +144,22 @@ open class ViewNode(
   private val children = mutableListOf<ViewNode>()
   private var parent: ViewNode? = null
 
-  /**
-   * Create a sequence of parents starting with the current ViewNode
-   */
+  /** Create a sequence of parents starting with the current ViewNode */
   private val parentSequence: Sequence<ViewNode>
     get() = generateSequence(this) { it.parent }
 
   // Views and images that will be drawn.
-  // The order here and in children can be different at least due to how compose->view transitions are grafted in.
+  // The order here and in children can be different at least due to how compose->view transitions
+  // are grafted in.
   private val drawChildren = mutableListOf<DrawViewNode>()
 
   var tag: XmlTag?
     get() = tagPointer?.element
     set(value) {
-      tagPointer = value?.let { SmartPointerManager.getInstance(value.project).createSmartPsiElementPointer(value) }
+      tagPointer =
+        value?.let {
+          SmartPointerManager.getInstance(value.project).createSmartPsiElementPointer(value)
+        }
     }
 
   val unqualifiedName: String
@@ -146,57 +169,81 @@ open class ViewNode(
     get() = (layoutFlags and WINDOW_MANAGER_FLAG_DIM_BEHIND) > 0
 
   /**
-   * Create a sequence of the sub tree starting with the current ViewNode (Post-order, LRN, or order doesn't matter)
+   * Create a sequence of the sub tree starting with the current ViewNode (Post-order, LRN, or order
+   * doesn't matter)
    */
   private fun flatten(): Sequence<ViewNode> {
-    return children.asSequence().flatMap { it.flatten() }.plus(this)
+    return flattenedList().asSequence()
   }
 
-  @TestOnly
-  fun flattenedList(): List<ViewNode> =
-    readAccess { flatten().toList() }
-
   /**
-   * Create a sequence of the sub tree starting with the current ViewNode (Pre-order, LRN)
+   * Materialize a list containing all the nodes in the tree starting with the current node
+   * (Post-order, LRN).
    */
+  fun flattenedList(): List<ViewNode> = readAccess {
+    val pending = mutableListOf(this@ViewNode)
+    val result = mutableListOf<ViewNode>()
+    while (pending.isNotEmpty()) {
+      val item = pending.removeLast()
+      pending.addAll(item.children)
+      result.add(item)
+    }
+    result.asReversed()
+  }
+
+  /** Create a sequence of the sub tree starting with the current ViewNode (Pre-order, NLR) */
   private fun preOrderFlatten(): Sequence<ViewNode> {
-    return sequenceOf(this).plus(children.asSequence().flatMap { it.preOrderFlatten() })
+    val pending = mutableListOf(this@ViewNode)
+    val result = mutableListOf<ViewNode>()
+    while (pending.isNotEmpty()) {
+      val item = pending.removeLast()
+      pending.addAll(item.children.asReversed())
+      result.add(item)
+    }
+    return result.asSequence()
   }
 
   /**
-   * Calculate the transitive bounds for all nodes under the given [root]. This should be called once after the
-   * ViewNode tree is built.
+   * Calculate the transitive bounds for all nodes under the given [root]. This should be called
+   * once after the ViewNode tree is built.
    */
   fun calculateTransitiveBounds() {
     readAccess {
       flatten().forEach {
-        it.transitiveBounds = it.children.map(ViewNode::transitiveBounds).plus(it.renderBounds.bounds)
-          .reduce { r1, r2 -> r1.union(r2) }
+        it.transitiveBounds =
+          it.children.map(ViewNode::transitiveBounds).plus(it.renderBounds.bounds).reduce { r1, r2
+            ->
+            r1.union(r2)
+          }
       }
     }
   }
 
   /**
-   * Interface used for traversing the [ViewNode] tree with a read lock. See [readAccess].
-   * This interface provides a limited access view of a [ViewNode],
-   * so that users of [readAccess] are limited in what methods of [ViewNode] they can invoke.
+   * Interface used for traversing the [ViewNode] tree with a read lock. See [readAccess]. This
+   * interface provides a limited access view of a [ViewNode], so that users of [readAccess] are
+   * limited in what methods of [ViewNode] they can invoke.
    */
   interface ReadAccess {
-    val ViewNode.children: MutableList<ViewNode> get() = children
-    val ViewNode.parent: ViewNode? get() = parent
-    val ViewNode.drawChildren: MutableList<DrawViewNode> get() = drawChildren
-    val ViewNode.parentSequence: Sequence<ViewNode> get() = parentSequence
+    val ViewNode.children: MutableList<ViewNode>
+      get() = children
+    val ViewNode.parent: ViewNode?
+      get() = parent
+    val ViewNode.drawChildren: MutableList<DrawViewNode>
+      get() = drawChildren
+    val ViewNode.parentSequence: Sequence<ViewNode>
+      get() = parentSequence
     fun ViewNode.flatten(): Sequence<ViewNode> = flatten()
     fun ViewNode.preOrderFlatten(): Sequence<ViewNode> = preOrderFlatten()
   }
 
-  /**
-   * Interface used for modifying a [ViewNode] with a write lock. See [writeAccess].
-   */
+  /** Interface used for modifying a [ViewNode] with a write lock. See [writeAccess]. */
   interface WriteAccess : ReadAccess {
     override var ViewNode.parent: ViewNode?
       get() = parent
-      set(value) { parent = value }
+      set(value) {
+        parent = value
+      }
   }
 
   companion object {
@@ -205,21 +252,15 @@ open class ViewNode(
     private val writer = object : WriteAccess {}
 
     /**
-     * Allows to safely perform read actions on the [ViewNode].
-     * Preventing other threads to change the tree structure while we are reading it.
+     * Allows to safely perform read actions on the [ViewNode]. Preventing other threads to change
+     * the tree structure while we are reading it.
      */
-    fun <T> readAccess(operation: ReadAccess.() -> T): T =
-      lock.read {
-        reader.operation()
-      }
+    fun <T> readAccess(operation: ReadAccess.() -> T): T = lock.read { reader.operation() }
 
     /**
-     * Allows to safely perform write actions on the [ViewNode].
-     * Preventing multiple threads to change the tree structure at the same time.
+     * Allows to safely perform write actions on the [ViewNode]. Preventing multiple threads to
+     * change the tree structure at the same time.
      */
-    fun <T> writeAccess(operation: WriteAccess.() -> T) =
-      lock.write {
-        writer.operation()
-      }
+    fun <T> writeAccess(operation: WriteAccess.() -> T) = lock.write { writer.operation() }
   }
 }

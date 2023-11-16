@@ -15,7 +15,10 @@
  */
 package com.android.tools.adtui.categorytable
 
+import com.android.tools.adtui.stdui.EmptyStatePanel
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
+import com.google.common.collect.Range
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.ide.IdeEventQueue
@@ -26,12 +29,15 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestApplicationManager
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.util.preferredWidth
+import org.junit.Rule
+import org.junit.Test
 import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.SortOrder
-import org.junit.Rule
-import org.junit.Test
+import javax.swing.SwingUtilities.convertPoint
 
+@RunsInEdt
 class CategoryTableTest {
   @get:Rule val edtRule = EdtRule()
   @get:Rule val disposableRule = DisposableRule()
@@ -61,14 +67,88 @@ class CategoryTableTest {
   }
 
   @Test
+  fun addOrUpdateRow() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    table.addGrouping(Type)
+    val device = CategoryTableDemo.devices[0]
+
+    assertThat(table.addOrUpdateRow(device)).isTrue()
+    assertThat(table.addOrUpdateRow(device)).isFalse()
+
+    assertThat(table.rowComponents).hasSize(2)
+    assertThat(table.rowComponents[0]).isInstanceOf(CategoryRowComponent::class.java)
+    assertThat(table.rowComponents[1]).isInstanceOf(ValueRowComponent::class.java)
+  }
+
+  @Test
+  fun addOrUpdateRow_withPrimaryKey() {
+    val table = CategoryTable(CategoryTableDemo.columns, { it.name })
+    table.addGrouping(Type)
+    val offlineNexus7 = CategoryTableDemo.devices[4]
+    val onlineNexus7 = CategoryTableDemo.devices[5]
+
+    assertThat(table.addOrUpdateRow(offlineNexus7)).isTrue()
+    assertThat(table.addOrUpdateRow(onlineNexus7)).isFalse()
+    assertThat(table.rowComponents).hasSize(2)
+  }
+
+  @Test
+  fun addOrUpdateRow_withPosition() {
+    val table = CategoryTable(CategoryTableDemo.columns, { it.name })
+    val device = CategoryTableDemo.Device("Pixel 4", "33", "Phone", "Offline")
+    table.toggleSortOrder(Api.attribute)
+    listOf(
+        device,
+        device.copy(name = "Pixel 5"),
+        device.copy(name = "Pixel 6"),
+        device.copy(name = "Pixel 7")
+      )
+      .forEach { table.addOrUpdateRow(it) }
+
+    assertThat(table.values.map { it.name })
+      .containsExactly("Pixel 4", "Pixel 5", "Pixel 6", "Pixel 7")
+      .inOrder()
+
+    table.addOrUpdateRow(device.copy(name = "Pixel 4a"), "Pixel 5")
+    table.addOrUpdateRow(device.copy(name = "Pixel 3a", api = "32"), "Pixel 5")
+
+    assertThat(table.values.map { it.name })
+      .containsExactly("Pixel 3a", "Pixel 4", "Pixel 4a", "Pixel 5", "Pixel 6", "Pixel 7")
+      .inOrder()
+  }
+
+  @Test
+  fun removeRow() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    table.addGrouping(Type)
+    val device = CategoryTableDemo.devices[0]
+
+    assertThat(table.addOrUpdateRow(device)).isTrue()
+    table.removeRow(device)
+    assertThat(table.rowComponents).hasSize(0)
+  }
+
+  @Test
+  fun removeRowByKey() {
+    val table = CategoryTable(CategoryTableDemo.columns, { it.name })
+    table.addGrouping(Type)
+    val offlineNexus7 = CategoryTableDemo.devices[4]
+    val onlineNexus7 = CategoryTableDemo.devices[5]
+
+    assertThat(table.addOrUpdateRow(offlineNexus7)).isTrue()
+    table.removeRowByKey(onlineNexus7.name)
+    assertThat(table.rowComponents).hasSize(0)
+  }
+
+  @Test
   fun addAndRemoveGrouping() {
     val table = CategoryTable(CategoryTableDemo.columns)
 
-    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
     assertThat(table.rowComponents).hasSize(6)
 
     table.toggleSortOrder(Name.attribute)
-    table.addGrouping(Api.attribute)
+    table.addGrouping(Api)
 
     assertThat(table.rowComponents.map { it.stringValue() })
       .containsExactly(
@@ -84,8 +164,10 @@ class CategoryTableTest {
         "33",
         "Pixel 7"
       )
+    assertThat(table.header.columnModel.columnList.map { it.headerValue })
+      .containsExactly("Name", "Status", "Type", "Actions")
 
-    table.addGrouping(Type.attribute)
+    table.addGrouping(Type)
 
     assertThat(table.rowComponents.map { it.stringValue() })
       .containsExactly(
@@ -106,8 +188,10 @@ class CategoryTableTest {
         "33, Phone",
         "Pixel 7"
       )
+    assertThat(table.header.columnModel.columnList.map { it.headerValue })
+      .containsExactly("Name", "Status", "Actions")
 
-    table.removeGrouping(Api.attribute)
+    table.removeGrouping(Api)
 
     assertThat(table.rowComponents.map { it.stringValue() })
       .containsExactly(
@@ -120,6 +204,12 @@ class CategoryTableTest {
         "Pixel 6a",
         "Pixel 7"
       )
+    assertThat(table.header.columnModel.columnList.map { it.headerValue })
+      .containsExactly("Name", "Api", "Status", "Actions")
+
+    table.addGrouping(Status)
+    assertThat(table.header.columnModel.columnList.map { it.headerValue })
+      .containsExactly("Name", "Api", "Status", "Actions")
   }
 
   private fun RowComponent<CategoryTableDemo.Device>.stringValue() =
@@ -170,6 +260,54 @@ class CategoryTableTest {
   }
 
   @Test
+  fun hover() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    val scrollPane = createScrollPane(table)
+    scrollPane.setBounds(0, 0, 400, 400)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+
+    table.addOrUpdateRow(
+      CategoryTableDemo.Device(
+        "Copy 3 of Google Pixel 7 Pro API 34 arm64 Google Play",
+        "34",
+        "Phone",
+        "Offline"
+      ),
+    )
+    fakeUi.layout()
+
+    // Hover over the first component.
+    val firstRowCells =
+      (table.rowComponents[0] as ValueRowComponent<*>).componentList.map { it.component }
+    fakeUi.mouse.moveTo(convertPoint(firstRowCells[0], 5, 5, scrollPane))
+    fakeUi.layout()
+
+    // It should expand to its preferred width.  Other components retain their normal width.
+    assertThat(firstRowCells[0].preferredWidth).isGreaterThan(200)
+    assertThat(firstRowCells.map { it.width })
+      .containsExactly(firstRowCells[0].preferredWidth, 20, 20, 20, 150)
+      .inOrder()
+
+    // Move the mouse to the next cell.
+    fakeUi.mouse.moveTo(convertPoint(firstRowCells[1], 5, 5, scrollPane))
+    fakeUi.layout()
+
+    // Its contents fit, so its width shouldn't be affected. The first cell should return to its
+    // original size (even though we are still within its expanded-width bounds).
+    assertThat(firstRowCells[1].preferredWidth).isLessThan(20)
+    assertThat(firstRowCells.map { it.width }).containsExactly(200, 20, 20, 20, 150).inOrder()
+
+    // Move the mouse back to the first cell to expand it, then move it mouse out of the table,
+    // causing a MOUSE_EXITED event. It should return to original size.
+    fakeUi.mouse.moveTo(convertPoint(firstRowCells[0], 5, 5, scrollPane))
+    fakeUi.layout()
+    fakeUi.mouse.moveTo(0, 0)
+    fakeUi.layout()
+
+    assertThat(firstRowCells.map { it.width }).containsExactly(200, 20, 20, 20, 150).inOrder()
+  }
+
+  @Test
   fun sorting() {
     val table = CategoryTable(CategoryTableDemo.columns)
     val scrollPane = createScrollPane(table)
@@ -195,7 +333,6 @@ class CategoryTableTest {
   }
 
   @Test
-  @RunsInEdt
   fun selection() {
     // Set some distinct colors
     val colors =
@@ -208,8 +345,9 @@ class CategoryTableTest {
     val table = CategoryTable(CategoryTableDemo.columns, colors = colors)
     val scrollPane = createScrollPane(table)
     val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
 
-    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
     fakeUi.layout()
 
     assertThat(table.selection.selectedKeys()).isEmpty()
@@ -225,6 +363,7 @@ class CategoryTableTest {
     fakeUi.clickOn(rowToSelect)
 
     assertThat(table.selection.selectedKeys()).contains(rowToSelect.rowKey)
+    assertThat(rowToSelect.isFocusOwner).isTrue()
 
     IdeEventQueue.getInstance().flushQueue()
 
@@ -236,14 +375,34 @@ class CategoryTableTest {
   }
 
   @Test
-  @RunsInEdt
+  fun scrollSelection() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
+
+    val scrollPane = createScrollPane(table)
+    scrollPane.setBounds(0, 0, 800, 100)
+    val fakeUi = FakeUi(scrollPane)
+
+    for (row in CategoryTableDemo.devices.indices) {
+      table.selection.selectNextRow()
+      fakeUi.layout()
+
+      val y = scrollPane.viewport.viewPosition.y
+      val visibleRange = Range.closed(y, y + scrollPane.height)
+      val rowComponent = table.rowComponents[row]
+      assertThat(rowComponent.y).isIn(visibleRange)
+      assertThat(rowComponent.y + rowComponent.height).isIn(visibleRange)
+    }
+  }
+
+  @Test
   fun collapsedRows() {
     val table = CategoryTable(CategoryTableDemo.columns)
     val scrollPane = createScrollPane(table)
     val fakeUi = FakeUi(scrollPane)
 
-    CategoryTableDemo.devices.forEach { table.addRow(it) }
-    table.addGrouping(Status.attribute)
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
+    table.addGrouping(Status)
 
     fakeUi.layout()
 
@@ -270,7 +429,6 @@ class CategoryTableTest {
   }
 
   @Test
-  @RunsInEdt
   fun rowDataContext() {
     TestApplicationManager.getInstance()
     HeadlessDataManager.fallbackToProductionDataManager(disposableRule.disposable)
@@ -281,7 +439,7 @@ class CategoryTableTest {
         rowDataProvider = DefaultValueRowDataProvider(DEVICE_DATA_KEY)
       )
 
-    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
 
     val component = (table.rowComponents[0] as ValueRowComponent).componentList[0].component
     val data = DataManager.getInstance().getDataContext(component).getData(DEVICE_DATA_KEY)
@@ -290,13 +448,12 @@ class CategoryTableTest {
   }
 
   @Test
-  @RunsInEdt
   fun hiddenRows() {
     val table = CategoryTable(CategoryTableDemo.columns)
     val scrollPane = createScrollPane(table)
     val fakeUi = FakeUi(scrollPane)
 
-    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
     fakeUi.layout()
 
     val position = fakeUi.getPosition(table.rowComponents[1])
@@ -318,14 +475,13 @@ class CategoryTableTest {
   }
 
   @Test
-  @RunsInEdt
   fun hiddenCollapsedRows() {
     val table = CategoryTable(CategoryTableDemo.columns)
     val scrollPane = createScrollPane(table)
     val fakeUi = FakeUi(scrollPane)
 
-    CategoryTableDemo.devices.forEach { table.addRow(it) }
-    table.addGrouping(Status.attribute)
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
+    table.addGrouping(Status)
     fakeUi.layout()
 
     val categoryRow = table.rowComponents[0] as CategoryRowComponent<CategoryTableDemo.Device>
@@ -348,5 +504,41 @@ class CategoryTableTest {
 
     assertThat(table.rowComponents[1].isVisible).isFalse()
     assertThat(table.rowComponents[2].isVisible).isTrue()
+  }
+
+  @Test
+  fun scrollbarLayout() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    val scrollPane = createScrollPane(table)
+    val fakeUi = FakeUi(scrollPane)
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
+
+    scrollPane.setBounds(0, 0, 800, 400)
+    assertThat(scrollPane.verticalScrollBar.isVisible).isFalse()
+    val widthWithoutScrollbar = table.width
+
+    scrollPane.setBounds(0, 0, 800, 100)
+    fakeUi.layout()
+    assertThat(scrollPane.verticalScrollBar.isVisible).isTrue()
+    assertThat(scrollPane.verticalScrollBar.width).isGreaterThan(0)
+    assertThat(table.width).isEqualTo(widthWithoutScrollbar - scrollPane.verticalScrollBar.width)
+  }
+
+  @Test
+  fun emptyStatePanel() {
+    val emptyStatePanel = EmptyStatePanel("No devices")
+    val table = CategoryTable(CategoryTableDemo.columns, { it.name }, emptyStatePanel = emptyStatePanel)
+    val scrollPane = createScrollPane(table)
+    val fakeUi = FakeUi(scrollPane)
+
+    assertThat(emptyStatePanel.isVisible).isTrue()
+
+    table.addOrUpdateRow(CategoryTableDemo.devices[0])
+
+    assertThat(emptyStatePanel.isVisible).isFalse()
+
+    table.removeRow(CategoryTableDemo.devices[0])
+
+    assertThat(emptyStatePanel.isVisible).isTrue()
   }
 }

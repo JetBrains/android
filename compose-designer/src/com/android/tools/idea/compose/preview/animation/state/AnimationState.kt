@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.animation.state
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
-import com.android.tools.idea.compose.preview.animation.ComposeAnimationEventTracker
+import com.android.tools.idea.compose.preview.animation.AnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnAction
@@ -29,7 +29,7 @@ abstract class AnimationState(callback: () -> Unit = {}) {
 
     /** Create an [AnimationState] based on [ComposeAnimationType] and type of state. */
     fun ComposeAnimation.createState(
-      tracker: ComposeAnimationEventTracker,
+      tracker: AnimationTracker,
       callback: () -> Unit
     ): AnimationState {
       val unit = ComposeUnit.parseStateUnit(this.states.firstOrNull())

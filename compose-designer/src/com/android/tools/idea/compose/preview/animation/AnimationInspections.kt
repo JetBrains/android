@@ -25,6 +25,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.calls.successfulFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.calls.symbol
+import org.jetbrains.kotlin.analysis.api.symbols.receiverType
+import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
@@ -143,24 +149,58 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
       object : KtVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)
-          val resolvedExpression = expression.resolveToCall() ?: return
-          // For compatibility between versions and with existence of different methods overrides,
-          // we need to check if resolved expression actually can have "label" argument.
-          if (!resolvedExpression.valueArguments.keys.any { it.name.toString() == LABEL_PARAMETER })
-            return
-          // First, check we're analyzing the right call
-          val fqName = resolvedExpression.resultingDescriptor.fqNameOrNull()?.asString() ?: return
-          if (!fqNameCheck(fqName)) return
+          if (isK2Plugin()) {
+            analyze(expression) {
+              val resolvedCall = expression.resolveCall()?.successfulFunctionCallOrNull() ?: return
+              val callableSymbol = resolvedCall.partiallyAppliedSymbol.symbol
 
-          // Finally, verify the functions has the `label` parameter set, otherwise show a
-          // weak warning.
-          if (
-            expression.valueArguments.any {
-              resolvedExpression.getParameterForArgument(it)?.name?.asString() == LABEL_PARAMETER
+              // For compatibility between versions and with existence of different methods
+              // overrides, we need to check if resolved symbol actually can have "label"
+              // parameter.
+              if (!callableSymbol.valueParameters.any { it.name.toString() == LABEL_PARAMETER })
+                return
+
+              // First, check we're analyzing the right call
+              val fqName =
+                callableSymbol.callableIdIfNonLocal?.asSingleFqName()?.asString() ?: return
+              if (!fqNameCheck(fqName)) return
+
+              // Finally, verify the functions has the `label` parameter set, otherwise show a
+              // weak warning.
+              if (
+                expression.valueArguments.any { argument ->
+                  resolvedCall.argumentMapping[argument.getArgumentExpression()]
+                    ?.symbol
+                    ?.name
+                    ?.asString() == LABEL_PARAMETER
+                }
+              ) {
+                // This function call already has the label parameter set.
+                return
+              }
             }
-          ) {
-            // This function call already has the label parameter set.
-            return
+          } else {
+            val resolvedExpression = expression.resolveToCall() ?: return
+            // For compatibility between versions and with existence of different methods overrides,
+            // we need to check if resolved expression actually can have "label" argument.
+            if (
+              !resolvedExpression.valueArguments.keys.any { it.name.toString() == LABEL_PARAMETER }
+            )
+              return
+            // First, check we're analyzing the right call
+            val fqName = resolvedExpression.resultingDescriptor.fqNameOrNull()?.asString() ?: return
+            if (!fqNameCheck(fqName)) return
+
+            // Finally, verify the functions has the `label` parameter set, otherwise show a
+            // weak warning.
+            if (
+              expression.valueArguments.any {
+                resolvedExpression.getParameterForArgument(it)?.name?.asString() == LABEL_PARAMETER
+              }
+            ) {
+              // This function call already has the label parameter set.
+              return
+            }
           }
           holder.registerProblem(
             expression,
@@ -174,6 +214,9 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
       PsiElementVisitor.EMPTY_VISITOR
     }
   }
+
+  override fun getStaticDescription() =
+    message("inspection.animation.no.label.parameter.set.description", animationType)
 }
 
 class InfinitePropertiesLabelInspection : ExtensionLabelInspection() {
@@ -239,33 +282,74 @@ abstract class ExtensionLabelInspection : AbstractKotlinInspection() {
       object : KtVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)
-          val resolvedExpression = expression.resolveToCall() ?: return
-          // For compatibility between versions and with existence of different methods overrides,
-          // we need to check if resolved expression actually can have "label" argument.
-          if (!resolvedExpression.valueArguments.keys.any { it.name.toString() == LABEL_PARAMETER })
-            return
-          // First, check we're visiting an extension method of Transition<T>
-          val fqExtensionName =
-            (resolvedExpression.extensionReceiver?.type as? SimpleType)?.fqName?.asString()
-              ?: return
-          if (!fqNameCheck(fqExtensionName)) return
+          if (isK2Plugin()) {
+            analyze(expression) {
+              val resolvedCall = expression.resolveCall()?.successfulFunctionCallOrNull() ?: return
+              val callableSymbol = resolvedCall.partiallyAppliedSymbol.symbol
 
-          // Now, check that we're visiting a method named animate* (e.g. animateFloat,
-          // animateValue, animateColor) defined on a compose
-          // animation (sub-)package (e.g. androidx.compose.animation,
-          // androidx.compose.animation.core).
-          val animateCall = resolvedExpression.resultingDescriptor.fqNameOrNull() ?: return
-          if (!shortFqNameCheck(animateCall)) return
+              // For compatibility between versions and with existence of different methods
+              // overrides, we need to check if resolved symbol actually can have "label"
+              // parameter.
+              if (!callableSymbol.valueParameters.any { it.name.toString() == LABEL_PARAMETER })
+                return
 
-          // Finally, verify the animate call has the `label` parameter set, otherwise show a weak
-          // warning.
-          if (
-            expression.valueArguments.any {
-              resolvedExpression.getParameterForArgument(it)?.name?.asString() == LABEL_PARAMETER
+              // First, check we're visiting an extension method of Transition<T>
+              val receiverType = callableSymbol.receiverType as? KtNonErrorClassType ?: return
+              val fqExtensionName = receiverType.classId.asFqNameString()
+              if (!fqNameCheck(fqExtensionName)) return
+
+              // Now, check that we're visiting a method named animate* (e.g. animateFloat,
+              // animateValue, animateColor) defined on a compose
+              // animation (sub-)package (e.g. androidx.compose.animation,
+              // androidx.compose.animation.core).
+              val animateCall = callableSymbol.callableIdIfNonLocal?.asSingleFqName() ?: return
+              if (!shortFqNameCheck(animateCall)) return
+
+              // Finally, verify the animate call has the `label` parameter set, otherwise show a
+              // weak warning.
+              if (
+                expression.valueArguments.any { argument ->
+                  resolvedCall.argumentMapping[argument.getArgumentExpression()]
+                    ?.symbol
+                    ?.name
+                    ?.asString() == LABEL_PARAMETER
+                }
+              ) {
+                // This Transition<T>.animate* call already has the label parameter set.
+                return
+              }
             }
-          ) {
-            // This Transition<T>.animate* call already has the label parameter set.
-            return
+          } else {
+            val resolvedExpression = expression.resolveToCall() ?: return
+            // For compatibility between versions and with existence of different methods overrides,
+            // we need to check if resolved expression actually can have "label" argument.
+            if (
+              !resolvedExpression.valueArguments.keys.any { it.name.toString() == LABEL_PARAMETER }
+            )
+              return
+            // First, check we're visiting an extension method of Transition<T>
+            val fqExtensionName =
+              (resolvedExpression.extensionReceiver?.type as? SimpleType)?.fqName?.asString()
+                ?: return
+            if (!fqNameCheck(fqExtensionName)) return
+
+            // Now, check that we're visiting a method named animate* (e.g. animateFloat,
+            // animateValue, animateColor) defined on a compose
+            // animation (sub-)package (e.g. androidx.compose.animation,
+            // androidx.compose.animation.core).
+            val animateCall = resolvedExpression.resultingDescriptor.fqNameOrNull() ?: return
+            if (!shortFqNameCheck(animateCall)) return
+
+            // Finally, verify the animate call has the `label` parameter set, otherwise show a weak
+            // warning.
+            if (
+              expression.valueArguments.any {
+                resolvedExpression.getParameterForArgument(it)?.name?.asString() == LABEL_PARAMETER
+              }
+            ) {
+              // This Transition<T>.animate* call already has the label parameter set.
+              return
+            }
           }
           holder.registerProblem(
             expression,
@@ -279,6 +363,9 @@ abstract class ExtensionLabelInspection : AbstractKotlinInspection() {
       PsiElementVisitor.EMPTY_VISITOR
     }
   }
+
+  override fun getStaticDescription() =
+    message("inspection.animation.no.label.parameter.set.description", animationType)
 }
 
 /**

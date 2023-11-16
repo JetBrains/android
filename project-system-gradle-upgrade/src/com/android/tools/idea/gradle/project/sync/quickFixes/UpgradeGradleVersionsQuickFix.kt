@@ -29,8 +29,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import java.util.concurrent.CompletableFuture
 import org.gradle.util.GradleVersion
+import java.util.concurrent.CompletableFuture
 
 class UpgradeGradleVersionsQuickFix(val gradleVersion: GradleVersion,
                                     val agpVersion: AgpVersion,

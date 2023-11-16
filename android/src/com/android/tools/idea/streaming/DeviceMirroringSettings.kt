@@ -15,77 +15,31 @@
  */
 package com.android.tools.idea.streaming
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
+import kotlin.reflect.KProperty
 
 /**
  * Settings for mirroring of physical Android devices.
  */
-@State(name = "DeviceMirroringSettings", storages = [(Storage("device.mirroring.xml"))])
+@Service
+@State(name = "DeviceMirroringSettingsV2", storages = [(Storage("device.mirroring.xml"))])
 class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings> {
 
-  private var initialized = false
-
-  var deviceMirroringEnabled: Boolean = false
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-
-  var activateOnConnection: Boolean = false
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-  var activateOnAppLaunch: Boolean = true
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-  var activateOnTestLaunch: Boolean = true
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-  var synchronizeClipboard: Boolean = false
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
+  var deviceMirroringEnabled: Boolean by ChangeNotifyingProperty(
+      StudioFlags.DEVICE_MIRRORING_ENABLED_BY_DEFAULT.get() || StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get())
+  var activateOnConnection: Boolean by ChangeNotifyingProperty(false)
+  var activateOnAppLaunch: Boolean by ChangeNotifyingProperty(!StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get())
+  var activateOnTestLaunch: Boolean by ChangeNotifyingProperty(false)
+  var synchronizeClipboard: Boolean by ChangeNotifyingProperty(true)
   /** Max length of clipboard text to participate in clipboard synchronization. */
-  var maxSyncedClipboardLength: Int = MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-  var turnOffDisplayWhileMirroring: Boolean = false
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
+  var maxSyncedClipboardLength: Int by ChangeNotifyingProperty(MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT)
+  var turnOffDisplayWhileMirroring: Boolean by ChangeNotifyingProperty(false)
 
   /**
    * This property indicates whether the MirroringConfirmationDialog was shown at least once.
@@ -93,13 +47,29 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
    */
   var confirmationDialogShown: Boolean = false
 
+  private var initialized = false
+
   override fun getState(): DeviceMirroringSettings = this
+
+  override fun noStateLoaded() {
+    // Migrate previous version of settings.
+    val settingsV1 = ApplicationManager.getApplication().getService(SettingsV1::class.java)
+    deviceMirroringEnabled = settingsV1.deviceMirroringEnabled || StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()
+    activateOnConnection = settingsV1.activateOnConnection && settingsV1.deviceMirroringEnabled
+    activateOnAppLaunch = settingsV1.activateOnAppLaunch && settingsV1.deviceMirroringEnabled
+    activateOnTestLaunch = settingsV1.activateOnTestLaunch && settingsV1.deviceMirroringEnabled
+    synchronizeClipboard = settingsV1.synchronizeClipboard
+    maxSyncedClipboardLength = settingsV1.maxSyncedClipboardLength
+    turnOffDisplayWhileMirroring = settingsV1.turnOffDisplayWhileMirroring
+    confirmationDialogShown = settingsV1.confirmationDialogShown
+    settingsV1.loadState(SettingsV1()) // Reset v1 settings to default.
+  }
 
   override fun loadState(state: DeviceMirroringSettings) {
     XmlSerializerUtil.copyBean(state, this)
-
-    // Explicitly disable Device Mirroring feature for the IDEs that already have it enabled
-    this.deviceMirroringEnabled = false
+    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
+      deviceMirroringEnabled = true
+    }
   }
 
   override fun initializeComponent() {
@@ -120,5 +90,37 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
     }
 
     const val MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT = 5000
+  }
+
+  private inner class ChangeNotifyingProperty<T>(var value: T) {
+    operator fun getValue(thisRef: DeviceMirroringSettings, property: KProperty<*>) = value
+    operator fun setValue(thisRef: DeviceMirroringSettings, property: KProperty<*>, newValue: T) {
+      if (value != newValue) {
+        value = newValue
+        notifyListeners()
+      }
+    }
+  }
+
+  /** Previous version of the settings. */
+  @Service
+  @State(name = "DeviceMirroringSettings", storages = [(Storage("device.mirroring.xml"))])
+  class SettingsV1 : PersistentStateComponent<SettingsV1> {
+
+    var deviceMirroringEnabled: Boolean = StudioFlags.DEVICE_MIRRORING_ENABLED_BY_DEFAULT.get()
+    var activateOnConnection: Boolean = false
+    var activateOnAppLaunch: Boolean = true
+    var activateOnTestLaunch: Boolean = false
+    var synchronizeClipboard: Boolean = true
+    /** Max length of clipboard text to participate in clipboard synchronization. */
+    var maxSyncedClipboardLength: Int = MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT
+    var turnOffDisplayWhileMirroring: Boolean = false
+    var confirmationDialogShown: Boolean = false
+
+    override fun getState(): SettingsV1 = this
+
+    override fun loadState(state: SettingsV1) {
+      XmlSerializerUtil.copyBean(state, this)
+    }
   }
 }

@@ -26,10 +26,8 @@ import javax.swing.JLabel
 import javax.swing.JTable
 import javax.swing.table.TableCellRenderer
 
-/**
- * Renderer used for each [BadgeItem] specified.
- */
-class BadgeRenderer(val badge: BadgeItem, private val emptyIcon: Icon) : TableCellRenderer, JBLabel() {
+/** Renderer used for each [BadgeItem] specified. */
+class BadgeRenderer(val badge: BadgeItem, val emptyIcon: Icon) : TableCellRenderer, JBLabel() {
   init {
     horizontalAlignment = JLabel.CENTER
     text = null

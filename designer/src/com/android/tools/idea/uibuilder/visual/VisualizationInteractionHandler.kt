@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlModel
@@ -25,7 +26,6 @@ import com.android.tools.idea.common.surface.DesignSurfaceShortcut
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.navigateToComponent
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.intellij.openapi.actionSystem.ActionManager
@@ -42,25 +42,38 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 
-class VisualizationInteractionHandler(private val surface: DesignSurface<*>,
-                                      private val getModelsProviderFunc: () -> VisualizationModelsProvider) : InteractionHandler {
-  override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int,
-                                          @SwingCoordinate mouseY: Int,
-                                          @JdkConstants.InputEventMask modifiersEx: Int): Interaction? = null
+class VisualizationInteractionHandler(
+  private val surface: DesignSurface<*>,
+  private val getModelsProviderFunc: () -> VisualizationModelsProvider
+) : InteractionHandler {
+  override fun createInteractionOnPressed(
+    @SwingCoordinate mouseX: Int,
+    @SwingCoordinate mouseY: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ): Interaction? = null
 
-  override fun createInteractionOnDrag(@SwingCoordinate mouseX: Int,
-                                       @SwingCoordinate mouseY: Int,
-                                       @JdkConstants.InputEventMask modifiersEx: Int): Interaction? = null
+  override fun createInteractionOnDrag(
+    @SwingCoordinate mouseX: Int,
+    @SwingCoordinate mouseY: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ): Interaction? = null
 
   override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction? = null
 
-  override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? = null
+  override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? =
+    null
 
-  override fun mouseReleaseWhenNoInteraction(@SwingCoordinate x: Int,
-                                             @SwingCoordinate y: Int,
-                                             @JdkConstants.InputEventMask modifiersEx: Int) = Unit
+  override fun mouseReleaseWhenNoInteraction(
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ) = Unit
 
-  override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
+  override fun singleClick(
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ) {
     val view = surface.getSceneViewAt(x, y) ?: return
     val xDp = Coordinates.getAndroidXDip(view, x)
     val yDp = Coordinates.getAndroidYDip(view, y)
@@ -68,7 +81,11 @@ class VisualizationInteractionHandler(private val surface: DesignSurface<*>,
     navigateToComponent(clickedComponent.nlComponent, false)
   }
 
-  override fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
+  override fun doubleClick(
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ) {
     val view = surface.getSceneViewAt(x, y) ?: return
 
     val currentEditor = FileEditorManager.getInstance(surface.project).selectedEditor ?: return
@@ -77,18 +94,21 @@ class VisualizationInteractionHandler(private val surface: DesignSurface<*>,
 
     if (sourceFile == targetFile) {
       // Same file, just apply the config to it.
-      val surfaceInLayoutEditor = (currentEditor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface
+      val surfaceInLayoutEditor =
+        (currentEditor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface
       val configInLayoutEditor = surfaceInLayoutEditor?.models?.firstOrNull()?.configuration
       if (configInLayoutEditor != null) {
         applyConfiguration(configInLayoutEditor, view.configuration)
         surfaceInLayoutEditor.zoomToFit()
       }
-    }
-    else {
+    } else {
       // Open another file, or switch to it if it has been open. Then, apply the config to it.
-      LayoutNavigationManager.getInstance(surface.project).pushFile(sourceFile, targetFile) { newEditor ->
-        val surfaceInDestinationEditor = (newEditor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface
-        val configInDestinationEditor = surfaceInDestinationEditor?.models?.firstOrNull()?.configuration
+      LayoutNavigationManager.getInstance(surface.project).pushFile(sourceFile, targetFile) {
+        newEditor ->
+        val surfaceInDestinationEditor =
+          (newEditor as? DesignToolsSplitEditor)?.designerEditor?.component?.surface
+        val configInDestinationEditor =
+          surfaceInDestinationEditor?.models?.firstOrNull()?.configuration
         if (configInDestinationEditor != null) {
           applyConfiguration(configInDestinationEditor, view.configuration)
           surfaceInDestinationEditor.zoomToFit()
@@ -113,14 +133,21 @@ class VisualizationInteractionHandler(private val surface: DesignSurface<*>,
     surface.zoom(type, mouseX, mouseY)
   }
 
-  override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
-                                      @SwingCoordinate mouseY: Int,
-                                      @JdkConstants.InputEventMask modifiersEx: Int) {
+  override fun hoverWhenNoInteraction(
+    @SwingCoordinate mouseX: Int,
+    @SwingCoordinate mouseY: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ) {
     val sceneView = surface.getSceneViewAt(mouseX, mouseY)
     if (sceneView != null) {
       val context = sceneView.context
       context.setMouseLocation(mouseX, mouseY)
-      sceneView.scene.mouseHover(context, Coordinates.getAndroidXDip(sceneView, mouseX), Coordinates.getAndroidYDip(sceneView, mouseY), modifiersEx)
+      sceneView.scene.mouseHover(
+        context,
+        Coordinates.getAndroidXDip(sceneView, mouseX),
+        Coordinates.getAndroidYDip(sceneView, mouseY),
+        modifiersEx
+      )
     }
     surface.onHover(mouseX, mouseY)
   }
@@ -140,11 +167,18 @@ class VisualizationInteractionHandler(private val surface: DesignSurface<*>,
     val hoveredManager = sceneView.sceneManager
     val primarySceneManager = surface.sceneManager
 
-    val group = DefaultActionGroup().apply {
-      // Do not allow to delete the default NlModel (which is the primary one)
-      add(RemoveCustomModelAction(customModelsProvider, hoveredManager.model, hoveredManager != primarySceneManager))
-      // TODO: add edit and copy options.
-    }
+    val group =
+      DefaultActionGroup().apply {
+        // Do not allow to delete the default NlModel (which is the primary one)
+        add(
+          RemoveCustomModelAction(
+            customModelsProvider,
+            hoveredManager.model,
+            hoveredManager != primarySceneManager
+          )
+        )
+        // TODO: add edit and copy options.
+      }
 
     val actionManager = ActionManager.getInstance()
     val invoker = mouseEvent.source as? Component ?: surface
@@ -155,29 +189,38 @@ class VisualizationInteractionHandler(private val surface: DesignSurface<*>,
     }
   }
 
-  override fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
-                                          @SwingCoordinate mouseY: Int,
-                                          @JdkConstants.InputEventMask modifiersEx: Int): Cursor? = null
+  override fun getCursorWhenNoInteraction(
+    @SwingCoordinate mouseX: Int,
+    @SwingCoordinate mouseY: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ): Cursor? = null
 
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
-    return if (keyEvent.keyCode == DesignSurfaceShortcut.PAN.keyCode) PanInteraction(surface) else null
+    return if (keyEvent.keyCode == DesignSurfaceShortcut.PAN.keyCode) PanInteraction(surface)
+    else null
   }
 
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) = Unit
 
   override fun mouseExited() {
     // Call onHover on each SceneView, with coordinates that are sure to be outside.
-    surface.sceneManagers.flatMap { it.sceneViews }.forEach {
-      it.scene.mouseHover(it.context, Int.MIN_VALUE, Int.MIN_VALUE, 0)
-      it.onHover(Int.MIN_VALUE, Int.MIN_VALUE)
-    }
+    surface.sceneManagers
+      .flatMap { it.sceneViews }
+      .forEach {
+        it.scene.mouseHover(it.context, Int.MIN_VALUE, Int.MIN_VALUE, 0)
+        it.onHover(Int.MIN_VALUE, Int.MIN_VALUE)
+      }
   }
 }
 
-private class RemoveCustomModelAction(val provider: CustomModelsProvider, val model: NlModel, val enabled: Boolean) :
-  AnAction("Remove Configuration", "Remove a custom configuration", null) {
+private class RemoveCustomModelAction(
+  val provider: CustomModelsProvider,
+  val model: NlModel,
+  val enabled: Boolean
+) : AnAction("Remove Configuration", "Remove a custom configuration", null) {
 
-  override fun actionPerformed(e: AnActionEvent) = provider.removeCustomConfigurationAttributes(model)
+  override fun actionPerformed(e: AnActionEvent) =
+    provider.removeCustomConfigurationAttributes(model)
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = enabled

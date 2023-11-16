@@ -35,16 +35,17 @@ import javax.swing.table.JTableHeader
  * A [JTableHeader] that is using [TreeTableHeaderUI] and paints divider lines.
  *
  * The default [JTableHeader] using DarculaTableHeaderUI will unconditionally paint column divider
- * lines between all columns. We only want them where they are defined by the specified [ColumnInfo] instances.
+ * lines between all columns. We only want them where they are defined by the specified [ColumnInfo]
+ * instances.
  *
  * Draw a divider between the header and the table content see [paintBottomSeparator].
  *
- * The component keeps track of the hover column and will use the tooltipText and cursor for the component found
- * under the mouse pointer. Also: all mouse clicks will be forwarded.
+ * The component keeps track of the hover column and will use the tooltipText and cursor for the
+ * component found under the mouse pointer. Also: all mouse clicks will be forwarded.
  *
- * This implementation supports editing columns. However, only focus navigation (usually though the keyboard) will
- * use column editors. Currently, the component from the renderer is used as the editor. This only works as long as
- * that component is not shared with other column renderers.
+ * This implementation supports editing columns. However, only focus navigation (usually though the
+ * keyboard) will use column editors. Currently, the component from the renderer is used as the
+ * editor. This only works as long as that component is not shared with other column renderers.
  */
 class TreeTableHeader(private val treeTable: TreeTableImpl) : JTableHeader(treeTable.columnModel) {
   private var hoverColumn = -1
@@ -72,7 +73,15 @@ class TreeTableHeader(private val treeTable: TreeTableImpl) : JTableHeader(treeT
 
   fun editCellAt(columnIndex: Int): Boolean {
     val column = columnModel.getColumn(columnIndex)
-    val component = column.headerRenderer.getTableCellRendererComponent(treeTable, null, false, false, 0, columnIndex)
+    val component =
+      column.headerRenderer.getTableCellRendererComponent(
+        treeTable,
+        null,
+        false,
+        false,
+        0,
+        columnIndex
+      )
     val x = columnModel.columns.asSequence().take(columnIndex).sumOf { it.width }
     component.setBounds(x, 0, column.width, height - 1)
     removeEditor()
@@ -111,7 +120,15 @@ class TreeTableHeader(private val treeTable: TreeTableImpl) : JTableHeader(treeT
     setUI(TreeTableHeaderUI())
     // In case the render components are cached, update them now:
     columnModel.columns.asSequence().forEach {
-      val component = it.headerRenderer?.getTableCellRendererComponent(table, null, false, false, 0, it.modelIndex)
+      val component =
+        it.headerRenderer?.getTableCellRendererComponent(
+          table,
+          null,
+          false,
+          false,
+          0,
+          it.modelIndex
+        )
       IJSwingUtilities.updateComponentTreeUI(component)
     }
   }
@@ -151,7 +168,15 @@ class TreeTableHeader(private val treeTable: TreeTableImpl) : JTableHeader(treeT
       if (hoverCachedComponent == null && hoverColumn != -1) {
         val aColumn = columnModel.getColumn(hoverColumn)
         val renderer = aColumn.headerRenderer ?: defaultRenderer
-        hoverCachedComponent = renderer.getTableCellRendererComponent(table, aColumn.headerValue, false, false, -1, hoverColumn)
+        hoverCachedComponent =
+          renderer.getTableCellRendererComponent(
+            table,
+            aColumn.headerValue,
+            false,
+            false,
+            -1,
+            hoverColumn
+          )
       }
       return hoverCachedComponent
     }
@@ -183,17 +208,23 @@ class TreeTableHeader(private val treeTable: TreeTableImpl) : JTableHeader(treeT
       val component = hoverComponentAt(event) ?: return
       val cellRect = getHeaderRect(hoverColumn)
       val point = event.point.also { it.translate(-cellRect.x, -cellRect.y) }
-      generateSequence(component) { it.parent as JComponent? }.forEach { point.translate(-it.x, -it.y) }
+      generateSequence(component) { it.parent as JComponent? }
+        .forEach { point.translate(-it.x, -it.y) }
       @Suppress("DEPRECATION")
-      val newEvent = MouseEvent(component,
-                                event.id,
-                                event.getWhen(), event.modifiers or event.modifiersEx,
-                                point.x, point.y,
-                                event.xOnScreen,
-                                event.yOnScreen,
-                                event.clickCount,
-                                event.isPopupTrigger,
-                                event.button)
+      val newEvent =
+        MouseEvent(
+          component,
+          event.id,
+          event.getWhen(),
+          event.modifiers or event.modifiersEx,
+          point.x,
+          point.y,
+          event.xOnScreen,
+          event.yOnScreen,
+          event.clickCount,
+          event.isPopupTrigger,
+          event.button
+        )
       component.dispatchEvent(newEvent)
     }
   }

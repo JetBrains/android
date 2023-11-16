@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import org.fest.swing.core.Robot;
+import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import org.jetbrains.annotations.NotNull;
 
 public class SlideFixture extends JComponentFixture<SlideFixture, ColorPicker.SlideComponent> {

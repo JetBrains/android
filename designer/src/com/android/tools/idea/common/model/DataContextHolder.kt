@@ -19,8 +19,8 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 
 /**
- * This interface abstracts out the complexity of [NlModel] and provides sufficient API to associate a model with a [PreviewElement] through
- * a [DataContext].
+ * This interface abstracts out the complexity of [NlModel] and provides sufficient API to associate
+ * a model with a [PreviewElement] through a [DataContext].
  */
 interface DataContextHolder : Disposable {
   var dataContext: DataContext

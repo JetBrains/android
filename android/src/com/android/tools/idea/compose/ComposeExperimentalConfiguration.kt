@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
@@ -30,7 +29,6 @@ import com.intellij.openapi.project.ProjectManager
 class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeExperimentalConfiguration.State>(State()) {
   class State: BaseState() {
     var isPreviewPickerEnabled by property(true)
-    var isFastPreviewEnabled by property(StudioFlags.COMPOSE_FAST_PREVIEW.get())
   }
 
   /**
@@ -41,15 +39,6 @@ class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeE
     set(value) {
       state.isPreviewPickerEnabled = value
       updateGutterIcons()
-    }
-
-  /**
-   * True if the @Preview Live Edit is enabled.
-   */
-  var isFastPreviewEnabled
-    get() = state.isFastPreviewEnabled
-    set(value) {
-      state.isFastPreviewEnabled = value
     }
 
   companion object {

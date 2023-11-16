@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotati
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -86,7 +87,12 @@ public class ConfigureKotlinWithAndroidWithGradleDialogFixture{
   public void clickOkAndWaitDialogDisappear() {
     String buttonName = "OK";
     JButton okButton = myIdeFrame.robot().finder().find(myDialog, Matchers.byText(JButton.class, buttonName));
-    okButton.isEnabled();
+    // OK button can take a while to be enabled. We just wait for the button to be available, and
+    // then we explicitly wait a long time for it to be enabled. This lets us have a less
+    // strict wait for the button to be clickable.
+    Wait.seconds(TimeUnit.MINUTES.toSeconds(5))
+      .expecting("OK button to be enabled")
+      .until(() -> okButton.isEnabled());
     myIdeFrame.robot().click(okButton);
     waitForDialogToDisappear();
   }

@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
@@ -25,27 +27,25 @@ import com.android.tools.idea.ui.ApplicationUtils
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.SmartPointerManager
-import kotlin.test.assertEquals
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withContext
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.time.Duration.Companion.seconds
 
 class ComposePreviewElementFlowTest {
-  @get:Rule
-  val projectRule =
-    ComposeProjectRule(
-      previewAnnotationPackage = "androidx.compose.ui.tooling.preview",
-      composableAnnotationPackage = "androidx.compose.runtime"
-    )
+  @get:Rule val projectRule = ComposeProjectRule()
 
   @Test
   fun `test flow updates`(): Unit = runBlocking {
@@ -69,41 +69,63 @@ class ComposePreviewElementFlowTest {
 
     val completed = CompletableDeferred<Unit>()
     val listenersReady = CompletableDeferred<Unit>()
+    val previousElement = AtomicReference<Set<ComposePreviewElement>>(emptySet())
     val testJob = launch {
       val flowScope = createChildScope()
-      val flow = previewElementFlowForFile(psiFilePointer).stateIn(flowScope)
-      flow.value.single().let { assertEquals("OtherFileKt.Preview1", it.composableMethodFqn) }
+      val flow =
+        previewElementFlowForFile(psiFilePointer)
+          .onEach { newValue ->
+            val previousValue = previousElement.getAndSet(newValue)
+
+            // Assert that we do not receive duplicated updates
+            assertFalse("Duplicated update received", previousValue == newValue)
+          }
+          .stateIn(flowScope)
+      flow.awaitStatus(timeout = 5.seconds) { elements ->
+        elements.singleOrNull()?.composableMethodFqn == "OtherFileKt.Preview1"
+      }
 
       listenersReady.complete(Unit)
 
-      // We take 2 elements to ensure a change (the first one is the original, the second one the
-      // change
-      withTimeout(5000) {
-        flow.take(2).collect()
-
-        assertEquals(
+      // Wait for the final state we care about
+      flow.awaitStatus(timeout = 5.seconds) { elements ->
+        elements.map { it.composableMethodFqn }.sorted().joinToString("\n") ==
           """
             OtherFileKt.Preview1
             OtherFileKt.Preview2
           """
-            .trimIndent(),
-          flow.value.map { it.composableMethodFqn }.sorted().joinToString("\n")
-        )
-
-        completed.complete(Unit)
+            .trimIndent()
       }
+
+      completed.complete(Unit)
 
       flowScope.cancel()
     }
 
     listenersReady.await()
 
-    // Make change
-    ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
-      projectRule.fixture.openFileInEditor(psiFile.virtualFile)
+    withContext(uiThread) { projectRule.fixture.openFileInEditor(psiFile.virtualFile) }
 
-      // Make 3 changes that should trigger *at least* 3 flow elements
-      projectRule.fixture.editor.moveCaretToEnd()
+    // Make irrelevant change that should not trigger any updates
+    repeat(2) {
+      ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
+        projectRule.fixture.editor.moveCaretToEnd()
+        projectRule.fixture.editor.executeAndSave {
+          insertText("\n\n// Irrelevant change should not trigger an update\n\n")
+        }
+        projectRule.fixture.editor.executeAndSave {
+          insertText(
+            "\n\nfun method$it() {\n// Irrelevant change should not trigger an update\n}\n\n"
+          )
+        }
+      }
+      // Wait for longer than the debouncing timer to ensure we do not remove the changes just by
+      // de-bouncing
+      delay(500)
+    }
+
+    // Make the change that will trigger an update
+    ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
       projectRule.fixture.editor.executeAndSave {
         insertText(
           """

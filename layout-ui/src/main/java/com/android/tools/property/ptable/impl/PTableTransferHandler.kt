@@ -26,9 +26,7 @@ import javax.swing.TransferHandler
 
 class PTableTransferHandler : TransferHandler() {
 
-  /**
-   * Create a Transferable to use as the source for a data transfer.
-   */
+  /** Create a Transferable to use as the source for a data transfer. */
   override fun createTransferable(component: JComponent?): Transferable? {
     val table = component as? PTableImpl ?: return null
     val rows = table.selectedRows

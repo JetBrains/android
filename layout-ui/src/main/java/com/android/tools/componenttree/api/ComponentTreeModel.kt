@@ -15,24 +15,21 @@
  */
 package com.android.tools.componenttree.api
 
-/**
- * The model returned by the [ComponentTreeBuilder].
- */
+/** The model returned by the [ComponentTreeBuilder]. */
 interface ComponentTreeModel {
-  /**
-   * The current tree root (if any).
-   * Setting this will fire [hierarchyChanged] on the root.
-   */
+  /** The current tree root (if any). Setting this will fire [hierarchyChanged] on the root. */
   var treeRoot: Any?
 
   /**
-   * Notify any listeners that [changedNode] or some child node beneath it has changed. If there is a structural change in the tree,
-   * this method should be called so that the underlying JTree can be updated appropriately.
+   * Notify any listeners that [changedNode] or some child node beneath it has changed. If there is
+   * a structural change in the tree, this method should be called so that the underlying JTree can
+   * be updated appropriately. After the update [toExpand] nodes should be expanded.
    */
-  fun hierarchyChanged(changedNode: Any?)
+  fun hierarchyChanged(changedNode: Any?, toExpand: List<Any?> = emptyList())
 
   /**
-   * Notify any listeners that the extra column or badges may have changes. The component tree should update accordingly.
+   * Notify any listeners that the extra column or badges may have changes. The component tree
+   * should update accordingly.
    */
   fun columnDataChanged()
 }

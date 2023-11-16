@@ -29,10 +29,10 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleManager
+import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
 import java.io.File
 import java.io.IOException
 import java.util.regex.Pattern
-import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
 
 class CreateFileQuickFix(
   private val myFile: File,

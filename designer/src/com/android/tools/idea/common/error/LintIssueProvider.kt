@@ -36,7 +36,8 @@ import kotlin.properties.Delegates
 
 class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProvider() {
 
-  var lintAnnotationsModel: LintAnnotationsModel by Delegates.observable(_lintAnnotationsModel) { _, _, _ -> notifyModified() }
+  var lintAnnotationsModel: LintAnnotationsModel by
+    Delegates.observable(_lintAnnotationsModel) { _, _, _ -> notifyModified() }
 
   override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
     for (error in lintAnnotationsModel.issues) {
@@ -100,48 +101,59 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
     override val category: String = issue.issue.category.fullName
 
     override val hyperlinkListener: HyperlinkListener?
-      get() = if (issue.issue.moreInfo.isEmpty()) super.hyperlinkListener else BrowserHyperlinkListener.INSTANCE
+      get() =
+        if (issue.issue.moreInfo.isEmpty()) super.hyperlinkListener
+        else BrowserHyperlinkListener.INSTANCE
 
     override val fixes: Stream<Fix>
       get() {
         val inspection = issue.inspection
         val startElement = issue.startElementPointer.element ?: return emptyList<Fix>().stream()
         val endElement = issue.endElementPointer.element ?: return emptyList<Fix>().stream()
-        val quickFixes = inspection.getQuickFixes(
-          startElement, endElement,
-          issue.message, issue.quickfixData
-        )
+        val quickFixes =
+          inspection.getQuickFixes(startElement, endElement, issue.message, issue.quickfixData)
         val intentions = inspection.getIntentions(startElement, endElement)
-        return quickFixes.map { createQuickFixPair(it) }.plus(intentions.map { createQuickFixPair(it) }).stream()
+        return quickFixes
+          .map { createQuickFixPair(it) }
+          .plus(intentions.map { createQuickFixPair(it) })
+          .stream()
       }
 
     override val suppresses: Stream<Suppress>
       get() {
         val suppressLint = issue.suppressLintQuickFix ?: return Stream.empty()
         val project = issue.component.model.project
-        val suppress = Suppress("Suppress", suppressLint.name) {
-          CommandProcessor.getInstance().executeCommand(project, {
-            WriteAction.run<Throwable> {
-              val startElement = issue.startElementPointer.element ?: return@run
-              suppressLint.applyFix(startElement)
-            }
-          }, EXECUTE_SUPPRESSION + suppressLint.name, null
-          )
-        }
+        val suppress =
+          Suppress("Suppress", suppressLint.name) {
+            CommandProcessor.getInstance()
+              .executeCommand(
+                project,
+                {
+                  WriteAction.run<Throwable> {
+                    val startElement = issue.startElementPointer.element ?: return@run
+                    suppressLint.applyFix(startElement)
+                  }
+                },
+                EXECUTE_SUPPRESSION + suppressLint.name,
+                null
+              )
+          }
         return Stream.of(suppress)
       }
 
-    private fun createQuickFixPair(fix: LintIdeQuickFix) = Fix("Fix", fix.name, createQuickFixRunnable(fix))
+    private fun createQuickFixPair(fix: LintIdeQuickFix) =
+      Fix("Fix", fix.name, createQuickFixRunnable(fix))
 
-    private fun createQuickFixPair(fix: IntentionAction) = Fix("Fix", fix.text, createQuickFixRunnable(fix))
+    private fun createQuickFixPair(fix: IntentionAction) =
+      Fix("Fix", fix.text, createQuickFixRunnable(fix))
 
     override fun equals(other: Any?): Boolean {
       if (other !is LintIssueWrapper) {
         return false
       }
-      return (super.equals(other)
-              && other.issue.startElementPointer == this.issue.startElementPointer
-              && other.issue.endElementPointer == this.issue.endElementPointer)
+      return (super.equals(other) &&
+        other.issue.startElementPointer == this.issue.startElementPointer &&
+        other.issue.endElementPointer == this.issue.endElementPointer)
     }
 
     override fun hashCode(): Int {
@@ -157,17 +169,23 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         val editor = PsiEditorUtil.findEditor(file)
         if (editor != null) {
           val project = model.project
-          CommandProcessor.getInstance().executeCommand(
-            project,
-            {
-              WriteAction.run<Throwable> {
-                val startElement = issue.startElementPointer.element ?: return@run
-                val endElement = issue.endElementPointer.element ?: return@run
-                fix.apply(startElement, endElement, AndroidQuickfixContexts.BatchContext.getInstance())
-              }
-            },
-              EXECUTE_FIX + fix.name, null
-          )
+          CommandProcessor.getInstance()
+            .executeCommand(
+              project,
+              {
+                WriteAction.run<Throwable> {
+                  val startElement = issue.startElementPointer.element ?: return@run
+                  val endElement = issue.endElementPointer.element ?: return@run
+                  fix.apply(
+                    startElement,
+                    endElement,
+                    AndroidQuickfixContexts.BatchContext.getInstance()
+                  )
+                }
+              },
+              EXECUTE_FIX + fix.name,
+              null
+            )
         }
       }
     }
@@ -179,11 +197,13 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         val editor = PsiEditorUtil.findEditor(file)
         if (editor != null) {
           val project = model.project
-          CommandProcessor.getInstance().executeCommand(
+          CommandProcessor.getInstance()
+            .executeCommand(
               project,
               { fix.invoke(project, editor, model.file) },
-              EXECUTE_FIX + fix.familyName, null
-          )
+              EXECUTE_FIX + fix.familyName,
+              null
+            )
         }
       }
     }

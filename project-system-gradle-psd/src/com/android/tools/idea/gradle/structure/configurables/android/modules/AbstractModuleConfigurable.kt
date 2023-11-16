@@ -37,7 +37,7 @@ import javax.swing.JComponent
  */
 abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
   val context: PsContext,
-  private val perspectiveConfigurable: BasePerspectiveConfigurable,
+  val perspectiveConfigurable: BasePerspectiveConfigurable,
   module: ModuleT
 ) : BaseNamedConfigurable<ModuleT>(module), ContainerConfigurable<PsModule>
   where PanelT : JComponent,
@@ -47,7 +47,7 @@ abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
 
 
   private val lazyPanel = lazy(mode = LazyThreadSafetyMode.NONE) { createPanel().apply { setHistory(history) } }
-  private val modulePanel by lazyPanel
+  protected val modulePanel by lazyPanel
   protected var uiDisposed = false; private set
 
   protected abstract fun createPanel(): PanelT

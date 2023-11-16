@@ -47,7 +47,8 @@ class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) :
             return Comparator.comparingInt { it.issueDetails.eventsCount.toInt() }
           }
 
-          override fun getWidth(table: JTable?) = 60
+          override fun getMaxStringValue() =
+            items.maxOfOrNull { it.issueDetails.eventsCount }?.toString()
 
           override fun getRenderer(item: AppInsightsIssue?): TableCellRenderer =
             NumberColumnRenderer
@@ -60,7 +61,8 @@ class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) :
             return Comparator.comparingInt { it.issueDetails.impactedDevicesCount.toInt() }
           }
 
-          override fun getWidth(table: JTable?) = 60
+          override fun getMaxStringValue() =
+            items.maxOfOrNull { it.issueDetails.impactedDevicesCount }?.toString()
 
           override fun getRenderer(item: AppInsightsIssue?): TableCellRenderer =
             NumberColumnRenderer

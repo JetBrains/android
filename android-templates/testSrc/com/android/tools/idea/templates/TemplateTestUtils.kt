@@ -43,7 +43,7 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.ThemesData
 import com.android.tools.idea.wizard.template.ViewBindingSupport
-import com.android.tools.lint.checks.ManifestDetector
+import com.android.tools.lint.checks.GradleDetector
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Scope
 import com.android.tools.lint.detector.api.Severity
@@ -62,11 +62,12 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
 import java.util.EnumSet
-import kotlin.streams.toList
 
 /**
- * The following templates are known to be broken! We need to work through these and fix them such that tests on them can be re-enabled.
+ * The following templates are known to be broken! We need to work through these and fix them such
+ * that tests on them can be re-enabled.
  */
 internal fun isBroken(templateName: String): Boolean {
   if (SystemInfo.isWindows) {
@@ -79,25 +80,34 @@ internal fun isBroken(templateName: String): Boolean {
 }
 
 /**
- * Runs lint and returns a message with information about the first issue with severity at least X or null if there are no such issues.
+ * Runs lint and returns a message with information about the first issue with severity at least X
+ * or null if there are no such issues.
  */
-internal fun getLintIssueMessage(project: Project, maxSeverity: Severity, ignored: Set<Issue>): String? {
+internal fun getLintIssueMessage(
+  project: Project,
+  maxSeverity: Severity,
+  ignored: Set<Issue>
+): String? {
   val registry = LintIdeSupport.get().getIssueRegistry()
   val map = mutableMapOf<Issue, Map<File, List<LintProblemData>>>()
   val result = LintBatchResult(project, map, AnalysisScope(project), registry.issues.toSet())
   val client = LintIdeSupport.get().createBatchClient(result)
   val modules = ModuleManager.getInstance(project).modules.toList()
   val request = LintIdeRequest(client, project, null, modules, false)
-  val scope = EnumSet.allOf(Scope::class.java).apply {
-    remove(Scope.CLASS_FILE)
-    remove(Scope.ALL_CLASS_FILES)
-    remove(Scope.JAVA_LIBRARIES)
-  }
+  val scope =
+    EnumSet.allOf(Scope::class.java).apply {
+      remove(Scope.CLASS_FILE)
+      remove(Scope.ALL_CLASS_FILES)
+      remove(Scope.JAVA_LIBRARIES)
+    }
   request.setScope(scope)
   client.createDriver(request, registry).analyze()
   map.values.forEach { fileListMap ->
     fileListMap.forEach { (file, problems) ->
-      val problem = problems.filterNot { it.issue in ignored }.firstOrNull { it.issue.defaultSeverity < maxSeverity }
+      val problem =
+        problems
+          .filterNot { it.issue in ignored }
+          .firstOrNull { it.issue.defaultSeverity < maxSeverity }
       if (problem != null) {
         return "Found lint issue ${problem.issue.id} with severity ${problem.issue.defaultSeverity} in $file at ${problem.textRange}: ${problem.message}"
       }
@@ -108,25 +118,34 @@ internal fun getLintIssueMessage(project: Project, maxSeverity: Severity, ignore
 
 private const val specialChars = "!@#$^&()_+=-.`~"
 private const val nonAsciiChars = "你所有的基地都属于我们"
+
 internal fun getModifiedModuleName(moduleName: String, avoidModifiedModuleName: Boolean): String {
-  if (SystemInfo.isWindows){
-    if (moduleName.startsWith("Native C++")) return moduleName // cmake can't handle especial path chars
+  if (SystemInfo.isWindows) {
+    if (moduleName.startsWith("Native C++"))
+      return moduleName // cmake can't handle especial path chars
   }
   if (avoidModifiedModuleName) {
-    // Avoid special chars if view binding is used because kapt doesn't recognize special chars b/156452586
+    // Avoid special chars if view binding is used because kapt doesn't recognize special chars
+    // b/156452586
     return moduleName
   }
   return "$moduleName$specialChars,$nonAsciiChars"
 }
 
 /**
- * Checks that the most recent log in usageTracker is a [EventKind.TEMPLATE_RENDER] event with expected info.
+ * Checks that the most recent log in usageTracker is a [EventKind.TEMPLATE_RENDER] event with
+ * expected info.
  *
  * @param templateName Template name/title
  * @param formFactor Template Form Factor
- * @param moduleState  the module state, containing kotlin support info for template render event
+ * @param moduleState the module state, containing kotlin support info for template render event
  */
-internal fun verifyLastLoggedUsage(usageTracker: TestUsageTracker, templateName: String, formFactor: FormFactor, moduleState: ModuleTemplateData) {
+internal fun verifyLastLoggedUsage(
+  usageTracker: TestUsageTracker,
+  templateName: String,
+  formFactor: FormFactor,
+  moduleState: ModuleTemplateData
+) {
   val usage = usageTracker.usages.last { it.studioEvent.kind == EventKind.TEMPLATE_RENDER }!!
   assertEquals(EventKind.TEMPLATE_RENDER, usage.studioEvent.kind)
 
@@ -135,24 +154,36 @@ internal fun verifyLastLoggedUsage(usageTracker: TestUsageTracker, templateName:
 
   val templateType = titleToTemplateType(templateName, formFactor)
   assertNotEquals("Template '$templateName' missing metrics", CUSTOM_TEMPLATE, templateType)
-  assertEquals(KotlinSupport.newBuilder()
-                 .setIncludeKotlinSupport(moduleState.projectTemplateData.language == Language.Kotlin)
-                 .setKotlinSupportVersion(moduleState.projectTemplateData.kotlinVersion).build(),
-               usage.studioEvent.kotlinSupport)
+  assertEquals(
+    KotlinSupport.newBuilder()
+      .setIncludeKotlinSupport(moduleState.projectTemplateData.language == Language.Kotlin)
+      .setKotlinSupportVersion(moduleState.projectTemplateData.kotlinVersion)
+      .build(),
+    usage.studioEvent.kotlinSupport
+  )
 }
 
-internal fun verifyLanguageFiles(projectDir: File, language: Language) {
-  // Note: Files.walk() stream needs to be closed (or consumed completely), otherwise it will leave locked directories on Windows
-  val allPaths = Files.walk(projectDir.toPath())
-    .filter {!it.endsWith("LibrariesForLibs.java")} // Exclude the file generated by using Version Catalogs.
-    .toList()
+internal fun verifyLanguageFiles(projectDir: Path, language: Language) {
+  // Note: Files.walk() stream needs to be closed (or consumed completely), otherwise it will leave
+  // locked directories on Windows
+  val allPaths =
+    Files.walk(projectDir)
+      // Exclude the file generated by using Version Catalogs.
+      .filter {
+        !it.endsWith("LibrariesForLibs.java") && !it.endsWith("LibrariesForLibsInPluginsBlock.java")
+      }
+      .toList()
   val wrongLanguageExtension = if (language == Language.Kotlin) ".java" else ".kt"
-  assertTrue(allPaths.none { it.toString().endsWith(wrongLanguageExtension) })
+  assertTrue(
+    "Wrong language extension",
+    allPaths.none { it.toString().endsWith(wrongLanguageExtension) }
+  )
 }
 
 internal fun lintIfNeeded(project: Project) {
   if (CHECK_LINT) {
-    val lintMessage = getLintIssueMessage(project, Severity.INFORMATIONAL, setOf(ManifestDetector.TARGET_NEWER))
+    val lintMessage =
+      getLintIssueMessage(project, Severity.INFORMATIONAL, setOf(GradleDetector.TARGET_NEWER))
     if (lintMessage != null) {
       TestCase.fail(lintMessage)
     }
@@ -163,48 +194,70 @@ internal fun lintIfNeeded(project: Project) {
 internal fun checkDslParser(project: Project) {
   val projectBuildModel = ProjectBuildModel.get(project)
   val allModels = projectBuildModel.allIncludedBuildModels
-  val unresolvedDependencies = allModels.flatMap {
-    when (it) {
-      is GradleFileModelImpl ->
-        it.dslFile.context.dependencyManager.myUnresolvedReferences.entries.flatMap { entry -> entry.component2() }
-      else -> listOf()
+  val unresolvedDependencies =
+    allModels.flatMap {
+      when (it) {
+        is GradleFileModelImpl ->
+          it.dslFile.context.dependencyManager.myUnresolvedReferences.entries.flatMap { entry ->
+            entry.component2()
+          }
+        else -> listOf()
+      }
     }
-  }
   assertEmpty(unresolvedDependencies)
 }
 
 private const val defaultPackage = "template.test.pkg"
+internal const val defaultModuleName = "Template test module"
 
-internal fun getDefaultModuleState(project: Project, template: Template): ModuleTemplateDataBuilder {
+internal fun getDefaultModuleState(
+  project: Project,
+  template: Template
+): ModuleTemplateDataBuilder {
   // TODO(qumeric): is always new?
-  val projectStateBuilder = ProjectTemplateDataBuilder(true).apply {
-    androidXSupport = true
-    setProjectDefaults(project)
-    language = Language.Java
-    topOut = project.guessProjectDir()!!.toIoFile()
-    debugKeyStoreSha1 = sha1(getOrCreateDefaultDebugKeystore())
-    applicationPackage = defaultPackage
-    overridePathCheck = true // To disable android plugin checking for ascii in paths (windows tests)
-  }
+  val projectStateBuilder =
+    ProjectTemplateDataBuilder(true).apply {
+      androidXSupport = true
+      setProjectDefaults(project)
+      language = Language.Java
+      topOut = project.guessProjectDir()!!.toIoFile()
+      debugKeyStoreSha1 = sha1(getOrCreateDefaultDebugKeystore())
+      applicationPackage = defaultPackage
+      overridePathCheck =
+        true // To disable android plugin checking for ascii in paths (windows tests)
+    }
 
   val minSdk = template.minSdk.coerceAtLeast(AndroidVersion.VersionCodes.M)
   return ModuleTemplateDataBuilder(
-    projectStateBuilder,
-    isNewModule = true,
-    viewBindingSupport = ViewBindingSupport.SUPPORTED_4_0_MORE).apply { name = "Template test module"
-    packageName = defaultPackage
-    val paths = createDefaultModuleTemplate(project, name!!).paths
-    setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
-    isLibrary = false
-    formFactor = template.formFactor
-    category = template.category
-    themesData = ThemesData("App")
-    apis = ApiTemplateData(
-      buildApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
-      targetApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
-      minApi = ApiVersion(minSdk, minSdk.toString()),
-      // The highest supported/recommended appCompact version is P(28)
-      appCompatVersion = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.coerceAtMost(AndroidVersion.VersionCodes.P)
+      projectStateBuilder,
+      isNewModule = true,
+      viewBindingSupport = ViewBindingSupport.SUPPORTED_4_0_MORE
     )
-  }
+    .apply {
+      name = defaultModuleName
+      packageName = defaultPackage
+      val paths = createDefaultModuleTemplate(project, name!!).paths
+      setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
+      isLibrary = false
+      formFactor = template.formFactor
+      category = template.category
+      themesData = ThemesData("App")
+      apis =
+        ApiTemplateData(
+          buildApi =
+            ApiVersion(
+              SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+              SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()
+            ),
+          targetApi =
+            ApiVersion(
+              SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+              SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()
+            ),
+          minApi = ApiVersion(minSdk, minSdk.toString()),
+          // The highest supported/recommended appCompact version is P(28)
+          appCompatVersion =
+            SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.coerceAtMost(AndroidVersion.VersionCodes.P)
+        )
+    }
 }

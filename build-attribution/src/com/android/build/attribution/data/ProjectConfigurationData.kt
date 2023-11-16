@@ -16,7 +16,6 @@
 package com.android.build.attribution.data
 
 import org.gradle.tooling.events.OperationDescriptor
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
 data class ProjectConfigurationData(val projectPath: String,
                                     val totalConfigurationTimeMs: Long,
@@ -92,7 +91,7 @@ data class ProjectConfigurationData(val projectPath: String,
                                          resolvingDependenciesTimeMs -
                                          compilingBuildScriptsTimeMs -
                                          executingBuildScriptsBlocksTimeMs -
-                                         pluginsConfigurationData.sumByLong { it.configurationTimeMs }
+                                         pluginsConfigurationData.sumOf { it.configurationTimeMs }
 
       return listOf(ConfigurationStep(ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS, notifyingBuildListenersTimeMs),
                     ConfigurationStep(ConfigurationStep.Type.RESOLVING_DEPENDENCIES, resolvingDependenciesTimeMs),

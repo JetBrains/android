@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.importing
 
-import com.android.SdkConstants
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet

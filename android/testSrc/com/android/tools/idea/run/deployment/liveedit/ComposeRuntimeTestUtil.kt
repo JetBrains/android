@@ -31,8 +31,7 @@ import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
  * The main reason to include that is because the compose compiler plugin expects
  * the runtime to be path of the classpath or else it'll throw an error.
  */
-internal val composeRuntimePath = TestUtils.resolveWorkspacePath(
-  "tools/adt/idea/compose-ide-plugin/testData/lib/compose-runtime-1.4.0-SNAPSHOT.jar").toString()
+val composeRuntimePath = TestUtils.resolveWorkspacePath("tools/adt/idea/compose-ide-plugin/testData/lib/compose-runtime-1.4.0-SNAPSHOT.jar").toString()
 
 fun setUpComposeInProjectFixture(projectRule: AndroidProjectRule) {
   projectRule.module.loadComposeRuntimeInClassPath()

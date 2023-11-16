@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.fast
+package com.android.tools.idea.compose.preview.fast
 
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.concurrency.runWriteActionAndWait
+import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewBundle.message
+import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.Module
@@ -26,13 +29,14 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
-import java.time.Duration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
+import java.time.Duration
 
 /** Maximum amount of time to wait for a fast compilation to happen. */
 private val FAST_PREVIEW_COMPILE_TIMEOUT =
@@ -50,6 +54,7 @@ private suspend fun PsiFile.saveIfNeeded() {
  * Starts a new fast compilation for the current file in the Preview and returns the result of the
  * compilation. All given files must belong to the same project.
  */
+@VisibleForTesting
 internal suspend fun fastCompile(
   parentDisposable: Disposable,
   contextModule: Module,

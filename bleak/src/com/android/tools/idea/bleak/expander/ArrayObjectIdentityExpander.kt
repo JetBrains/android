@@ -56,10 +56,18 @@ class ArrayObjectIdentityExpander: Expander() {
   }
 
   override fun expandCorrespondingEdge(n: Node, e: Edge): Node? {
+    val child = getChildForLabel(n, e.label)
+    if (child != null) return child
     return if ((n.obj as Array<*>).any { it === e.end.obj }) n.addEdgeTo(e.end.obj, ObjectLabel(e.end.obj)) else null
   }
 
-  override fun getChildForLabel(n: Node, label: Label): Node? = labelToNodeMap[n]?.get(label) ?: super.getChildForLabel(n, label)
+  override fun getChildForLabel(n: Node, label: Label): Node? {
+    val map = labelToNodeMap[n]
+    if (map != null) {
+      return map[label]
+    }
+    return super.getChildForLabel(n, label)
+  }
 
   companion object {
     private const val LABEL_MAP_DEGREE_THRESHOLD = 50

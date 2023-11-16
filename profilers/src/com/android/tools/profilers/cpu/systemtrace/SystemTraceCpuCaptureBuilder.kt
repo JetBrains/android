@@ -22,6 +22,11 @@ import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeFactory
+import com.android.tools.profilers.cpu.systemtrace.CounterDataUtils.aggregateCounters
+import com.android.tools.profilers.cpu.systemtrace.CounterDataUtils.convertCounterToSeriesData
+import com.android.tools.profilers.cpu.systemtrace.CounterDataUtils.convertSeriesDataToDeltaSeries
+import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.isPowerRailShown
+import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.powerRailGroupMap
 import java.util.concurrent.TimeUnit
 import java.util.function.UnaryOperator
 import kotlin.math.max
@@ -33,7 +38,9 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val BLAST_BUFFER_QUEUE_COUNTER_REGEX = Regex("QueuedBuffer - .+BLAST#\\d")
   }
 
-  fun build(traceId: Long, mainProcessId: Int, initialViewRange: Range): SystemTraceCpuCapture {
+  fun build(traceId: Long,
+            mainProcessId: Int,
+            initialViewRange: Range): SystemTraceCpuCapture {
 
     val mainProcess = model.getProcessById(mainProcessId) ?: throw IllegalArgumentException(
       "A process with the id $mainProcessId was not found while parsing the capture.")
@@ -64,7 +71,8 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val nodeFactory = SystemTraceNodeFactory()
 
     for (thread in mainProcessModel.getThreads()) {
-      val threadInfo = CpuThreadSliceInfo(thread.id, thread.name, mainProcessModel.id, mainProcessModel.name)
+      val threadName = if (thread.id == mainProcessModel.id && thread.name.isEmpty()) mainProcessModel.name else thread.name
+      val threadInfo = CpuThreadSliceInfo(thread.id, threadName, mainProcessModel.id, mainProcessModel.name)
       val root = CaptureNode(nodeFactory.getNode(thread.name), ClockType.GLOBAL)
       root.startGlobal = model.getCaptureStartTimestampUs()
       root.endGlobal = model.getCaptureEndTimestampUs()
@@ -223,15 +231,20 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
       .toSortedMap()
   }
 
-  private fun buildPowerRailCountersData(): Map<String, List<SeriesData<Long>>> {
-    return model.getPowerRails().associate {
-      it.name.replace("power.rails.", "") to convertCounterToSeriesData(it)
-    }.toSortedMap()
+  private fun buildPowerRailCountersData(): Map<String, PowerCounterData> {
+    val filteredPoweredRails = model.getPowerRails().filter { isPowerRailShown(it.name) }
+    val aggregatedPowerRails = aggregateCounters(filteredPoweredRails, powerRailGroupMap, normalizeStartTime = true)
+    val deltaPowerRails = convertSeriesDataToDeltaSeries(aggregatedPowerRails)
+
+    return aggregatedPowerRails
+      .keys
+      .filter { deltaPowerRails.contains(it) }
+      .associateWith { PowerCounterData(deltaPowerRails[it]!!, aggregatedPowerRails[it]!!) }
   }
 
   private fun buildBatteryDrainCountersData(): Map<String, List<SeriesData<Long>>> {
     return model.getBatteryDrain().associate {
-      it.name.replace("batt.", "") to convertCounterToSeriesData(it)
+      it.name to convertCounterToSeriesData(it)
     }.toSortedMap()
   }
 
@@ -251,9 +264,5 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
                     .firstOrNull { it.valuesByTimestampUs.isNotEmpty() }
                   ?: return emptyList()
     return convertCounterToSeriesData(counter)
-  }
-
-  private fun convertCounterToSeriesData(counter: CounterModel): List<SeriesData<Long>> {
-    return counter.valuesByTimestampUs.map { SeriesData(it.key, it.value.toLong()) }.toList()
   }
 }

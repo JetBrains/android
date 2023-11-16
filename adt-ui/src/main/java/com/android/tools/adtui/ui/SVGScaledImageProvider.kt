@@ -49,6 +49,7 @@ class SVGScaledImageProvider(private val url: URL, private val image: Image?) : 
       throw IllegalArgumentException("Icon should be an instance of CachedImageIcon. Got "+icon.javaClass.simpleName)
     }
 
+    @JvmStatic
     fun create(cachedIcon: CachedImageIcon): SVGScaledImageProvider {
       val url = cachedIcon.url
       if (url != null) {

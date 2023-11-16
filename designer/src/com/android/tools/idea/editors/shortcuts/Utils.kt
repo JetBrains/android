@@ -18,15 +18,20 @@ package com.android.tools.idea.editors.shortcuts
 import com.intellij.openapi.actionSystem.ShortcutSet
 import com.intellij.openapi.keymap.KeymapUtil
 
-/** Action ID of the IDE declared force refresh action (see PlatformActions.xml). This allows us to re-use the shortcut of the declared action. */
+/**
+ * Action ID of the IDE declared force refresh action (see PlatformActions.xml). This allows us to
+ * re-use the shortcut of the declared action.
+ */
 private const val FORCE_REFRESH_ACTION_ID = "ForceRefresh"
 
 /** [ShortcutSet] that triggers a build and refreshes the preview */
-fun getBuildAndRefreshShortcut(): ShortcutSet = KeymapUtil.getActiveKeymapShortcuts(FORCE_REFRESH_ACTION_ID)
+fun getBuildAndRefreshShortcut(): ShortcutSet =
+  KeymapUtil.getActiveKeymapShortcuts(FORCE_REFRESH_ACTION_ID)
 
 /**
- * Returns the textual representation of the given [ShortcutSet]. If there is no shortcut, this method will return an empty string.
- * An optional [prefix] and [suffix] can be specified. These are only returned if there is a shortcut and the result string is not empty.
+ * Returns the textual representation of the given [ShortcutSet]. If there is no shortcut, this
+ * method will return an empty string. An optional [prefix] and [suffix] can be specified. These are
+ * only returned if there is a shortcut and the result string is not empty.
  */
 fun ShortcutSet.asString(prefix: String = " (", suffix: String = ")"): String {
   val shortcutString = KeymapUtil.getFirstKeyboardShortcutText(this)

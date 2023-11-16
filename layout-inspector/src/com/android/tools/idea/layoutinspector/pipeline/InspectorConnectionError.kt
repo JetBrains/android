@@ -16,8 +16,8 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 /**
- * An exception class to enclose unknown connection errors.
- * It should be possible to search for this class name in go/studio-exceptions.
+ * An exception class to enclose unknown connection errors. It should be possible to search for this
+ * class name in go/studio-exceptions.
  */
 class InspectorConnectionError : Exception {
   constructor(cause: Throwable) : super(cause)

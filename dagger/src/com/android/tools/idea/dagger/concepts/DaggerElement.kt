@@ -29,7 +29,6 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
-import kotlin.reflect.KClass
 import org.jetbrains.annotations.PropertyKey
 import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.psi.KtClass
@@ -39,6 +38,7 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
+import kotlin.reflect.KClass
 
 /**
  * Wrapper around a PsiElement that represents an item in the Dagger graph, along with associated

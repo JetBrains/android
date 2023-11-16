@@ -33,7 +33,6 @@ import java.awt.GridBagLayout
 import javax.swing.BoxLayout
 import javax.swing.ComboBoxModel
 import javax.swing.JCheckBox
-import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
@@ -56,15 +55,10 @@ private const val FIXED_WIDTH = 200
  * - a variant dropdown for text, number & datetime types
  * - flags for text and number types
  */
-class InputTypeEditor(
-  private val property: InputTypePropertyItem
-): JPanel(GridBagLayout()) {
-  @VisibleForTesting
-  val typeModel = TypeModel()
-  @VisibleForTesting
-  val variationModel = VariationModel()
-  @VisibleForTesting
-  val flagsModel = FlagsModel()
+class InputTypeEditor(private val property: InputTypePropertyItem) : JPanel(GridBagLayout()) {
+  @VisibleForTesting val typeModel = TypeModel()
+  @VisibleForTesting val variationModel = VariationModel()
+  @VisibleForTesting val flagsModel = FlagsModel()
   private val flagsPanel: JPanel
   private val type: ComboBox<String>
   var balloon: BalloonImpl? = null
@@ -75,47 +69,45 @@ class InputTypeEditor(
     isFocusCycleRoot = true
     focusTraversalPolicy = DefaultFocusTraversalPolicy()
 
-    val typeLabel = JBLabel("Type:").apply {
-      font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-    }
+    val typeLabel = JBLabel("Type:").apply { font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL) }
     add(typeLabel, constraints(0, 0))
-    type = ComboBoxWithFixedWidth(typeModel, FIXED_WIDTH).apply {
-      // Make this a DropDown control:
-      isEditable = false
-      // A non editable JComboBox has focus issues. Among them: JDK-4110721.
-      editor.editorComponent.isFocusable = false
-      isFocusable = true
-    }
+    type =
+      ComboBoxWithFixedWidth(typeModel, FIXED_WIDTH).apply {
+        // Make this a DropDown control:
+        isEditable = false
+        // A non editable JComboBox has focus issues. Among them: JDK-4110721.
+        editor.editorComponent.isFocusable = false
+        isFocusable = true
+      }
     add(type, constraints(1, 0))
-    val variationLabel = JBLabel("Variation:").apply {
-      font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-    }
+    val variationLabel =
+      JBLabel("Variation:").apply { font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL) }
     typeLabel.preferredSize = variationLabel.preferredSize
     add(variationLabel, constraints(0, 1))
-    val variation = ComboBoxWithFixedWidth(variationModel, FIXED_WIDTH).apply {
-      // Make this a DropDown control:
-      isEditable = false
-      // A non editable JComboBox has focus issues. Among them: JDK-4110721.
-      editor.editorComponent.isFocusable = false
-      isFocusable = true
-    }
+    val variation =
+      ComboBoxWithFixedWidth(variationModel, FIXED_WIDTH).apply {
+        // Make this a DropDown control:
+        isEditable = false
+        // A non editable JComboBox has focus issues. Among them: JDK-4110721.
+        editor.editorComponent.isFocusable = false
+        isFocusable = true
+      }
     add(variation, constraints(1, 1))
 
-    val flagsLabel = JBLabel("Flags:").apply {
-      font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-    }
+    val flagsLabel = JBLabel("Flags:").apply { font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL) }
     add(flagsLabel, constraints(0, 2))
-    flagsPanel = object : JPanel() {
-      // Align the flagsLabel with the baseline of the first checkBox if any:
-      override fun getBaseline(width: Int, height: Int): Int {
-        if (componentCount == 0) {
-          return -1
+    flagsPanel =
+      object : JPanel() {
+        // Align the flagsLabel with the baseline of the first checkBox if any:
+        override fun getBaseline(width: Int, height: Int): Int {
+          if (componentCount == 0) {
+            return -1
+          }
+          val first = getComponent(0)
+          val size = first.preferredSize
+          return first.getBaseline(size.width, size.height)
         }
-        val first = getComponent(0)
-        val size = first.preferredSize
-        return first.getBaseline(size.width, size.height)
       }
-    }
     flagsPanel.apply {
       isOpaque = false
       background = UIUtil.TRANSPARENT_COLOR
@@ -124,35 +116,41 @@ class InputTypeEditor(
     }
     add(flagsPanel, constraints(1, 2))
 
-    variationModel.addListDataListener(object : ListDataListener {
-      override fun contentsChanged(event: ListDataEvent) {
-        // Hide the variations dropdown and the label if this types doesn't have any variations:
-        variation.isVisible = variationModel.size > 1
-        variationLabel.isVisible = variationModel.size > 1
+    variationModel.addListDataListener(
+      object : ListDataListener {
+        override fun contentsChanged(event: ListDataEvent) {
+          // Hide the variations dropdown and the label if this types doesn't have any variations:
+          variation.isVisible = variationModel.size > 1
+          variationLabel.isVisible = variationModel.size > 1
+        }
+        override fun intervalAdded(event: ListDataEvent) {}
+        override fun intervalRemoved(event: ListDataEvent) {}
       }
-      override fun intervalAdded(event: ListDataEvent) {}
-      override fun intervalRemoved(event: ListDataEvent) {}
-    })
-    flagsModel.listeners.add(ValueChangedListener {
-      // Recreate the check boxes after the type has changed:
-      var first = true
-      flagsPanel.removeAll()
-      flagsModel.flags.forEach { flag ->
-        flagsPanel.add(CheckBoxWithFixedWidth(flag.name, flagsModel.isFlagSet(flag), FIXED_WIDTH).apply {
-          isOpaque = false
-          background = UIUtil.TRANSPARENT_COLOR
-          addItemListener { flagsModel.setFlag(flag, isSelected) }
-          // Add a little top spacing for the 1st CheckBox in order to:
-          //  - add a little room after the ComboBox above
-          //  - make the 3 labels appear to have the same vertical padding
-          border = if (first) JBUI.Borders.emptyTop(TOP_BORDER_OF_FIRST_FLAG) else null
-          first = false
-        })
+    )
+    flagsModel.listeners.add(
+      ValueChangedListener {
+        // Recreate the check boxes after the type has changed:
+        var first = true
+        flagsPanel.removeAll()
+        flagsModel.flags.forEach { flag ->
+          flagsPanel.add(
+            CheckBoxWithFixedWidth(flag.name, flagsModel.isFlagSet(flag), FIXED_WIDTH).apply {
+              isOpaque = false
+              background = UIUtil.TRANSPARENT_COLOR
+              addItemListener { flagsModel.setFlag(flag, isSelected) }
+              // Add a little top spacing for the 1st CheckBox in order to:
+              //  - add a little room after the ComboBox above
+              //  - make the 3 labels appear to have the same vertical padding
+              border = if (first) JBUI.Borders.emptyTop(TOP_BORDER_OF_FIRST_FLAG) else null
+              first = false
+            }
+          )
+        }
+        flagsLabel.isVisible = flagsModel.flags.isNotEmpty()
+        flagsPanel.isVisible = flagsLabel.isVisible
+        flagsPanel.invalidate()
       }
-      flagsLabel.isVisible = flagsModel.flags.isNotEmpty()
-      flagsPanel.isVisible = flagsLabel.isVisible
-      flagsPanel.invalidate()
-    })
+    )
     variationModel.updateModel()
     flagsModel.updateModel()
   }
@@ -190,7 +188,9 @@ class InputTypeEditor(
     val typeMask = property.maskValue.and(TYPE_MASK_CLASS)
     if (typeMask != 0) {
       out.addAll(
-        property.children.filter { it.maskValue.and(TYPE_MASK_CLASS) == typeMask && it.maskValue.and(mask) != 0 }.sortedBy { it.name }
+        property.children
+          .filter { it.maskValue.and(TYPE_MASK_CLASS) == typeMask && it.maskValue.and(mask) != 0 }
+          .sortedBy { it.name }
       )
     }
   }
@@ -202,7 +202,8 @@ class InputTypeEditor(
 
   // We don't want the width of the popup to change when we change types.
   // Achieve this by making the controls in the 2nd column have a fixed width.
-  private class ComboBoxWithFixedWidth<T>(model: ComboBoxModel<T>, private val fixedWidth: Int): ComboBox<T>(model) {
+  private class ComboBoxWithFixedWidth<T>(model: ComboBoxModel<T>, private val fixedWidth: Int) :
+    ComboBox<T>(model) {
     override fun getPreferredSize(): Dimension {
       val size = super.getPreferredSize()
       return Dimension(JBUIScale.scale(fixedWidth), size.height)
@@ -211,7 +212,11 @@ class InputTypeEditor(
 
   // We don't want the width of the popup to change when we change types.
   // Achieve this by making the controls in the 2nd column have a fixed width.
-  private class CheckBoxWithFixedWidth(text: String, selected: Boolean, private val fixedWidth: Int): JCheckBox(text, selected) {
+  private class CheckBoxWithFixedWidth(
+    text: String,
+    selected: Boolean,
+    private val fixedWidth: Int
+  ) : JCheckBox(text, selected) {
     override fun getPreferredSize(): Dimension {
       val size = super.getPreferredSize()
       val scaledWidth = JBUIScale.scale(fixedWidth)
@@ -222,17 +227,10 @@ class InputTypeEditor(
     }
   }
 
-  /**
-   * The possible types of InputType
-   */
+  /** The possible types of InputType */
   inner class TypeModel : ComboBoxModel<String> {
     private val listeners = mutableListOf<ListDataListener>()
-    private val types = listOf(
-      "text",
-      "number",
-      "datetime",
-      "phone"
-    )
+    private val types = listOf("text", "number", "datetime", "phone")
     private var selectedType = ""
 
     init {
@@ -275,9 +273,7 @@ class InputTypeEditor(
     override fun getSelectedItem(): Any = selectedType
   }
 
-  /**
-   * The possible variations of a given type of InputType
-   */
+  /** The possible variations of a given type of InputType */
   inner class VariationModel : ComboBoxModel<String> {
     private val listeners = mutableListOf<ListDataListener>()
     private val variations = mutableListOf<NlFlagPropertyItem>()
@@ -332,9 +328,7 @@ class InputTypeEditor(
     override fun getSelectedItem(): Any = selectedVariant
   }
 
-  /**
-   * The possible flags for a given type of InputType
-   */
+  /** The possible flags for a given type of InputType */
   inner class FlagsModel {
     private val settings = mutableMapOf<String, Boolean>()
     val flags = mutableListOf<NlFlagPropertyItem>()
@@ -351,8 +345,7 @@ class InputTypeEditor(
       notifyListeners()
     }
 
-    fun isFlagSet(flag: NlFlagPropertyItem): Boolean =
-      settings[flag.name] ?: false
+    fun isFlagSet(flag: NlFlagPropertyItem): Boolean = settings[flag.name] ?: false
 
     fun setFlag(flag: NlFlagPropertyItem, selected: Boolean) {
       settings[flag.name] = selected

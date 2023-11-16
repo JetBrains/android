@@ -89,11 +89,11 @@ class VersionCatalogGoToDeclarationHandlerTest : AndroidGradleTestCase() {
       "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }"
     )
 
-    // Navigate to the [plugins] block in TOML
+    // Navigate to the appropriate plugin in TOML
     checkUsage(
       "app/build.gradle.kts",
       "alias(libs.plu|gins.kotlinAndroid)",
-      "[plugins]"
+      "kotlinAndroid = { id = \"org.jetbrains.kotlin.android\", version.ref = \"kotlinVersion\" }"
     )
 
     // Navigate from a KTS plugin reference to the plugin in the TOML file
@@ -103,14 +103,14 @@ class VersionCatalogGoToDeclarationHandlerTest : AndroidGradleTestCase() {
       "android-application = { id = \"com.android.application\", version.ref = \"agpVersion\" }"
     )
 
-    // Navigate to the [bundles] block in TOML
+    // Navigate to the appropriate bundle in TOML
     checkUsage(
       "app/build.gradle.kts",
       "api(libs.b|undles.both)",
-      "[bundles]"
+      "both = [\"constraint-layout\", \"guava\"]"
     )
 
-    // Navigate to the [bundles] block in TOML
+    // Navigate to the appropriate bundle in TOML
     checkUsage(
       "app/build.gradle.kts",
       "api(libs.bundles.|both)",
@@ -149,11 +149,11 @@ class VersionCatalogGoToDeclarationHandlerTest : AndroidGradleTestCase() {
       "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }"
     )
 
-    // Navigate to the [plugins] block in TOML
+    // Navigate to the appropriate plugin in TOML
    checkUsage(
       "app/build.gradle",
       "alias libs.plug|ins.android.application",
-      "[plugins]"
+      "android-application = { id = \"com.android.application\", version.ref = \"gradlePlugins-agp\" }"
     )
 
     // Navigate from a ksp plugin reference to the plugin in the TOML file
@@ -163,25 +163,31 @@ class VersionCatalogGoToDeclarationHandlerTest : AndroidGradleTestCase() {
       "android-application = { id = \"com.android.application\", version.ref = \"gradlePlugins-agp\" }"
     )
 
-    // Navigate to the [bundles] block in TOML
+    // Navigate to the appropriate bundle in TOML
     checkUsage(
       "app/build.gradle",
       "api libs.b|undles.both",
-      "[bundles]"
+      "both = [\"constraint-layout\", \"guava\"]"
     )
 
-    // Navigate to the [bundles] block in TOML
+    // Navigate to the appropriate bundle in TOML
     checkUsage(
       "app/build.gradle",
       "api libs.bundles.|both",
       "both = [\"constraint-layout\", \"guava\"]"
     )
 
-    // Navigate from a groovy to second catalog
+    // Navigate from a groovy build file to another catalog
     checkUsage(
       "app/build.gradle",
       "testImplementation libsTest.j|unit",
       "junit = { module = \"junit:junit\", version.ref = \"junit\" }"
+    )
+
+    checkUsage(
+      "app/build.gradle",
+      "testImplementation libsTest.bund|les.junit",
+      "junit = [\"junit\"]"
     )
   }
 

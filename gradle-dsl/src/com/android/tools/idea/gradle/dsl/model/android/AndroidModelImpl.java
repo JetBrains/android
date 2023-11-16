@@ -45,8 +45,11 @@ import static com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.
 import static com.android.tools.idea.gradle.dsl.parser.android.TestCoverageDslElement.TEST_COVERAGE;
 import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement.VIEW_BINDING;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.NUMERIC;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.STRING;
 
 import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
@@ -122,18 +125,19 @@ import org.jetbrains.annotations.Nullable;
 public final class AndroidModelImpl extends GradleDslBlockModel implements AndroidModel {
   @NonNls public static final ModelPropertyDescription AIDL_PACKAGED_LIST = new ModelPropertyDescription("mAidlPackagedList", MUTABLE_LIST);
   @NonNls public static final ModelPropertyDescription ASSET_PACKS = new ModelPropertyDescription("mAssetPacks", MUTABLE_SET);
-  @NonNls public static final String BUILD_TOOLS_VERSION = "mBuildToolsVersion";
-  @NonNls public static final ModelPropertyDescription COMPILE_SDK_VERSION = new ModelPropertyDescription("mCompileSdkVersion");
-  @NonNls public static final String DEFAULT_PUBLISH_CONFIG = "mDefaultPublishConfig";
+  @NonNls public static final ModelPropertyDescription BUILD_TOOLS_VERSION = new ModelPropertyDescription("mBuildToolsVersion", STRING);
+  //TODO compileSdkVersion may be integer or string while compileSdk can be only integer - need to handle this
+  @NonNls public static final ModelPropertyDescription COMPILE_SDK_VERSION = new ModelPropertyDescription("mCompileSdkVersion", NUMERIC);
+  @NonNls public static final ModelPropertyDescription DEFAULT_PUBLISH_CONFIG = new ModelPropertyDescription("mDefaultPublishConfig", STRING);
   @NonNls public static final ModelPropertyDescription DYNAMIC_FEATURES = new ModelPropertyDescription("mDynamicFeatures", MUTABLE_SET);
   @NonNls public static final ModelPropertyDescription FLAVOR_DIMENSIONS = new ModelPropertyDescription("mFlavorDimensions", MUTABLE_LIST);
-  @NonNls public static final String GENERATE_PURE_SPLITS = "mGeneratePureSplits";
-  @NonNls public static final String NAMESPACE = "mNamespace";
-  @NonNls public static final String NDK_VERSION = "mNdkVersion";
-  @NonNls public static final String PUBLISH_NON_DEFAULT = "mPublishNonDefault";
-  @NonNls public static final String RESOURCE_PREFIX = "mResourcePrefix";
-  @NonNls public static final String TARGET_PROJECT_PATH = "mTargetProjectPath";
-  @NonNls public static final String TEST_NAMESPACE = "mTestNamespace";
+  @NonNls public static final ModelPropertyDescription GENERATE_PURE_SPLITS =  new ModelPropertyDescription("mGeneratePureSplits", BOOLEAN);
+  @NonNls public static final ModelPropertyDescription NAMESPACE = new ModelPropertyDescription("mNamespace", STRING);
+  @NonNls public static final ModelPropertyDescription NDK_VERSION = new ModelPropertyDescription("mNdkVersion", STRING);
+  @NonNls public static final ModelPropertyDescription PUBLISH_NON_DEFAULT = new ModelPropertyDescription("mPublishNonDefault", BOOLEAN);
+  @NonNls public static final ModelPropertyDescription RESOURCE_PREFIX = new ModelPropertyDescription("mResourcePrefix", STRING);
+  @NonNls public static final ModelPropertyDescription TARGET_PROJECT_PATH = new ModelPropertyDescription("mTargetProjectPath", STRING);
+  @NonNls public static final ModelPropertyDescription TEST_NAMESPACE = new ModelPropertyDescription("mTestNamespace", STRING);
   // TODO(xof): Add support for useLibrary
 
   public AndroidModelImpl(@NotNull AndroidDslElement dslElement) {

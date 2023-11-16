@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.android.tools.idea.compose.pickers.preview.property.Shape
 import com.android.tools.idea.compose.pickers.preview.utils.createDeviceInstance
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
+import com.android.tools.idea.compose.preview.NopComposePreviewManager
 import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
@@ -29,11 +30,11 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import java.awt.Rectangle
-import java.awt.geom.Ellipse2D
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Rectangle
+import java.awt.geom.Ellipse2D
 
 class ComposeScreenViewProvidersTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -78,11 +79,13 @@ class ComposeScreenViewProvidersTest {
       }
     }
 
+    val composeScreenViewProvider = ComposeScreenViewProvider(NopComposePreviewManager())
+
     // When showDecorations is true, the scene view should always use the device shape. In this
     // case, round.
     assertTrue(
-      COMPOSE_SCREEN_VIEW_PROVIDER.createPrimarySceneView(surface, surface.sceneManager!!)
-        .screenShape is Ellipse2D
+      composeScreenViewProvider.createPrimarySceneView(surface, surface.sceneManager!!).screenShape
+        is Ellipse2D
     )
 
     // When showDecorations is false, the scene view should always use a square shape
@@ -93,8 +96,8 @@ class ComposeScreenViewProvidersTest {
         showDecorations = false
       )
     assertTrue(
-      COMPOSE_SCREEN_VIEW_PROVIDER.createPrimarySceneView(surface, surface.sceneManager!!)
-        .screenShape is Rectangle
+      composeScreenViewProvider.createPrimarySceneView(surface, surface.sceneManager!!).screenShape
+        is Rectangle
     )
   }
 }

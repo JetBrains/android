@@ -27,7 +27,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.registry.Registry
 import jdk.jfr.consumer.RecordedEvent
-import java.io.File
 import java.nio.file.Path
 
 object JfrFreezeReports {

@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.tools.fonts.DownloadableFontCacheService;
+import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
+import com.android.tools.fonts.FontDownloader;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Supplier;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,20 +46,24 @@ public abstract class FontTestCase extends AndroidTestCase {
   }
 
   private static class FontCache extends DownloadableFontCacheServiceImpl {
-    private File mySdkFontPath;
+    public FontCache() {
+      super(FontDownloader.NOOP_FONT_DOWNLOADER, new Supplier<>() {
+        private File mySdkFontPath;
 
-    @NotNull
-    @Override
-    protected File locateSdkHome() {
-      if (mySdkFontPath == null) {
-        try {
-          mySdkFontPath = FileUtil.createTempDirectory("font", "sdk");
+        @NotNull
+        @Override
+        public File get() {
+          if (mySdkFontPath == null) {
+            try {
+              mySdkFontPath = FileUtil.createTempDirectory("font", "sdk");
+            }
+            catch (IOException ex) {
+              throw new RuntimeException(ex);
+            }
+          }
+          return mySdkFontPath;
         }
-        catch (IOException ex) {
-          throw new RuntimeException(ex);
-        }
-      }
-      return mySdkFontPath;
+      });
     }
   }
 }

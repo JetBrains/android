@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
-
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
@@ -25,10 +22,6 @@ import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
-import java.awt.Container;
-import java.util.List;
-import javax.swing.JButton;
-import javax.swing.JList;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -37,6 +30,13 @@ import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import javax.swing.*;
+import java.awt.*;
+
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.*;
 
 public class ComboBoxActionFixture {
   @NotNull private Robot myRobot;

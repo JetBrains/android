@@ -18,6 +18,7 @@ package com.android.tools.property.panel.impl.ui
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.HelpSupport
+import com.android.tools.property.panel.api.TableExpansionState
 import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataProvider
@@ -29,7 +30,8 @@ import javax.swing.JPanel
 /**
  * A standard class for implementing a browse button for an editor.
  *
- * The editor component is wrapped in panel with a possible icon to the right displaying of the editor.
+ * The editor component is wrapped in panel with a possible icon to the right displaying of the
+ * editor.
  */
 class ActionButtonBinding(
   private val model: BasePropertyEditorModel,
@@ -57,6 +59,9 @@ class ActionButtonBinding(
 
   private fun updateFromModel() {
     actionButton.icon = model.displayedIcon(actionButtonModel?.actionIcon)
+    // Hide the action button if this is for an expanded table cell renderer.
+    // Since the user cannot click on the popup, it doesn't make sense to show it.
+    actionButton.isVisible = model.tableExpansionState == TableExpansionState.NORMAL
     background = model.displayedBackground(secondaryPanelBackground)
     isVisible = model.visible
   }
@@ -79,9 +84,14 @@ class ActionButtonBinding(
   private inner class ButtonWithCustomTooltip(action: AnAction?) : IconWithFocusBorder({ action }) {
 
     override fun getToolTipText(event: MouseEvent): String? {
-      // Trick: Use the component from the event.source for tooltip in tables. See TableEditor.getToolTip().
+      // Trick: Use the component from the event.source for tooltip in tables. See
+      // TableEditor.getToolTip().
       val component = event.source as? JComponent ?: this
-      return PropertyTooltip.setToolTip(component, event, actionButtonModel?.action?.templatePresentation?.description)
+      PropertyTooltip.setToolTip(
+        component,
+        actionButtonModel?.action?.templatePresentation?.description
+      )
+      return null
     }
   }
 }

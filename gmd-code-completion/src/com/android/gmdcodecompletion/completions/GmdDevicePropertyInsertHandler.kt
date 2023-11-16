@@ -17,17 +17,36 @@ package com.android.gmdcodecompletion.completions
 
 import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.completion.InsertionContext
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.editor.Editor
+
+enum class InsertType {
+  DOUBLE_QUOTATION,
+  CUSTOM_SUFFIX;
+}
 
 /**
  * Add custom behavior after code completion insertion. Mainly used to add double quotation marks to string values
  */
-class GmdDevicePropertyInsertHandler : InsertHandler<GmdCodeCompletionLookupElement> {
+class GmdDevicePropertyInsertHandler(
+  private val myInsertionType: InsertType = InsertType.DOUBLE_QUOTATION,
+  private val myCustomSuffix: String = "",
+  private val myColumnShiftAfterInsert: Int? = null,
+) : InsertHandler<GmdCodeCompletionLookupElement> {
 
   // Additional processing after user selects item from code completion suggestion list
   override fun handleInsert(context: InsertionContext, gmdPropertyElement: GmdCodeCompletionLookupElement) {
     val editor = context.editor
     val document = editor.document
     context.commitDocument()
+
+    when (myInsertionType) {
+      InsertType.DOUBLE_QUOTATION -> insertDoubleQuotation(context, editor, document)
+      InsertType.CUSTOM_SUFFIX -> insertSuffix(context, editor, document)
+    }
+  }
+
+  private fun insertDoubleQuotation(context: InsertionContext, editor: Editor, document: Document) {
     // Check and add double quotation marks when they are not present
     val hasLeftQuote = hasDoubleQuotation(context, true)
     val hasRightQuote = hasDoubleQuotation(context, false)
@@ -39,6 +58,13 @@ class GmdDevicePropertyInsertHandler : InsertHandler<GmdCodeCompletionLookupElem
     }
     // Move caret right after inserting to make sure caret is not inside code completion items
     editor.caretModel.moveCaretRelatively(1, 0, false, false, true)
+  }
+
+  private fun insertSuffix(context: InsertionContext, editor: Editor, document: Document) {
+    document.insertString(context.tailOffset, myCustomSuffix)
+    if (myColumnShiftAfterInsert != null) {
+      editor.caretModel.moveCaretRelatively(myColumnShiftAfterInsert, 0, false, false, true)
+    }
   }
 
   // Returns true if there's a double quotation mark on the left / right the item

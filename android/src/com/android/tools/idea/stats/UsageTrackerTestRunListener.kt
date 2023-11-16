@@ -19,7 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.gradle.model.IdeTestOptions.Execution
+import com.android.tools.analytics.deviceToDeviceInfo
 import com.android.tools.idea.model.TestExecutionOption
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestLibraries
@@ -58,7 +58,7 @@ class UsageTrackerTestRunListener(
     val studioEvent = AndroidStudioEvent.newBuilder().apply {
       category = AndroidStudioEvent.EventCategory.TESTS
       kind = AndroidStudioEvent.EventKind.TEST_RUN
-      deviceInfo = AndroidStudioUsageTracker.deviceToDeviceInfo(device)
+      deviceInfo = deviceToDeviceInfo(device)
       productDetails = AndroidStudioUsageTracker.productDetails
       testRun = this@UsageTrackerTestRunListener.testRun.build()
     }

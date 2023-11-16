@@ -22,16 +22,16 @@ import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import java.awt.Component
-import java.awt.Dimension
-import javax.swing.JComponent
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.awt.Component
+import java.awt.Dimension
+import javax.swing.JComponent
+import kotlin.test.assertNotNull
 
 class AnimationCardTest {
 
@@ -45,8 +45,10 @@ class AnimationCardTest {
       AnimationCard(
           TestUtils.testPreviewState(),
           Mockito.mock(DesignSurface::class.java),
-          ElementState("Title")
-        ) {}
+          ElementState("Title"),
+          emptyList(),
+          NoopAnimationTracker,
+        )
         .apply { setDuration(111) }
     card.setSize(300, 300)
 
@@ -82,7 +84,7 @@ class AnimationCardTest {
       findFreezeButton(card).also {
         // Button is here and visible.
         assertTrue(it.isVisible)
-        assertTrue { it.isEnabled }
+        assertTrue(it.isEnabled)
         TestUtils.assertBigger(minimumSize, it.size)
         // After clicking button callback is called.
         var freezeCalls = 0
@@ -116,8 +118,10 @@ class AnimationCardTest {
       AnimationCard(
           TestUtils.testPreviewState(false),
           Mockito.mock(DesignSurface::class.java),
-          ElementState("Title")
-        ) {}
+          ElementState("Title"),
+          emptyList(),
+          NoopAnimationTracker,
+        )
         .apply {
           setDuration(111)
           setSize(300, 300)
@@ -132,7 +136,7 @@ class AnimationCardTest {
     findFreezeButton(card).also {
       // Button is here and visible.
       assertTrue(it.isVisible)
-      assertFalse { it.isEnabled }
+      assertFalse(it.isEnabled)
       TestUtils.assertBigger(minimumSize, it.size)
     }
     // Uncomment to preview ui.

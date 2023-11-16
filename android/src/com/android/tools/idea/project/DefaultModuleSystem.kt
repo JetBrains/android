@@ -20,6 +20,7 @@ import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY
 import com.android.SdkConstants.FN_RESOURCE_TEXT
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ExternalLibraryImpl
@@ -29,6 +30,7 @@ import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryApplicationDebuggableFromManifestIndex
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.navigator.getSubmodules
+import com.android.tools.idea.projectsystem.AndroidModulePathsImpl
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
 import com.android.tools.idea.projectsystem.CapabilityStatus
@@ -36,7 +38,6 @@ import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.CodeShrinker
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.DependencyType
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
@@ -48,6 +49,7 @@ import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.NonGradleApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toPathString
 import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.ImmutableList
@@ -209,9 +211,22 @@ class DefaultModuleSystem(override val module: Module) :
     return ImmutableList.copyOf(libraries)
   }
 
-  override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
-    return emptyList()
-  }
+  override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
+    listOf(
+      NamedModuleTemplate(
+        "main",
+        AndroidModulePathsImpl(
+          ModuleRootManager.getInstance(module).sourceRoots.first().parent.toIoFile(),
+          null,
+          ModuleRootManager.getInstance(module).sourceRoots.first().toIoFile(),
+          null,
+          null,
+          null,
+          emptyList(),
+          emptyList()
+        )
+      )
+    )
 
   override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
     return CapabilityNotSupported()
@@ -250,6 +265,7 @@ class DefaultModuleSystem(override val module: Module) :
     val applicationRClassConstantIds: Key<Boolean> = Key.create(::applicationRClassConstantIds.qualifiedName)
     val testRClassConstantIds: Key<Boolean> = Key.create(::testRClassConstantIds.qualifiedName)
     val useAndroidX: Key<Boolean> = Key.create(::useAndroidX.qualifiedName)
+    val enableVcsInfo: Key<Boolean> = Key.create(::enableVcsInfo.qualifiedName)
   }
 
   override var usesCompose: Boolean by UserData(Keys.usesCompose, false)
@@ -284,6 +300,8 @@ class DefaultModuleSystem(override val module: Module) :
   override var testRClassConstantIds: Boolean by UserData(Keys.testRClassConstantIds, true)
 
   override var useAndroidX: Boolean by UserData(Keys.useAndroidX, false)
+
+  override var enableVcsInfo: Boolean by UserData(Keys.enableVcsInfo, false)
 }
 
 /**

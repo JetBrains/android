@@ -37,5 +37,5 @@ internal class WearTilePreviewActionManager(private val surface: DesignSurface<L
   override fun getToolbarActions(selection: MutableList<NlComponent>) = DefaultActionGroup()
 
   override fun getSceneViewStatusIcon(sceneView: SceneView) =
-    createStatusIcon(PreviewStatusIcon(sceneView), sceneView.surface)
+    createStatusIcon(PreviewStatusIcon(sceneView), surface)
 }

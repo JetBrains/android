@@ -47,9 +47,10 @@ public:
   jfloat y_precision = 1;
   jint device_id = 0;
   jint edge_flags = 0;
-  jint source = AINPUT_SOURCE_STYLUS | AINPUT_SOURCE_TOUCHSCREEN;
+  jint source = 0;
   jint display_id = 0;
   jint flags = 0;
+  jint action_button = 0;
 
 private:
   static void InitializeStatics(Jni jni);
@@ -57,6 +58,7 @@ private:
   static bool statics_initialized_;
   static JClass motion_event_class_;
   static jmethodID obtain_method_;
+  static jmethodID set_action_button_method_;
 
   Jni jni_;
 

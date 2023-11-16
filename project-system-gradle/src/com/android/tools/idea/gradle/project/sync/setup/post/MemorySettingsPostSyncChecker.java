@@ -39,6 +39,7 @@ import org.jetbrains.android.util.AndroidBundle;
  * memory settings based on available RAM of the machine and the project size.
  */
 public class MemorySettingsPostSyncChecker {
+  public static final double MEMORY_THRESHOLD_PERCENTAGE = .9;
   private static final Logger LOG = Logger.getInstance(MemorySettingsPostSyncChecker.class);
   private static final NotificationGroup NOTIFICATION_GROUP = new NotificationGroup(
     "Memory Settings Notification",
@@ -71,7 +72,7 @@ public class MemorySettingsPostSyncChecker {
 
     int currentXmx = MemorySettingsUtil.getCurrentXmx();
     int recommended = MemorySettingsRecommendation.getRecommended(project, currentXmx);
-    if (recommended > 0) {
+    if (currentXmx < recommended * MEMORY_THRESHOLD_PERCENTAGE) {
       showNotification(project, currentXmx, recommended, reminder);
     }
   }

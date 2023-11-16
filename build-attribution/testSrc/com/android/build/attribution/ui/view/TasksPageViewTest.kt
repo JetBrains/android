@@ -31,11 +31,9 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.tree.TreePathUtil
-import com.intellij.util.ui.StatusText
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -43,8 +41,6 @@ import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.Point
-import java.awt.Rectangle
 
 class TasksPageViewTest {
   @get:Rule
@@ -188,18 +184,19 @@ class TasksPageViewTest {
     assertThat(view.component.components.any { it.isVisible }).isFalse()
 
     val emptyStatusText = (view.component as JBPanelWithEmptyText).emptyText
-    assertThat(emptyStatusText.toStringState()).isEqualTo("""
-      java.awt.Rectangle[x=55,y=45,width=489,height=64]
-      This build ran without any tasks to process, or all tasks were already up to date.| width=489 height=20
-      Learn more about this build's performance:| width=268 height=20
-      All warnings| width=79 height=20
+    val emptyStatusLines = emptyStatusText.wrappedFragmentsIterable.map { it as SimpleColoredComponent }
+
+    assertThat(emptyStatusLines.joinToString(separator = "\n") { it.getCharSequence(true) }).isEqualTo("""
+      This build ran without any tasks to process, or all tasks were already up to date.
+      Learn more about this build's performance:
+      All warnings
     """.trimIndent())
     // Try click on row centers. Only last row should react being a link.
-    fakeUi.clickRelativeTo(view.component, 300, 45 + 10)
+    fakeUi.clickRelativeTo(view.component, 300, emptyStatusText.rowCenterY(0))
     Mockito.verifyNoInteractions(mockHandlers)
-    fakeUi.clickRelativeTo(view.component, 300, 45 + 32)
+    fakeUi.clickRelativeTo(view.component, 300, emptyStatusText.rowCenterY(1))
     Mockito.verifyNoInteractions(mockHandlers)
-    fakeUi.clickRelativeTo(view.component, 300, 45 + 55)
+    fakeUi.clickRelativeTo(view.component, 300, emptyStatusText.rowCenterY(2))
     Mockito.verify(mockHandlers).changeViewToWarningsLinkClicked()
   }
 

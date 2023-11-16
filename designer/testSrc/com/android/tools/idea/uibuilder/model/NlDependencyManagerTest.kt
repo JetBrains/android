@@ -17,10 +17,10 @@ package com.android.tools.idea.uibuilder.model
 
 import com.android.AndroidXConstants
 import com.android.ide.common.gradle.Version
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.NON_PLATFORM_SUPPORT_LAYOUT_LIBS
 import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
 import com.android.tools.idea.projectsystem.TestProjectSystem
@@ -34,36 +34,64 @@ open class NlDependencyManagerTest : LayoutTestCase() {
 
   override fun setUp() {
     super.setUp()
-    projectSystem = TestProjectSystem(project, availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
+    projectSystem =
+      TestProjectSystem(
+        project,
+        availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS
+      )
     projectSystem.useInTests()
-    model = model("model.xml",
-                  component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
-                    .withBounds(0, 0, 10, 10)
-                    .children(
-                      component(AndroidXConstants.CARD_VIEW.defaultName())
-                        .withBounds(1, 1, 1, 1)
-                    )).build()
+    model =
+      model(
+          "model.xml",
+          component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
+            .withBounds(0, 0, 10, 10)
+            .children(component(AndroidXConstants.CARD_VIEW.defaultName()).withBounds(1, 1, 1, 1))
+        )
+        .build()
   }
 
   fun testEnsureLibraryIsIncluded() {
-    val depsShouldBeAdded = listOf(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+"),
-                                   GoogleMavenArtifactId.CARDVIEW_V7.getCoordinate("+"))
+    val depsShouldBeAdded =
+      listOf(
+        GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+"),
+        GoogleMavenArtifactId.CARDVIEW_V7.getCoordinate("+")
+      )
     NlDependencyManager.getInstance().addDependencies(model.components, model.facet, false)
-    assertSameElements(projectSystem.getAddedDependencies(model.module), depsShouldBeAdded)
+    assertSameElements(
+      projectSystem.getAddedDependencies(model.module).map { it.coordinate },
+      depsShouldBeAdded
+    )
   }
 
   fun testIdentifiesMissingDependency() {
-    TestCase.assertFalse(NlDependencyManager.getInstance().isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet))
+    TestCase.assertFalse(
+      NlDependencyManager.getInstance()
+        .isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet)
+    )
   }
 
   fun testIdentifiesCorrectDependency() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet.module, GradleVersion(1, 1))
-    TestCase.assertTrue(NlDependencyManager.getInstance().isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet))
+    projectSystem.addDependency(
+      GoogleMavenArtifactId.APP_COMPAT_V7,
+      myFacet.module,
+      GradleVersion(1, 1)
+    )
+    TestCase.assertTrue(
+      NlDependencyManager.getInstance()
+        .isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet)
+    )
   }
 
   fun testGetModuleDependencyVersion() {
-    projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet.module, GradleVersion(1, 1))
-    TestCase.assertEquals(NlDependencyManager.getInstance().getModuleDependencyVersion(GoogleMavenArtifactId.APP_COMPAT_V7, model.facet),
-                          Version.parse("1.1"))
+    projectSystem.addDependency(
+      GoogleMavenArtifactId.APP_COMPAT_V7,
+      myFacet.module,
+      GradleVersion(1, 1)
+    )
+    TestCase.assertEquals(
+      NlDependencyManager.getInstance()
+        .getModuleDependencyVersion(GoogleMavenArtifactId.APP_COMPAT_V7, model.facet),
+      Version.parse("1.1")
+    )
   }
 }

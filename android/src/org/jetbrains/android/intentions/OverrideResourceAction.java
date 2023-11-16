@@ -20,8 +20,8 @@ import static com.android.SdkConstants.ATTR_NAME;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
@@ -290,7 +290,8 @@ public class OverrideResourceAction extends AbstractIntentionAction {
         return; // Should not happen
       }
       Project project = configuration.getConfigModule().getProject();
-      XmlFile xmlFile = (XmlFile)configuration.getPsiFile();
+      PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
+      XmlFile xmlFile = (XmlFile)psiFile;
       ResourceFolderType folderType = IdeResourcesUtil.getFolderType(xmlFile);
       if (folderType == null) {
         folderType = ResourceFolderType.LAYOUT;
@@ -399,7 +400,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     else {
       // First create a compatible configuration based on the current configuration
       if (configuration != null) {
-        ConfigurationManager configurationManager = configuration.getConfigurationManager();
+        ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(configuration.getModule());
         configurationManager.createSimilar(newFile, file);
       }
 

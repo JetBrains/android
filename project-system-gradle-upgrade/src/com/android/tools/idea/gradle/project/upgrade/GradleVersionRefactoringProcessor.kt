@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.util.BuildFileProcessor
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.utils.FileUtils
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
@@ -124,5 +124,5 @@ class GradleVersionUsageInfo(
     }
   }
 
-  private fun String.escapeColons() = this.replace(":", "\\:")
+  fun String.escapeColons() = this.replace(":", "\\:")
 }

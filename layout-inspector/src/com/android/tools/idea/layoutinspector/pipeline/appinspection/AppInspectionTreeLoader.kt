@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.ComponentTreeData
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
@@ -24,28 +25,33 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLa
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * A [TreeLoader] that uses data from the [AppInspectionInspectorClient] to fetch a view tree from an API 29+ device, and parses it into
- * [ViewNode]s.
+ * A [TreeLoader] that uses data from the [AppInspectionInspectorClient] to fetch a view tree from
+ * an API 29+ device, and parses it into [ViewNode]s.
  */
 class AppInspectionTreeLoader(
-  private val project: Project,
+  private val notificationModel: NotificationModel,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
-  @VisibleForTesting var skiaParser: SkiaParser) : TreeLoader {
-  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, process: ProcessDescriptor): ComponentTreeData? {
+  @VisibleForTesting var skiaParser: SkiaParser
+) : TreeLoader {
+  override fun loadComponentTree(
+    data: Any?,
+    resourceLookup: ResourceLookup,
+    process: ProcessDescriptor
+  ): ComponentTreeData? {
     if (data is ViewLayoutInspectorClient.Data) {
-      val treeLoader = ViewInspectorTreeLoader(
-        project,
-        skiaParser,
-        data.viewEvent,
-        resourceLookup,
-        process,
-        data.composeEvent,
-        logEvent
-      )
+      val treeLoader =
+        ViewInspectorTreeLoader(
+          notificationModel,
+          skiaParser,
+          data.viewEvent,
+          resourceLookup,
+          process,
+          data.composeEvent,
+          logEvent
+        )
       val window = treeLoader.loadComponentTree()
       return ComponentTreeData(window, data.generation, treeLoader.dynamicCapabilities)
     }

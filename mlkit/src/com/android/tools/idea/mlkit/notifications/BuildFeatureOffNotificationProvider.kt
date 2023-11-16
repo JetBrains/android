@@ -17,6 +17,7 @@ package com.android.tools.idea.mlkit.notifications
 
 import com.android.tools.idea.mlkit.MlUtils
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor
+import com.android.tools.idea.mlkit.viewer.TfliteModelFileType
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.template.getExistingModuleTemplateDataBuilder
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -36,7 +37,6 @@ import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotificationProvider
 import com.intellij.ui.EditorNotifications
 import java.util.function.Function
-import javax.swing.JComponent
 
 /**
  * Notifies users that build feature flag mlModelBinding is off.
@@ -47,34 +47,35 @@ class BuildFeatureOffNotificationProvider : EditorNotificationProvider {
     setBuildFeature("mlModelBinding", true)
   }
 
-  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?>? {
-    return Function { createNotificationPanel(file, it, project) }
-  }
-
-  private fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
-    if (fileEditor !is TfliteModelFileEditor || fileEditor.getUserData(HIDDEN_KEY) != null) {
-      return null
-    }
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<FileEditor, EditorNotificationPanel?>? {
+    if (TfliteModelFileType.TFLITE_EXTENSION != file.extension) return null
 
     val module = ModuleUtilCore.findModuleForFile(file, project)
     if (module == null || MlUtils.isMlModelBindingBuildFeatureEnabled(module) || !MlUtils.isModelFileInMlModelsFolder(module, file)) {
       return null
     }
-
-    val panel = EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning)
-    panel.text = BANNER_MESSAGE
-    panel.createActionLabel("Enable Now") {
-      if (Messages.OK == Messages.showOkCancelDialog(project, DIALOG_MESSAGE, DIALOG_TITLE,
-                                                     Messages.getOkButton(), Messages.getCancelButton(), Messages.getInformationIcon())) {
-        addBuildFeature(module)
-        project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+    return Function { fileEditor ->
+      if (fileEditor !is TfliteModelFileEditor || fileEditor.getUserData(HIDDEN_KEY) != null) {
+        return@Function null
       }
+      val panel = EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning)
+      panel.text = BANNER_MESSAGE
+      panel.createActionLabel("Enable Now") {
+        if (Messages.OK == Messages.showOkCancelDialog(
+            project, DIALOG_MESSAGE, DIALOG_TITLE,
+            Messages.getOkButton(), Messages.getCancelButton(), Messages.getInformationIcon()
+          )
+        ) {
+          addBuildFeature(module)
+          project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+        }
+      }
+      panel.createActionLabel("Hide notification") {
+        fileEditor.putUserData(HIDDEN_KEY, "true")
+        EditorNotifications.getInstance(project).updateNotifications(file)
+      }
+      return@Function panel
     }
-    panel.createActionLabel("Hide notification") {
-      fileEditor.putUserData(HIDDEN_KEY, "true")
-      EditorNotifications.getInstance(project).updateNotifications(file)
-    }
-    return panel
   }
 
   private fun addBuildFeature(module: Module) {
@@ -88,7 +89,8 @@ class BuildFeatureOffNotificationProvider : EditorNotificationProvider {
       moduleRoot = null
     )
     addBuildFeatureRecipe.render(
-      renderingContext, DefaultRecipeExecutor(renderingContext), TemplateRenderer.ML_MODEL_BINDING_FEATURE_OFF_NOTIFICATION)
+      renderingContext, DefaultRecipeExecutor(renderingContext), TemplateRenderer.ML_MODEL_BINDING_FEATURE_OFF_NOTIFICATION
+    )
   }
 
   companion object {

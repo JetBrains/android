@@ -1,6 +1,27 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT> (IdeBuildImpl)
-        buildName                     : :
+MODULE                        : project
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : project
+    LinkedProjectPath             : <ROOT>
+    RootProjectPath               : <ROOT>
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/build/classes/production/project [-]
+        compilerTestOutputPath        : file://<ROOT>/build/classes/test/project [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/.idea/modules/project.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>
+        EXCLUDE_FOLDER                : file://<ROOT>/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : ./app/libs/lib1-1.0.aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib1-1.0/aidl [-]
@@ -26,6 +47,7 @@ LIBRARY_TABLE
         artifactAddress               : com.example.libs:lib2:1.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/jars/classes.jar
+        component                     : com.example.libs:lib2:1.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/jni [-]
@@ -50,6 +72,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:appcompat-v7:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/jars/classes.jar
+        component                     : com.android.support:appcompat-v7:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-28.0.0/jni [-]
@@ -68,6 +91,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-fragment:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-fragment:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-28.0.0/jni [-]
@@ -86,6 +110,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:animated-vector-drawable:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/jars/classes.jar
+        component                     : com.android.support:animated-vector-drawable:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-28.0.0/jni [-]
@@ -104,6 +129,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-core-ui:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-core-ui:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-28.0.0/jni [-]
@@ -122,6 +148,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-core-utils:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-core-utils:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-28.0.0/jni [-]
@@ -140,6 +167,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-vector-drawable:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-vector-drawable:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-28.0.0/jni [-]
@@ -158,6 +186,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:loader:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/jars/classes.jar
+        component                     : com.android.support:loader:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-28.0.0/jni [-]
@@ -176,6 +205,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:viewpager:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/jars/classes.jar
+        component                     : com.android.support:viewpager:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-28.0.0/jni [-]
@@ -194,6 +224,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:coordinatorlayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:coordinatorlayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-28.0.0/jni [-]
@@ -212,6 +243,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:drawerlayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:drawerlayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-28.0.0/jni [-]
@@ -230,6 +262,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:slidingpanelayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:slidingpanelayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-28.0.0/jni [-]
@@ -248,6 +281,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:customview:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/jars/classes.jar
+        component                     : com.android.support:customview:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-28.0.0/jni [-]
@@ -266,6 +300,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:swiperefreshlayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:swiperefreshlayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-28.0.0/jni [-]
@@ -284,6 +319,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:asynclayoutinflater:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/jars/classes.jar
+        component                     : com.android.support:asynclayoutinflater:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-28.0.0/jni [-]
@@ -302,6 +338,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-compat:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-compat:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-28.0.0/jni [-]
@@ -320,6 +357,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:versionedparcelable:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/jars/classes.jar
+        component                     : com.android.support:versionedparcelable:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-28.0.0/jni [-]
@@ -338,6 +376,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:cursoradapter:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/jars/classes.jar
+        component                     : com.android.support:cursoradapter:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-28.0.0/jni [-]
@@ -356,6 +395,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:runtime:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:runtime:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jni [-]
@@ -374,6 +414,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:documentfile:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/jars/classes.jar
+        component                     : com.android.support:documentfile:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-28.0.0/jni [-]
@@ -392,6 +433,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:localbroadcastmanager:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/jars/classes.jar
+        component                     : com.android.support:localbroadcastmanager:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-28.0.0/jni [-]
@@ -410,6 +452,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:print:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/jars/classes.jar
+        component                     : com.android.support:print:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-28.0.0/jni [-]
@@ -428,6 +471,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:viewmodel:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:viewmodel:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-1.1.1/jni [-]
@@ -446,6 +490,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:livedata:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:livedata:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-1.1.1/jni [-]
@@ -464,6 +509,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:livedata-core:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:livedata-core:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-1.1.1/jni [-]
@@ -482,6 +528,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.core:runtime:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jars/classes.jar
+        component                     : android.arch.core:runtime:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-1.1.1/jni [-]
@@ -500,6 +547,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:interpolator:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/jars/classes.jar
+        component                     : com.android.support:interpolator:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/jni [-]
@@ -518,6 +566,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support.constraint:constraint-layout:1.1.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.1.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.1.0/jars/classes.jar
+        component                     : com.android.support.constraint:constraint-layout:1.1.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.1.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.1.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.1.0/jni [-]
@@ -533,24 +582,31 @@ LIBRARY_TABLE
     - library                     : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
         artifactAddress               : com.android.support:collections:28.0.0@jar
+        component                     : com.android.support:collections:28.0.0
     - library                     : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
         artifactAddress               : android.arch.lifecycle:common:1.1.1@jar
+        component                     : android.arch.lifecycle:common:1.1.1
     - library                     : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
         artifactAddress               : android.arch.core:common:1.1.1@jar
+        component                     : android.arch.core:common:1.1.1
     - library                     : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
         artifactAddress               : com.android.support:support-annotations:28.0.0@jar
+        component                     : com.android.support:support-annotations:28.0.0
     - library                     : com.android.support.constraint:constraint-layout-solver:1.1.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
         artifactAddress               : com.android.support.constraint:constraint-layout-solver:1.1.0@jar
+        component                     : com.android.support.constraint:constraint-layout-solver:1.1.0
     - library                     : com.example.jlib:lib3:1.0 (IdeJavaLibraryImpl)
         artifact                      : <DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar
         artifactAddress               : com.example.jlib:lib3:1.0@jar
+        component                     : com.example.jlib:lib3:1.0
     - library                     : com.example.jlib:lib4:1.0 (IdeJavaLibraryImpl)
         artifact                      : <DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar
         artifactAddress               : com.example.jlib:lib4:1.0@jar
+        component                     : com.example.jlib:lib4:1.0
     - library                     : <ROOT>::app@basicBarDebug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :app
@@ -562,6 +618,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support.test.espresso:espresso-core:3.0.2@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/jars/classes.jar
+        component                     : com.android.support.test.espresso:espresso-core:3.0.2
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.0.2/jni [-]
@@ -586,6 +643,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support.test:runner:1.0.2@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/jars/classes.jar
+        component                     : com.android.support.test:runner:1.0.2
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.0.2/jni [-]
@@ -604,6 +662,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support.test:monitor:1.0.2@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/jars/classes.jar
+        component                     : com.android.support.test:monitor:1.0.2
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.0.2/jni [-]
@@ -622,6 +681,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/jars/classes.jar
+        component                     : com.android.support.test.espresso:espresso-idling-resource:3.0.2
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.0.2/jni [-]
@@ -637,27 +697,35 @@ LIBRARY_TABLE
     - library                     : junit:junit:4.12 (IdeJavaLibraryImpl)
         artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
         artifactAddress               : junit:junit:4.12@jar
+        component                     : junit:junit:4.12
     - library                     : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-integration:1.3@jar
+        component                     : org.hamcrest:hamcrest-integration:1.3
     - library                     : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
+        component                     : org.hamcrest:hamcrest-library:1.3
     - library                     : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
+        component                     : org.hamcrest:hamcrest-core:1.3
     - library                     : net.sf.kxml:kxml2:2.3.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
         artifactAddress               : net.sf.kxml:kxml2:2.3.0@jar
+        component                     : net.sf.kxml:kxml2:2.3.0
     - library                     : com.squareup:javawriter:2.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
         artifactAddress               : com.squareup:javawriter:2.1.1@jar
+        component                     : com.squareup:javawriter:2.1.1
     - library                     : javax.inject:javax.inject:1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
         artifactAddress               : javax.inject:javax.inject:1@jar
+        component                     : javax.inject:javax.inject:1
     - library                     : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
         artifactAddress               : com.google.code.findbugs:jsr305:2.0.1@jar
+        component                     : com.google.code.findbugs:jsr305:2.0.1
     - library                     : <ROOT>::jav (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :jav
@@ -702,11 +770,15 @@ LIBRARY_TABLE
         artifactAddress               : __local_jars__:<ROOT>/jav/build/libs/jav.jar:unspecified
 MODULE                        : project
     externalProject               : project (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : project
         qName                         : project
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : project
@@ -1485,6 +1557,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             dyn_feature                   : :dyn_feature (DefaultExternalProject)
+                path                          : :dyn_feature [-]
+                identityPath                  : :dyn_feature [-]
                 name                          : dyn_feature
                 qName                         : :dyn_feature
                 group                         : project
@@ -1613,6 +1687,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             jav                           : :jav (DefaultExternalProject)
+                path                          : :jav [-]
+                identityPath                  : :jav [-]
                 name                          : jav
                 qName                         : :jav
                 group                         : project
@@ -1690,6 +1766,8 @@ MODULE                        : project
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
             lib                           : :lib (DefaultExternalProject)
+                path                          : :lib [-]
+                identityPath                  : :lib [-]
                 name                          : lib
                 qName                         : :lib
                 group                         : project
@@ -1824,6 +1902,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             nested1                       : :nested1 (DefaultExternalProject)
+                path                          : :nested1 [-]
+                identityPath                  : :nested1 [-]
                 name                          : nested1
                 qName                         : :nested1
                 group                         : project
@@ -1832,6 +1912,8 @@ MODULE                        : project
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 childProjects
                     deep                          : :nested1:deep (DefaultExternalProject)
+                        path                          : :nested1:deep [-]
+                        identityPath                  : :nested1:deep [-]
                         name                          : deep
                         qName                         : :nested1:deep
                         group                         : project.nested1
@@ -2093,6 +2175,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             nested2                       : :nested2 (DefaultExternalProject)
+                path                          : :nested2 [-]
+                identityPath                  : :nested2 [-]
                 name                          : nested2
                 qName                         : :nested2
                 group                         : project
@@ -2101,6 +2185,8 @@ MODULE                        : project
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 childProjects
                     deep                          : :nested2:deep (DefaultExternalProject)
+                        path                          : :nested2:deep [-]
+                        identityPath                  : :nested2:deep [-]
                         name                          : deep
                         qName                         : :nested2:deep
                         group                         : project.nested2
@@ -2235,12 +2321,16 @@ MODULE                        : project
                             testWearApp                   : <empty>
                             wearApp                       : <empty>
                     trans                         : :nested2:trans (DefaultExternalProject)
+                        path                          : :nested2:trans [-]
+                        identityPath                  : :nested2:trans [-]
                         name                          : trans
                         qName                         : :nested2:trans
                         group                         : project.nested2
                         version                       : unspecified
                         childProjects
                             deep2                         : :nested2:trans:deep2 (DefaultExternalProject)
+                                path                          : :nested2:trans:deep2 [-]
+                                identityPath                  : :nested2:trans:deep2 [-]
                                 name                          : deep2
                                 qName                         : :nested2:trans:deep2
                                 group                         : project.nested2.trans
@@ -2706,7 +2796,6 @@ MODULE                        : project.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -2715,6 +2804,8 @@ MODULE                        : project.app
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : true
     GroupId                       : project
+    Namespace                     : com.example.projectwithappandlib.app
+    TestNamespace                 : com.example.projectwithappandlib.app.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -2749,6 +2840,7 @@ MODULE                        : project.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : basicBarDebug
         applicationId                 : com.example.psd.sample.app.defaultSuffix.barSuffix
         testApplicationId             : com.example.psd.sample.app.default.test
@@ -3734,7 +3826,6 @@ MODULE                        : project.dyn_feature
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :dyn_feature
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
@@ -3743,6 +3834,8 @@ MODULE                        : project.dyn_feature
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.dyn_feature
+    TestNamespace                 : com.example.dyn_feature.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -3777,6 +3870,7 @@ MODULE                        : project.dyn_feature
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.dyn_feature.test
     - basicVariant:               : release
@@ -4052,7 +4146,6 @@ MODULE                        : project.lib
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :lib
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -4061,6 +4154,8 @@ MODULE                        : project.lib
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.projectwithappandlib.lib
+    TestNamespace                 : com.example.projectwithappandlib.lib.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -4095,6 +4190,7 @@ MODULE                        : project.lib
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.projectwithappandlib.lib.test
     - basicVariant:               : release
@@ -4555,7 +4651,6 @@ MODULE                        : project.nested1
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :nested1
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -4564,6 +4659,8 @@ MODULE                        : project.nested1
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.nested1
+    TestNamespace                 : com.example.nested1.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -4598,6 +4695,7 @@ MODULE                        : project.nested1
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested1.test
     - basicVariant:               : release
@@ -4857,7 +4955,6 @@ MODULE                        : project.nested1.deep
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :nested1:deep
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -4866,6 +4963,8 @@ MODULE                        : project.nested1.deep
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project.nested1
+    Namespace                     : com.example.nested1.deep
+    TestNamespace                 : com.example.nested1.deep.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -4900,6 +4999,7 @@ MODULE                        : project.nested1.deep
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested1.deep.test
     - basicVariant:               : release
@@ -5169,7 +5269,6 @@ MODULE                        : project.nested2
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :nested2
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -5178,6 +5277,8 @@ MODULE                        : project.nested2
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.nested2
+    TestNamespace                 : com.example.nested2.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -5212,6 +5313,7 @@ MODULE                        : project.nested2
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : basicDebug
         testApplicationId             : com.example.nested2.test
     - basicVariant:               : paidDebug
@@ -5603,7 +5705,6 @@ MODULE                        : project.nested2.deep
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :nested2:deep
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -5612,6 +5713,8 @@ MODULE                        : project.nested2.deep
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project.nested2
+    Namespace                     : com.example.nested2.deep
+    TestNamespace                 : com.example.nested2.deep.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -5646,6 +5749,7 @@ MODULE                        : project.nested2.deep
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested2.deep.test
     - basicVariant:               : release
@@ -5917,7 +6021,6 @@ MODULE                        : project.nested2.trans.deep2
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :nested2:trans:deep2
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -5926,6 +6029,8 @@ MODULE                        : project.nested2.trans.deep2
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project.nested2.trans
+    Namespace                     : com.example.nested2.trans.deep2
+    TestNamespace                 : com.example.nested2.trans.deep2.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -5960,6 +6065,7 @@ MODULE                        : project.nested2.trans.deep2
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.nested2.trans.deep2.test
     - basicVariant:               : release

@@ -97,7 +97,10 @@ object MaterialIconsUtils {
    * This should be used whenever we want to read or write material icons, since we rely on this consistency.
    */
   fun getIconFileNameWithoutExtension(iconName: String, styleName: String): String {
-    val familyPrefix = when (val family = styleName.toDirFormat().substringAfter("materialicons")) {
+    val family = styleName.toDirFormat()
+      .substringAfter("materialicons")
+      .substringAfter("materialsymbols")
+    val familyPrefix = when (family) {
       "" -> "baseline"
       "outlined" -> "outline"
       else -> family

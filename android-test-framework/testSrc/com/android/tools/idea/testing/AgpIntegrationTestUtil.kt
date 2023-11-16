@@ -15,21 +15,14 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter.Companion.configureNewProject
 import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
-import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.sdk.Jdks
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.runWriteActionAndWait
+import com.android.tools.idea.testing.JdkUtils.overrideProjectGradleJdkPathWithVersion
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdkVersion
-import com.intellij.openapi.projectRoots.ProjectJdkTable
-import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestBase
 
@@ -38,25 +31,10 @@ object AgpIntegrationTestUtil {
    * Imports `project`, syncs the project and checks the result.
    */
   @JvmStatic
-  fun importProject(project: Project, jdkVersion: JavaSdkVersion, testRootDisposable: Disposable) {
-    val jdkOverride: Sdk? = maybeCreateJdkOverride(jdkVersion)
-    if (jdkOverride != null) {
-      Disposer.register(testRootDisposable) {
-        runWriteActionAndWait {
-          ProjectJdkTable.getInstance().removeJdk(jdkOverride)
-        }
-      }
-    }
-
-    fun afterCreate(project: Project) {
-      if (jdkOverride != null) {
-        runWriteActionAndWait {
-          ProjectRootManager.getInstance(project).projectSdk = jdkOverride
-        }
-      }
-    }
-
-    GradleProjectImporter.withAfterCreate(afterCreate = ::afterCreate) {
+  fun importProject(project: Project, jdkVersion: JavaSdkVersion) {
+    GradleProjectImporter.withAfterCreate(
+      afterCreate = { overrideProjectGradleJdkPathWithVersion(Projects.getBaseDirPath(project), jdkVersion) }
+    ) {
       runInEdtAndWait {
         val request = GradleProjectImporter.Request(project)
         configureNewProject(project)
@@ -73,21 +51,5 @@ object AgpIntegrationTestUtil {
       }
       AndroidTestBase.refreshProjectFiles()
     }
-  }
-
-  private fun createEmbeddedJdkInstance(embeddedPath: String): Sdk? {
-    return Jdks.getInstance().createJdk(EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot(embeddedPath).toString())
-  }
-
-  internal fun maybeCreateJdkOverride(forVersion: JavaSdkVersion): Sdk? {
-    val jdkOverride = if (forVersion != IdeSdks.getInstance().jdk?.getJdkVersion()) {
-      when (forVersion) {
-        JavaSdkVersion.JDK_17 -> createEmbeddedJdkInstance("prebuilts/studio/jdk/jdk17")
-        JavaSdkVersion.JDK_11 -> createEmbeddedJdkInstance("prebuilts/studio/jdk/jdk11")
-        JavaSdkVersion.JDK_1_8 -> createEmbeddedJdkInstance("prebuilts/studio/jdk")
-        else -> error("Unsupported JavaSdkVersion: $forVersion")
-      }
-    } else null
-    return jdkOverride
   }
 }

@@ -19,7 +19,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
@@ -31,42 +31,49 @@ import org.mockito.Mockito.verify
 
 class TransportErrorListenerTest {
 
-  private val device1 = Common.Device.newBuilder()
-    .setDeviceId(1)
-    .setManufacturer("man1")
-    .setModel("mod1")
-    .setSerial("serial1")
-    .setIsEmulator(false)
-    .setApiLevel(1)
-    .setVersion("version1")
-    .setCodename("codename1")
-    .setState(Common.Device.State.ONLINE)
-    .build()
+  private val device1 =
+    Common.Device.newBuilder()
+      .setDeviceId(1)
+      .setManufacturer("man1")
+      .setModel("mod1")
+      .setSerial("serial1")
+      .setIsEmulator(false)
+      .setApiLevel(1)
+      .setVersion("version1")
+      .setCodename("codename1")
+      .setState(Common.Device.State.ONLINE)
+      .build()
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Test
   fun testErrorShowsBanner() {
-    val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
+    val notificationModel = NotificationModel(projectRule.project)
     val mockMetrics = mock<LayoutInspectorMetrics>()
-    val transportErrorListener = TransportErrorListener(projectRule.project, mockMetrics, disposableRule.disposable)
+    val transportErrorListener =
+      TransportErrorListener(
+        projectRule.project,
+        notificationModel,
+        mockMetrics,
+        disposableRule.disposable
+      )
 
     transportErrorListener.onStartTransportDaemonServerFail(device1, mock())
 
-    val notification1 = bannerService.notifications.single()
-    assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message("two.versions.of.studio.running"))
+    val notification1 = notificationModel.notifications.single()
+    assertThat(notification1.message)
+      .isEqualTo(LayoutInspectorBundle.message("two.versions.of.studio.running"))
     assertThat(notification1.actions).isEmpty()
-    verify(mockMetrics).logTransportError(
-      DynamicLayoutInspectorTransportError.Type.TRANSPORT_FAILED_TO_START_DAEMON,
-      device1.toDeviceDescriptor()
-    )
+    verify(mockMetrics)
+      .logTransportError(
+        DynamicLayoutInspectorTransportError.Type.TRANSPORT_FAILED_TO_START_DAEMON,
+        device1.toDeviceDescriptor()
+      )
 
     transportErrorListener.onPreTransportDaemonStart(mock())
 
-    assertThat(bannerService.notifications).isEmpty()
+    assertThat(notificationModel.notifications).isEmpty()
   }
 }

@@ -29,6 +29,10 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isMainModule
+import com.android.tools.idea.projectsystem.isTestFixturesModule
+import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -54,8 +58,17 @@ fun findAllLibrariesWithResources(project: Project): Map<String, ExternalAndroid
  * [ExternalAndroidLibrary.address] which is unique within a project.
  */
 fun findDependenciesWithResources(module: Module): Map<String, ExternalAndroidLibrary> {
-  return module.getModuleSystem()
-    .getAndroidLibraryDependencies(DependencyScopeType.MAIN)
+  val moduleSystem = module.getModuleSystem()
+  val dependencyScope = when {
+    moduleSystem.isRClassTransitive -> DependencyScopeType.MAIN
+    module.isMainModule() -> DependencyScopeType.MAIN
+    module.isUnitTestModule() -> DependencyScopeType.UNIT_TEST
+    module.isAndroidTestModule() -> DependencyScopeType.ANDROID_TEST
+    module.isTestFixturesModule() -> DependencyScopeType.TEST_FIXTURES
+    else -> DependencyScopeType.MAIN
+  }
+  return moduleSystem
+    .getAndroidLibraryDependencies(dependencyScope)
     .filter { it.hasResources }
     .associateBy { library -> library.address }
 }

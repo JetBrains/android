@@ -22,6 +22,8 @@ import com.android.tools.asdriver.tests.FileServer;
 import com.android.tools.asdriver.tests.MavenRepo;
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher;
 import com.android.tools.asdriver.tests.MemoryUsageReportProcessor;
+import com.intellij.openapi.util.SystemInfo;
+import java.nio.file.Path;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -51,6 +53,15 @@ public class CreateProjectTest {
     String distributionPath = "tools/external/gradle/";
     String localDistributionUrl = TestUtils.resolveWorkspacePathUnchecked(distributionPath).toUri().toString();
     system.getInstallation().addVmOption("-Dgradle.ide.local.distribution.url=" + localDistributionUrl);
+
+    // Prevent a "Trust project" dialog from appearing, which would prevent Gradle from syncing.
+    // This is only needed on macOS and only when running from IDEA.
+    //
+    // TODO(b/281094599): remove this code once the underlying bug is fixed.
+    if (SystemInfo.isMac && !TestUtils.runningFromBazel()) {
+      Path path = system.getInstallation().getWorkDir().getParent();
+      system.getInstallation().trustPath(path);
+    }
 
     // The New Project Wizard attempts to contact dl.google.com to ensure that the latest SDKs and
     // SDK components (e.g. build tools) are installed. If they AREN'T, then a download is

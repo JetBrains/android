@@ -26,6 +26,7 @@ import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.GradleVersion
+import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.File
 
@@ -34,8 +35,10 @@ internal class BuildInfo(
   buildMap: IdeCompositeBuildMap,
   val buildFolderPaths: BuildFolderPaths,
 ) {
-  val buildNameMap = buildMap.builds.associate { it.buildName to BuildId(it.buildId) }
-  val buildIdMap = buildMap.builds.associate { BuildId(it.buildId) to it.buildName }
+  /** Mapping from Gradle identity path to [BuildId]. */
+  val buildPathMap = buildMap.builds.associate { it.buildPath to BuildId(it.buildId) }
+  /** Mapping from [BuildId] to Gradle identity path. */
+  val buildIdMap = buildMap.builds.associate { BuildId(it.buildId) to it.buildPath }
 
   val rootBuild: GradleBuild = buildModels.first()
   val projects: Sequence<BasicGradleProject> = buildModels.asSequence().flatMap { it.projects.asSequence() }
@@ -86,7 +89,10 @@ internal class AndroidExtraModelProviderWorker(
               v2AndroidGradleModules
                 .all { canUseParallelSync(AgpVersion.tryParse(it.versions.agp), gradleVersion) }
 
-            val configuredSyncActionRunner = safeActionRunner.enableParallelFetchForV2Models(v2ModelBuildersSupportParallelSync)
+            val configuredSyncActionRunner = safeActionRunner.enableParallelFetchForV2Models(
+              v2ModelBuildersSupportParallelSync,
+              syncOptions.flags.studioFlagFetchKotlinModelsInParallel
+            )
 
             val models =
               SyncProjectActionWorker(buildInfo, syncCounters, syncOptions, configuredSyncActionRunner)
@@ -100,11 +106,18 @@ internal class AndroidExtraModelProviderWorker(
             models + StandaloneDeliverableModel.createModel(syncExecutionReport, buildInfo.rootBuild)
           }
           is NativeVariantsSyncActionOptions -> {
+            // Native sync may run with just a subset of resolvers, so make sure to fetch  IdeaProject and ExternalProject directly
             consumer.consume(
               buildInfo.rootBuild,
               // TODO(b/215344823): Idea parallel model fetching is broken for now, so we need to request it sequentially.
               safeActionRunner.runAction { controller -> controller.getModel(IdeaProject::class.java) },
               IdeaProject::class.java
+            )
+            consumer.consume(
+              buildInfo.rootBuild,
+              // TODO(b/215344823): Idea parallel model fetching is broken for now, so we need to request it sequentially.
+              safeActionRunner.runAction { controller -> controller.getModel(ExternalProject::class.java) },
+              ExternalProject::class.java
             )
             NativeVariantsSyncActionWorker(buildInfo, syncOptions, safeActionRunner).fetchNativeVariantsAndroidModels()
           }
@@ -131,7 +144,7 @@ internal class AndroidExtraModelProviderWorker(
     return safeActionRunner.runActions(
       buildInfo.projects.map { gradleProject ->
         val buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir)
-        val buildName = buildInfo.buildIdMap[buildId] ?: error("Build not found: $buildId \n" +
+        val buildPath = buildInfo.buildIdMap[buildId] ?: error("Build not found: $buildId \n" +
                                                                "available builds ${buildInfo.buildIdMap}")
         ActionToRun(
           fun(controller: BuildController): BasicIncompleteGradleModule {
@@ -141,7 +154,7 @@ internal class AndroidExtraModelProviderWorker(
               val versions = controller.findNonParameterizedV2Model(gradleProject, Versions::class.java)
               if (versions != null && canFetchV2Models(AgpVersion.tryParse(versions.agp))) {
                 // This means we can request V2.
-                return BasicV2AndroidModuleGradleProject(gradleProject, buildName, versions, syncOptions)
+                return BasicV2AndroidModuleGradleProject(gradleProject, buildPath, versions, syncOptions)
               }
             }
             // We cannot request V2 models.
@@ -151,11 +164,11 @@ internal class AndroidExtraModelProviderWorker(
             if (legacyV1AgpVersionModel != null)
               return BasicV1AndroidModuleGradleProject(
                 gradleProject,
-                buildName,
+                buildPath,
                 legacyV1AgpVersionModel
               )
 
-            return BasicNonAndroidIncompleteGradleModule(gradleProject, buildName) // Check here tha Version does not return anything.
+            return BasicNonAndroidIncompleteGradleModule(gradleProject, buildPath) // Check here tha Version does not return anything.
           },
           fetchesV2Models = true,
           fetchesV1Models = true
@@ -168,7 +181,7 @@ internal class AndroidExtraModelProviderWorker(
 private fun verifyIncompatibleAgpVersionsAreNotUsedOrFailSync(modules: List<BasicIncompleteGradleModule>) {
   val agpVersionsAndGradleBuilds = modules
     .filterIsInstance<BasicIncompleteAndroidModule>()
-    .map { it.agpVersion to it.buildName }
+    .map { it.agpVersion to it.buildPath }
   // Fail Sync if we do not use the same AGP version across all the android projects.
   if (agpVersionsAndGradleBuilds.isNotEmpty() && agpVersionsAndGradleBuilds.map { it.first }.distinct().singleOrNull() == null)
     throw AgpVersionsMismatch(agpVersionsAndGradleBuilds)

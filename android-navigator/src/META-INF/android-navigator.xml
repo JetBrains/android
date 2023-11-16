@@ -17,6 +17,10 @@
 
   <depends>org.intellij.intelliLang</depends>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
+  </extensions>
+
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.navigator.androidViewNodeProvider"
                     interface="com.android.tools.idea.navigator.nodes.AndroidViewNodeProvider"/>

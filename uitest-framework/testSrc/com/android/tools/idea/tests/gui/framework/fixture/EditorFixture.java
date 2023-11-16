@@ -260,6 +260,16 @@ public class EditorFixture {
   }
 
   /**
+   * Replace current editor text by the given text. The method is similar to replaceText, but will not be selecting Tab editor for files like MainActivity.java as Select Tab option is not available.
+   *
+   * @param text the text to paste at the current editor position
+   */
+  public EditorFixture replaceFileContents(@NotNull String text) {
+    invokeAction(EditorFixture.EditorAction.SELECT_ALL);
+    return pasteText(text);
+  }
+
+  /**
    * Enter the given text into the editor. Types short strings, pastes longer ones to save time. Most fixtures or tests that enter
    * text into the editor should use this method. If there's a good reason to force one mode of entry or the other, use typeText or
    * pasteText as appropriate.
@@ -816,7 +826,7 @@ public class EditorFixture {
       myFrame.invokeMenuPath("View", "Tool Windows", VisualizationToolWindowFactory.TOOL_WINDOW_ID);
     }
 
-    Wait.seconds(20).expecting("Visualization window to be visible").until(() -> isVisualizationToolShowing());
+    Wait.seconds(30).expecting("Visualization window to be visible").until(() -> isVisualizationToolShowing());
 
     return new VisualizationFixture(myFrame.getProject(), myFrame.robot());
   }
@@ -927,6 +937,7 @@ public class EditorFixture {
     DOWN("EditorDown"),
     ESCAPE("EditorEscape"),
     GOTO_DECLARATION("GotoDeclaration"),
+    FIND_USAGES("FindUsages"),
     GOTO_IMPLEMENTATION("GotoImplementation"),
     SAVE("SaveAll"),
     SELECT_ALL("$SelectAll"),

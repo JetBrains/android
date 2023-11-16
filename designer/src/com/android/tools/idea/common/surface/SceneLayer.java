@@ -19,11 +19,15 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.Display;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.geom.Rectangle2D;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-import java.awt.geom.Rectangle2D;
 
 /**
  * Basic display layer for Scene
@@ -64,13 +68,12 @@ public class SceneLayer extends Layer {
    */
   @Override
   public void paint(@NotNull Graphics2D g2) {
-    SceneContext sceneContext = SceneContext.get(mySceneView);
+    SceneContext sceneContext = mySceneView.getContext();
     if (!myTemporaryShow && !myShowOnHover && !myShowAlways && !myAlwaysShowSelection) {
       return;
     }
-    if (!myShowAlways && getSceneView().getSurface() instanceof NlDesignSurface) {
-      NlDesignSurface designSurface = (NlDesignSurface) getSceneView().getSurface();
-      if (designSurface.isRenderingSynchronously() && !designSurface.isInAnimationScrubbing()) {
+    if (!myShowAlways && myDesignSurface instanceof NlDesignSurface nlSurface) {
+      if (nlSurface.isRenderingSynchronously() && !nlSurface.isInAnimationScrubbing()) {
         return;
       }
     }
@@ -94,11 +97,8 @@ public class SceneLayer extends Layer {
       }
 
       // When screen rotation feature is enabled, we want to hide the relevant drawings.
-      DesignSurface<?> sufrace = mySceneView.getSurface();
-      if (sufrace instanceof NlDesignSurface) {
-        NlDesignSurface nlSurface = (NlDesignSurface)sufrace;
-        float degree = nlSurface.getRotateSurfaceDegree();
-        if (!Float.isNaN(degree)) {
+      if (myDesignSurface instanceof NlDesignSurface nlSurface) {
+        if (nlSurface.isRotating()) {
           return;
         }
       }

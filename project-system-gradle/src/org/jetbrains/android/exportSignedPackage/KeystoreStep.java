@@ -7,6 +7,7 @@ import static icons.StudioIcons.Common.WARNING_INLINE;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
+import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.google.common.annotations.VisibleForTesting;
@@ -41,6 +42,7 @@ import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -167,6 +169,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     mySelection = null;
     myModuleCombo.setEnabled(facets.size() > 1);
     if (!facets.isEmpty()) {
+      facets.sort(Comparator.comparing(AndroidFacet::getModule, ModuleTypeComparator.INSTANCE));
       // If the selected module is not available, just pick the first item in the list
       String savedModuleName = PropertiesComponent.getInstance(myWizard.getProject()).getValue(getModuleProperty(myIsBundle));
       Optional<AndroidFacet> optionalFacet = facets.stream()

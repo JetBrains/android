@@ -27,6 +27,9 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -42,9 +45,6 @@ import javax.swing.KeyStroke
 import javax.swing.SwingConstants
 import javax.swing.border.EmptyBorder
 import kotlin.math.max
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 const val MIN_GAP_BETWEEN_LABELS = 50
 

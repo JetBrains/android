@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
-import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
+import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -33,15 +32,17 @@ import javax.swing.JSlider
 private const val SLIDER_KEY = "SliderKey"
 const val INITIAL_ALPHA_PERCENT = 60
 
-object AlphaSliderAction : AnAction(), CustomComponentAction {
+class AlphaSliderAction(private val renderModelProvider: () -> RenderModel) :
+  AnAction(), CustomComponentAction {
   override fun actionPerformed(event: AnActionEvent) {
-    val component = event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) ?: return
+    val component =
+      event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) ?: return
     val slider = component.getClientProperty(SLIDER_KEY) as JSlider
     // The event for Custom components actions are constructed differently than normal actions.
-    // If this action is shown in a popup toolbar (when there is not enough space to show the whole toolbar in-place),
+    // If this action is shown in a popup toolbar (when there is not enough space to show the whole
+    // toolbar in-place),
     // go through the action toolbar data context to find the model.
-    val model = ActionToolbar.getDataContextFor(component).getData(DEVICE_VIEW_MODEL_KEY)
-    model?.overlayAlpha = slider.value / 100.0f
+    renderModelProvider().overlayAlpha = slider.value / 100.0f
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
@@ -50,7 +51,9 @@ object AlphaSliderAction : AnAction(), CustomComponentAction {
     val slider = JSlider(JSlider.HORIZONTAL, 0, 100, INITIAL_ALPHA_PERCENT)
     slider.addChangeListener {
       val dataContext = DataManager.getInstance().getDataContext(slider)
-      actionPerformed(AnActionEvent.createFromDataContext(ActionPlaces.TOOLBAR, presentation, dataContext))
+      actionPerformed(
+        AnActionEvent.createFromDataContext(ActionPlaces.TOOLBAR, presentation, dataContext)
+      )
     }
     panel.add(slider)
     panel.putClientProperty(SLIDER_KEY, slider)
@@ -58,7 +61,7 @@ object AlphaSliderAction : AnAction(), CustomComponentAction {
   }
 
   override fun update(e: AnActionEvent) {
-    val hasOverlay = (e.getData(DEVICE_VIEW_MODEL_KEY)?.overlay != null)
+    val hasOverlay = (renderModelProvider().overlay != null)
     e.presentation.isVisible = hasOverlay
   }
 }

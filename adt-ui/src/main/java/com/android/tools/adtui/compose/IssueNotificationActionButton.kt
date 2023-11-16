@@ -36,7 +36,7 @@ class IssueNotificationActionButton(val action: IssueNotificationAction, present
   private val actionPresentation: ComposeStatus.Presentation?
     get() = myPresentation.getClientProperty(ComposeStatus.PRESENTATION)
 
-  private val textPosition: Int
+  val textPosition: Int
     get() = myPresentation.getClientProperty(ComposeStatus.TEXT_POSITION) ?: SwingConstants.LEADING
 
   private val font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)

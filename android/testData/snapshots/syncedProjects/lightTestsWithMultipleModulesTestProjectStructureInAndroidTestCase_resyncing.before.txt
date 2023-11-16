@@ -11,12 +11,10 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         ModuleFile                    : <TEMP>/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<TEMP>
-            EXCLUDE_FOLDER                : file://<TEMP>/.gradle [-]
+            EXCLUDE_FOLDER                : file://<TEMP>/.gradle
             EXCLUDE_FOLDER                : file://<TEMP>/build [-]
-        JDK                           : <NAME_CUT> Android SDK
-        *isInherited                  : false
-            SdkType                       : Android SDK
-            HomePath                      : <ANDROID_SDK>
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All

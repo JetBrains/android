@@ -21,8 +21,5 @@ import org.junit.runner.RunWith;
 
 @SuppressWarnings("JUnitTestClassNamingConvention")
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses({
-  SdkUpdaterTestSuite.class
-})
 public class SdkUpdaterTestSuite extends IdeaTestSuiteBase {
 }

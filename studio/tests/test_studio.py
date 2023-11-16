@@ -1,3 +1,4 @@
+import io
 import os
 import re
 import unittest
@@ -35,7 +36,7 @@ class StudioTests(unittest.TestCase):
     for platform in PLATFORMS:
       i = 0
       while i < len(actual[platform]) and i < len(expected[platform]):
-        self.assertEqual(actual[platform][i], expected[platform][i], "#%d - Expected \"%s\", got \"%s\"" % (i, expected[platform][i], actual[platform][i]))
+        self.assertEqual(actual[platform][i], expected[platform][i], "Platform %s #%d - Expected \"%s\", got \"%s\"" % (platform, i, expected[platform][i], actual[platform][i]))
         i += 1
       self.assertEqual(i, len(expected[platform]), "Expected item did not appear")
       self.assertEqual(i, len(actual[platform]), "Unexpected item")
@@ -142,7 +143,7 @@ class StudioTests(unittest.TestCase):
           self.assertFalse(f.external_attr == 0x1ED0000, "studio should be \"-rwxr-xr-x\"")
           self.assertFalse(is_symlink, f.filename + " should not be a symlink")
         elif f.filename.endswith(".app/Contents/Info.plist"):
-          self.assertTrue(f.external_attr == 0x81B40000, "Info.plist should be \"-rw-r--r--\"")
+          self.assertTrue(f.external_attr == 0x81B40000, "Info.plist should be 0x81B40000 \"-rw-rw-r--\" but is (%x)" % f.external_attr)
         else:
           self.assertFalse(f.external_attr == 0, "Unix attributes are missing from the entry")
           self.assertFalse(is_symlink, f.filename + " should not be a symlink")
@@ -162,6 +163,20 @@ class StudioTests(unittest.TestCase):
     with zipfile.ZipFile(name) as mac_zip:
       kotlin_plugin_count = sum(name.endswith("kotlin-plugin.jar") for name in mac_zip.namelist())
       self.assertEqual(kotlin_plugin_count, 1)
+
+  def test_android_plugin_version(self):
+    # Motive: we used to have a custom stamping, let's make sure it's not there anymore.
+    name = "tools/adt/idea/studio/android-studio.linux.zip"
+    with zipfile.ZipFile(name, "r") as linux_zip:
+      android_jar = linux_zip.read("android-studio/plugins/android/lib/android.jar")
+      build_txt = linux_zip.read("android-studio/build.txt").decode("utf-8")
+      version = build_txt[3:] # remove AI-
+      with zipfile.ZipFile(io.BytesIO(android_jar), "r") as jar:
+        xml = jar.read("META-INF/plugin.xml")
+        m = re.search("<version>(.*)</version>", xml.decode("utf-8"))
+        if not m:
+          self.fail("Android's plugin.xml does not contain a version tag")
+        self.assertEquals(version, m.group(1))
 
 if __name__ == "__main__":
   unittest.main()

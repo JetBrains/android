@@ -1,17 +1,8 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 
-common_data = select({
-    "@platforms//os:linux": [
-        "//tools/adt/idea/studio:android-studio.linux.zip",
-    ],
-    "@platforms//os:macos": [
-        "//tools/adt/idea/studio:android-studio.mac.zip",
-    ],
-    "@platforms//os:windows": [
-        "//tools/adt/idea/studio:android-studio.win.zip",
-    ],
-}) + [
+common_data = [
     ":sdkindexapp",
     ":sdkindexproject_deps",
     ":sdkindexsnapshot",
@@ -19,17 +10,7 @@ common_data = select({
     "//tools/base/build-system:gradle-distrib-7.3.3",
 ]
 
-old_project_app_data = select({
-    "@platforms//os:linux": [
-        "//tools/adt/idea/studio:android-studio.linux.zip",
-    ],
-    "@platforms//os:macos": [
-        "//tools/adt/idea/studio:android-studio.mac.zip",
-    ],
-    "@platforms//os:windows": [
-        "//tools/adt/idea/studio:android-studio.win.zip",
-    ],
-}) + [
+old_project_app_data = [
     ":oldprojectapp",
     ":oldprojectapp_deps",
     "//prebuilts/studio/jdk/jdk11",
@@ -57,7 +38,7 @@ iml_module(
     ],
 )
 
-iml_test(
+iml_studio_test(
     name = "PolicyIssuesPsdTest",
     timeout = "long",
     data = common_data,
@@ -69,7 +50,7 @@ iml_test(
     test_class = "com.android.tools.idea.projectsystem.gradle.PolicyIssuesPsdTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "SdkIndexLintTest",
     timeout = "long",
     data = common_data,
@@ -81,7 +62,7 @@ iml_test(
     test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexLintTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "SdkIndexPsdTest",
     timeout = "long",
     data = common_data,
@@ -93,7 +74,7 @@ iml_test(
     test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexPsdTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "OldProjectAppTest",
     timeout = "long",
     data = old_project_app_data,
@@ -110,10 +91,10 @@ maven_repository(
     # keep sorted: for buildifier
     artifacts = [
         "@maven//:com.android.tools.build.gradle_7.1.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.8.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
     ],

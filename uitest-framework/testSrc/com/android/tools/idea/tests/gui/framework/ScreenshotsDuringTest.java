@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import static com.intellij.openapi.util.io.FileUtil.ensureExists;
-
 import com.intellij.openapi.util.io.FileUtilRt;
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 
 /**
  * Rule that takes a screenshot at certain intervals (default 100ms)

@@ -65,15 +65,12 @@ import javax.swing.event.ChangeListener
 private const val UPDATE_QUEUE_NAME = "propertysheet"
 private const val UPDATE_DELAY_MILLI_SECONDS = 250
 
-/**
- * [PropertiesModel] for Nele design surface properties.
- */
+/** [PropertiesModel] for Nele design surface properties. */
 open class NlPropertiesModel(
   parentDisposable: Disposable,
   val provider: PropertiesProvider,
   val facet: AndroidFacet,
-  @get:VisibleForTesting
-  val updateQueue: MergingUpdateQueue,
+  @get:VisibleForTesting val updateQueue: MergingUpdateQueue,
   private val updateOnComponentSelectionChanges: Boolean
 ) : PropertiesModel<NlPropertyItem>, Disposable {
   val project: Project = facet.module.project
@@ -82,34 +79,56 @@ open class NlPropertiesModel(
   private val listeners: MutableList<PropertiesModelListener<NlPropertyItem>> = mutableListOf()
   private val designSurfaceListener = PropertiesDesignSurfaceListener()
   private val modelListener = NlModelListener()
-  private val accessoryPanelListener = AccessoryPanelListener { panel: AccessoryPanelInterface? -> usePanel(panel) }
-  private val accessorySelectionListener = AccessorySelectionListener { panel, type, accessory, selection ->
-    handlePanelSelectionUpdate(panel, type, accessory, selection)
+  private val accessoryPanelListener = AccessoryPanelListener { panel: AccessoryPanelInterface? ->
+    usePanel(panel)
   }
+  private val accessorySelectionListener =
+    AccessorySelectionListener { panel, type, accessory, selection ->
+      handlePanelSelectionUpdate(panel, type, accessory, selection)
+    }
   private val renderListener = RenderListener { handleRenderingCompleted() }
   private var activeSurface: DesignSurface<*>? = null
   private var activeSceneView: SceneView? = null
   private var activePanel: AccessoryPanelInterface? = null
   protected var defaultValueProvider: DefaultPropertyValueProvider? = null
   private val liveComponents = mutableListOf<NlComponent>()
-  private val liveChangeListener: ChangeListener = ChangeListener { firePropertyValueChangeIfNeeded() }
+  private val liveChangeListener: ChangeListener = ChangeListener {
+    firePropertyValueChangeIfNeeded()
+  }
 
-  constructor(parentDisposable: Disposable, facet: AndroidFacet, updateQueue: MergingUpdateQueue) :
-    this(parentDisposable, NlPropertiesProvider(facet), facet, updateQueue, true)
+  constructor(
+    parentDisposable: Disposable,
+    facet: AndroidFacet,
+    updateQueue: MergingUpdateQueue
+  ) : this(parentDisposable, NlPropertiesProvider(facet), facet, updateQueue, true)
 
-  constructor(parentDisposable: Disposable, facet: AndroidFacet) :
-    this(parentDisposable, facet, MergingUpdateQueue(UPDATE_QUEUE_NAME, UPDATE_DELAY_MILLI_SECONDS, true, null, parentDisposable, null,
-                                                     Alarm.ThreadToUse.SWING_THREAD))
+  constructor(
+    parentDisposable: Disposable,
+    facet: AndroidFacet
+  ) : this(
+    parentDisposable,
+    facet,
+    MergingUpdateQueue(
+      UPDATE_QUEUE_NAME,
+      UPDATE_DELAY_MILLI_SECONDS,
+      true,
+      null,
+      parentDisposable,
+      null,
+      Alarm.ThreadToUse.SWING_THREAD
+    )
+  )
 
   var surface: DesignSurface<*>?
     get() = activeSurface
     set(value) = useDesignSurface(value)
 
-  /**
-   * If true the value in an editor should show the resolved value of a property.
-   */
+  val selection: List<NlComponent>
+    get() = surface?.selectionModel?.selection ?: emptyList()
+
+  /** If true the value in an editor should show the resolved value of a property. */
   var showResolvedValues = false
-    set (value) {
+    set(value) {
       field = value
       firePropertyValueChangeIfNeeded()
     }
@@ -123,8 +142,7 @@ open class NlPropertiesModel(
     protected set
 
   init {
-    @Suppress("LeakingThis")
-    Disposer.register(parentDisposable, this)
+    @Suppress("LeakingThis") Disposer.register(parentDisposable, this)
   }
 
   override fun dispose() {
@@ -178,43 +196,60 @@ open class NlPropertiesModel(
     if (property.project.isDisposed || property.components.isEmpty()) {
       return
     }
-    val componentName = if (property.components.size == 1) property.components[0].tagName else "Multiple"
+    val componentName =
+      if (property.components.size == 1) property.components[0].tagName else "Multiple"
 
     @Suppress("DEPRECATION")
-    property.components.forEach { it.snapshot?.setAttribute(property.name, property.namespace, null, newValue) }
+    property.components.forEach {
+      it.snapshot?.setAttribute(property.name, property.namespace, null, newValue)
+    }
 
-
-    ApplicationManager.getApplication().invokeLater({
-      NlWriteCommandActionUtil.run(property.components, "Set $componentName.${property.name} to $newValue") {
-        property.components.forEach { it.setAttribute(property.namespace, property.name, newValue) }
-        val compatibleAttribute = compatibleMarginAttribute(property)
-        if (compatibleAttribute != null) {
-          property.components.forEach { it.setAttribute(property.namespace, compatibleAttribute, newValue) }
-        }
-        logPropertyValueChanged(property)
-        if (property.namespace == TOOLS_URI) {
-          if (newValue != null) {
-            // A tools property may not be in the current set of possible properties. So add it now:
-            if (properties.isEmpty) {
-              properties = provider.createEmptyTable()
+    ApplicationManager.getApplication()
+      .invokeLater(
+        {
+          NlWriteCommandActionUtil.run(
+            property.components,
+            "Set $componentName.${property.name} to $newValue"
+          ) {
+            property.components.forEach {
+              it.setAttribute(property.namespace, property.name, newValue)
             }
-            properties.put(property)
-          }
+            val compatibleAttribute = compatibleMarginAttribute(property)
+            if (compatibleAttribute != null) {
+              property.components.forEach {
+                it.setAttribute(property.namespace, compatibleAttribute, newValue)
+              }
+            }
+            logPropertyValueChanged(property)
+            if (property.namespace == TOOLS_URI) {
+              if (newValue != null) {
+                // A tools property may not be in the current set of possible properties. So add it
+                // now:
+                if (properties.isEmpty) {
+                  properties = provider.createEmptyTable()
+                }
+                properties.put(property)
+              }
 
-          if (property.name == ATTR_PARENT_TAG) {
-            // When the "parentTag" attribute is set on a <merge> tag,
-            // we may have a different set of available properties available,
-            // since the attributes of the "parentTag" are included if set.
-            firePropertiesGenerated()
+              if (property.name == ATTR_PARENT_TAG) {
+                // When the "parentTag" attribute is set on a <merge> tag,
+                // we may have a different set of available properties available,
+                // since the attributes of the "parentTag" are included if set.
+                firePropertiesGenerated()
+              }
+            }
           }
-        }
-      }
-    }, { Disposer.isDisposed(this) })
+        },
+        { Disposer.isDisposed(this) }
+      )
   }
 
   private fun compatibleMarginAttribute(property: NlPropertyItem): String? {
-    if (property.namespace != ANDROID_URI ||
-        StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel >= RtlSupportProcessor.RTL_TARGET_SDK_START) {
+    if (
+      property.namespace != ANDROID_URI ||
+        StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel >=
+          RtlSupportProcessor.RTL_TARGET_SDK_START
+    ) {
       return null
     }
     return when (property.name) {
@@ -241,10 +276,8 @@ open class NlPropertiesModel(
   private fun makeInitialSelection(surface: DesignSurface<*>?, panel: AccessoryPanelInterface?) {
     if (panel != null) {
       panel.requestSelection()
-    }
-    else if (surface != null) {
-      val newSelection: List<NlComponent> = activeSceneView?.selectionModel?.selection ?: emptyList()
-      designSurfaceListener.componentSelectionChanged(surface, newSelection)
+    } else if (surface != null) {
+      designSurfaceListener.componentSelectionChanged(surface, selection)
     }
   }
 
@@ -271,7 +304,10 @@ open class NlPropertiesModel(
     }
   }
 
-  private fun setAccessorySelectionListener(old: AccessoryPanelInterface?, new: AccessoryPanelInterface?) {
+  private fun setAccessorySelectionListener(
+    old: AccessoryPanelInterface?,
+    new: AccessoryPanelInterface?
+  ) {
     old?.removeListener(accessorySelectionListener)
     new?.addListener(accessorySelectionListener)
   }
@@ -284,15 +320,18 @@ open class NlPropertiesModel(
     components: List<NlComponent>
   ) {
     updateLiveListeners(Collections.emptyList())
-    updateQueue.queue(object : Update(updateIdentity) {
-      override fun run() {
-        handleSelectionUpdate(surface, panel, type, accessory, components)
+    updateQueue.queue(
+      object : Update(updateIdentity) {
+        override fun run() {
+          handleSelectionUpdate(surface, panel, type, accessory, components)
+        }
       }
-    })
+    )
   }
 
   private fun getRootComponent(surface: DesignSurface<*>?): List<NlComponent> {
-    return surface?.models?.singleOrNull()?.components?.singleOrNull()?.let {listOf(it)} ?: return emptyList()
+    return surface?.models?.singleOrNull()?.components?.singleOrNull()?.let { listOf(it) }
+      ?: return emptyList()
   }
 
   protected open fun wantSelectionUpdate(
@@ -304,11 +343,11 @@ open class NlPropertiesModel(
     selectedAccessory: Any?
   ): Boolean {
     return surface != null &&
-           surface == activeSurface &&
-           accessoryPanel == accessoryPanel &&
-           selectedAccessoryType == null &&
-           selectedAccessory == null &&
-           !facet.isDisposed
+      surface == activeSurface &&
+      accessoryPanel == accessoryPanel &&
+      selectedAccessoryType == null &&
+      selectedAccessory == null &&
+      !facet.isDisposed
   }
 
   private fun handleSelectionUpdate(
@@ -320,7 +359,9 @@ open class NlPropertiesModel(
   ) {
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
-    val wantUpdate = { wantSelectionUpdate(surface, activeSurface, panel, activePanel, type, accessory) }
+    val wantUpdate = {
+      wantSelectionUpdate(surface, activeSurface, panel, activePanel, type, accessory)
+    }
     loadProperties(type, accessory, components, wantUpdate)
   }
 
@@ -345,12 +386,32 @@ open class NlPropertiesModel(
     selectedAccessory: Any?,
     components: List<NlComponent>
   ) {
-    if (wantSelectionUpdate(activeSurface, activeSurface, panel, activePanel, selectedAccessoryType, selectedAccessory)) {
-      scheduleSelectionUpdate(activeSurface, panel, selectedAccessoryType, selectedAccessory, components)
+    if (
+      wantSelectionUpdate(
+        activeSurface,
+        activeSurface,
+        panel,
+        activePanel,
+        selectedAccessoryType,
+        selectedAccessory
+      )
+    ) {
+      scheduleSelectionUpdate(
+        activeSurface,
+        panel,
+        selectedAccessoryType,
+        selectedAccessory,
+        components
+      )
     }
   }
 
-  protected open fun loadProperties(type: Any?, accessory: Any?, components: List<NlComponent>, wantUpdate: () -> Boolean) {
+  protected open fun loadProperties(
+    type: Any?,
+    accessory: Any?,
+    components: List<NlComponent>,
+    wantUpdate: () -> Boolean
+  ) {
     if (!wantUpdate()) {
       return
     }
@@ -360,22 +421,21 @@ open class NlPropertiesModel(
       defaultValueProvider?.clearCache()
       newProperties
     }
-    val notifyUI = Consumer<PropertiesTable<NlPropertyItem>> { newProperties ->
-      try {
-        if (wantUpdate()) {
-          updateLiveListeners(components)
-          properties = newProperties
-          defaultValueProvider = createDefaultPropertyValueProvider()
-          firePropertiesGenerated()
+    val notifyUI =
+      Consumer<PropertiesTable<NlPropertyItem>> { newProperties ->
+        try {
+          if (wantUpdate()) {
+            updateLiveListeners(components)
+            properties = newProperties
+            defaultValueProvider = createDefaultPropertyValueProvider()
+            firePropertiesGenerated()
+          }
+        } finally {
+          updateCount++
+          lastUpdateCompleted = true
         }
       }
-      finally {
-        updateCount++
-        lastUpdateCompleted = true
-      }
-    }
-    ReadAction
-      .nonBlocking(getProperties)
+    ReadAction.nonBlocking(getProperties)
       .inSmartMode(project)
       .expireWith(this)
       .finishOnUiThread(ModalityState.defaultModalityState(), notifyUI)
@@ -397,7 +457,7 @@ open class NlPropertiesModel(
   }
 
   fun firePropertyValueChangeIfNeeded() {
-    val components = activeSurface?.selectionModel?.selection ?: return
+    val components = selection
     if (components.isEmpty() || !sameAsTheCurrentLiveListeners(components)) {
       // If there are no components currently selected, there is nothing to update.
       // If the currently selected components are different from the components being shown,
@@ -417,15 +477,25 @@ open class NlPropertiesModel(
     val tag = property.firstTag ?: return
     val resourceReference = property.resolveValueAsReference(property.value) ?: return
     val folderConfiguration = property.getFolderConfiguration() ?: return
-    val targetElement = ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(resourceReference, tag, folderConfiguration) ?: return
+    val targetElement =
+      ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(
+        resourceReference,
+        tag,
+        folderConfiguration
+      )
+        ?: return
     if (targetElement is Navigatable) {
       targetElement.navigate(true)
     }
   }
 
   private inner class PropertiesDesignSurfaceListener : DesignSurfaceListener {
-    override fun componentSelectionChanged(surface: DesignSurface<*>, newSelection: List<NlComponent>) {
-      val displayedComponents = if (newSelection.isNotEmpty()) newSelection else getRootComponent(surface)
+    override fun componentSelectionChanged(
+      surface: DesignSurface<*>,
+      newSelection: List<NlComponent>
+    ) {
+      val displayedComponents =
+        if (newSelection.isNotEmpty()) newSelection else getRootComponent(surface)
       if (activePanel == null && !sameAsTheCurrentLiveListeners(displayedComponents)) {
         scheduleSelectionUpdate(surface, null, null, null, displayedComponents)
       }
@@ -434,12 +504,14 @@ open class NlPropertiesModel(
 
   private inner class NlModelListener : ModelListener {
     override fun modelDerivedDataChanged(model: NlModel) {
-      // Move the handling onto the event dispatch thread in case this notification is sent from a different thread:
+      // Move the handling onto the event dispatch thread in case this notification is sent from a
+      // different thread:
       ApplicationManager.getApplication().invokeLater { firePropertyValueChangeIfNeeded() }
     }
 
     override fun modelLiveUpdate(model: NlModel, animate: Boolean) {
-      // Move the handling onto the event dispatch thread in case this notification is sent from a different thread:
+      // Move the handling onto the event dispatch thread in case this notification is sent from a
+      // different thread:
       ApplicationManager.getApplication().invokeLater { firePropertyValueChangeIfNeeded() }
     }
   }

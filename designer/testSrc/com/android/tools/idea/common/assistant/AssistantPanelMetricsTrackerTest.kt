@@ -19,18 +19,19 @@ import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelAction
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelType
 import org.jetbrains.android.AndroidTestCase
-import kotlin.test.assertNotEquals
+import org.junit.Assert.assertNotEquals
 
 class AssistantPanelMetricsTrackerTest : AndroidTestCase() {
 
   fun testLogOpen() {
     var eventBuilder: DesignEditorHelpPanelEvent.Builder? = null
     val type = HelpPanelType.FULL_ALL
-    val metric = object : AssistantPanelMetricsTracker(type) {
-      override fun logEvent(event: DesignEditorHelpPanelEvent.Builder) {
-        eventBuilder = event
+    val metric =
+      object : AssistantPanelMetricsTracker(type) {
+        override fun logEvent(event: DesignEditorHelpPanelEvent.Builder) {
+          eventBuilder = event
+        }
       }
-    }
     metric.logOpen()
     assertTrue(metric.timer.isRunning)
     assertNotNull(eventBuilder)
@@ -41,11 +42,12 @@ class AssistantPanelMetricsTrackerTest : AndroidTestCase() {
   fun testLogCLose() {
     var eventBuilder: DesignEditorHelpPanelEvent.Builder? = null
     val type = HelpPanelType.FULL_ALL
-    val metric = object : AssistantPanelMetricsTracker(type) {
-      override fun logEvent(event: DesignEditorHelpPanelEvent.Builder) {
-        eventBuilder = event
+    val metric =
+      object : AssistantPanelMetricsTracker(type) {
+        override fun logEvent(event: DesignEditorHelpPanelEvent.Builder) {
+          eventBuilder = event
+        }
       }
-    }
 
     metric.logOpen()
     Thread.sleep(100L)

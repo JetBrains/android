@@ -67,9 +67,7 @@ import javax.swing.SwingUtilities
 import javax.swing.SwingUtilities.invokeLater
 import javax.swing.UIManager
 
-/**
- * Interactive tester of a ComponentTree.
- */
+/** Interactive tester of a ComponentTree. */
 object ComponentTreeManualTest {
 
   @JvmStatic
@@ -82,9 +80,7 @@ object ComponentTreeManualTest {
     }
   }
 
-  /**
-   * Override as many services needed to run this test application without exceptions.
-   */
+  /** Override as many services needed to run this test application without exceptions. */
   private fun startTestApplication(): MockApplication {
     val disposable = Disposer.newDisposable()
     val app = TestApplication(disposable)
@@ -92,21 +88,25 @@ object ComponentTreeManualTest {
     app.registerService(DataManager::class.java, DataManagerImpl())
     app.registerService(WindowManager::class.java, WindowManagerImpl())
     app.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
+    @Suppress("UnstableApiUsage") app.registerService(IdeUiService::class.java, IdeUiServiceImpl())
     @Suppress("UnstableApiUsage")
-    app.registerService(IdeUiService::class.java, IdeUiServiceImpl())
-    @Suppress("UnstableApiUsage")
-    app.extensionArea.registerExtensionPoint(AdvancedSettingBean.EP_NAME.name, AdvancedSettingBean::class.java.name,
-                                             ExtensionPoint.Kind.BEAN_CLASS, false)
+    app.extensionArea.registerExtensionPoint(
+      AdvancedSettingBean.EP_NAME.name,
+      AdvancedSettingBean::class.java.name,
+      ExtensionPoint.Kind.BEAN_CLASS,
+      false
+    )
     app.registerExtension(AdvancedSettingBean.EP_NAME, AdvancedSettingBean(), disposable)
-    val settings = object : AdvancedSettings() {
-      override fun getSetting(id: String) = false
-      override fun setSetting(id: String, value: Any, expectType: AdvancedSettingType) {
-        TODO("Not yet implemented")
+    val settings =
+      object : AdvancedSettings() {
+        override fun getSetting(id: String) = false
+        override fun setSetting(id: String, value: Any, expectType: AdvancedSettingType) {
+          TODO("Not yet implemented")
+        }
+        override fun getDefault(id: String): Any {
+          throw NotImplementedError()
+        }
       }
-      override fun getDefault(id: String): Any {
-        throw NotImplementedError()
-      }
-    }
     app.registerService(AdvancedSettings::class.java, settings)
     return app
   }
@@ -128,16 +128,17 @@ private class ComponentTreeTest {
     val badge2 = Badge("badge2")
     val badge3 = Badge("badge3")
 
-    val result = ComponentTreeBuilder()
-      .withNodeType(ItemNodeType())
-      .withContextMenu(::showPopup)
-      .withoutTreeSearch()
-      .withBadgeSupport(badge1)
-      .withBadgeSupport(badge2)
-      .withBadgeSupport(badge3)
-      .withHorizontalScrollBar()
-      .withDnD()
-      .build()
+    val result =
+      ComponentTreeBuilder()
+        .withNodeType(ItemNodeType())
+        .withContextMenu(::showPopup)
+        .withoutTreeSearch()
+        .withBadgeSupport(badge1)
+        .withBadgeSupport(badge2)
+        .withBadgeSupport(badge3)
+        .withHorizontalScrollBar()
+        .withDnD()
+        .build()
     tree = result.component
     model = result.model
     selectionModel = result.selectionModel
@@ -185,8 +186,12 @@ private class ComponentTreeTest {
     val menuItem = JMenuItem("Goto Declaration")
     menuItem.addActionListener {
       val item = getSelectedItem() ?: "unknown"
-      JOptionPane.showMessageDialog(frame, "Goto Declaration activated: $item from $context", "Tree Action",
-                                    JOptionPane.INFORMATION_MESSAGE)
+      JOptionPane.showMessageDialog(
+        frame,
+        "Goto Declaration activated: $item from $context",
+        "Tree Action",
+        JOptionPane.INFORMATION_MESSAGE
+      )
     }
     return menuItem
   }
@@ -195,7 +200,12 @@ private class ComponentTreeTest {
     val menuItem = JMenuItem("Help")
     menuItem.addActionListener {
       val item = getSelectedItem() ?: "unknown"
-      JOptionPane.showMessageDialog(frame, "Help activated: $item from $context", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
+      JOptionPane.showMessageDialog(
+        frame,
+        "Help activated: $item from $context",
+        "Tree Action",
+        JOptionPane.INFORMATION_MESSAGE
+      )
     }
     return menuItem
   }
@@ -212,7 +222,8 @@ private class ComponentTreeTest {
     val textView2 = Item(TEXT_VIEW, "@+id/textView2", "Hello Again", textIcon, layout2)
     val layout3 = Item(LINEAR_LAYOUT, null, null, layoutIcon, layout2)
     val button2 = Item(BUTTON, "@+id/button1", "OK", buttonIcon, layout2)
-    val textView3 = Item(TEXT_VIEW, "@+id/textView3", "Hello London calling we are here", textIcon, layout3)
+    val textView3 =
+      Item(TEXT_VIEW, "@+id/textView3", "Hello London calling we are here", textIcon, layout3)
     val layout4 = Item(LINEAR_LAYOUT, null, null, layoutIcon, layout3)
     val button3 = Item(BUTTON, "@+id/button3", "PressMe", buttonIcon, layout3)
     textView1.badge1 = StudioIcons.Common.ERROR_INLINE
@@ -231,13 +242,12 @@ private class ComponentTreeTest {
     try {
       UIManager.setLookAndFeel(laf)
       JBColor.setDark(UIUtil.isUnderDarcula())
-    }
-    catch (ex: Exception) {
+    } catch (ex: Exception) {
       ex.printStackTrace()
     }
   }
 
-  private inner class Badge(context: String): IconColumn(context) {
+  private inner class Badge(context: String) : IconColumn(context) {
     val popup = createPopup(context)
 
     override fun getIcon(item: Any): Icon? {
@@ -265,7 +275,12 @@ private class ComponentTreeTest {
 
     override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {
       if (getIcon(item) != null) {
-        JOptionPane.showMessageDialog(frame, "Badge: $name for $item", "Tree Action", JOptionPane.INFORMATION_MESSAGE)
+        JOptionPane.showMessageDialog(
+          frame,
+          "Badge: $name for $item",
+          "Tree Action",
+          JOptionPane.INFORMATION_MESSAGE
+        )
       }
     }
 
@@ -279,7 +294,7 @@ private class ComponentTreeTest {
   }
 }
 
-private class TestApplication(disposable: Disposable): MockApplication(disposable) {
+private class TestApplication(disposable: Disposable) : MockApplication(disposable) {
   override fun invokeLater(runnable: Runnable) {
     SwingUtilities.invokeLater(runnable)
   }

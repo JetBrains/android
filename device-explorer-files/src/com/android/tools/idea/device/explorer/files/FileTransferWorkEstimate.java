@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.device.explorer.files;
 
-import com.android.tools.idea.device.explorer.files.FileTransferWorkEstimator;
-
 /**
  * File transfer work estimate as computed by {@link FileTransferWorkEstimator}.
  */

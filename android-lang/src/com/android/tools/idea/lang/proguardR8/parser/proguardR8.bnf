@@ -130,7 +130,7 @@ java_rule ::= !(<<eof>>|CLOSE_BRACE|WHITE_SPACE) (fields_specification|method_sp
 class_specification_body ::= OPEN_BRACE java CLOSE_BRACE {pin=1}
 
 class_modifier ::= ("!"?(public|final|abstract))
-class_type ::= "!"?(interface|class|enum)
+class_type ::= "!"?(interface|class|enum|AT_INTERFACE)
 
 class_specification_header ::= annotation_name? class_modifier* class_type class_name (',' class_name)* ((extends|implements) annotation_name? super_class_name (',' super_class_name)*)? {
   pin=class_type

@@ -345,6 +345,13 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void traceboxFlagIsAvailableInProfilerService() {
+    myStage = new CpuProfilerStage(myStage.getStudioProfilers());
+    assertThat(
+      myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isTraceboxEnabled()).isEqualTo(false);
+  }
+
+  @Test
   public void suggestedProfilingConfigurationIsSimpleperf() {
     // Make sure simpleperf is supported by setting an O device.
     addAndSetDevice(AndroidVersion.VersionCodes.O, "Any Serial");

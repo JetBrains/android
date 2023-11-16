@@ -31,7 +31,7 @@ import javax.swing.tree.TreePath
 
 val LINES = LinePainter(Control.Painter.DEFAULT)
 
-class LinePainter(private val basePainter: Control.Painter) : Control.Painter by basePainter {
+class LinePainter(val basePainter: Control.Painter) : Control.Painter by basePainter {
 
   override fun paint(
     c: Component,
@@ -67,7 +67,10 @@ class LinePainter(private val basePainter: Control.Painter) : Control.Painter by
     if (depth > 1 && lastNode != null && spaceForControlLine > JBUIScale.scale(4)) {
       val lineY = y + height / 2
       val leftX = x + getControlOffset(control, depth - 1, false) + control.width / 2
-      val rightX = x + (if (leaf) getRendererOffset(control, depth, true) else getControlOffset(control, depth, false)) - JBUIScale.scale(4)
+      val rightX =
+        x +
+          (if (leaf) getRendererOffset(control, depth, true)
+          else getControlOffset(control, depth, false)) - JBUIScale.scale(4)
       if (leftX < rightX) {
         g.drawLine(leftX, lineY, rightX, lineY)
       }
@@ -90,21 +93,27 @@ class LinePainter(private val basePainter: Control.Painter) : Control.Painter by
     }
   }
 
-  private fun nodeOf(path: TreePath): TreeViewNode =
-    path.lastPathComponent as TreeViewNode
+  private fun nodeOf(path: TreePath): TreeViewNode = path.lastPathComponent as TreeViewNode
 
   /**
    * Return the last of the children if support lines are to be drawn, otherwise null.
    *
    * This gets a little tricky around:
-   * - callstack view: here we do NOT want to show support lines when multiple calls are shown as children under this [node].
-   * - filtered views: if a [node] has multiple children as a result of one of its children were filtered out, we DO want support lines.
+   * - callstack view: here we do NOT want to show support lines when multiple calls are shown as
+   *   children under this [node].
+   * - filtered views: if a [node] has multiple children as a result of one of its children were
+   *   filtered out, we DO want support lines.
    */
   @VisibleForTesting
-  fun getLastOfMultipleChildren(model: TreeModel, treeSettings: TreeSettings?, node: TreeViewNode): TreeViewNode? {
+  fun getLastOfMultipleChildren(
+    model: TreeModel,
+    treeSettings: TreeSettings?,
+    node: TreeViewNode
+  ): TreeViewNode? {
     val count = node.children.size
     val last = if (count > 1) model.getChild(node, count - 1) as TreeViewNode else return null
     val parent = ViewNode.readAccess { last.view.parent }
-    return if (treeSettings?.let { parent?.findClosestUnfilteredNode(it)?.treeNode } === node) last else null
+    return if (treeSettings?.let { parent?.findClosestUnfilteredNode(it)?.treeNode } === node) last
+    else null
   }
 }

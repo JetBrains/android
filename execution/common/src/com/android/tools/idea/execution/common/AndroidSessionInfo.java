@@ -19,8 +19,6 @@ package com.android.tools.idea.execution.common;
 import com.android.sdklib.AndroidVersion;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ExecutionTarget;
-import com.intellij.execution.Executor;
-import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
@@ -36,37 +34,22 @@ public class AndroidSessionInfo {
   public static final Key<AndroidSessionInfo> KEY = new Key<>("KEY");
   public static final Key<AndroidVersion> ANDROID_DEVICE_API_LEVEL = new Key<>("ANDROID_DEVICE_API_LEVEL");
 
-  @NotNull private final String myExecutorId;
   @Nullable private final RunConfiguration myRunConfiguration;
   @NotNull private final ExecutionTarget myExecutionTarget;
 
   @NotNull
   public static AndroidSessionInfo create(@NotNull ProcessHandler processHandler,
                                           @Nullable RunConfiguration runConfiguration,
-                                          @NotNull String executorId,
                                           @NotNull ExecutionTarget executionTarget) {
-    AndroidSessionInfo result = new AndroidSessionInfo(processHandler, runConfiguration, executorId, executionTarget);
+    AndroidSessionInfo result = new AndroidSessionInfo(runConfiguration, executionTarget);
     processHandler.putUserData(KEY, result);
     return result;
   }
 
-  private AndroidSessionInfo(@NotNull ProcessHandler processHandler,
-                             @Nullable RunConfiguration runConfiguration,
-                             @NotNull String executorId,
+  private AndroidSessionInfo(@Nullable RunConfiguration runConfiguration,
                              @NotNull ExecutionTarget executionTarget) {
     myRunConfiguration = runConfiguration;
-    myExecutorId = executorId;
     myExecutionTarget = executionTarget;
-  }
-
-  @NotNull
-  public String getExecutorId() {
-    return myExecutorId;
-  }
-
-  @Nullable
-  public Executor getExecutor() {
-    return ExecutorRegistry.getInstance().getExecutorById(getExecutorId());
   }
 
   @NotNull

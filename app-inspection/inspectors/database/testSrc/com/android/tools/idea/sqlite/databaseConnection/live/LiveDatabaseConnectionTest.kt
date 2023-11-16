@@ -72,7 +72,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
   }
 
   fun testReadSchema() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val column1 =
         SqliteInspectorProtocol.Column.newBuilder().setName("column1").setType("TEXT").build()
@@ -122,7 +122,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     }
 
   fun testExecuteQuery() =
-    runBlocking {
+    runBlocking<Unit> {
       val largeFloat = Float.MAX_VALUE * 2.0
       val largeInteger = Long.MAX_VALUE
 
@@ -199,7 +199,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     }
 
   fun testExecuteExplain() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val cellValueString =
         SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
@@ -272,7 +272,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     }
 
   fun testExecutePragma() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val cellValueString =
         SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
@@ -381,7 +381,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     }
 
   fun testReturnsEmptyResultSetForEmptyResponse() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val cursor = Response.newBuilder().build()
 
@@ -406,7 +406,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     }
 
   fun testThrowsRecoverableErrorOnErrorOccurredResponse() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val errorOccurredEvent =
         SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
@@ -445,7 +445,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     }
 
   fun testThrowsNonRecoverableErrorOnErrorOccurredResponse() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val errorOccurredEvent =
         SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
@@ -487,7 +487,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     }
 
   fun testThrowsUnknownRecoverableErrorOnErrorOccurredResponse() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val errorOccurredEvent =
         SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
@@ -525,7 +525,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     }
 
   fun testRecoverableErrorAnalytics() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
       project.registerServiceInstance(
@@ -567,7 +567,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     }
 
   fun testNonRecoverableErrorAnalytics() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
       project.registerServiceInstance(
@@ -611,7 +611,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     }
 
   fun testUnknownRecoverableErrorAnalytics() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
       project.registerServiceInstance(
@@ -651,7 +651,7 @@ class LiveDatabaseConnectionTest : LightPlatformTestCase() {
     }
 
   fun testErrorNoExistingDbIsNotReportedInAnalytics() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val mockTrackerService = mock(DatabaseInspectorAnalyticsTracker::class.java)
       project.registerServiceInstance(

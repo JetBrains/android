@@ -20,6 +20,7 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -49,6 +50,7 @@ interface BuildAttributionReportUiData {
   val jetifierData: JetifierUsageAnalyzerResult
   val downloadsData: DownloadsAnalyzer.Result
   val showTaskCategoryInfo: Boolean
+  val windowsDefenderWarningData: WindowsDefenderCheckService.WindowsDefenderWarningData
 }
 
 interface BuildSummary {

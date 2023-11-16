@@ -17,6 +17,10 @@ package com.android.tools.idea.compose.pickers.preview.enumsupport.devices
 
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Device
+import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
+import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
+import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
+import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.compose.pickers.base.enumsupport.PsiEnumValue
 import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
@@ -24,10 +28,6 @@ import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.android.tools.idea.compose.pickers.preview.property.Orientation
 import com.android.tools.idea.compose.pickers.preview.property.Shape
 import com.android.tools.idea.compose.pickers.preview.utils.DEVICE_BY_ID_PREFIX
-import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_DESKTOP_ID
-import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_FOLDABLE_ID
-import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_PHONE_ID
-import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.configurations.DEVICE_CLASS_DESKTOP_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_FOLDABLE_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_PHONE_TOOLTIP
@@ -149,7 +149,7 @@ internal class DeviceEnumValueBuilder {
     deviceEnumValues[type]?.add(enumValue)
   }
 
-  private fun addWearDevice(
+  fun addWearDevice(
     isRound: Boolean,
     chinSizePx: Int,
     displayName: String
@@ -171,7 +171,7 @@ internal class DeviceEnumValueBuilder {
     deviceEnumValues[DeviceClass.Wear]?.add(enumValue)
   }
 
-  private fun addTvDevice(widthPx: Int, heightPx: Int, diagonalIn: Double): DeviceEnumValueBuilder =
+  fun addTvDevice(widthPx: Int, heightPx: Int, diagonalIn: Double): DeviceEnumValueBuilder =
     addDevicePx(
       type = DeviceClass.Tv,
       widthPx = widthPx,
@@ -180,7 +180,7 @@ internal class DeviceEnumValueBuilder {
       orientation = Orientation.landscape
     )
 
-  private fun addAutoDevice(widthPx: Int, heightPx: Int, diagonalIn: Double): DeviceEnumValueBuilder =
+  fun addAutoDevice(widthPx: Int, heightPx: Int, diagonalIn: Double): DeviceEnumValueBuilder =
     addDevicePx(
       type = DeviceClass.Auto,
       widthPx = widthPx,
@@ -210,12 +210,12 @@ internal class DeviceEnumValueBuilder {
   fun addDesktop(device: Device): DeviceEnumValueBuilder =
     addById(displayName = device.displayName, id = device.id, type = DeviceClass.Desktop)
 
-  private fun addPhoneById(
+  fun addPhoneById(
     displayName: String,
     id: String,
   ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Phone)
 
-  private fun addTabletById(
+  fun addTabletById(
     displayName: String,
     id: String,
   ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Tablet)
@@ -225,7 +225,7 @@ internal class DeviceEnumValueBuilder {
     id: String,
   ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Generic)
 
-  private fun addById(displayName: String, id: String, type: DeviceClass): DeviceEnumValueBuilder = apply {
+  fun addById(displayName: String, id: String, type: DeviceClass): DeviceEnumValueBuilder = apply {
     val enumValue =
       PsiEnumValue.indented(
         "$DEVICE_BY_ID_PREFIX$id",

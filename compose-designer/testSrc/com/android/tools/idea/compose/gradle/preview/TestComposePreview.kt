@@ -19,23 +19,27 @@ import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.common.surface.SurfaceInteractable
 import com.android.tools.idea.compose.preview.ComposePreviewView
+import com.android.tools.idea.compose.preview.NopComposePreviewManager
 import com.android.tools.idea.compose.preview.createMainDesignSurfaceBuilder
+import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
+import com.android.tools.idea.compose.preview.gallery.GalleryModeWrapperPanel
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
+import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CompletableDeferred
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
-import kotlinx.coroutines.CompletableDeferred
 
-internal val SceneViewPeerPanel.displayName: String
+val SceneViewPeerPanel.displayName: String
   get() = sceneView.sceneManager.model.modelDisplayName ?: ""
 
-internal class TestComposePreviewView(
+class TestComposePreviewView(
   parentDisposable: Disposable,
   project: Project,
   navigationHandler: NavigationHandler = ComposePreviewNavigationHandler()
@@ -50,7 +54,8 @@ internal class TestComposePreviewView(
         delegateInteractionHandler,
         { null },
         parentDisposable,
-        ComposeSceneComponentProvider()
+        ComposeSceneComponentProvider(),
+        ComposeScreenViewProvider(NopComposePreviewManager())
       )
       .setInteractableProvider {
         object : SurfaceInteractable(it) {
@@ -65,6 +70,28 @@ internal class TestComposePreviewView(
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = false
   override var hasRendered: Boolean = false
+  override var galleryMode: ComposeGalleryMode? = null
+    set(value) {
+      // Avoid repeated values.
+      if (value == field) return
+      // If essentials mode is enabled,disabled or updated - components should be rearranged.
+      // Remove components from its existing places.
+      if (field == null) {
+        this.remove(mainSurface)
+      } else {
+        this.components.filterIsInstance<GalleryModeWrapperPanel>().firstOrNull()?.let {
+          it.remove(mainSurface)
+          this.remove(it)
+        }
+      }
+      // Add components to new places.
+      if (value == null) {
+        this.add(mainSurface, BorderLayout.CENTER)
+      } else {
+        this.add(GalleryModeWrapperPanel(value.component, mainSurface), BorderLayout.CENTER)
+      }
+      field = value
+    }
 
   private val nextRefreshLock = Any()
   private var nextRefreshListener: CompletableDeferred<Unit>? = null

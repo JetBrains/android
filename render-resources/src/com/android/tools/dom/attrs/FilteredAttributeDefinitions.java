@@ -1,13 +1,12 @@
 package com.android.tools.dom.attrs;
 
 import com.android.ide.common.rendering.api.ResourceReference;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A decorator for {@link AttributeDefinitions} that applies filtering to it.

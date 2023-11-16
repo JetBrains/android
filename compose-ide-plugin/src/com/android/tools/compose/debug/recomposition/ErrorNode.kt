@@ -24,7 +24,7 @@ import com.intellij.xdebugger.frame.XValuePlace
 /**
  *  A [XNamedValue] shown instead of a [ComposeStateNode] when some error has occurred
  */
-internal class ErrorNode(private val errorText: String) : XNamedValue(ComposeBundle.message("recomposition.state.label")) {
+internal class ErrorNode(val errorText: String) : XNamedValue(ComposeBundle.message("recomposition.state.label")) {
   override fun computePresentation(node: XValueNode, place: XValuePlace) {
     node.setPresentation(AllIcons.General.Error, null, errorText, false)
   }

@@ -149,6 +149,7 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
   private void clickTab(@NotNull String name) {
     ContentTabLabelFixture buildTab = ContentTabLabelFixture.findByText(myRobot, getToolWindowInternalDecorator(), name, 3);
     buildTab.click();
+    buildTab.click();
   }
 
   private void clickCloseTab(@NotNull String name) {

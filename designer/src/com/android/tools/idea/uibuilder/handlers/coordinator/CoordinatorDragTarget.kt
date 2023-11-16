@@ -25,25 +25,29 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.target.DragBaseTarget
 import com.android.tools.idea.common.scene.target.Target
-import com.android.tools.idea.uibuilder.model.viewHandler
+import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.intellij.openapi.util.text.StringUtil
 import java.awt.Color
-import kotlin.math.abs
 
 private const val DEBUG: Boolean = false
 
-/**
- * Drag target for CoordinatorLayout
- */
+/** Drag target for CoordinatorLayout */
 class CoordinatorDragTarget : DragBaseTarget() {
   private var mySnapTarget: CoordinatorSnapTarget? = null
 
   override fun getPreferenceLevel(): Int = Target.DRAG_LEVEL
 
-  private var myAttributes = listOf(SdkConstants.ATTR_LAYOUT_ANCHOR, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY)
+  private var myAttributes =
+    listOf(SdkConstants.ATTR_LAYOUT_ANCHOR, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY)
   private var myOriginalAttributes = HashMap<String, String>()
 
-  override fun layout(context: SceneContext, left: Int, top: Int, right: Int, bottom: Int): Boolean {
+  override fun layout(
+    context: SceneContext,
+    left: Int,
+    top: Int,
+    right: Int,
+    bottom: Int
+  ): Boolean {
     val minWidth = 16
     val minHeight = 16
     var l = left
@@ -69,7 +73,14 @@ class CoordinatorDragTarget : DragBaseTarget() {
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {
     if (DEBUG) {
-      list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, if (mIsOver) Color.yellow else Color.green)
+      list.addRect(
+        sceneContext,
+        myLeft,
+        myTop,
+        myRight,
+        myBottom,
+        if (mIsOver) Color.yellow else Color.green
+      )
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red)
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red)
     }
@@ -90,11 +101,11 @@ class CoordinatorDragTarget : DragBaseTarget() {
       val value = myOriginalAttributes[attribute]
       transaction.setAttribute(SdkConstants.AUTO_URI, attribute, value)
     }
-//    transaction.apply()
+    //    transaction.apply()
   }
 
-  private fun updateInteractionState(interactionState : CoordinatorLayoutHandler.InteractionState) {
-    val handler = myComponent.parent?.nlComponent?.viewHandler ?: return
+  private fun updateInteractionState(interactionState: CoordinatorLayoutHandler.InteractionState) {
+    val handler = myComponent.parent?.nlComponent?.getViewHandler {} ?: return
     if (handler is CoordinatorLayoutHandler) {
       handler.interactionState = interactionState
       myComponent.parent?.updateTargets()
@@ -110,13 +121,18 @@ class CoordinatorDragTarget : DragBaseTarget() {
     rememberAttributes()
   }
 
-  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>, ignored: SceneContext) {
+  override fun mouseDrag(
+    @AndroidDpCoordinate x: Int,
+    @AndroidDpCoordinate y: Int,
+    closestTarget: List<Target>,
+    ignored: SceneContext
+  ) {
     if (myComponent.parent == null) {
       return
     }
     mySnapTarget?.isMouseHovered = false
     mySnapTarget = null
-    val snapTarget : Target? = closestTarget.firstOrNull { it is CoordinatorSnapTarget }
+    val snapTarget: Target? = closestTarget.firstOrNull { it is CoordinatorSnapTarget }
     if (snapTarget is CoordinatorSnapTarget) {
       mySnapTarget = snapTarget
       snapTarget.setMouseHovered(true)
@@ -127,7 +143,11 @@ class CoordinatorDragTarget : DragBaseTarget() {
     myChangedComponent = true
   }
 
-  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
+  override fun mouseRelease(
+    @AndroidDpCoordinate x: Int,
+    @AndroidDpCoordinate y: Int,
+    closestTargets: List<Target>
+  ) {
     super.mouseRelease(x, y, closestTargets)
     if (myChangedComponent) {
       myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
@@ -138,8 +158,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
   override fun updateAttributes(attributes: NlAttributesHolder, x: Int, y: Int) {
     if (mySnapTarget != null) {
       mySnapTarget!!.snap(attributes)
-    }
-    else {
+    } else {
       restoreAttributes(attributes)
     }
   }
@@ -149,14 +168,22 @@ class CoordinatorDragTarget : DragBaseTarget() {
     super.mouseCancel()
   }
 
-  fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, component: NlComponent) {
+  fun mouseRelease(
+    @AndroidDpCoordinate x: Int,
+    @AndroidDpCoordinate y: Int,
+    component: NlComponent
+  ) {
     myComponent.isDragging = false
     if (myComponent.parent != null) {
       val attributes = component.startAttributeTransaction()
       updateAttributes(attributes, x, y)
       attributes.apply()
-      if (abs(x - myFirstMouseX) > 1 || abs(y - myFirstMouseY) > 1) {
-        NlWriteCommandActionUtil.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
+      if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
+        NlWriteCommandActionUtil.run(
+          component,
+          "Dragged " + StringUtil.getShortName(component.tagName),
+          { attributes.commit() }
+        )
       }
     }
     if (myChangedComponent) {

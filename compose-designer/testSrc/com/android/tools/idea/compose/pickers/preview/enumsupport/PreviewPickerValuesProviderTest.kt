@@ -21,7 +21,8 @@ import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.Refere
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferenceFoldableConfig
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferencePhoneConfig
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferenceTabletConfig
-import com.android.tools.idea.compose.preview.namespaceVariations
+import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.projectsystem.SourceProviderManager
@@ -33,18 +34,16 @@ import com.android.tools.property.panel.api.HeaderEnumValue
 import com.intellij.openapi.module.Module
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubConfigurationAsLibrary
 import org.jetbrains.android.compose.stubDevicesAsLibrary
 import org.jetbrains.android.compose.stubPreviewAnnotation
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
 @Language("XML")
 private const val STRINGS_CONTENT =
@@ -54,16 +53,7 @@ private const val STRINGS_CONTENT =
 </resources>
 """
 
-@RunWith(Parameterized::class)
-class PreviewPickerValuesProviderTest(previewAnnotationPackage: String) {
-  companion object {
-    @Suppress("unused") // Used by JUnit via reflection
-    @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}.Preview")
-    val namespaces = namespaceVariations.map { it[0] }.distinct()
-  }
-
-  private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
+class PreviewPickerValuesProviderTest {
 
   @get:Rule val rule = AndroidProjectRule.inMemory()
 
@@ -217,13 +207,13 @@ class PreviewPickerValuesProviderTest(previewAnnotationPackage: String) {
     rule.fixture
       .stubComposableAnnotation() // Package does not matter, we are not testing the Composable
     // annotation
-    rule.fixture.stubPreviewAnnotation(COMPOSE_UI_TOOLING_PREVIEW_PACKAGE)
+    rule.fixture.stubPreviewAnnotation()
     val file =
       rule.fixture.addFileToProjectAndInvalidate(
         "Test.kt",
         // language=kotlin
         """
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
         import $PREVIEW_TOOLING_PACKAGE.Preview
 
         @Preview

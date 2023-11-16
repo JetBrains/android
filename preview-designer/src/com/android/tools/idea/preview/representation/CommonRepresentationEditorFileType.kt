@@ -25,11 +25,12 @@ import com.intellij.psi.PsiFile
 
 /**
  * A common implementation of [LayoutEditorFileType] that can be used in creating
- * [com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider]s. An object of this class serves as a mapping
- * between the [virtualFileClass] and different LayoutEditor features specific for the file types. The mapping mechanism is implemented via
- * [LayoutEditorFileType.isResourceTypeOf] method.
- * [layoutEditorStateType] is used for analytics (metrics).
- * [toolbarConstructor] should return a [ToolbarActionGroups] that will be displayed in the top of the preview for the [virtualFileClass].
+ * [com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider]s. An
+ * object of this class serves as a mapping between the [virtualFileClass] and different
+ * LayoutEditor features specific for the file types. The mapping mechanism is implemented via
+ * [LayoutEditorFileType.isResourceTypeOf] method. [layoutEditorStateType] is used for analytics
+ * (metrics). [toolbarConstructor] should return a [ToolbarActionGroups] that will be displayed in
+ * the top of the preview for the [virtualFileClass].
  */
 open class CommonRepresentationEditorFileType(
   private val virtualFileClass: Class<out InMemoryLayoutVirtualFile>,
@@ -42,6 +43,8 @@ open class CommonRepresentationEditorFileType(
 
   override fun getToolbarActionGroups(surface: DesignSurface<*>) = toolbarConstructor(surface)
 
-  override fun getSelectionContextToolbar(surface: DesignSurface<*>, selection: List<NlComponent>): DefaultActionGroup =
-    DefaultActionGroup()
+  override fun getSelectionContextToolbar(
+    surface: DesignSurface<*>,
+    selection: List<NlComponent>
+  ): DefaultActionGroup = DefaultActionGroup()
 }

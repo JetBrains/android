@@ -24,21 +24,20 @@ import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.google.common.collect.ImmutableCollection
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
 class VisualizationFormVisualLintHandlerTest {
 
-  @Rule
-  @JvmField
-  val rule = AndroidProjectRule.inMemory().onEdt()
+  @Rule @JvmField val rule = AndroidProjectRule.inMemory().onEdt()
 
   @Test
   fun testAddIssue() {
     val issueModel = IssueModel(rule.projectRule.testRootDisposable, rule.project)
-    val handler = VisualizationFormVisualLintHandler(rule.testRootDisposable, rule.project, issueModel)
+    val handler =
+      VisualizationFormVisualLintHandler(rule.testRootDisposable, rule.project, issueModel)
 
     assertEquals(0, issueModel.issues.size)
 
@@ -56,17 +55,23 @@ class VisualizationFormVisualLintHandlerTest {
 
   @Test
   fun testActivateClearBackgroundLintIssue() {
-    val handler = VisualizationFormVisualLintHandler(
-      rule.testRootDisposable, rule.project, IssueModel(rule.projectRule.testRootDisposable, rule.project))
+    val handler =
+      VisualizationFormVisualLintHandler(
+        rule.testRootDisposable,
+        rule.project,
+        IssueModel(rule.projectRule.testRootDisposable, rule.project)
+      )
 
     val service = VisualLintService.getInstance(rule.project)
     val issueModel = service.issueModel
     val boundIssues = listOf(TestIssue("bound1"), TestIssue("bound2"))
-    issueModel.addIssueProvider(object: IssueProvider() {
-      override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
-        issueListBuilder.addAll(boundIssues)
+    issueModel.addIssueProvider(
+      object : IssueProvider() {
+        override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
+          issueListBuilder.addAll(boundIssues)
+        }
       }
-    })
+    )
 
     issueModel.updateErrorsList()
 

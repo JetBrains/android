@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
+import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+
 import com.android.SdkConstants;
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -28,17 +34,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.io.IOException;
+import java.util.List;
 import junit.framework.AssertionFailedError;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
-import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /**
  * Tests for {@link AndroidPluginVersionUpdater}.

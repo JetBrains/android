@@ -18,6 +18,7 @@ package com.android.tools.property.panel.impl.ui
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.impl.model.TextFieldWithLeftButtonEditorModel
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.google.common.truth.Truth.assertThat
@@ -28,35 +29,56 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.JTextField
 
 class PropertyTextFieldWithLeftButtonTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   @Test
   fun testDoubleClickOnTextFieldIsHandledByContainer() {
     val item = FakePropertyItem(ANDROID_URI, ATTR_TEXT)
     val model = TextFieldWithLeftButtonEditorModel(item, true)
-    val container = PropertyTextFieldWithLeftButton(model)
+    val container = PropertyTextFieldWithLeftButton(model, EditorContext.STAND_ALONE_EDITOR)
+
+    // The editor should have a JTextField and not a PropertyLabel:
+    assertThat(container.components.single { it is JTextField }).isNotNull()
+    assertThat(container.components.singleOrNull { it is PropertyLabel }).isNull()
+
     var toggleCount = 0
-    container.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(event: MouseEvent) {
-        if (event.clickCount > 1) {
-          toggleCount++
+    container.addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseClicked(event: MouseEvent) {
+          if (event.clickCount > 1) {
+            toggleCount++
+          }
         }
       }
-    })
+    )
     container.size = Dimension(500, 200)
     container.doLayout()
     val textField = (container.layout as BorderLayout).getLayoutComponent(BorderLayout.CENTER)
+    // The editor should have a JTextField and not a PropertyLabel:
+    assertThat(textField).isInstanceOf(JTextField::class.java)
     val ui = FakeUi(textField)
     ui.mouse.doubleClick(400, 100)
     assertThat(toggleCount).isEqualTo(1)
     ui.mouse.doubleClick(400, 100)
     assertThat(toggleCount).isEqualTo(2)
+  }
+
+  @Test
+  fun testRendererUsesLabel() {
+    val item = FakePropertyItem(ANDROID_URI, ATTR_TEXT)
+    val model = TextFieldWithLeftButtonEditorModel(item, true)
+    val container = PropertyTextFieldWithLeftButton(model, EditorContext.TABLE_RENDERER)
+    container.size = Dimension(500, 200)
+    container.doLayout()
+
+    // The renderer should have a PropertyLabel and not a JTextField:
+    assertThat(container.components.single { it is PropertyLabel }).isNotNull()
+    assertThat(container.components.singleOrNull { it is JTextField }).isNull()
   }
 }

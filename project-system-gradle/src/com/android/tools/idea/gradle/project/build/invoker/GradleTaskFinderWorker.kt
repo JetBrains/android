@@ -23,13 +23,17 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
+import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.io.File
 import java.nio.file.Path
 import java.util.ArrayDeque
@@ -50,10 +54,11 @@ class GradleTaskFinderWorker private constructor(
     )
 
   fun find(): Map<Path, Collection<String>> {
-    val moduleTasks = findTasks()
+    val moduleTasks = expandList(requestedModules).mapNotNull { findTasksForModule(it) }
 
-    val rootedTasks =
-      moduleTasks.flatMap { it.rootedTasks { cleanTasks } } + moduleTasks.flatMap { it.rootedTasks { tasks } }
+    // Ensure clean tasks are always before any other tasks to avoid e.g. ":foo:assemble :foo:clean". Even with correct task ordering,
+    // having e.g. ":a:clean :a:assemble :b:clean :b:assemble" seems to trigger a bug in Gradle (see b/290954881).
+    val rootedTasks = moduleTasks.flatMap { it.rootedTasks { cleanTasks } } + moduleTasks.flatMap { it.rootedTasks { tasks } }
 
     return rootedTasks
       .groupBy(
@@ -61,11 +66,6 @@ class GradleTaskFinderWorker private constructor(
         valueTransform = { it.taskPath }
       )
       .mapValues { it.value.toSet() }
-  }
-
-  private fun findTasks(): List<ModuleTasks> {
-    val modulesAndModes = expandList(requestedModules)
-    return modulesAndModes.mapNotNull { findTasksForModule(it) }
   }
 
   /**
@@ -119,10 +119,11 @@ class GradleTaskFinderWorker private constructor(
     if (!expand) return emptyList()
     val androidModel = androidModel ?: return emptyList()
     val androidProject = androidModel.androidProject
-    val buildRoot = gradleProjectPath.buildRoot
+    val buildRoot = module.getGradleProjectPath()?.buildRoot ?: error("No Gradle path for $module")
 
     return when (androidProject.projectType) {
       IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> emptyList()
+      IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> emptyList()
       IdeAndroidProjectType.PROJECT_TYPE_ATOM -> emptyList()
       IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> emptyList() // Builds everything needed.
       IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> emptyList() // Is treated like a library module.
@@ -207,7 +208,7 @@ class GradleTaskFinderWorker private constructor(
           }
           BuildMode.APK_FROM_BUNDLE -> {
             ModuleTasks(
-              moduleToProcess.gradleProjectPath,
+              module = moduleToProcess.module,
               cleanTasks = emptySet(),
               tasks =
               // TODO(b/235567998): Review. Maybe replace with test compile mode expansion.
@@ -227,7 +228,7 @@ class GradleTaskFinderWorker private constructor(
 
       moduleToProcess.isGradleJavaModule -> {
         ModuleTasks(
-          gradlePath = moduleToProcess.gradleProjectPath,
+          module = moduleToProcess.module,
           cleanTasks = when (moduleToProcess.buildMode) {
             BuildMode.CLEAN -> emptySet() // TODO(b/235567998): Unify clean handling.
             BuildMode.REBUILD -> setOf("clean")
@@ -254,12 +255,29 @@ class GradleTaskFinderWorker private constructor(
 }
 
 private data class RootedTask(val root: Path, val taskPath: String)
-private data class ModuleTasks(val gradlePath: GradleProjectPath, val cleanTasks: Set<String>, val tasks: Set<String>)
+private data class ModuleTasks(val module: Module, val cleanTasks: Set<String>, val tasks: Set<String>)
 
-private fun ModuleTasks.rootedTasks(tasks: ModuleTasks.() -> Set<String>): List<RootedTask> {
-  return tasks().map {
-    RootedTask(File(gradlePath.buildRoot).toPath(), "${gradlePath.path.trimEnd(':')}:$it")
+private fun getTaskRunningInfo(module: Module): Pair<File, String>? {
+  val externalRootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module) ?: return null
+  val gradleProjectSettings = GradleSettings.getInstance(module.project).getLinkedProjectSettings(externalRootProjectPath) ?: return null
+
+  return if (gradleProjectSettings.resolveGradleVersion() >= supportsDirectTaskInvocationInCompositeBuilds) {
+    val gradleIdentityPath = module.getGradleIdentityPath() ?: return null
+    File(externalRootProjectPath) to gradleIdentityPath
+  } else {
+    val gradleProjectPath = module.getGradleProjectPath() ?: return null
+    File(gradleProjectPath.buildRoot) to gradleProjectPath.path
   }
+}
+
+private fun ModuleTasks.rootedTasks(taskSelector: ModuleTasks.() -> Set<String>): List<RootedTask> {
+  val (taskExecutionDir, projectPath) = getTaskRunningInfo(module)?.let {
+    it.first.toPath() to it.second.trimEnd(':')
+  } ?: return emptyList()
+
+  fun toRooted(taskName: String) = RootedTask(taskExecutionDir, "$projectPath:$taskName")
+
+  return taskSelector(this).map { toRooted(it) }
 }
 
 private data class ModuleAndMode(
@@ -268,9 +286,6 @@ private data class ModuleAndMode(
   val testCompileMode: TestCompileType,
   val expand: Boolean = true
 ) {
-  val gradleProjectPath: GradleProjectPath =
-    module.getGradleProjectPath() ?: error("Module $module should have been skipped")
-
   val androidModel: GradleAndroidModel? = GradleAndroidModel.get(module)
   val isGradleJavaModule: Boolean = if (androidModel == null) module.isGradleJavaModule() else false
 }
@@ -323,7 +338,7 @@ private fun ModuleAndMode.getTasksBy(
       variant.androidTestArtifact.takeIf { testCompileMode.compileAndroidTests },
     ).flatMap { by.invoke(it) }.toSet()
   }.orEmpty()
-  return ModuleTasks(gradleProjectPath, tasks.takeIf { isClean }.orEmpty(), tasks.takeUnless { isClean }.orEmpty())
+  return ModuleTasks(module, tasks.takeIf { isClean }.orEmpty(), tasks.takeUnless { isClean }.orEmpty())
 }
 
 private fun ModuleAndMode.getTaskBy(
@@ -333,3 +348,5 @@ private fun ModuleAndMode.getTaskBy(
 ): ModuleTasks {
   return getTasksBy(isClean, implicitMain, fun(artifact: IdeBaseArtifact): List<String> = listOfNotNull(by(artifact)))
 }
+
+private val supportsDirectTaskInvocationInCompositeBuilds = GradleVersion.version("6.8")

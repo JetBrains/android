@@ -25,10 +25,12 @@ import com.google.wireless.android.sdk.stats.LayoutEditorState
 /**
  * Type of file that can be viewed and edited using the Layout Editor.
  *
- * @param paletteMetadataId Optional id to be used for the palette metadata file. For example, if "preferences" is used, the palette
- * filename used for loading the metadata will be "preferences_palette.xml"
+ * @param paletteMetadataId Optional id to be used for the palette metadata file. For example, if
+ *   "preferences" is used, the palette filename used for loading the metadata will be
+ *   "preferences_palette.xml"
  */
-abstract class LayoutEditorFileType(private val paletteMetadataId: String? = null) : DesignerEditorFileType {
+abstract class LayoutEditorFileType(private val paletteMetadataId: String? = null) :
+  DesignerEditorFileType {
   val paletteId = paletteMetadataId
 
   abstract fun getLayoutEditorStateType(): LayoutEditorState.Type

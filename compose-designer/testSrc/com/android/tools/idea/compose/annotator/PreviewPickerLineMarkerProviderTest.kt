@@ -18,13 +18,13 @@ package com.android.tools.idea.compose.annotator
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.compose.preview.namespaceVariations
+import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.moveCaret
 import com.intellij.codeInsight.daemon.LineMarkerInfo
-import com.intellij.codeInsight.daemon.LineMarkerProviders
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -33,42 +33,21 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
 import org.apache.commons.lang3.StringUtils
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-@RunWith(Parameterized::class)
-class PreviewPickerLineMarkerProviderTest(
-  previewAnnotationPackage: String,
-  composableAnnotationPackage: String
-) {
-  companion object {
-    @Suppress("unused") // Used by JUnit via reflection
-    @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
-    val namespaces = namespaceVariations
-  }
-
-  private val composableAnnotationFqName = "$composableAnnotationPackage.Composable"
-  private val previewToolingPackage = previewAnnotationPackage
+class PreviewPickerLineMarkerProviderTest {
 
   private val filePath = "src/main/Test.kt"
 
-  @get:Rule
-  val rule =
-    ComposeProjectRule(
-      previewAnnotationPackage = previewAnnotationPackage,
-      composableAnnotationPackage = composableAnnotationPackage
-    )
+  @get:Rule val rule = ComposeProjectRule()
 
   private val fixture
     get() = rule.fixture
@@ -78,21 +57,15 @@ class PreviewPickerLineMarkerProviderTest(
   @Before
   fun setup() {
     StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.override(true)
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
     ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled = true
     (rule.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    fixture.registerLanguageExtensionPoint(
-      LineMarkerProviders.getInstance(),
-      PreviewPickerLineMarkerProvider(),
-      KotlinLanguage.INSTANCE
-    )
 
     fixture.addFileToProject(
       filePath,
       // language=kotlin
       """
-        import $composableAnnotationFqName
-        import $previewToolingPackage.Preview
+        import $COMPOSABLE_ANNOTATION_FQN
+        import $PREVIEW_TOOLING_PACKAGE.Preview
 
         @Preview
         class MyNotAnnotation() {}
@@ -119,7 +92,6 @@ class PreviewPickerLineMarkerProviderTest(
   @After
   fun teardown() {
     StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.clearOverride()
-    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
   }
 
   @RunsInEdt

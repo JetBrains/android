@@ -16,6 +16,7 @@
 package com.android.tools.property.panel.impl.model
 
 import com.android.SdkConstants
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.panel.impl.ui.PropertyCheckBox
 import com.google.common.truth.Truth
@@ -26,13 +27,16 @@ import org.junit.Test
 class BooleanPropertyEditorModelTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   private fun createModel(): BooleanPropertyEditorModel {
-    val property = FakePropertyItem(SdkConstants.ANDROID_URI, SdkConstants.ATTR_INDETERMINATE, SdkConstants.VALUE_TRUE)
+    val property =
+      FakePropertyItem(
+        SdkConstants.ANDROID_URI,
+        SdkConstants.ATTR_INDETERMINATE,
+        SdkConstants.VALUE_TRUE
+      )
     property.resolvedValue = SdkConstants.VALUE_TRUE
     return BooleanPropertyEditorModel(property)
   }
@@ -40,7 +44,7 @@ class BooleanPropertyEditorModelTest {
   @Test
   fun testStateChangedShouldUpdatePropertyValue() {
     val model = createModel()
-    val editor = PropertyCheckBox(model)
+    val editor = PropertyCheckBox(model, EditorContext.STAND_ALONE_EDITOR)
     editor.state = false
     Truth.assertThat(model.property.value).isEqualTo(SdkConstants.VALUE_FALSE)
     editor.state = true
@@ -50,7 +54,7 @@ class BooleanPropertyEditorModelTest {
   @Test
   fun testValueChangedNotificationShouldNotUpdatePropertyValue() {
     val model = createModel()
-    PropertyCheckBox(model)
+    PropertyCheckBox(model, EditorContext.STAND_ALONE_EDITOR)
     model.refresh()
     Truth.assertThat(model.property.value).isEqualTo(SdkConstants.VALUE_TRUE)
   }

@@ -57,6 +57,8 @@ import com.android.tools.lint.model.DefaultLintModelResourceField
 import com.android.tools.lint.model.DefaultLintModelSourceProvider
 import com.android.tools.lint.model.DefaultLintModelVariant
 import com.android.tools.lint.model.LintModelAndroidArtifact
+import com.android.tools.lint.model.LintModelArtifact
+import com.android.tools.lint.model.LintModelArtifactType
 import com.android.tools.lint.model.LintModelBuildFeatures
 import com.android.tools.lint.model.LintModelDependencies
 import com.android.tools.lint.model.LintModelDependency
@@ -65,6 +67,7 @@ import com.android.tools.lint.model.LintModelLibrary
 import com.android.tools.lint.model.LintModelLibraryResolver
 import com.android.tools.lint.model.LintModelLintOptions
 import com.android.tools.lint.model.LintModelMavenName
+import com.android.tools.lint.model.LintModelMavenName.Companion.NON_MAVEN
 import com.android.tools.lint.model.LintModelModule
 import com.android.tools.lint.model.LintModelModuleLoader
 import com.android.tools.lint.model.LintModelModuleType
@@ -79,10 +82,6 @@ import java.io.File
 
 /** Converter from the builder model library to lint's own model. */
 class LintModelFactory : LintModelModuleLoader {
-  init {
-    // We're just copying by value so make sure our constants match
-    assert(LintModelMavenName.LOCAL_AARS == "__local_aars__")
-  }
 
   private val libraryResolverMap = mutableMapOf<String, LintModelLibrary>()
   private val libraryResolver = DefaultLintModelLibraryResolver(libraryResolverMap)
@@ -198,7 +197,7 @@ class LintModelFactory : LintModelModuleLoader {
             symbolFile = library.symbolFile,
             externalAnnotations = library.externalAnnotations,
             provided = isProvided,
-            resolvedCoordinates = getMavenName(library.artifactAddress),
+            resolvedCoordinates = getMavenName(library),
             proguardRules = library.proguardRules
           )
         is IdeJavaLibrary ->
@@ -207,7 +206,7 @@ class LintModelFactory : LintModelModuleLoader {
             // TODO - expose compile jar vs impl jar?
             jarFiles = listOf(library.artifact),
             provided = isProvided,
-            resolvedCoordinates = getMavenName(library.artifactAddress)
+            resolvedCoordinates = getMavenName(library)
           )
         is IdeModuleLibrary ->
           DefaultLintModelModuleLibrary(
@@ -226,8 +225,7 @@ class LintModelFactory : LintModelModuleLoader {
 
   private fun IdeLibrary.getArtifactName(): String =
     when (this) {
-      is IdeArtifactLibrary ->
-        getMavenName(artifactAddress).let { "${it.groupId}:${it.artifactId}" }
+      is IdeArtifactLibrary -> getMavenName(this).let { "${it.groupId}:${it.artifactId}" }
       is IdeModuleLibrary -> "artifacts:$projectPath"
       else -> throw IllegalArgumentException("The library $this can't produce an artifact name")
     }
@@ -277,7 +275,10 @@ class LintModelFactory : LintModelModuleLoader {
     )
   }
 
-  private fun getArtifact(artifact: IdeAndroidArtifact): LintModelAndroidArtifact {
+  private fun getArtifact(
+    artifact: IdeAndroidArtifact,
+    type: LintModelArtifactType
+  ): LintModelAndroidArtifact {
     return DefaultLintModelAndroidArtifact(
       applicationId = artifact.applicationId
           ?: "", // TODO(b/234146319): This should probably be optional
@@ -285,13 +286,18 @@ class LintModelFactory : LintModelModuleLoader {
       generatedSourceFolders = artifact.generatedSourceFolders,
       generatedResourceFolders = artifact.generatedResourceFolders,
       classOutputs = artifact.classesFolder.toList(),
-      desugaredMethodsFiles = artifact.desugaredMethodsFiles
+      desugaredMethodsFiles = artifact.desugaredMethodsFiles,
+      type = type
     )
   }
-  private fun getArtifact(artifact: IdeJavaArtifact): LintModelJavaArtifact {
+  private fun getArtifact(
+    artifact: IdeJavaArtifact,
+    type: LintModelArtifactType
+  ): LintModelJavaArtifact {
     return DefaultLintModelJavaArtifact(
       dependencies = getDependencies(artifact),
-      classFolders = artifact.classesFolder.toList()
+      classFolders = artifact.classesFolder.toList(),
+      type = type
     )
   }
 
@@ -314,7 +320,7 @@ class LintModelFactory : LintModelModuleLoader {
       module = module,
       name = variant.name,
       useSupportLibraryVectorDrawables = useSupportLibraryVectorDrawables(variant),
-      mainArtifact = getArtifact(variant.mainArtifact),
+      mainArtifactOrNull = getArtifact(variant.mainArtifact, LintModelArtifactType.MAIN),
       testArtifact = getTestArtifact(variant),
       androidTestArtifact = getAndroidTestArtifact(variant),
       testFixturesArtifact = getTestFixturesArtifact(variant),
@@ -343,17 +349,17 @@ class LintModelFactory : LintModelModuleLoader {
 
   private fun getTestFixturesArtifact(variant: IdeVariant): LintModelAndroidArtifact? {
     val artifact = variant.testFixturesArtifact ?: return null
-    return getArtifact(artifact)
+    return getArtifact(artifact, LintModelArtifactType.TEST_FIXTURES)
   }
 
   private fun getAndroidTestArtifact(variant: IdeVariant): LintModelAndroidArtifact? {
     val artifact = variant.androidTestArtifact ?: return null
-    return getArtifact(artifact)
+    return getArtifact(artifact, LintModelArtifactType.INSTRUMENTATION_TEST)
   }
 
   private fun getTestArtifact(variant: IdeVariant): LintModelJavaArtifact? {
     val artifact = variant.unitTestArtifact ?: return null
-    return getArtifact(artifact)
+    return getArtifact(artifact, LintModelArtifactType.UNIT_TEST)
   }
 
   private fun computeSourceProviders(
@@ -769,8 +775,20 @@ class LintModelFactory : LintModelModuleLoader {
         _manifestPlaceholders ?: variant.manifestPlaceholders.also { _manifestPlaceholders = it }
 
     private var _mainArtifact: LintModelAndroidArtifact? = null
+    @Deprecated("This property is deprecated.", replaceWith = ReplaceWith("artifact"))
     override val mainArtifact: LintModelAndroidArtifact
-      get() = _mainArtifact ?: getArtifact(variant.mainArtifact).also { _mainArtifact = it }
+      get() =
+        _mainArtifact
+          ?: getArtifact(variant.mainArtifact, LintModelArtifactType.MAIN).also {
+            _mainArtifact = it
+          }
+
+    override val artifact: LintModelArtifact
+      get() =
+        _mainArtifact
+          ?: getArtifact(variant.mainArtifact, LintModelArtifactType.MAIN).also {
+            _mainArtifact = it
+          }
 
     private var _testArtifact: LintModelJavaArtifact? = null
     override val testArtifact: LintModelJavaArtifact?
@@ -809,30 +827,12 @@ class LintModelFactory : LintModelModuleLoader {
   }
 
   companion object {
-    fun getMavenName(artifactAddress: String): LintModelMavenName {
-      fun Int.nextDelimiterIndex(vararg delimiters: Char): Int {
-        return delimiters
-          .asSequence()
-          .map {
-            val index = artifactAddress.indexOf(it, startIndex = this + 1)
-            if (index == -1) artifactAddress.length else index
-          }
-          .minOrNull()
-          ?: artifactAddress.length
+    fun getMavenName(artifact: IdeArtifactLibrary): LintModelMavenName =
+      when (val component = artifact.component) {
+        null -> DefaultLintModelMavenName(NON_MAVEN, artifact.name)
+        else ->
+          DefaultLintModelMavenName(component.group, component.name, component.version.toString())
       }
-
-      val lastDelimiterIndex =
-        0.nextDelimiterIndex(':').nextDelimiterIndex(':').nextDelimiterIndex(':', '@')
-
-      return LintModelMavenName.parse(artifactAddress.substring(0, lastDelimiterIndex))
-      // This can happen if you have something like this:
-      //     implementation project(path: ':lib', configuration: 'shadow')
-      // with the shadowJar plugin; this is coming from a
-      //     IdeJavaLibraryImpl(artifactAddress=$P/lib/build/libs/lib-all.jar,
-      //                        name=$P/lib/build/libs/lib-all.jar,
-      //                        artifact=$P/lib/build/libs/lib-all.jar)
-      ?: DefaultLintModelMavenName("__non_maven__", artifactAddress)
-    }
 
     /**
      * Returns the [LintModelModuleType] for the given [typeId]. Type ids must be one of the values
@@ -863,6 +863,8 @@ class LintModelFactory : LintModelModuleLoader {
         IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> LintModelModuleType.DYNAMIC_FEATURE
         IdeAndroidProjectType.PROJECT_TYPE_ATOM ->
           throw IllegalArgumentException("The value $type is not a valid project type ID")
+        IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM ->
+          throw IllegalArgumentException("$type is not yet supported")
       }
     }
 

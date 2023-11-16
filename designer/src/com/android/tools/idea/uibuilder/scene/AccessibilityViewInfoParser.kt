@@ -45,6 +45,23 @@ private fun parseChildren(
     val childNodeInfo = nodeInfo.getChild(i)
     val bounds = childNodeInfo.boundsInScreen
 
+    if (
+      childNodeInfo.availableExtraData.contains(
+        AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY
+      )
+    ) {
+      val extras = childNodeInfo.extras
+      extras.putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX, 0)
+      extras.putInt(
+        AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH,
+        childNodeInfo.text.length
+      )
+      childNodeInfo.refreshWithExtraData(
+        AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
+        extras
+      )
+    }
+
     // Create a ViewInfo for each AccessibilityNodeInfo.
     // Use the root view as the viewObject.
     // Bounds in ViewInfo are with respect to the parent.
@@ -68,15 +85,16 @@ private fun parseChildren(
 }
 
 /**
- * Returns the text coming from the [AccessibilityNodeInfo] associated with this [ViewInfo],
- * or null if there is no [AccessibilityNodeInfo].
+ * Returns the text coming from the [AccessibilityNodeInfo] associated with this [ViewInfo], or null
+ * if there is no [AccessibilityNodeInfo].
  */
-fun ViewInfo.getAccessibilityText() = (accessibilityObject as? AccessibilityNodeInfo)?.text?.toString()
+fun ViewInfo.getAccessibilityText() =
+  (accessibilityObject as? AccessibilityNodeInfo)?.text?.toString()
 
 /**
- * Returns the source id from the [AccessibilityNodeInfo] associated with this [ViewInfo].
- * If the [AccessibilityNodeInfo] does not exist, but viewObject is a [View], this creates
- * an [AccessibilityNodeInfo] for that [View] first.
+ * Returns the source id from the [AccessibilityNodeInfo] associated with this [ViewInfo]. If the
+ * [AccessibilityNodeInfo] does not exist, but viewObject is a [View], this creates an
+ * [AccessibilityNodeInfo] for that [View] first.
  */
 fun ViewInfo.getAccessibilitySourceId(): Long {
   if (accessibilityObject != null) {

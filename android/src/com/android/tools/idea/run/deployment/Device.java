@@ -16,89 +16,41 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
-import com.android.tools.idea.run.deployable.Deployable;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import java.time.Instant;
 import java.util.Collection;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class Device {
-  @NotNull
-  private final String myName;
-
-  private final @NotNull Type myType;
-
-  @NotNull
-  private final LaunchCompatibility myLaunchCompatibility;
-
-  @NotNull
-  private final Key myKey;
-
-  @Nullable
-  private final Instant myConnectionTime;
-
-  @NotNull
-  private final AndroidDevice myAndroidDevice;
-
-  static abstract class Builder {
-    @Nullable
-    String myName;
-
-    @NotNull LaunchCompatibility myLaunchCompatibility = LaunchCompatibility.YES;
-
+public interface Device {
+  abstract class Builder {
     @Nullable
     Key myKey;
+
+    @NotNull
+    Type myType = Type.PHONE;
+
+    @NotNull
+    LaunchCompatibility myLaunchCompatibility = LaunchCompatibility.YES;
 
     @Nullable
     Instant myConnectionTime;
 
     @Nullable
-    AndroidDevice myAndroidDevice;
+    String myName;
 
-    @NotNull Type myType = Type.PHONE;
+    @Nullable
+    AndroidDevice myAndroidDevice;
 
     @NotNull
     abstract Device build();
   }
 
-  Device(@NotNull Builder builder) {
-    assert builder.myName != null;
-    myName = builder.myName;
-    myType = builder.myType;
-
-    myLaunchCompatibility = builder.myLaunchCompatibility;
-
-    assert builder.myKey != null;
-    myKey = builder.myKey;
-
-    myConnectionTime = builder.myConnectionTime;
-
-    assert builder.myAndroidDevice != null;
-    myAndroidDevice = builder.myAndroidDevice;
-  }
-
-  final @NotNull LaunchCompatibility getLaunchCompatibility() {
-    return myLaunchCompatibility;
-  }
-
   @NotNull
-  abstract Icon getIcon();
-
-  public abstract boolean isConnected();
-
-  @NotNull
-  public final String getName() {
-    return myName;
-  }
-
-  abstract @NotNull Collection<Snapshot> getSnapshots();
+  Key key();
 
   /**
    * A physical device will always return a serial number. A virtual device will usually return a virtual device path. But if Studio doesn't
@@ -106,50 +58,99 @@ public abstract class Device {
    * can return a virtual device path (probably not but I'm not going to assume), virtual device name, or serial number depending on what
    * the IDevice returned.
    */
+  @Deprecated
   @NotNull
   @SuppressWarnings("GrazieInspection")
-  public final Key getKey() {
-    return myKey;
+  default Key getKey() {
+    return key();
+  }
+
+  @NotNull
+  Icon icon();
+
+  @Deprecated
+  @NotNull
+  default Icon getIcon() {
+    return icon();
+  }
+
+  @NotNull
+  Type type();
+
+  enum Type {PHONE, WEAR, TV}
+
+  @NotNull
+  LaunchCompatibility launchCompatibility();
+
+  @Deprecated
+  @NotNull
+  default LaunchCompatibility getLaunchCompatibility() {
+    return launchCompatibility();
+  }
+
+  boolean connected();
+
+  @Deprecated
+  default boolean isConnected() {
+    return connected();
   }
 
   @Nullable
-  final Instant getConnectionTime() {
-    return myConnectionTime;
-  }
+  Instant connectionTime();
 
-  public abstract @NotNull Target getDefaultTarget();
-
-  abstract @NotNull Collection<Target> getTargets();
-
-  @NotNull
-  final AndroidDevice getAndroidDevice() {
-    return myAndroidDevice;
+  @Deprecated
+  @Nullable
+  default Instant getConnectionTime() {
+    return connectionTime();
   }
 
   @NotNull
-  abstract ListenableFuture<AndroidVersion> getAndroidVersionAsync();
+  String name();
 
-  final @NotNull ListenableFuture<Boolean> isRunningAsync(@NotNull String appPackage) {
-    if (!isConnected()) {
-      return Futures.immediateFuture(false);
-    }
-
-    // The EDT and Action Updater (Common) threads call into this. Ideally we'd use the respective executors here instead of the direct
-    // executor. But we don't have access to the Action Updater (Common) executor.
-
-    // noinspection UnstableApiUsage
-    return Futures.transform(getDdmlibDeviceAsync(), device -> isRunning(device, appPackage), MoreExecutors.directExecutor());
+  @Deprecated
+  @NotNull
+  default String getName() {
+    return name();
   }
 
-  private static boolean isRunning(@NotNull IDevice device, @NotNull String appPackage) {
-    if (!device.isOnline()) {
-      return false;
-    }
+  @NotNull
+  Collection<Snapshot> snapshots();
 
-    return !Deployable.searchClientsForPackage(device, appPackage).isEmpty();
+  @Deprecated
+  @NotNull
+  default Collection<Snapshot> getSnapshots() {
+    return snapshots();
   }
 
-  final @NotNull ListenableFuture<IDevice> getDdmlibDeviceAsync() {
+  @NotNull
+  Target defaultTarget();
+
+  @Deprecated
+  @NotNull
+  default Target getDefaultTarget() {
+    return defaultTarget();
+  }
+
+  @NotNull
+  Collection<Target> targets();
+
+  @Deprecated
+  @NotNull
+  default Collection<Target> getTargets() {
+    return targets();
+  }
+
+  @NotNull
+  AndroidDevice androidDevice();
+
+  @Deprecated
+  @NotNull
+  default AndroidDevice getAndroidDevice() {
+    return androidDevice();
+  }
+
+  @NotNull
+  default ListenableFuture<IDevice> ddmlibDeviceAsync() {
     AndroidDevice device = getAndroidDevice();
 
     if (!device.isRunning()) {
@@ -159,20 +160,9 @@ public abstract class Device {
     return device.getLaunchedDevice();
   }
 
+  @Deprecated
   @NotNull
-  @Override
-  public final String toString() {
-    return myName;
-  }
-
-  @NotNull
-  final Type getType() {
-    return myType;
-  }
-
-  enum Type {
-    PHONE,
-    WEAR,
-    TV
+  default ListenableFuture<IDevice> getDdmlibDeviceAsync() {
+    return ddmlibDeviceAsync();
   }
 }

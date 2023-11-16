@@ -18,7 +18,11 @@ package com.android.tools.idea.editors
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.generation.OverrideImplementsAnnotationsHandler
 import com.intellij.codeInsight.intention.AddAnnotationPsiFix
-import com.intellij.psi.*
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiModifierListOwner
+import com.intellij.psi.PsiNameValuePair
 
 class AndroidOverrideAnnotationsHandler : OverrideImplementsAnnotationsHandler {
   override fun getAnnotations(file: PsiFile): Array<String> {

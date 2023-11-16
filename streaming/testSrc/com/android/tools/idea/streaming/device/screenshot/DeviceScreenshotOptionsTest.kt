@@ -111,14 +111,26 @@ class DeviceScreenshotOptionsTest {
   }
 
   @Test
-  fun testGetFramingOptionsAutomotive() {
+  fun testGetFramingOptionsAutomotiveMatchingAspectRatio() {
+    val deviceConfiguration = createDeviceConfiguration(mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "automotive"))
+    val screenshotOptions = DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView)
+    val image = createImage(1280, 960, Color.WHITE)
+    val displayInfo = "DisplayDeviceInfo{..., 1280 x 960, ..., density 180, ...}"
+    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.PHONE)
+    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
+    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Automotive", "Generic Tablet")
+    assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
+  }
+
+  @Test
+  fun testGetFramingOptionsAutomotiveGeneric() {
     val deviceConfiguration = createDeviceConfiguration(mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "automotive"))
     val screenshotOptions = DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView)
     val image = createImage(1280, 768, Color.WHITE)
     val displayInfo = "DisplayDeviceInfo{..., 1280 x 768, ..., density 180, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.PHONE)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
-    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Automotive (1024p landscape)", "Generic Tablet")
+    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Generic Tablet")
     assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
   }
 

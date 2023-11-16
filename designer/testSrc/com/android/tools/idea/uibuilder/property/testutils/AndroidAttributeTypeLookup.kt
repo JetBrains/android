@@ -18,40 +18,49 @@ package com.android.tools.idea.uibuilder.property.testutils
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 
 /**
- * This file has data from analyzing the framework code in Android S (API 31).
- * The result were incomplete such that a number of attributes
- * had to be remapped by hand (from the online documentation).
+ * This file has data from analyzing the framework code in Android S (API 31). The result were
+ * incomplete such that a number of attributes had to be remapped by hand (from the online
+ * documentation).
  *
- * This file is assumed to be the truth about the attribute
- * types used in the framework. Use this file to verify any
- * type mappings of android framework attributes.
+ * This file is assumed to be the truth about the attribute types used in the framework. Use this
+ * file to verify any type mappings of android framework attributes.
  *
- * Note: when adding attribute names to this list after updating the framework
- * or a library please look up the code that is reading the attribute.
- * Examples:
+ * Note: when adding attribute names to this list after updating the framework or a library please
+ * look up the code that is reading the attribute. Examples:
  *
- * | Function                         | Type                            | Notes                                 |
- * | -------------------------------- | ------------------------------- | --------------------------------------|
- * | TypedArray.getDrawable           | NlPropertyType.DRAWABLE         |                                       |
- * | TypedArray.getColor              | NlPropertyType.COLOR            | Make sure this is not a color list !! |
- * | TypedArray.getColorStateList     | NlPropertyType.COLOR_STATE_LIST |                                       |
- * | TypedArray.getDimensionPixelSize | NlPropertyType.DIMENSION        |                                       |
- * | TypedArray.getResourceId         | NlPropertyType.ID               |                                       |
- * | TypedArray.getInt                | NlPropertyType.ENUM             | If attrs.xml defines this as an enum  |
- * |                                  | NlPropertyType.INTEGER          | If this is not an enum                |
+ * |Function                        |Type                           |Notes                                |
+ * |--------------------------------|-------------------------------|-------------------------------------|
+ * |TypedArray.getDrawable          |NlPropertyType.DRAWABLE        |                                     |
+ * |TypedArray.getColor             |NlPropertyType.COLOR           |Make sure this is not a color list !!|
+ * |TypedArray.getColorStateList    |NlPropertyType.COLOR_STATE_LIST|                                     |
+ * |TypedArray.getDimensionPixelSize|NlPropertyType.DIMENSION       |                                     |
+ * |TypedArray.getResourceId        |NlPropertyType.ID              |                                     |
+ * |TypedArray.getInt               |NlPropertyType.ENUM            |If attrs.xml defines this as an enum |
+ * |                                |NlPropertyType.INTEGER         |If this is not an enum               |
  */
 object AndroidAttributeFact {
 
   fun lookup(name: String): NlPropertyType {
     when (name) {
       // Material Design additions
+      "accessibilityDataSensitive" -> return NlPropertyType.INTEGER
+      "addElevationShadow" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "animateMenuItems" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "animateNavigationIcon" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "autoShowKeyboard" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "boxStrokeErrorColor" -> return NlPropertyType.COLOR_STATE_LIST
       "boxStrokeWidthFocused" -> return NlPropertyType.DIMENSION
+      "buttonCompat" -> return NlPropertyType.DRAWABLE
+      "buttonIcon" -> return NlPropertyType.DRAWABLE
+      "buttonIconTint" -> return NlPropertyType.COLOR_STATE_LIST
+      "buttonIconTintMode" -> return NlPropertyType.ENUM
+      "centerIfNoTextEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "checkedChip" -> return NlPropertyType.ID
       "checkedIcon" -> return NlPropertyType.DRAWABLE
       "checkedIconEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "checkedIconTint" -> return NlPropertyType.COLOR_STATE_LIST
       "checkedIconVisible" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "checkedState" -> return NlPropertyType.ENUM
       "chipBackgroundColor" -> return NlPropertyType.COLOR_STATE_LIST
       "chipCornerRadius" -> return NlPropertyType.DIMENSION
       "chipEndPadding" -> return NlPropertyType.DIMENSION
@@ -77,6 +86,7 @@ object AndroidAttributeFact {
       "closeIconVisible" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "collapsedSize" -> return NlPropertyType.DIMENSION
       "collapsedTitleTextColor" -> return NlPropertyType.COLOR_STATE_LIST
+      "compatShadowEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "contentPadding" -> return NlPropertyType.DIMENSION
       "contentPaddingBottom" -> return NlPropertyType.DIMENSION
       "contentPaddingEnd" -> return NlPropertyType.DIMENSION
@@ -87,36 +97,54 @@ object AndroidAttributeFact {
       "cornerRadius" -> return NlPropertyType.DIMENSION
       "counterOverflowTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "counterTextColor" -> return NlPropertyType.COLOR_STATE_LIST
+      "defaultMarginsEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "defaultScrollFlagsEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "dividerInsetStart" -> return NlPropertyType.DIMENSION
       "dividerInsetEnd" -> return NlPropertyType.DIMENSION
       "drawerLayoutCornerSize" -> return NlPropertyType.DIMENSION
+      "enableTextStylingShortcuts" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "endIconCheckable" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "endIconContentDescription" -> return NlPropertyType.STRING
       "endIconDrawable" -> return NlPropertyType.DRAWABLE
+      "endIconMinSize" -> return NlPropertyType.DIMENSION
       "endIconMode" -> return NlPropertyType.ENUM
+      "endIconScaleType" -> return NlPropertyType.ENUM
       "endIconTint" -> return NlPropertyType.COLOR_STATE_LIST
       "endIconTintMode" -> return NlPropertyType.ENUM
       "ensureMinTouchTargetSize" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "emojiCompatEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "errorAccessibilityLabel" -> return NlPropertyType.STRING
+      "errorAccessibilityLiveRegion" -> return NlPropertyType.INTEGER
       "errorContentDescription" -> return NlPropertyType.STRING
       "errorIconDrawable" -> return NlPropertyType.DRAWABLE
       "errorIconTint" -> return NlPropertyType.COLOR_STATE_LIST
       "errorIconTintMode" -> return NlPropertyType.ENUM
+      "errorShown" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "errorTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "expandedHintEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "expandedTitleTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "extendMotionSpec" -> return NlPropertyType.ANIMATOR
+      "extendStrategy" -> return NlPropertyType.ENUM
       "extraMultilineHeightEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "fabAlignmentModeEndMargin" -> return NlPropertyType.DIMENSION
       "fabAlignmentMode" -> return NlPropertyType.ENUM
+      "fabAnchorMode" -> return NlPropertyType.ENUM
       "fabAnimationMode" -> return NlPropertyType.ENUM
       "fabCradleMargin" -> return NlPropertyType.DIMENSION
       "fabCradleRoundedCornerRadius" -> return NlPropertyType.DIMENSION
       "fabCradleVerticalOffset" -> return NlPropertyType.DIMENSION
+      "forceDefaultNavigationOnClickListener" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "focusedSearchResultHighlightColor" -> return NlPropertyType.COLOR
       "forceApplySystemWindowInsetTop" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "haloColor" -> return NlPropertyType.COLOR_STATE_LIST
       "haloRadius" -> return NlPropertyType.DIMENSION
+      "handwritingBoundsOffsetBottom" -> return NlPropertyType.DIMENSION
+      "handwritingBoundsOffsetLeft" -> return NlPropertyType.DIMENSION
+      "handwritingBoundsOffsetRight" -> return NlPropertyType.DIMENSION
+      "handwritingBoundsOffsetTop" -> return NlPropertyType.DIMENSION
       "helperTextTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "hideAnimationBehavior" -> return NlPropertyType.ENUM
+      "hideNavigationIcon" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "hideOnScroll" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "hintTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "iconEndPadding" -> return NlPropertyType.DIMENSION
@@ -134,6 +162,7 @@ object AndroidAttributeFact {
       "insetLeft" -> return NlPropertyType.DIMENSION
       "insetRight" -> return NlPropertyType.DIMENSION
       "insetTop" -> return NlPropertyType.DIMENSION
+      "isCredential" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "itemActiveIndicatorStyle" -> return NlPropertyType.STYLE
       "itemMaxLines" -> return NlPropertyType.INTEGER
       "itemMinHeight" -> return NlPropertyType.DIMENSION
@@ -150,38 +179,54 @@ object AndroidAttributeFact {
       "itemPaddingTop" -> return NlPropertyType.DIMENSION
       "labelBehavior" -> return NlPropertyType.ENUM
       "labelStyle" -> return NlPropertyType.STYLE
+      "lastItemDecorated" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "layout_collapseMode" -> return NlPropertyType.ENUM
       "layout_collapseParallaxMultiplier" -> return NlPropertyType.FLOAT
       "layout_scrollEffect" -> return NlPropertyType.ENUM
       "layout_scrollFlags" -> return NlPropertyType.FLAGS
       "layout_scrollInterpolator" -> return NlPropertyType.INTERPOLATOR
+      "liftOnScrollColor" -> return NlPropertyType.COLOR_STATE_LIST
       "liftOnScrollTargetViewId" -> return NlPropertyType.ID
       "lineSpacing" -> return NlPropertyType.DIMENSION
       "lineBreakStyle" -> return NlPropertyType.STYLE
       "lineBreakWordStyle" -> return NlPropertyType.STYLE
+      "logoAdjustViewBounds" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "logoScaleType" -> return NlPropertyType.ENUM
+      "menuAlignmentMode" -> return NlPropertyType.ENUM
       "menuGravity" -> return NlPropertyType.ENUM
       "minHideDelay" -> return NlPropertyType.INTEGER
       "minSeparation" -> return NlPropertyType.DIMENSION
+      "minTouchTargetSize" -> return NlPropertyType.DIMENSION
       "navigationIconTint" -> return NlPropertyType.COLOR
       "paddingBottomSystemWindowInsets" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "paddingLeftSystemWindowInsets" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "paddingRightSystemWindowInsets" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "paddingTopSystemWindowInsets" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "placeholderText" -> return NlPropertyType.STRING
       "placeholderTextAppearance" -> return NlPropertyType.TEXT_APPEARANCE
       "placeholderTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "prefixText" -> return NlPropertyType.STRING
       "prefixTextAppearance" -> return NlPropertyType.TEXT_APPEARANCE
       "prefixTextColor" -> return NlPropertyType.COLOR_STATE_LIST
+      "removeEmbeddedFabElevation" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "searchPrefixText" -> return NlPropertyType.STRING
+      "searchResultHighlightColor" -> return NlPropertyType.COLOR
       "selectionRequired" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "shapeAppearance" -> return NlPropertyType.STYLE
       "shapeAppearanceOverlay" -> return NlPropertyType.STYLE
       "showAnimationBehavior" -> return NlPropertyType.ENUM
       "showDelay" -> return NlPropertyType.INTEGER
       "shrinkMotionSpec" -> return NlPropertyType.ANIMATOR
+      "simpleItemLayout" -> return NlPropertyType.LAYOUT
+      "simpleItems" -> return NlPropertyType.STRING_ARRAY
+      "simpleItemSelectedColor" -> return NlPropertyType.COLOR
+      "simpleItemSelectedRippleColor" -> return NlPropertyType.COLOR_STATE_LIST
       "singleSelection" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "startIconCheckable" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "startIconContentDescription" -> return NlPropertyType.STRING
       "startIconDrawable" -> return NlPropertyType.DRAWABLE
+      "startIconMinSize" -> return NlPropertyType.DIMENSION
+      "startIconScaleType" -> return NlPropertyType.ENUM
       "startIconTint" -> return NlPropertyType.COLOR_STATE_LIST
       "startIconTintMode" -> return NlPropertyType.ENUM
       "statusBarForeground" -> return NlPropertyType.DRAWABLE
@@ -217,6 +262,7 @@ object AndroidAttributeFact {
       "tabPaddingStart" -> return NlPropertyType.DIMENSION
       "tabPaddingTop" -> return NlPropertyType.DIMENSION
       "tabRippleColor" -> return NlPropertyType.COLOR
+      "tabSelectedTextAppearance" -> return NlPropertyType.TEXT_APPEARANCE
       "tabSelectedTextColor" -> return NlPropertyType.COLOR
       "tabTextAppearance" -> return NlPropertyType.TEXT_APPEARANCE
       "tabTextColor" -> return NlPropertyType.COLOR_STATE_LIST
@@ -226,14 +272,23 @@ object AndroidAttributeFact {
       "tickColorInactive" -> return NlPropertyType.COLOR_STATE_LIST
       "titleCentered" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "titleCollapseMode" -> return NlPropertyType.ENUM
+      "titleTextEllipsize" -> return NlPropertyType.ENUM
+      "tintNavigationIcon" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "toggleCheckedStateOnClick" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "textEndPadding" -> return NlPropertyType.DIMENSION
       "textInputLayoutFocusedRectEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "textStartPadding" -> return NlPropertyType.DIMENSION
       "thumbColor" -> return NlPropertyType.COLOR_STATE_LIST
       "thumbElevation" -> return NlPropertyType.DIMENSION
+      "thumbIcon" -> return NlPropertyType.DRAWABLE
+      "thumbIconTint" -> return NlPropertyType.COLOR_STATE_LIST
+      "thumbIconTintMode" -> return NlPropertyType.ENUM
       "thumbRadius" -> return NlPropertyType.DIMENSION
       "thumbStrokeColor" -> return NlPropertyType.COLOR_STATE_LIST
       "thumbStrokeWidth" -> return NlPropertyType.DIMENSION
+      "trackDecoration" -> return NlPropertyType.DRAWABLE
+      "trackDecorationTint" -> return NlPropertyType.COLOR_STATE_LIST
+      "trackDecorationTintMode" -> return NlPropertyType.ENUM
       "tickVisible" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "topInsetScrimEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "trackColor" -> return NlPropertyType.COLOR_STATE_LIST
@@ -242,6 +297,7 @@ object AndroidAttributeFact {
       "trackCornerRadius" -> return NlPropertyType.DIMENSION
       "trackHeight" -> return NlPropertyType.DIMENSION
       "trackThickness" -> return NlPropertyType.DIMENSION
+      "useDrawerArrowDrawable" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "useMaterialThemeColors" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "expanded" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "liftOnScroll" -> return NlPropertyType.THREE_STATE_BOOLEAN
@@ -431,7 +487,7 @@ object AndroidAttributeFact {
       "amPmTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "animationResolution" -> return NlPropertyType.INTEGER
       "autoLink" -> return NlPropertyType.FLAGS
-      "autoSizePresetSizes" -> return NlPropertyType.ARRAY  // Dimension array
+      "autoSizePresetSizes" -> return NlPropertyType.ARRAY // Dimension array
       "autoSizeTextType" -> return NlPropertyType.ENUM
       "backgroundTintMode" -> return NlPropertyType.ENUM
       "breakStrategy" -> return NlPropertyType.ENUM
@@ -1316,7 +1372,9 @@ object AndroidAttributeFact {
       "userVisible" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "usesCleartextTraffic" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "value" -> return NlPropertyType.FLOAT
-      "values" -> return NlPropertyType.ARRAY  // array of float for com.google.android.material.slider.RangeSlider
+      "values" ->
+        return NlPropertyType
+          .ARRAY // array of float for com.google.android.material.slider.RangeSlider
       "valueFrom" -> return NlPropertyType.FLOAT
       "valueTo" -> return NlPropertyType.FLOAT
       "valueType" -> return NlPropertyType.INTEGER
@@ -1353,4 +1411,3 @@ object AndroidAttributeFact {
     }
   }
 }
-

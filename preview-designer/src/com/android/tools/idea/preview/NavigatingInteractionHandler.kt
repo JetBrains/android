@@ -39,17 +39,18 @@ import javax.swing.SwingUtilities
 
 /**
  * [InteractionHandler] mainly based in [NlInteractionHandler], but with some extra code navigation
- * capabilities.
- * When [isSelectionEnabled] returns true, Preview selection capabilities are also added, affecting
- * the navigation logic.
+ * capabilities. When [isSelectionEnabled] returns true, Preview selection capabilities are also
+ * added, affecting the navigation logic.
  */
-class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
-                                   private val isSelectionEnabled: () -> Boolean = { false }) :
-  NlInteractionHandler(surface) {
+class NavigatingInteractionHandler(
+  private val surface: DesignSurface<*>,
+  private val isSelectionEnabled: () -> Boolean = { false }
+) : NlInteractionHandler(surface) {
 
   private val scope = AndroidCoroutineScope(surface)
   override fun singleClick(x: Int, y: Int, modifiersEx: Int) {
-    // When the selection capabilities are enabled and a Shift-click (single or double) happens, then
+    // When the selection capabilities are enabled and a Shift-click (single or double) happens,
+    // then
     // no navigation will happen. Only selection may be affected (see mouseReleaseWhenNoInteraction)
     val isToggle = isSelectionEnabled() && isShiftDown(modifiersEx)
     if (!isToggle) {
@@ -59,7 +60,8 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
   }
 
   override fun doubleClick(x: Int, y: Int, modifiersEx: Int) {
-    // When the selection capabilities are enabled and a Shift-click (single or double) happens, then
+    // When the selection capabilities are enabled and a Shift-click (single or double) happens,
+    // then
     // no navigation will happen. Only selection may be affected (see mouseReleaseWhenNoInteraction)
     val isToggle = isSelectionEnabled() && isShiftDown(modifiersEx)
     if (!isToggle) {
@@ -69,7 +71,8 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
   }
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {
-    // The logic here is very similar to the one in InteractionHandlerBase, but some small adjustments are
+    // The logic here is very similar to the one in InteractionHandlerBase, but some small
+    // adjustments are
     // needed for the Preview selection logic to work properly.
     val x = mouseEvent.x
     val y = mouseEvent.y
@@ -86,15 +89,16 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
       }
       val actions = surface.actionManager.getPopupMenuActions(component)
       surface.showPopup(mouseEvent, actions, "Preview")
-    }
-    else {
+    } else {
       surface.selectionModel.clear()
     }
   }
 
-  override fun mouseReleaseWhenNoInteraction(@SwingCoordinate x: Int,
-                                             @SwingCoordinate y: Int,
-                                             @JdkConstants.InputEventMask modifiersEx: Int) {
+  override fun mouseReleaseWhenNoInteraction(
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ) {
     if (isSelectionEnabled()) {
       val sceneView = surface.getSceneViewAt(x, y)
       if (sceneView != null) {
@@ -104,29 +108,30 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
         val allowToggle = isShiftDown(modifiersEx)
         if (component != null) {
           val wasSelected = sceneView.selectionModel.isSelected(component)
-          sceneView.selectComponent(
-            component,
-            allowToggle,
-            ignoreIfAlreadySelected = !allowToggle
-          )
+          sceneView.selectComponent(component, allowToggle, ignoreIfAlreadySelected = !allowToggle)
           // If the selection state changed, then force a hover state update
           if (wasSelected != sceneView.selectionModel.isSelected(component)) {
             forceHoverUpdate(sceneView, x, y)
           }
         }
-      }
-      else {
+      } else {
         surface.selectionModel.clear()
       }
     }
   }
 
-  override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int, modifiersEx: Int): Interaction? {
+  override fun createInteractionOnPressed(
+    @SwingCoordinate mouseX: Int,
+    @SwingCoordinate mouseY: Int,
+    modifiersEx: Int
+  ): Interaction? {
     val interaction = super.createInteractionOnPressed(mouseX, mouseY, modifiersEx)
     // SceneInteractions must be ignored as they impact the selection model following
     // a different logic that the one used by this interaction handler.
     if (isSelectionEnabled() && interaction is SceneInteraction) {
-      interaction.cancel(InteractionNonInputEvent(InteractionInformation(mouseX, mouseY, modifiersEx)))
+      interaction.cancel(
+        InteractionNonInputEvent(InteractionInformation(mouseX, mouseY, modifiersEx))
+      )
       return null
     }
     return interaction
@@ -136,7 +141,8 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
     val mousePosition = MouseInfo.getPointerInfo().location
     SwingUtilities.convertPointFromScreen(mousePosition, surface.interactionPane)
     // Exiting to a popup from a point within the surface is not considered as exiting the surface.
-    // This is needed to keep the hover state of a preview when interacting with its right-click pop-up.
+    // This is needed to keep the hover state of a preview when interacting with its right-click
+    // pop-up.
     if (!surface.interactionPane.contains(mousePosition.x, mousePosition.y)) {
       super.mouseExited()
     }
@@ -169,8 +175,9 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
     val navHandler = (surface as NlDesignSurface).navigationHandler ?: return
     val scene = sceneView.scene
     scope.launch(AndroidDispatchers.workerThread) {
-      if (!navHandler.handleNavigate(sceneView, x, y, needsFocusEditor)) {
-        val sceneComponent = scene.findComponent(sceneView.context, androidX, androidY) ?: return@launch
+      if (!navHandler.handleNavigateWithCoordinates(sceneView, x, y, needsFocusEditor)) {
+        val sceneComponent =
+          scene.findComponent(sceneView.context, androidX, androidY) ?: return@launch
         navigateToComponent(sceneComponent.nlComponent, needsFocusEditor)
       }
     }

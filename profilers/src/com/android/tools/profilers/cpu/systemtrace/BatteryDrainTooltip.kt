@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.TooltipModel
 
 class BatteryDrainTooltip(val timeline: Timeline,
                           val counterName: String,
+                          val unit: String,
                           private val batteryDrainValues: RangedSeries<Long>) : TooltipModel, AspectModel<BatteryDrainTooltip.Aspect>() {
   enum class Aspect {
     /**

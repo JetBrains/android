@@ -9,7 +9,7 @@ public @interface RequiresExtension {
 
 class SdkExtensionsTest {
     public void test() {
-        <error descr="Call requires version 4 of the R SDK (current min is 0): `requiresExtRv4`">requires<caret>ExtRv4</error>();
+        <error descr="Call requires version 4 of the R Extensions SDK (current min is 0): `requiresExtRv4`">requires<caret>ExtRv4</error>();
     }
 
     @RequiresExtension(extension= Build.VERSION_CODES.R, version=4)

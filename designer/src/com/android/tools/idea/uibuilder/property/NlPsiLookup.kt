@@ -24,9 +24,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Utility for looking up the [PsiClass] from an XML tag name.
- */
+/** Utility for looking up the [PsiClass] from an XML tag name. */
 class NlPsiLookup(facet: AndroidFacet) {
   private val psiFacade = JavaPsiFacade.getInstance(facet.module.project)
   private val allScope = GlobalSearchScope.allScope(facet.module.project)
@@ -37,10 +35,18 @@ class NlPsiLookup(facet: AndroidFacet) {
   private val androidxPreferenceMap = tagMapper.getClassMap(CLASS_PREFERENCE_ANDROIDX.newName())
 
   fun classOf(tagName: String): PsiClass? {
-    viewMap[tagName]?.let { return it }
-    preferenceMap[tagName]?.let { return it }
-    appcompatPreferenceMap[tagName]?.let { return it }
-    androidxPreferenceMap[tagName]?.let { return it }
+    viewMap[tagName]?.let {
+      return it
+    }
+    preferenceMap[tagName]?.let {
+      return it
+    }
+    appcompatPreferenceMap[tagName]?.let {
+      return it
+    }
+    androidxPreferenceMap[tagName]?.let {
+      return it
+    }
     return tagName.takeIf { it.contains('.') }?.let { psiFacade.findClass(tagName, allScope) }
   }
 }

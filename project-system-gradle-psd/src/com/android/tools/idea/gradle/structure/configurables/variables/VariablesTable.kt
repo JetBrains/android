@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.variables
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorValidator
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.PropertyCellEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderAnyTo
@@ -84,8 +85,6 @@ import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
-import kotlin.math.ceil
-import kotlin.math.floor
 
 private const val NAME = 0
 private const val UNRESOLVED_VALUE = 1
@@ -454,11 +453,11 @@ class VariablesTable private constructor(
         val icon = UIUtil.getTreeNodeIcon(tree.isExpanded(row), isSelected, tree.hasFocus())
         val iconLabel = JLabel(icon)
         val extraHeight = bounds.height - icon.iconHeight
-        iconLabel.border = EmptyBorder(ceil(extraHeight / 2.0).toInt(), 0, floor(extraHeight / 2.0).toInt(), 0)
+        iconLabel.border = EmptyBorder(Math.ceil(extraHeight / 2.0).toInt(), 0, Math.floor(extraHeight / 2.0).toInt(), 0)
         panel.add(
-          Box.createHorizontalStrut(bounds.x - (tree.ui as BasicTreeUI).rightChildIndent + 1 - ceil(icon.iconWidth / 2.0).toInt()))
+          Box.createHorizontalStrut(bounds.x - (tree.ui as BasicTreeUI).rightChildIndent + 1 - Math.ceil(icon.iconWidth / 2.0).toInt()))
         panel.add(iconLabel)
-        panel.add(Box.createHorizontalStrut((tree.ui as BasicTreeUI).rightChildIndent - 1 - floor(icon.iconWidth / 2.0).toInt()))
+        panel.add(Box.createHorizontalStrut((tree.ui as BasicTreeUI).rightChildIndent - 1 - Math.floor(icon.iconWidth / 2.0).toInt()))
       }
       else {
         panel.add(Box.createHorizontalStrut(bounds.x))
@@ -526,7 +525,18 @@ class VariablesTable private constructor(
               .also { invokeLater { nextCell(ActionEvent(this, ActionEvent.ACTION_PERFORMED, null), editingRow, editingColumn) } }
           }
         }
-      val editor = uiProperty.createEditor(context, psProject, null, variable, enterHandlingProxyCellEditor)
+
+      val validator = when (val node = tree.getPathForRow(row).lastPathComponent) {
+        is VariablesBaseNode -> when (node.parent) {
+          is VersionCatalogNode -> node.validateStringValue()
+          else -> null
+        }
+
+        else -> null
+      }?.let { PropertyEditorValidator(project, it) }
+
+      val editor = uiProperty.createEditor(context, psProject, null, variable, enterHandlingProxyCellEditor, validator)
+
       addTabKeySupportTo(editor.component)
       return editor
     }
@@ -719,6 +729,12 @@ open class VariablesBaseNode(
       else -> null
     }
   }
+  fun validateStringValue(): (String) -> String? = { name ->
+    when {
+      name.isEmpty() -> "Variable value cannot be empty."
+      else -> null
+    }
+  }
 }
 
 abstract class AbstractContainerNode(znode: ShadowNode, variablesScope: PsVariablesScope) : VariablesBaseNode(znode, variablesScope)
@@ -868,7 +884,7 @@ internal data class ProjectShadowNode(val project: PsProject) : ShadowNode {
     listOf(RootModuleShadowNode(project.variables)) +
     project.modules.filter { it.isDeclared }.sortedBy { it.gradlePath }.map { ModuleShadowNode(it) }
 
-  private fun getVersionCatalogNodes(): List<VersionCatalogShadowNode> =
+  fun getVersionCatalogNodes(): List<VersionCatalogShadowNode> =
     project.versionCatalogs.sortedBy { it.name }.map { VersionCatalogShadowNode(it) }
 
   override fun createNode(): VariablesBaseNode = VariablesBaseNode(this, null)

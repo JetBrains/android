@@ -21,6 +21,8 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
+import com.android.tools.idea.gradle.project.facet.ndk.NativeHeaderRootType
+import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
@@ -31,6 +33,7 @@ import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidMod
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.IDE_LIBRARY_TABLE
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.KMP_ANDROID_LIBRARY_TABLE
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCachedVariantData
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
@@ -45,6 +48,7 @@ import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.ide.impl.runUnderModalProgressIfIsEdt
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.writeAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -58,6 +62,7 @@ import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjec
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.roots.LibraryOrderEntry
@@ -68,6 +73,7 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
@@ -99,9 +105,7 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
       if (gradleProjectInfo.androidModules.isNotEmpty()) return true
 
       // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
-      if (IdeInfo.getInstance().isAndroidStudio && gradleProjectInfo.isBuildWithGradle) return true
-
-      return false
+      return IdeInfo.getInstance().isAndroidStudio && gradleProjectInfo.isBuildWithGradle
     }
 
     // Make sure we remove Gradle producers from the ignoredProducers list for old projects that used to run tests through AndroidJunit.
@@ -109,17 +113,22 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
     removeGradleProducersFromIgnoredList(project)
 
     if (shouldSyncOrAttachModels()) {
-      removeEmptyModules(project)
-      attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
+      JpsProjectLoadingManager.getInstance(project).jpsProjectLoaded {
+        runBlockingCancellable {
+          removePointlessModules(project)
+          attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
+        }
+      }
     }
-
-    gradleProjectInfo.isSkipStartupActivity = false
 
     // Disable all settings sections that we don't want to be present in Android Studio.
     // See AndroidStudioPreferences for a full list.
-    AndroidStudioPreferences.cleanUpPreferences(project)
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      AndroidStudioPreferences.cleanUpPreferences(project)
+      showNeededNotifications(project)
+    }
 
-    showNeededNotifications(project)
+    gradleProjectInfo.isSkipStartupActivity = false
   }
 
   private suspend fun waitForExternalProjectsManagerInitialization(project: Project) {
@@ -141,27 +150,38 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
 
 private val LOG = Logger.getInstance(AndroidGradleProjectStartupActivity::class.java)
 
-private suspend fun removeEmptyModules(project: Project) {
+private suspend fun removePointlessModules(project: Project) {
   val moduleManager = ModuleManager.getInstance(project)
-  val modulesToRemove =
-    moduleManager
-      .modules
-      .filter { module ->
-        module.isLoaded &&
-          module.moduleFile == null &&
-          ExternalSystemModulePropertyManager.getInstance(module).getExternalSystemId().isNullOrEmpty() &&
-          module.rootManager.let { roots -> roots.contentEntries.isEmpty() && roots.orderEntries.all { it is ModuleSourceOrderEntry } }
-      }
-      .takeUnless { it.isEmpty() }
-      ?: return
+  val emptyModulesToRemove = mutableListOf<Pair<Module, Module.() -> Unit>>()
+  val nativeOnlySourceRootsModulesToRemove = mutableListOf<Pair<Module, Module.() -> Unit>>()
 
+  moduleManager.modules.forEach { module ->
+    if (module.isLoaded && ExternalSystemModulePropertyManager.getInstance(module).getExternalSystemId().isNullOrEmpty()) {
+      if (module.isEmptyModule()) {
+        emptyModulesToRemove.add(Pair(module) {
+          LOG.warn("Disposing module '$name' which is empty, not registered with the external system and '$moduleFilePath' does not exist.")
+        })
+      } else if (module.hasOnlyNativeRoots()) {
+        nativeOnlySourceRootsModulesToRemove.add(Pair(module) {
+          LOG.warn("Disposing module '$name' which is not registered with the external system and contains only native roots.")
+        })
+      }
+    }
+  }
+
+  removeModules(
+    moduleManager,
+    modules = emptyModulesToRemove + nativeOnlySourceRootsModulesToRemove
+  )
+}
+
+private suspend fun removeModules(moduleManager: ModuleManager, modules: List<Pair<Module, Module.() -> Unit>>) {
+  if (modules.isEmpty()) return
   writeAction {
     with(moduleManager.getModifiableModel()) {
-      modulesToRemove.forEach {
-        LOG.warn(
-          "Disposing module '${it.name}' which is empty, not registered with the external system and '${it.moduleFilePath}' does not exist."
-        )
-        disposeModule(it)
+      modules.forEach { (module, onRemovingModule) ->
+        onRemovingModule(module)
+        disposeModule(module)
       }
       commit()
     }
@@ -277,7 +297,8 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     projectDataNodes.flatMap { projectData ->
       val libraries =
         ExternalSystemApiUtil.find(projectData, IDE_LIBRARY_TABLE)?.data ?: run { requestSync("IDE library table not found"); return }
-      val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTable(libraries)
+      val kmpLibraries = ExternalSystemApiUtil.find(projectData, KMP_ANDROID_LIBRARY_TABLE)?.data
+      val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(libraries, kmpLibraries)
       val modelFactory = GradleAndroidModel.createFactory(project, libraryResolver)
       projectData
         .modules()
@@ -379,3 +400,13 @@ private fun removeGradleProducersFromIgnoredList(project: Project) {
   producerService.state.ignoredProducers.remove(TestClassGradleConfigurationProducer::class.java.name)
   producerService.state.ignoredProducers.remove(TestMethodGradleConfigurationProducer::class.java.name)
 }
+
+private fun Module.isEmptyModule() =
+  moduleFile == null &&
+  rootManager.let { roots -> roots.contentEntries.isEmpty() && roots.orderEntries.all { it is ModuleSourceOrderEntry } }
+
+private fun Module.hasOnlyNativeRoots() =
+  rootManager.let { roots ->
+    roots.sourceRoots.isNotEmpty() &&
+    roots.getSourceRoots(NativeSourceRootType).size + roots.getSourceRoots(NativeHeaderRootType).size == roots.sourceRoots.size
+  }

@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
@@ -35,6 +36,7 @@ import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -50,11 +52,12 @@ import kotlin.math.min
 /**
  * Keeps track of Android Emulators running on the local machine under the current user account.
  */
+@Service(Service.Level.APP)
 class RunningEmulatorCatalog : Disposable.Parent {
   // TODO: Use WatchService instead of polling.
   @Volatile var emulators: Set<EmulatorController> = ImmutableSet.of()
 
-  private val fileNamePattern = Pattern.compile("pid_\\d+.ini")
+  private val fileNamePattern = Pattern.compile("pid_(\\d+).ini")
   private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
   @Volatile private var isDisposing = false
   /** This lock is held for reading while an update is running. */
@@ -280,11 +283,25 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private fun readDirectoryContents(directory: Path): List<Path> {
     return try {
       Files.list(directory).use { stream ->
-        stream.filter { fileNamePattern.matcher(it.fileName.toString()).matches() }.toList()
+        stream.filter { isValidPidIni(it) }.toList()
       }
     }
     catch (e: NoSuchFileException) {
       emptyList() // The registration directory hasn't been created yet.
+    }
+  }
+
+  private fun isValidPidIni(file: Path): Boolean {
+    val matcher = fileNamePattern.matcher(file.fileName.toString())
+    if (!matcher.matches()) {
+      return false
+    }
+    return try {
+      // It is not possible to mock ProcessHandle.of because Mockito.mockStatic doesn't work across threads.
+      ProcessHandle.of(matcher.group(1).toLong()).orElse(null)?.isAlive ?: ApplicationManager.getApplication().isUnitTestMode
+    }
+    catch (e: NumberFormatException) {
+      false
     }
   }
 
@@ -322,7 +339,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
             avdName = if (name.contains(' ')) name else name.replace('_', ' ')
           }
           line.startsWith("avd.dir=") -> {
-            avdFolder = Paths.get(line.substring("add.dir=".length))
+            // TODO: The toRealPath call is a workaround for b/280110539. Remove after January 1, 2024.
+            avdFolder = Paths.get(line.substring("add.dir=".length)).toRealPath(LinkOption.NOFOLLOW_LINKS)
           }
           line.startsWith("port.serial=") -> {
             serialPort = parseInt(line.substring("port.serial=".length), 0)

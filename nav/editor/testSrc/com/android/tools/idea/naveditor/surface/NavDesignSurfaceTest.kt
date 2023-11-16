@@ -30,7 +30,6 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.TestInteractable
-import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -55,12 +54,11 @@ import com.intellij.util.indexing.UnindexedFilesScanner
 import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.sdk.StudioAndroidSdkData
 import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.doCallRealMethod
+import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -221,7 +219,7 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     val view = NavView(surface, surface.sceneManager!!)
 
-    surface.scene!!.layout(0, SceneContext.get(view))
+    surface.scene!!.layout(0, view.context)
     val fragment = surface.scene!!.getSceneComponent("fragment1")!!
     val x = Coordinates.getSwingX(view, fragment.drawX) + 5
     val y = Coordinates.getSwingY(view, fragment.drawY) + 5
@@ -454,27 +452,6 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertEquals(root, component)
   }
 
-  fun testConfiguration() {
-    val defaultConfigurationManager = ConfigurationManager.getOrCreateInstance(myModule)
-    val navConfigurationManager = NavDesignSurface(project, project).getConfigurationManager(myFacet)
-    assertNotEquals(defaultConfigurationManager, navConfigurationManager)
-
-    val navFile = findVirtualProjectFile(project, "res/navigation/navigation.xml")!!
-    val defaultConfiguration = defaultConfigurationManager.getConfiguration(navFile)
-    val navConfiguration = navConfigurationManager.getConfiguration(navFile)
-    val navDevice = navConfiguration.device
-    val pixelC = StudioAndroidSdkData.getSdkData(myFacet)!!.deviceManager.getDevice("pixel_c", "Google")!!
-    // in order to unset the cached derived device in the configuration you have to set it to something else first
-    navConfiguration.setDevice(pixelC, false)
-    navConfiguration.setDevice(null, false)
-
-    // Select a device in the default (layout) ConfigurationManager. It shouldn't affect the nav editor device.
-    defaultConfigurationManager.selectDevice(pixelC)
-
-    assertEquals(navDevice, navConfiguration.device)
-    assertEquals(pixelC, defaultConfiguration.device)
-  }
-
   fun testActivateWithSchemaChange() {
     NavigationSchema.createIfNecessary(myModule)
     val editor = mock(DesignerEditorPanel::class.java)
@@ -559,7 +536,7 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   private fun addClass(@Language("JAVA") content: String): PsiClass {
-    val result = WriteCommandAction.runWriteCommandAction(project, Computable {
+    val result = WriteCommandAction.runWriteCommandAction(project, Computable<PsiClass> {
       myFixture.addClass(content)
     })
     WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
@@ -617,8 +594,8 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertEquals(dependencies.count(), artifactIds.count())
 
     for (i in 0 until dependencies.count()) {
-      assertEquals(groupId, dependencies[i].groupId)
-      assertEquals(artifactIds[i], dependencies[i].artifactId)
+      assertEquals(groupId, dependencies[i].mavenGroupId)
+      assertEquals(artifactIds[i], dependencies[i].mavenArtifactId)
     }
   }
 

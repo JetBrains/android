@@ -24,15 +24,10 @@
     />
     <codeInsight.lineMarkerProvider language="kotlin"
                                     implementationClass="com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider"/>
-    <codeInsight.lineMarkerProvider language="JAVA"
-                                    implementationClass="com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProviderV2"/>
-    <codeInsight.lineMarkerProvider language="kotlin"
-                                    implementationClass="com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProviderV2"/>
     <consoleFilterProvider implementation="com.android.tools.idea.dagger.DaggerConsoleFilterProvider"/>
     <projectService
         serviceInterface="com.android.tools.idea.dagger.DaggerAnalyticsTracker"
         serviceImplementation="com.android.tools.idea.dagger.DaggerAnalyticsTrackerImpl"/>
-    <!-- TODO(b/265846405): Enable indexing when feature is ready for use. -->
-    <!-- <fileBasedIndex implementation="com.android.tools.idea.dagger.index.DaggerIndex"/> -->
+    <fileBasedIndex implementation="com.android.tools.idea.dagger.index.DaggerIndex"/>
   </extensions>
 </idea-plugin>

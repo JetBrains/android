@@ -27,14 +27,15 @@ import com.intellij.openapi.project.Project
 @Service(Service.Level.PROJECT)
 class VisualLintSettings : SimplePersistentStateComponent<VisualLintSettings.State>(State()) {
 
-  class State: BaseState() {
+  class State : BaseState() {
     var isVisualLintFilterSelected by property(true)
   }
 
   /**
    * Record if the toggle action of visual lint filter is selected in
-   * [com.android.tools.idea.common.error.IssuePanelViewOptionActionGroup]. When it is **NOT** selected, the visual lint issues/problems
-   * are not displayed in the [com.android.tools.idea.common.error.DesignerCommonIssuePanel].
+   * [com.android.tools.idea.common.error.IssuePanelViewOptionActionGroup]. When it is **NOT**
+   * selected, the visual lint issues/problems are not displayed in the
+   * [com.android.tools.idea.common.error.DesignerCommonIssuePanel].
    */
   var isVisualLintFilterSelected: Boolean
     get() = state.isVisualLintFilterSelected
@@ -45,6 +46,7 @@ class VisualLintSettings : SimplePersistentStateComponent<VisualLintSettings.Sta
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): VisualLintSettings = project.getService(VisualLintSettings::class.java)
+    fun getInstance(project: Project): VisualLintSettings =
+      project.getService(VisualLintSettings::class.java)
   }
 }

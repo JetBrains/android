@@ -18,8 +18,8 @@ package com.android.tools.idea.device.explorer
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.serialNumber
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.analytics.UsageTracker.log
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
@@ -67,9 +67,9 @@ class DeviceExplorerController(
     uiThreadScope.launch {
       view.setup()
       deviceFilesController.setup()
-      view.addTab(deviceFilesController.getViewComponent(), "Files")
+      view.addTab(deviceFilesController.getViewComponent(), DeviceExplorerTab.Files.name)
       deviceMonitorControllerImpl.setup()
-      view.addTab(deviceMonitorControllerImpl.getViewComponent(), "Processes")
+      view.addTab(deviceMonitorControllerImpl.getViewComponent(), DeviceExplorerTab.Processes.name)
       launch { view.trackDeviceListChanges() }
       launch { view.trackActiveDeviceChanges() }
     }

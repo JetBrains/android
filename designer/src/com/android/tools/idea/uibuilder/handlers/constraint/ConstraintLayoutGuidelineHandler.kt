@@ -28,9 +28,7 @@ import com.google.common.collect.ImmutableList
 import icons.StudioIcons
 import javax.swing.Icon
 
-/**
- * Handles interactions with a Guideline for a ConstraintLayout.
- */
+/** Handles interactions with a Guideline for a ConstraintLayout. */
 class ConstraintLayoutGuidelineHandler : ViewHandler() {
 
   override fun getIcon(component: NlComponent): Icon {
@@ -39,8 +37,7 @@ class ConstraintLayoutGuidelineHandler : ViewHandler() {
     }
     return if (isVertical(component)) {
       StudioIcons.LayoutEditor.Palette.GUIDELINE_VERTICAL
-    }
-    else {
+    } else {
       StudioIcons.LayoutEditor.Palette.GUIDELINE_HORIZONTAL
     }
   }
@@ -48,11 +45,16 @@ class ConstraintLayoutGuidelineHandler : ViewHandler() {
   companion object {
     @JvmStatic
     fun isVertical(component: NlComponent): Boolean {
-      return ATTR_GUIDELINE_ORIENTATION_VERTICAL == component.resolveAttribute(ANDROID_URI, ATTR_ORIENTATION)
+      return ATTR_GUIDELINE_ORIENTATION_VERTICAL ==
+        component.resolveAttribute(ANDROID_URI, ATTR_ORIENTATION)
     }
   }
 
   override fun getInspectorProperties(): List<String> {
-    return ImmutableList.of(LAYOUT_CONSTRAINT_GUIDE_BEGIN, LAYOUT_CONSTRAINT_GUIDE_END, LAYOUT_CONSTRAINT_GUIDE_PERCENT)
+    return ImmutableList.of(
+      LAYOUT_CONSTRAINT_GUIDE_BEGIN,
+      LAYOUT_CONSTRAINT_GUIDE_END,
+      LAYOUT_CONSTRAINT_GUIDE_PERCENT
+    )
   }
 }

@@ -15,23 +15,26 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import static com.google.common.truth.Truth.assertThat;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
-import static org.fest.swing.core.matcher.JButtonMatcher.withText;
-import static org.fest.swing.finder.WindowFinder.findDialog;
-
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.util.concurrent.TimeUnit;
 import org.fest.swing.fixture.DialogFixture;
+import org.fest.swing.timing.Wait;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.truth.Truth.assertThat;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
+import static org.fest.swing.core.matcher.JButtonMatcher.withText;
+import static org.fest.swing.finder.WindowFinder.findDialog;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CodeConversionFromJavaToKotlinTest {
@@ -94,8 +97,7 @@ public class CodeConversionFromJavaToKotlinTest {
     */
 
     EditorFixture kotlinEditor = ideFrameFixture.getEditor()
-      .open(FILE_NAME,
-            EditorFixture.Tab.EDITOR)
+      .open(FILE_NAME)
       .moveBetween("setContentView(R.layout.activity_main)\n    }", "");
 
     kotlinEditor.pasteText(JAVA_METHOD);

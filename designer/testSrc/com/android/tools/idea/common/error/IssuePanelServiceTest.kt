@@ -35,21 +35,19 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JComponent
 import javax.swing.JPanel
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class IssuePanelServiceTest {
 
-  @JvmField
-  @Rule
-  val rule = AndroidProjectRule.withAndroidModel().onEdt()
+  @JvmField @Rule val rule = AndroidProjectRule.withAndroidModel().onEdt()
 
   private lateinit var toolWindow: ToolWindow
   private lateinit var service: IssuePanelService
@@ -58,13 +56,17 @@ class IssuePanelServiceTest {
   fun setup() {
     StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.override(true)
 
-    rule.projectRule.replaceProjectService(ToolWindowManager::class.java, TestToolWindowManager(rule.project))
+    rule.projectRule.replaceProjectService(
+      ToolWindowManager::class.java,
+      TestToolWindowManager(rule.project)
+    )
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
     val contentManager = toolWindow.contentManager
-    val content = contentManager.factory.createContent(TestContentComponent(HighlightingPanel.ID), "Current File", true).apply {
-      isCloseable = false
-    }
+    val content =
+      contentManager.factory
+        .createContent(TestContentComponent(HighlightingPanel.ID), "Current File", true)
+        .apply { isCloseable = false }
     contentManager.addContent(content)
     contentManager.setSelectedContent(content)
 
@@ -82,9 +84,7 @@ class IssuePanelServiceTest {
   @Test
   fun testInitWithOtherFile() {
     val file = rule.fixture.addFileToProject("/src/file.kt", "")
-    runInEdtAndWait {
-      rule.fixture.openFileInEditor(file.virtualFile)
-    }
+    runInEdtAndWait { rule.fixture.openFileInEditor(file.virtualFile) }
     assertEquals("Current File", toolWindow.contentManager.selectedContent!!.displayName)
     assertEquals(1, toolWindow.contentManager.contents.size)
   }
@@ -94,14 +94,10 @@ class IssuePanelServiceTest {
     val ktFile = rule.fixture.addFileToProject("/src/file.kt", "")
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
     ProblemsView.getToolWindow(rule.project)!!.show()
-    runInEdtAndWait {
-      rule.fixture.openFileInEditor(ktFile.virtualFile)
-    }
+    runInEdtAndWait { rule.fixture.openFileInEditor(ktFile.virtualFile) }
     assertFalse(service.isIssuePanelVisible(mock()))
 
-    runInEdtAndWait {
-      rule.fixture.openFileInEditor(layoutFile.virtualFile)
-    }
+    runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
     assertFalse(service.isIssuePanelVisible(mock()))
   }
 
@@ -130,19 +126,13 @@ class IssuePanelServiceTest {
     val ktFile = rule.fixture.addFileToProject("/src/file.kt", "")
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
 
-    runInEdtAndWait {
-      rule.fixture.openFileInEditor(ktFile.virtualFile)
-    }
+    runInEdtAndWait { rule.fixture.openFileInEditor(ktFile.virtualFile) }
     assertNull(service.getSelectedSharedIssuePanel())
 
-    runInEdtAndWait {
-      rule.fixture.openFileInEditor(layoutFile.virtualFile)
-    }
+    runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
     assertNull(service.getSelectedSharedIssuePanel())
 
-    runInEdtAndWait {
-      rule.fixture.openFileInEditor(ktFile.virtualFile)
-    }
+    runInEdtAndWait { rule.fixture.openFileInEditor(ktFile.virtualFile) }
     assertNull(service.getSelectedSharedIssuePanel())
   }
 
@@ -150,23 +140,22 @@ class IssuePanelServiceTest {
   fun testSetVisibility() {
     val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(ProblemsView.ID)!!
     toolWindow.hide()
-    val service = IssuePanelService.getInstance(rule.project).apply { runInEdtAndWait { initIssueTabs(toolWindow) } }
+    val service =
+      IssuePanelService.getInstance(rule.project).apply {
+        runInEdtAndWait { initIssueTabs(toolWindow) }
+      }
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
 
-    runInEdtAndWait {
-      rule.fixture.openFileInEditor(layoutFile.virtualFile)
-    }
-    toolWindow.contentManager.let { it.setSelectedContent(it.contents[0]) } // select current file tab.
+    runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
+    toolWindow.contentManager.let {
+      it.setSelectedContent(it.contents[0])
+    } // select current file tab.
     assertNull(service.getSelectedSharedIssuePanel())
 
-    runInEdtAndWait {
-      service.setSharedIssuePanelVisibility(true)
-    }
+    runInEdtAndWait { service.setSharedIssuePanelVisibility(true) }
     assertTrue(toolWindow.isVisible)
 
-    runInEdtAndWait {
-      service.setSharedIssuePanelVisibility(false)
-    }
+    runInEdtAndWait { service.setSharedIssuePanelVisibility(false) }
     assertFalse(toolWindow.isVisible)
   }
 
@@ -176,7 +165,8 @@ class IssuePanelServiceTest {
     val messageBus = rule.project.messageBus
     val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(ProblemsView.ID)!!
     val layoutFile = runInEdtAndGet {
-      val file = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />").virtualFile
+      val file =
+        rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />").virtualFile
       rule.fixture.openFileInEditor(file)
       service.setSharedIssuePanelVisibility(true)
       file
@@ -193,13 +183,22 @@ class IssuePanelServiceTest {
     assertEquals("Layout and Qualifiers".toTabTitle(), content.displayName)
 
     runInEdtAndWait {
-      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue(source = issueSource)))
+      messageBus
+        .syncPublisher(IssueProviderListener.TOPIC)
+        .issueUpdated(source, listOf(TestIssue(source = issueSource)))
     }
     assertEquals("Layout and Qualifiers".toTabTitle(1), content.displayName)
 
     runInEdtAndWait {
-      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue(summary = "1", source = issueSource),
-                                                                                        TestIssue(summary = "2", source = issueSource)))
+      messageBus
+        .syncPublisher(IssueProviderListener.TOPIC)
+        .issueUpdated(
+          source,
+          listOf(
+            TestIssue(summary = "1", source = issueSource),
+            TestIssue(summary = "2", source = issueSource)
+          )
+        )
     }
     assertEquals("Layout and Qualifiers".toTabTitle(2), content.displayName)
 
@@ -210,18 +209,22 @@ class IssuePanelServiceTest {
   }
 
   /**
-   * Note: This test may fail if [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName] changes the implementation
-   * after merging IDEA. Please disable it and file a bug to fix.
+   * Note: This test may fail if
+   * [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName] changes the
+   * implementation after merging IDEA. Please disable it and file a bug to fix.
    */
   @Test
   fun testTabNameAndStyleSameAsIntellijProblemsPanel() {
     // Create an IJ's problems panel for comparing the custom tab title and style.
-    val panel = ProblemsViewPanel(rule.project, "ID_IssuePanelServiceTest", ProblemsViewState()) { "Problems" }
+    val panel =
+      ProblemsViewPanel(rule.project, "ID_IssuePanelServiceTest", ProblemsViewState()) {
+        "Problems"
+      }
     Disposer.register(rule.testRootDisposable, panel)
 
-    assertEquals(panel.getName(0), createTabName("Problems", 0))
-    assertEquals(panel.getName(1), createTabName("Problems", 1))
-    assertEquals(panel.getName(10), createTabName("Problems", 10))
+    assertEqualsIgnoreSpaces(panel.getName(0), createTabName("Problems", 0))
+    assertEqualsIgnoreSpaces(panel.getName(1), createTabName("Problems", 1))
+    assertEqualsIgnoreSpaces(panel.getName(10), createTabName("Problems", 10))
   }
 
   @RunsInEdt
@@ -239,13 +242,14 @@ class IssuePanelServiceTest {
 
     service.setSharedIssuePanelVisibility(true)
     // It should select the shared issue panel.
-    assertEquals(contentManager.selectedContent,
-                 contentManager.findContent("Designer".toTabTitle()))
+    assertEquals(
+      contentManager.selectedContent,
+      contentManager.findContent("Designer".toTabTitle())
+    )
 
     service.removeSharedIssueTabFromProblemsPanel()
     // It should select the first tab, which is the "Current File" tab.
-    assertEquals(contentManager.selectedContent,
-                 contentManager.findContent("Current File"))
+    assertEquals(contentManager.selectedContent, contentManager.findContent("Current File"))
   }
 
   @RunsInEdt
@@ -300,8 +304,8 @@ class IssuePanelServiceTest {
   fun testSetIssuePanelVisibility() {
     val window = toolWindow as TestToolWindow
     val contentManager = window.contentManager
-    val additionalContent = contentManager.factory.createContent(null, "Additional Content", false)
-      .apply {
+    val additionalContent =
+      contentManager.factory.createContent(null, "Additional Content", false).apply {
         tabName = "Additional Content"
         isCloseable = false
       }
@@ -339,9 +343,7 @@ class IssuePanelServiceTest {
   fun testExplicitShowCallSelectsTheCorrectTab() {
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
     ProblemsView.getToolWindow(rule.project)!!.show()
-    runInEdtAndWait {
-      rule.fixture.openFileInEditor(layoutFile.virtualFile)
-    }
+    runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
     assertFalse(service.isIssuePanelVisible(mock()))
 
     service.setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
@@ -349,8 +351,7 @@ class IssuePanelServiceTest {
   }
 }
 
-class TestToolWindowManager(private val project: Project)
-  : ToolWindowHeadlessManagerImpl(project) {
+class TestToolWindowManager(private val project: Project) : ToolWindowHeadlessManagerImpl(project) {
   private val idToToolWindow = mutableMapOf<String, ToolWindow>()
 
   override fun doRegisterToolWindow(id: String): ToolWindow {
@@ -364,9 +365,7 @@ class TestToolWindowManager(private val project: Project)
   }
 }
 
-/**
- * This window is used to test the change of availability.
- */
+/** This window is used to test the change of availability. */
 class TestToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
   private var _isAvailable = false
   private var _isVisible = false
@@ -429,4 +428,9 @@ private class TestContentComponent(private val id: String) : JComponent(), Probl
   override fun getName(count: Int): String = id
 
   override fun getTabId(): String = id
+}
+
+/** Asserts [expected] and [actual] are the same string when removing all spaces and new lines. */
+fun assertEqualsIgnoreSpaces(expected: String, actual: String) {
+  assertEquals(expected.replace("\\s+".toRegex(), ""), actual.replace("\\s+".toRegex(), ""))
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.common.error
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
@@ -47,10 +48,9 @@ import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 import javax.swing.ToolTipManager
 
-/**
- * The side panel to show the detail of issue and its source code if available
- */
-class DesignerCommonIssueSidePanel(private val project: Project, parentDisposable: Disposable) : JPanel(BorderLayout()), Disposable {
+/** The side panel to show the detail of issue and its source code if available */
+class DesignerCommonIssueSidePanel(private val project: Project, parentDisposable: Disposable) :
+  JPanel(BorderLayout()), Disposable {
 
   private val splitter: OnePixelSplitter = OnePixelSplitter(true, 0.5f, 0.1f, 0.9f)
 
@@ -63,18 +63,27 @@ class DesignerCommonIssueSidePanel(private val project: Project, parentDisposabl
     splitter.setResizeEnabled(true)
     add(splitter, BorderLayout.CENTER)
 
-    project.messageBus.connect(this).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
-      override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
-        fileToEditorMap.remove(file)?.let { editor -> EditorFactory.getInstance().releaseEditor(editor) }
-      }
-    })
+    project.messageBus
+      .connect(this)
+      .subscribe(
+        FileEditorManagerListener.FILE_EDITOR_MANAGER,
+        object : FileEditorManagerListener {
+          override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+            fileToEditorMap.remove(file)?.let { editor ->
+              EditorFactory.getInstance().releaseEditor(editor)
+            }
+          }
+        }
+      )
   }
 
   /**
-   * Load the data from the given [issueNode]. Return true if there is any content to display, or false otherwise.
+   * Load the data from the given [issueNode]. Return true if there is any content to display, or
+   * false otherwise.
    */
   fun loadIssueNode(issueNode: DesignerCommonIssueNode?): Boolean {
-    splitter.firstComponent = (issueNode as? IssueNode)?.let { node -> DesignerCommonIssueDetailPanel(project, node.issue) }
+    splitter.firstComponent =
+      (issueNode as? IssueNode)?.let { node -> DesignerCommonIssueDetailPanel(project, node.issue) }
 
     if (issueNode == null) {
       splitter.secondComponent = null
@@ -99,7 +108,8 @@ class DesignerCommonIssueSidePanel(private val project: Project, parentDisposabl
       return editor
     }
     val document = ProblemsView.getDocument(project, file) ?: return null
-    val newEditor = EditorFactory.getInstance().createEditor(document, project, file, false, EditorKind.PREVIEW)
+    val newEditor =
+      EditorFactory.getInstance().createEditor(document, project, file, false, EditorKind.PREVIEW)
     if (newEditor != null) {
       fileToEditorMap[file] = newEditor
     }
@@ -113,17 +123,12 @@ class DesignerCommonIssueSidePanel(private val project: Project, parentDisposabl
     fileToEditorMap.clear()
   }
 
-  @TestOnly
-  fun hasFirstComponent() = splitter.firstComponent != null
+  @TestOnly fun hasFirstComponent() = splitter.firstComponent != null
 
-  @TestOnly
-  fun hasSecondComponent() = splitter.secondComponent != null
+  @TestOnly fun hasSecondComponent() = splitter.secondComponent != null
 }
 
-
-/**
- * The side panel to show the details of issue detail in [DesignerCommonIssuePanel].
- */
+/** The side panel to show the details of issue detail in [DesignerCommonIssuePanel]. */
 @Suppress("DialogTitleCapitalization")
 private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : JPanel() {
 
@@ -131,18 +136,22 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
     border = JBUI.Borders.empty(18, 12, 0, 0)
     layout = BorderLayout()
 
-    val title = JBLabel().apply {
-      text = issue.summary
-      font = font.deriveFont(Font.BOLD)
-    }
+    val title =
+      JBLabel().apply {
+        text = issue.summary
+        font = font.deriveFont(Font.BOLD)
+      }
     add(title, BorderLayout.NORTH)
 
     val contentPanel = JPanel()
     contentPanel.layout = BorderLayout()
-    val scrollPane = JBScrollPane(contentPanel,
-                                  ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                  ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
-    scrollPane.border = JBUI.Borders.empty(12, 0, 0, 0)
+    val scrollPane =
+      JBScrollPane(
+        contentPanel,
+        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+      )
+    scrollPane.border = JBUI.Borders.emptyTop(12)
     add(scrollPane, BorderLayout.CENTER)
 
     val descriptionEditorPane = DescriptionEditorPane()
@@ -150,8 +159,11 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
     descriptionEditorPane.alignmentX = LEFT_ALIGNMENT
     contentPanel.add(descriptionEditorPane, BorderLayout.NORTH)
 
-    val description = updateImageSize(HtmlBuilder().openHtmlBody().addHtml(issue.description).closeHtmlBody().html,
-                                      UIUtil.getFontSize(UIUtil.FontSize.NORMAL).toInt())
+    val description =
+      updateImageSize(
+        HtmlBuilder().openHtmlBody().addHtml(issue.description).closeHtmlBody().html,
+        UIUtil.getFontSize(UIUtil.FontSize.NORMAL).toInt()
+      )
     descriptionEditorPane.readHTML(description)
 
     if (issue is VisualLintRenderIssue) {
@@ -160,25 +172,40 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
 
       val projectBasePath = project.basePath
       if (projectBasePath != null) {
-        val relatedFiles = issue.models.filter { model -> issue.shouldHighlight(model) }.map { it.virtualFile }.distinct()
+        val relatedFiles =
+          issue.models
+            .filter { model -> issue.shouldHighlight(model) }
+            .map {
+              @Suppress("UnstableApiUsage") BackedVirtualFile.getOriginFileIfBacked(it.virtualFile)
+            }
+            .distinct()
         if (relatedFiles.isNotEmpty()) {
-          affectedFilePanel.add(JBLabel("Affected Files:").apply {
-            font = font.deriveFont(Font.BOLD)
-            alignmentX = Component.LEFT_ALIGNMENT
-            border = JBUI.Borders.empty(4, 0)
-          })
+          affectedFilePanel.add(
+            JBLabel("Affected Files:").apply {
+              font = font.deriveFont(Font.BOLD)
+              alignmentX = Component.LEFT_ALIGNMENT
+              border = JBUI.Borders.empty(4, 0)
+            }
+          )
         }
         for (file in relatedFiles) {
-          val pathToDisplay = FileUtilRt.getRelativePath(projectBasePath, file.path, File.separatorChar, true) ?: continue
-          val link = object: ActionLink(pathToDisplay, { OpenFileDescriptor(project, file).navigateInEditor(project, true) }) {
-            override fun getToolTipText(): String? {
-              return if (size.width < minimumSize.width) {
-                pathToDisplay
-              } else {
-                null
+          val pathToDisplay =
+            FileUtilRt.getRelativePath(projectBasePath, file.path, File.separatorChar, true)
+              ?: continue
+          val link =
+            object :
+              ActionLink(
+                pathToDisplay,
+                { OpenFileDescriptor(project, file).navigateInEditor(project, true) }
+              ) {
+              override fun getToolTipText(): String? {
+                return if (size.width < minimumSize.width) {
+                  pathToDisplay
+                } else {
+                  null
+                }
               }
             }
-          }
           ToolTipManager.sharedInstance().registerComponent(link)
           affectedFilePanel.add(link)
         }

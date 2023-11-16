@@ -39,8 +39,7 @@ class FakeTableLineModel(
     selectedItem = item
   }
 
-  override fun requestFocusInBestMatch() {
-  }
+  override fun requestFocusInBestMatch() {}
 
   override fun stopEditing() {
     selectedItem = null
@@ -61,4 +60,3 @@ class FakeTableLineModel(
     Truth.assertThat(item.name).isEqualTo(attribute)
   }
 }
-

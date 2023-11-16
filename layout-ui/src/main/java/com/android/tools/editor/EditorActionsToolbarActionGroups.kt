@@ -16,7 +16,6 @@
 package com.android.tools.editor
 
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 
 /** Action groups for the DesignSurface. */
 interface EditorActionsToolbarActionGroups {
@@ -30,4 +29,3 @@ interface EditorActionsToolbarActionGroups {
   val otherGroups: List<ActionGroup>
     get() = listOf()
 }
-

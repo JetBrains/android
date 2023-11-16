@@ -15,7 +15,7 @@
  */
 package com.android.tools.compose.intentions
 
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.isComposableAnnotation
@@ -59,7 +59,7 @@ class ComposeCreatePreviewAction : IntentionAction {
       else {
         // Case when user selected few extra blank lines before @Composable annotation.
         val elementAtCaretAfterSpace = file.findElementAt(editor.selectionModel.selectionStart)?.getNextSiblingIgnoringWhitespace()
-        return (elementAtCaretAfterSpace as? KtFunction)?.annotationEntries?.find { it.fqNameMatches(COMPOSABLE_FQ_NAMES) }
+        return (elementAtCaretAfterSpace as? KtFunction)?.annotationEntries?.find { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }
       }
     }
     else {

@@ -19,15 +19,19 @@ import com.android.tools.idea.serverflags.ServerFlagService;
 import com.android.tools.idea.serverflags.protos.MemoryUsageComponent;
 import com.android.tools.idea.serverflags.protos.MemoryUsageComponentCategory;
 import com.android.tools.idea.serverflags.protos.MemoryUsageReportConfiguration;
+import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.protobuf.TextFormat;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.Strings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -72,7 +76,8 @@ public final class ComponentsSet {
     uncategorizedComponent =
       registerComponent(UNCATEGORIZED_COMPONENT_LABEL,
                         uncategorizedComponentThreshold,
-                        registerCategory(UNCATEGORIZED_CATEGORY_LABEL, uncategorizedComponentThreshold));
+                        registerCategory(UNCATEGORIZED_CATEGORY_LABEL, uncategorizedComponentThreshold, Collections.emptyList()),
+                        Collections.emptyList());
   }
 
   public long getSharedClusterExtendedReportThreshold() {
@@ -120,15 +125,16 @@ public final class ComponentsSet {
   @NotNull
   Component registerComponent(@NotNull final String componentLabel,
                               long extendedReportCollectionThresholdBytes,
-                              @NotNull final ComponentCategory category) {
-    Component component = new Component(componentLabel, extendedReportCollectionThresholdBytes, components.size(), category);
+                              @NotNull final ComponentCategory category,
+                              @NotNull final List<String> trackedFQNs) {
+    Component component = new Component(componentLabel, extendedReportCollectionThresholdBytes, trackedFQNs, components.size(), category);
     components.add(component);
     return component;
   }
 
   @TestOnly
   ComponentCategory registerCategory(@NotNull final String componentCategoryLabel) {
-    return registerCategory(componentCategoryLabel, TEST_COMPONENTS_EXTENDED_REPORT_THRESHOLD);
+    return registerCategory(componentCategoryLabel, TEST_COMPONENTS_EXTENDED_REPORT_THRESHOLD, Collections.emptyList());
   }
 
   @TestOnly
@@ -137,12 +143,14 @@ public final class ComponentsSet {
                                              @NotNull final List<String> packageNames,
                                              @NotNull final List<String> classNames) {
     addComponentWithPackagesAndClassNames(componentLabel, TEST_COMPONENTS_EXTENDED_REPORT_THRESHOLD, componentCategory, packageNames,
-                                          classNames);
+                                          classNames, Collections.emptyList());
   }
 
-  ComponentCategory registerCategory(@NotNull final String componentCategoryLabel, long extendedReportCollectionThresholdBytes) {
+  ComponentCategory registerCategory(@NotNull final String componentCategoryLabel,
+                                     long extendedReportCollectionThresholdBytes,
+                                     @NotNull final List<String> trackedFQNs) {
     ComponentCategory category =
-      new ComponentCategory(componentCategoryLabel, componentCategories.size(), extendedReportCollectionThresholdBytes);
+      new ComponentCategory(componentCategoryLabel, componentCategories.size(), extendedReportCollectionThresholdBytes, trackedFQNs);
     componentCategories.add(category);
     return category;
   }
@@ -150,7 +158,7 @@ public final class ComponentsSet {
   ComponentCategory registerCategory(@NotNull final MemoryUsageComponentCategory protoCategory) {
     return registerCategory(protoCategory.getLabel(), protoCategory.hasExtendedReportThresholdBytes()
                                                       ? protoCategory.getExtendedReportThresholdBytes()
-                                                      : Long.MAX_VALUE);
+                                                      : Long.MAX_VALUE, protoCategory.getTrackedFqnsList());
   }
 
   void addComponentWithPackagesAndClassNames(@NotNull final ComponentCategory componentCategory,
@@ -158,15 +166,17 @@ public final class ComponentsSet {
     addComponentWithPackagesAndClassNames(component.getLabel(), component.hasExtendedReportThresholdBytes()
                                                                 ? component.getExtendedReportThresholdBytes()
                                                                 : Long.MAX_VALUE,
-                                          componentCategory, component.getPackageNamesList(), component.getClassNamesList());
+                                          componentCategory, component.getPackageNamesList(), component.getClassNamesList(),
+                                          component.getTrackedFqnsList());
   }
 
   void addComponentWithPackagesAndClassNames(@NotNull final String componentLabel,
                                              long extendedReportCollectionThresholdBytes,
                                              @NotNull final ComponentCategory componentCategory,
                                              @NotNull final List<String> packageNames,
-                                             @NotNull final List<String> classNames) {
-    Component newComponent = registerComponent(componentLabel, extendedReportCollectionThresholdBytes, componentCategory);
+                                             @NotNull final List<String> classNames,
+                                             @NotNull final List<String> trackedFQNs) {
+    Component newComponent = registerComponent(componentLabel, extendedReportCollectionThresholdBytes, componentCategory, trackedFQNs);
 
     for (String name : classNames) {
       classNameToComponent.put(name, newComponent);
@@ -190,6 +200,13 @@ public final class ComponentsSet {
   @Nullable
   private Component getClassComponent(@NotNull final Class<?> aClass) {
     String objClassName = aClass.getName();
+
+    if ((aClass.isSynthetic() || aClass.isMemberClass() || aClass.isAnonymousClass()) && Strings.containsChar(objClassName, '$')) {
+      String outerClassName = objClassName.substring(0, Strings.indexOf(objClassName, '$'));
+      if (classNameToComponent.containsKey(outerClassName)) {
+        return classNameToComponent.get(outerClassName);
+      }
+    }
 
     if (classNameToComponent.containsKey(objClassName)) {
       return classNameToComponent.get(objClassName);
@@ -255,13 +272,18 @@ public final class ComponentsSet {
     @NotNull
     private final ComponentCategory componentCategory;
 
+    @Nullable
+    private final Set<String> trackedFQNs;
+
     private Component(@NotNull final String componentLabel,
                       long extendedReportCollectionThresholdBytes,
+                      @NotNull final List<String> trackedFQNs,
                       int id,
                       @NotNull final ComponentCategory category) {
       this.componentLabel = componentLabel;
       this.extendedReportCollectionThresholdBytes = extendedReportCollectionThresholdBytes;
       this.id = id;
+      this.trackedFQNs = trackedFQNs.isEmpty() ? null : Sets.newHashSet(trackedFQNs);
       componentCategory = category;
     }
 
@@ -282,6 +304,11 @@ public final class ComponentsSet {
     public long getExtendedReportCollectionThresholdBytes() {
       return extendedReportCollectionThresholdBytes;
     }
+
+    @Nullable
+    public Set<String> getTrackedFQNs() {
+      return trackedFQNs;
+    }
   }
 
   public static final class ComponentCategory {
@@ -290,11 +317,17 @@ public final class ComponentsSet {
     private final String label;
     private final long extendedReportCollectionThresholdBytes;
 
+    @Nullable
+    private final Set<String> trackedFQNs;
+
     private ComponentCategory(@NotNull final String label,
-                              int id, long extendedReportCollectionThresholdBytes) {
+                              int id,
+                              long extendedReportCollectionThresholdBytes,
+                              @NotNull final List<String> trackedFQNs) {
       this.label = label;
       this.id = id;
       this.extendedReportCollectionThresholdBytes = extendedReportCollectionThresholdBytes;
+      this.trackedFQNs = trackedFQNs.isEmpty() ? null : Sets.newHashSet(trackedFQNs);
     }
 
     @NotNull
@@ -308,6 +341,11 @@ public final class ComponentsSet {
 
     public long getExtendedReportCollectionThresholdBytes() {
       return extendedReportCollectionThresholdBytes;
+    }
+
+    @Nullable
+    public Set<String> getTrackedFQNs() {
+      return trackedFQNs;
     }
   }
 }

@@ -23,9 +23,8 @@ import com.android.tools.idea.io.grpc.stub.AbstractStub;
 import com.android.tools.idea.io.grpc.stub.ClientCalls;
 import com.android.tools.idea.io.grpc.stub.ServerCalls;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class ServiceProxy {
 

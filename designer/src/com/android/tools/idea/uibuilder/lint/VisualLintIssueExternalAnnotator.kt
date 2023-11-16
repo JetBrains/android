@@ -24,7 +24,9 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiFile
 import java.util.concurrent.TimeUnit
 
-/** External Annotator that takes visual lint issues and display them to the common Problems panel. */
+/**
+ * External Annotator that takes visual lint issues and display them to the common Problems panel.
+ */
 class VisualLintIssueExternalAnnotator : ExternalAnnotator<PsiFile, CommonPanelIssueSet>() {
 
   companion object {
@@ -48,7 +50,10 @@ class VisualLintIssueExternalAnnotator : ExternalAnnotator<PsiFile, CommonPanelI
   }
 
   override fun doAnnotate(collectedInfo: PsiFile?): CommonPanelIssueSet? {
-    if (!StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get() || collectedInfo == null) {
+    if (
+      !StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get() ||
+        collectedInfo == null
+    ) {
       return null
     }
 
@@ -59,7 +64,11 @@ class VisualLintIssueExternalAnnotator : ExternalAnnotator<PsiFile, CommonPanelI
     return collectedInfo.getUserData(VISUAL_LINT_ISSUES)
   }
 
-  override fun apply(file: PsiFile, annotationResult: CommonPanelIssueSet?, holder: AnnotationHolder) {
+  override fun apply(
+    file: PsiFile,
+    annotationResult: CommonPanelIssueSet?,
+    holder: AnnotationHolder
+  ) {
     CommonLintUserDataHandler.resetLatch(VISUAL_LINT_ISSUES_LATCH, file)
     showIssuesInCommonProblemsPanel(annotationResult, holder)
   }

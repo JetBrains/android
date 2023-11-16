@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.repository.api.ProgressIndicator
 import com.android.sdklib.internal.project.ProjectProperties
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.actions.SendFeedbackAction
 import com.android.tools.idea.actions.SendFeedbackAction.Companion.safeCall
 import com.android.tools.idea.actions.SendFeedbackDescriptionProvider
@@ -120,7 +121,7 @@ private fun getNdkDetails(
     // NDK specified in local.properties (if any)
     if (project != null) {
       try {
-        val ndkDir = LocalProperties(project).getProperty(ProjectProperties.PROPERTY_NDK)
+        val ndkDir = LocalProperties(getBaseDirPath(project)).getProperty(ProjectProperties.PROPERTY_NDK)
         append("from local.properties: ${ndkDir?.let { getNdkVersion(it) } ?: "(not specified)"}, ")
       } catch (e: IOException) {
         LOG.info("Unable to read local.properties file of Project '${project.name}'", e)
@@ -184,7 +185,7 @@ private fun getCMakeDetails(
     if (project != null) {
       // CMake specified in local.properties (if any)
       try {
-        val cmakeDir = LocalProperties(project).getProperty(ProjectProperties.PROPERTY_CMAKE)
+        val cmakeDir = LocalProperties(getBaseDirPath(project)).getProperty(ProjectProperties.PROPERTY_CMAKE)
         append(
           "from local.properties: ${
             if (cmakeDir == null) "(not specified)" else runAndGetCMakeVersion(

@@ -66,11 +66,9 @@ import javax.swing.TransferHandler
 
 @RunsInEdt
 class DeclaredAttributesInspectorBuilderTest {
-  @JvmField @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @JvmField @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
   @Test
   fun testDeclaredAttributes() {
@@ -86,11 +84,13 @@ class DeclaredAttributesInspectorBuilderTest {
 
     // Check that there are 3 attributes
     assertThat(tableModel.items.map { it.name })
-      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT).inOrder()
+      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT)
+      .inOrder()
 
     // Also check the values
     assertThat(tableModel.items.map { it.value })
-      .containsExactly(VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT, "Testing").inOrder()
+      .containsExactly(VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT, "Testing")
+      .inOrder()
   }
 
   @Test
@@ -115,11 +115,13 @@ class DeclaredAttributesInspectorBuilderTest {
 
     // Check that there are 4 attributes
     assertThat(tableModel.items.map { it.name })
-      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT, "").inOrder()
+      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT, "")
+      .inOrder()
 
     // Also check the values
     assertThat(tableModel.items.map { it.value })
-      .containsExactly(VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT, "Testing", null).inOrder()
+      .containsExactly(VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT, "Testing", null)
+      .inOrder()
   }
 
   @Test
@@ -219,7 +221,8 @@ class DeclaredAttributesInspectorBuilderTest {
 
     // Check that there are only 2 declared attributes left
     assertThat(model.items.map { it.name })
-      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT).inOrder()
+      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT)
+      .inOrder()
 
     assertThat(util.components[0].getAttribute(ANDROID_URI, ATTR_TEXT)).isNull()
   }
@@ -239,7 +242,8 @@ class DeclaredAttributesInspectorBuilderTest {
     val declared = util.checkTable(1).tableModel
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     assertThat(declared.items.map { it.name })
-      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT).inOrder()
+      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT)
+      .inOrder()
   }
 
   @Test
@@ -269,9 +273,11 @@ class DeclaredAttributesInspectorBuilderTest {
 
     val table = PTable.create(declared).component
     val transferHandler = table.transferHandler
-    assertThat(declared.items.map { it.name }).containsExactly("layout_width", "layout_height", "text")
+    assertThat(declared.items.map { it.name })
+      .containsExactly("layout_width", "layout_height", "text")
     transferHandler.importData(table, StringSelection("textColor\t#22FF22"))
-    assertThat(declared.items.map { it.name }).containsExactly("layout_width", "layout_height", "text", "textColor")
+    assertThat(declared.items.map { it.name })
+      .containsExactly("layout_width", "layout_height", "text", "textColor")
     assertThat(listener.called).isTrue()
   }
 
@@ -290,7 +296,8 @@ class DeclaredAttributesInspectorBuilderTest {
     assertThat(transferHandler.getSourceActions(table)).isEqualTo(TransferHandler.COPY_OR_MOVE)
     table.setRowSelectionInterval(1, 1)
     val clipboard: Clipboard = mock()
-    assertThat(declared.items.map { it.name }).containsExactly("layout_width", "layout_height", "text")
+    assertThat(declared.items.map { it.name })
+      .containsExactly("layout_width", "layout_height", "text")
     transferHandler.exportToClipboard(table, clipboard, TransferHandler.MOVE)
     assertThat(declared.items.map { it.name }).containsExactly("layout_width", "text")
     assertThat(listener.called).isTrue()
@@ -299,7 +306,8 @@ class DeclaredAttributesInspectorBuilderTest {
     verify(clipboard).setContents(transferableCaptor.capture(), eq(null))
     val transferable = transferableCaptor.value
     assertThat(transferable.isDataFlavorSupported(DataFlavor.stringFlavor)).isTrue()
-    assertThat(transferable.getTransferData(DataFlavor.stringFlavor)).isEqualTo("layout_height\twrap_content")
+    assertThat(transferable.getTransferData(DataFlavor.stringFlavor))
+      .isEqualTo("layout_height\twrap_content")
   }
 
   private fun createBuilder(model: NlPropertiesModel): DeclaredAttributesInspectorBuilder {
@@ -307,7 +315,8 @@ class DeclaredAttributesInspectorBuilderTest {
     return DeclaredAttributesInspectorBuilder(model, enumSupportProvider)
   }
 
-  private class RecursiveUpdateListener(private val model: PTableModel) : PTableModelUpdateListener {
+  private class RecursiveUpdateListener(private val model: PTableModel) :
+    PTableModelUpdateListener {
     var called = false
 
     override fun itemsUpdated(modelChanged: Boolean, nextEditedItem: PTableItem?) {

@@ -16,17 +16,17 @@
 package com.android.tools.idea.gradle.project.build.invoker
 
 import com.android.tools.idea.gradle.util.BuildMode
+import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getGradleIdentityPathOrNull
 
 object GradleTaskFinderNotifier {
   fun notifyNoTaskFound(modules: Array<Module>, mode: BuildMode, type: TestCompileType) {
     if (modules.isEmpty()) return
     val modulePaths = modules
-      .mapNotNull { module -> getGradleIdentityPathOrNull(module) }
+      .mapNotNull { it.getGradleIdentityPath() }
       .distinct()
 
     val project = modules[0].project

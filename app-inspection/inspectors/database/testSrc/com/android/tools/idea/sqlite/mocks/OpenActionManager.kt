@@ -44,12 +44,12 @@ open class OpenActionManager(private val wrapped: ActionManagerEx) : ActionManag
   override val timerEvents: Flow<Unit>
     get() = emptyFlow()
 
-  override fun createActionToolbar(place: String,
-                                   group: ActionGroup,
-                                   horizontal: Boolean,
-                                   separatorCreator: Function<in String, out Component>
-  ): ActionToolbar = wrapped.createActionToolbar(place, group, horizontal, separatorCreator)
-
+  override fun createActionToolbar(
+    place: String,
+    group: ActionGroup,
+    horizontal: Boolean,
+    separatorCreator: Function<in String, out Component>
+  ) = wrapped.createActionToolbar(place, group, horizontal, separatorCreator)
   override fun createActionToolbar(
     place: String,
     group: ActionGroup,
@@ -62,7 +62,7 @@ open class OpenActionManager(private val wrapped: ActionManagerEx) : ActionManag
                                    horizontal: Boolean,
                                    decorateButtons: Boolean,
                                    customizable: Boolean
-  ): ActionToolbar = wrapped.createActionToolbar(place, group, horizontal, decorateButtons, customizable)
+  ): ActionToolbar  = wrapped.createActionToolbar(place, group, horizontal, decorateButtons, customizable)
 
   override fun createActionToolbar(
     place: String,

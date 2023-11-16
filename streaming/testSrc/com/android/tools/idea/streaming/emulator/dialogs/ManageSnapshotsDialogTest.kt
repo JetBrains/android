@@ -17,12 +17,12 @@ package com.android.tools.idea.streaming.emulator.dialogs
 
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.ui.ImagePanel
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.streaming.DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
 import com.android.tools.idea.streaming.EmulatorSettings
@@ -53,7 +53,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.Timeout
 import java.nio.file.Path
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
 import javax.swing.Icon
 import javax.swing.JButton
@@ -72,10 +72,11 @@ import javax.swing.table.DefaultTableCellRenderer
 @RunsInEdt
 class ManageSnapshotsDialogTest {
   private val emulatorViewRule = EmulatorViewRule()
-  private val timeoutRule = Timeout.builder().withTimeout(60, TimeUnit.SECONDS).withLookingForStuckThread(true).build()
+  private val headlessDialogRule = HeadlessDialogRule()
+  private val timeoutRule = Timeout.builder().withTimeout(60, SECONDS).withLookingForStuckThread(true).build()
 
   @get:Rule
-  val ruleChain = RuleChain(timeoutRule, emulatorViewRule, EdtRule(), HeadlessDialogRule())
+  val ruleChain = RuleChain(timeoutRule, emulatorViewRule, EdtRule(), headlessDialogRule)
 
   @get:Rule
   val portableUiFontRule = PortableUiFontRule()
@@ -92,7 +93,7 @@ class ManageSnapshotsDialogTest {
     set(value) { nullableEmulatorView = value }
 
   private val testRootDisposable
-    get() = emulatorViewRule.testRootDisposable
+    get() = emulatorViewRule.disposable
 
   @Before
   fun setUp() {
@@ -123,7 +124,7 @@ class ManageSnapshotsDialogTest {
     val actionsPanel = ui.getComponent<CommonActionsPanel>()
     val snapshotDetailsPanel = ui.getComponent<JEditorPane>()
     // Wait for the snapshot list to be populated.
-    waitForCondition(4, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+    waitForCondition(4, SECONDS) { table.items.isNotEmpty() }
     // Check that there is only a QuickBoot snapshot, which is a placeholder since it doesn't exist on disk.
     assertThat(table.items).hasSize(2)
     val quickBootSnapshot = table.items[0]
@@ -147,14 +148,14 @@ class ManageSnapshotsDialogTest {
     assertThat(coldBootCheckBox.isSelected).isTrue()
 
     emulator.clearGrpcCallLog()
-    val takeSnapshotButton = ui.getComponent<JButton> { it.text == "Take Snapshot" }
+    val takeSnapshotButton = ui.getComponent<JButton> { it.text == "Create Snapshot" }
     // Create a snapshot.
     ui.clickOn(takeSnapshotButton)
-    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    var call = emulator.getNextGrpcCall(2, SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.SnapshotService/SaveSnapshot")
 
     // Wait for the snapshot to be created and the snapshot list to be updated.
-    waitForCondition(5, TimeUnit.SECONDS) { table.items.size == 3 }
+    waitForCondition(5, SECONDS) { table.items.size == 3 }
     var selectedSnapshot = checkNotNull(table.selectedObject)
     assertThat(selectedSnapshot.isQuickBoot).isFalse()
     assertThat(selectedSnapshot.creationTime).isNotEqualTo(0)
@@ -187,7 +188,7 @@ class ManageSnapshotsDialogTest {
     // Create second snapshot.
     ui.clickOn(takeSnapshotButton)
     // Wait for the snapshot to be created and the snapshot list to be updated.
-    waitForCondition(2, TimeUnit.SECONDS) { table.items.size == 4 }
+    waitForCondition(2, SECONDS) { table.items.size == 4 }
     val secondSnapshot = checkNotNull(table.selectedObject)
     // Edit the second snapshot without making any changes.
     editSnapshot(actionsPanel, secondSnapshot.displayName, secondSnapshot.description, false)
@@ -195,7 +196,7 @@ class ManageSnapshotsDialogTest {
     // Create third snapshot.
     ui.clickOn(takeSnapshotButton)
     // Wait for the snapshot to be created and the snapshot list to be updated.
-    waitForCondition(2, TimeUnit.SECONDS) { table.items.size == 5 }
+    waitForCondition(2, SECONDS) { table.items.size == 5 }
     assertThat(table.selectedRowCount).isEqualTo(1)
     assertThat(table.selectedRow).isEqualTo(3)
     // Add the second snapshot to the selection.
@@ -238,10 +239,10 @@ class ManageSnapshotsDialogTest {
     selectedSnapshot = checkNotNull(table.selectedObject)
     assertThat(selectedSnapshot.isLoadedLast).isFalse()
     performAction(getLoadSnapshotAction(actionsPanel))
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    call = emulator.getNextGrpcCall(2, SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.SnapshotService/LoadSnapshot")
     assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("""snapshot_id: "${selectedSnapshot.snapshotId}"""")
-    waitForCondition(200, TimeUnit.SECONDS, selectedSnapshot::isLoadedLast)
+    waitForCondition(200, SECONDS, selectedSnapshot::isLoadedLast)
 
     assertThat(coldBootCheckBox.isSelected).isFalse()
     assertThat(isUseToBoot(table, 0)).isFalse()
@@ -282,7 +283,7 @@ class ManageSnapshotsDialogTest {
     val actionsPanel = ui.getComponent<CommonActionsPanel>()
     val snapshotDetailsPanel = ui.getComponent<JEditorPane>()
     // Wait for the snapshot list to be populated.
-    waitForCondition(4, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+    waitForCondition(4, SECONDS) { table.items.isNotEmpty() }
     // Check that there is only a QuickBoot snapshot.
     assertThat(table.items).hasSize(1)
     val quickBootSnapshot = table.items[0]
@@ -379,7 +380,7 @@ class ManageSnapshotsDialogTest {
     val table = ui.getComponent<TableView<SnapshotInfo>>()
     // Wait for the snapshot list to be populated.
     try {
-      waitForCondition(10, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      waitForCondition(10, SECONDS) { table.items.isNotEmpty() }
     }
     catch (e: TimeoutException) {
       Assert.fail(e.javaClass.name + '\n' + ThreadDumper.dumpThreadsToString())
@@ -402,7 +403,7 @@ class ManageSnapshotsDialogTest {
     val table = ui.getComponent<TableView<SnapshotInfo>>()
     // Wait for the snapshot list to be populated.
     try {
-      waitForCondition(10, TimeUnit.SECONDS) { table.items.isNotEmpty() }
+      waitForCondition(10, SECONDS) { table.items.isNotEmpty() }
     }
     catch (e: TimeoutException) {
       Assert.fail(e.javaClass.name + '\n' + ThreadDumper.dumpThreadsToString())

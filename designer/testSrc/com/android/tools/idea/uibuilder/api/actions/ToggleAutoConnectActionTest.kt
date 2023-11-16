@@ -36,17 +36,21 @@ class ToggleAutoConnectActionTest : AndroidTestCase() {
   fun testToggle() {
     val action = ToggleAutoConnectAction()
 
-    val mockEditor = Mockito.mock(ViewEditor::class.java).also {
-      val mockScene = Mockito.mock(Scene::class.java)
-      whenever(it.scene).thenReturn(mockScene)
-      whenever(mockScene.designSurface).thenReturn(null)
-    }
+    val mockEditor =
+      Mockito.mock(ViewEditor::class.java).also {
+        val mockScene = Mockito.mock(Scene::class.java)
+        whenever(it.scene).thenReturn(mockScene)
+        whenever(mockScene.designSurface).thenReturn(null)
+      }
 
-    val mockHandler= Mockito.mock(ViewHandler::class.java)
+    val mockHandler = Mockito.mock(ViewHandler::class.java)
     val mockParent = Mockito.mock(NlComponent::class.java)
     val selectedChildren = emptyList<NlComponent>()
 
-    assertEquals(ToggleAutoConnectAction.isAutoconnectOn(), action.isSelected(mockEditor, mockHandler, mockParent, selectedChildren))
+    assertEquals(
+      ToggleAutoConnectAction.isAutoconnectOn(),
+      action.isSelected(mockEditor, mockHandler, mockParent, selectedChildren)
+    )
 
     action.setSelected(mockEditor, mockHandler, mockParent, selectedChildren, true)
     assertTrue(ToggleAutoConnectAction.isAutoconnectOn())

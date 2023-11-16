@@ -26,7 +26,9 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 
-abstract class ComposeRenderTestBase {
+internal const val DEFAULT_KOTLIN_VERSION = "1.9.0"
+
+open class ComposeRenderTestBase {
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
 
@@ -36,19 +38,19 @@ abstract class ComposeRenderTestBase {
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     val baseTestPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
     projectRule.fixture.testDataPath = baseTestPath
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin("1.8.10"))
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION))
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
       Assert.assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
     }
 
-    StudioModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(true)
+    StudioModuleClassLoaderManager.setCaptureClassLoadingDiagnostics(true)
   }
 
   @After
   open fun tearDown() {
-    StudioModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(false)
+    StudioModuleClassLoaderManager.setCaptureClassLoadingDiagnostics(false)
     ApplicationManager.getApplication().invokeAndWait {
       RenderTestUtil.afterRenderTestCase()
     }

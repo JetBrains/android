@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.model
 
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
-import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeAbi
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeSettings
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeToolchain
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeAbi
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
-import com.android.ide.common.repository.AgpVersion
 import com.intellij.serialization.PropertyMapping
 import java.io.File
 import java.nio.charset.StandardCharsets
-import java.util.HashMap
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set

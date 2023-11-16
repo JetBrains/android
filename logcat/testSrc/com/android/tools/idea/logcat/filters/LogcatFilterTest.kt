@@ -17,7 +17,7 @@ package com.android.tools.idea.logcat.filters
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.logcat.FakePackageNamesProvider
+import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
@@ -38,8 +38,8 @@ import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.TextRange.EMPTY_RANGE
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import com.intellij.testFramework.replaceService
@@ -60,10 +60,13 @@ private val MESSAGE2 = logcatMessage(WARN, pid = 2, tid = 2, "app2", "Tag2", TIM
  * Tests for [LogcatFilter] implementations.
  */
 class LogcatFilterTest {
+  private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(ApplicationRule(), disposableRule, FlagRule(StudioFlags.LOGCAT_IGNORE_STUDIO_SPAM_TAGS))
+  val rule = RuleChain(projectRule, disposableRule, FlagRule(StudioFlags.LOGCAT_IGNORE_STUDIO_TAGS))
+
+  private val project by lazy(projectRule::project)
 
   private val logcatSettings = AndroidLogcatSettings()
 
@@ -115,7 +118,7 @@ class LogcatFilterTest {
 
   @Test
   fun logcatMasterFilter_studioSpam() {
-    StudioFlags.LOGCAT_IGNORE_STUDIO_SPAM_TAGS.override(false)
+    StudioFlags.LOGCAT_IGNORE_STUDIO_TAGS.override(false)
     val spam = logcatMessage(tag = "studio.ignore")
     val messages = listOf(MESSAGE1, spam)
     val filter = object : LogcatFilter(EMPTY_RANGE) {
@@ -206,56 +209,68 @@ class LogcatFilterTest {
 
   @Test
   fun stringFilter() {
-    assertThat(StringFilter("tag1", TAG, EMPTY_RANGE).matches(MESSAGE1)).isTrue()
-    assertThat(StringFilter("tag2", TAG, EMPTY_RANGE).matches(MESSAGE1)).isFalse()
+    assertThat(StringFilter("tag1", TAG, matchCase = false, EMPTY_RANGE).matches(MESSAGE1)).isTrue()
+    assertThat(StringFilter("tag2", TAG, matchCase = false, EMPTY_RANGE).matches(MESSAGE1)).isFalse()
+    assertThat(StringFilter("tag1", TAG, matchCase = true, EMPTY_RANGE).matches(MESSAGE1)).isFalse()
+    assertThat(StringFilter("Tag1", TAG, matchCase = true, EMPTY_RANGE).matches(MESSAGE1)).isTrue()
   }
 
   @Test
   fun negatedStringFilter() {
-    assertThat(NegatedStringFilter("tag1", TAG, EMPTY_RANGE).matches(MESSAGE1)).isFalse()
-    assertThat(NegatedStringFilter("tag2", TAG, EMPTY_RANGE).matches(MESSAGE1)).isTrue()
+    assertThat(NegatedStringFilter("tag1", TAG, matchCase = false, EMPTY_RANGE).matches(MESSAGE1)).isFalse()
+    assertThat(NegatedStringFilter("tag2", TAG, matchCase = false, EMPTY_RANGE).matches(MESSAGE1)).isTrue()
+    assertThat(NegatedStringFilter("tag1", TAG, matchCase = true, EMPTY_RANGE).matches(MESSAGE1)).isTrue()
+    assertThat(NegatedStringFilter("Tag1", TAG, matchCase = true, EMPTY_RANGE).matches(MESSAGE1)).isFalse()
   }
 
   @Test
   fun regexFilter() {
-    assertThat(RegexFilter("Tag1.*message", LINE, EMPTY_RANGE).matches(MESSAGE1)).isTrue()
-    assertThat(RegexFilter("Tag2.*message", LINE, EMPTY_RANGE).matches(MESSAGE1)).isFalse()
+    assertThat(RegexFilter("tag1.*message", LINE, matchCase = false, EMPTY_RANGE).matches(MESSAGE1)).isTrue()
+    assertThat(RegexFilter("tag2.*message", LINE, matchCase = false, EMPTY_RANGE).matches(MESSAGE1)).isFalse()
+    assertThat(RegexFilter("tag1.*message", LINE, matchCase = true, EMPTY_RANGE).matches(MESSAGE1)).isFalse()
+    assertThat(RegexFilter("Tag1.*message", LINE, matchCase = true, EMPTY_RANGE).matches(MESSAGE1)).isTrue()
   }
 
   @Test
   fun regexFilter_invalidRegex() {
-    assertThrows(LogcatFilterParseException::class.java) { RegexFilter("""\""", LINE, EMPTY_RANGE) }
+    assertThrows(LogcatFilterParseException::class.java) { RegexFilter("""\""", LINE, matchCase = true, EMPTY_RANGE) }
   }
 
   @Test
   fun negatedRegexFilter() {
-    assertThat(NegatedRegexFilter("Tag1.*message", LINE, EMPTY_RANGE).matches(MESSAGE1)).isFalse()
-    assertThat(NegatedRegexFilter("Tag2.*message", LINE, EMPTY_RANGE).matches(MESSAGE1)).isTrue()
+    assertThat(NegatedRegexFilter("tag1.*message", LINE, matchCase = false, EMPTY_RANGE).matches(MESSAGE1)).isFalse()
+    assertThat(NegatedRegexFilter("tag2.*message", LINE, matchCase = false, EMPTY_RANGE).matches(MESSAGE1)).isTrue()
+    assertThat(NegatedRegexFilter("tag1.*message", LINE, matchCase = true, EMPTY_RANGE).matches(MESSAGE1)).isTrue()
+    assertThat(NegatedRegexFilter("Tag1.*message", LINE, matchCase = true, EMPTY_RANGE).matches(MESSAGE1)).isFalse()
   }
 
   @Test
   fun negatedRegexFilter_invalidRegex() {
-    assertThrows(LogcatFilterParseException::class.java) { NegatedRegexFilter("""\""", LINE, EMPTY_RANGE) }
+    assertThrows(LogcatFilterParseException::class.java) { NegatedRegexFilter("""\""", LINE, matchCase = true, EMPTY_RANGE) }
   }
 
   @Test
   fun exactFilter() {
     val message = logcatMessage(tag = "MyTag1")
 
-    assertThat(ExactStringFilter("Tag", TAG, EMPTY_RANGE).matches(message)).isFalse()
-    assertThat(ExactStringFilter("Tag1", TAG, EMPTY_RANGE).matches(message)).isFalse()
-    assertThat(ExactStringFilter("MyTag", TAG, EMPTY_RANGE).matches(message)).isFalse()
-    assertThat(ExactStringFilter("MyTag1", TAG, EMPTY_RANGE).matches(message)).isTrue()
+    assertThat(ExactStringFilter("Tag", TAG, matchCase = true, EMPTY_RANGE).matches(message)).isFalse()
+    assertThat(ExactStringFilter("Tag1", TAG, matchCase = true, EMPTY_RANGE).matches(message)).isFalse()
+    assertThat(ExactStringFilter("MyTag", TAG, matchCase = true, EMPTY_RANGE).matches(message)).isFalse()
+    assertThat(ExactStringFilter("MyTag1", TAG, matchCase = true, EMPTY_RANGE).matches(message)).isTrue()
+    assertThat(ExactStringFilter("mytag1", TAG, matchCase = true, EMPTY_RANGE).matches(message)).isFalse()
+    assertThat(ExactStringFilter("mytag1", TAG, matchCase = false, EMPTY_RANGE).matches(message)).isTrue()
   }
 
   @Test
   fun negatedExactFilter() {
     val message = logcatMessage(tag = "MyTag1")
 
-    assertThat(NegatedExactStringFilter("Tag", TAG, EMPTY_RANGE).matches(message)).isTrue()
-    assertThat(NegatedExactStringFilter("Tag1", TAG, EMPTY_RANGE).matches(message)).isTrue()
-    assertThat(NegatedExactStringFilter("MyTag", TAG, EMPTY_RANGE).matches(message)).isTrue()
-    assertThat(NegatedExactStringFilter("MyTag1", TAG, EMPTY_RANGE).matches(message)).isFalse()
+    assertThat(NegatedExactStringFilter("Tag", TAG, matchCase = true, EMPTY_RANGE).matches(message)).isTrue()
+    assertThat(NegatedExactStringFilter("Tag1", TAG, matchCase = true, EMPTY_RANGE).matches(message)).isTrue()
+    assertThat(NegatedExactStringFilter("MyTag", TAG, matchCase = true, EMPTY_RANGE).matches(message)).isTrue()
+    assertThat(NegatedExactStringFilter("MyTag1", TAG, matchCase = true, EMPTY_RANGE).matches(message)).isFalse()
+    assertThat(NegatedExactStringFilter("mytag1", TAG, matchCase = true, EMPTY_RANGE).matches(message)).isTrue()
+    assertThat(NegatedExactStringFilter("mytag1", TAG, matchCase = false, EMPTY_RANGE).matches(message)).isFalse()
   }
 
   @Test
@@ -289,8 +304,9 @@ class LogcatFilterTest {
     val message1 = logcatMessage(appId = "foo")
     val message2 = logcatMessage(appId = "bar")
     val message3 = logcatMessage(appId = "foobar")
+    val filter = ProjectAppFilter(FakeProjectApplicationIdsProvider(project, "foo", "bar"), EMPTY_RANGE)
 
-    assertThat(ProjectAppFilter(FakePackageNamesProvider("foo", "bar"), EMPTY_RANGE).filter(listOf(message1, message2, message3)))
+    assertThat(filter.filter(listOf(message1, message2, message3)))
       .containsExactly(
         message1,
         message2
@@ -302,8 +318,9 @@ class LogcatFilterTest {
     val message1 = logcatMessage(appId = "foo")
     val message2 = logcatMessage(appId = "bar")
     val message3 = logcatMessage(appId = "error", logLevel = ERROR)
+    val filter = ProjectAppFilter(FakeProjectApplicationIdsProvider(project), EMPTY_RANGE)
 
-    assertThat(ProjectAppFilter(FakePackageNamesProvider(), EMPTY_RANGE).filter(listOf(message1, message2, message3))).isEmpty()
+    assertThat(filter.filter(listOf(message1, message2, message3))).isEmpty()
   }
 
   @Test
@@ -312,9 +329,10 @@ class LogcatFilterTest {
     val message2 = logcatMessage(logLevel = ERROR, message = "Error message from com.app2")
     val message3 = logcatMessage(logLevel = WARN, message = "Warning message from com.app2")
     val message4 = logcatMessage(logLevel = ERROR, message = "Error message from com.app3")
+    val filter = ProjectAppFilter(FakeProjectApplicationIdsProvider(project, "app1", "app2"), EMPTY_RANGE)
 
     assertThat(
-      ProjectAppFilter(FakePackageNamesProvider("app1", "app2"), EMPTY_RANGE).filter(listOf(message1, message2, message3, message4)))
+      filter.filter(listOf(message1, message2, message3, message4)))
       .containsExactly(
         message1,
         message2,
@@ -376,12 +394,13 @@ class LogcatFilterTest {
 
   @Test
   fun getFilterName_simpleFilters() {
-    assertThat(StringFilter("string", TAG, EMPTY_RANGE).filterName).isNull()
-    assertThat(NegatedStringFilter("string", TAG, EMPTY_RANGE).filterName).isNull()
-    assertThat(ExactStringFilter("string", TAG, EMPTY_RANGE).filterName).isNull()
-    assertThat(NegatedExactStringFilter("string", TAG, EMPTY_RANGE).filterName).isNull()
-    assertThat(RegexFilter("string", TAG, EMPTY_RANGE).filterName).isNull()
-    assertThat(NegatedRegexFilter("string", TAG, EMPTY_RANGE).filterName).isNull()
+    val matchCase = true // unused
+    assertThat(StringFilter("string", TAG, matchCase, EMPTY_RANGE).filterName).isNull()
+    assertThat(NegatedStringFilter("string", TAG, matchCase, EMPTY_RANGE).filterName).isNull()
+    assertThat(ExactStringFilter("string", TAG, matchCase, EMPTY_RANGE).filterName).isNull()
+    assertThat(NegatedExactStringFilter("string", TAG, matchCase, EMPTY_RANGE).filterName).isNull()
+    assertThat(RegexFilter("string", TAG, matchCase, EMPTY_RANGE).filterName).isNull()
+    assertThat(NegatedRegexFilter("string", TAG, matchCase, EMPTY_RANGE).filterName).isNull()
     assertThat(LevelFilter(INFO, EMPTY_RANGE).filterName).isNull()
     assertThat(AgeFilter("60s", Clock.systemDefaultZone(), EMPTY_RANGE).filterName).isNull()
     assertThat(CrashFilter(EMPTY_RANGE).filterName).isNull()
@@ -390,17 +409,18 @@ class LogcatFilterTest {
 
   @Test
   fun getFilterName_compoundFilter() {
-    assertThat(AndLogcatFilter(StringFilter("string", TAG, EMPTY_RANGE), LevelFilter(INFO, EMPTY_RANGE)).filterName).isNull()
-    assertThat(OrLogcatFilter(StringFilter("string", TAG, EMPTY_RANGE), LevelFilter(INFO, EMPTY_RANGE)).filterName).isNull()
+    val matchCase = true // unused
+    assertThat(AndLogcatFilter(StringFilter("string", TAG, matchCase, EMPTY_RANGE), LevelFilter(INFO, EMPTY_RANGE)).filterName).isNull()
+    assertThat(OrLogcatFilter(StringFilter("string", TAG, matchCase, EMPTY_RANGE), LevelFilter(INFO, EMPTY_RANGE)).filterName).isNull()
     assertThat(AndLogcatFilter(
       NameFilter("name1", EMPTY_RANGE),
-      StringFilter("string", TAG, EMPTY_RANGE),
+      StringFilter("string", TAG, matchCase, EMPTY_RANGE),
       LevelFilter(INFO, EMPTY_RANGE),
       NameFilter("name2", EMPTY_RANGE),
     ).filterName).isEqualTo("name2")
     assertThat(OrLogcatFilter(
       NameFilter("name1", EMPTY_RANGE),
-      StringFilter("string", TAG, EMPTY_RANGE),
+      StringFilter("string", TAG, matchCase, EMPTY_RANGE),
       LevelFilter(INFO, EMPTY_RANGE),
       NameFilter("name2", EMPTY_RANGE),
     ).filterName).isEqualTo("name2")
@@ -408,62 +428,68 @@ class LogcatFilterTest {
 
   @Test
   fun displayText_stringFilter() {
-    assertThat(StringFilter("foo", APP, EMPTY_RANGE).displayText).isEqualTo("Package name contains 'foo'")
-    assertThat(StringFilter("foo", IMPLICIT_LINE, EMPTY_RANGE).displayText).isEqualTo("Log line contains 'foo'")
-    assertThat(StringFilter("foo", LINE, EMPTY_RANGE).displayText).isEqualTo("Log line contains 'foo'")
-    assertThat(StringFilter("foo", MESSAGE, EMPTY_RANGE).displayText).isEqualTo("Log message contains 'foo'")
-    assertThat(StringFilter("foo", PROCESS, EMPTY_RANGE).displayText).isEqualTo("Process name contains 'foo'")
-    assertThat(StringFilter("foo", TAG, EMPTY_RANGE).displayText).isEqualTo("Log tag contains 'foo'")
+    val matchCase = true // unused
+    assertThat(StringFilter("foo", APP, matchCase, EMPTY_RANGE).displayText).isEqualTo("Package name contains 'foo'")
+    assertThat(StringFilter("foo", IMPLICIT_LINE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log line contains 'foo'")
+    assertThat(StringFilter("foo", LINE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log line contains 'foo'")
+    assertThat(StringFilter("foo", MESSAGE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log message contains 'foo'")
+    assertThat(StringFilter("foo", PROCESS, matchCase, EMPTY_RANGE).displayText).isEqualTo("Process name contains 'foo'")
+    assertThat(StringFilter("foo", TAG, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log tag contains 'foo'")
   }
 
   @Test
   fun displayText_negatedStringFilter() {
-    assertThat(NegatedStringFilter("foo", APP, EMPTY_RANGE).displayText).isEqualTo("Package name does not contain 'foo'")
-    assertThat(NegatedStringFilter("foo", IMPLICIT_LINE, EMPTY_RANGE).displayText).isEqualTo("Log line does not contain 'foo'")
-    assertThat(NegatedStringFilter("foo", LINE, EMPTY_RANGE).displayText).isEqualTo("Log line does not contain 'foo'")
-    assertThat(NegatedStringFilter("foo", MESSAGE, EMPTY_RANGE).displayText).isEqualTo("Log message does not contain 'foo'")
-    assertThat(NegatedStringFilter("foo", PROCESS, EMPTY_RANGE).displayText).isEqualTo("Process name does not contain 'foo'")
-    assertThat(NegatedStringFilter("foo", TAG, EMPTY_RANGE).displayText).isEqualTo("Log tag does not contain 'foo'")
+    val matchCase = true // unused
+    assertThat(NegatedStringFilter("foo", APP, matchCase, EMPTY_RANGE).displayText).isEqualTo("Package name does not contain 'foo'")
+    assertThat(NegatedStringFilter("foo", IMPLICIT_LINE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log line does not contain 'foo'")
+    assertThat(NegatedStringFilter("foo", LINE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log line does not contain 'foo'")
+    assertThat(NegatedStringFilter("foo", MESSAGE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log message does not contain 'foo'")
+    assertThat(NegatedStringFilter("foo", PROCESS, matchCase, EMPTY_RANGE).displayText).isEqualTo("Process name does not contain 'foo'")
+    assertThat(NegatedStringFilter("foo", TAG, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log tag does not contain 'foo'")
   }
 
   @Test
   fun exactStringFilter() {
-    assertThat(ExactStringFilter("foo", APP, EMPTY_RANGE).displayText).isEqualTo("Package name is exactly 'foo'")
-    assertThat(ExactStringFilter("foo", IMPLICIT_LINE, EMPTY_RANGE).displayText).isEqualTo("Log line is exactly 'foo'")
-    assertThat(ExactStringFilter("foo", LINE, EMPTY_RANGE).displayText).isEqualTo("Log line is exactly 'foo'")
-    assertThat(ExactStringFilter("foo", MESSAGE, EMPTY_RANGE).displayText).isEqualTo("Log message is exactly 'foo'")
-    assertThat(ExactStringFilter("foo", PROCESS, EMPTY_RANGE).displayText).isEqualTo("Process name is exactly 'foo'")
-    assertThat(ExactStringFilter("foo", TAG, EMPTY_RANGE).displayText).isEqualTo("Log tag is exactly 'foo'")
+    val matchCase = true // unused
+    assertThat(ExactStringFilter("foo", APP, matchCase, EMPTY_RANGE).displayText).isEqualTo("Package name is exactly 'foo'")
+    assertThat(ExactStringFilter("foo", IMPLICIT_LINE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log line is exactly 'foo'")
+    assertThat(ExactStringFilter("foo", LINE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log line is exactly 'foo'")
+    assertThat(ExactStringFilter("foo", MESSAGE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log message is exactly 'foo'")
+    assertThat(ExactStringFilter("foo", PROCESS, matchCase, EMPTY_RANGE).displayText).isEqualTo("Process name is exactly 'foo'")
+    assertThat(ExactStringFilter("foo", TAG, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log tag is exactly 'foo'")
   }
 
   @Test
   fun displayText_negatedExactStringFilter() {
-    assertThat(NegatedExactStringFilter("foo", APP, EMPTY_RANGE).displayText).isEqualTo("Package name is not exactly 'foo'")
-    assertThat(NegatedExactStringFilter("foo", IMPLICIT_LINE, EMPTY_RANGE).displayText).isEqualTo("Log line is not exactly 'foo'")
-    assertThat(NegatedExactStringFilter("foo", LINE, EMPTY_RANGE).displayText).isEqualTo("Log line is not exactly 'foo'")
-    assertThat(NegatedExactStringFilter("foo", MESSAGE, EMPTY_RANGE).displayText).isEqualTo("Log message is not exactly 'foo'")
-    assertThat(NegatedExactStringFilter("foo", PROCESS, EMPTY_RANGE).displayText).isEqualTo("Process name is not exactly 'foo'")
-    assertThat(NegatedExactStringFilter("foo", TAG, EMPTY_RANGE).displayText).isEqualTo("Log tag is not exactly 'foo'")
+    val matchCase = true // unused
+    assertThat(NegatedExactStringFilter("foo", APP, matchCase, EMPTY_RANGE).displayText).isEqualTo("Package name is not exactly 'foo'")
+    assertThat(NegatedExactStringFilter("foo", IMPLICIT_LINE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log line is not exactly 'foo'")
+    assertThat(NegatedExactStringFilter("foo", LINE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log line is not exactly 'foo'")
+    assertThat(NegatedExactStringFilter("foo", MESSAGE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log message is not exactly 'foo'")
+    assertThat(NegatedExactStringFilter("foo", PROCESS, matchCase, EMPTY_RANGE).displayText).isEqualTo("Process name is not exactly 'foo'")
+    assertThat(NegatedExactStringFilter("foo", TAG, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log tag is not exactly 'foo'")
   }
 
   @Test
   fun displayText_regexFilter() {
-    assertThat(RegexFilter("foo", APP, EMPTY_RANGE).displayText).isEqualTo("Package name matches 'foo'")
-    assertThat(RegexFilter("foo", IMPLICIT_LINE, EMPTY_RANGE).displayText).isEqualTo("Log line matches 'foo'")
-    assertThat(RegexFilter("foo", LINE, EMPTY_RANGE).displayText).isEqualTo("Log line matches 'foo'")
-    assertThat(RegexFilter("foo", MESSAGE, EMPTY_RANGE).displayText).isEqualTo("Log message matches 'foo'")
-    assertThat(RegexFilter("foo", PROCESS, EMPTY_RANGE).displayText).isEqualTo("Process name matches 'foo'")
-    assertThat(RegexFilter("foo", TAG, EMPTY_RANGE).displayText).isEqualTo("Log tag matches 'foo'")
+    val matchCase = true // unused
+    assertThat(RegexFilter("foo", APP, matchCase, EMPTY_RANGE).displayText).isEqualTo("Package name matches 'foo'")
+    assertThat(RegexFilter("foo", IMPLICIT_LINE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log line matches 'foo'")
+    assertThat(RegexFilter("foo", LINE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log line matches 'foo'")
+    assertThat(RegexFilter("foo", MESSAGE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log message matches 'foo'")
+    assertThat(RegexFilter("foo", PROCESS, matchCase, EMPTY_RANGE).displayText).isEqualTo("Process name matches 'foo'")
+    assertThat(RegexFilter("foo", TAG, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log tag matches 'foo'")
   }
 
   @Test
   fun displayText_negatedRegexFilter() {
-    assertThat(NegatedRegexFilter("foo", APP, EMPTY_RANGE).displayText).isEqualTo("Package name does not match 'foo'")
-    assertThat(NegatedRegexFilter("foo", IMPLICIT_LINE, EMPTY_RANGE).displayText).isEqualTo("Log line does not match 'foo'")
-    assertThat(NegatedRegexFilter("foo", LINE, EMPTY_RANGE).displayText).isEqualTo("Log line does not match 'foo'")
-    assertThat(NegatedRegexFilter("foo", MESSAGE, EMPTY_RANGE).displayText).isEqualTo("Log message does not match 'foo'")
-    assertThat(NegatedRegexFilter("foo", PROCESS, EMPTY_RANGE).displayText).isEqualTo("Process name does not match 'foo'")
-    assertThat(NegatedRegexFilter("foo", TAG, EMPTY_RANGE).displayText).isEqualTo("Log tag does not match 'foo'")
+    val matchCase = true // unused
+    assertThat(NegatedRegexFilter("foo", APP, matchCase, EMPTY_RANGE).displayText).isEqualTo("Package name does not match 'foo'")
+    assertThat(NegatedRegexFilter("foo", IMPLICIT_LINE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log line does not match 'foo'")
+    assertThat(NegatedRegexFilter("foo", LINE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log line does not match 'foo'")
+    assertThat(NegatedRegexFilter("foo", MESSAGE, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log message does not match 'foo'")
+    assertThat(NegatedRegexFilter("foo", PROCESS, matchCase, EMPTY_RANGE).displayText).isEqualTo("Process name does not match 'foo'")
+    assertThat(NegatedRegexFilter("foo", TAG, matchCase, EMPTY_RANGE).displayText).isEqualTo("Log tag does not match 'foo'")
   }
 
   @Test
@@ -490,13 +516,12 @@ class LogcatFilterTest {
 
   @Test
   fun displayText_projectAppFilter() {
-    val packageNamesProvider = FakePackageNamesProvider()
-    val projectAppFilter = ProjectAppFilter(packageNamesProvider, EMPTY_RANGE)
+    val projectApplicationIdsProvider = FakeProjectApplicationIdsProvider(project)
+    val projectAppFilter = ProjectAppFilter(projectApplicationIdsProvider, EMPTY_RANGE)
     assertThat(projectAppFilter.displayText)
       .isEqualTo("No project ids detected. Is the project synced?")
 
-    packageNamesProvider.getPackageNames().add("app1")
-    packageNamesProvider.getPackageNames().add("app2")
+    projectApplicationIdsProvider.setApplicationIds("app1", "app2")
     assertThat(projectAppFilter.displayText).isEqualTo(
       "<html>Filter logs from current project id(s):<br/>&nbsp;&nbsp;app1<br/>&nbsp;&nbsp;app2<html>")
   }

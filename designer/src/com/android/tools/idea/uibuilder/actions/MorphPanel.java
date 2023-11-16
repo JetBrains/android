@@ -84,7 +84,7 @@ public class MorphPanel extends JPanel {
     DefaultListModel<Palette.Item> model = new DefaultListModel<>();
     ViewHandlerManager manager = ViewHandlerManager.get(myProject);
     for (String tagSuggestion: suggestions) {
-      ViewHandler handler = manager.getHandlerOrDefault(tagSuggestion);
+      ViewHandler handler = manager.getHandlerOrDefault(tagSuggestion, () -> {});
       model.addElement(new Palette.Item(tagSuggestion, handler));
     }
 

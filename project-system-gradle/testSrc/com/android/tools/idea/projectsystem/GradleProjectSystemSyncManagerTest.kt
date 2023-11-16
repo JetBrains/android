@@ -18,25 +18,15 @@ package com.android.tools.idea.projectsystem
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.GradleProjectInfo
-import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemSyncManager
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.startup.impl.StartupManagerImpl
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupManager
 import com.intellij.testFramework.PlatformTestCase
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.messages.MessageBusConnection
-import org.junit.Assert
 import org.mockito.Mockito.mock
 
 
@@ -59,7 +49,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
     syncManager = GradleProjectSystemSyncManager(myProject)
     gradleBuildState = GradleBuildState.getInstance(myProject)
 
-    syncTopicConnection = project.messageBus.connect(project)
+    syncTopicConnection = project.messageBus.connect()
     syncTopicListener = mock(SyncResultListener::class.java)
     syncTopicConnection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncTopicListener)
   }

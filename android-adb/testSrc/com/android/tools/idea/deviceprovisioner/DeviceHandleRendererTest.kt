@@ -20,6 +20,7 @@ import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState.Connected
+import com.android.sdklib.deviceprovisioner.EmptyIcon
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin
 import com.google.common.truth.Truth.assertThat
@@ -38,6 +39,7 @@ class DeviceHandleRendererTest {
     model = "Pixel 6"
     androidRelease = "12.0"
     androidVersion = AndroidVersion(31)
+    icon = EmptyIcon.DEFAULT
   }
   val properties1 =
     DeviceProperties.build {

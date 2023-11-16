@@ -65,6 +65,11 @@ import perfetto.protos.PerfettoTrace
 import java.awt.Cursor
 import java.awt.HeadlessException
 import java.awt.Point
+import java.awt.event.KeyEvent.VK_A
+import java.awt.event.KeyEvent.VK_D
+import java.awt.event.KeyEvent.VK_S
+import java.awt.event.KeyEvent.VK_SPACE
+import java.awt.event.KeyEvent.VK_W
 import javax.swing.JLabel
 import javax.swing.SwingUtilities
 
@@ -247,7 +252,7 @@ class CpuCaptureStageViewTest {
     captureNode.startGlobal = 0
     captureNode.endGlobal = 10
 
-    val zoomToSelectionButton = (profilersView as SessionProfilersView).zoomToSelectionButton
+    val zoomToSelectionButton = profilersView.stageWithToolbarView.zoomToSelectionButton
     assertThat(zoomToSelectionButton.isEnabled).isFalse()
     stage.multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, stage.capture, Utils::runOnUi)))
     assertThat(zoomToSelectionButton.isEnabled).isTrue()
@@ -271,7 +276,7 @@ class CpuCaptureStageViewTest {
                                           PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
                                           PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
                                           false, false, 0)
-    val zoomToSelectionButton = (profilersView as SessionProfilersView).zoomToSelectionButton
+    val zoomToSelectionButton = profilersView.stageWithToolbarView.zoomToSelectionButton
     assertThat(zoomToSelectionButton.isEnabled).isFalse()
     stage.multiSelectionModel.setSelection(frame, setOf(JankAnalysisModel(frame, capture, Utils::runOnUi)))
     assertThat(zoomToSelectionButton.isEnabled).isTrue()
@@ -313,22 +318,22 @@ class CpuCaptureStageViewTest {
 
     // Press W to zoom in.
     ui.keyboard.setFocus(stageView.trackGroupList.component)
-    ui.keyboard.press(FakeKeyboard.Key.W)
-    ui.keyboard.release(FakeKeyboard.Key.W)
+    ui.keyboard.press(VK_W)
+    ui.keyboard.release(VK_W)
     assertThat(selectionRange.length).isLessThan(rangeLength)
 
     // Press S to zoom out.
     rangeLength = selectionRange.length
-    ui.keyboard.press(FakeKeyboard.Key.S)
-    ui.keyboard.release(FakeKeyboard.Key.S)
+    ui.keyboard.press(VK_S)
+    ui.keyboard.release(VK_S)
     assertThat(selectionRange.length).isGreaterThan(rangeLength)
 
     // Press A to pan left.
     // First select a small range.
     selectionRange.set(selectionRange.min + 100.0, selectionRange.min + 200.0)
     var oldRange = Range(selectionRange)
-    ui.keyboard.press(FakeKeyboard.Key.A)
-    ui.keyboard.release(FakeKeyboard.Key.A)
+    ui.keyboard.press(VK_A)
+    ui.keyboard.release(VK_A)
     assertThat(selectionRange.min).isLessThan(oldRange.min)
     assertThat(selectionRange.max).isLessThan(oldRange.max)
 
@@ -336,8 +341,8 @@ class CpuCaptureStageViewTest {
     // First select a small range.
     selectionRange.set(selectionRange.min + 100.0, selectionRange.min + 200.0)
     oldRange = Range(selectionRange)
-    ui.keyboard.press(FakeKeyboard.Key.D)
-    ui.keyboard.release(FakeKeyboard.Key.D)
+    ui.keyboard.press(VK_D)
+    ui.keyboard.release(VK_D)
     assertThat(selectionRange.min).isGreaterThan(oldRange.min)
     assertThat(selectionRange.max).isGreaterThan(oldRange.max)
   }
@@ -370,12 +375,12 @@ class CpuCaptureStageViewTest {
     selectionRange.set(selectionRange.min + (selectionRange.max - selectionRange.min) / 2, selectionRange.max)
     val oldRange = Range(selectionRange)
     ui.keyboard.setFocus(stageView.trackGroupList.component)
-    ui.keyboard.press(FakeKeyboard.Key.SPACE)
+    ui.keyboard.press(VK_SPACE)
     ui.mouse.press(0, 0)
     // Pan right to shift the range left.
     ui.mouse.dragDelta(10, 0)
     try {
-      ui.keyboard.release(FakeKeyboard.Key.SPACE)
+      ui.keyboard.release(VK_SPACE)
     }
     catch (ignored: HeadlessException) {
       // JList#setDragEnabled doesn't support headless mode but it doesn't matter for this test so we can safely ignore it.

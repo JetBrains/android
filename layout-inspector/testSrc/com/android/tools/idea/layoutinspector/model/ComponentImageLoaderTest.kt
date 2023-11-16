@@ -26,7 +26,8 @@ import java.awt.image.BufferedImage
 
 class ComponentImageLoaderTest {
 
-  // Test that the draw tree (that is, the tree via drawChildren) is correct when the initial view tree has intermediate or leaf nodes that
+  // Test that the draw tree (that is, the tree via drawChildren) is correct when the initial view
+  // tree has intermediate or leaf nodes that
   // are not present in the skia tree.
   @Test
   fun testTreeWithExtraViewNodes() {
@@ -34,48 +35,44 @@ class ComponentImageLoaderTest {
     val image2: BufferedImage = MockitoKt.mock()
     val image4: BufferedImage = MockitoKt.mock()
 
-    val skiaRoot = SkiaViewNode(1, listOf(
-      SkiaViewNode(1, image1),
-      SkiaViewNode(2, listOf(
-        SkiaViewNode(2, image2)
-      )),
-      SkiaViewNode(4, listOf(
-        SkiaViewNode(4, image4)
-      ))
-    ))
+    val skiaRoot =
+      SkiaViewNode(
+        1,
+        listOf(
+          SkiaViewNode(1, image1),
+          SkiaViewNode(2, listOf(SkiaViewNode(2, image2))),
+          SkiaViewNode(4, listOf(SkiaViewNode(4, image4)))
+        )
+      )
 
-    val window = window(1, 1L) {
-      view(2L) {
-        view(5L)
+    val window =
+      window(1, 1L) {
+        view(2L) { view(5L) }
+        view(3L) { view(4L) }
       }
-      view(3L) {
-        view(4L)
-      }
-    }
     val root = window.root
-    // The model builder adds the draw children automatically, which we don't want to be populated yet in this case.
+    // The model builder adds the draw children automatically, which we don't want to be populated
+    // yet in this case.
     ViewNode.writeAccess {
       root.flatten().forEach { it.drawChildren.clear() }
       ComponentImageLoader(root.flatten().associateBy { it.drawId }, skiaRoot).loadImages(window)
     }
 
-    val expected = view(1L) {
-      image(image1)
-      view(2L) {
-        image(image2)
-        view(5L)
-      }
-      view(3L) {
-        view(4L) {
-          image(image4)
+    val expected =
+      view(1L) {
+        image(image1)
+        view(2L) {
+          image(image2)
+          view(5L)
         }
+        view(3L) { view(4L) { image(image4) } }
       }
-    }
 
     assertDrawTreesEqual(expected, root)
   }
 
-  // Test that if the view tree and skp tree are structurally different we still get images in the expected order.
+  // Test that if the view tree and skp tree are structurally different we still get images in the
+  // expected order.
   @Test
   fun testViewSkpMismatch() {
     val image1: BufferedImage = MockitoKt.mock()
@@ -85,26 +82,28 @@ class ComponentImageLoaderTest {
     val image5: BufferedImage = MockitoKt.mock()
     val image6: BufferedImage = MockitoKt.mock()
 
-    val skiaRoot = SkiaViewNode(1, listOf(
-      SkiaViewNode(2, listOf(
-        SkiaViewNode(2, image3),
-        SkiaViewNode(6, listOf(
-          SkiaViewNode(6, image6)
-        ))
-      )),
-      SkiaViewNode(1, image1),
-      SkiaViewNode(3, listOf(
-        SkiaViewNode(4, listOf(
-          SkiaViewNode(4, image4)
-        )),
-        SkiaViewNode(1, image2),
-        SkiaViewNode(5, listOf(
-          SkiaViewNode(5, image5)
+    val skiaRoot =
+      SkiaViewNode(
+        1,
+        listOf(
+          SkiaViewNode(
+            2,
+            listOf(SkiaViewNode(2, image3), SkiaViewNode(6, listOf(SkiaViewNode(6, image6))))
+          ),
+          SkiaViewNode(1, image1),
+          SkiaViewNode(
+            3,
+            listOf(
+              SkiaViewNode(4, listOf(SkiaViewNode(4, image4))),
+              SkiaViewNode(1, image2),
+              SkiaViewNode(5, listOf(SkiaViewNode(5, image5)))
+            )
+          )
         )
-        )))
-    ))
+      )
 
-    val window = window(1, 1) {
+    val window =
+      window(1, 1) {
         view(2)
         view(3) {
           view(4)
@@ -120,10 +119,16 @@ class ComponentImageLoaderTest {
     }
 
     ViewNode.readAccess {
-      // We don't really care that the images are in certain places in the tree, we just care that they're in the right order.
-      assertThat(root.preOrderFlatten().toList()
-                   .flatMap { it.drawChildren }
-                   .filterIsInstance<DrawViewImage>().map { it.image })
+      // We don't really care that the images are in certain places in the tree, we just care that
+      // they're in the right order.
+      assertThat(
+          root
+            .preOrderFlatten()
+            .toList()
+            .flatMap { it.drawChildren }
+            .filterIsInstance<DrawViewImage>()
+            .map { it.image }
+        )
         .containsExactlyElementsIn(listOf(image3, image6, image1, image4, image2, image5))
         .inOrder()
     }

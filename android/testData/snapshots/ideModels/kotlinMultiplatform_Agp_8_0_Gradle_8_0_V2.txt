@@ -1,7 +1,27 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT> (IdeBuildImpl)
-        buildName                     : :
-    gradleSupportsDirectTaskInvocation      : true
+MODULE                        : kotlinMultiPlatform
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : kotlinMultiPlatform
+    LinkedProjectPath             : <ROOT>
+    RootProjectPath               : <ROOT>
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/build/classes/production/kotlinMultiPlatform [-]
+        compilerTestOutputPath        : file://<ROOT>/build/classes/test/kotlinMultiPlatform [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/.idea/modules/kotlinMultiPlatform.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>
+        EXCLUDE_FOLDER                : file://<ROOT>/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/aidl [-]
@@ -9,6 +29,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:appcompat-v7:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/jars/classes.jar
+        component                     : com.android.support:appcompat-v7:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/jni [-]
@@ -26,6 +47,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-compat:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-compat:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/jni [-]
@@ -43,6 +65,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:runtime:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:runtime:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jni [-]
@@ -60,6 +83,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:versionedparcelable:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/jars/classes.jar
+        component                     : com.android.support:versionedparcelable:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/jni [-]
@@ -77,6 +101,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:cursoradapter:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/jars/classes.jar
+        component                     : com.android.support:cursoradapter:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/jni [-]
@@ -94,6 +119,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-core-utils:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-core-utils:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/jni [-]
@@ -111,6 +137,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:documentfile:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/jars/classes.jar
+        component                     : com.android.support:documentfile:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/jni [-]
@@ -128,6 +155,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:loader:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/jars/classes.jar
+        component                     : com.android.support:loader:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/jni [-]
@@ -145,6 +173,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:livedata:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:livedata:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/jni [-]
@@ -162,6 +191,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.core:runtime:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+        component                     : android.arch.core:runtime:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jni [-]
@@ -179,6 +209,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:livedata-core:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:livedata-core:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/jni [-]
@@ -196,6 +227,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:viewmodel:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:viewmodel:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jni [-]
@@ -213,6 +245,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:localbroadcastmanager:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/jars/classes.jar
+        component                     : com.android.support:localbroadcastmanager:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/jni [-]
@@ -230,6 +263,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:print:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/jars/classes.jar
+        component                     : com.android.support:print:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/jni [-]
@@ -247,6 +281,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-fragment:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-fragment:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/jni [-]
@@ -264,6 +299,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-core-ui:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-core-ui:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/jni [-]
@@ -281,6 +317,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:customview:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/jars/classes.jar
+        component                     : com.android.support:customview:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/jni [-]
@@ -298,6 +335,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:viewpager:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jars/classes.jar
+        component                     : com.android.support:viewpager:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jni [-]
@@ -315,6 +353,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:coordinatorlayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:coordinatorlayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/jni [-]
@@ -332,6 +371,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:drawerlayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:drawerlayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/jni [-]
@@ -349,6 +389,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:slidingpanelayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:slidingpanelayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/jni [-]
@@ -366,6 +407,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:interpolator:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/jars/classes.jar
+        component                     : com.android.support:interpolator:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/jni [-]
@@ -383,6 +425,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:swiperefreshlayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:swiperefreshlayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/jni [-]
@@ -400,6 +443,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:asynclayoutinflater:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/jars/classes.jar
+        component                     : com.android.support:asynclayoutinflater:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/jni [-]
@@ -417,6 +461,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-vector-drawable:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-vector-drawable:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/jni [-]
@@ -434,6 +479,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:animated-vector-drawable:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jars/classes.jar
+        component                     : com.android.support:animated-vector-drawable:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jni [-]
@@ -448,30 +494,39 @@ LIBRARY_TABLE
     - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
     - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
     - library                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
     - library                     : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
         artifactAddress               : org.jetbrains:annotations:13.0@jar
+        component                     : org.jetbrains:annotations:13.0
     - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
     - library                     : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
         artifactAddress               : com.android.support:support-annotations:28.0.0@jar
+        component                     : com.android.support:support-annotations:28.0.0
     - library                     : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
         artifactAddress               : com.android.support:collections:28.0.0@jar
+        component                     : com.android.support:collections:28.0.0
     - library                     : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
         artifactAddress               : android.arch.lifecycle:common:1.1.1@jar
+        component                     : android.arch.lifecycle:common:1.1.1
     - library                     : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
         artifactAddress               : android.arch.core:common:1.1.1@jar
+        component                     : android.arch.core:common:1.1.1
     - library                     : <ROOT>::module2@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         lintJar                       : <ROOT>/module2/build/intermediates/lint_publish_jar/global/lint.jar [-]
@@ -488,9 +543,11 @@ LIBRARY_TABLE
     - library                     : junit:junit:4.12 (IdeJavaLibraryImpl)
         artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
         artifactAddress               : junit:junit:4.12@jar
+        component                     : junit:junit:4.12
     - library                     : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
+        component                     : org.hamcrest:hamcrest-core:1.3
     - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :app
@@ -502,6 +559,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support.test:runner:1.0.2@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/jars/classes.jar
+        component                     : com.android.support.test:runner:1.0.2
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/jni [-]
@@ -519,6 +577,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support.test:monitor:1.0.2@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/jars/classes.jar
+        component                     : com.android.support.test:monitor:1.0.2
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/jni [-]
@@ -533,16 +592,22 @@ LIBRARY_TABLE
     - library                     : net.sf.kxml:kxml2:2.3.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
         artifactAddress               : net.sf.kxml:kxml2:2.3.0@jar
+        component                     : net.sf.kxml:kxml2:2.3.0
     - library                     : com.android.support:support-annotations:27.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
         artifactAddress               : com.android.support:support-annotations:27.1.1@jar
+        component                     : com.android.support:support-annotations:27.1.1
 MODULE                        : kotlinMultiPlatform
     externalProject               : kotlinMultiPlatform (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : kotlinMultiPlatform
         qName                         : kotlinMultiPlatform
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : kotlinMultiPlatform
@@ -654,6 +719,7 @@ MODULE                        : kotlinMultiPlatform
                     implementation                : <empty>
                     implementationDependenciesMetadata      : <empty>
                     intransitiveDependenciesMetadata        : <empty>
+                    kotlinBuildToolsApiClasspath  : <empty>
                     kotlinCompilerClasspath       : <empty>
                     kotlinCompilerPluginClasspath : <empty>
                     kotlinCompilerPluginClasspathDebug      : <empty>
@@ -764,6 +830,8 @@ MODULE                        : kotlinMultiPlatform
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             module2                       : :module2 (DefaultExternalProject)
+                path                          : :module2 [-]
+                identityPath                  : :module2 [-]
                 name                          : module2
                 qName                         : :module2
                 group                         : kotlinMultiPlatform
@@ -794,49 +862,13 @@ MODULE                        : kotlinMultiPlatform
                     _internal-unified-test-platform-core    : <empty>
                     _internal-unified-test-platform-launcher          : <empty>
                     allSourceSetsCompileDependenciesMetadata          : <empty>
-                    androidAndroidTestApi         : <empty>
-                    androidAndroidTestApiDependenciesMetadata         : <empty>
-                    androidAndroidTestCompileOnly : <empty>
-                    androidAndroidTestCompileOnlyDependenciesMetadata : <empty>
-                    androidAndroidTestDebugApi    : <empty>
-                    androidAndroidTestDebugApiDependenciesMetadata    : <empty>
-                    androidAndroidTestDebugCompileOnly      : <empty>
-                    androidAndroidTestDebugCompileOnlyDependenciesMetadata      : <empty>
-                    androidAndroidTestDebugImplementation   : <empty>
-                    androidAndroidTestDebugImplementationDependenciesMetadata   : <empty>
-                    androidAndroidTestDebugIntransitiveDependenciesMetadata     : <empty>
-                    androidAndroidTestDebugResolvableDependenciesMetadata       : <empty>
-                    androidAndroidTestDebugRuntimeOnly      : <empty>
-                    androidAndroidTestImplementation        : <empty>
-                    androidAndroidTestImplementationDependenciesMetadata        : <empty>
-                    androidAndroidTestIntransitiveDependenciesMetadata          : <empty>
-                    androidAndroidTestReleaseApi  : <empty>
-                    androidAndroidTestReleaseApiDependenciesMetadata  : <empty>
-                    androidAndroidTestReleaseCompileOnly    : <empty>
-                    androidAndroidTestReleaseCompileOnlyDependenciesMetadata    : <empty>
-                    androidAndroidTestReleaseImplementation : <empty>
-                    androidAndroidTestReleaseImplementationDependenciesMetadata : <empty>
-                    androidAndroidTestReleaseIntransitiveDependenciesMetadata   : <empty>
-                    androidAndroidTestReleaseResolvableDependenciesMetadata     : <empty>
-                    androidAndroidTestReleaseRuntimeOnly    : <empty>
-                    androidAndroidTestResolvableDependenciesMetadata  : <empty>
-                    androidAndroidTestRuntimeOnly : <empty>
                     androidApis                   : <empty>
-                    androidDebugAndroidTestApi    : <empty>
-                    androidDebugAndroidTestApiDependenciesMetadata    : <empty>
                     androidDebugAndroidTestCompilationApi   : <empty>
                     androidDebugAndroidTestCompilationCompileOnly     : <empty>
                     androidDebugAndroidTestCompilationImplementation  : <empty>
                     androidDebugAndroidTestCompilationRuntimeOnly     : <empty>
                     androidDebugAndroidTestCompileClasspath : <empty>
-                    androidDebugAndroidTestCompileOnly      : <empty>
-                    androidDebugAndroidTestCompileOnlyDependenciesMetadata      : <empty>
-                    androidDebugAndroidTestImplementation   : <empty>
-                    androidDebugAndroidTestImplementationDependenciesMetadata   : <empty>
-                    androidDebugAndroidTestIntransitiveDependenciesMetadata     : <empty>
-                    androidDebugAndroidTestResolvableDependenciesMetadata       : <empty>
                     androidDebugAndroidTestRuntimeClasspath : <empty>
-                    androidDebugAndroidTestRuntimeOnly      : <empty>
                     androidDebugApi               : <empty>
                     androidDebugApiDependenciesMetadata     : <empty>
                     - androidDebugArchives        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
@@ -853,21 +885,30 @@ MODULE                        : kotlinMultiPlatform
                     androidDebugResolvableDependenciesMetadata        : <empty>
                     androidDebugRuntimeClasspath  : <empty>
                     androidDebugRuntimeOnly       : <empty>
-                    androidDebugUnitTestApi       : <empty>
-                    androidDebugUnitTestApiDependenciesMetadata       : <empty>
                     androidDebugUnitTestCompilationApi      : <empty>
                     androidDebugUnitTestCompilationCompileOnly        : <empty>
                     androidDebugUnitTestCompilationImplementation     : <empty>
                     androidDebugUnitTestCompilationRuntimeOnly        : <empty>
                     androidDebugUnitTestCompileClasspath    : <empty>
-                    androidDebugUnitTestCompileOnly         : <empty>
-                    androidDebugUnitTestCompileOnlyDependenciesMetadata         : <empty>
-                    androidDebugUnitTestImplementation      : <empty>
-                    androidDebugUnitTestImplementationDependenciesMetadata      : <empty>
-                    androidDebugUnitTestIntransitiveDependenciesMetadata        : <empty>
-                    androidDebugUnitTestResolvableDependenciesMetadata          : <empty>
                     androidDebugUnitTestRuntimeClasspath    : <empty>
-                    androidDebugUnitTestRuntimeOnly         : <empty>
+                    androidInstrumentedTestApi    : <empty>
+                    androidInstrumentedTestApiDependenciesMetadata    : <empty>
+                    androidInstrumentedTestCompileOnly      : <empty>
+                    androidInstrumentedTestCompileOnlyDependenciesMetadata      : <empty>
+                    androidInstrumentedTestDebugApi         : <empty>
+                    androidInstrumentedTestDebugApiDependenciesMetadata         : <empty>
+                    androidInstrumentedTestDebugCompileOnly : <empty>
+                    androidInstrumentedTestDebugCompileOnlyDependenciesMetadata : <empty>
+                    androidInstrumentedTestDebugImplementation        : <empty>
+                    androidInstrumentedTestDebugImplementationDependenciesMetadata        : <empty>
+                    androidInstrumentedTestDebugIntransitiveDependenciesMetadata          : <empty>
+                    androidInstrumentedTestDebugResolvableDependenciesMetadata  : <empty>
+                    androidInstrumentedTestDebugRuntimeOnly : <empty>
+                    androidInstrumentedTestImplementation   : <empty>
+                    androidInstrumentedTestImplementationDependenciesMetadata   : <empty>
+                    androidInstrumentedTestIntransitiveDependenciesMetadata     : <empty>
+                    androidInstrumentedTestResolvableDependenciesMetadata       : <empty>
+                    androidInstrumentedTestRuntimeOnly      : <empty>
                     androidJdkImage               : <empty>
                     androidMainApi                : <empty>
                     androidMainApiDependenciesMetadata      : <empty>
@@ -894,82 +935,55 @@ MODULE                        : kotlinMultiPlatform
                     androidReleaseResolvableDependenciesMetadata      : <empty>
                     androidReleaseRuntimeClasspath          : <empty>
                     androidReleaseRuntimeOnly     : <empty>
-                    androidReleaseUnitTestApi     : <empty>
-                    androidReleaseUnitTestApiDependenciesMetadata     : <empty>
                     androidReleaseUnitTestCompilationApi    : <empty>
                     androidReleaseUnitTestCompilationCompileOnly      : <empty>
                     androidReleaseUnitTestCompilationImplementation   : <empty>
                     androidReleaseUnitTestCompilationRuntimeOnly      : <empty>
                     androidReleaseUnitTestCompileClasspath  : <empty>
-                    androidReleaseUnitTestCompileOnly       : <empty>
-                    androidReleaseUnitTestCompileOnlyDependenciesMetadata       : <empty>
-                    androidReleaseUnitTestImplementation    : <empty>
-                    androidReleaseUnitTestImplementationDependenciesMetadata    : <empty>
-                    androidReleaseUnitTestIntransitiveDependenciesMetadata      : <empty>
-                    androidReleaseUnitTestResolvableDependenciesMetadata        : <empty>
                     androidReleaseUnitTestRuntimeClasspath  : <empty>
-                    androidReleaseUnitTestRuntimeOnly       : <empty>
                     androidTestAnnotationProcessor          : <empty>
-                    androidTestApi                : <empty>
-                    androidTestApiDependenciesMetadata      : <empty>
                     androidTestCompileOnly        : <empty>
-                    androidTestCompileOnlyDependenciesMetadata        : <empty>
                     androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugApi           : <empty>
-                    androidTestDebugApiDependenciesMetadata : <empty>
                     androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugCompileOnlyDependenciesMetadata   : <empty>
                     androidTestDebugImplementation          : <empty>
-                    androidTestDebugImplementationDependenciesMetadata          : <empty>
-                    androidTestDebugIntransitiveDependenciesMetadata  : <empty>
-                    androidTestDebugResolvableDependenciesMetadata    : <empty>
                     androidTestDebugRuntimeOnly   : <empty>
                     androidTestDebugWearApp       : <empty>
-                    androidTestFixturesApi        : <empty>
-                    androidTestFixturesApiDependenciesMetadata        : <empty>
-                    androidTestFixturesCompileOnly          : <empty>
-                    androidTestFixturesCompileOnlyDependenciesMetadata          : <empty>
-                    androidTestFixturesDebugApi   : <empty>
-                    androidTestFixturesDebugApiDependenciesMetadata   : <empty>
-                    androidTestFixturesDebugCompileOnly     : <empty>
-                    androidTestFixturesDebugCompileOnlyDependenciesMetadata     : <empty>
-                    androidTestFixturesDebugImplementation  : <empty>
-                    androidTestFixturesDebugImplementationDependenciesMetadata  : <empty>
-                    androidTestFixturesDebugIntransitiveDependenciesMetadata    : <empty>
-                    androidTestFixturesDebugResolvableDependenciesMetadata      : <empty>
-                    androidTestFixturesDebugRuntimeOnly     : <empty>
-                    androidTestFixturesImplementation       : <empty>
-                    androidTestFixturesImplementationDependenciesMetadata       : <empty>
-                    androidTestFixturesIntransitiveDependenciesMetadata         : <empty>
-                    androidTestFixturesReleaseApi : <empty>
-                    androidTestFixturesReleaseApiDependenciesMetadata : <empty>
-                    androidTestFixturesReleaseCompileOnly   : <empty>
-                    androidTestFixturesReleaseCompileOnlyDependenciesMetadata   : <empty>
-                    androidTestFixturesReleaseImplementation          : <empty>
-                    androidTestFixturesReleaseImplementationDependenciesMetadata          : <empty>
-                    androidTestFixturesReleaseIntransitiveDependenciesMetadata  : <empty>
-                    androidTestFixturesReleaseResolvableDependenciesMetadata    : <empty>
-                    androidTestFixturesReleaseRuntimeOnly   : <empty>
-                    androidTestFixturesResolvableDependenciesMetadata : <empty>
-                    androidTestFixturesRuntimeOnly          : <empty>
                     androidTestImplementation     : <empty>
-                    androidTestImplementationDependenciesMetadata     : <empty>
-                    androidTestIntransitiveDependenciesMetadata       : <empty>
                     androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseApi         : <empty>
-                    androidTestReleaseApiDependenciesMetadata         : <empty>
                     androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseCompileOnlyDependenciesMetadata : <empty>
                     androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseImplementationDependenciesMetadata        : <empty>
-                    androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
-                    androidTestReleaseResolvableDependenciesMetadata  : <empty>
                     androidTestReleaseRuntimeOnly : <empty>
                     androidTestReleaseWearApp     : <empty>
-                    androidTestResolvableDependenciesMetadata         : <empty>
                     androidTestRuntimeOnly        : <empty>
                     androidTestUtil               : <empty>
                     androidTestWearApp            : <empty>
+                    androidUnitTestApi            : <empty>
+                    androidUnitTestApiDependenciesMetadata  : <empty>
+                    androidUnitTestCompileOnly    : <empty>
+                    androidUnitTestCompileOnlyDependenciesMetadata    : <empty>
+                    androidUnitTestDebugApi       : <empty>
+                    androidUnitTestDebugApiDependenciesMetadata       : <empty>
+                    androidUnitTestDebugCompileOnly         : <empty>
+                    androidUnitTestDebugCompileOnlyDependenciesMetadata         : <empty>
+                    androidUnitTestDebugImplementation      : <empty>
+                    androidUnitTestDebugImplementationDependenciesMetadata      : <empty>
+                    androidUnitTestDebugIntransitiveDependenciesMetadata        : <empty>
+                    androidUnitTestDebugResolvableDependenciesMetadata          : <empty>
+                    androidUnitTestDebugRuntimeOnly         : <empty>
+                    androidUnitTestImplementation : <empty>
+                    androidUnitTestImplementationDependenciesMetadata : <empty>
+                    androidUnitTestIntransitiveDependenciesMetadata   : <empty>
+                    androidUnitTestReleaseApi     : <empty>
+                    androidUnitTestReleaseApiDependenciesMetadata     : <empty>
+                    androidUnitTestReleaseCompileOnly       : <empty>
+                    androidUnitTestReleaseCompileOnlyDependenciesMetadata       : <empty>
+                    androidUnitTestReleaseImplementation    : <empty>
+                    androidUnitTestReleaseImplementationDependenciesMetadata    : <empty>
+                    androidUnitTestReleaseIntransitiveDependenciesMetadata      : <empty>
+                    androidUnitTestReleaseResolvableDependenciesMetadata        : <empty>
+                    androidUnitTestReleaseRuntimeOnly       : <empty>
+                    androidUnitTestResolvableDependenciesMetadata     : <empty>
+                    androidUnitTestRuntimeOnly    : <empty>
                     annotationProcessor           : <empty>
                     api                           : <empty>
                     - archives                    : <ROOT>/module2/build/libs/module2-metadata.jar [-]
@@ -1002,19 +1016,23 @@ MODULE                        : kotlinMultiPlatform
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
                     debugApiElements              : <empty>
+                    - debugApiElements-published  : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugImplementation           : <empty>
                     debugRuntimeClasspath         : <empty>
                     debugRuntimeElements          : <empty>
+                    - debugRuntimeElements-published        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                     debugRuntimeOnly              : <empty>
                     - debugSourcesElements        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
+                    - debugSourcesElements-published        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
+                    kotlinBuildToolsApiClasspath  : <empty>
                     kotlinCompilerClasspath       : <empty>
                     kotlinCompilerPluginClasspath : <empty>
                     kotlinCompilerPluginClasspathAndroidDebug         : <empty>
@@ -1044,13 +1062,16 @@ MODULE                        : kotlinMultiPlatform
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiElements            : <empty>
+                    - releaseApiElements-published          : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseImplementation         : <empty>
                     releaseRuntimeClasspath       : <empty>
                     releaseRuntimeElements        : <empty>
+                    - releaseRuntimeElements-published      : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                     releaseRuntimeOnly            : <empty>
                     - releaseSourcesElements      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
+                    - releaseSourcesElements-published      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
@@ -1098,7 +1119,7 @@ MODULE                        : kotlinMultiPlatform.app
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -1116,7 +1137,6 @@ MODULE                        : kotlinMultiPlatform.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 8.0.0-beta04
     ProjectType                   : PROJECT_TYPE_APP
@@ -1161,6 +1181,7 @@ MODULE                        : kotlinMultiPlatform.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.kotlin
         testApplicationId             : com.example.android.kotlin.test
@@ -1854,6 +1875,7 @@ MODULE                        : kotlinMultiPlatform.app
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -2150,43 +2172,6 @@ MODULE                        : kotlinMultiPlatform.app
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0-api.jar
-                    - classpath                   : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1-api.jar
-                    - classpath                   : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1-api.jar
-                    - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
-                    - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
                     jvmTarget                     : 17
@@ -2198,7 +2183,6 @@ MODULE                        : kotlinMultiPlatform.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugAndroidTest
@@ -2206,52 +2190,7 @@ MODULE                        : kotlinMultiPlatform.app
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2-api.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0-api.jar
-                    - classpath                   : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1-api.jar
-                    - classpath                   : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1-api.jar
-                    - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
-                    - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                    - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                    - classpath                   : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                    - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : app_debugAndroidTest
@@ -2262,7 +2201,6 @@ MODULE                        : kotlinMultiPlatform.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugUnitTest
@@ -2270,49 +2208,7 @@ MODULE                        : kotlinMultiPlatform.app
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0-api.jar
-                    - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0-api.jar
-                    - classpath                   : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1-api.jar
-                    - classpath                   : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1-api.jar
-                    - classpath                   : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0-api.jar
-                    - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                    - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : app_debugUnitTest
@@ -2323,7 +2219,6 @@ MODULE                        : kotlinMultiPlatform.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
@@ -2351,7 +2246,7 @@ MODULE                        : kotlinMultiPlatform.module2
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :module2
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/module2/build.gradle
         buildFilePath                 : <ROOT>/module2/build.gradle
         rootFolderPath                : <ROOT>
@@ -2369,7 +2264,6 @@ MODULE                        : kotlinMultiPlatform.module2
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :module2
     ModelVersion                  : 8.0.0-beta04
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -2414,6 +2308,7 @@ MODULE                        : kotlinMultiPlatform.module2
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.test.multiproject.module2.test
     - basicVariant:               : release
@@ -2433,11 +2328,11 @@ MODULE                        : kotlinMultiPlatform.module2
                 UseSupportLibrary             : false
         SourceProvider
             Name                          : main
-            Manifest                      : <ROOT>/module2/src/main/AndroidManifest.xml
+            Manifest                      : <ROOT>/module2/src/androidMain/AndroidManifest.xml
             JavaDirectories               : <ROOT>/module2/src/main/java [-]
-            KotlinDirectories             : <ROOT>/module2/src/androidMain/kotlin [-]
-            KotlinDirectories             : <ROOT>/module2/src/main/kotlin
+            KotlinDirectories             : <ROOT>/module2/src/androidMain/kotlin
             KotlinDirectories             : <ROOT>/module2/src/main/java [-]
+            KotlinDirectories             : <ROOT>/module2/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/module2/src/main/resources [-]
             ResourcesDirectories          : <ROOT>/module2/src/androidMain/resources [-]
             ResDirectories                : <ROOT>/module2/src/main/res [-]
@@ -2454,40 +2349,41 @@ MODULE                        : kotlinMultiPlatform.module2
                 ArtifactName                  : _android_test_
                 SourceProvider
                     Name                          : androidTest
-                    Manifest                      : <ROOT>/module2/src/androidTest/AndroidManifest.xml [-]
+                    Manifest                      : <ROOT>/module2/src/androidInstrumentedTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/module2/src/androidTest/java [-]
-                    KotlinDirectories             : <ROOT>/module2/src/androidAndroidTest/kotlin
+                    KotlinDirectories             : <ROOT>/module2/src/androidInstrumentedTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/module2/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/module2/src/androidTest/kotlin
                     ResourcesDirectories          : <ROOT>/module2/src/androidTest/resources [-]
-                    ResourcesDirectories          : <ROOT>/module2/src/androidAndroidTest/resources [-]
+                    ResourcesDirectories          : <ROOT>/module2/src/androidInstrumentedTest/resources [-]
                     ResDirectories                : <ROOT>/module2/src/androidTest/res [-]
-                    ResDirectories                : <ROOT>/module2/src/androidAndroidTest/res [-]
+                    ResDirectories                : <ROOT>/module2/src/androidInstrumentedTest/res [-]
                     AssetsDirectories             : <ROOT>/module2/src/androidTest/assets [-]
-                    AssetsDirectories             : <ROOT>/module2/src/androidAndroidTest/assets [-]
+                    AssetsDirectories             : <ROOT>/module2/src/androidInstrumentedTest/assets [-]
                     JniLibsDirectories            : <ROOT>/module2/src/androidTest/jniLibs [-]
-                    JniLibsDirectories            : <ROOT>/module2/src/androidAndroidTest/jniLibs [-]
+                    JniLibsDirectories            : <ROOT>/module2/src/androidInstrumentedTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/module2/src/androidTest/shaders [-]
-                    ShadersDirectories            : <ROOT>/module2/src/androidAndroidTest/shaders [-]
+                    ShadersDirectories            : <ROOT>/module2/src/androidInstrumentedTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/module2/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
                     Name                          : test
-                    Manifest                      : <ROOT>/module2/src/test/AndroidManifest.xml [-]
+                    Manifest                      : <ROOT>/module2/src/androidUnitTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/module2/src/test/java [-]
-                    KotlinDirectories             : <ROOT>/module2/src/androidTest/kotlin
-                    KotlinDirectories             : <ROOT>/module2/src/test/kotlin [-]
+                    KotlinDirectories             : <ROOT>/module2/src/androidUnitTest/kotlin [-]
                     KotlinDirectories             : <ROOT>/module2/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/module2/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/module2/src/test/resources [-]
-                    ResourcesDirectories          : <ROOT>/module2/src/androidTest/resources [-]
+                    ResourcesDirectories          : <ROOT>/module2/src/androidUnitTest/resources [-]
                     ResDirectories                : <ROOT>/module2/src/test/res [-]
-                    ResDirectories                : <ROOT>/module2/src/androidTest/res [-]
+                    ResDirectories                : <ROOT>/module2/src/androidUnitTest/res [-]
                     AssetsDirectories             : <ROOT>/module2/src/test/assets [-]
-                    AssetsDirectories             : <ROOT>/module2/src/androidTest/assets [-]
+                    AssetsDirectories             : <ROOT>/module2/src/androidUnitTest/assets [-]
                     JniLibsDirectories            : <ROOT>/module2/src/test/jniLibs [-]
-                    JniLibsDirectories            : <ROOT>/module2/src/androidTest/jniLibs [-]
+                    JniLibsDirectories            : <ROOT>/module2/src/androidUnitTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/module2/src/test/shaders [-]
-                    ShadersDirectories            : <ROOT>/module2/src/androidTest/shaders [-]
+                    ShadersDirectories            : <ROOT>/module2/src/androidUnitTest/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/module2/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
@@ -2500,11 +2396,11 @@ MODULE                        : kotlinMultiPlatform.module2
             IsZipAlignEnabled             : true
         SourceProvider
             Name                          : debug
-            Manifest                      : <ROOT>/module2/src/debug/AndroidManifest.xml [-]
+            Manifest                      : <ROOT>/module2/src/androidDebug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/module2/src/debug/java [-]
             KotlinDirectories             : <ROOT>/module2/src/androidDebug/kotlin [-]
-            KotlinDirectories             : <ROOT>/module2/src/debug/kotlin [-]
             KotlinDirectories             : <ROOT>/module2/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/module2/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/module2/src/debug/resources [-]
             ResourcesDirectories          : <ROOT>/module2/src/androidDebug/resources [-]
             ResDirectories                : <ROOT>/module2/src/debug/res [-]
@@ -2521,41 +2417,42 @@ MODULE                        : kotlinMultiPlatform.module2
                 ArtifactName                  : _android_test_
                 SourceProvider
                     Name                          : androidTestDebug
-                    Manifest                      : <ROOT>/module2/src/androidTestDebug/AndroidManifest.xml [-]
+                    Manifest                      : <ROOT>/module2/src/androidInstrumentedTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/module2/src/androidTestDebug/java [-]
-                    KotlinDirectories             : <ROOT>/module2/src/androidAndroidTestDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/module2/src/androidInstrumentedTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/module2/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/module2/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/module2/src/androidTestDebug/resources [-]
-                    ResourcesDirectories          : <ROOT>/module2/src/androidAndroidTestDebug/resources [-]
+                    ResourcesDirectories          : <ROOT>/module2/src/androidInstrumentedTestDebug/resources [-]
                     ResDirectories                : <ROOT>/module2/src/androidTestDebug/res [-]
-                    ResDirectories                : <ROOT>/module2/src/androidAndroidTestDebug/res [-]
+                    ResDirectories                : <ROOT>/module2/src/androidInstrumentedTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/module2/src/androidTestDebug/assets [-]
-                    AssetsDirectories             : <ROOT>/module2/src/androidAndroidTestDebug/assets [-]
+                    AssetsDirectories             : <ROOT>/module2/src/androidInstrumentedTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/module2/src/androidTestDebug/jniLibs [-]
-                    JniLibsDirectories            : <ROOT>/module2/src/androidAndroidTestDebug/jniLibs [-]
+                    JniLibsDirectories            : <ROOT>/module2/src/androidInstrumentedTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/module2/src/androidTestDebug/shaders [-]
-                    ShadersDirectories            : <ROOT>/module2/src/androidAndroidTestDebug/shaders [-]
+                    ShadersDirectories            : <ROOT>/module2/src/androidInstrumentedTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/module2/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
                     Name                          : testDebug
-                    Manifest                      : <ROOT>/module2/src/testDebug/AndroidManifest.xml [-]
+                    Manifest                      : <ROOT>/module2/src/androidUnitTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/module2/src/testDebug/java [-]
-                    KotlinDirectories             : <ROOT>/module2/src/androidTestDebug/kotlin [-]
-                    KotlinDirectories             : <ROOT>/module2/src/testDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/module2/src/androidUnitTestDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/module2/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/module2/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/module2/src/testDebug/resources [-]
-                    ResourcesDirectories          : <ROOT>/module2/src/androidTestDebug/resources [-]
+                    ResourcesDirectories          : <ROOT>/module2/src/androidUnitTestDebug/resources [-]
                     ResDirectories                : <ROOT>/module2/src/testDebug/res [-]
-                    ResDirectories                : <ROOT>/module2/src/androidTestDebug/res [-]
+                    ResDirectories                : <ROOT>/module2/src/androidUnitTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/module2/src/testDebug/assets [-]
-                    AssetsDirectories             : <ROOT>/module2/src/androidTestDebug/assets [-]
+                    AssetsDirectories             : <ROOT>/module2/src/androidUnitTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/module2/src/testDebug/jniLibs [-]
-                    JniLibsDirectories            : <ROOT>/module2/src/androidTestDebug/jniLibs [-]
+                    JniLibsDirectories            : <ROOT>/module2/src/androidUnitTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/module2/src/testDebug/shaders [-]
-                    ShadersDirectories            : <ROOT>/module2/src/androidTestDebug/shaders [-]
+                    ShadersDirectories            : <ROOT>/module2/src/androidUnitTestDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/module2/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
@@ -2567,11 +2464,11 @@ MODULE                        : kotlinMultiPlatform.module2
             IsZipAlignEnabled             : true
         SourceProvider
             Name                          : release
-            Manifest                      : <ROOT>/module2/src/release/AndroidManifest.xml [-]
+            Manifest                      : <ROOT>/module2/src/androidRelease/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/module2/src/release/java [-]
             KotlinDirectories             : <ROOT>/module2/src/androidRelease/kotlin [-]
-            KotlinDirectories             : <ROOT>/module2/src/release/kotlin [-]
             KotlinDirectories             : <ROOT>/module2/src/release/java [-]
+            KotlinDirectories             : <ROOT>/module2/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/module2/src/release/resources [-]
             ResourcesDirectories          : <ROOT>/module2/src/androidRelease/resources [-]
             ResDirectories                : <ROOT>/module2/src/release/res [-]
@@ -2588,21 +2485,21 @@ MODULE                        : kotlinMultiPlatform.module2
                 ArtifactName                  : _unit_test_
                 SourceProvider
                     Name                          : testRelease
-                    Manifest                      : <ROOT>/module2/src/testRelease/AndroidManifest.xml [-]
+                    Manifest                      : <ROOT>/module2/src/androidUnitTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/module2/src/testRelease/java [-]
-                    KotlinDirectories             : <ROOT>/module2/src/androidTestRelease/kotlin [-]
-                    KotlinDirectories             : <ROOT>/module2/src/testRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/module2/src/androidUnitTestRelease/kotlin [-]
                     KotlinDirectories             : <ROOT>/module2/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/module2/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/module2/src/testRelease/resources [-]
-                    ResourcesDirectories          : <ROOT>/module2/src/androidTestRelease/resources [-]
+                    ResourcesDirectories          : <ROOT>/module2/src/androidUnitTestRelease/resources [-]
                     ResDirectories                : <ROOT>/module2/src/testRelease/res [-]
-                    ResDirectories                : <ROOT>/module2/src/androidTestRelease/res [-]
+                    ResDirectories                : <ROOT>/module2/src/androidUnitTestRelease/res [-]
                     AssetsDirectories             : <ROOT>/module2/src/testRelease/assets [-]
-                    AssetsDirectories             : <ROOT>/module2/src/androidTestRelease/assets [-]
+                    AssetsDirectories             : <ROOT>/module2/src/androidUnitTestRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/module2/src/testRelease/jniLibs [-]
-                    JniLibsDirectories            : <ROOT>/module2/src/androidTestRelease/jniLibs [-]
+                    JniLibsDirectories            : <ROOT>/module2/src/androidUnitTestRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/module2/src/testRelease/shaders [-]
-                    ShadersDirectories            : <ROOT>/module2/src/androidTestRelease/shaders [-]
+                    ShadersDirectories            : <ROOT>/module2/src/androidUnitTestRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/module2/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
@@ -2680,11 +2577,6 @@ MODULE                        : kotlinMultiPlatform.module2
                 ClassesFolder                 : <ROOT>/module2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/module2/build/intermediates/javac/debugAndroidTest/classes [-]
                 ClassesFolder                 : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest [-]
-                VariantSourceProvider
-                    Name                          : debug_KotlinMPP
-                    Manifest                      : <ROOT>/module2/src/androidTest/__KotlinMPP__/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/module2/src/androidDebugAndroidTest/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/module2/src/androidDebugAndroidTest/resources [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support.test:runner:1.0.2@aar
@@ -2694,11 +2586,6 @@ MODULE                        : kotlinMultiPlatform.module2
                             javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
                         androidLibrary                : com.android.support.test:monitor:1.0.2@aar
                             javaLibrary                   : com.android.support:support-annotations:27.1.1@jar
-                        javaLibrary                   : com.android.support:support-annotations:27.1.1@jar
-                        javaLibrary                   : junit:junit:4.12@jar
-                            javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
-                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
-                        javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
@@ -2707,6 +2594,11 @@ MODULE                        : kotlinMultiPlatform.module2
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : com.android.support:support-annotations:27.1.1@jar
+                        javaLibrary                   : junit:junit:4.12@jar
+                            javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
+                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
+                        javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
                         module                        : <ROOT>-:module2-MAIN
                         module                        : <ROOT>-:module2-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
@@ -2746,6 +2638,7 @@ MODULE                        : kotlinMultiPlatform.module2
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -2756,25 +2649,8 @@ MODULE                        : kotlinMultiPlatform.module2
                 ClassesFolder                 : <ROOT>/module2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/module2/build/intermediates/javac/debugUnitTest/classes [-]
                 ClassesFolder                 : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest [-]
-                VariantSourceProvider
-                    Name                          : debug_KotlinMPP
-                    Manifest                      : <ROOT>/module2/src/test/__KotlinMPP__/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/module2/src/androidDebugUnitTest/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/module2/src/androidDebugUnitTest/resources [-]
                 Dependencies
                     compileClasspath
-                        androidLibrary                : com.android.support.test:runner:1.0.2@aar
-                            javaLibrary                   : com.android.support:support-annotations:27.1.1@jar
-                            androidLibrary                : com.android.support.test:monitor:1.0.2@aar
-                            javaLibrary                   : junit:junit:4.12@jar
-                            javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
-                        androidLibrary                : com.android.support.test:monitor:1.0.2@aar
-                            javaLibrary                   : com.android.support:support-annotations:27.1.1@jar
-                        javaLibrary                   : com.android.support:support-annotations:27.1.1@jar
-                        javaLibrary                   : junit:junit:4.12@jar
-                            javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
-                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
-                        javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
@@ -2783,22 +2659,16 @@ MODULE                        : kotlinMultiPlatform.module2
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : junit:junit:4.12@jar
+                            javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
+                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         module                        : <ROOT>-:module2-MAIN
                         module                        : <ROOT>-:module2-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                     runtimeClasspath
-                        androidLibrary                : com.android.support.test:runner:1.0.2@aar
-                            javaLibrary                   : com.android.support:support-annotations:27.1.1@jar
-                            androidLibrary                : com.android.support.test:monitor:1.0.2@aar
-                            javaLibrary                   : junit:junit:4.12@jar
-                            javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
-                        androidLibrary                : com.android.support.test:monitor:1.0.2@aar
-                            javaLibrary                   : com.android.support:support-annotations:27.1.1@jar
-                        javaLibrary                   : com.android.support:support-annotations:27.1.1@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
-                        javaLibrary                   : net.sf.kxml:kxml2:2.3.0@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
@@ -2811,229 +2681,19 @@ MODULE                        : kotlinMultiPlatform.module2
                         module                        : <ROOT>-:module2-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    kotlinMppGradleModel          : {androidAndroidTest=androidAndroidTest, androidMain=androidMain, androidTest=androidTest, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
-        dependencyMap
-            1                             : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/test/runner/1.0.2/runner-1.0.2.aar
-            2                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-            3                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-            4                             : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
-            5                             : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-            6                             : DefaultExternalLibraryDependency
-                file                          : <M2>/junit/junit/4.12/junit-4.12.jar
-                source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
-            7                             : DefaultExternalLibraryDependency
-                file                          : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
-                source                        : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar
-            8                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-            9                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            10                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                source                        : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar
-            11                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            12                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-            13                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-            14                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-            15                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            16                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            17                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-            18                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            19                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            20                            : DefaultExternalLibraryDependency
-                file                          : <M2>/junit/junit/4.12/junit-4.12.jar
-                source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
-            21                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-            22                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-            23                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
-            24                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-            25                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                source                        : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar
-            26                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-            27                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            28                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-            29                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-            30                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-            31                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            32                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            33                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
-            34                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-            35                            : DefaultExternalLibraryDependency
-                file                          : <M2>/junit/junit/4.12/junit-4.12.jar
-                source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
-            36                            : DefaultExternalLibraryDependency
-                file                          : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
-                source                        : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar
-            37                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-            38                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            39                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                source                        : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar
-            40                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            41                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/test/runner/1.0.2/runner-1.0.2.aar
-            42                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
-            43                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-            44                            : DefaultExternalLibraryDependency
-                file                          : <M2>/junit/junit/4.12/junit-4.12.jar
-                source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
-            45                            : DefaultExternalLibraryDependency
-                file                          : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
-                source                        : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar
-            46                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                source                        : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar
-            47                            : DefaultExternalLibraryDependency
-                file                          : <M2>/junit/junit/4.12/junit-4.12.jar
-                source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
-            48                            : DefaultExternalLibraryDependency
-                file                          : <M2>/junit/junit/4.12/junit-4.12.jar
-                source                        : <M2>/junit/junit/4.12/junit-4.12-sources.jar
-            49                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/test/monitor/1.0.2/monitor-1.0.2.aar
-            50                            : DefaultExternalLibraryDependency
-                file                          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+    kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
+        dependencies                  : IdeaKotlinDeserializedDependenciesContainer
         extraFeatures                 : ExtraFeaturesImpl
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 1
-            minor                         : 8
-            patch                         : 20
-            versionString                 : 1.8.20-Beta
-        - kotlinImportingDiagnostics  : OrphanSourceSetsImportingDiagnostic
-            kotlinSourceSet               : androidAndroidTestRelease (KotlinSourceSetImpl)
-                actualPlatforms               : KotlinPlatformContainerImpl
-                    arePlatformsInitialized       : true
-                    - platforms                   : ANDROID
-                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
-                    androidSourceSetName          : androidTestRelease
-                    kotlinSourceSetName           : androidAndroidTestRelease
-                languageSettings              : KotlinLanguageSettingsImpl
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - resourceDirs                : <ROOT>/module2/src/androidAndroidTestRelease/resources [-]
-                - resourceDirs                : <ROOT>/module2/src/androidTestRelease/resources [-]
-                - sourceDirs                  : <ROOT>/module2/src/androidAndroidTestRelease/kotlin [-]
-                - sourceDirs                  : <ROOT>/module2/src/androidTestRelease/java [-]
-                platform                      : ANDROID
-        - kotlinImportingDiagnostics  : OrphanSourceSetsImportingDiagnostic
-            kotlinSourceSet               : androidTestFixtures (KotlinSourceSetImpl)
-                actualPlatforms               : KotlinPlatformContainerImpl
-                    arePlatformsInitialized       : true
-                    - platforms                   : ANDROID
-                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
-                    androidSourceSetName          : testFixtures
-                    kotlinSourceSetName           : androidTestFixtures
-                languageSettings              : KotlinLanguageSettingsImpl
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - resourceDirs                : <ROOT>/module2/src/androidTestFixtures/resources [-]
-                - resourceDirs                : <ROOT>/module2/src/testFixtures/resources [-]
-                - sourceDirs                  : <ROOT>/module2/src/androidTestFixtures/kotlin [-]
-                - sourceDirs                  : <ROOT>/module2/src/testFixtures/kotlin [-]
-                - sourceDirs                  : <ROOT>/module2/src/testFixtures/java [-]
-                platform                      : ANDROID
-        - kotlinImportingDiagnostics  : OrphanSourceSetsImportingDiagnostic
-            kotlinSourceSet               : androidTestFixturesDebug (KotlinSourceSetImpl)
-                actualPlatforms               : KotlinPlatformContainerImpl
-                    arePlatformsInitialized       : true
-                    - platforms                   : ANDROID
-                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
-                    androidSourceSetName          : testFixturesDebug
-                    kotlinSourceSetName           : androidTestFixturesDebug
-                languageSettings              : KotlinLanguageSettingsImpl
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - resourceDirs                : <ROOT>/module2/src/androidTestFixturesDebug/resources [-]
-                - resourceDirs                : <ROOT>/module2/src/testFixturesDebug/resources [-]
-                - sourceDirs                  : <ROOT>/module2/src/androidTestFixturesDebug/kotlin [-]
-                - sourceDirs                  : <ROOT>/module2/src/testFixturesDebug/kotlin [-]
-                - sourceDirs                  : <ROOT>/module2/src/testFixturesDebug/java [-]
-                platform                      : ANDROID
-        - kotlinImportingDiagnostics  : OrphanSourceSetsImportingDiagnostic
-            kotlinSourceSet               : androidTestFixturesRelease (KotlinSourceSetImpl)
-                actualPlatforms               : KotlinPlatformContainerImpl
-                    arePlatformsInitialized       : true
-                    - platforms                   : ANDROID
-                androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
-                    androidSourceSetName          : testFixturesRelease
-                    kotlinSourceSetName           : androidTestFixturesRelease
-                languageSettings              : KotlinLanguageSettingsImpl
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - resourceDirs                : <ROOT>/module2/src/androidTestFixturesRelease/resources [-]
-                - resourceDirs                : <ROOT>/module2/src/testFixturesRelease/resources [-]
-                - sourceDirs                  : <ROOT>/module2/src/androidTestFixturesRelease/kotlin [-]
-                - sourceDirs                  : <ROOT>/module2/src/testFixturesRelease/kotlin [-]
-                - sourceDirs                  : <ROOT>/module2/src/testFixturesRelease/java [-]
-                platform                      : ANDROID
+            minor                         : 9
+            patch                         : 0
+            versionString                 : 1.9.0
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         - platforms                   : COMMON
-                    - dependencies                : 28
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3043,7 +2703,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - regularDependencies         : 28
                     - resourceDirs                : <ROOT>/module2/src/commonMain/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/commonMain/kotlin [-]
                     platform                      : COMMON
@@ -3058,11 +2717,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         - androidVariantNames         : release
                         kotlinSourceSetName           : androidMain
                     - declaredDependsOnSourceSets : commonMain
-                    - dependencies                : 12
-                    - dependencies                : 13
-                    - dependencies                : 14
-                    - dependencies                : 15
-                    - dependencies                : 16
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3072,21 +2726,16 @@ MODULE                        : kotlinMultiPlatform.module2
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - regularDependencies         : 12
-                    - regularDependencies         : 13
-                    - regularDependencies         : 14
-                    - regularDependencies         : 15
-                    - regularDependencies         : 16
                     - resourceDirs                : <ROOT>/module2/src/androidMain/resources [-]
                     - resourceDirs                : <ROOT>/module2/src/main/resources [-]
                     - resourceDirs                : <ROOT>/module2/src/androidDebug/resources [-]
                     - resourceDirs                : <ROOT>/module2/src/debug/resources [-]
-                    - sourceDirs                  : <ROOT>/module2/src/androidMain/kotlin [-]
-                    - sourceDirs                  : <ROOT>/module2/src/main/kotlin
+                    - sourceDirs                  : <ROOT>/module2/src/androidMain/kotlin
                     - sourceDirs                  : <ROOT>/module2/src/main/java [-]
+                    - sourceDirs                  : <ROOT>/module2/src/main/kotlin [-]
                     - sourceDirs                  : <ROOT>/module2/src/androidDebug/kotlin [-]
-                    - sourceDirs                  : <ROOT>/module2/src/debug/kotlin [-]
                     - sourceDirs                  : <ROOT>/module2/src/debug/java [-]
+                    - sourceDirs                  : <ROOT>/module2/src/debug/kotlin [-]
                     platform                      : ANDROID
                 arguments                     : KotlinCompilationArgumentsImpl
                 cachedArgsInfo
@@ -3094,24 +2743,16 @@ MODULE                        : kotlinMultiPlatform.module2
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
                         backendThreads                : 1
-                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                        - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                        - classpath                   : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
                         destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debug
                         jvmDefault                    : disable
                         jvmTarget                     : 17
                         moduleName                    : module2_debug
-                        noJdk                         : true
                         noReflect                     : true
                         noStdlib                      : true
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3123,83 +2764,31 @@ MODULE                        : kotlinMultiPlatform.module2
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                         useFirLT                      : true
-                - declaredSourceSets          : commonMain (KotlinSourceSetImpl) (*seen*)
                 - declaredSourceSets          : androidMain (KotlinSourceSetImpl) (*seen*)
-                - dependencies                : 12
-                - dependencies                : 17
-                - dependencies                : 18
-                - dependencies                : 19
-                - dependencies                : 29
-                - dependencies                : 30
-                - dependencies                : 31
-                - dependencies                : 32
                 disambiguationClassifier      : android
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
                     - pureKotlinSourceFolders     : <ROOT>/module2/src/androidDebug/kotlin [-]
-                    - pureKotlinSourceFolders     : <ROOT>/module2/src/debug/kotlin [-]
                     - pureKotlinSourceFolders     : <ROOT>/module2/src/debug/java [-]
+                    - pureKotlinSourceFolders     : <ROOT>/module2/src/debug/kotlin [-]
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/module2/build/tmp/kotlin-classes/debug [-]
                     - classesDirs                 : <ROOT>/module2/build/intermediates/javac/debug/classes [-]
                     effectiveClassesDir           : <ROOT>/module2/build/tmp/kotlin-classes/debug [-]
                     resourcesDir                  : <ROOT>/module2/build/processedResources/android/debug [-]
                 platform                      : ANDROID
-                - sourceSets                  : commonMain (KotlinSourceSetImpl) (*seen*)
-                - sourceSets                  : androidMain (KotlinSourceSetImpl) (*seen*)
             - compilations                : debugAndroidTest (KotlinCompilationImpl)
-                - allSourceSets               : commonTest (KotlinSourceSetImpl)
-                    actualPlatforms               : KotlinPlatformContainerImpl
-                        - platforms                   : COMMON
-                    - additionalVisibleSourceSets : androidMain
-                    - additionalVisibleSourceSets : commonMain
-                    - dependencies                : 12
-                    - dependencies                : 13
-                    - dependencies                : 14
-                    - dependencies                : 15
-                    - dependencies                : 16
-                    isTestComponent               : true
-                    languageSettings              : KotlinLanguageSettingsImpl
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - regularDependencies         : 12
-                    - regularDependencies         : 13
-                    - regularDependencies         : 14
-                    - regularDependencies         : 15
-                    - regularDependencies         : 16
-                    - resourceDirs                : <ROOT>/module2/src/commonTest/resources [-]
-                    - sourceDirs                  : <ROOT>/module2/src/commonTest/kotlin [-]
-                    platform                      : COMMON
-                - allSourceSets               : androidAndroidTest (KotlinSourceSetImpl)
+                - allSourceSets               : androidInstrumentedTest (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
                         - platforms                   : ANDROID
                     - additionalVisibleSourceSets : androidMain
                     - additionalVisibleSourceSets : commonMain
-                    - allDependsOnSourceSets      : commonTest
                     androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
                         androidSourceSetName          : androidTest
                         - androidVariantNames         : debugAndroidTest
-                        kotlinSourceSetName           : androidAndroidTest
-                    - declaredDependsOnSourceSets : commonTest
-                    - dependencies                : 1
-                    - dependencies                : 2
-                    - dependencies                : 3
-                    - dependencies                : 4
-                    - dependencies                : 5
-                    - dependencies                : 6
-                    - dependencies                : 7
-                    - dependencies                : 8
-                    - dependencies                : 9
-                    - dependencies                : 10
-                    - dependencies                : 11
+                        kotlinSourceSetName           : androidInstrumentedTest
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3210,27 +2799,16 @@ MODULE                        : kotlinMultiPlatform.module2
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - regularDependencies         : 1
-                    - regularDependencies         : 2
-                    - regularDependencies         : 3
-                    - regularDependencies         : 4
-                    - regularDependencies         : 5
-                    - regularDependencies         : 6
-                    - regularDependencies         : 7
-                    - regularDependencies         : 8
-                    - regularDependencies         : 9
-                    - regularDependencies         : 10
-                    - regularDependencies         : 11
-                    - resourceDirs                : <ROOT>/module2/src/androidAndroidTest/resources [-]
+                    - resourceDirs                : <ROOT>/module2/src/androidInstrumentedTest/resources [-]
                     - resourceDirs                : <ROOT>/module2/src/androidTest/resources [-]
-                    - resourceDirs                : <ROOT>/module2/src/androidDebugAndroidTest/resources [-]
-                    - resourceDirs                : <ROOT>/module2/src/androidAndroidTestDebug/resources [-]
+                    - resourceDirs                : <ROOT>/module2/src/androidInstrumentedTestDebug/resources [-]
                     - resourceDirs                : <ROOT>/module2/src/androidTestDebug/resources [-]
-                    - sourceDirs                  : <ROOT>/module2/src/androidAndroidTest/kotlin
+                    - sourceDirs                  : <ROOT>/module2/src/androidInstrumentedTest/kotlin [-]
                     - sourceDirs                  : <ROOT>/module2/src/androidTest/java [-]
-                    - sourceDirs                  : <ROOT>/module2/src/androidDebugAndroidTest/kotlin [-]
-                    - sourceDirs                  : <ROOT>/module2/src/androidAndroidTestDebug/kotlin [-]
+                    - sourceDirs                  : <ROOT>/module2/src/androidTest/kotlin
+                    - sourceDirs                  : <ROOT>/module2/src/androidInstrumentedTestDebug/kotlin [-]
                     - sourceDirs                  : <ROOT>/module2/src/androidTestDebug/java [-]
+                    - sourceDirs                  : <ROOT>/module2/src/androidTestDebug/kotlin [-]
                     platform                      : ANDROID
                 arguments                     : KotlinCompilationArgumentsImpl
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
@@ -3241,33 +2819,16 @@ MODULE                        : kotlinMultiPlatform.module2
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
                         backendThreads                : 1
-                        - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2-api.jar
-                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                        - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
-                        - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2-api.jar
-                        - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                        - classpath                   : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
-                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                        - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                        - classpath                   : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
                         destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest
-                        - friendPaths                 : <ROOT>/module2/build/tmp/kotlin-classes/debug [-]
-                        - friendPaths                 : <ROOT>/module2/build/intermediates/javac/debug/classes [-]
-                        - friendPaths                 : <ROOT>/module2/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                         jvmDefault                    : disable
                         jvmTarget                     : 17
                         moduleName                    : module2_debugAndroidTest
-                        noJdk                         : true
                         noReflect                     : true
                         noStdlib                      : true
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3279,41 +2840,38 @@ MODULE                        : kotlinMultiPlatform.module2
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                         useFirLT                      : true
-                - declaredSourceSets          : commonTest (KotlinSourceSetImpl) (*seen*)
-                - declaredSourceSets          : androidAndroidTest (KotlinSourceSetImpl) (*seen*)
-                - dependencies                : 1
-                - dependencies                : 2
-                - dependencies                : 33
-                - dependencies                : 34
-                - dependencies                : 35
-                - dependencies                : 36
-                - dependencies                : 37
-                - dependencies                : 38
-                - dependencies                : 39
-                - dependencies                : 40
-                - dependencies                : 41
-                - dependencies                : 42
-                - dependencies                : 43
-                - dependencies                : 44
-                - dependencies                : 45
-                - dependencies                : 46
+                - declaredSourceSets          : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
                 isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
-                    - pureKotlinSourceFolders     : <ROOT>/module2/src/androidDebugAndroidTest/kotlin [-]
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest [-]
                     - classesDirs                 : <ROOT>/module2/build/intermediates/javac/debugAndroidTest/classes [-]
                     effectiveClassesDir           : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest [-]
                     resourcesDir                  : <ROOT>/module2/build/processedResources/android/debugAndroidTest [-]
                 platform                      : ANDROID
-                - sourceSets                  : commonTest (KotlinSourceSetImpl) (*seen*)
-                - sourceSets                  : androidAndroidTest (KotlinSourceSetImpl) (*seen*)
             - compilations                : debugUnitTest (KotlinCompilationImpl)
-                - allSourceSets               : commonTest (KotlinSourceSetImpl) (*seen*)
-                - allSourceSets               : androidTest (KotlinSourceSetImpl)
+                - allSourceSets               : commonTest (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        - platforms                   : COMMON
+                    - additionalVisibleSourceSets : androidMain
+                    - additionalVisibleSourceSets : commonMain
+                    isTestComponent               : true
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - resourceDirs                : <ROOT>/module2/src/commonTest/resources [-]
+                    - sourceDirs                  : <ROOT>/module2/src/commonTest/kotlin [-]
+                    platform                      : COMMON
+                - allSourceSets               : androidUnitTest (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
                         - platforms                   : ANDROID
@@ -3324,19 +2882,8 @@ MODULE                        : kotlinMultiPlatform.module2
                         androidSourceSetName          : test
                         - androidVariantNames         : debugUnitTest
                         - androidVariantNames         : releaseUnitTest
-                        kotlinSourceSetName           : androidTest
+                        kotlinSourceSetName           : androidUnitTest
                     - declaredDependsOnSourceSets : commonTest
-                    - dependencies                : 1
-                    - dependencies                : 20
-                    - dependencies                : 21
-                    - dependencies                : 22
-                    - dependencies                : 23
-                    - dependencies                : 24
-                    - dependencies                : 7
-                    - dependencies                : 25
-                    - dependencies                : 26
-                    - dependencies                : 27
-                    - dependencies                : 11
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3347,29 +2894,16 @@ MODULE                        : kotlinMultiPlatform.module2
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - regularDependencies         : 1
-                    - regularDependencies         : 20
-                    - regularDependencies         : 21
-                    - regularDependencies         : 22
-                    - regularDependencies         : 23
-                    - regularDependencies         : 24
-                    - regularDependencies         : 7
-                    - regularDependencies         : 25
-                    - regularDependencies         : 26
-                    - regularDependencies         : 27
-                    - regularDependencies         : 11
-                    - resourceDirs                : <ROOT>/module2/src/androidTest/resources [-]
+                    - resourceDirs                : <ROOT>/module2/src/androidUnitTest/resources [-]
                     - resourceDirs                : <ROOT>/module2/src/test/resources [-]
-                    - resourceDirs                : <ROOT>/module2/src/androidDebugUnitTest/resources [-]
-                    - resourceDirs                : <ROOT>/module2/src/androidTestDebug/resources [-]
+                    - resourceDirs                : <ROOT>/module2/src/androidUnitTestDebug/resources [-]
                     - resourceDirs                : <ROOT>/module2/src/testDebug/resources [-]
-                    - sourceDirs                  : <ROOT>/module2/src/androidTest/kotlin
-                    - sourceDirs                  : <ROOT>/module2/src/test/kotlin [-]
+                    - sourceDirs                  : <ROOT>/module2/src/androidUnitTest/kotlin [-]
                     - sourceDirs                  : <ROOT>/module2/src/test/java [-]
-                    - sourceDirs                  : <ROOT>/module2/src/androidDebugUnitTest/kotlin [-]
-                    - sourceDirs                  : <ROOT>/module2/src/androidTestDebug/kotlin [-]
-                    - sourceDirs                  : <ROOT>/module2/src/testDebug/kotlin [-]
+                    - sourceDirs                  : <ROOT>/module2/src/test/kotlin [-]
+                    - sourceDirs                  : <ROOT>/module2/src/androidUnitTestDebug/kotlin [-]
                     - sourceDirs                  : <ROOT>/module2/src/testDebug/java [-]
+                    - sourceDirs                  : <ROOT>/module2/src/testDebug/kotlin [-]
                     platform                      : ANDROID
                 arguments                     : KotlinCompilationArgumentsImpl
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
@@ -3380,33 +2914,16 @@ MODULE                        : kotlinMultiPlatform.module2
                         allowNoSourceFiles            : true
                         assertionsMode                : legacy
                         backendThreads                : 1
-                        - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2-api.jar
-                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                        - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
-                        - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2-api.jar
-                        - classpath                   : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                        - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                        - classpath                   : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
-                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                        - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                        - classpath                   : <ANDROID_SDK>/build-tools/30.0.3/core-lambda-stubs.jar
                         destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest
-                        - friendPaths                 : <ROOT>/module2/build/tmp/kotlin-classes/debug [-]
-                        - friendPaths                 : <ROOT>/module2/build/intermediates/javac/debug/classes [-]
-                        - friendPaths                 : <ROOT>/module2/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                         jvmDefault                    : disable
                         jvmTarget                     : 17
                         moduleName                    : module2_debugUnitTest
-                        noJdk                         : true
                         noReflect                     : true
                         noStdlib                      : true
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3418,38 +2935,18 @@ MODULE                        : kotlinMultiPlatform.module2
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                         useFirLT                      : true
-                - declaredSourceSets          : commonTest (KotlinSourceSetImpl) (*seen*)
-                - declaredSourceSets          : androidTest (KotlinSourceSetImpl) (*seen*)
-                - dependencies                : 1
-                - dependencies                : 2
-                - dependencies                : 47
-                - dependencies                : 4
-                - dependencies                : 5
-                - dependencies                : 36
-                - dependencies                : 37
-                - dependencies                : 38
-                - dependencies                : 39
-                - dependencies                : 40
-                - dependencies                : 41
-                - dependencies                : 48
-                - dependencies                : 49
-                - dependencies                : 50
-                - dependencies                : 45
-                - dependencies                : 46
+                - declaredSourceSets          : androidUnitTest (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
                 isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
-                    - pureKotlinSourceFolders     : <ROOT>/module2/src/androidDebugUnitTest/kotlin [-]
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest [-]
                     - classesDirs                 : <ROOT>/module2/build/intermediates/javac/debugUnitTest/classes [-]
                     effectiveClassesDir           : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest [-]
                     resourcesDir                  : <ROOT>/module2/build/processedResources/android/debugUnitTest [-]
                 platform                      : ANDROID
-                - sourceSets                  : commonTest (KotlinSourceSetImpl) (*seen*)
-                - sourceSets                  : androidTest (KotlinSourceSetImpl) (*seen*)
             disambiguationClassifier      : android
             platform                      : ANDROID
             presetName                    : android
@@ -3460,9 +2957,9 @@ MODULE                        : kotlinMultiPlatform.module2
                 compilationName               : test
                 taskName                      : testReleaseUnitTest
         sourceSets
-            androidAndroidTest            : androidAndroidTest (KotlinSourceSetImpl) (*seen*)
+            androidInstrumentedTest       : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
             androidMain                   : androidMain (KotlinSourceSetImpl) (*seen*)
-            androidTest                   : androidTest (KotlinSourceSetImpl) (*seen*)
+            androidUnitTest               : androidUnitTest (KotlinSourceSetImpl) (*seen*)
             commonMain                    : commonMain (KotlinSourceSetImpl) (*seen*)
             commonTest                    : commonTest (KotlinSourceSetImpl) (*seen*)
     externalProject               : :module2 (DefaultExternalProject) (*seen*)

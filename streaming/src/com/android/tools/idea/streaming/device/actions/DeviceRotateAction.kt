@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.device.actions
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.streaming.device.SetDeviceOrientationMessage
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
@@ -34,6 +35,8 @@ internal sealed class DeviceRotateAction(
     val controlMessage = SetDeviceOrientationMessage(orientation)
     deviceController.sendControlMessage(controlMessage)
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   class Left : DeviceRotateAction(1)
   class Right : DeviceRotateAction(3)

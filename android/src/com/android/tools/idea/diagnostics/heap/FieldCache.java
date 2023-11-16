@@ -102,7 +102,7 @@ public final class FieldCache {
     catch (IncompatibleClassChangeError | NoClassDefFoundError | SecurityException |
            InaccessibleObjectException e) {
       // this exception may be thrown because there are two different versions of
-      // org.objectweb.asm.tree.ClassNode from different plugins.
+      // org.jetbrains.org.objectweb.asm.tree.ClassNode from different plugins.
       cache.put(aClass, EMPTY_FIELD_ARRAY);
     }
     return cache.get(aClass);

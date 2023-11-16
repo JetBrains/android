@@ -19,19 +19,20 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.AnimationCard
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
+import com.android.tools.idea.compose.preview.animation.NoopAnimationTracker
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.TestUtils.assertBigger
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import java.awt.Color
-import java.awt.Dimension
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.awt.Color
+import java.awt.Dimension
 
 class ColorPickerStateTest {
 
@@ -42,7 +43,7 @@ class ColorPickerStateTest {
   @Test
   fun statesAreCorrect() {
     val state =
-      ColorPickerState({}) {}
+      ColorPickerState(NoopAnimationTracker) {}
         .apply {
           setStates(ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
         }
@@ -54,7 +55,7 @@ class ColorPickerStateTest {
   fun createCard() {
     var callbacks = 0
     val state =
-      ColorPickerState({}) { callbacks++ }
+      ColorPickerState(NoopAnimationTracker) { callbacks++ }
         .apply {
           setStates(ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
           callbackEnabled = true
@@ -64,8 +65,9 @@ class ColorPickerStateTest {
           TestUtils.testPreviewState(),
           Mockito.mock(DesignSurface::class.java),
           ElementState("Title"),
-          state.extraActions
-        ) {}
+          state.extraActions,
+          NoopAnimationTracker
+        )
         .apply { size = Dimension(300, 300) }
 
     invokeAndWaitIfNeeded {

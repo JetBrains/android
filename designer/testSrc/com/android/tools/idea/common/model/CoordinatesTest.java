@@ -15,21 +15,19 @@
  */
 package com.android.tools.idea.common.model;
 
-import com.android.tools.adtui.common.SwingCoordinate;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.testutils.ImageDiffUtil;
-import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import junit.framework.TestCase;
-
-import java.awt.*;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import junit.framework.TestCase;
 
 public class CoordinatesTest extends TestCase {
   private static ScreenView createScreenView(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {

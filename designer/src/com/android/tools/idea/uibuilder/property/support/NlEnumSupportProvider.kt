@@ -28,9 +28,10 @@ import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
 import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.SdkConstants.ATTR_TYPEFACE
 import com.android.resources.ResourceType
+import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.uibuilder.model.viewHandler
+import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.EnumSupport
@@ -41,39 +42,37 @@ import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import org.jetbrains.android.dom.AndroidDomUtil
-import com.android.tools.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.util.IdentityHashMap
 
 private const val TEXT_APPEARANCE_SUFFIX = "TextAppearance"
 
-/**
- * Given a [NlPropertyItem] compute the [EnumSupport] of the attribute if applicable.
- */
+/** Given a [NlPropertyItem] compute the [EnumSupport] of the attribute if applicable. */
 class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPropertyItem> {
   private val cachedEnumSupport: Table<String, String, CachedEnumSupport> = HashBasedTable.create()
 
   init {
-    model.addListener(object: PropertiesModelListener<NlPropertyItem> {
-      override fun propertiesGenerated(model: PropertiesModel<NlPropertyItem>) {
-        cachedEnumSupport.clear()
-      }
+    model.addListener(
+      object : PropertiesModelListener<NlPropertyItem> {
+        override fun propertiesGenerated(model: PropertiesModel<NlPropertyItem>) {
+          cachedEnumSupport.clear()
+        }
 
-      override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
-        cachedEnumSupport.clear()
+        override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+          cachedEnumSupport.clear()
+        }
       }
-    })
+    )
   }
 
-  /**
-   * Return the [EnumSupport] for the given [actual] property or null if not applicable.
-   */
+  /** Return the [EnumSupport] for the given [actual] property or null if not applicable. */
   override fun invoke(actual: NlPropertyItem): EnumSupport? {
     val property = actual.delegate ?: actual
-    val support = cachedEnumSupport.get(property.namespace, property.name) ?:
-        provideEnumSupportFromViewHandler(property.name, property.components) ?:
-        getDropDownValuesFromSpecialCases(property) ?:
-        property.definition?.let { provideEnumSupportFromAttributeDefinition(it) }
+    val support =
+      cachedEnumSupport.get(property.namespace, property.name)
+        ?: provideEnumSupportFromViewHandler(property.name, property.components)
+          ?: getDropDownValuesFromSpecialCases(property)
+          ?: property.definition?.let { provideEnumSupportFromAttributeDefinition(it) }
     if (support is CachedEnumSupport) {
       cachedEnumSupport.put(property.namespace, property.name, support)
     }
@@ -108,7 +107,10 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
     EnumSupport.simple("standard", "list", "tabs")
   }
 
-  private fun provideEnumSupportFromViewHandler(name: String, components: List<NlComponent>): EnumSupport? {
+  private fun provideEnumSupportFromViewHandler(
+    name: String,
+    components: List<NlComponent>
+  ): EnumSupport? {
     val isLayoutProperty = name.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX)
     val attrComponents = if (isLayoutProperty) getParentComponents(components) else components
     if (attrComponents.isEmpty()) {
@@ -116,12 +118,12 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
     }
     var values: Map<String, String>? = null
     for (component in attrComponents) {
-      val handler = component.viewHandler ?: return null
-      val overrides = handler.getEnumPropertyValues(component).getOrDefault(name, null) ?: return null
+      val handler = component.getViewHandler {} ?: return null
+      val overrides =
+        handler.getEnumPropertyValues(component).getOrDefault(name, null) ?: return null
       if (values == null) {
         values = overrides
-      }
-      else if (overrides != values) {
+      } else if (overrides != values) {
         return null
       }
     }
@@ -138,9 +140,7 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
 
   private fun getParentComponents(components: Collection<NlComponent>): Collection<NlComponent> {
     val parents = IdentityHashMap<NlComponent, NlComponent>()
-    components.stream()
-        .map { it.parent }
-        .forEach { if (it != null) parents[it] = it }
+    components.stream().map { it.parent }.forEach { if (it != null) parents[it] = it }
     return parents.keys
   }
 
@@ -154,26 +154,28 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
       name.endsWith(TEXT_APPEARANCE_SUFFIX) -> TextAppearanceEnumSupport(property)
       name == ATTR_STYLE && property.namespace.isEmpty() -> return StyleEnumSupport(property)
       isIdType(property) -> IdEnumSupport(property)
-      else -> when (name) {
-        ATTR_ACTION_BAR_NAV_MODE -> actionBarNavModeEnumSupport
-        ATTR_FONT_FAMILY -> getFontEnumSupport(property)
-        ATTR_TYPEFACE -> typefaceEnumSupport
-        ATTR_TEXT_SIZE -> textSizeEnumSupport
-        ATTR_LINE_SPACING_EXTRA -> textSizeEnumSupport
-        ATTR_TEXT_APPEARANCE -> TextAppearanceEnumSupport(property)
-        ATTR_LAYOUT_HEIGHT,
-        ATTR_LAYOUT_WIDTH,
-        ATTR_DROPDOWN_HEIGHT,
-        ATTR_DROPDOWN_WIDTH -> sizesSupport
-        ATTR_ON_CLICK -> OnClickEnumSupport(findNlModel(property.components))
-        else -> null
-      }
+      else ->
+        when (name) {
+          ATTR_ACTION_BAR_NAV_MODE -> actionBarNavModeEnumSupport
+          ATTR_FONT_FAMILY -> getFontEnumSupport(property)
+          ATTR_TYPEFACE -> typefaceEnumSupport
+          ATTR_TEXT_SIZE -> textSizeEnumSupport
+          ATTR_LINE_SPACING_EXTRA -> textSizeEnumSupport
+          ATTR_TEXT_APPEARANCE -> TextAppearanceEnumSupport(property)
+          ATTR_LAYOUT_HEIGHT,
+          ATTR_LAYOUT_WIDTH,
+          ATTR_DROPDOWN_HEIGHT,
+          ATTR_DROPDOWN_WIDTH -> sizesSupport
+          ATTR_ON_CLICK -> OnClickEnumSupport(findNlModel(property.components))
+          else -> null
+        }
     }
   }
 
   private fun isIdType(property: NlPropertyItem): Boolean {
-    return property.name != ATTR_ID && property.name != NavigationSchema.ATTR_DESTINATION &&
-           AndroidDomUtil.getSpecialResourceTypes(property.name).contains(ResourceType.ID)
+    return property.name != ATTR_ID &&
+      property.name != NavigationSchema.ATTR_DESTINATION &&
+      AndroidDomUtil.getSpecialResourceTypes(property.name).contains(ResourceType.ID)
   }
 
   private fun getFontEnumSupport(property: NlPropertyItem): EnumSupport {
@@ -183,7 +185,9 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
     return FontEnumSupport(facet, resolver)
   }
 
-  private fun provideEnumSupportFromAttributeDefinition(definition: AttributeDefinition): EnumSupport? {
+  private fun provideEnumSupportFromAttributeDefinition(
+    definition: AttributeDefinition
+  ): EnumSupport? {
     if (definition.values.isEmpty()) return null
     val valuesAsList = definition.values.map { EnumValue.item(it) }
     return EnumSupport.simple(valuesAsList)

@@ -19,8 +19,8 @@ import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.
 import static com.intellij.ui.TableUtil.scrollSelectionToVisible;
 import static com.intellij.util.ui.UIUtil.getTableFocusCellHighlightBorder;
 import static com.intellij.util.ui.UIUtil.getToolTipBackground;
-import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getGradleIdentityPathOrNull;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.fileTypes.AndroidIconProvider;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot;
@@ -93,6 +93,7 @@ public class BuildVariantView {
   private JPanel myToolWindowPanel;
   private JBTable myVariantsTable;
   private JPanel myNotificationPanel;
+  private JButton myImportDefaultsButton;
 
   private final List<Conflict> myConflicts = new ArrayList<>();
 
@@ -111,6 +112,12 @@ public class BuildVariantView {
     TableSpeedSearch.installOn(myVariantsTable);
     myNotificationPanel = new NotificationPanel();
     myNotificationPanel.setVisible(false);
+
+    myImportDefaultsButton = new JButton();
+    myImportDefaultsButton.setToolTipText(
+        "Resets variant selection to the default variants (automatically selected if not specified in build.gradle)");
+    myImportDefaultsButton.addActionListener(
+      event -> BuildVariantUpdater.requestGradleSync(myProject, null, true));
   }
 
   /**
@@ -241,7 +248,7 @@ public class BuildVariantView {
    * Represents the contents of the Build Variant table in the panel.
    */
   private class BuildVariantTable extends JBTable {
-    // If true, then the a "loading" label is displayed instead of the table rows. This prevents the user from making changes while the IDE
+    // If true, then a "loading" label is displayed instead of the table rows. This prevents the user from making changes while the IDE
     // is working to apply a previous selection (e.g., sync).
     private boolean myLoading;
 
@@ -261,7 +268,7 @@ public class BuildVariantView {
           int column = getSelectedColumn();
           int row = getSelectedRow();
 
-          // Map the F2 button to enter edit mode when the the variant and ABI cells are selected.
+          // Map the F2 button to enter edit mode when the variant and ABI cells are selected.
           if ((column == VARIANT_COLUMN_INDEX || column == ABI_COLUMN_INDEX)
               && row >= 0 && e.getKeyCode() == KeyEvent.VK_F2 && editCellAt(row, column)) {
             Component editorComponent = getEditorComponent();
@@ -297,7 +304,7 @@ public class BuildVariantView {
       return true;
     }
 
-    private void updateLoadingStatus(boolean loading) {
+    void updateLoadingStatus(boolean loading) {
       myLoading = loading;
       setPaintBusy(myLoading);
       String text = myLoading ? CommonBundle.getLoadingTreeNodeText() : "Nothing to Show";
@@ -325,9 +332,7 @@ public class BuildVariantView {
       BuildVariantItem selected = tableRow.variantItem();
 
       ComboBox<BuildVariantItem> editor = new ComboBox<>(items);
-      if (selected != null) {
-        editor.setSelectedItem(selected);
-      }
+      editor.setSelectedItem(selected);
 
       editor.setBorder(JBUI.Borders.empty());
       editor.addItemListener(e -> {
@@ -568,15 +573,14 @@ public class BuildVariantView {
       if (value instanceof Module) {
         Module module = (Module)value;
         if (!module.isDisposed()) {
-          String modulePath = getGradleIdentityPathOrNull(module);
-
+          String modulePath = GradleProjectResolverUtil.getGradleIdentityPathOrNull(module);
           // Note: modulePath should never be null here.
           moduleName = modulePath != null ? modulePath : module.getName();
           moduleIcon = AndroidIconProvider.getModuleIcon(module);
           isAndriodGradleModule = GradleAndroidModel.get(module) != null;
         }
       }
-
+      myModuleNameLabel.setForeground(AdtUiUtils.DEFAULT_FONT_COLOR);
       myModuleNameLabel.setFont(table.getFont());
       myModuleNameLabel.setText(moduleName == null ? "" : moduleName);
       myModuleNameLabel.setIcon(moduleIcon);
@@ -598,7 +602,6 @@ public class BuildVariantView {
       }
 
       myPanel.setBackground(background);
-
       Border border = hasFocus ? getTableFocusCellHighlightBorder() : EMPTY_BORDER;
       myPanel.setBorder(border);
     }
@@ -631,8 +634,8 @@ public class BuildVariantView {
     }
 
     @Override
-    public void syncCancelled(@NotNull Project project, @NotNull @SystemIndependent String rootProjectPath) {
-
+    public void syncCancelled(@NotNull Project project, @SystemIndependent String rootProjectPath) {
+      BuildVariantView.getInstance(project).getVariantsTable().updateLoadingStatus(false);
     }
   }
 }

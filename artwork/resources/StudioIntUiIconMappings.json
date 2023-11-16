@@ -17,7 +17,8 @@
         "note.svg": "studio/icons/app-quality-insights/note.svg",
         "regressed-signal.svg": "studio/icons/app-quality-insights/regressed-signal.svg",
         "repetitive-signal.svg": "studio/icons/app-quality-insights/repetitive-signal.svg",
-        "send.svg": "studio/icons/app-quality-insights/send.svg"
+        "send.svg": "studio/icons/app-quality-insights/send.svg",
+        "details.svg": "studio/icons/app-quality-insights/details.svg"
       },
       "avd": {
         "connection-generic.svg": "studio/icons/avd/connection-generic.svg",
@@ -54,6 +55,7 @@
         "export.svg": "studio/icons/common/export.svg",
         "filter.svg": "studio/icons/common/filter.svg",
         "grid-view.svg": "studio/icons/common/grid-view.svg",
+        "group.svg": "studio/icons/common/group.svg",
         "help.svg": "studio/icons/common/help.svg",
         "import-data.svg": "studio/icons/common/import-data.svg",
         "info.svg": "studio/icons/common/info.svg",
@@ -92,7 +94,8 @@
           "interactive-preview.svg": "studio/icons/compose/toolbar/interactive-preview.svg",
           "run-configuration.svg": "studio/icons/compose/toolbar/run-configuration.svg",
           "run-on-device.svg": "studio/icons/compose/toolbar/run-on-device.svg",
-          "stop-interactive-mode.svg": "studio/icons/compose/toolbar/stop-interactive-mode.svg"
+          "stop-interactive-mode.svg": "studio/icons/compose/toolbar/stop-interactive-mode.svg",
+          "ui-check.svg": "studio/icons/compose/toolbar/ui-check.svg"
         }
       },
       "database-inspector": {
@@ -165,6 +168,7 @@
         "toolbar": {
           "back.svg": "studio/icons/emulator/toolbar/back.svg",
           "fold.svg": "studio/icons/emulator/toolbar/fold.svg",
+          "hardware-input.svg": "studio/icons/emulator/toolbar/hardware-input.svg",
           "home.svg": "studio/icons/emulator/toolbar/home.svg",
           "overview.svg": "studio/icons/emulator/toolbar/overview.svg",
           "power.svg": "studio/icons/emulator/toolbar/power.svg",
@@ -662,7 +666,8 @@
         },
         "status-bar": {
           "adb-managed.svg": "studio/icons/shell/status-bar/adb-managed.svg",
-          "adb-unmanaged.svg": "studio/icons/shell/status-bar/adb-unmanaged.svg"
+          "adb-unmanaged.svg": "studio/icons/shell/status-bar/adb-unmanaged.svg",
+          "essentials-mode.svg": "studio/icons/shell/status-bar/essentials-mode.svg"
         },
         "telemetry": {
           "send-feedback.svg": "studio/icons/shell/telemetry/send-feedback.svg"
@@ -685,7 +690,9 @@
           "multi-preview.svg": "studio/icons/shell/tool-windows/multi-preview.svg",
           "palette.svg": "studio/icons/shell/tool-windows/palette.svg",
           "structure.svg": "studio/icons/shell/tool-windows/structure.svg",
-          "visual-assets.svg": "studio/icons/shell/tool-windows/visual-assets.svg"
+          "visual-assets.svg": "studio/icons/shell/tool-windows/visual-assets.svg",
+          "agp-upgrade-assistant.svg": "studio/icons/shell/tool-windows/agp-upgrade-assistant.svg",
+          "app-links-assistant.svg": "studio/icons/shell/tool-windows/app-links-assistant.svg"
         },
         "toolbar": {
           "apply-all-changes.svg": "studio/icons/shell/toolbar/apply-all-changes.svg",

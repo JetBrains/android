@@ -29,34 +29,27 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.HelpSupport
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers
-import com.intellij.codeInsight.documentation.DocumentationManager
+import com.intellij.codeInsight.documentation.actions.ShowQuickDocInfoAction
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.util.NlsSafe
-import com.intellij.util.text.nullize
 
 const val DEFAULT_ANDROID_REFERENCE_PREFIX = "https://developer.android.com/reference/"
 
 object HelpActions {
 
-  val help = object : AnAction() {
-    override fun actionPerformed(event: AnActionEvent) {
-      val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NlPropertyItem? ?: return
-      val tag = property.components.first().backend.tag ?: return
-      val documentation = createHelpText(property, allowEmptyDescription = false).nullize() ?: return
-      DocumentationManager.getInstance(property.project).showJavaDocInfo(tag, tag, true, null, documentation, true)
-    }
-  }
+  val help = ShowQuickDocInfoAction()
 
-  val secondaryHelp = object : AnAction() {
-    override fun actionPerformed(event: AnActionEvent) {
-      val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NlPropertyItem?
-      val componentName = property?.componentName ?: return
-      val url = toHelpUrl(componentName, property) ?: return
-      BrowserUtil.browse(url)
+  val secondaryHelp =
+    object : AnAction() {
+      override fun actionPerformed(event: AnActionEvent) {
+        val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NlPropertyItem?
+        val componentName = property?.componentName ?: return
+        val url = toHelpUrl(componentName, property) ?: return
+        BrowserUtil.browse(url)
+      }
     }
-  }
 
   @VisibleForTesting
   fun toHelpUrl(componentName: String, property: NlPropertyItem): String? {
@@ -65,23 +58,26 @@ object HelpActions {
   }
 
   private fun getHelpUrl(componentName: String, property: NlPropertyItem): String? {
-    val dotLayoutParams = when {
-      componentName == CLASS_VIEWGROUP && property.name.startsWith(ATTR_LAYOUT_MARGIN) -> ".MarginLayoutParams"
-      property.name.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX) -> DOT_LAYOUT_PARAMS
-      else -> ""
-    }
+    val dotLayoutParams =
+      when {
+        componentName == CLASS_VIEWGROUP && property.name.startsWith(ATTR_LAYOUT_MARGIN) ->
+          ".MarginLayoutParams"
+        property.name.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX) -> DOT_LAYOUT_PARAMS
+        else -> ""
+      }
     return "$DEFAULT_ANDROID_REFERENCE_PREFIX${componentName.replace('.', '/')}$dotLayoutParams.html"
   }
 
   private fun getAttributeAnchor(componentName: String, property: NlPropertyItem): String? =
     when {
       componentName.startsWith(ANDROID_VIEW_PKG) ||
-      componentName.startsWith(ANDROID_WIDGET_PREFIX) -> "#attr_android:${property.name}"
+        componentName.startsWith(ANDROID_WIDGET_PREFIX) -> "#attr_android:${property.name}"
 
-      // Do not try to specify the attribute anchor since many doc pages is missing the anchor or do not
+      // Do not try to specify the attribute anchor since many doc pages is missing the anchor or do
+      // not
       // document the XML attributes.
       componentName.startsWith(ANDROID_PKG_PREFIX) ||
-      componentName.startsWith(ANDROIDX_PKG_PREFIX) -> ""
+        componentName.startsWith(ANDROIDX_PKG_PREFIX) -> ""
 
       // Do not try to map a class that we know will not be documented on developer.android.com.
       else -> null
@@ -90,34 +86,53 @@ object HelpActions {
   /**
    * Create help text consisting of the name and a description for the specified [property].
    *
-   * If no description of the property is known the method returns just the name of the
-   * property if [allowEmptyDescription] otherwise the empty string is returned (no help).
+   * If no description of the property is known the method returns just the name of the property if
+   * [allowEmptyDescription] otherwise the empty string is returned (no help).
    */
   @NlsSafe
   fun createHelpText(property: NlPropertyItem, allowEmptyDescription: Boolean): String {
-    val description = filterRawAttributeComment(property.definition?.getDescription(null) ?: "")
+    val definition = property.definition
+    val description = filterRawAttributeComment(definition?.getDescription(null) ?: "")
     if (description.isEmpty() && !allowEmptyDescription) {
-      return ""  // No help text available
+      return "" // No help text available
     }
-    val sb = StringBuilder(100)
-    sb.append("<html><b>")
-    sb.append(findNamespacePrefix(property))
-    sb.append(property.name)
-    if (description.isEmpty()) {
-      sb.append("</b>")
+    val sb =
+      StringBuilder(100)
+        .append("<html><body><b>")
+        .append(findNamespacePrefix(property))
+        .append(property.name)
+        .append("</b><br/>")
+        .append("<br/>")
+    if (definition != null) {
+      if (definition.formats.isNotEmpty()) {
+        sb.append("Formats: ")
+        definition.formats.joinTo(sb) { it.getName() }
+        sb.append("<br/>")
+      }
+      if (definition.values.isNotEmpty()) {
+        sb.append("Values: ")
+        definition.values.joinTo(sb)
+        sb.append("<br/>")
+      }
+      if (definition.formats.isNotEmpty() || definition.values.isNotEmpty()) {
+        sb.append("<br/>")
+      }
+      if (description.isNotEmpty()) {
+        sb.append(description)
+      }
     }
-    else {
-      sb.append(":</b><br/>")
-      sb.append(description)
-    }
-    sb.append("</html>")
+    sb.append("</body></html>")
     return sb.toString()
   }
 
   private fun findNamespacePrefix(property: NlPropertyItem): String {
     val resolver = property.namespaceResolver
-    // TODO: This should not be required, but it is for as long as getNamespaceResolver returns TOOLS_ONLY:
-    if (resolver == ResourceNamespace.Resolver.TOOLS_ONLY && property.namespace == SdkConstants.ANDROID_URI) {
+    // TODO: This should not be required, but it is for as long as getNamespaceResolver returns
+    // TOOLS_ONLY:
+    if (
+      resolver == ResourceNamespace.Resolver.TOOLS_ONLY &&
+        property.namespace == SdkConstants.ANDROID_URI
+    ) {
       return SdkConstants.PREFIX_ANDROID
     }
     val prefix = resolver.uriToPrefix(property.namespace) ?: return ""

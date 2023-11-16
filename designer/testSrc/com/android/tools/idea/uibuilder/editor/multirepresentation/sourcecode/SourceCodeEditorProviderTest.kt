@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Facets
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
@@ -39,7 +39,6 @@ import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import org.jdom.Element
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -49,8 +48,7 @@ import org.junit.Test
 
 class SourceCodeEditorProviderTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
@@ -61,25 +59,9 @@ class SourceCodeEditorProviderTest {
     provider = SourceCodeEditorProvider()
   }
 
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.clearOverride()
-  }
-
-  @Test
-  fun testOffIfDisabled() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
-
-    val file = fixture.addFileToProject("src/Preview.kt", "")
-
-    assertFalse(provider.accept(file.project, file.virtualFile))
-  }
-
   @Test
   fun testOffIfNoAndroidModules() {
-    runWriteActionAndWait {
-      Facets.deleteAndroidFacetIfExists(fixture.module)
-    }
+    runWriteActionAndWait { Facets.deleteAndroidFacetIfExists(fixture.module) }
 
     val file = fixture.addFileToProject("src/Preview.kt", "")
 
@@ -122,49 +104,68 @@ class SourceCodeEditorProviderTest {
 
     TestCase.assertNotNull(editor)
 
-    invokeAndWaitIfNeeded {
-      provider.disposeEditor(editor)
-    }
+    invokeAndWaitIfNeeded { provider.disposeEditor(editor) }
   }
 
   @Test
   fun testStateSerialization() {
     val file = fixture.addFileToProject("src/Preview.kt", "")
-    val representationWithState = object : TestPreviewRepresentation() {
-      override fun getState(): PreviewRepresentationState? = mapOf(
-        "key1" to "value1",
-        "key2" to "value2"
+    val representationWithState =
+      object : TestPreviewRepresentation() {
+        override fun getState(): PreviewRepresentationState? =
+          mapOf("key1" to "value1", "key2" to "value2")
+      }
+    val serializationProvider =
+      SourceCodeEditorProvider.forTesting(
+        listOf(
+          TestPreviewRepresentationProvider("Representation1", true),
+          TestPreviewRepresentationProvider("Representation2", true, representationWithState)
+        )
       )
-    }
-    val serializationProvider = SourceCodeEditorProvider.forTesting(
-      listOf(TestPreviewRepresentationProvider("Representation1", true),
-             TestPreviewRepresentationProvider("Representation2", true, representationWithState))
-    )
-    val editor = invokeAndWaitIfNeeded {
-      return@invokeAndWaitIfNeeded serializationProvider.createEditor(file.project, file.virtualFile)
-    } as TextEditorWithMultiRepresentationPreview<*>
+    val editor =
+      invokeAndWaitIfNeeded {
+        return@invokeAndWaitIfNeeded serializationProvider.createEditor(
+          file.project,
+          file.virtualFile
+        )
+      }
+        as TextEditorWithMultiRepresentationPreview<*>
     runBlocking {
       // Wait for the initializations
       editor.preview.onInit()
     }
     invokeAndWaitIfNeeded {
-      // Editor are not selected in unit testing. Force the preview activation so it loads the state.
+      // Editor are not selected in unit testing. Force the preview activation so it loads the
+      // state.
       editor.preview.onActivate()
       try {
         val rootElement = Element("root")
-        serializationProvider.writeState(editor.getState(FileEditorStateLevel.FULL), fixture.project, rootElement)
+        serializationProvider.writeState(
+          editor.getState(FileEditorStateLevel.FULL),
+          fixture.project,
+          rootElement
+        )
         assertTrue(JDOMUtil.createOutputter("\n").outputString(rootElement).isNotBlank())
-        val state = serializationProvider.readState(rootElement, fixture.project,
-                                                    file.virtualFile) as SourceCodeEditorWithMultiRepresentationPreviewState
+        val state =
+          serializationProvider.readState(rootElement, fixture.project, file.virtualFile)
+            as SourceCodeEditorWithMultiRepresentationPreviewState
 
-        assertContainsElements(state.previewState.representations.map { it.key }, "Representation1", "Representation2")
-        val settings = state.previewState.representations.single { it.key == "Representation2" }.settings
-        assertEquals("""
+        assertContainsElements(
+          state.previewState.representations.map { it.key },
+          "Representation1",
+          "Representation2"
+        )
+        val settings =
+          state.previewState.representations.single { it.key == "Representation2" }.settings
+        assertEquals(
+          """
         key1 -> value1
         key2 -> value2
-      """.trimIndent(), settings.map { "${it.key} -> ${it.value}" }.joinToString("\n"))
-      }
-      finally {
+      """
+            .trimIndent(),
+          settings.map { "${it.key} -> ${it.value}" }.joinToString("\n")
+        )
+      } finally {
         Disposer.dispose(editor)
       }
     }
@@ -175,14 +176,12 @@ class SourceCodeEditorProviderTest {
     val file = fixture.addFileToProject("src/Preview.kt", "")
     val representation = TestPreviewRepresentationProvider("Representation1", false)
     val sourceCodeProvider = SourceCodeEditorProvider.forTesting(listOf(representation))
-    val editor = invokeAndWaitIfNeeded { sourceCodeProvider.createEditor(file.project, file.virtualFile) }.also {
-      Disposer.register(fixture.testRootDisposable, it)
-    }
+    val editor =
+      invokeAndWaitIfNeeded { sourceCodeProvider.createEditor(file.project, file.virtualFile) }
+        .also { Disposer.register(fixture.testRootDisposable, it) }
     val preview = (editor as TextEditorWithMultiRepresentationPreview<*>).preview
 
-    runBlocking {
-      preview.awaitForRepresentationsUpdated()
-    }
+    runBlocking { preview.awaitForRepresentationsUpdated() }
 
     assertThat(preview.representationNames).isEmpty()
     representation.isAccept = true
@@ -197,18 +196,38 @@ class SourceCodeEditorProviderTest {
     dumbService.waitForSmartMode()
 
     runBlocking {
-      preview.awaitForRepresentationsUpdated()
+      // The representations update can be scheduled at some point in the future after the smart
+      // mode switch so we wait for them to update.
+      delayUntilCondition(delayPerIterationMs = 250) {
+        preview.awaitForRepresentationsUpdated()
+        preview.representationNames.singleOrNull() == "Representation1"
+      }
     }
-    assertThat(preview.representationNames).containsExactly("Representation1")
   }
 
   // Regression test for b/232045613
   @Test
   fun testDoesNotAcceptFilesBecauseOfTheExtension() {
     var type: FileType = KotlinFileType.INSTANCE
-    val file = object : MockVirtualFile("Preview.kt") {
-      override fun getFileType(): FileType = type
-    }
+    val file =
+      object : MockVirtualFile("Preview.kt") {
+        override fun getFileType(): FileType = type
+      }
+    val representation = TestPreviewRepresentationProvider("Representation1", false)
+    val sourceCodeProvider = SourceCodeEditorProvider.forTesting(listOf(representation))
+    assertTrue(sourceCodeProvider.accept(project = projectRule.project, file))
+    type = PlainTextFileType.INSTANCE
+    assertFalse(sourceCodeProvider.accept(project = projectRule.project, file))
+  }
+
+  // Test navigation state change
+  @Test
+  fun testNavigationMovesToSplitMode() {
+    var type: FileType = KotlinFileType.INSTANCE
+    val file =
+      object : MockVirtualFile("Preview.kt") {
+        override fun getFileType(): FileType = type
+      }
     val representation = TestPreviewRepresentationProvider("Representation1", false)
     val sourceCodeProvider = SourceCodeEditorProvider.forTesting(listOf(representation))
     assertTrue(sourceCodeProvider.accept(project = projectRule.project, file))

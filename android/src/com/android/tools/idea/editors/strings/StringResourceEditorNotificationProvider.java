@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.canViewTranslations;
-import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.openEditor;
-
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
@@ -27,21 +24,24 @@ import com.intellij.ui.EditorNotificationProvider;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.util.function.Function;
-import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
+
+import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.canViewTranslations;
+import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.openEditor;
 
 public class StringResourceEditorNotificationProvider implements EditorNotificationProvider {
   private boolean myHide;
 
   @Override
-  public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
-                                                                                                                 @NotNull VirtualFile file) {
-    return fileEditor -> {
-      if (myHide || !canViewTranslations(project, file)) {
-        return null;
-      }
-
+  @Nullable
+  public Function<FileEditor, InfoPanel> collectNotificationData(@NotNull Project project, @NotNull final VirtualFile file) {
+    if (myHide || !canViewTranslations(project, file)) {
+      return null;
+    }
+    return (fileEditor) -> {
       final InfoPanel panel = new InfoPanel(fileEditor);
       panel.setText("Edit translations for all locales in the translations editor.");
       panel.createActionLabel("Open editor", () -> openEditor(project, file));

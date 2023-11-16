@@ -25,6 +25,9 @@ import com.intellij.psi.PsiElement;
 public interface AndroidSqlColumnConstraint extends PsiElement {
 
   @Nullable
+  AndroidSqlBooleanLiteral getBooleanLiteral();
+
+  @Nullable
   AndroidSqlCollationName getCollationName();
 
   @Nullable

@@ -15,28 +15,20 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
-import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
-import com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension.Companion.getInvalidJdkReason
-import com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension.Companion.reportInvalidJdkReasonToUsageTracker
+import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkValidationManager
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.AndroidProjectInfo
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 fun showNeededNotifications(project: Project) {
-  if (IdeInfo.getInstance().isAndroidStudio) {
     notifyOnLegacyAndroidProject(project)
     notifyOnInvalidGradleJDKEnv(project)
-    if (notifyOnInvalidGradleJdk(project)) {
-      runWriteAction { JdkUtils.setProjectGradleJvmToUseEmbeddedJdk(project, project.basePath.orEmpty()) }
-    }
-  }
+    notifyOnInvalidGradleJdk(project)
 }
 
 private fun notifyOnLegacyAndroidProject(project: Project) {
@@ -57,51 +49,23 @@ private fun notifyOnInvalidGradleJDKEnv(project: Project) {
     val msg = IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME +
               " is being ignored since it is set to an invalid JDK Location:\n" +
               ideSdks.envVariableJdkValue
-    SelectJdkFromFileSystemHyperlink.create(project)?.let {
-      AndroidNotification.getInstance(project).showBalloon("", msg, NotificationType.WARNING, it)
-    }
+    val hyperlinks = listOfNotNull(SelectJdkFromFileSystemHyperlink.create(project, project.basePath))
+    AndroidNotification.getInstance(project).showBalloon(
+      "", msg, NotificationType.WARNING, *hyperlinks.toTypedArray()
+    )
   }
 }
 
-@VisibleForTesting
-fun notifyOnInvalidGradleJdk(project: Project): Boolean {
-  val jdkInvalidReason = getInvalidJdkReason(project)
-  if (jdkInvalidReason != null) {
-    val ideSdks = IdeSdks.getInstance()
-    val errorResolution: String
-    val notificationType: NotificationType
-    val shouldUseEmbedded: Boolean
-    if (ideSdks.validateJdkPath(ideSdks.embeddedJdkPath) != null) {
-      // Can use embedded JDK as alternative, do so and warn user of change
-      errorResolution = "Gradle JVM setting was changed to use Embedded JDK."
-      notificationType = NotificationType.WARNING
-      shouldUseEmbedded = true
+private fun notifyOnInvalidGradleJdk(project: Project) {
+  GradleSettings.getInstance(project).linkedProjectsSettings
+    .mapNotNull { it.externalProjectPath }
+    .plus(project.basePath)
+    .filterNotNull()
+    .toSet()
+    .forEach {
+      val gradleJdkException = GradleJdkValidationManager.getInstance(project).validateProjectGradleJvmPath(project, it)
+      runWriteAction {
+        gradleJdkException?.recover()
+      }
     }
-    else {
-      // Cannot use embedded, notify as error
-      errorResolution = "Having an incorrect Gradle JDK may result in unresolved symbols and problems when running Gradle tasks."
-      notificationType = NotificationType.ERROR
-      shouldUseEmbedded = false
-    }
-    showBalloon(project, jdkInvalidReason.message, errorResolution, notificationType)
-    reportInvalidJdkReasonToUsageTracker(project, jdkInvalidReason.reason)
-    return shouldUseEmbedded
-  }
-  return false
-}
-
-private fun showBalloon(project: Project, errorReason: String, errorText: String, notificationType: NotificationType) {
-  val quickFixes = generateInvalidGradleJdkLinks(project)
-  AndroidNotification.getInstance(project).showBalloon(errorReason,errorText, notificationType, *quickFixes.toTypedArray())
-}
-
-@VisibleForTesting
-fun generateInvalidGradleJdkLinks(project: Project): ArrayList<NotificationHyperlink> {
-  val quickFixes: ArrayList<NotificationHyperlink> = arrayListOf()
-
-  val selectJdkLink = SelectJdkFromFileSystemHyperlink.create(project)
-  if (selectJdkLink != null) {
-    quickFixes.add(selectJdkLink)
-  }
-  return quickFixes
 }

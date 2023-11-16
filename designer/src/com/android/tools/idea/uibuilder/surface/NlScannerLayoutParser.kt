@@ -27,16 +27,14 @@ import com.google.common.collect.HashBiMap
 import com.google.common.collect.ImmutableBiMap
 
 /**
- * Parse the layout for Accessibility Testing Framework.
- * Builds the metadata required to link a11y lints to the source [NlComponent].
+ * Parse the layout for Accessibility Testing Framework. Builds the metadata required to link a11y
+ * lints to the source [NlComponent].
  */
 class NlScannerLayoutParser {
 
-  @VisibleForTesting
-  val idToComponent: BiMap<Int, NlComponent> = HashBiMap.create()
-  @VisibleForTesting
-  val viewToComponent: BiMap<View, NlComponent> = HashBiMap.create()
-  private val nodeIdToComponent: BiMap<Long, NlComponent> = HashBiMap.create()
+  @VisibleForTesting val idToComponent: BiMap<Int, NlComponent> = HashBiMap.create()
+  @VisibleForTesting val viewToComponent: BiMap<View, NlComponent> = HashBiMap.create()
+  val nodeIdToComponent: BiMap<Long, NlComponent> = HashBiMap.create()
 
   /** Returns the list of [NlComponent] that is <[SdkConstants.VIEW_INCLUDE]> */
   val includeComponents: List<NlComponent>
@@ -54,7 +52,10 @@ class NlScannerLayoutParser {
     componentCount++
     val className = root.tagName
     if (className == SdkConstants.VIEW_INCLUDE) {
-      if (root.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE) != SdkConstants.ATTR_IGNORE_A11Y_LINTS) {
+      if (
+        root.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE) !=
+          SdkConstants.ATTR_IGNORE_A11Y_LINTS
+      ) {
         _includeComponents.add(root)
         return
       }
@@ -80,8 +81,8 @@ class NlScannerLayoutParser {
   }
 
   /**
-   * Look for the root view with appropriate view information from the immediate
-   * children. Returns itself if it cannot find one.
+   * Look for the root view with appropriate view information from the immediate children. Returns
+   * itself if it cannot find one.
    *
    * This is done to support views with data binding.
    */
@@ -100,7 +101,11 @@ class NlScannerLayoutParser {
   }
 
   /** Find the source [NlComponent] based on issue. If no source is found it returns null. */
-  fun findComponent(result: ValidatorData.Issue, map: BiMap<Long, View>, nodeInfoMap: ImmutableBiMap<Long, AccessibilityNodeInfo>): NlComponent? {
+  fun findComponent(
+    result: ValidatorData.Issue,
+    map: BiMap<Long, View>,
+    nodeInfoMap: ImmutableBiMap<Long, AccessibilityNodeInfo>
+  ): NlComponent? {
     val view = map[result.mSrcId]
     if (view != null) {
       var toReturn = viewToComponent[view]

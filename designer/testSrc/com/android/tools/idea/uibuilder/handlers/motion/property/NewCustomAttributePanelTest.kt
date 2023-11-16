@@ -41,8 +41,7 @@ class NewCustomAttributePanelTest {
   private val panel: NewCustomAttributeWrapper
     get() = panelWrapper!!
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(motionRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(motionRule).around(EdtRule())!!
 
   @Before
   fun before() {
@@ -64,15 +63,19 @@ class NewCustomAttributePanelTest {
     panel.initialValueEditor.text = "Hello"
     panel.doOKAction()
     assertThat(panel.errorLabel.isVisible).isFalse()
-    assertThat(motionRule.sceneFileLines(36..38)).isEqualTo("<CustomAttribute\n" +
-                                                            "     motion:attributeName=\"text\"\n" +
-                                                            "     motion:customStringValue=\"Hello\" />")
+    assertThat(motionRule.sceneFileLines(36..38))
+      .isEqualTo(
+        "<CustomAttribute\n" +
+          "     motion:attributeName=\"text\"\n" +
+          "     motion:customStringValue=\"Hello\" />"
+      )
     assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.text to Hello")
     assertThat(panel.isOK).isTrue()
 
     // The new property must be added to the model properties by now:
     assertThat(motionRule.properties).containsKey(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)
-    assertThat(motionRule.properties[MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE]?.get("", "text")).isNotNull()
+    assertThat(motionRule.properties[MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE]?.get("", "text"))
+      .isNotNull()
   }
 
   @Test
@@ -91,7 +94,8 @@ class NewCustomAttributePanelTest {
     panel.dataTypeComboBox.selectedItem = CustomAttributeType.CUSTOM_STRING
     panel.attributeNameEditor.text = "unknown_method"
     assertThat(panel.errorLabel.isVisible).isTrue()
-    assertThat(panel.errorLabel.text).isEqualTo("Method not found: setUnknown_method;  check arguments")
+    assertThat(panel.errorLabel.text)
+      .isEqualTo("Method not found: setUnknown_method;  check arguments")
     assertThat(panel.errorLabel.icon).isSameAs(StudioIcons.Common.ERROR_INLINE)
     assertThat(panel.isOKActionEnabled).isFalse()
   }
@@ -103,7 +107,8 @@ class NewCustomAttributePanelTest {
     panel.initialValueEditor.text = "Hello"
     panel.acceptAnyway.doClick()
     assertThat(panel.errorLabel.isVisible).isTrue()
-    assertThat(panel.errorLabel.text).isEqualTo("Method not found: setUnknown_method;  check arguments")
+    assertThat(panel.errorLabel.text)
+      .isEqualTo("Method not found: setUnknown_method;  check arguments")
     assertThat(panel.errorLabel.icon).isSameAs(StudioIcons.Common.ERROR_INLINE)
     assertThat(panel.isOKActionEnabled).isTrue()
   }

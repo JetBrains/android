@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint.quickFixes;
 
-import static com.android.tools.lint.checks.FontDetector.MIN_APPSUPPORT_VERSION;
+import static com.android.tools.lint.checks.FontDetector.APPSUPPORT_MODULE;
 
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
@@ -46,7 +46,7 @@ public class UpgradeAppCompatV7Fix extends DefaultLintQuickFix {
 
   public static void apply(@Nullable Module module) {
     if (module != null) {
-      LintIdeSupport.get().updateToLatest(module, MIN_APPSUPPORT_VERSION);
+      LintIdeSupport.get().updateToLatestStable(module, APPSUPPORT_MODULE);
     }
   }
 

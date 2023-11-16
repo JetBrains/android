@@ -30,6 +30,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/explainer:intellij.android.explainer[module]",
     ],
 )
 
@@ -72,5 +73,6 @@ iml_module(
         "//tools/adt/idea/logcat:intellij.android.logcat[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/explainer:intellij.android.explainer[module, test]",
     ],
 )

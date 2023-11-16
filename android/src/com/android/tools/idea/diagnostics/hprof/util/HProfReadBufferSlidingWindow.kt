@@ -23,7 +23,6 @@ import sun.misc.Unsafe
 import sun.nio.ch.DirectBuffer
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
-import kotlin.math.min
 
 
 class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HProfEventBasedParser) :
@@ -39,7 +38,7 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
   }
 
   init {
-    buffer = channel.map(FileChannel.MapMode.READ_ONLY, bufferOffset, min(bufferSize, size))
+    buffer = channel.map(FileChannel.MapMode.READ_ONLY, bufferOffset, Math.min(bufferSize, size))
   }
 
   override fun close() {
@@ -78,7 +77,7 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
   private fun remapBuffer(newPosition: Long) {
     val oldBuffer = buffer
 
-    buffer = channel.map(FileChannel.MapMode.READ_ONLY, newPosition, min(bufferSize, size - newPosition))
+    buffer = channel.map(FileChannel.MapMode.READ_ONLY, newPosition, Math.min(bufferSize, size - newPosition))
     bufferOffset = newPosition
 
     // Force clean up previous buffer
@@ -102,7 +101,7 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
       var offset = 0
       while (remaining > 0) {
         remapBuffer(position())
-        val bytesToFetch = min(remaining, bufferSize.toInt())
+        val bytesToFetch = Math.min(remaining, bufferSize.toInt())
         buffer.get(bytes, offset, bytesToFetch)
         remaining -= bytesToFetch
         offset += bytesToFetch

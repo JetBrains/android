@@ -16,9 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.tools.idea.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
-import static com.android.tools.idea.gradle.model.IdeSyncIssue.TYPE_EXCEPTION;
 import static com.android.tools.idea.gradle.util.AndroidGradleUtil.getDisplayNameForModule;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.project.messages.MessageType.INFO;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;

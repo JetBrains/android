@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="ffmpeg" type="repository">
-    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.ffmpeg-bundle:ffmpeg:5.1.2-1.5.8" />
+    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg:6.0-1.5.9" />
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/ffmpeg-bundle/ffmpeg/5.1.2-1.5.8/ffmpeg-5.1.2-1.5.8.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg/6.0-1.5.9/ffmpeg-6.0-1.5.9.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

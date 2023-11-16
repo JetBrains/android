@@ -22,10 +22,10 @@ object HardwareAccelerationCheck {
   /**
    * This should only be executed on Crostini. On any other OS, it will throw an [UnsupportedOperationException].
    */
-  private val isHWAccelerated: Boolean by lazy(fun(): Boolean {
-    return if (isChromeOS) File("/dev/kvm").exists()
+  private val isHWAccelerated: Boolean by lazy {
+    if (isChromeOS) File("/dev/kvm").exists()
     else throw UnsupportedOperationException("Can only check for existence of /dev/kvm on Crostini")
-  })
+  }
 
   /**
    * With the introduction of nested hardware assisted virtualization (`/dev/kvm`) in Crostini (starting w/ Chrome OS M82), machines that

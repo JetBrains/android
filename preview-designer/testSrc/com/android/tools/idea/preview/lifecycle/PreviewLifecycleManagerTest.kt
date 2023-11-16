@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-
 private enum class ActiveState {
   INITIALIZED,
   RESUMED,
@@ -38,8 +37,7 @@ private enum class ActiveState {
 }
 
 class PreviewLifecycleManagerTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun testExecutesOnlyIfActive() = runBlocking {
@@ -62,17 +60,17 @@ class PreviewLifecycleManagerTest {
 
     var delayedCallback: () -> Unit = {}
 
-    val delayedExecutor = { ignore: Disposable, callback: () -> Unit ->
-      delayedCallback = callback
-    }
+    val delayedExecutor = { ignore: Disposable, callback: () -> Unit -> delayedCallback = callback }
 
-    val manager = PreviewLifecycleManager.createForTest(
-      this@runBlocking,
-      { state = ActiveState.INITIALIZED },
-      { state = ActiveState.RESUMED },
-      { state = ActiveState.DEACTIVATED },
-      { state = ActiveState.FULLY_DEACTIVATED },
-      delayedExecutor)
+    val manager =
+      PreviewLifecycleManager.createForTest(
+        this@runBlocking,
+        { state = ActiveState.INITIALIZED },
+        { state = ActiveState.RESUMED },
+        { state = ActiveState.DEACTIVATED },
+        { state = ActiveState.FULLY_DEACTIVATED },
+        delayedExecutor
+      )
 
     manager.activate()
     assertEquals(ActiveState.INITIALIZED, state)
@@ -104,7 +102,7 @@ class PreviewLifecycleManagerTest {
     val number = AtomicInteger(0)
 
     val job = launch {
-      val manager = PreviewLifecycleManager(projectRule.project,  this@launch, {}, {}, {}, {})
+      val manager = PreviewLifecycleManager(projectRule.project, this@launch, {}, {}, {}, {})
 
       manager.activate()
 
@@ -127,13 +125,14 @@ class PreviewLifecycleManagerTest {
     var manager: PreviewLifecycleManager?
     var disposed = false
     val delayedExecutor = { disposable: Disposable, _: () -> Unit ->
-      Disposer.register(disposable) { disposed = true
-      }
+      Disposer.register(disposable) { disposed = true }
     }
 
-    // Run within a new scope and simulate an activation/deactivation cycle. This will schedule a delayed deactivation.
+    // Run within a new scope and simulate an activation/deactivation cycle. This will schedule a
+    // delayed deactivation.
     runBlocking {
-      manager = PreviewLifecycleManager.createForTest( this@runBlocking, scheduleDelayed = delayedExecutor)
+      manager =
+        PreviewLifecycleManager.createForTest(this@runBlocking, scheduleDelayed = delayedExecutor)
       manager!!.activate()
       manager!!.deactivate()
       assertFalse("The delayed deactivation disposed before the scope finished", disposed)

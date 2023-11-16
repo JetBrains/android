@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.driver;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBTextField;
-import java.awt.event.KeyEvent;
-import java.util.regex.Pattern;
 import org.fest.swing.annotation.RunsInEDT;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.JComponentDriver;
@@ -29,6 +25,11 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.event.KeyEvent;
+import java.util.regex.Pattern;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class SearchTextFieldDriver extends JComponentDriver<SearchTextField> implements TextDisplayDriver<SearchTextField> {
   public SearchTextFieldDriver(@NotNull Robot robot) {

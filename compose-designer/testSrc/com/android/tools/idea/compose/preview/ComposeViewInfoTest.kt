@@ -23,12 +23,10 @@ import org.junit.Test
 private fun ComposeViewInfo.serializeHits(x: Int, y: Int): String =
   findHitWithDepth(x, y)
     .sortedBy { it.first }
-    .joinToString("\n") { "${it.first}: ${it.second.sourceLocation.className}" }
+    .joinToString("\n") { "${it.first}: ${it.second.sourceLocation.fileName}" }
 
 class ComposeViewInfoTest {
   private data class TestSourceLocation(
-    override val className: String,
-    override val methodName: String = "",
     override val fileName: String = "",
     override val lineNumber: Int = -1,
     override val packageHash: Int = -1
@@ -78,7 +76,7 @@ class ComposeViewInfoTest {
         .trimMargin(),
       root.serializeHits(125, 125)
     )
-    assertEquals("child2", root.findDeepestHits(125, 125).single().sourceLocation.className)
+    assertEquals("child2", root.findDeepestHits(125, 125).single().sourceLocation.fileName)
     assertEquals(
       """0: root
                    |1: child2
@@ -86,7 +84,7 @@ class ComposeViewInfoTest {
         .trimMargin(),
       root.serializeHits(260, 260)
     )
-    assertEquals("child2.2", root.findDeepestHits(260, 260).single().sourceLocation.className)
+    assertEquals("child2.2", root.findDeepestHits(260, 260).single().sourceLocation.fileName)
     assertEquals(
       """0: root
                    |1: child2
@@ -95,7 +93,7 @@ class ComposeViewInfoTest {
         .trimMargin(),
       root.serializeHits(450, 260)
     )
-    assertEquals("child2.2", root.findDeepestHits(450, 260).single().sourceLocation.className)
+    assertEquals("child2.2", root.findDeepestHits(450, 260).single().sourceLocation.fileName)
   }
 
   @Test

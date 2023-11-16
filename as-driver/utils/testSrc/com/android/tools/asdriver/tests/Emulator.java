@@ -87,8 +87,9 @@ public class Emulator implements AutoCloseable {
       "-grpc", Integer.toString(grpcPort),
       "-no-snapshot",
       // Turn off the modem simulator to avoid b/258836512
+      // Turn off Vulkan since API 30 has a broken implementation (and we don't need it anyway) b/274524732
       "-feature",
-      "-ModemSimulator",
+      "-ModemSimulator,-Vulkan",
       "-delay-adb",
       "-no-boot-anim",
       "-verbose");
@@ -189,9 +190,14 @@ public class Emulator implements AutoCloseable {
 
   /** A particular supported {@link Emulator} image to use. */
   public enum SystemImage {
+    // Google API, userdebug builds
     API_29("system_image_android-29_default_x86_64"),
     API_30("system_image_android-30_default_x86_64"),
-    API_31("system_image_android-31_default_x86_64");
+    API_31("system_image_android-31_default_x86_64"),
+    API_32("system_image_android-32_default_x86_64"),
+    API_33("system_image_android-33_default_x86_64"),
+    // Google Play builds
+    API_33_PlayStore("system_image_android-33PlayStore_default_x86_64");
     /** Path to the image for this emulator {@link SystemImage}. */
     @NotNull
     public final String path;

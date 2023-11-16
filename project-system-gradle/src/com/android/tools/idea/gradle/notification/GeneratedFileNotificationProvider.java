@@ -20,9 +20,9 @@ import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIF
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
-import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.GeneratedSourceFileChangeTracker;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -32,53 +32,44 @@ import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotificationProvider;
 import java.io.File;
 import java.util.function.Function;
-import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GeneratedFileNotificationProvider implements EditorNotificationProvider {
-  @NotNull private final Project myProject;
 
-  public GeneratedFileNotificationProvider(@NotNull Project project) {
-    myProject = project;
-  }
-
+  @Nullable
   @Override
-  public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
-                                                                                                                 @NotNull VirtualFile file) {
-
+  public Function<FileEditor, EditorNotificationPanel> collectNotificationData(@NotNull Project project, @NotNull VirtualFile file) {
+    GeneratedSourceFileChangeTracker generatedSourceFileChangeTracker = GeneratedSourceFileChangeTracker.getInstance(project);
     GradleAndroidModel androidModel =
-      GradleProjectSystemUtil.findAndroidModelInModule(myProject, file, false /* include excluded files */);
-
+      GradleProjectSystemUtil.findAndroidModelInModule(project, file, false /* include excluded files */);
     if (androidModel == null) {
       return null;
     }
-
-    return fileEditor -> {
-      return createNotificationPanel(file, fileEditor, androidModel);
-    };
+    File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
+    return (fileEditor) -> createNotificationPanel(file, fileEditor, buildFolderPath, generatedSourceFileChangeTracker);
   }
 
   @Nullable
   @VisibleForTesting
-  public MyEditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
-                                                            @NotNull FileEditor fileEditor,
-                                                            @NotNull GradleAndroidModel androidModel) {
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
+                                                         @NotNull FileEditor fileEditor,
+                                                         @NotNull File buildFolderPath,
+                                                         @NotNull GeneratedSourceFileChangeTracker myGeneratedSourceFileChangeTracker) {
     if (DISABLE_GENERATED_FILE_NOTIFICATION_KEY.get(fileEditor, false)) {
       return null;
     }
-    File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
     VirtualFile buildFolder = findFileByIoFile(buildFolderPath, false /* do not refresh */);
     if (buildFolder == null || !buildFolder.isDirectory()) {
       return null;
     }
     if (isAncestor(buildFolder, file, false /* not strict */)) {
-      if (GeneratedSourceFileChangeTracker.getInstance(myProject).isEditedGeneratedFile(file)) {
+      if (myGeneratedSourceFileChangeTracker.isEditedGeneratedFile(file)) {
         // A warning is already being displayed by GeneratedFileEditingNotificationProvider
         return null;
       }
 
-      VirtualFile explodedBundled = buildFolder.findChild(FilenameConstants.EXPLODED_AAR);
+      VirtualFile explodedBundled = buildFolder.findChild(SdkConstants.EXPLODED_AAR);
       boolean inAar = explodedBundled != null && isAncestor(explodedBundled, file, true /* strict */);
       String text;
       if (inAar) {
@@ -96,7 +87,7 @@ public class GeneratedFileNotificationProvider implements EditorNotificationProv
   @VisibleForTesting
   static class MyEditorNotificationPanel extends EditorNotificationPanel {
     MyEditorNotificationPanel(@NotNull FileEditor fileEditor, @NotNull String text) {
-      super(fileEditor, EditorNotificationPanel.Status.Warning);
+      super(fileEditor, Status.Warning);
       setText(text);
     }
   }

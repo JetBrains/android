@@ -124,11 +124,14 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 
   fun testResizeSurfaceRebuildScene() {
-    val builder = model("relative.xml",
-                        component(RELATIVE_LAYOUT)
-                          .withBounds(0, 0, 1000, 1000)
-                          .matchParentWidth()
-                          .matchParentHeight())
+    val builder =
+      model(
+        "relative.xml",
+        component(RELATIVE_LAYOUT)
+          .withBounds(0, 0, 1000, 1000)
+          .matchParentWidth()
+          .matchParentHeight()
+      )
     val model1 = builder.buildWithoutSurface()
     val model2 = builder.buildWithoutSurface()
 
@@ -148,12 +151,16 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 
   fun testResizeSurfaceDoesNotChangeScale() {
-    // This also checks if the zoom level is same after resizing, because the screen factor of TestDesignSurface is always 1.
-    val builder = model("relative.xml",
-                        component(RELATIVE_LAYOUT)
-                          .withBounds(0, 0, 1000, 1000)
-                          .matchParentWidth()
-                          .matchParentHeight())
+    // This also checks if the zoom level is same after resizing, because the screen factor of
+    // TestDesignSurface is always 1.
+    val builder =
+      model(
+        "relative.xml",
+        component(RELATIVE_LAYOUT)
+          .withBounds(0, 0, 1000, 1000)
+          .matchParentWidth()
+          .matchParentHeight()
+      )
     val model1 = builder.buildWithoutSurface()
     val model2 = builder.buildWithoutSurface()
 
@@ -172,15 +179,17 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 
   fun testDesignSurfaceModelOrdering() {
-    val builder = model("relative.xml",
-                        component(RELATIVE_LAYOUT)
-                          .withBounds(0, 0, 1000, 1000)
-                          .matchParentWidth()
-                          .matchParentHeight())
+    val builder =
+      model(
+        "relative.xml",
+        component(RELATIVE_LAYOUT)
+          .withBounds(0, 0, 1000, 1000)
+          .matchParentWidth()
+          .matchParentHeight()
+      )
     val model1 = builder.buildWithoutSurface()
     val model2 = builder.buildWithoutSurface()
     val model3 = builder.buildWithoutSurface()
-
 
     val surface = TestDesignSurface(project, testRootDisposable)
     surface.addModelWithoutRender(model1)
@@ -216,7 +225,8 @@ class DesignSurfaceTest : LayoutTestCase() {
     surface.magnificationFinished(0.0)
     TestCase.assertEquals(0.625, surface.scale)
 
-    // test sequential magnifying with sensitivity 0.25. The sequential magnifying should only take last magnify value as result.
+    // test sequential magnifying with sensitivity 0.25. The sequential magnifying should only take
+    // last magnify value as result.
     surface.setScale(1.0)
     surface.magnificationStarted(Point())
     surface.magnify(0.3)
@@ -311,27 +321,43 @@ class DesignSurfaceTest : LayoutTestCase() {
 }
 
 class TestInteractionHandler(surface: DesignSurface<*>) : InteractionHandlerBase(surface) {
-  override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
+  override fun createInteractionOnPressed(
+    mouseX: Int,
+    mouseY: Int,
+    modifiersEx: Int
+  ): Interaction? = null
 
-  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
+  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =
+    null
 }
 
-class TestLayoutManager(private val surface: DesignSurface<*>) : PositionableContentLayoutManager() {
-  override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {}
+class TestLayoutManager(private val surface: DesignSurface<*>) :
+  PositionableContentLayoutManager() {
+  override fun layoutContainer(
+    content: Collection<PositionableContent>,
+    availableSize: Dimension
+  ) {}
 
-  override fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension =
-    surface.sceneViews.map { it.getContentSize(null) }.firstOrNull() ?: Dimension(0, 0)
+  override fun preferredLayoutSize(
+    content: Collection<PositionableContent>,
+    availableSize: Dimension
+  ): Dimension = surface.sceneViews.map { it.getContentSize(null) }.firstOrNull() ?: Dimension(0, 0)
 
-  override fun getMeasuredPositionableContentPosition(content: Collection<PositionableContent>,
-                                                      availableWidth: Int,
-                                                      availableHeight: Int): Map<PositionableContent, Point> {
+  override fun getMeasuredPositionableContentPosition(
+    content: Collection<PositionableContent>,
+    availableWidth: Int,
+    availableHeight: Int
+  ): Map<PositionableContent, Point> {
     return content.firstOrNull()?.let { mapOf(it to Point(0, 0)) } ?: emptyMap()
   }
 }
 
 class TestActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(surface) {
   override fun getPasteTarget(): NlComponent? = null
-  override fun canHandleChildren(component: NlComponent, pasted: MutableList<NlComponent>): Boolean = false
+  override fun canHandleChildren(
+    component: NlComponent,
+    pasted: MutableList<NlComponent>
+  ): Boolean = false
   override fun getFlavor(): DataFlavor = ItemTransferable.DESIGNER_FLAVOR
   override fun canDeleteElement(dataContext: DataContext): Boolean = false
   override fun isPasteEnabled(dataContext: DataContext): Boolean = false
@@ -349,14 +375,16 @@ class TestDesignSurface(project: Project, disposible: Disposable) :
     java.util.function.Function { TestInteractionHandler(it) },
     java.util.function.Function { TestLayoutManager(it) },
     java.util.function.Function { TestActionHandler(it) },
-    ZoomControlsPolicy.VISIBLE) {
+    ZoomControlsPolicy.VISIBLE
+  ) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
 
   override fun getFitScale(): Double = 1.0
 
-  override fun createSceneManager(model: NlModel) = TestSceneManager(model, this).apply { updateSceneView() }
+  override fun createSceneManager(model: NlModel) =
+    TestSceneManager(model, this).apply { updateSceneView() }
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
 
@@ -367,10 +395,8 @@ class TestDesignSurface(project: Project, disposible: Disposable) :
   override fun getMaxScale() = 10.0
 
   override fun getScrollToVisibleOffset() = Dimension()
-
-  override fun isLayoutDisabled() = true
-
-  override fun forceUserRequestedRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
+  override fun forceUserRequestedRefresh(): CompletableFuture<Void> =
+    CompletableFuture.completedFuture(null)
 
   override fun forceRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 

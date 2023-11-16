@@ -35,14 +35,15 @@ import javax.swing.JPanel
 import javax.swing.JPopupMenu
 
 /**
- * Menu that displays all available visibility options to choose from.
- * [SdkConstants.ANDROID_URI] and [SdkConstants.TOOLS_URI].
+ * Menu that displays all available visibility options to choose from. [SdkConstants.ANDROID_URI]
+ * and [SdkConstants.TOOLS_URI].
  */
 class NlVisibilityPopupMenu(
   onClick: (visibility: Visibility, uri: String) -> Unit,
-  onClose: (() -> Unit)) {
+  onClose: (() -> Unit)
+) {
   val content = VisibilityPopupContent(onClick)
-  private val popupMenu = LightCalloutPopup(content, onClose)
+  val popupMenu = LightCalloutPopup(content, onClose)
 
   fun show(model: NlVisibilityModel, invoker: JComponent, p: Point) {
     val application = ApplicationManager.getApplication()
@@ -53,18 +54,17 @@ class NlVisibilityPopupMenu(
     popupMenu.show(invoker, p, Balloon.Position.atRight)
   }
 
-  val balloon: Balloon? get() = popupMenu.getBalloon()
+  val balloon: Balloon?
+    get() = popupMenu.getBalloon()
 
   fun cancel() {
     popupMenu.cancel()
   }
 }
 
-/**
- * UI contents inside the popup menu.
- */
-class VisibilityPopupContent(
-  private val onClick: (visibility: Visibility, uri: String) -> Unit) : JPanel() {
+/** UI contents inside the popup menu. */
+class VisibilityPopupContent(private val onClick: (visibility: Visibility, uri: String) -> Unit) :
+  JPanel() {
   companion object {
     private const val MENU_OUTER_PADDING = 10
     private const val MENU_INNER_PADDING = 5
@@ -78,7 +78,13 @@ class VisibilityPopupContent(
   init {
     layout = GridBagLayout()
     background = secondaryPanelBackground
-    border = BorderFactory.createEmptyBorder(MENU_OUTER_PADDING, MENU_OUTER_PADDING, MENU_OUTER_PADDING, MENU_OUTER_PADDING)
+    border =
+      BorderFactory.createEmptyBorder(
+        MENU_OUTER_PADDING,
+        MENU_OUTER_PADDING,
+        MENU_OUTER_PADDING,
+        MENU_OUTER_PADDING
+      )
 
     val c = GridBagConstraints()
     c.fill = GridBagConstraints.NONE
@@ -124,9 +130,11 @@ class VisibilityPopupContent(
     toolsButtons?.update(model)
   }
 
-  private fun addButtons(panel: JPanel,
-                         c: GridBagConstraints,
-                         uri: String): VisibilityPopupButtons {
+  private fun addButtons(
+    panel: JPanel,
+    c: GridBagConstraints,
+    uri: String
+  ): VisibilityPopupButtons {
     val buttons = VisibilityPopupButtons(uri, onClick)
     buttons.buttons.forEach {
       panel.add(it, c)
@@ -138,7 +146,8 @@ class VisibilityPopupContent(
 
 class VisibilityPopupButtons(
   private val uri: String,
-  private val onClickListener: (visibility: Visibility, uri: String) -> Unit) {
+  private val onClickListener: (visibility: Visibility, uri: String) -> Unit
+) {
 
   private val isToolsAttr = uri == SdkConstants.TOOLS_URI
   val buttons = ArrayList<NlVisibilityButton>()
@@ -165,9 +174,7 @@ class VisibilityPopupButtons(
       return
     }
 
-    buttons.forEach {
-      it.isClicked = false
-    }
+    buttons.forEach { it.isClicked = false }
     button.isClicked = true
     button.parent?.repaint()
     onClickListener.invoke(button.visibility!!, uri)
@@ -180,21 +187,23 @@ class VisibilityPopupButtons(
     item.updateBgWhenHovered = true
     button.update(item)
 
-    button.addMouseListener(object: MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent?) {
-        onClick(button)
-      }
+    button.addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent?) {
+          onClick(button)
+        }
 
-      override fun mouseEntered(e: MouseEvent?) {
-        button.isHovered = true
-        button.parent.repaint()
-      }
+        override fun mouseEntered(e: MouseEvent?) {
+          button.isHovered = true
+          button.parent.repaint()
+        }
 
-      override fun mouseExited(e: MouseEvent?) {
-        button.isHovered = false
-        button.parent.repaint()
+        override fun mouseExited(e: MouseEvent?) {
+          button.isHovered = false
+          button.parent.repaint()
+        }
       }
-    })
+    )
 
     return button
   }

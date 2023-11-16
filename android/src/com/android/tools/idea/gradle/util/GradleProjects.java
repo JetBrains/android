@@ -17,18 +17,12 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget;
 
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
  * Utility methods for {@link Project}s.
@@ -62,8 +56,6 @@ public final class GradleProjects {
    * @return {@code true} if the project can be imported as a Gradle project, {@code false} otherwise.
    */
   public static boolean canImportAsGradleProject(@NotNull VirtualFile importSource) {
-    VirtualFile target = findGradleTarget(importSource);
-    return target != null && (GradleConstants.EXTENSION.equals(target.getExtension()) ||
-                              target.getName().endsWith(GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION));
+    return findGradleTarget(importSource) != null;
   }
 }

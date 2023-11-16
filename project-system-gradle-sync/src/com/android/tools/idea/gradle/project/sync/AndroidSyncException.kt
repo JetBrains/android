@@ -19,7 +19,6 @@ import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.model.IdeSyncIssue
-import org.gradle.tooling.model.ProjectIdentifier
 import java.util.regex.Pattern
 
 /**
@@ -104,9 +103,9 @@ class AgpVersionsMismatch(agpVersions: List<Pair<AgpVersion, String>>) : Android
              " $MESSAGE_CORE.\n$MESSAGE_END ${agpVersions.map { it.second }.distinct()}.\n"
     }
 
-    private const val MESSAGE_START = "Using multiple versions of the Android Gradle Plugin"
-    private const val MESSAGE_CORE = "across Gradle builds is not allowed"
-    private const val MESSAGE_END = "Affected builds:"
-    val INCOMPATIBLE_AGP_VERSIONS = Pattern.compile("$MESSAGE_START (.*) $MESSAGE_CORE\\.\n$MESSAGE_END (.*)\\.\n")
+    const val MESSAGE_START = "Using multiple versions of the Android Gradle Plugin"
+    const val MESSAGE_CORE = "across Gradle builds is not allowed"
+    const val MESSAGE_END = "Affected builds:"
+    val MULTIPLE_AGP_VERSIONS = Pattern.compile("$MESSAGE_START (.*) $MESSAGE_CORE\\.\n$MESSAGE_END (.*)\\.\n")
   }
 }

@@ -23,7 +23,9 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.Density
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.laf.HeadlessTableUI
@@ -33,7 +35,6 @@ import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.componenttree.treetable.TreeTableModelImplAdapter
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
@@ -54,6 +55,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
@@ -67,21 +69,23 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewStr
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.util.DECOR_VIEW
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
-import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.runDispatching
+import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
@@ -104,42 +108,42 @@ private const val USER_PKG = 123
 private const val TIMEOUT = 20L
 private val TIMEOUT_UNIT = TimeUnit.SECONDS
 
-private val PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val PROCESS =
+  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class LayoutInspectorTreePanelTest {
   private val projectRule = AndroidProjectRule.withSdk()
   private val appInspectorRule = AppInspectionInspectorRule(projectRule)
-  private val inspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) {
-    it.name == PROCESS.name
-  }
+  private val inspectorRule =
+    LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) {
+      it.name == PROCESS.name
+    }
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
   private var lastUpdateSettingsCommand: UpdateSettingsCommand? = null
   private var updateSettingsCommands = 0
   private var updateSettingsLatch: ReportingCountDownLatch? = null
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule)
-    .around(appInspectorRule)
-    .around(inspectorRule)
-    .around(fileOpenCaptureRule)
-    .around(EdtRule())!!
+  val ruleChain =
+    RuleChain.outerRule(projectRule)
+      .around(appInspectorRule)
+      .around(inspectorRule)
+      .around(fileOpenCaptureRule)
+      .around(EdtRule())!!
 
   @Before
   fun setUp() {
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
 
-    projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
+    projectRule.fixture.testDataPath =
+      TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
     projectRule.fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
     projectRule.fixture.copyFileToProject("res/layout/demo.xml")
 
     inspectorRule.inspector.treeSettings.showRecompositions = true
 
     appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
-      appInspectorRule.viewInspector.connection.sendEvent {
-        rootsEventBuilder.apply {
-          addIds(1L)
-        }
-      }
+      appInspectorRule.viewInspector.connection.sendEvent { rootsEventBuilder.apply { addIds(1L) } }
 
       appInspectorRule.viewInspector.connection.sendEvent {
         layoutEventBuilder.apply {
@@ -190,9 +194,7 @@ class LayoutInspectorTreePanelTest {
             }
           }
 
-          appContextBuilder.apply {
-            theme = ViewResource(13, 12, 11)
-          }
+          appContextBuilder.apply { theme = ViewResource(13, 12, 11) }
           configurationBuilder.apply {
             density = Density.DEFAULT_DENSITY
             fontScale = 1.0f
@@ -200,56 +202,62 @@ class LayoutInspectorTreePanelTest {
         }
       }
 
-      LayoutInspectorViewProtocol.Response.newBuilder().setStartFetchResponse(
-        LayoutInspectorViewProtocol.StartFetchResponse.getDefaultInstance()).build()
+      LayoutInspectorViewProtocol.Response.newBuilder()
+        .setStartFetchResponse(LayoutInspectorViewProtocol.StartFetchResponse.getDefaultInstance())
+        .build()
     }
 
     appInspectorRule.composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) {
-      LayoutInspectorComposeProtocol.Response.newBuilder().apply {
-        getComposablesResponseBuilder.apply {
-          ComposableString(1, "com.example")
-          ComposableString(2, "File1.kt")
-          ComposableString(3, "Button")
-          ComposableString(4, "Text")
-          ComposableString(5, "Column")
+      LayoutInspectorComposeProtocol.Response.newBuilder()
+        .apply {
+          getComposablesResponseBuilder.apply {
+            ComposableString(1, "com.example")
+            ComposableString(2, "File1.kt")
+            ComposableString(3, "Button")
+            ComposableString(4, "Text")
+            ComposableString(5, "Column")
 
-          ComposableRoot {
-            viewId = VIEW4
-            ComposableNode {
-              id = COMPOSE3
-              packageHash = 1
-              filename = 2
-              name = 5
-              flags = LayoutInspectorComposeProtocol.ComposableNode.Flags.INLINED_VALUE
-            }
-            ComposableNode {
-              id = COMPOSE1
-              packageHash = 1
-              filename = 2
-              name = 3
-              recomposeCount = 7
-              recomposeSkips = 14
+            ComposableRoot {
+              viewId = VIEW4
               ComposableNode {
-                id = COMPOSE2
+                id = COMPOSE3
                 packageHash = 1
                 filename = 2
-                name = 4
-                recomposeCount = 9
-                recomposeSkips = 33
+                name = 5
+                flags = LayoutInspectorComposeProtocol.ComposableNode.Flags.INLINED_VALUE
+              }
+              ComposableNode {
+                id = COMPOSE1
+                packageHash = 1
+                filename = 2
+                name = 3
+                recomposeCount = 7
+                recomposeSkips = 14
+                ComposableNode {
+                  id = COMPOSE2
+                  packageHash = 1
+                  filename = 2
+                  name = 4
+                  recomposeCount = 9
+                  recomposeSkips = 33
+                }
               }
             }
           }
         }
-      }.build()
+        .build()
     }
 
     appInspectorRule.composeInspector.interceptWhen({ it.hasUpdateSettingsCommand() }) { command ->
       lastUpdateSettingsCommand = command.updateSettingsCommand
       updateSettingsCommands++
       updateSettingsLatch?.countDown()
-      LayoutInspectorComposeProtocol.Response.newBuilder().apply {
-        updateSettingsResponse = LayoutInspectorComposeProtocol.UpdateSettingsResponse.getDefaultInstance()
-      }.build()
+      LayoutInspectorComposeProtocol.Response.newBuilder()
+        .apply {
+          updateSettingsResponse =
+            LayoutInspectorComposeProtocol.UpdateSettingsResponse.getDefaultInstance()
+        }
+        .build()
     }
 
     updateSettingsLatch = ReportingCountDownLatch(1)
@@ -273,11 +281,13 @@ class LayoutInspectorTreePanelTest {
       model.setSelection(model["title"], SelectionOrigin.INTERNAL)
 
       val focusManager = FakeKeyboardFocusManager(disposable)
-      focusManager.focusOwner = tree.component
+      focusManager.focusOwner = tree.componentTreeBuildResult.component
 
       val dispatcher = IdeKeyEventDispatcher(null)
       val modifier = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
-      dispatcher.dispatchKeyEvent(KeyEvent(tree.component, KeyEvent.KEY_PRESSED, 0, modifier, KeyEvent.VK_B, 'B'))
+      dispatcher.dispatchKeyEvent(
+        KeyEvent(tree.component, KeyEvent.KEY_PRESSED, 0, modifier, KeyEvent.VK_B, 'B')
+      )
     }
 
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
@@ -301,6 +311,8 @@ class LayoutInspectorTreePanelTest {
     val ui = FakeUi(focusComponent)
     ui.mouse.doubleClick(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
 
+    runDispatching { GotoDeclarationAction.lastAction?.join() }
+
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
 
     val data = DynamicLayoutInspectorSession.newBuilder()
@@ -319,9 +331,11 @@ class LayoutInspectorTreePanelTest {
     setToolContext(panel, inspector)
     val tree = panel.tree
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(tree.rowCount).isEqualTo(1)
+    assertThat(tree.rowCount).isEqualTo(2)
     assertThat(tree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT]!!.treeNode)
+    assertThat(tree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
     assertThat(model[ROOT]!!.qualifiedName).isEqualTo(DECOR_VIEW)
+    assertThat(model[VIEW1]!!.qualifiedName).isEqualTo(FQCN_RELATIVE_LAYOUT)
 
     model.update(window(ROOT, ROOT) { view(VIEW4) { view(VIEW1, layout = demo) } }, listOf(ROOT), 0)
     UIUtil.dispatchAllInvocationEvents()
@@ -341,7 +355,11 @@ class LayoutInspectorTreePanelTest {
     assertThat(tree.getPathForRow(3).lastPathComponent).isEqualTo(model[VIEW2]!!.treeNode)
     assertThat(tree.getPathForRow(4).lastPathComponent).isEqualTo(model[VIEW3]!!.treeNode)
 
-    model.update(window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
+    model.update(
+      window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) },
+      listOf(ROOT, VIEW2),
+      0
+    )
     UIUtil.dispatchAllInvocationEvents()
     // Still 5: the dimmer is drawn but isn't in the tree
     assertThat(tree.rowCount).isEqualTo(5)
@@ -359,17 +377,20 @@ class LayoutInspectorTreePanelTest {
     setToolContext(panel, inspector)
     val tree = panel.tree
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(tree.rowCount).isEqualTo(1)
+    assertThat(tree.rowCount).isEqualTo(3)
     assertThat(tree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
+    assertThat(tree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW2]!!.treeNode)
+    assertThat(tree.getPathForRow(2).lastPathComponent).isEqualTo(model[VIEW3]!!.treeNode)
     assertThat(model[VIEW1]!!.qualifiedName).isEqualTo(FQCN_RELATIVE_LAYOUT)
+    assertThat(model[VIEW2]!!.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
+    assertThat(model[VIEW3]!!.qualifiedName).isEqualTo(FQCN_RELATIVE_LAYOUT)
 
     // ROOT & VIEW4 are system views (no layout, android layout)
     model.update(
-      window(ROOT, ROOT) {
-        view(VIEW4, layout = android) {
-          view(VIEW1, layout = demo)
-        }
-      }, listOf(ROOT), 0)
+      window(ROOT, ROOT) { view(VIEW4, layout = android) { view(VIEW1, layout = demo) } },
+      listOf(ROOT),
+      0
+    )
     UIUtil.dispatchAllInvocationEvents()
     TreeUtil.promiseExpandAll(tree).blockingGet(1, TimeUnit.SECONDS)
     assertThat(tree.rowCount).isEqualTo(1)
@@ -382,7 +403,13 @@ class LayoutInspectorTreePanelTest {
     assertThat(tree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
     assertThat(tree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW3]!!.treeNode)
 
-    model.update(window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3, layout = demo) }, listOf(ROOT, VIEW2), 0)
+    model.update(
+      window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) {
+        view(VIEW3, layout = demo)
+      },
+      listOf(ROOT, VIEW2),
+      0
+    )
     UIUtil.dispatchAllInvocationEvents()
     // Still 2: the dimmer is drawn but isn't in the tree
     assertThat(tree.rowCount).isEqualTo(2)
@@ -409,8 +436,7 @@ class LayoutInspectorTreePanelTest {
     val table = panel.focusComponent as? JTable
     if (table != null) {
       table.addRowSelectionInterval(2, 2)
-    }
-    else {
+    } else {
       panel.tree.setSelectionRow(2)
     }
     assertThat(selectionOrigin).isEqualTo(SelectionOrigin.COMPONENT_TREE)
@@ -429,7 +455,8 @@ class LayoutInspectorTreePanelTest {
     UIUtil.dispatchAllInvocationEvents()
 
     // The component tree is now collapsed with the top element: DecorView
-    // Demo has 5 views: DecorView(ROOT), RelativeLayout(VIEW1), TextView(VIEW2), RelativeLayout(VIEW3), TextView(VIEW4).
+    // Demo has 5 views: DecorView(ROOT), RelativeLayout(VIEW1), TextView(VIEW2),
+    // RelativeLayout(VIEW3), TextView(VIEW4).
     // We should be able to find views even if they are currently collapsed:
     tree.setFilter("View")
     UIUtil.dispatchAllInvocationEvents()
@@ -441,7 +468,8 @@ class LayoutInspectorTreePanelTest {
     assertThat(model.selection).isSameAs(selection?.view)
 
     // Remove the current selection and
-    // Simulate a down arrow keyboard event in the search field: the first match should be found again (DecorView)
+    // Simulate a down arrow keyboard event in the search field: the first match should be found
+    // again (DecorView)
     model.setSelection(null, SelectionOrigin.COMPONENT_TREE)
     val searchField = JPanel()
     searchField.addKeyListener(tree.filterKeyListener)
@@ -455,7 +483,8 @@ class LayoutInspectorTreePanelTest {
     assertThat(selection?.view?.drawId).isEqualTo(ROOT)
     assertThat(model.selection).isSameAs(selection?.view)
 
-    // Simulate a down arrow keyboard event in the search field: the next match should be found (TextView(VIEW2))
+    // Simulate a down arrow keyboard event in the search field: the next match should be found
+    // (TextView(VIEW2))
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
     selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
     assertThat(tree.tree.selectionRows?.asList()).containsExactly(2)
@@ -464,7 +493,8 @@ class LayoutInspectorTreePanelTest {
     assertThat(selection?.view?.drawId).isEqualTo(VIEW2)
     assertThat(model.selection).isSameAs(selection?.view)
 
-    // Simulate another down arrow keyboard event in the search field: the next match should be found (TextView(VIEW4))
+    // Simulate another down arrow keyboard event in the search field: the next match should be
+    // found (TextView(VIEW4))
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
     selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
     assertThat(tree.tree.selectionRows?.asList()).containsExactly(4)
@@ -473,7 +503,8 @@ class LayoutInspectorTreePanelTest {
     assertThat(selection?.view?.drawId).isEqualTo(VIEW4)
     assertThat(model.selection).isSameAs(selection?.view)
 
-    // Simulate another down arrow keyboard event in the search field: the next match should be found (back to DecorView)
+    // Simulate another down arrow keyboard event in the search field: the next match should be
+    // found (back to DecorView)
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
     selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
     assertThat(tree.tree.selectionRows?.asList()).containsExactly(0)
@@ -485,7 +516,8 @@ class LayoutInspectorTreePanelTest {
     // Now hide TextView(VIEW2)
     model.hideSubtree(model[VIEW2]!!)
 
-    // Simulate another down arrow keyboard event in the search field: the next match should be found (TextView(VIEW4))
+    // Simulate another down arrow keyboard event in the search field: the next match should be
+    // found (TextView(VIEW4))
     // Because TextView(VIEW2) is skipped when hidden
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
     selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
@@ -495,7 +527,8 @@ class LayoutInspectorTreePanelTest {
     assertThat(selection?.view?.drawId).isEqualTo(VIEW4)
     assertThat(model.selection).isSameAs(selection?.view)
 
-    // Simulate another down arrow keyboard event in the search field: the next match should be found (back to DecorView)
+    // Simulate another down arrow keyboard event in the search field: the next match should be
+    // found (back to DecorView)
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
     selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
     assertThat(tree.tree.selectionRows?.asList()).containsExactly(0)
@@ -504,7 +537,8 @@ class LayoutInspectorTreePanelTest {
     assertThat(selection?.view?.drawId).isEqualTo(ROOT)
     assertThat(model.selection).isSameAs(selection?.view)
 
-    // Simulate an up arrow keyboard event in the search field: the previous match should be found (TextView(VIEW4))
+    // Simulate an up arrow keyboard event in the search field: the previous match should be found
+    // (TextView(VIEW4))
     ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
     selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
     assertThat(tree.tree.selectionRows?.asList()).containsExactly(4)
@@ -513,7 +547,8 @@ class LayoutInspectorTreePanelTest {
     assertThat(selection?.view?.drawId).isEqualTo(VIEW4)
     assertThat(model.selection).isSameAs(selection?.view)
 
-    // Simulate another up arrow keyboard event in the search field: the next match should be found (back to DecorView)
+    // Simulate another up arrow keyboard event in the search field: the next match should be found
+    // (back to DecorView)
     // (skipping TextView(VIEW2))
     ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
     selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
@@ -524,7 +559,8 @@ class LayoutInspectorTreePanelTest {
     assertThat(model.selection).isSameAs(selection?.view)
 
     // Remove the current selection and
-    // Simulate an up arrow keyboard event in the search field: the first match should be found again (DecorView)
+    // Simulate an up arrow keyboard event in the search field: the first match should be found
+    // again (DecorView)
     model.setSelection(null, SelectionOrigin.COMPONENT_TREE)
     ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
     selection = tree.tree.lastSelectedPathComponent as? TreeViewNode
@@ -538,7 +574,14 @@ class LayoutInspectorTreePanelTest {
     val callbacks: ToolWindowCallback = mock()
     tree.registerCallbacks(callbacks)
     ui.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    UIUtil.dispatchAllInvocationEvents()
     verify(callbacks).stopFiltering()
+
+    // Reset the filter and press up. This key should be forwarded to the table.
+    // Make sure the source is specified as the table or the BasicTableUI will cause a class cast
+    // exception: b/291976682.
+    tree.setFilter("")
+    ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
   }
 
   @RunsInEdt
@@ -611,88 +654,169 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testSystemNodeWithMultipleChildren() {
-    val launcher: InspectorClientLauncher = mock()
+    val mockLauncher = mock<InspectorClientLauncher>()
+    whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
     val model = InspectorModel(projectRule.project)
     val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
     val clientSettings = InspectorClientSettings(projectRule.project)
-    val inspector = LayoutInspector(
-      coroutineScope,
-      mock(),
-      mock(),
-      null,
-      clientSettings,
-      launcher,
-      model,
-      FakeTreeSettings(),
-      MoreExecutors.directExecutor()
-    )
+    val inspector =
+      LayoutInspector(
+        coroutineScope,
+        mock(),
+        mock(),
+        null,
+        clientSettings,
+        mockLauncher,
+        model,
+        mock(),
+        FakeTreeSettings(),
+        MoreExecutors.directExecutor()
+      )
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     inspector.treeSettings.hideSystemNodes = true
     inspector.treeSettings.composeAsCallstack = true
     setToolContext(treePanel, inspector)
-    val window = window(ROOT, ROOT) {
-      compose(2, "App", composePackageHash = USER_PKG) {
-        compose(3, "Column", composePackageHash = USER_PKG) {
-          compose(4, "Layout", composePackageHash = SYSTEM_PKG) {
-            compose(5, "Text", composePackageHash = USER_PKG)
-            compose(6, "Box", composePackageHash = USER_PKG)
-            compose(7, "Button", composePackageHash = USER_PKG)
+    val window =
+      window(ROOT, ROOT) {
+        compose(2, "App", composePackageHash = USER_PKG) {
+          compose(3, "Nested", composePackageHash = USER_PKG) {
+            compose(4, "Column", composePackageHash = USER_PKG) {
+              compose(5, "Layout", composePackageHash = SYSTEM_PKG) {
+                compose(6, "Layout", composePackageHash = SYSTEM_PKG) {
+                  compose(7, "Layout", composePackageHash = SYSTEM_PKG) {
+                    compose(8, "Layout", composePackageHash = SYSTEM_PKG) {
+                      compose(9, "Text", composePackageHash = USER_PKG)
+                      compose(10, "Box", composePackageHash = USER_PKG)
+                      compose(11, "Button", composePackageHash = USER_PKG)
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
-    }
     model.update(window, listOf(ROOT), 1)
 
     // Verify that "Layout" is omitted from the component tree, and that "Column" has 3 children:
     val root = treePanel.tree.model?.root as TreeViewNode
     val expected =
       compose(2, "App", composePackageHash = USER_PKG) {
-        compose(3, "Column", composePackageHash = USER_PKG) {
-          compose(5, "Text", composePackageHash = USER_PKG)
-          compose(6, "Box", composePackageHash = USER_PKG)
-          compose(7, "Button", composePackageHash = USER_PKG)
+        compose(3, "Nested", composePackageHash = USER_PKG)
+        compose(4, "Column", composePackageHash = USER_PKG) {
+          compose(9, "Text", composePackageHash = USER_PKG)
+          compose(10, "Box", composePackageHash = USER_PKG)
+          compose(11, "Button", composePackageHash = USER_PKG)
         }
-      }.build()
-    assertTreeStructure(root.children.single(), expected)
+      }
+    assertTreeStructure(root.children.single(), expected.build())
+  }
+
+  @RunsInEdt
+  @Test
+  fun testSystemNodeInMiddleOfCallStack() {
+    val mockLauncher = mock<InspectorClientLauncher>()
+    whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
+    val model = InspectorModel(projectRule.project)
+    val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val clientSettings = InspectorClientSettings(projectRule.project)
+    val inspector =
+      LayoutInspector(
+        coroutineScope,
+        mock(),
+        mock(),
+        null,
+        clientSettings,
+        mockLauncher,
+        model,
+        mock(),
+        FakeTreeSettings(),
+        MoreExecutors.directExecutor()
+      )
+    val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    inspector.treeSettings.hideSystemNodes = true
+    inspector.treeSettings.composeAsCallstack = true
+    setToolContext(treePanel, inspector)
+    val window =
+      window(ROOT, ROOT) {
+        compose(2, "App", composePackageHash = USER_PKG) {
+          compose(3, "Nested", composePackageHash = USER_PKG) {
+            compose(4, "Layout", composePackageHash = SYSTEM_PKG) {
+              compose(5, "Layout", composePackageHash = SYSTEM_PKG) {
+                compose(6, "Nested", composePackageHash = USER_PKG) {
+                  compose(7, "Column", composePackageHash = USER_PKG) {
+                    compose(8, "Text", composePackageHash = USER_PKG)
+                    compose(9, "Box", composePackageHash = USER_PKG)
+                    compose(10, "Button", composePackageHash = USER_PKG)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    model.update(window, listOf(ROOT), 1)
+
+    // Verify that "Layout" is omitted from the component tree, and that "Column" has 3 children:
+    val root = treePanel.tree.model?.root as TreeViewNode
+    val expected =
+      compose(2, "App", composePackageHash = USER_PKG) {
+        compose(3, "Nested", composePackageHash = USER_PKG)
+        compose(6, "Nested", composePackageHash = USER_PKG)
+        compose(7, "Column", composePackageHash = USER_PKG) {
+          compose(8, "Text", composePackageHash = USER_PKG)
+          compose(9, "Box", composePackageHash = USER_PKG)
+          compose(10, "Button", composePackageHash = USER_PKG)
+        }
+      }
+    assertTreeStructure(root.children.single(), expected.build())
   }
 
   @RunsInEdt
   @Test
   fun testSemanticTrees() {
-    val launcher: InspectorClientLauncher = mock()
+    val mockLauncher = mock<InspectorClientLauncher>()
+    whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
     val model = InspectorModel(projectRule.project)
     val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
     val clientSettings = InspectorClientSettings(projectRule.project)
-    val inspector = LayoutInspector(
-      coroutineScope,
-      mock(),
-      mock(),
-      null,
-      clientSettings,
-      launcher,
-      model,
-      FakeTreeSettings(),
-      MoreExecutors.directExecutor()
-    )
+    val inspector =
+      LayoutInspector(
+        coroutineScope,
+        mock(),
+        mock(),
+        null,
+        clientSettings,
+        mockLauncher,
+        model,
+        mock(),
+        FakeTreeSettings(),
+        MoreExecutors.directExecutor()
+      )
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val tree = treePanel.tree
     inspector.treeSettings.hideSystemNodes = false
     setToolContext(treePanel, inspector)
-    val window = window(ROOT, ROOT) {
-      compose(2, "App") {
-        compose(3, "MaterialTheme")
-        compose(4, "Text", composeFlags = FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS)
-        compose(5, "Column", composeFlags = FLAG_HAS_MERGED_SEMANTICS) {
-          compose(6, "Row") {
-            compose(7, "Layout") {
-              compose(8, "Text", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS)
-              compose(9, "Box")
-              compose(10, "Button", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS)
+    val window =
+      window(ROOT, ROOT) {
+        compose(2, "App") {
+          compose(3, "MaterialTheme")
+          compose(
+            4,
+            "Text",
+            composeFlags = FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS
+          )
+          compose(5, "Column", composeFlags = FLAG_HAS_MERGED_SEMANTICS) {
+            compose(6, "Row") {
+              compose(7, "Layout") {
+                compose(8, "Text", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS)
+                compose(9, "Box")
+                compose(10, "Button", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS)
+              }
             }
           }
         }
       }
-    }
 
     model.update(window, listOf(ROOT), 1)
     UIUtil.dispatchAllInvocationEvents()
@@ -719,7 +843,8 @@ class LayoutInspectorTreePanelTest {
     assertThat(selection?.view?.drawId).isEqualTo(4)
     assertThat(model.selection).isSameAs(selection?.view)
 
-    // Simulate a down arrow keyboard event in the tree: the next node with semantic information should be selected
+    // Simulate a down arrow keyboard event in the tree: the next node with semantic information
+    // should be selected
     val ui = FakeUi(treePanel.focusComponent)
     ui.keyboard.setFocus(treePanel.focusComponent)
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
@@ -728,21 +853,24 @@ class LayoutInspectorTreePanelTest {
     assertThat(selection?.view?.drawId).isEqualTo(5)
     assertThat(model.selection).isSameAs(selection?.view)
 
-    // Simulate another down arrow keyboard event in the tree: expect to skip Row and Layout since these don't have semantic information
+    // Simulate another down arrow keyboard event in the tree: expect to skip Row and Layout since
+    // these don't have semantic information
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
     selection = tree.lastSelectedPathComponent as? TreeViewNode
     assertThat(selection?.view?.qualifiedName).isEqualTo("Text")
     assertThat(selection?.view?.drawId).isEqualTo(8)
     assertThat(model.selection).isSameAs(selection?.view)
 
-    // Simulate another down arrow keyboard event in the tree: expect to skip Box since it doesn't have semantic information
+    // Simulate another down arrow keyboard event in the tree: expect to skip Box since it doesn't
+    // have semantic information
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
     selection = tree.lastSelectedPathComponent as? TreeViewNode
     assertThat(selection?.view?.qualifiedName).isEqualTo("Button")
     assertThat(selection?.view?.drawId).isEqualTo(10)
     assertThat(model.selection).isSameAs(selection?.view)
 
-    // Simulate another down arrow keyboard event in the tree: wrap and find the first node with semantics
+    // Simulate another down arrow keyboard event in the tree: wrap and find the first node with
+    // semantics
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
     selection = tree.lastSelectedPathComponent as? TreeViewNode
     assertThat(selection?.view?.qualifiedName).isEqualTo("Text")
@@ -759,7 +887,7 @@ class LayoutInspectorTreePanelTest {
 
   @Test
   fun testNonStructuralModelChanges() {
-    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val tree = runInEdtAndGet { LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable) }
     val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
     runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
@@ -767,17 +895,21 @@ class LayoutInspectorTreePanelTest {
     val treeModel = tree.componentTreeModel as TreeModel
     var columnDataChangeCount = 0
     var treeChangeCount = 0
-    treeModel.addTreeModelListener(object : TreeTableModelImplAdapter() {
-      override fun columnDataChanged() {
-        columnDataChangeCount++
-      }
+    treeModel.addTreeModelListener(
+      object : TreeTableModelImplAdapter() {
+        override fun columnDataChanged() {
+          columnDataChangeCount++
+        }
 
-      override fun treeChanged(event: TreeModelEvent) {
-        treeChangeCount++
+        override fun treeChanged(event: TreeModelEvent) {
+          treeChangeCount++
+        }
       }
-    })
+    )
     val model = inspector.inspectorModel
-    model.windows.values.forEach { window -> model.modificationListeners.forEach { it(window, window, false) } }
+    model.windows.values.forEach { window ->
+      model.modificationListeners.forEach { it.onModification(window, window, false) }
+    }
     assertThat(columnDataChangeCount).isEqualTo(1)
     assertThat(treeChangeCount).isEqualTo(0)
   }
@@ -815,15 +947,13 @@ class LayoutInspectorTreePanelTest {
 
   @Test
   fun testResetRecompositionCounts() {
-    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val tree = runInEdtAndGet { LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable) }
     val inspector = inspectorRule.inspector
     val model = inspector.inspectorModel
     val compose1 = model[COMPOSE1] as ComposeViewNode
     val compose2 = model[COMPOSE2] as ComposeViewNode
     var selectionUpdate = 0
-    model.selectionListeners.add { _, _, _ ->
-      selectionUpdate++
-    }
+    model.selectionListeners.add { _, _, _ -> selectionUpdate++ }
 
     assertThat(compose1.recompositions.count).isEqualTo(7)
     assertThat(compose1.recompositions.skips).isEqualTo(14)
@@ -833,9 +963,21 @@ class LayoutInspectorTreePanelTest {
     setToolContext(tree, inspector)
     UIUtil.pump()
     val table = tree.focusComponent as JTable
-    val scrollPane = tree.component as JBScrollPane
-    scrollPane.size = Dimension(800, 1000)
-    val ui = FakeUi(scrollPane, createFakeWindow = true)
+    val component = tree.component
+
+    // connect to a process to add the tree to the UI.
+    inspectorRule.launchSynchronously = false
+    inspectorRule.startLaunch(2)
+    inspectorRule.processes.selectedProcess =
+      MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+    inspectorRule.awaitLaunch()
+
+    waitForCondition(1, TimeUnit.SECONDS) {
+      (component as RootPanel).uiState == RootPanel.UiState.SHOW_TREE
+    }
+
+    component.size = Dimension(800, 1000)
+    val ui = FakeUi(component, createFakeWindow = true)
     val treeColumnWidth = table.columnModel.getColumn(0).width
     updateSettingsLatch = ReportingCountDownLatch(1)
 
@@ -849,7 +991,7 @@ class LayoutInspectorTreePanelTest {
     assertThat(compose2.recompositions.count).isEqualTo(0)
     assertThat(compose2.recompositions.skips).isEqualTo(0)
     assertThat(selectionUpdate).isEqualTo(1)
-    assertThat(updateSettingsCommands).isEqualTo(2)
+    assertThat(updateSettingsCommands).isEqualTo(3)
     assertThat(lastUpdateSettingsCommand?.includeRecomposeCounts).isTrue()
 
     val data = DynamicLayoutInspectorSession.newBuilder()
@@ -859,7 +1001,7 @@ class LayoutInspectorTreePanelTest {
 
   @Test
   fun testRecompositionCountsAreLogged() {
-    val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val panel = runInEdtAndGet { LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable) }
     val inspector = inspectorRule.inspector
     setToolContext(panel, inspector)
 
@@ -871,7 +1013,7 @@ class LayoutInspectorTreePanelTest {
 
   @Test
   fun testTextValueOfNodeType() {
-    val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val panel = runInEdtAndGet { LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable) }
     val inspector = inspectorRule.inspector
     val model = inspectorRule.inspectorModel
     setToolContext(panel, inspector)
@@ -882,12 +1024,52 @@ class LayoutInspectorTreePanelTest {
     assertThat(nodeType.textValueOf(model[COMPOSE3]!!.treeNode)).isEqualTo("(inline)")
   }
 
+  @Test
+  fun testListenersAreClearedOnDispose() {
+    val disposable = Disposer.newDisposable(projectRule.fixture.testRootDisposable)
+    val panel = runInEdtAndGet { LayoutInspectorTreePanel(disposable) }
+
+    setToolContext(panel, inspectorRule.inspector)
+
+    assertThat(inspectorRule.inspector.inspectorModel.selectionListeners).hasSize(1)
+
+    var connectionListenersCount1 = 0
+    inspectorRule.inspector.inspectorModel.connectionListeners.forEach {
+      connectionListenersCount1 += 1
+    }
+    assertThat(connectionListenersCount1).isEqualTo(2)
+
+    var modificationListenerCount1 = 0
+    inspectorRule.inspector.inspectorModel.modificationListeners.forEach {
+      modificationListenerCount1++
+    }
+    assertThat(modificationListenerCount1).isEqualTo(4)
+
+    Disposer.dispose(disposable)
+
+    assertThat(inspectorRule.inspector.inspectorModel.selectionListeners).hasSize(0)
+
+    var connectionListenersCount2 = 0
+    inspectorRule.inspector.inspectorModel.connectionListeners.forEach {
+      connectionListenersCount2 += 1
+    }
+    assertThat(connectionListenersCount2).isEqualTo(0)
+
+    var modificationListenerCount2 = 0
+    inspectorRule.inspector.inspectorModel.modificationListeners.forEach {
+      modificationListenerCount2++
+    }
+    assertThat(modificationListenerCount2).isEqualTo(2)
+  }
+
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {
     tree.setToolContext(inspector)
     // Normally the tree would have received structural changes when the mode was loaded.
     // Mimic that here:
     val model = inspector.inspectorModel
-    model.windows.values.forEach { window -> model.modificationListeners.forEach { it(window, window, true) } }
+    model.windows.values.forEach { window ->
+      model.modificationListeners.forEach { it.onModification(window, window, true) }
+    }
   }
 
   private fun assertTreeStructure(node: TreeViewNode, expected: ViewNode) {

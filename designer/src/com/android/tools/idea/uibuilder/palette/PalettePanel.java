@@ -23,6 +23,7 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.DnDTransferComponent;
@@ -33,7 +34,6 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -619,7 +619,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       }
       DnDTransferComponent dndComponent = new DnDTransferComponent(item.getTagName(), item.getXml(), 0, 0);
       DnDTransferItem dndItem = new DnDTransferItem(dndComponent);
-      InsertType insertType = model.determineInsertType(DragType.COPY, dndItem, checkOnly /* preview */);
+      InsertType insertType = model.determineInsertType(DragType.COPY, dndItem, checkOnly /* preview */, true /* generateIds */);
 
       List<NlComponent> toAdd = model.createComponents(dndItem, insertType);
 

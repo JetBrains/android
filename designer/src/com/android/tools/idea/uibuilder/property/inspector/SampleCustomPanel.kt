@@ -25,10 +25,9 @@ import javax.swing.JPanel
 /**
  * Sample [CustomPanel] used in the Nele [InspectorBuilder]s.
  *
- * The [InspectorBuilder] can lazily generate a [CustomPanel].
- * Use the [INSTANCE] to identify a non existing [CustomPanel] such
- * that the [InspectorBuilder] only have to attempt to generate
- * it once. See [LayoutInspectorBuilder].
+ * The [InspectorBuilder] can lazily generate a [CustomPanel]. Use the [INSTANCE] to identify a non
+ * existing [CustomPanel] such that the [InspectorBuilder] only have to attempt to generate it once.
+ * See [LayoutInspectorBuilder].
  */
 class SampleCustomPanel private constructor() : CustomPanel {
 
@@ -45,7 +44,6 @@ class SampleCustomPanel private constructor() : CustomPanel {
   }
 
   companion object {
-    @JvmField
-    val INSTANCE = SampleCustomPanel()
+    @JvmField val INSTANCE = SampleCustomPanel()
   }
 }

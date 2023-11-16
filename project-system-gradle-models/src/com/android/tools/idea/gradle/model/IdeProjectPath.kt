@@ -39,11 +39,6 @@ interface IdeProjectPath: Serializable {
   val buildId: File
 
   /**
-   * The name of the included build containing this project or ":" if this project belongs to the root build.
-   */
-  val buildName: String
-
-  /**
    * Returns the Gradle project path of the module (excluding the build name, if in an included build).
    */
   val projectPath: String

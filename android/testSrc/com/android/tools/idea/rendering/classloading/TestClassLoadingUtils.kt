@@ -27,12 +27,12 @@ import java.io.StringWriter
 
 private object TestClassLoadingUtils
 
-internal fun loadClassBytes(c: Class<*>): ByteArray {
+fun loadClassBytes(c: Class<*>): ByteArray {
   val className = "${Type.getInternalName(c)}.class"
   c.classLoader.getResourceAsStream(className)!!.use { return it.readBytes() }
 }
 
-internal fun textifyClass(c: ByteArray): String {
+fun textifyClass(c: ByteArray): String {
   val stringWriter = StringWriter()
   ClassReader(c).accept(TraceClassVisitor(PrintWriter(stringWriter)), 0)
 
@@ -44,7 +44,7 @@ internal fun textifyClass(c: ByteArray): String {
  * We take the already compiled classes in the test project, and save it to a byte array, applying the
  * transformations.
  */
-internal fun setupTestClassLoaderWithTransformation(
+fun setupTestClassLoaderWithTransformation(
   classDefinitions: Map<String, Class<*>>,
   beforeTransformTrace: StringWriter,
   afterTransformTrace: StringWriter,

@@ -15,28 +15,25 @@
  */
 package com.android.tools.idea.common.util
 
-import com.android.tools.idea.rendering.RenderProblem
+import com.android.tools.rendering.RenderProblem
 import java.io.PrintWriter
 import java.io.StringWriter
 
-/**
- * Converts a [Throwable] to a string for log printing.
- */
-private fun Throwable?.asLogString(): String = if (this == null) {
-  ""
-}
-else {
-  val stringWriter = StringWriter()
-  printStackTrace(PrintWriter(stringWriter))
-  "\n\nthrowable: ${stringWriter}"
-}
+/** Converts a [Throwable] to a string for log printing. */
+private fun Throwable?.asLogString(): String =
+  if (this == null) {
+    ""
+  } else {
+    val stringWriter = StringWriter()
+    printStackTrace(PrintWriter(stringWriter))
+    "\n\nthrowable: ${stringWriter}"
+  }
 
-/**
- * Converts a [RenderProblem] to a string for log printing.
- */
+/** Converts a [RenderProblem] to a string for log printing. */
 fun List<RenderProblem>.asLogString(): String =
   joinToString("\n\n") {
     """${it.html}
       | ${it.throwable?.asLogString()}
-    """.trimMargin()
+    """
+      .trimMargin()
   }

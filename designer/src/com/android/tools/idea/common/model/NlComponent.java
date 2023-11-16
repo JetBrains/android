@@ -17,21 +17,30 @@ package com.android.tools.idea.common.model;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_STYLE;
+import static com.android.SdkConstants.LIST_VIEW;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
 import static com.android.SdkConstants.XMLNS;
 import static com.android.SdkConstants.XMLNS_PREFIX;
 import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
-import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
+import com.android.tools.rendering.parsers.AttributeSnapshot;
 import com.android.tools.rendering.parsers.RenderXmlTag;
+import com.android.tools.rendering.parsers.TagSnapshot;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.lang.LanguageNamesValidation;
@@ -69,6 +78,10 @@ import org.jetbrains.annotations.TestOnly;
  * if visual it has bounds, etc.
  */
 public class NlComponent implements NlAttributesHolder {
+
+  // Attribute value applied to a TagSnapshot in LayoutPsiPullParser.TAG_SNAPSHOT_DECORATOR
+  @VisibleForTesting
+  public static final String ID_DYNAMIC = "@+id/_dynamic";
 
   @Nullable private XmlModelComponentMixin myMixin;
 
@@ -334,6 +347,22 @@ public class NlComponent implements NlAttributesHolder {
     return builder.build();
   }
 
+  @Nullable
+  public NlComponent findViewByAccessibilityId(long id) {
+    if (myAccessibilityId == id) {
+      return this;
+    }
+
+    for (NlComponent child : getChildren()) {
+      NlComponent result = child.findViewByAccessibilityId(id);
+      if (result != null) {
+        return result;
+      }
+    }
+
+    return null;
+  }
+
   public boolean isRoot() {
     return !(getTagDeprecated().getParent() instanceof XmlTag);
   }
@@ -474,7 +503,42 @@ public class NlComponent implements NlAttributesHolder {
   public String getAttributeImpl(@Nullable String namespace, @NotNull String attribute) {
     TagSnapshot snapshot = mySnapshot;
     if (snapshot != null) {
-      return snapshot.getAttribute(attribute, namespace);
+      String value = snapshot.getAttribute(attribute, namespace);
+      // Hack for: b/280503416
+      // The LayoutPsiPullParser.TAG_SNAPSHOT_DECORATOR may add a synthetic id to a List_VIEW. Ignore this id:
+      if (ID_DYNAMIC.equals(value) && attribute.equals(ATTR_ID) && getTagName().equals(LIST_VIEW) &&
+          myBackend.getAttribute(attribute, namespace) == null) {
+        return null;
+      }
+
+      if (value != null) {
+        return value;
+      }
+
+      // Check if the component has an associated style that contains this attribute
+      String style = snapshot.getAttribute(ATTR_STYLE, "");
+      if (style == null) {
+        return null;
+      }
+      ResourceUrl url = ResourceUrl.parse(style);
+      if (url == null) {
+        return null;
+      }
+      ResourceReference styleRef = url.resolve(ResourceNamespace.RES_AUTO, ResourceNamespace.Resolver.EMPTY_RESOLVER);
+      if (styleRef == null) {
+        return null;
+      }
+      ResourceResolver resolver = myModel.getConfiguration().getResourceResolver();
+      StyleResourceValue styleResValue = resolver.getStyle(styleRef);
+      if (styleResValue == null) {
+        return null;
+      }
+      ResourceNamespace resNamespace = namespace != null ? ResourceNamespace.fromNamespaceUri(namespace) : ResourceNamespace.TODO();
+      if (resNamespace == null) {
+        return null;
+      }
+      StyleItemResourceValue item = resolver.findItemInStyle(styleResValue, ResourceReference.attr(resNamespace, attribute));
+      return item != null ? item.getValue() : null;
     }
 
     return myBackend.getAttribute(attribute, namespace);
@@ -676,7 +740,7 @@ public class NlComponent implements NlAttributesHolder {
    */
   @NotNull
   private String assignId(@NotNull Set<String> ids) {
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(this);
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(this, () -> {});
     String baseName = handler != null ? handler.generateBaseId(this) : getTagName();
     return assignId(baseName, ids);
   }

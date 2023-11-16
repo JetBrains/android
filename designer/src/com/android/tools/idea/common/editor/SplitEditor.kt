@@ -38,6 +38,7 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
 import com.intellij.pom.Navigatable
+import com.intellij.ui.ExperimentalUI
 import com.intellij.util.containers.orNull
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -45,45 +46,70 @@ import javax.swing.JComponent
 val SPLIT_TEXT_EDITOR_KEY = DataKey.create<TextEditor>(TextEditor::class.java.name)
 
 /**
- * [TextEditorWithPreview] with keyboard shortcuts to navigate between views, and code navigation when interacting with the preview portion
- * of the editor. Please use this class if you're adding a [TextEditorWithPreview] editor to Android Studio.
+ * [TextEditorWithPreview] with keyboard shortcuts to navigate between views, and code navigation
+ * when interacting with the preview portion of the editor. Please use this class if you're adding a
+ * [TextEditorWithPreview] editor to Android Studio.
  */
-abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
-                                           designEditor: P,
-                                           editorName: String,
-                                           defaultLayout: Layout = Layout.SHOW_EDITOR_AND_PREVIEW)
-  : TextEditorWithPreview(textEditor, designEditor, editorName, defaultLayout), DataProvider {
+abstract class SplitEditor<P : FileEditor>(
+  textEditor: TextEditor,
+  designEditor: P,
+  editorName: String,
+  defaultLayout: Layout = Layout.SHOW_EDITOR_AND_PREVIEW
+) :
+  TextEditorWithPreview(textEditor, designEditor, editorName, defaultLayout),
 
-  private val textViewAction = SplitEditorAction("Code", AllIcons.General.LayoutEditorOnly, super.getShowEditorAction(), true)
+  DataProvider {
 
-  private val splitViewAction = SplitEditorAction("Split", AllIcons.General.LayoutEditorPreview, super.getShowEditorAndPreviewAction(),
-                                                  true)
+  private val textViewAction =
+    SplitEditorAction("Code", AllIcons.General.LayoutEditorOnly, super.getShowEditorAction(), true)
 
-  private val previewViewAction = SplitEditorAction("Design", AllIcons.General.LayoutPreviewOnly, super.getShowPreviewAction(), false)
+  private val splitViewAction =
+    SplitEditorAction(
+      "Split",
+      AllIcons.General.LayoutEditorPreview,
+      super.getShowEditorAndPreviewAction(),
+      true
+    )
 
-  private val navigateLeftAction = object : AnAction() {
-    override fun actionPerformed(e: AnActionEvent) = selectAction(actions.previous(actions.indexOf(getSelectedAction())), true)
-  }
+  private val previewViewAction =
+    SplitEditorAction(
+      "Design",
+      AllIcons.General.LayoutPreviewOnly,
+      super.getShowPreviewAction(),
+      false
+    )
+
+  private val navigateLeftAction =
+    object : AnAction() {
+      override fun actionPerformed(e: AnActionEvent) =
+        selectAction(actions.previous(actions.indexOf(getSelectedAction())), true)
+    }
 
   override fun isShowFloatingToolbar() = false
 
-  override fun isShowActionsInTabs() = false
+  private val navigateRightAction =
+    object : AnAction() {
+      override fun actionPerformed(e: AnActionEvent) =
+        selectAction(actions.next(actions.indexOf(getSelectedAction())), true)
+    }
 
-  private val navigateRightAction = object : AnAction() {
-    override fun actionPerformed(e: AnActionEvent) = selectAction(actions.next(actions.indexOf(getSelectedAction())), true)
+  protected val actions: List<SplitEditorAction> by lazy {
+    listOf(showEditorAction, showEditorAndPreviewAction, showPreviewAction)
   }
-
-  protected val actions: List<SplitEditorAction> by lazy { listOf(showEditorAction, showEditorAndPreviewAction, showPreviewAction) }
 
   private var shortcutsRegistered = false
 
   override fun getComponent(): JComponent {
     val thisComponent = super.getComponent()
-    // If displaying the split controls in the editor tabs, we should make sure the legacy toolbar is not visible.
+    // If displaying the split controls in the editor tabs, we should make sure the legacy toolbar
+    // is not visible.
     if (isShowActionsInTabs) {
-      TreeWalker(thisComponent).descendantStream().filter { it is SplitEditorToolbar }.findFirst().orNull()?.let {
-        it.isVisible = false
-      }
+      TreeWalker(thisComponent)
+        .descendantStream()
+        .filter { it is SplitEditorToolbar }
+        .findFirst()
+        .orNull()
+        ?.let { it.isVisible = false }
     }
     if (!shortcutsRegistered) {
       shortcutsRegistered = true
@@ -101,7 +127,8 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
   override fun getData(dataId: String): Any? {
     if (LangDataKeys.IDE_VIEW.`is`(dataId)) {
       val project = editor.project ?: return null
-      return FileEditorManagerEx.getInstanceEx(project).getData(dataId, editor, editor.caretModel.currentCaret)
+      return FileEditorManagerEx.getInstanceEx(project)
+        .getData(dataId, editor, editor.caretModel.currentCaret)
     }
     if (SPLIT_TEXT_EDITOR_KEY.`is`(dataId)) {
       return textEditor
@@ -110,37 +137,57 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
   }
 
   private fun getFakeActionEvent() =
-    AnActionEvent(null, DataManager.getInstance().getDataContext(component), "", Presentation(), ActionManager.getInstance(), 0)
+    AnActionEvent(
+      null,
+      DataManager.getInstance().getDataContext(component),
+      "",
+      Presentation(),
+      ActionManager.getInstance(),
+      0
+    )
 
-  // TODO(b/143210506): Review the current APIs for selecting and checking the current mode to be backed by an enum.
+  // TODO(b/143210506): Review the current APIs for selecting and checking the current mode to be
+  // backed by an enum.
   fun isTextMode() = textViewAction.isSelected(getFakeActionEvent())
 
   fun isSplitMode() = splitViewAction.isSelected(getFakeActionEvent())
 
   fun isDesignMode() = previewViewAction.isSelected(getFakeActionEvent())
 
-  fun selectTextMode(userExplicitlyTriggered: Boolean) = selectAction(showEditorAction, userExplicitlyTriggered)
+  fun selectTextMode(userExplicitlyTriggered: Boolean) =
+    selectAction(showEditorAction, userExplicitlyTriggered)
 
-  fun selectSplitMode(userExplicitlyTriggered: Boolean) = selectAction(showEditorAndPreviewAction, userExplicitlyTriggered)
+  fun selectSplitMode(userExplicitlyTriggered: Boolean) =
+    selectAction(showEditorAndPreviewAction, userExplicitlyTriggered)
 
-  fun selectDesignMode(userExplicitlyTriggered: Boolean) = selectAction(showPreviewAction, userExplicitlyTriggered)
+  fun selectDesignMode(userExplicitlyTriggered: Boolean) =
+    selectAction(showPreviewAction, userExplicitlyTriggered)
 
   protected fun selectAction(action: SplitEditorAction, userExplicitlyTriggered: Boolean) =
     action.setSelected(getFakeActionEvent(), true, userExplicitlyTriggered)
 
   protected fun getSelectedAction() = actions.firstOrNull { it.isSelected(getFakeActionEvent()) }
 
-  private fun List<SplitEditorAction>.next(selectedIndex: Int): SplitEditorAction = this[(selectedIndex + 1) % this.size]
+  private fun List<SplitEditorAction>.next(selectedIndex: Int): SplitEditorAction =
+    this[(selectedIndex + 1) % this.size]
 
-  private fun List<SplitEditorAction>.previous(selectedIndex: Int): SplitEditorAction = this[(this.size + selectedIndex - 1) % this.size]
+  private fun List<SplitEditorAction>.previous(selectedIndex: Int): SplitEditorAction =
+    this[(this.size + selectedIndex - 1) % this.size]
 
   /**
-   * TODO (b/149212539): Register these shortcuts to plugin xml file to support custom keymap. Then remove this function.
+   * TODO (b/149212539): Register these shortcuts to plugin xml file to support custom keymap. Then
+   * remove this function.
    */
   @VisibleForTesting
   protected fun registerModeNavigationShortcuts(applicableTo: JComponent) {
-    navigateLeftAction.registerCustomShortcutSet(KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_PREVIOUS_EDITOR_TAB), applicableTo)
-    navigateRightAction.registerCustomShortcutSet(KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_NEXT_EDITOR_TAB), applicableTo)
+    navigateLeftAction.registerCustomShortcutSet(
+      KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_PREVIOUS_EDITOR_TAB),
+      applicableTo
+    )
+    navigateRightAction.registerCustomShortcutSet(
+      KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_NEXT_EDITOR_TAB),
+      applicableTo
+    )
   }
 
   /**
@@ -148,14 +195,18 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
    *
    * @param name the name of the mode.
    * @param icon icon for the mode.
-   * @param delegate a [ToggleAction] that will receive the [setSelected] call then it is triggered in this action.
-   * @param showDefaultGutterPopup when this action is triggered, if true, the text editor will use the default gutter popup.
+   * @param delegate a [ToggleAction] that will receive the [setSelected] call then it is triggered
+   *   in this action.
+   * @param showDefaultGutterPopup when this action is triggered, if true, the text editor will use
+   *   the default gutter popup.
    */
-  protected open inner class SplitEditorAction internal constructor(val name: String,
-                                                                    val icon: Icon,
-                                                                    val delegate: ToggleAction,
-                                                                    val showDefaultGutterPopup: Boolean)
-    : ToggleAction(name, name, icon), DumbAware {
+  protected open inner class SplitEditorAction
+  internal constructor(
+    val name: String,
+    val icon: Icon,
+    val delegate: ToggleAction,
+    val showDefaultGutterPopup: Boolean
+  ) : ToggleAction(if (ExperimentalUI.isNewUI()) null else name, name, icon), DumbAware {
 
     override fun isSelected(e: AnActionEvent) = delegate.isSelected(e)
 
@@ -164,15 +215,25 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
     open fun setSelected(e: AnActionEvent, state: Boolean, userExplicitlySelected: Boolean) {
       val isRedundantStateChange = isSelected(e) == state
       delegate.setSelected(e, state)
-      if (isRedundantStateChange) return // Return early if state is being redundantly set, otherwise we could request the focus too often.
+      if (isRedundantStateChange) {
+        // Return early if state is being redundantly set, otherwise we could request the
+        // focus too often.
+        return
+      }
 
-      // When the text editor is not visible, trying to trigger the right click popup on the breadcrumb bar will throw an
-      // exception. This disables the popup when showDefaultGutterPopup is false allowing to avoid the popup when the text editor
+      // When the text editor is not visible, trying to trigger the right click popup on the
+      // breadcrumb bar will throw an
+      // exception. This disables the popup when showDefaultGutterPopup is false allowing to avoid
+      // the popup when the text editor
       // is not visible. See http://b/208596732.
-      (textEditor.editor as? EditorEx)?.gutterComponentEx?.setShowDefaultGutterPopup(showDefaultGutterPopup)
+      (textEditor.editor as? EditorEx)
+        ?.gutterComponentEx
+        ?.setShowDefaultGutterPopup(showDefaultGutterPopup)
       if (userExplicitlySelected) {
-        // We might want to run a callback when users explicitly select the action, i.e. when they click on the action to change the mode.
-        // For example, we might want to track when they change modes. An example of indirectly changing the mode is triggering "Go to XML"
+        // We might want to run a callback when users explicitly select the action, i.e. when they
+        // click on the action to change the mode.
+        // For example, we might want to track when they change modes. An example of indirectly
+        // changing the mode is triggering "Go to XML"
         // when in design mode, as we change the mode to text-only.
         onUserSelectedAction()
       }
@@ -184,8 +245,9 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
 
     override fun update(e: AnActionEvent) {
       super.update(e)
-      val bothShortcutsEmpty = navigateLeftAction.shortcutSet == CustomShortcutSet.EMPTY
-                               && navigateRightAction.shortcutSet == CustomShortcutSet.EMPTY
+      val bothShortcutsEmpty =
+        navigateLeftAction.shortcutSet == CustomShortcutSet.EMPTY &&
+          navigateRightAction.shortcutSet == CustomShortcutSet.EMPTY
       if (bothShortcutsEmpty || isSelected(e)) {
         e.presentation.description = name
         return
@@ -193,11 +255,16 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
 
       val shortcut =
         // Action is on the right of the selected action
-        if (actions.previous(actions.indexOf(this)) == getSelectedAction()) navigateRightAction.shortcutSet
+        if (actions.previous(actions.indexOf(this)) == getSelectedAction())
+          navigateRightAction.shortcutSet
         // Action is on the left of the selected action
         else navigateLeftAction.shortcutSet
 
-      val suffix = KeymapUtil.getFirstKeyboardShortcutText(shortcut).takeIf { it.isNotEmpty() }?.let { " (${it})" } ?: ""
+      val suffix =
+        KeymapUtil.getFirstKeyboardShortcutText(shortcut)
+          .takeIf { it.isNotEmpty() }
+          ?.let { " (${it})" }
+          ?: ""
       e.presentation.description = "$name$suffix"
     }
 
@@ -206,6 +273,5 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
     open fun onUserSelectedAction() {}
   }
 
-  @Suppress("UNCHECKED_CAST")
-  val preview: P = myPreview as P
+  @Suppress("UNCHECKED_CAST") val preview: P = myPreview as P
 }

@@ -31,7 +31,6 @@ import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.util.IconLoader
 import icons.StudioIcons
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
@@ -41,7 +40,6 @@ import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Pause
 import org.fest.swing.timing.Wait
-import javax.swing.Icon
 import javax.swing.JComponent
 
 /**
@@ -78,7 +76,7 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
   /**
    * Returns whether the [NlDesignSurface] is showing in the split editor or not.
    */
-  val hasDesignSurface: Boolean
+  private val hasDesignSurface: Boolean
     get() =
       try {
         waitUntilShowing(robot, null, Matchers.byType(NlDesignSurface::class.java), 2)
@@ -125,15 +123,6 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
     return ActionButtonFixture(robot(), button)
   }
 
-  fun findActionButtonByIcon(icon: Icon): ActionButtonFixture {
-    val button = waitUntilShowing(
-      robot(), target(), object : GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
-      override fun isMatching(component: ActionButton): Boolean {
-        return component.icon == icon || IconLoader.getDisabledIcon(icon) == component.icon
-      }
-    })
-    return ActionButtonFixture(robot(), button)
-  }
 }
 
 /**
@@ -151,15 +140,4 @@ fun EditorFixture.getSplitEditorFixture(): SplitEditorFixture {
     checkState(selected is SplitEditor<out FileEditor>, "invalid editor selected")
     SplitEditorFixture(ideFrame.robot(), selected as SplitEditor<out FileEditor>)
   }
-}
-
-/**
- * Returns if the current selected editor is a [SplitEditor]
- */
-fun EditorFixture.isSplitEditor(): Boolean {
-  // Wait for the editor to do any initializations
-  ideFrame.robot().waitForIdle()
-
-  val editors = FileEditorManager.getInstance(ideFrame.project).selectedEditors
-  return editors[0] is SplitEditor<out FileEditor>
 }

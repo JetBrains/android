@@ -25,6 +25,9 @@ import com.intellij.psi.PsiElement;
 public interface AndroidSqlPragmaValue extends PsiElement {
 
   @Nullable
+  AndroidSqlBooleanLiteral getBooleanLiteral();
+
+  @Nullable
   AndroidSqlSignedNumber getSignedNumber();
 
   @Nullable

@@ -19,6 +19,7 @@ import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.NonPhysicalFileSystem
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
@@ -114,6 +115,13 @@ private class CodePsiTreeChangeAdapter(
   }
 }
 
+/**
+ * Returns whether this file is an actual file or a fake one. Fake files are not backed by a real file system and they are
+ * in memory representations.
+ */
+private fun PsiFile.isFakeFile(): Boolean =
+  virtualFile?.fileSystem is NonPhysicalFileSystem
+
 @Service(Service.Level.PROJECT)
 class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManager) : Disposable {
   private val isDisposed = AtomicBoolean(false)
@@ -133,8 +141,9 @@ class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManage
 
   init {
     psiManager.addPsiTreeChangeListener(
-      // Listen to all code changes but ignore changes for files that are already out of date
-      CodePsiTreeChangeAdapter({ !fileUpdatesFlow.value.contains(it) }, ::onCodeChange),
+      // Listen to all code changes but ignore changes for files that are already out of date or for code that is not part of the file system.
+      // We ignore fake files since we do not care a bout in-memory modifications.
+      CodePsiTreeChangeAdapter({ !fileUpdatesFlow.value.contains(it) && !it.isFakeFile() }, ::onCodeChange),
       this
     )
   }

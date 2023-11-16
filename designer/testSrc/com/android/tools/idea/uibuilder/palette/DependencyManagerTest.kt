@@ -18,19 +18,16 @@ package com.android.tools.idea.uibuilder.palette
 import com.android.AndroidXConstants.CARD_VIEW
 import com.android.AndroidXConstants.FLOATING_ACTION_BUTTON
 import com.android.AndroidXConstants.RECYCLER_VIEW
-import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.TestProjectSystem
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -42,9 +39,6 @@ import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiManager
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -55,7 +49,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestName
 import org.mockito.Mockito.mock
-import java.io.File
 import java.nio.file.Files.createTempDirectory
 import java.util.ArrayDeque
 import java.util.concurrent.Future
@@ -72,16 +65,17 @@ class DependencyManagerTest {
   private val watcher = TestName()
   private lateinit var testProjectSystem: TestProjectSystem
 
-  @get:Rule
-  val rule = RuleChain.outerRule(projectRule).around(watcher)!!
+  @get:Rule val rule = RuleChain.outerRule(projectRule).around(watcher)!!
 
   @Before
   fun setUp() {
-    testProjectSystem = TestProjectSystem(projectRule.project, availableDependencies = PLATFORM_SUPPORT_LIBS)
+    testProjectSystem =
+      TestProjectSystem(projectRule.project, availableDependencies = PLATFORM_SUPPORT_LIBS)
     testProjectSystem.useAndroidX = true
     runInEdtAndWait { testProjectSystem.useInTests() }
     panel = mock(PalettePanel::class.java)
-    palette = NlPaletteModel.get(AndroidFacet.getInstance(projectRule.module)!!).getPalette(LayoutFileType)
+    palette =
+      NlPaletteModel.get(AndroidFacet.getInstance(projectRule.module)!!).getPalette(LayoutFileType)
     disposable = Disposer.newDisposable()
     Disposer.register(projectRule.testRootDisposable, disposable!!)
 
@@ -102,7 +96,8 @@ class DependencyManagerTest {
   @After
   fun tearDown() {
     TestDialogManager.setTestDialog(TestDialog.DEFAULT)
-    // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
+    // Null out all fields, since otherwise they're retained for the lifetime of the suite (which
+    // can be long if e.g. you're running many
     // tests through IJ)
     Disposer.dispose(disposable!!)
     palette = null
@@ -114,13 +109,19 @@ class DependencyManagerTest {
   @Test
   fun testNeedsLibraryLoad() {
     assertThat(dependencyManager!!.needsLibraryLoad(findItem(TEXT_VIEW))).isFalse()
-    assertThat(dependencyManager!!.needsLibraryLoad(findItem(FLOATING_ACTION_BUTTON.defaultName()))).isTrue()
+    assertThat(dependencyManager!!.needsLibraryLoad(findItem(FLOATING_ACTION_BUTTON.defaultName())))
+      .isTrue()
   }
 
   @Test
   fun testEnsureLibraryIsIncluded() {
     val (floatingActionButton, recyclerView, cardView) =
-      listOf(FLOATING_ACTION_BUTTON.defaultName(), RECYCLER_VIEW.defaultName(), CARD_VIEW.defaultName()).map(this::findItem)
+      listOf(
+          FLOATING_ACTION_BUTTON.defaultName(),
+          RECYCLER_VIEW.defaultName(),
+          CARD_VIEW.defaultName()
+        )
+        .map(this::findItem)
 
     assertThat(dependencyManager!!.needsLibraryLoad(floatingActionButton)).isTrue()
     assertThat(dependencyManager!!.needsLibraryLoad(recyclerView)).isTrue()
@@ -188,27 +189,31 @@ class DependencyManagerTest {
   fun testSetPaletteWithDisposedProject() {
     val foo = createTempDirectory("foo")
     val bar = createTempDirectory("bar")
-    val tempProject = ProjectManagerEx.getInstanceEx().newProject(foo, OpenProjectTask(isNewProject = true))!!
+    val tempProject =
+      ProjectManagerEx.getInstanceEx().newProject(foo, OpenProjectTask(isNewProject = true))!!
     val localDependencyManager: DependencyManager
 
     try {
-      val tempModule = WriteCommandAction.runWriteCommandAction(tempProject, Computable {
-        ModuleManager.getInstance(tempProject).newModule(bar, StdModuleTypes.JAVA.id)
-      })
+      val tempModule =
+        WriteCommandAction.runWriteCommandAction(
+          tempProject,
+          Computable {
+            ModuleManager.getInstance(tempProject).newModule(bar, StdModuleTypes.JAVA.id)
+          }
+        )
 
       localDependencyManager = DependencyManager(tempProject)
       Disposer.register(tempProject, localDependencyManager)
       localDependencyManager.setPalette(palette!!, tempModule)
-    }
-    finally {
-      WriteCommandAction.runWriteCommandAction(tempProject) {
-        Disposer.dispose(tempProject)
-      }
+    } finally {
+      WriteCommandAction.runWriteCommandAction(tempProject) { Disposer.dispose(tempProject) }
     }
   }
 
   private fun simulateProjectSync() {
-    projectRule.project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
+    projectRule.project.messageBus
+      .syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)
+      .syncEnded(SyncResult.SUCCESS)
     waitAndDispatchAll()
   }
 

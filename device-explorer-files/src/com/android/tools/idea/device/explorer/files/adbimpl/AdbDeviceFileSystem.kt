@@ -16,37 +16,27 @@
 package com.android.tools.idea.device.explorer.files.adbimpl
 
 import com.android.adblib.ConnectedDevice
-import com.android.adblib.deviceInfo
 import com.android.adblib.scope
-import com.android.adblib.serialNumber
-import com.android.ddmlib.FileListingService
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
-import com.android.tools.idea.device.explorer.files.fs.DeviceState
-import com.intellij.openapi.util.text.StringUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.job
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import java.util.concurrent.Executor
 
 class AdbDeviceFileSystem(
-  val deviceHandle: DeviceHandle,
+  deviceHandle: DeviceHandle,
   val device: ConnectedDevice,
   edtExecutor: Executor,
   val dispatcher: CoroutineDispatcher
 ) : DeviceFileSystem {
 
-  override val scope: CoroutineScope = device.scope + SupervisorJob(device.scope.coroutineContext.job)
-
+  private val scope: CoroutineScope = device.scope + SupervisorJob(device.scope.coroutineContext.job)
   private val myEdtExecutor = FutureCallbackExecutor(edtExecutor)
   val capabilities = AdbDeviceCapabilities(scope + dispatcher, deviceHandle.state.properties.title, device)
   val adbFileListing = AdbFileListing(device, capabilities, dispatcher)
@@ -55,52 +45,8 @@ class AdbDeviceFileSystem(
 
   override val name = deviceHandle.state.properties.title
 
-  override val deviceSerialNumber: String
-    get() = device.serialNumber
-
-  private fun com.android.adblib.DeviceState.toDeviceState() =
-    when (this) {
-      com.android.adblib.DeviceState.ONLINE -> DeviceState.ONLINE
-      com.android.adblib.DeviceState.OFFLINE -> DeviceState.OFFLINE
-      com.android.adblib.DeviceState.UNAUTHORIZED -> DeviceState.UNAUTHORIZED
-      com.android.adblib.DeviceState.DISCONNECTED -> DeviceState.DISCONNECTED
-      com.android.adblib.DeviceState.BOOTLOADER -> DeviceState.BOOTLOADER
-      com.android.adblib.DeviceState.RECOVERY -> DeviceState.RECOVERY
-      com.android.adblib.DeviceState.SIDELOAD -> DeviceState.SIDELOAD
-      else -> DeviceState.DISCONNECTED
-    }
-
-  override val deviceStateFlow: StateFlow<DeviceState> =
-    device.deviceInfoFlow
-      .map { it.deviceState.toDeviceState() }
-      .stateIn(
-        scope,
-        SharingStarted.Eagerly,
-        device.deviceInfo.deviceState.toDeviceState()
-      )
-
   override suspend fun rootDirectory(): DeviceFileEntry {
-    return AdbDeviceDefaultFileEntry(this, adbFileListing.root, null)
-  }
-
-  override suspend fun getEntry(path: String): DeviceFileEntry {
-    val root = rootDirectory()
-    if (StringUtil.isEmpty(path) || StringUtil.equals(path, FileListingService.FILE_SEPARATOR)) {
-      return root
-    }
-    val pathSegments = path.substring(1).split(FileListingService.FILE_SEPARATOR.toRegex()).toList()
-    return resolvePathSegments(root, pathSegments)
-  }
-
-  private suspend fun resolvePathSegments(
-    rootEntry: DeviceFileEntry,
-    segments: List<String>
-  ): DeviceFileEntry {
-    var currentEntry = rootEntry
-    for (segment in segments) {
-      currentEntry = currentEntry.entries().find { it.name == segment } ?: throw IllegalArgumentException("Path not found")
-    }
-    return currentEntry
+    return AdbDeviceDefaultFileEntry(this, adbFileListing.getRoot(), null)
   }
 
   suspend fun resolveMountPoint(entry: AdbDeviceFileEntry): AdbDeviceFileEntry =

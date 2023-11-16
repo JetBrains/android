@@ -17,8 +17,6 @@ package com.android.tools.idea.device.explorer.files.ui;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.LoadingNode;
 import com.intellij.util.ui.tree.TreeModelAdapter;

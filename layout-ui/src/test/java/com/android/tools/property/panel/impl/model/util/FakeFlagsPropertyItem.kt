@@ -26,7 +26,9 @@ class FakeFlagsPropertyItem(
   flagNames: List<String>,
   values: List<Int>,
   initialValue: String? = null
-) : FakePropertyItem(namespace, name, initialValue, null, null), FlagsPropertyGroupItem<FakeFlagPropertyItem> {
+) :
+  FakePropertyItem(namespace, name, initialValue, null, null),
+  FlagsPropertyGroupItem<FakeFlagPropertyItem> {
   override val children = mutableListOf<FakeFlagPropertyItem>()
 
   val valueAsSet: HashSet<String>
@@ -42,13 +44,14 @@ class FakeFlagsPropertyItem(
       return mask
     }
 
-
   init {
-    flagNames.forEachIndexed { index, flag -> children.add(FakeFlagPropertyItem(namespace, flag, this, values[index])) }
+    flagNames.forEachIndexed { index, flag ->
+      children.add(FakeFlagPropertyItem(namespace, flag, this, values[index]))
+    }
   }
 
-  override fun flag(itemName: String): FakeFlagPropertyItem? = children.firstOrNull { it.name == itemName }
-
+  override fun flag(itemName: String): FakeFlagPropertyItem? =
+    children.firstOrNull { it.name == itemName }
 }
 
 class FakeFlagPropertyItem(
@@ -64,8 +67,7 @@ class FakeFlagPropertyItem(
       val set = flags.valueAsSet
       if (value) {
         set.add(name)
-      }
-      else {
+      } else {
         set.remove(name)
       }
       flags.value = Joiner.on("|").join(set)
@@ -73,7 +75,9 @@ class FakeFlagPropertyItem(
 
   override var value: String?
     get() = if (actualValue) "true" else "false"
-    set(value) { actualValue = (value == "true") }
+    set(value) {
+      actualValue = (value == "true")
+    }
 
   override val effectiveValue: Boolean
     get() = (flags.maskValue and maskValue) == maskValue

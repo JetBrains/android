@@ -21,7 +21,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
-import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -47,9 +46,7 @@ final class PopupActionGroup extends DefaultActionGroup {
     myComboBoxAction = comboBoxAction;
     myManager = manager;
 
-    Collection<AnAction> actions =
-      comboBoxAction.areSnapshotsEnabled() ? newSelectDeviceActionsOrSnapshotActionGroups() : newSelectDeviceActions();
-
+    var actions = newSelectDeviceActionsOrSnapshotActionGroups();
     addAll(actions);
 
     if (!actions.isEmpty()) {
@@ -58,7 +55,6 @@ final class PopupActionGroup extends DefaultActionGroup {
 
     add(manager.getAction(SelectMultipleDevicesAction.ID));
     add(manager.getAction(PairDevicesUsingWiFiAction.ID));
-    add(manager.getAction("Android.WearDevicePairing"));
     add(manager.getAction("Android.DeviceManager"));
 
     AnAction action = manager.getAction("DeveloperServices.ConnectionAssistant");
@@ -77,7 +73,7 @@ final class PopupActionGroup extends DefaultActionGroup {
     Collection<Device> availableDevices = new ArrayList<>(size);
 
     for (Device device : myDevices) {
-      if (device.isConnected()) {
+      if (device.connected()) {
         runningDevices.add(device);
         continue;
       }
@@ -114,44 +110,11 @@ final class PopupActionGroup extends DefaultActionGroup {
   }
 
   private @NotNull AnAction newSelectDeviceActionOrSnapshotActionGroup(@NotNull Device device) {
-    if (!device.getSnapshots().isEmpty()) {
+    if (!device.snapshots().isEmpty()) {
       return new SnapshotActionGroup(device, myComboBoxAction);
     }
 
     return newSelectDeviceAction(device);
-  }
-
-  @NotNull
-  private Collection<AnAction> newSelectDeviceActions() {
-    Collection<Device> runningDevices = ContainerUtil.filter(myDevices, Device::isConnected);
-    Collection<Device> availableDevices = ContainerUtil.filter(myDevices, device -> !device.isConnected());
-
-    boolean runningDevicesPresent = !runningDevices.isEmpty();
-    Collection<AnAction> actions = new ArrayList<>(1 + runningDevices.size() + 2 + availableDevices.size());
-
-    if (runningDevicesPresent) {
-      actions.add(myManager.getAction(Heading.RUNNING_DEVICES_ID));
-    }
-
-    runningDevices.stream()
-      .map(this::newSelectDeviceAction)
-      .forEach(actions::add);
-
-    boolean availableDevicesPresent = !availableDevices.isEmpty();
-
-    if (runningDevicesPresent && availableDevicesPresent) {
-      actions.add(Separator.create());
-    }
-
-    if (availableDevicesPresent) {
-      actions.add(myManager.getAction(Heading.AVAILABLE_DEVICES_ID));
-    }
-
-    availableDevices.stream()
-      .map(this::newSelectDeviceAction)
-      .forEach(actions::add);
-
-    return actions;
   }
 
   @NotNull

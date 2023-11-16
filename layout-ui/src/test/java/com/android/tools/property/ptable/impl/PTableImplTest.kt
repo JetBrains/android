@@ -23,8 +23,9 @@ import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.laf.HeadlessTableUI
-import com.android.tools.property.ptable.DefaultPTableCellRendererProvider
 import com.android.tools.property.ptable.ColumnFraction
+import com.android.tools.property.ptable.DefaultPTableCellRenderer
+import com.android.tools.property.ptable.KEY_IS_VISUALLY_RESTRICTED
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableCellEditor
 import com.android.tools.property.ptable.PTableCellEditorProvider
@@ -46,8 +47,11 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import com.intellij.ui.ClientProperty
+import com.intellij.ui.TableCell
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.hover.TableHoverListener
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -65,6 +69,8 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.Cursor
 import java.awt.Dimension
+import java.awt.Point
+import java.awt.Rectangle
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
@@ -74,6 +80,7 @@ import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JTable
 import javax.swing.JTextField
 import javax.swing.KeyStroke
 import javax.swing.LayoutFocusTraversalPolicy
@@ -93,36 +100,51 @@ class PTableImplTest {
   private var model: PTableTestModel? = null
   private var nameColumnFraction: ColumnFraction? = null
   private var table: PTableImpl? = null
+  private var rendererProvider: SimplePTableCellRendererProvider? = null
   private var editorProvider: SimplePTableCellEditorProvider? = null
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
-  @get:Rule
-  val iconLoader = IconLoaderRule()
+  @get:Rule val iconLoader = IconLoaderRule()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Before
   fun setUp() {
-    // This test created some JTextField components. Do not start timers for the caret blink rate in tests:
+    // This test created some JTextField components. Do not start timers for the caret blink rate in
+    // tests:
     UIManager.put("TextField.caretBlinkRate", 0)
 
     nameColumnFraction = ColumnFraction(initialValue = 0.5f, resizeSupported = true)
+    rendererProvider = SimplePTableCellRendererProvider()
     editorProvider = SimplePTableCellEditorProvider()
-    model = createModel(Item("weight"), Item("size"), Item("readonly"), Item("visible", "true"),
-                        Group("weiss", Item("siphon"), Item("extra"), Group("flower", Item("rose"))),
-                        Item("new"))
-    table = PTableImpl(model!!, null, DefaultPTableCellRendererProvider(), editorProvider!!, nameColumnFraction = nameColumnFraction!!)
+    model =
+      createModel(
+        Item("weight"),
+        Item("size"),
+        Item("readonly"),
+        Item("visible", "true"),
+        Group("weiss", Item("siphon"), Item("extra"), Group("flower", Item("rose"))),
+        Item("new")
+      )
+    table =
+      PTableImpl(
+        model!!,
+        null,
+        rendererProvider!!,
+        editorProvider!!,
+        nameColumnFraction = nameColumnFraction!!
+      )
     val app = ApplicationManager.getApplication()
-    app.replaceService(IdeFocusManager::class.java, PassThroughIdeFocusManager.getInstance(), disposableRule.disposable)
+    app.replaceService(
+      IdeFocusManager::class.java,
+      PassThroughIdeFocusManager.getInstance(),
+      disposableRule.disposable
+    )
   }
 
   @After
@@ -469,7 +491,8 @@ class PTableImplTest {
 
     table!!.tableChanged(PTableModelEvent(table!!.model, 3))
 
-    // Since no row was being edited before the update, make sure no row is being edited after the update:
+    // Since no row was being edited before the update, make sure no row is being edited after the
+    // update:
     assertThat(table!!.editingRow).isEqualTo(-1)
     assertThat(model!!.editedItem).isNull()
   }
@@ -499,7 +522,14 @@ class PTableImplTest {
     table!!.setRowSelectionInterval(5, 5)
     dispatchAction(KeyStrokes.ENTER)
 
-    model!!.updateTo(true, Item("weight"), Item("size"), Item("readonly"), Item("visible"), Group("weiss", Item("siphon"), Item("extra")))
+    model!!.updateTo(
+      true,
+      Item("weight"),
+      Item("size"),
+      Item("readonly"),
+      Item("visible"),
+      Group("weiss", Item("siphon"), Item("extra"))
+    )
 
     assertThat(table!!.selectedRow).isEqualTo(-1)
     assertThat(table!!.isEditing).isFalse()
@@ -543,8 +573,7 @@ class PTableImplTest {
       if (row == 2) {
         // Make sure readonly rows are skipped
         continue
-      }
-      else if (row == 5) {
+      } else if (row == 5) {
         // A row with an editable name should edit column 0
         column = 0
       }
@@ -574,8 +603,7 @@ class PTableImplTest {
       if (row == 2) {
         // Make sure readonly rows are skipped
         continue
-      }
-      else if (row == 5) {
+      } else if (row == 5) {
         // A row with an editable name should edit column 0
         column = 0
       }
@@ -703,7 +731,8 @@ class PTableImplTest {
     val clipboard: Clipboard = mock()
     transferHandler.exportToClipboard(table!!, clipboard, TransferHandler.MOVE)
 
-    // Deletes are not supported in the model, do not expect anything copied to the clipboard, and the row should still exist:
+    // Deletes are not supported in the model, do not expect anything copied to the clipboard, and
+    // the row should still exist:
     verifyNoInteractions(clipboard)
     assertThat(model!!.items.size).isEqualTo(6)
 
@@ -740,16 +769,19 @@ class PTableImplTest {
     val selectedColor = UIUtil.getTableBackground(true, true)
 
     // Without focus:
-    assertThat(cellBackground(table!!, selected = false, hovered = false)).isEqualTo(table!!.background)
+    assertThat(cellBackground(table!!, selected = false, hovered = false))
+      .isEqualTo(table!!.background)
     assertThat(cellBackground(table!!, selected = false, hovered = true)).isEqualTo(hoverColor)
-    assertThat(cellBackground(table!!, selected = true, hovered = false)).isEqualTo(table!!.background)
+    assertThat(cellBackground(table!!, selected = true, hovered = false))
+      .isEqualTo(table!!.background)
     assertThat(cellBackground(table!!, selected = true, hovered = true)).isEqualTo(hoverColor)
 
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     focusManager.focusOwner = table
 
     // With focus:
-    assertThat(cellBackground(table!!, selected = false, hovered = false)).isEqualTo(table!!.background)
+    assertThat(cellBackground(table!!, selected = false, hovered = false))
+      .isEqualTo(table!!.background)
     assertThat(cellBackground(table!!, selected = false, hovered = true)).isEqualTo(hoverColor)
     assertThat(cellBackground(table!!, selected = true, hovered = false)).isEqualTo(selectedColor)
     assertThat(cellBackground(table!!, selected = true, hovered = true)).isEqualTo(selectedColor)
@@ -775,29 +807,44 @@ class PTableImplTest {
   @Test
   fun testCustomCursor() {
     val component = JPanel(BorderLayout())
-    val left = JLabel(StudioIcons.Common.ANDROID_HEAD).also { it.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) }
-    val middle = JLabel(StudioIcons.Common.CHECKED).also { it.cursor = Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) }
-    val right = JLabel(StudioIcons.Common.CLEAR).also { it.cursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR) }
+    val left =
+      JLabel(StudioIcons.Common.ANDROID_HEAD).also {
+        it.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+      }
+    val middle =
+      JLabel(StudioIcons.Common.CHECKED).also {
+        it.cursor = Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)
+      }
+    val right =
+      JLabel(StudioIcons.Common.CLEAR).also {
+        it.cursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR)
+      }
     component.add(left, BorderLayout.WEST)
     component.add(middle, BorderLayout.CENTER)
     component.add(right, BorderLayout.EAST)
 
-    val specialRenderer = object : PTableCellRenderer {
-      override fun getEditorComponent(
-        table: PTable,
-        item: PTableItem,
-        column: PTableColumn,
-        depth: Int,
-        isSelected: Boolean,
-        hasFocus: Boolean,
-        isExpanded: Boolean
-      ): JComponent = component
-    }
-    val rendererProvider = object : PTableCellRendererProvider {
-      override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellRenderer {
-        return specialRenderer
+    val specialRenderer =
+      object : PTableCellRenderer {
+        override fun getEditorComponent(
+          table: PTable,
+          item: PTableItem,
+          column: PTableColumn,
+          depth: Int,
+          isSelected: Boolean,
+          hasFocus: Boolean,
+          isExpanded: Boolean
+        ): JComponent = component
       }
-    }
+    val rendererProvider =
+      object : PTableCellRendererProvider {
+        override fun invoke(
+          table: PTable,
+          property: PTableItem,
+          column: PTableColumn
+        ): PTableCellRenderer {
+          return specialRenderer
+        }
+      }
 
     model!!.hasCustomCursors = true
     table = PTableImpl(model!!, null, rendererProvider, editorProvider!!)
@@ -833,6 +880,107 @@ class PTableImplTest {
     ui.mouse.moveTo(300, 5)
     assertThat(table!!.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
   }
+
+  @Test
+  fun testExpandableItemHandler() {
+    // The expandable item handler cannot be tested with FakeUi because
+    // AbstractExpandableItemHandler is using
+    // ScreenUtil.getScreenRectangle() which returns an empty rectangle on a headless system.
+
+    // Instead check some direct calls to the expandable item handler.
+
+    // First replace the renderer such that each cell is rendered with a panel with 2 child panels
+    // of each size.
+    // The left child panel will accept expansion request, the right child panel will not.
+    // Make the preferred size of the child panels wider proportional with the row number.
+    rendererProvider!!.renderer =
+      object : PTableCellRenderer {
+        override fun getEditorComponent(
+          table: PTable,
+          item: PTableItem,
+          column: PTableColumn,
+          depth: Int,
+          isSelected: Boolean,
+          hasFocus: Boolean,
+          isExpanded: Boolean
+        ): JComponent {
+          val row = table.tableModel.items.indexOf(item)
+          val left =
+            JPanel().apply {
+              preferredSize = Dimension(5 * (row + 4), 16)
+              name = "row: $row, left"
+              ClientProperty.put(this, KEY_IS_VISUALLY_RESTRICTED) {
+                width < preferredSize.width && !isExpanded
+              }
+            }
+          val right =
+            JPanel().apply {
+              preferredSize = Dimension(5 * (row + 4), 16)
+              name = "row: $row, right"
+            }
+          return JPanel(BorderLayout()).apply {
+            add(left, BorderLayout.WEST)
+            add(right, BorderLayout.EAST)
+            bounds = (table.component as JTable).getCellRect(row, column.ordinal, true)
+            left.bounds = Rectangle(0, 0, bounds.width / 2, bounds.height)
+            right.bounds = Rectangle(bounds.width / 2, 0, bounds.width / 2, bounds.height)
+          }
+        }
+      }
+    table!!.setSize(100, 1000)
+    table!!.doLayout()
+
+    // The first rows should fit.
+    checkAllRowsFit(0..1)
+    // The remaining rows should all attempt to expand when hovering over the left sub child of the
+    // renderer.
+    checkNoRowsFit(2..3)
+  }
+
+  private fun middleOf(row: Int, column: Int, left: Boolean): Point {
+    val rect = table!!.getCellRect(row, column, true)
+    return if (left) Point(rect.x + rect.width / 4, rect.centerY.toInt())
+    else Point(rect.x + 3 * rect.width / 4, rect.centerY.toInt())
+  }
+
+  private fun checkAllRowsFit(rows: IntRange) {
+    val handler = table!!.expandableItemsHandler as PTableExpandableItemsHandler
+    for (row in rows) {
+      for (column in 0..1) {
+        for (left in listOf(true, false)) {
+          assertThat(handler.getCellKeyForPoint(middleOf(row, column, left))).isNull()
+        }
+      }
+    }
+  }
+
+  private fun checkNoRowsFit(rows: IntRange) {
+    val handler = table!!.expandableItemsHandler as PTableExpandableItemsHandler
+    for (row in rows) {
+      for (column in 0..1) {
+        // The left side of the component is expandable:
+        val cell = handler.getCellKeyForPoint(middleOf(row, column, left = true))
+        assertThat(cell).isEqualTo(TableCell(row, column))
+        assertThat(handler.expandedItems).containsExactly(cell)
+
+        val pair = handler.computeCellRendererAndBounds(cell!!)
+        val renderer = pair!!.first
+        val bounds = pair.second
+        assertThat(bounds.width)
+          .isEqualTo(10 * (row + 4) + JBUIScale.scale(EXPANSION_RIGHT_PADDING))
+        assertThat(renderer.firstChild().firstChild().name).isEqualTo("row: $row, left")
+
+        // Check that the same cell is returned even when the cell is already expanded.
+        val cell2 = handler.getCellKeyForPoint(middleOf(row, column, left = true))
+        assertThat(cell2).isEqualTo(TableCell(row, column))
+
+        // The right side is not:
+        assertThat(handler.getCellKeyForPoint(middleOf(row, column, left = false))).isNull()
+      }
+    }
+  }
+
+  private fun Component.firstChild(): Component = (this as JComponent).getComponent(0)
 
   private fun createPanel(): JPanel {
     val panel = JPanel()
@@ -902,15 +1050,31 @@ class PTableImplTest {
     }
   }
 
-  private class SimpleEditorComponent: JPanel()
+  private class SimpleEditorComponent : JPanel()
 
   private inner class SimplePTableCellEditorProvider : PTableCellEditorProvider {
     val editor = SimplePTableCellEditor()
 
-    override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellEditor {
+    override fun invoke(
+      table: PTable,
+      property: PTableItem,
+      column: PTableColumn
+    ): PTableCellEditor {
       editor.property = property
       editor.column = column
       return editor
+    }
+  }
+
+  class SimplePTableCellRendererProvider : PTableCellRendererProvider {
+    var renderer: PTableCellRenderer = DefaultPTableCellRenderer()
+
+    override fun invoke(
+      table: PTable,
+      property: PTableItem,
+      column: PTableColumn
+    ): PTableCellRenderer {
+      return renderer
     }
   }
 }

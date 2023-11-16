@@ -16,19 +16,25 @@
 package com.android.tools.idea.imports
 
 import com.android.tools.idea.projectsystem.DependencyType
+import com.intellij.openapi.fileTypes.FileType
 
 /**
  * Registry provides lookup service for Google Maven Artifacts when asked.
  */
 abstract class MavenClassRegistryBase {
   /**
-   * Library for each of the GMaven artifact.
+   * Library data for importing a specific item (class or function) with its GMaven artifact.
    *
    * @property artifact maven coordinate: groupId:artifactId, please note version is not included here.
-   * @property packageName fully qualified package name which is used for the following import purposes.
+   * @property importedItemFqName fully-qualified name of the item to import. Can be a class or function name.
+   * @property importedItemPackageName package name of the item to import.
    * @property version the version of the [artifact].
    */
-  data class Library(val artifact: String, val packageName: String, val version: String? = null)
+  data class LibraryImportData(
+    val artifact: String,
+    val importedItemFqName: String,
+    val importedItemPackageName: String,
+    val version: String? = null)
 
   /**
    * Coordinate for Google Maven artifact.
@@ -36,9 +42,13 @@ abstract class MavenClassRegistryBase {
   data class Coordinate(val groupId: String, val artifactId: String, val version: String)
 
   /**
-   * Given a class name, returns the likely collection of [Library] objects for the following quick fixes purposes.
+   * Given an unresolved name, returns the likely collection of [MavenClassRegistryBase.LibraryImportData] objects for the maven.google.com
+   * artifacts containing a class or function matching the name.
+   *
+   * @param name simple or fully-qualified name typed by the user. May correspond to a class name (any files) or a top-level Kotlin function
+   * name (Kotlin files only).
    */
-  abstract fun findLibraryData(className: String, useAndroidX: Boolean): Collection<Library>
+  abstract fun findLibraryData(name: String, useAndroidX: Boolean, completionFileType: FileType?): Collection<LibraryImportData>
 
   /**
    * For the given runtime artifact, if Kotlin is the adopted language, the corresponding ktx library is provided.

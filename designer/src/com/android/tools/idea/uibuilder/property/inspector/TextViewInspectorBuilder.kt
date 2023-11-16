@@ -58,28 +58,39 @@ import javax.swing.JComponent
 /**
  * An [InspectorBuilder] for all widgets that are based on a TextView.
  *
- * The attributes for a TextView is shown only if all the [REQUIRED_PROPERTIES]
- * are available. The controls for [ATTR_TEXT_APPEARANCE] are displayed in a
- * collapsible section.
+ * The attributes for a TextView is shown only if all the [REQUIRED_PROPERTIES] are available. The
+ * controls for [ATTR_TEXT_APPEARANCE] are displayed in a collapsible section.
  *
- * There are 2 attributes that may or may not be present:
- *     [ATTR_FONT_FAMILY] and [ATTR_TEXT_ALIGNMENT]
- * They are present if the minSdkVersion is high enough or if AppCompat is used.
+ * There are 2 attributes that may or may not be present: [ATTR_FONT_FAMILY] and
+ * [ATTR_TEXT_ALIGNMENT] They are present if the minSdkVersion is high enough or if AppCompat is
+ * used.
  */
 class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) {
 
-  fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, getTitleLine: () -> InspectorLineModel) {
+  fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>,
+    getTitleLine: () -> InspectorLineModel
+  ) {
     if (!isApplicable(properties)) return
 
     val titleLine = getTitleLine()
     addEditor(inspector, properties[ANDROID_URI, ATTR_TEXT], titleLine)
-    addEditor(inspector, properties.getOrNull(TOOLS_URI, ATTR_TEXT) ?: properties[ANDROID_URI, ATTR_TEXT].designProperty, titleLine)
+    addEditor(
+      inspector,
+      properties.getOrNull(TOOLS_URI, ATTR_TEXT)
+        ?: properties[ANDROID_URI, ATTR_TEXT].designProperty,
+      titleLine
+    )
     addEditor(inspector, properties[ANDROID_URI, ATTR_CONTENT_DESCRIPTION], titleLine)
 
-    val textAppearanceLabel = addEditor(inspector, properties[ANDROID_URI, ATTR_TEXT_APPEARANCE], titleLine)
+    val textAppearanceLabel =
+      addEditor(inspector, properties[ANDROID_URI, ATTR_TEXT_APPEARANCE], titleLine)
     textAppearanceLabel.makeExpandable(initiallyExpanded = false)
 
-    val fontFamily = properties.getOrNull(ANDROID_URI, ATTR_FONT_FAMILY) ?: properties.getOrNull(AUTO_URI, ATTR_FONT_FAMILY)
+    val fontFamily =
+      properties.getOrNull(ANDROID_URI, ATTR_FONT_FAMILY)
+        ?: properties.getOrNull(AUTO_URI, ATTR_FONT_FAMILY)
     if (fontFamily != null) {
       addEditor(inspector, fontFamily, textAppearanceLabel)
     }
@@ -91,12 +102,21 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlProp
     addAlignment(inspector, properties, textAppearanceLabel)
   }
 
-  private fun addEditor(inspector: InspectorPanel, property: NlPropertyItem, group: InspectorLineModel): InspectorLineModel {
+  private fun addEditor(
+    inspector: InspectorPanel,
+    property: NlPropertyItem,
+    group: InspectorLineModel
+  ): InspectorLineModel {
     return inspector.addEditor(editorProvider.createEditor(property), group)
   }
 
-  private fun addTextStyle(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, group: InspectorLineModel) {
-    val textStyle = properties.getOrNull(ANDROID_URI, ATTR_TEXT_STYLE) as? NlFlagsPropertyItem ?: return
+  private fun addTextStyle(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>,
+    group: InspectorLineModel
+  ) {
+    val textStyle =
+      properties.getOrNull(ANDROID_URI, ATTR_TEXT_STYLE) as? NlFlagsPropertyItem ?: return
     val allCaps = properties.getOrNull(ANDROID_URI, ATTR_TEXT_ALL_CAPS) ?: return
     val bold = textStyle.flag(TextStyle.VALUE_BOLD)
     val italic = textStyle.flag(TextStyle.VALUE_ITALIC)
@@ -108,16 +128,54 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlProp
     panel.add(createIconEditor(line, allCaps, "All Caps", TEXT_STYLE_UPPERCASE, "true", "false"))
   }
 
-  private fun addAlignment(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, group: InspectorLineModel) {
+  private fun addAlignment(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>,
+    group: InspectorLineModel
+  ) {
     val alignment = properties.getOrNull(ANDROID_URI, ATTR_TEXT_ALIGNMENT) ?: return
     val model = HorizontalEditorPanelModel(alignment)
     val panel = HorizontalEditorPanel(model)
     val line = inspector.addCustomEditor(model, panel, group)
-    panel.add(createIconEditor(line, alignment, "Align Start of View", TEXT_ALIGN_LAYOUT_LEFT, TextAlignment.VIEW_START))
-    panel.add(createIconEditor(line, alignment, "Align Start of Text", TEXT_ALIGN_LEFT, TextAlignment.TEXT_START))
-    panel.add(createIconEditor(line, alignment, "Align Center", TEXT_ALIGN_CENTER, TextAlignment.CENTER))
-    panel.add(createIconEditor(line, alignment, "Align End of Text", TEXT_ALIGN_RIGHT, TextAlignment.TEXT_END))
-    panel.add(createIconEditor(line, alignment, "Align End of View", TEXT_ALIGN_LAYOUT_RIGHT, TextAlignment.VIEW_END))
+    panel.add(
+      createIconEditor(
+        line,
+        alignment,
+        "Align Start of View",
+        TEXT_ALIGN_LAYOUT_LEFT,
+        TextAlignment.VIEW_START
+      )
+    )
+    panel.add(
+      createIconEditor(
+        line,
+        alignment,
+        "Align Start of Text",
+        TEXT_ALIGN_LEFT,
+        TextAlignment.TEXT_START
+      )
+    )
+    panel.add(
+      createIconEditor(line, alignment, "Align Center", TEXT_ALIGN_CENTER, TextAlignment.CENTER)
+    )
+    panel.add(
+      createIconEditor(
+        line,
+        alignment,
+        "Align End of Text",
+        TEXT_ALIGN_RIGHT,
+        TextAlignment.TEXT_END
+      )
+    )
+    panel.add(
+      createIconEditor(
+        line,
+        alignment,
+        "Align End of View",
+        TEXT_ALIGN_LAYOUT_RIGHT,
+        TextAlignment.VIEW_END
+      )
+    )
   }
 
   private fun createIconEditor(
@@ -135,16 +193,18 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlProp
   }
 
   companion object {
-    val REQUIRED_PROPERTIES = listOf(
-      ATTR_TEXT,
-      ATTR_CONTENT_DESCRIPTION,
-      ATTR_TEXT_APPEARANCE,
-      ATTR_TYPEFACE,
-      ATTR_TEXT_SIZE,
-      ATTR_LINE_SPACING_EXTRA,
-      ATTR_TEXT_STYLE,
-      ATTR_TEXT_ALL_CAPS,
-      ATTR_TEXT_COLOR)
+    val REQUIRED_PROPERTIES =
+      listOf(
+        ATTR_TEXT,
+        ATTR_CONTENT_DESCRIPTION,
+        ATTR_TEXT_APPEARANCE,
+        ATTR_TYPEFACE,
+        ATTR_TEXT_SIZE,
+        ATTR_LINE_SPACING_EXTRA,
+        ATTR_TEXT_STYLE,
+        ATTR_TEXT_ALL_CAPS,
+        ATTR_TEXT_COLOR
+      )
 
     fun isApplicable(properties: PropertiesTable<NlPropertyItem>): Boolean {
       return properties.getByNamespace(ANDROID_URI).keys.containsAll(REQUIRED_PROPERTIES)

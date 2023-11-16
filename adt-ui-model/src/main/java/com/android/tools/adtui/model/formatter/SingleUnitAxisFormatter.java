@@ -36,10 +36,14 @@ public class SingleUnitAxisFormatter extends BaseAxisFormatter {
 
   private final String mUnit;
 
-  public SingleUnitAxisFormatter(int maxMinorTicks, int maxMajorTicks, int unitMinimalInterval, String unit) {
-    super(maxMinorTicks, maxMajorTicks, 1 /* No larger scale, so we can set anything */, true);
+  public SingleUnitAxisFormatter(int maxMinorTicks, int maxMajorTicks, int unitMinimalInterval, String unit, boolean hasCommas) {
+    super(maxMinorTicks, maxMajorTicks, 1 /* No larger scale, so we can set anything */, true, hasCommas);
     mUnitMinimalInterval = unitMinimalInterval;
     mUnit = unit;
+  }
+
+  public SingleUnitAxisFormatter(int maxMinorTicks, int maxMajorTicks, int unitMinimalInterval, String unit) {
+    this(maxMinorTicks, maxMajorTicks, unitMinimalInterval, unit, false);
   }
 
   @Override

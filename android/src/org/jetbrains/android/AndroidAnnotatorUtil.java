@@ -28,15 +28,15 @@ import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon;
+import com.android.tools.res.FileResourceReader;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.utils.HashCodes;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -69,6 +69,8 @@ import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.EmptyIcon;
 import java.awt.Color;
 import java.awt.MouseInfo;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,8 +81,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.psi.KtExpression;
-import org.jetbrains.kotlin.psi.KtNameReferenceExpression;
 import org.jetbrains.kotlin.psi.KtPsiFactory;
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression;
 import org.xmlpull.v1.XmlPullParser;
 
 /**
@@ -111,6 +113,26 @@ public class AndroidAnnotatorUtil {
     return pickSmallestDpiFile(file);
   }
 
+  /**
+   * Creates a {@link XmlPullParser} for the given XML file resource. The file may contain
+   * either regular or proto XML.
+   *
+   * @param resourceFile the resource file
+   * @return the parser for the resource, or null if the resource does not exist
+   * @throws IOException in case of an I/O error
+   */
+  @VisibleForTesting
+  @Nullable
+  public static XmlPullParser createXmlPullParser(@NotNull VirtualFile resourceFile) throws IOException {
+    try {
+      byte[] contents = resourceFile.contentsToByteArray();
+      return FileResourceReader.createXmlPullParser(contents);
+    }
+    catch (FileNotFoundException e) {
+      return null;
+    }
+  }
+
   @Nullable
   private static VirtualFile pickRenderableFileFromXML(@NotNull VirtualFile file,
                                                        @NotNull ResourceResolver resourceResolver,
@@ -118,7 +140,7 @@ public class AndroidAnnotatorUtil {
                                                        @NotNull AndroidFacet facet,
                                                        @NotNull ResourceValue resourceValue) {
     try {
-      XmlPullParser parser = FileResourceReader.createXmlPullParser(file);
+      XmlPullParser parser = createXmlPullParser(file);
       if (parser == null) {
         return null;
       }
@@ -264,7 +286,7 @@ public class AndroidAnnotatorUtil {
     if (!(file instanceof XmlFile)) {
       nearestConfigurationFile = IdeResourcesUtil.pickAnyLayoutFile(facet);
       if (nearestConfigurationFile == null) {
-        return Configuration.create(configurationManager, null, FolderConfiguration.createDefault());
+        return Configuration.create(configurationManager, FolderConfiguration.createDefault());
       }
     }
     else {

@@ -17,10 +17,12 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
+import com.android.tools.idea.explainer.IssueExplainer;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -49,11 +51,23 @@ public class SyncIssuesReporter {
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public SyncIssuesReporter() {
-    this(new UnresolvedDependenciesReporter(), new UnsupportedGradleReporter(),
-         new BuildToolsTooLowReporter(), new MissingSdkPackageSyncIssuesReporter(), new MinSdkInManifestIssuesReporter(),
-         new TargetSdkInManifestIssuesReporter(), new DeprecatedConfigurationReporter(), new MissingSdkIssueReporter(),
-         new OutOfDateThirdPartyPluginIssueReporter(), new CxxConfigurationIssuesReporter(), new AndroidXUsedReporter(),
-         new JcenterDeprecatedReporter(), new AgpUsedJavaTooLowReporter(), new ExceptionSyncIssuesReporter());
+    this(
+      new UnresolvedDependenciesReporter(),
+      new UnsupportedGradleReporter(),
+      new BuildToolsTooLowReporter(),
+      new MissingSdkPackageSyncIssuesReporter(),
+      new MinSdkInManifestIssuesReporter(),
+      new TargetSdkInManifestIssuesReporter(),
+      new DeprecatedConfigurationReporter(),
+      new MissingSdkIssueReporter(),
+      new OutOfDateThirdPartyPluginIssueReporter(),
+      new CxxConfigurationIssuesReporter(),
+      new AndroidXUsedReporter(),
+      new JcenterDeprecatedReporter(),
+      new AgpUsedJavaTooLowReporter(),
+      new ExceptionSyncIssuesReporter(),
+      new CompileSdkVersionTooHighReporter()
+    );
   }
 
   @NonInjectable
@@ -114,6 +128,13 @@ public class SyncIssuesReporter {
       syncMessages.addAll(messages);
     }
     final var gradleSyncMessages = GradleSyncMessages.getInstance(project);
+
+    IssueExplainer service = IssueExplainer.get();
+    if (service.isAvailable()) {
+      // this only covers sync warning, but sync errors are handled by AndroidGradleExecutionConsoleManager
+      addIssueExplanationLinks(service, syncMessages);
+    }
+
     for (SyncMessage syncMessage : syncMessages) {
       gradleSyncMessages.report(syncMessage);
     }
@@ -125,6 +146,22 @@ public class SyncIssuesReporter {
       reportTask.run();
     else {
       ApplicationManager.getApplication().invokeLater(reportTask);
+    }
+  }
+
+  private static void addIssueExplanationLinks(@NotNull IssueExplainer service, @NotNull List<SyncMessage> syncMessages) {
+    for (SyncMessage syncMessage : syncMessages) {
+      final var message = syncMessage.getText();
+      syncMessage.add(new SyncIssueNotificationHyperlink(
+        "explain.issue",
+        service.getConsoleLinkText(),
+        AndroidStudioEvent.GradleSyncQuickFix.UNKNOWN_GRADLE_SYNC_QUICK_FIX
+      ) {
+        @Override
+        protected void execute(@NotNull Project project) {
+          IssueExplainer.get().explain(project, message, IssueExplainer.RequestKind.SYNC_ISSUE);
+        }
+      });
     }
   }
 

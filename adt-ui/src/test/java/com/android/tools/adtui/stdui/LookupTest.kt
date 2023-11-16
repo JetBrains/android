@@ -40,8 +40,9 @@ class LookupTest {
     field.text = "a8"
     lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
-    assertThat(ui.location.x).isEqualTo(9)
-    assertThat(ui.location.y).isEqualTo(66)
+    // The location is relative to the field...
+    assertThat(ui.location.x).isEqualTo(0)
+    assertThat(ui.location.y).isEqualTo(20) // The height of the field is 20
     assertThat(ui.elements()).containsExactly("a8", "@string/app_name8", "@string/app_name18", "@string/app_name28")
   }
 
@@ -55,7 +56,8 @@ class LookupTest {
     field.text = "a7"
     lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
-    assertThat(ui.location.y).isEqualTo(444)
+    // The location is relative to the field...
+    assertThat(ui.location.y).isEqualTo(-40) // Above: Popup height is 40, screen height is 480
     assertThat(ui.elements()).containsExactly("a7", "@string/app_name7", "@string/app_name17", "@string/app_name27")
   }
 
@@ -71,19 +73,20 @@ class LookupTest {
     field.text = "a17"
     lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
-    assertThat(ui.location.y).isEqualTo(470)
+    // The location is relative to the field...
+    assertThat(ui.location.y).isEqualTo(20) // The height of the popup is 20
 
     // Then expand the match count such that it will show above:
     field.text = "a7"
     lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
-    assertThat(ui.location.y).isEqualTo(418)
+    assertThat(ui.location.y).isEqualTo(-40) // The height of the popup is 40
 
     // Decreasing the match count should NOT make the popup jump down below:
     field.text = "a17"
     lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
-    assertThat(ui.location.y).isEqualTo(438)
+    assertThat(ui.location.y).isEqualTo(-20) // The height of the popup is now 20
   }
 
   @Test
@@ -98,8 +101,9 @@ class LookupTest {
     field.text = "a17"
     lookup.showLookup(field.text)
     assertThat(ui.visible).isTrue()
-    assertThat(ui.location.x).isEqualTo(800)
-    assertThat(ui.location.y).isEqualTo(66)
+    // The location is relative to the field...
+    assertThat(ui.location.x).isEqualTo(-150) // Popup width is 200, the width of the screen is 1000
+    assertThat(ui.location.y).isEqualTo(20)   // The field has the height 20
   }
 
   @Test
@@ -380,6 +384,7 @@ class LookupTest {
   class TestUI : LookupUI {
     private var listModel: ListModel<String>? = null
     override var visible = false
+      private set
     override var visibleRowCount = 0
     override var selectedIndex = -1
     override var semiFocused = false
@@ -402,6 +407,7 @@ class LookupTest {
     override fun updateLocation(location: Point, editor: JComponent) {
       this.location.x = location.x
       this.location.y = location.y
+      visible = true
     }
 
     override fun screenBounds(editor: JComponent): Rectangle {
@@ -410,6 +416,10 @@ class LookupTest {
 
     override fun editorBounds(editor: JComponent): Rectangle {
       return Rectangle(editorLocation.x, editorLocation.y, 160, 20)
+    }
+
+    override fun hide() {
+      visible = false
     }
 
     fun clickOnSelected() {

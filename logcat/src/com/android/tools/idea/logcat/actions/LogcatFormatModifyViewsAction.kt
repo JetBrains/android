@@ -19,14 +19,15 @@ import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
-import com.android.tools.idea.logcat.messages.LogcatFormatDialogBase
-import com.android.tools.idea.logcat.messages.LogcatFormatPresetsDialog
+import com.android.tools.idea.logcat.messages.FormattingOptions.Style.COMPACT
+import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
+import com.android.tools.idea.logcat.messages.LogcatFormatDialog
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 
 /**
- * An action that opens the [LogcatFormatPresetsDialog]
+ * An action that opens the [LogcatFormatDialog]
  */
 internal class LogcatFormatModifyViewsAction(
   private val project: Project,
@@ -37,20 +38,17 @@ internal class LogcatFormatModifyViewsAction(
     val androidLogcatFormattingOptions = AndroidLogcatFormattingOptions.getInstance()
     val defaultFormatting = androidLogcatFormattingOptions.defaultFormatting
     val initialFormatting = logcatPresenter.formattingOptions.getStyle() ?: defaultFormatting
-
-    LogcatFormatPresetsDialog(project, initialFormatting, defaultFormatting, object : LogcatFormatDialogBase.ApplyAction {
-      override fun onApply(logcatFormatDialogBase: LogcatFormatDialogBase) {
-        val dialog = logcatFormatDialogBase as LogcatFormatPresetsDialog
-        LogcatToolWindowFactory.logcatPresenters.forEach {
-          when (it.formattingOptions) {
-            androidLogcatFormattingOptions.standardFormattingOptions -> it.formattingOptions = dialog.standardFormattingOptions
-            androidLogcatFormattingOptions.compactFormattingOptions -> it.formattingOptions = dialog.compactFormattingOptions
-          }
+    LogcatFormatDialog(project, initialFormatting, defaultFormatting) { standardOptions, compactOptions, defaultStyle ->
+      LogcatToolWindowFactory.logcatPresenters.forEach {
+        when (it.formattingOptions.getStyle()) {
+          STANDARD -> it.formattingOptions = standardOptions
+          COMPACT -> it.formattingOptions = compactOptions
+          else -> {}
         }
-        androidLogcatFormattingOptions.standardFormattingOptions = dialog.standardFormattingOptions
-        androidLogcatFormattingOptions.compactFormattingOptions = dialog.compactFormattingOptions
-        androidLogcatFormattingOptions.defaultFormatting = dialog.defaultFormatting
       }
-    }).dialogWrapper.show()
+      androidLogcatFormattingOptions.standardFormattingOptions = standardOptions
+      androidLogcatFormattingOptions.compactFormattingOptions = compactOptions
+      androidLogcatFormattingOptions.defaultFormatting = defaultStyle
+    }.dialogWrapper.show()
   }
 }

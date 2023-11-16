@@ -22,15 +22,18 @@ import com.android.tools.idea.protobuf.Parser
 import java.io.InputStream
 
 // The file format chosen for snapshots contains multiple sections of protobufs.
-// We want to read those sections with GeneratedMessageV3.parseDelimitedFrom(InputStream) since it allows partial reads of the InputStream.
-// The implementation of GeneratedMessageV3.parseDelimitedFrom(InputStream) has a hardcoded protobuf recursion limit of 100.
+// We want to read those sections with GeneratedMessageV3.parseDelimitedFrom(InputStream) since it
+// allows partial reads of the InputStream.
+// The implementation of GeneratedMessageV3.parseDelimitedFrom(InputStream) has a hardcoded protobuf
+// recursion limit of 100.
 // Our compose tree can easily get deeper than 100.
-// This implementation of parseDelimitedFrom allows for a deeper recursion limit by copying parts of the implementation from the protobuf
+// This implementation of parseDelimitedFrom allows for a deeper recursion limit by copying parts of
+// the implementation from the protobuf
 // library.
 //
 // A bug has been filed for the protobuf team to make this easier: b/251824432
 
-fun <T: GeneratedMessageV3> parseDelimitedFrom(input: InputStream, parser: Parser<T>): T? {
+fun <T : GeneratedMessageV3> parseDelimitedFrom(input: InputStream, parser: Parser<T>): T? {
   val firstByte = input.read()
   if (firstByte == -1) {
     return null
@@ -40,15 +43,14 @@ fun <T: GeneratedMessageV3> parseDelimitedFrom(input: InputStream, parser: Parse
   return parsePartialFrom(limitedInput, parser)
 }
 
-private fun <T: GeneratedMessageV3> parsePartialFrom(input: InputStream, parser: Parser<T>): T? {
+private fun <T : GeneratedMessageV3> parsePartialFrom(input: InputStream, parser: Parser<T>): T? {
   val codedInput = CodedInputStream.newInstance(input).apply { setRecursionLimit(Int.MAX_VALUE) }
   val message = parser.parsePartialFrom(codedInput)
 
   return try {
     codedInput.checkLastTagWas(0)
     message
-  }
-  catch (ex: InvalidProtocolBufferException) {
+  } catch (ex: InvalidProtocolBufferException) {
     throw ex.setUnfinishedMessage(message)
   }
 }

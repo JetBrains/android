@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
+import com.android.ide.common.gradle.Component
 import com.android.tools.idea.gradle.model.IdeUnresolvedAndroidLibrary
 import com.google.common.annotations.VisibleForTesting
 import java.io.File
@@ -25,6 +26,7 @@ import java.io.Serializable
  **/
 data class IdeAndroidLibraryImpl(
   override val artifactAddress: String,
+  override val component: Component?,
   override val name: String,
   override val folder: File,
   private val _manifest: String,
@@ -51,6 +53,7 @@ data class IdeAndroidLibraryImpl(
   @VisibleForTesting
   constructor() : this(
     artifactAddress = "",
+    component = null,
     name = "",
     folder = File(""),
     _manifest = "",
@@ -97,6 +100,7 @@ data class IdeAndroidLibraryImpl(
   companion object {
     fun create(
       artifactAddress: String,
+      component: Component?,
       name: String,
       folder: File,
       manifest: String,
@@ -124,6 +128,7 @@ data class IdeAndroidLibraryImpl(
 
       return IdeAndroidLibraryImpl(
         artifactAddress = artifactAddress,
+        component = component,
         name = name,
         folder = folder,
         _manifest = manifest.makeRelative(),

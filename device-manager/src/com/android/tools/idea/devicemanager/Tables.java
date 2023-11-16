@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import static com.intellij.ui.ExperimentalUI.isNewUI;
+
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.scale.JBUIScale;
@@ -70,7 +72,7 @@ public final class Tables {
   }
 
   static @NotNull Icon getIcon(@NotNull JTable table, boolean selected, @NotNull Icon icon) {
-    if (selected) {
+    if (selected && !isNewUI()) {
       return ColoredIconGenerator.INSTANCE.generateColoredIcon(icon, table.getSelectionForeground());
     }
 

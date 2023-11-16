@@ -31,18 +31,17 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
-class DesignerUsageTrackerManager<T, K: Disposable>(private val factory: (Executor, K?, Consumer<AndroidStudioEvent.Builder>) -> T,
-                                     private val nopTracker: T) {
+class DesignerUsageTrackerManager<T, K : Disposable>(
+  private val factory: (Executor, K?, Consumer<AndroidStudioEvent.Builder>) -> T,
+  private val nopTracker: T
+) {
 
-  private val sTrackersCache = CacheBuilder.newBuilder()
-    .weakKeys()
-    .expireAfterAccess(5, TimeUnit.MINUTES)
-    .build<K, T>()
-  private val ourExecutorService = ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
+  private val sTrackersCache =
+    CacheBuilder.newBuilder().weakKeys().expireAfterAccess(5, TimeUnit.MINUTES).build<K, T>()
+  private val ourExecutorService =
+    ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
 
-  /**
-   * Returns an UsageTracker for the given surface or a no-op tracker if the surface is null
-   */
+  /** Returns an UsageTracker for the given surface or a no-op tracker if the surface is null */
   @VisibleForTesting
   fun getInstanceInner(key: K?, createIfNotExists: Boolean): T {
     if (key == null || Disposer.isDisposed(key)) {
@@ -52,41 +51,33 @@ class DesignerUsageTrackerManager<T, K: Disposable>(private val factory: (Execut
     return sTrackersCache.get(key) {
       if (createIfNotExists) {
         val newTracker = factory(ourExecutorService, key, Consumer { UsageTracker.log(it) })
-        Disposer.register(key, Disposable {
-          sTrackersCache.invalidate(key)
-        })
+        Disposer.register(key, Disposable { sTrackersCache.invalidate(key) })
         newTracker
-      }
-      else {
+      } else {
         nopTracker
       }
     }
   }
 
   /**
-   * Returns an usage tracker for the given surface or a no-op tracker if the surface is null or stats tracking is disabled.
-   * The stats are also disabled during unit testing.
+   * Returns an usage tracker for the given surface or a no-op tracker if the surface is null or
+   * stats tracking is disabled. The stats are also disabled during unit testing.
    */
   fun getInstance(key: K?): T {
     // If we are in unit testing mode, do not allow creating new instances.
     // Test instances should be used.
     return if (AnalyticsSettings.optedIn)
       getInstanceInner(key, !ApplicationManager.getApplication().isUnitTestMode)
-    else
-      nopTracker
+    else nopTracker
   }
 
-  /**
-   * Sets the corresponding usage tracker for a [DesignSurface] in tests.
-   */
+  /** Sets the corresponding usage tracker for a [DesignSurface] in tests. */
   @TestOnly
   fun setInstanceForTest(key: K, tracker: T) {
     sTrackersCache.put(key, tracker)
   }
 
-  /**
-   * Clears the cached instances to clean state in tests.
-   */
+  /** Clears the cached instances to clean state in tests. */
   @TestOnly
   fun cleanAfterTesting(key: K) {
     // The previous tracker may be a mock with recorded data that may show up as leaks.

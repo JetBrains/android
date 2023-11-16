@@ -38,7 +38,7 @@ class TestLoggerRule(vararg val categories: String) : TestWatcher() {
   private val disposable = Disposer.newDisposable("TestLoggerRule")
 
   override fun starting(description: Description?) {
-    TestLoggerFactory.enableDebugLogging(disposable, *categories)
+    TestLoggerFactory.enableDebugLogging(disposable, TestLoggerRule::class.java)
     TestLoggerFactory.onTestStarted()
   }
 

@@ -20,8 +20,10 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.CppStandardType;
 import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.Language;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
+import org.jetbrains.annotations.NotNull;
 
 public class NewProjectTestUtil {
 
@@ -32,13 +34,13 @@ public class NewProjectTestUtil {
     GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
     guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    return (guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful());
+    return (guiTest.ideFrame().invokeProjectMake(Wait.seconds(240)).isBuildSuccessful());
   }
 
-  public static boolean createCppProject(GuiTestRule guiTest, FormFactor tabName, String templateName) {
+  public static boolean createCppProject(GuiTestRule guiTest, FormFactor tabName, String templateName, @NotNull Language language) {
     System.out.println("\nValidating template: " + templateName+ " in: " +tabName.toString());
-
-    WizardUtils.createCppProject(guiTest,tabName,templateName);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    WizardUtils.createCppProject(guiTest,tabName,templateName, language);
     GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
     guiTest.waitForBackgroundTasks();
     guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();

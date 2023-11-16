@@ -23,10 +23,10 @@ import java.util.concurrent.Executor
  * This is useful if you expect lots of work where any new command means that any queued up command
  * is already obsolete and should be dropped.
  *
- * In other words, if nothing is running, it will get executed immediately. If a previous command
- * is still in progress, then the next command will be stored for later execution as soon as
- * possible. If two or more commands come in, while a previous command is running, then only the most
- * recently received one will be executed when ready.
+ * In other words, if nothing is running, it will get executed immediately. If a previous command is
+ * still in progress, then the next command will be stored for later execution as soon as possible.
+ * If two or more commands come in, while a previous command is running, then only the most recently
+ * received one will be executed when ready.
  *
  * @param wrapped An inner executor that this one delegates to. The inner executor doesn't offer any
  *   special guarantees about running only recent work - it is only when going through this parent
@@ -46,12 +46,10 @@ class MostRecentExecutor(private val wrapped: Executor) : Executor {
         wrapped.execute {
           try {
             command.run()
-          }
-          catch (e: Exception) {
+          } catch (e: Exception) {
             Logger.getInstance(MostRecentExecutor::class.java).warn(e)
             throw e
-          }
-          finally {
+          } finally {
             synchronized(state) {
               state.isExecuting = false
               val nextCommand = state.nextCommand
@@ -60,8 +58,7 @@ class MostRecentExecutor(private val wrapped: Executor) : Executor {
             }
           }
         }
-      }
-      else {
+      } else {
         state.nextCommand = command
       }
     }

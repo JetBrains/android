@@ -39,14 +39,15 @@ class ProjectMetricsService {
   val persistStatisticsSessionsMap: MutableMap<Project, Future<*>> = Collections.synchronizedMap(HashMap<Project, Future<*>>())
 }
 
-private class ProjectMetricsInitializer : ProjectCloseListener {
+class ProjectMetricsInitializer : ProjectCloseListener {
   class MyStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
-      // don't include current project to be consistent with projectClosed
+      //  don't include current project to be consistent with projectClosed
       val projectsOpen = ProjectManager.getInstance().openProjects.size - 1
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_OPENED)
-                         .setStudioProjectChange(StudioProjectChange.newBuilder().setProjectsOpen(projectsOpen)))
+      UsageTracker.log(
+        AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_OPENED)
+          .setStudioProjectChange(StudioProjectChange.newBuilder().setProjectsOpen(projectsOpen)))
 
       // Once an hour, log all known application ids for the current project
       val scheduledFuture = JobScheduler.getScheduler().schedule(

@@ -46,8 +46,12 @@ public class MavenRepo {
       List<String> artifacts = Files.readAllLines(offlineRepoManifest);
       linker.link(repoDir, artifacts);
     }
-    // Set it up in the installation and environment
-    install.addVmOption("-Dgradle.ide.development.offline.repos=true");
+
     env.put("STUDIO_CUSTOM_REPO", repoDir.toString());
+    // Configure studio to read STUDIO_CUSTOM_REPO as a development offline repository, and use it for new projects and upgrade assistant
+    install.addVmOption("-Dgradle.ide.development.offline.repos=true");
+    // Also add that repository with a Gradle init script to every gradle invocation, both build and sync, to allow opening of existing
+    // projects without requiring network access.
+    install.addVmOption("-Dgradle.ide.inject.repos.with.init.script=true");
   }
 }

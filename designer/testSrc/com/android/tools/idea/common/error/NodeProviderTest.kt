@@ -20,15 +20,13 @@ import com.intellij.ide.projectView.PresentationData
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.tree.LeafState
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
 class NodeProviderTest {
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun testCreateFileNode() {
@@ -36,7 +34,9 @@ class NodeProviderTest {
     val nodeProvider = NodeProviderImpl(root)
     root.setNodeProvider(nodeProvider)
 
-    val file = runInEdtAndGet { projectRule.fixture.addFileToProject("path/to/file", "").virtualFile }
+    val file = runInEdtAndGet {
+      projectRule.fixture.addFileToProject("path/to/file", "").virtualFile
+    }
     val issue1 = TestIssue(summary = "issue1", source = (IssueSourceWithFile(file)))
     val issue2 = TestIssue(summary = "issue2", source = (IssueSourceWithFile(file)))
 
@@ -44,7 +44,10 @@ class NodeProviderTest {
     val issue4 = TestIssue("issue4")
     val issue5 = TestIssue("issue5")
 
-    nodeProvider.updateIssues(listOf(issue1, issue2, issue3, issue4, issue5))
+    nodeProvider.updateIssues(
+      listOf(issue1, issue2, issue3, issue4, issue5),
+      LayoutValidationNodeFactory
+    )
 
     val fileNode = nodeProvider.getFileNodes()
     assertEquals(2, fileNode.size)

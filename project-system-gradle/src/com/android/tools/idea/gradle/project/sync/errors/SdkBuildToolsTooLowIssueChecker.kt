@@ -21,7 +21,7 @@ import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallBuildToolsQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
@@ -37,11 +37,9 @@ import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -65,9 +63,7 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
     val composer = getBuildIssueDescriptionAndQuickFixes(message, issueData.projectPath) ?: return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, GradleSyncFailure.SDK_BUILD_TOOLS_TOO_LOW)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.SDK_BUILD_TOOLS_TOO_LOW)
 
     return composer.composeBuildIssue()
   }
@@ -98,10 +94,10 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
                           if (buildFiles.isNotEmpty()) ", update version in build file and sync project" else " and sync project"
 
         buildIssueComposer.addQuickFix(linkMessage,
-                                InstallBuildToolsQuickFix(minVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(modules)))
+                                InstallBuildToolsQuickFix(minVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(ideaProject)))
       }
       else if(buildFiles.isNotEmpty()) {
-        val removeBuildTools = doesAndroidGradlePluginPackageBuildTools(modules)
+        val removeBuildTools = doesAndroidGradlePluginPackageBuildTools(ideaProject)
         buildIssueComposer.addQuickFix("${if (removeBuildTools) "Remove" else "Update"} Build Tools version and sync project",
                                 FixBuildToolsVersionQuickFix(minVersion, buildFiles, removeBuildTools))
       }
@@ -124,18 +120,12 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
 }
 
 @Slow
-fun doesAndroidGradlePluginPackageBuildTools(modules: List<Module>): Boolean {
-  // All modules should be using the same version of the AGP
-  for (module in modules) {
-    if (AndroidFacet.getInstance(module) == null) {
-      continue
-    }
-    val pluginInfo = AndroidPluginInfo.find(module.project)
-    if (pluginInfo != null) {
-      val agpVersion = pluginInfo.pluginVersion
-      if (agpVersion != null && !agpVersion.isAtLeast(3, 0, 0)) {
-        return false
-      }
+fun doesAndroidGradlePluginPackageBuildTools(project: Project): Boolean {
+  val pluginInfo = AndroidPluginInfo.find(project)
+  if (pluginInfo != null) {
+    val agpVersion = pluginInfo.pluginVersion
+    if (agpVersion != null && !agpVersion.isAtLeast(3, 0, 0)) {
+      return false
     }
   }
   return true

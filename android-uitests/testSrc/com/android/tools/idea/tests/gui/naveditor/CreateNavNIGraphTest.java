@@ -52,24 +52,30 @@ public class CreateNavNIGraphTest {
   private static final Pattern ACTION_TO_FROM_FRAGMENT =Pattern.compile(
     "action.*action_fragment2_to_fragment1", Pattern.DOTALL);
 
+  private static String NavFilePath = "app/src/main/res/navigation/nav_demo.xml";
+
   @Before
   public void setUp() throws Exception{
-    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
-    guiTest.ideFrame().getProjectView()
+    IdeFrameFixture ideFrame =  guiTest.importSimpleApplication();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    ideFrame.clearNotificationsPresentOnIdeFrame();
+
+    ideFrame.getProjectView()
       .selectAndroidPane()
-      .clickPath(MouseButton.RIGHT_BUTTON, "app")
-      .openFromContextualMenu(CreateResourceFileDialogFixture::find, "New", "Android Resource File")
+      .clickPath("app");
+
+    ideFrame.invokeMenuPath("File", "New", "Android Resource File");
+
+    CreateResourceFileDialogFixture.find(ideFrame)
       .setFilename("nav_demo")
-      .setType("navigation")
+      .setType("Navigation")
       .clickOkAndWaitForDependencyDialog()
       .clickOk();
-
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    ideFrame = guiTest.ideFrame();
 
     ideFrame.getProjectView().assertFilesExist(
-      "app/src/main/res/navigation/nav_demo.xml"
+      NavFilePath
     );
   }
 
@@ -114,7 +120,7 @@ public class CreateNavNIGraphTest {
     //Loading the navigation layout Design View
     editorFixture  = guiTest.ideFrame()
       .getEditor()
-      .open("app/src/main/res/navigation/nav_demo.xml", EditorFixture.Tab.DESIGN)
+      .open(NavFilePath, EditorFixture.Tab.DESIGN)
       .getLayoutEditor()
       .waitForSurfaceToLoad()
       .waitForRenderToFinish();
@@ -152,8 +158,8 @@ public class CreateNavNIGraphTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     //Verify the "Set As Destination" and newly added actions are updated in the XML file.
-    String layoutText = ideFrame.getEditor()
-      .open("app/src/main/res/navigation/nav_demo.xml", EditorFixture.Tab.EDITOR)
+    String layoutText = guiTest.ideFrame().getEditor()
+      .open(NavFilePath, EditorFixture.Tab.EDITOR)
       .getCurrentFileContents();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.dagger.index.psiwrappers
 
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
 import com.intellij.psi.PsiTypeElement
+import org.jetbrains.kotlin.psi.KtFunctionType
 import org.jetbrains.kotlin.psi.KtNullableType
 import org.jetbrains.kotlin.psi.KtTypeElement
 import org.jetbrains.kotlin.psi.KtTypeReference
@@ -53,17 +55,44 @@ interface DaggerIndexTypeWrapper : DaggerIndexPsiWrapper {
    *    generic object array type (eg "Array<TypeName>").
    * 5. **Nullables** in Kotlin are stored as if they were the inner non-nullable type.
    */
-  fun getSimpleName(): String
+  fun getSimpleName(): String?
 }
 
 internal class KtTypeReferenceWrapper(
   private val ktTypeReference: KtTypeReference,
   private val importHelper: KotlinImportHelper
 ) : DaggerIndexTypeWrapper {
-  override fun getSimpleName(): String = ktTypeReference.getSimpleName()
+  override fun getSimpleName(): String? {
+    val typeElement = ktTypeReference.typeElement
+    if (typeElement == null) {
+      thisLogger().error("Unexpected missing type element.")
+      return null
+    }
 
-  private fun KtTypeReference.getSimpleName() =
-    typeElement!!.toNonNullableUserType().getSimpleName()
+    return typeElement.getSimpleName()
+  }
+
+  private fun KtTypeElement.getSimpleName(): String? {
+    return when (this) {
+      is KtNullableType -> getSimpleName()
+      is KtUserType -> getSimpleName()
+      is KtFunctionType -> getSimpleName()
+      else -> {
+        thisLogger().error("Unexpected type ${this.javaClass}")
+        null
+      }
+    }
+  }
+
+  private fun KtNullableType.getSimpleName(): String? {
+    val innerType = innerType
+    if (innerType == null) {
+      thisLogger().error("Unexpected null inner type.")
+      return null
+    }
+
+    return innerType.getSimpleName()
+  }
 
   private fun KtUserType.getSimpleName(): String {
     val simpleNameInCode = referenceExpression?.getReferencedName()!!
@@ -84,10 +113,13 @@ internal class KtTypeReferenceWrapper(
     return aliasedSimpleName
   }
 
-  private fun KtTypeElement.toNonNullableUserType(): KtUserType =
-    // We always expect to have a type element that can resolve down to a `KtUserType` in the
-    // scenarios these wrappers are used for.
-    (if (this is KtNullableType) innerType else this) as KtUserType
+  private fun KtFunctionType.getSimpleName(): String {
+    // Kotlin function types map to a JVM type of the form kotlin.jvm.function.FunctionX, where x
+    // is the number of input arguments to the function. When functions have 23 or more arguments,
+    // the generic FunctionN name is used.
+    val size = parameters.size
+    return if (size < 23) "Function$size" else "FunctionN"
+  }
 }
 
 internal class PsiTypeElementWrapper(private val psiTypeElement: PsiTypeElement) :

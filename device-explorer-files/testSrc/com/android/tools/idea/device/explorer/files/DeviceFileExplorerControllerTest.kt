@@ -29,7 +29,6 @@ import com.android.tools.idea.device.explorer.files.mocks.MockDeviceExplorerFile
 import com.android.tools.idea.device.explorer.files.mocks.MockDeviceExplorerView
 import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileEntry
 import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileSystem
-import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileSystemService
 import com.android.tools.idea.device.explorer.files.ui.TreeUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ThreadingCheckRule
@@ -89,6 +88,7 @@ import java.util.Arrays
 import java.util.Collections
 import java.util.Enumeration
 import java.util.Stack
+import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicReference
 import java.util.stream.Collectors
 import javax.swing.JComponent
@@ -119,7 +119,6 @@ class DeviceFileExplorerControllerTest {
 
   private lateinit var myModel: DeviceFileExplorerModel
   private lateinit var myMockView: MockDeviceExplorerView
-  private lateinit var myMockService: MockDeviceFileSystemService
   private lateinit var myMockFileManager: MockDeviceExplorerFileManager
   private val myDownloadLocation = AtomicReference<Path>()
   private lateinit var myDevice1: MockDeviceFileSystem
@@ -143,7 +142,7 @@ class DeviceFileExplorerControllerTest {
     myEdtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
     myTaskExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
     myModel = object : DeviceFileExplorerModel() {
-      override fun setActiveDeviceTreeModel(
+      override fun setDevice(
         device: DeviceFileSystem?,
         treeModel: DefaultTreeModel?,
         treeSelectionModel: DefaultTreeSelectionModel?
@@ -153,15 +152,14 @@ class DeviceFileExplorerControllerTest {
           // on the order of registration of listeners registered with {@code DeviceExplorerModel.addListener()}
           myMockView.deviceTreeModelUpdated(device, treeModel, treeSelectionModel)
         }
-        super.setActiveDeviceTreeModel(device, treeModel, treeSelectionModel)
+        super.setDevice(device, treeModel, treeSelectionModel)
       }
     }
-    myMockService = MockDeviceFileSystemService(project, myEdtExecutor, myTaskExecutor)
     myMockView = MockDeviceExplorerView(project, myModel)
     val downloadPath = FileUtil.createTempDirectory("device-explorer-temp", "", true)
     myDownloadLocation.set(downloadPath.toPath())
     myMockFileManager = MockDeviceExplorerFileManager(project, myDownloadLocation::get)
-    myDevice1 = myMockService.addDevice("TestDevice-1")
+    myDevice1 = createMockFileSystem("TestDevice-1", myEdtExecutor)
     myFoo = myDevice1.root.addDirectory("Foo")
     myFooDirLink = myDevice1.root.addDirLink("fooDirLink", "fooDir")
     myFooFile1 = myFoo.addFile("fooFile1.txt")
@@ -173,7 +171,7 @@ class DeviceFileExplorerControllerTest {
     myFile1 = myDevice1.root.addFile("file1.txt")
     myFile2 = myDevice1.root.addFile("file2.txt")
     myDevice1.root.addFile("file3.txt")
-    myDevice2 = myMockService.addDevice("TestDevice-2")
+    myDevice2 = createMockFileSystem("TestDevice-2", myEdtExecutor)
     myDevice2.root.addDirectory("Foo2")
     myDevice2.root.addFile("foo2File1.txt")
     myDevice2.root.addFile("foo2File2.txt")
@@ -1602,6 +1600,11 @@ class DeviceFileExplorerControllerTest {
       for (listener in component.mouseListeners) {
         listener.mousePressed(event)
       }
+    }
+
+    private fun createMockFileSystem(deviceName: String, edtExecutor: Executor): MockDeviceFileSystem {
+      val executor = FutureCallbackExecutor(edtExecutor)
+      return MockDeviceFileSystem(executor, deviceName)
     }
   }
 }

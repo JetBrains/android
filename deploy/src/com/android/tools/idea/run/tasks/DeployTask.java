@@ -71,10 +71,6 @@ public class DeployTask extends AbstractDeployTask {
     return ID;
   }
 
-  @Override
-  protected boolean shouldTaskLaunchApp() {
-    return true;
-  }
 
   @Override
   protected Deployer.Result perform(IDevice device,
@@ -163,10 +159,6 @@ public class DeployTask extends AbstractDeployTask {
   public String getDescription() {
     return "Install";
   }
-
-  @NotNull
-  @Override
-  public String getFailureTitle() { return "Installation did not succeed."; }
 
 
   @NotNull

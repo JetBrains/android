@@ -40,7 +40,7 @@ class PsiUtilsTest {
   @Before
   fun setUp() {
     (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    fixture.stubComposableAnnotation("androidx.compose.runtime")
+    fixture.stubComposableAnnotation()
   }
 
   @Test

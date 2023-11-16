@@ -37,6 +37,7 @@ import com.android.tools.idea.uibuilder.scout.ScoutWidget;
 import java.awt.Point;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -122,12 +123,12 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
     if (ConstraintComponentUtilities.isGuideLine(myComponent.getNlComponent())) {
       if (ConstraintLayoutGuidelineHandler.isVertical(myComponent.getNlComponent())) {
         int dx = x - getLeftTargetOrigin(myComponent.getParent());
-        String positionX = String.format(SdkConstants.VALUE_N_DP, dx);
+        String positionX = String.format(Locale.US, SdkConstants.VALUE_N_DP, dx);
         attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, positionX);
       }
       else {
         int dy = y - getTopTargetOrigin(myComponent.getParent());
-        String positionY = String.format(SdkConstants.VALUE_N_DP, dy);
+        String positionY = String.format(Locale.US, SdkConstants.VALUE_N_DP, dy);
         attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, positionY);
       }
     }

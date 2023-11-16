@@ -40,9 +40,7 @@ class CustomViewRenderTest {
 
   @After
   fun tearDown() {
-    ApplicationManager.getApplication().invokeAndWait {
-      RenderTestUtil.afterRenderTestCase()
-    }
+    ApplicationManager.getApplication().invokeAndWait { RenderTestUtil.afterRenderTestCase() }
     StudioRenderService.setForTesting(projectRule.project, null)
   }
 
@@ -52,26 +50,41 @@ class CustomViewRenderTest {
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
-      Assert.assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
+      Assert.assertTrue(
+        "The project must compile correctly for the test to pass",
+        isBuildSuccessful
+      )
     }
 
     val virtualFile =
-      projectRule.fixture.project.guessProjectDir()!!
-        .findFileByRelativePath("app/src/main/java/com/example/myapplication/BroadcastManagerCustomView.java")!!
-    val fileContent = getXmlLayout("com.example.myapplication.BroadcastManagerCustomView", shrinkWidth = false, shrinkHeight = false)
-    val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", fileContent) { virtualFile }
+      projectRule.fixture.project
+        .guessProjectDir()!!
+        .findFileByRelativePath(
+          "app/src/main/java/com/example/myapplication/BroadcastManagerCustomView.java"
+        )!!
+    val fileContent =
+      getXmlLayout(
+        "com.example.myapplication.BroadcastManagerCustomView",
+        shrinkWidth = false,
+        shrinkHeight = false
+      )
+    val customPreviewXml =
+      CustomViewLightVirtualFile("custom_preview.xml", fileContent) { virtualFile }
 
-    val renderTask = createRenderTaskFuture(projectRule.androidFacet(":app"), customPreviewXml, true).get()
+    val renderTask =
+      createRenderTaskFuture(projectRule.androidFacet(":app"), customPreviewXml, true).get()
     val renderResult = renderTask.render().get()
     val image = renderResult!!.renderedImage
 
     Assert.assertTrue(
       "Valid result image is expected to be bigger than 10x10. It's ${image.width}x${image.height}",
-      image.width > 10 && image.height > 10)
+      image.width > 10 && image.height > 10
+    )
     Assert.assertNotNull(image.copy)
 
     val classLoader = renderResult.rootViews.first().viewObject.javaClass.classLoader
-    val broadcastManager = classLoader.loadClass("androidx.localbroadcastmanager.content.LocalBroadcastManager")
+    val broadcastManager =
+      classLoader.loadClass("androidx.localbroadcastmanager.content.LocalBroadcastManager")
     val instanceField = broadcastManager.getDeclaredField("mInstance").apply { isAccessible = true }
 
     Assert.assertNotNull(instanceField.get(null))

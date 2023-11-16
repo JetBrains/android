@@ -15,14 +15,18 @@
  */
 package com.android.tools.adtui.swing.popup
 
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.ui.awt.RelativePoint
+import com.intellij.ui.popup.AbstractPopup
+import com.intellij.ui.popup.PopupFactoryImpl.ActionItem
 import com.intellij.util.Consumer
 import java.awt.Component
 import java.awt.Dimension
@@ -31,6 +35,7 @@ import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.ListCellRenderer
 
 /** A fake [JBPopup] for tests. */
@@ -41,7 +46,7 @@ open class FakeJBPopup<T>(
     val title: String? = null,
     val renderer: ListCellRenderer<in T>? = null,
     private val callback: Consumer<in T>? = null,
-) : JBPopup {
+) : AbstractPopup() {
 
   enum class ShowStyle {
     SHOW_UNDERNEATH_OF,
@@ -55,6 +60,21 @@ open class FakeJBPopup<T>(
 
   var showStyle: ShowStyle? = null
   var showArgs: List<Any>? = null
+  val actions: List<AnAction> by lazy {
+      if (items.isEmpty()) {
+        return@lazy emptyList()
+      }
+      val result = mutableListOf<AnAction>()
+      for (item in items) {
+        item as? ActionItem ?: throw AssertionError("The popup is not an action popup")
+        if (item.isPrependWithSeparator) {
+          result.add(Separator.create(item.separatorText))
+        }
+        result.add(item.action)
+      }
+      return@lazy result
+    }
+
   private var minSize: Dimension? = null
   private val registeredListeners = mutableListOf<JBPopupListener>()
 
@@ -117,7 +137,7 @@ open class FakeJBPopup<T>(
     minSize = size
   }
 
-  fun getMinimumSize(): Dimension? = minSize
+  override fun getMinimumSize(): Dimension? = minSize
 
   override fun isFocused(): Boolean {
     return true
@@ -130,23 +150,26 @@ open class FakeJBPopup<T>(
     registeredListeners.add(listener)
   }
 
-  override fun cancel() {
+  override fun cancel(e: InputEvent?) {
     registeredListeners.forEach{ it.onClosed(LightweightWindowEvent(this))}
   }
 
-  override fun getBestPositionFor(dataContext: DataContext): Point {
-    TODO("Not yet implemented")
+  override fun getComponent(): JComponent? {
+    return super.getComponent() ?: JPanel()
   }
 
-  override fun closeOk(e: InputEvent?) { }
+  override fun getBestPositionFor(dataContext: DataContext): Point {
+    return Point()
+  }
 
-  override fun cancel(e: InputEvent?) {
-    TODO("Not yet implemented")
+  override fun setLocation(screenPoint: Point) {
   }
 
   override fun setRequestFocus(b: Boolean) {
     TODO("Not yet implemented")
   }
+
+  override fun canShow(): Boolean = true
 
   override fun canClose(): Boolean {
     TODO("Not yet implemented")
@@ -157,10 +180,6 @@ open class FakeJBPopup<T>(
   }
 
   override fun getContent(): JComponent {
-    TODO("Not yet implemented")
-  }
-
-  override fun setLocation(screenPoint: Point) {
     TODO("Not yet implemented")
   }
 
@@ -229,10 +248,6 @@ open class FakeJBPopup<T>(
   }
 
   override fun pack(width: Boolean, height: Boolean) {
-    TODO("Not yet implemented")
-  }
-
-  override fun setAdText(s: String?, alignment: Int) {
     TODO("Not yet implemented")
   }
 

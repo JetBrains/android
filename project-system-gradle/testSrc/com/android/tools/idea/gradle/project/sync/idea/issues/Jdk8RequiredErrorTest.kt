@@ -16,25 +16,42 @@
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
 import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter.Companion.replaceSyncMessagesService
+import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.replaceService
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.mockito.Mockito.spy
 
 class Jdk8RequiredErrorTest : AndroidGradleTestCase() {
+  /** A UsageTracker implementation that allows introspection of logged metrics in tests. */
+  private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
+
+  override fun setUp() {
+    super.setUp()
+    UsageTracker.setWriterForTest(usageTracker)
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+    usageTracker.close()
+    UsageTracker.cleanAfterTesting()
+  }
+
   fun testJdk8RequiredError() {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-    val gradleInstallationManager = spy(AndroidStudioGradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
-    whenever(gradleInstallationManager.isUsingJavaHomeJdk(project)).thenReturn(false)
-    ApplicationManager.getApplication().replaceService(GradleInstallationManager::class.java, gradleInstallationManager, testRootDisposable)
+    val ideSdks = spy(IdeSdks.getInstance())
+    whenever(ideSdks.isUsingJavaHomeJdk(project)).thenReturn(false)
+    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, ideSdks, testRootDisposable)
     val usageReporter = replaceSyncMessagesService(project, testRootDisposable)
     SimulatedSyncErrors.registerSyncErrorToSimulate(
       "com/android/jack/api/ConfigNotSupportedException : Unsupported major.minor version 52.0")
@@ -47,8 +64,10 @@ class Jdk8RequiredErrorTest : AndroidGradleTestCase() {
     if (androidStudio) { // Android Studio has extra quick-fix
       expectedText.append("<a href=\"use.java.home.as.jdk\">Set Android Studio to use the same JDK as Gradle and sync project</a>\n")
     }
-    expectedText.append("<a href=\"select.jdk.from.new.psd\">Change Gradle JDK...</a>")
+    expectedText.append("<a href=\"select.jdk.from.gradle.settings\">Change Gradle JDK...</a>")
     assertThat(message).contains(expectedText.toString())
-    assertEquals(GradleSyncFailure.JDK8_REQUIRED, usageReporter.collectedFailure)
+    val event = usageTracker.usages
+      .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+    assertEquals(GradleSyncFailure.JDK8_REQUIRED, event.studioEvent.gradleSyncFailure)
   }
 }

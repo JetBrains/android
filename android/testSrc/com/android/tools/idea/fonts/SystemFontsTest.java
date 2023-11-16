@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.fonts;
 
+import static com.android.tools.fonts.Fonts.AVAILABLE_FAMILIES;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
+import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
+import com.android.tools.fonts.SystemFonts;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
-import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class SystemFontsTest extends FontTestCase {
@@ -35,7 +37,7 @@ public class SystemFontsTest extends FontTestCase {
 
   public void testAllSystemFontsAvailable() {
     List<String> fontNames = ContainerUtil.map(mySystemFonts.getFontFamilies(), FontFamily::getName);
-    assertThat(fontNames).containsExactlyElementsIn(AndroidDomUtil.AVAILABLE_FAMILIES);
+    assertThat(fontNames).containsExactlyElementsIn(AVAILABLE_FAMILIES);
   }
 
   public void testDefaultFontWeights() {

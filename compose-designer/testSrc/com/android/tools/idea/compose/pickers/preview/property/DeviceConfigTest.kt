@@ -16,13 +16,13 @@
 package com.android.tools.idea.compose.pickers.preview.property
 
 import com.android.tools.idea.flags.StudioFlags
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.test.assertNotNull
 
 internal class DeviceConfigTest {
 

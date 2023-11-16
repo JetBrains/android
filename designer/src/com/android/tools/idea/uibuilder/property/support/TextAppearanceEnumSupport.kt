@@ -42,20 +42,20 @@ private const val DISPLAY4 = "Display4"
 /**
  * [EnumSupport] for the "textAppearance" attribute.
  *
- * We will find all transitive derived styles from the framework TextAppearance
- * style. The resulting styles are organized in a tree with the following headings:
- *    "Project", "Library", "AppCompat", "Android"
- * where "Project" are the user defined styles.
+ * We will find all transitive derived styles from the framework TextAppearance style. The resulting
+ * styles are organized in a tree with the following headings: "Project", "Library", "AppCompat",
+ * "Android" where "Project" are the user defined styles.
  *
- * The Android and AppCompat TextAppearances are limited to the following:
- *   Small, Medium, Large, Body1, Body2, Display1, Display2, Display3, Display4
+ * The Android and AppCompat TextAppearances are limited to the following: Small, Medium, Large,
+ * Body1, Body2, Display1, Display2, Display3, Display4
  */
-class TextAppearanceEnumSupport(property: NlPropertyItem): StyleEnumSupport(property) {
+class TextAppearanceEnumSupport(property: NlPropertyItem) : StyleEnumSupport(property) {
 
   companion object {
     // TODO: Replace with namespace for the appcompat styles
     private val appcompatNamespace = ResourceNamespace.TODO()
-    private val accepted = setOf(SMALL, MEDIUM, LARGE, BODY1, BODY2, DISPLAY1, DISPLAY2, DISPLAY3, DISPLAY4)
+    private val accepted =
+      setOf(SMALL, MEDIUM, LARGE, BODY1, BODY2, DISPLAY1, DISPLAY2, DISPLAY3, DISPLAY4)
   }
 
   override fun generate(): List<EnumValue> {

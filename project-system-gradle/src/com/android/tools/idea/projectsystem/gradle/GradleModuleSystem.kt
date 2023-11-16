@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.ide.common.gradle.Component
+import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
@@ -31,7 +33,6 @@ import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
 import com.android.tools.idea.gradle.util.DynamicAppUtils
-import com.android.tools.idea.project.getPackageName
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.CapabilityStatus
@@ -85,6 +86,7 @@ import java.io.File
 import java.nio.file.Path
 import java.util.Collections
 import java.util.concurrent.TimeUnit
+import com.android.ide.common.gradle.Module as ExternalModule
 
 /**
  * Make [.getRegisteredDependency] return the direct module dependencies.
@@ -127,12 +129,13 @@ class GradleModuleSystem(
       IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> AndroidModuleSystem.Type.TYPE_FEATURE
       IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> AndroidModuleSystem.Type.TYPE_INSTANTAPP
       IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> AndroidModuleSystem.Type.TYPE_LIBRARY
+      IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> AndroidModuleSystem.Type.TYPE_LIBRARY
       IdeAndroidProjectType.PROJECT_TYPE_TEST -> AndroidModuleSystem.Type.TYPE_TEST
       null -> AndroidModuleSystem.Type.TYPE_NON_ANDROID
     }
 
-  override val moduleClassFileFinder: ClassFileFinder = GradleClassFileFinder(module)
-  private val androidTestsClassFileFinder: ClassFileFinder = GradleClassFileFinder(module, true)
+  override val moduleClassFileFinder: ClassFileFinder = GradleClassFileFinder.create(module, false)
+  private val androidTestsClassFileFinder: ClassFileFinder = GradleClassFileFinder.create(module, true)
 
   private val dependencyCompatibility = GradleDependencyCompatibilityAnalyzer(this, projectBuildModelHandler)
 
@@ -147,39 +150,75 @@ class GradleModuleSystem(
   override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
     return getCompileDependenciesFor(module, scope)
       ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
-      ?.mapNotNull { GradleCoordinate.parseCoordinateString(it.target.artifactAddress) }
+      ?.mapNotNull { it.target.component }
       ?.find { it.matches(coordinate) }
+      ?.let { GradleCoordinate(it.group, it.name, it.version.toString()) }
   }
+
+  private fun Component.matches(coordinate: GradleCoordinate): Boolean =
+    this.group == coordinate.groupId &&
+    this.name == coordinate.artifactId &&
+    RichVersion.parse(coordinate.revision).contains(this.version)
+
+  private fun GradleCoordinate.toDependency(): Dependency = Dependency.parse(toString());
 
   override fun getDependencyPath(coordinate: GradleCoordinate): Path? {
     return getCompileDependenciesFor(module, DependencyScopeType.MAIN)
       ?.let { dependencies ->
-        dependencies.androidLibraries.asSequence().map { it.target.artifactAddress to it.target.artifact } +
-          dependencies.javaLibraries.asSequence().map { it.target.artifactAddress to it.target.artifact }
+        dependencies.androidLibraries.asSequence().mapNotNull { it.target.component?.let { c -> c to it.target.artifact } } +
+          dependencies.javaLibraries.asSequence().mapNotNull { it.target.component?.let { c -> c to it.target.artifact } }
       }
-      ?.find { GradleCoordinate.parseCoordinateString(it.first)?.matches(coordinate) ?: false }
+      ?.find { it.first.matches(coordinate) }
       ?.second?.toPath()
   }
 
   // TODO: b/129297171
-  override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? {
-    return getDirectDependencies(module).find { it.matches(coordinate) }
-  }
+  override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
+    // TODO(xof): I'm reasonably convinced that this interface (in terms of GradleCoordinate) and its implementation
+    //  verifying that any version field specified in the GradleCoordinate matches (in some sense, where "+" is treated
+    //  specially in the coordinate but not in any of the matches) is not reasonably supportable.  Almost all uses of this in production
+    //  use a bare version of "+", which will match any version.  There is an exception, which attempts to insert specific versions
+    //  taken from fragments of other Gradle build files (or Maven XML).
+    //  I think the ideal final state will involve removing this function from the AndroidModuleSystem interface; converting users of
+    //  this to the getRegisteredDependency(ExternalModule) method below; and require clients who want to query or add specific
+    //  dependency versions to Gradle build files to accept that they are using GradleModuleSystem facilities, which we will allow from
+    //  a limited set of modules.  In the meantime, preserve existing behavior by emulating GradleCoordinate.matches(...)
+    getRegisteredDependency(ExternalModule(coordinate.groupId, coordinate.artifactId))
+      ?.takeIf { it.matches(coordinate) }
+      ?.toIdentifier()
+      ?.let { GradleCoordinate.parseCoordinateString(it) }
 
-  fun getDirectDependencies(module: Module): Sequence<GradleCoordinate> {
+  // This only exists to support the contract of getRegisteredDependency(), which is that an existing declared dependency should be
+  // returned if it matches the coordinate given, with a possibly-wild or possibly rich version.  If the declared dependency is to
+  // an explicit singleton, we check whether the pattern contains that version; if the pattern version is wild, we accept any
+  // declared dependency; otherwise, we accept only exact rich version matches.
+  private fun Dependency.matches(coordinate: GradleCoordinate): Boolean =
+    coordinate.groupId == this.group &&
+    coordinate.artifactId == this.name &&
+    when (val version = this.version?.explicitSingletonVersion) {
+      null -> coordinate.revision == "+" || RichVersion.parse(coordinate.revision) == this.version
+      else -> RichVersion.parse(coordinate.revision).contains(version)
+    }
+
+  fun getRegisteredDependency(externalModule: ExternalModule): Dependency? =
+    getDirectDependencies(module).find { it.name == externalModule.name && it.group == externalModule.group }
+
+  private fun Component.dependency() = Dependency(group, name, RichVersion.parse(version.toString()))
+
+  fun getDirectDependencies(module: Module): Sequence<Dependency> {
     // TODO: b/129297171
     return if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
       projectBuildModelHandler.read {
-        // TODO: Replace the below artifacts with the direct dependencies from the AndroidModuleModel see b/128449813
-        val artifacts = getModuleBuildModel(module)?.dependencies()?.artifacts() ?: return@read emptySequence<GradleCoordinate>()
+        // TODO: Replace the below artifacts with the direct dependencies from the GradleAndroidModel see b/128449813
+        val artifacts = getModuleBuildModel(module)?.dependencies()?.artifacts() ?: return@read emptySequence<Dependency>()
         artifacts
           .asSequence()
-          .mapNotNull { GradleCoordinate.parseCoordinateString("${it.group()}:${it.name().forceString()}:${it.version()}") }
+          .mapNotNull { Dependency.parse("${it.group()}:${it.name().forceString()}:${it.version()}") }
       }
     } else {
       getCompileDependenciesFor(module, DependencyScopeType.MAIN)
         ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
-        ?.mapNotNull { GradleCoordinate.parseCoordinateString(it.target.artifactAddress) } ?: emptySequence()
+        ?.mapNotNull { it.target.component?.dependency() } ?: emptySequence()
     }
   }
 
@@ -267,12 +306,12 @@ class GradleModuleSystem(
 
   override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
     val manager = GradleDependencyManager.getInstance(module.project)
-    val coordinates = Collections.singletonList(coordinate)
+    val dependencies = Collections.singletonList(coordinate.toDependency())
 
     when (type) {
       DependencyType.ANNOTATION_PROCESSOR -> {
         // addDependenciesWithoutSync doesn't support this: more direct implementation
-        manager.addDependenciesWithoutSync(module, coordinates) { _, name, _ ->
+        manager.addDependenciesWithoutSync(module, dependencies) { _, name, _ ->
           when {
             name.startsWith("androidTest") -> "androidTestAnnotationProcessor"
             name.startsWith("test") -> "testAnnotationProcessor"
@@ -281,19 +320,19 @@ class GradleModuleSystem(
         }
       }
       DependencyType.DEBUG_IMPLEMENTATION -> {
-        manager.addDependenciesWithoutSync(module, coordinates) { _, _, _ ->
+        manager.addDependenciesWithoutSync(module, dependencies) { _, _, _ ->
           "debugImplementation"
         }
       }
       else -> {
-        manager.addDependenciesWithoutSync(module, coordinates)
+        manager.addDependenciesWithoutSync(module, dependencies)
       }
     }
   }
 
   override fun updateLibrariesToVersion(toVersions: List<GradleCoordinate>) {
     val manager = GradleDependencyManager.getInstance(module.project)
-    manager.updateLibrariesToVersion(module, toVersions)
+    manager.updateLibrariesToVersion(module, toVersions.map { it.toDependency() })
   }
 
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
@@ -333,6 +372,7 @@ class GradleModuleSystem(
             IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> androidModel.applicationId
             IdeAndroidProjectType.PROJECT_TYPE_TEST -> androidModel.applicationId
             IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> getPackageName()
+            IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> getPackageName()
           }
         )
     )
@@ -376,16 +416,16 @@ class GradleModuleSystem(
 
   override fun getPackageName(): String? {
     val facet = AndroidFacet.getInstance(module) ?: return null
-    return GradleAndroidModel.get(facet)?.androidProject?.namespace ?: getPackageName(module)
+    return GradleAndroidModel.get(facet)?.androidProject?.namespace
   }
 
   override fun getTestPackageName(): String? {
     val facet = AndroidFacet.getInstance(module) ?: return null
-    val androidModuleModel = GradleAndroidModel.get(facet)
-    val variant = androidModuleModel?.selectedVariant ?: return null
+    val gradleAndroidModel = GradleAndroidModel.get(facet)
+    val variant = gradleAndroidModel?.selectedVariant ?: return null
     // Only report a test package if the selected variant actually has corresponding androidTest components
     if (variant.androidTestArtifact == null) return null
-    return androidModuleModel.androidProject.testNamespace ?: variant.deprecatedPreMergedTestApplicationId ?: run {
+    return gradleAndroidModel.androidProject.testNamespace ?: variant.deprecatedPreMergedTestApplicationId ?: run {
       // That's how older versions of AGP that do not include testNamespace directly in the model work:
       // in apps the applicationId from the model is used with the ".test" suffix (ignoring the manifest), in libs
       // there is no applicationId and the package name from the manifest is used with the suffix.
@@ -396,7 +436,7 @@ class GradleModuleSystem(
 
   override fun getApplicationIdProvider(): ApplicationIdProvider {
     val androidFacet = AndroidFacet.getInstance(module) ?: error("Cannot find AndroidFacet. Module: ${module.name}")
-    val androidModel = GradleAndroidModel.get(androidFacet) ?: error("Cannot find AndroidModuleModel. Module: ${module.name}")
+    val androidModel = GradleAndroidModel.get(androidFacet) ?: error("Cannot find GradleAndroidModel. Module: ${module.name}")
     val forTests =  androidFacet.module.isUnitTestModule() || androidFacet.module.isAndroidTestModule()
     return GradleApplicationIdProvider.create(
       androidFacet, forTests, androidModel, androidModel.selectedBasicVariant, androidModel.selectedVariant
@@ -425,7 +465,8 @@ class GradleModuleSystem(
   }
 
   private data class AgpBuildGlobalFlags(
-    val useAndroidX: Boolean
+    val useAndroidX: Boolean,
+    val enableVcsInfo: Boolean
   )
 
   /**
@@ -465,6 +506,7 @@ class GradleModuleSystem(
         ?: return CachedValueProvider.Result(null, tracker)
       val agpBuildGlobalFlags = AgpBuildGlobalFlags(
         useAndroidX = gradleAndroidModel.androidProject.agpFlags.useAndroidX,
+        enableVcsInfo = gradleAndroidModel.androidProject.agpFlags.enableVcsInfo
       )
       return CachedValueProvider.Result(agpBuildGlobalFlags, tracker)
     }
@@ -526,6 +568,8 @@ class GradleModuleSystem(
    */
   override val useAndroidX: Boolean get() = agpBuildGlobalFlags.useAndroidX
 
+  override val enableVcsInfo: Boolean get() = agpBuildGlobalFlags.enableVcsInfo
+
   override val submodules: Collection<Module>
     get() = moduleHierarchyProvider.submodules
 
@@ -540,12 +584,10 @@ class GradleModuleSystem(
   override val desugarLibraryConfigFiles: List<Path>
     get() = GradleAndroidModel.get(module)?.androidProject?.desugarLibraryConfigFiles?.map { it.toPath() } ?: emptyList()
 
-  override val usesVersionCatalogs: Boolean
-    get() = ProjectBuildModel.get(module.project).versionCatalogsModel.catalogNames().isNotEmpty()
-
   companion object {
     private val AGP_GLOBAL_FLAGS_DEFAULTS = AgpBuildGlobalFlags(
-      useAndroidX = true
+      useAndroidX = true,
+      enableVcsInfo = false
     )
     private val DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION = AgpVersion.parse("8.1.0-alpha05")
   }

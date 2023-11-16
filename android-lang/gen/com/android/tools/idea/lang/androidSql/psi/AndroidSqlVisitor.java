@@ -61,6 +61,10 @@ public class AndroidSqlVisitor extends PsiElementVisitor {
     visitExpression(o);
   }
 
+  public void visitBooleanLiteral(@NotNull AndroidSqlBooleanLiteral o) {
+    visitPsiElement(o);
+  }
+
   public void visitCaseExpression(@NotNull AndroidSqlCaseExpression o) {
     visitExpression(o);
   }

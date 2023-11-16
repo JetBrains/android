@@ -60,13 +60,14 @@ class MotionLayoutAttributesViewTest {
   private val projectRule = AndroidProjectRule.withSdk()
   private val motionRule = MotionAttributeRule(projectRule)
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(motionRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(motionRule).around(EdtRule())!!
 
   @Before
   fun beforeEachTest() {
     val actionManager = projectRule.mockService(ActionManager::class.java)
-    Mockito.doAnswer { invocation -> SomeAction(invocation.getArgument(0)) }.whenever(actionManager).getAction(ArgumentMatchers.anyString())
+    Mockito.doAnswer { invocation -> SomeAction(invocation.getArgument(0)) }
+      .whenever(actionManager)
+      .getAction(ArgumentMatchers.anyString())
   }
 
   @Test
@@ -91,7 +92,8 @@ class MotionLayoutAttributesViewTest {
     Mockito.verify(clipboard).setContents(transferableCaptor.capture(), MockitoKt.eq(null))
     val transferable = transferableCaptor.value
     assertThat(transferable.isDataFlavorSupported(DataFlavor.stringFlavor)).isTrue()
-    assertThat(transferable.getTransferData(DataFlavor.stringFlavor)).isEqualTo("$ATTR_LAYOUT_END_TO_END_OF\tparent")
+    assertThat(transferable.getTransferData(DataFlavor.stringFlavor))
+      .isEqualTo("$ATTR_LAYOUT_END_TO_END_OF\tparent")
   }
 
   @Test
@@ -131,7 +133,8 @@ class MotionLayoutAttributesViewTest {
     Mockito.verify(clipboard).setContents(transferableCaptor.capture(), MockitoKt.eq(null))
     val transferable = transferableCaptor.value
     assertThat(transferable.isDataFlavorSupported(DataFlavor.stringFlavor)).isTrue()
-    assertThat(transferable.getTransferData(DataFlavor.stringFlavor)).isEqualTo("$ATTR_TEXT_SIZE\t2sp")
+    assertThat(transferable.getTransferData(DataFlavor.stringFlavor))
+      .isEqualTo("$ATTR_TEXT_SIZE\t2sp")
   }
 
   @Test
@@ -160,7 +163,8 @@ class MotionLayoutAttributesViewTest {
     val builder = createBuilder()
     builder.attachToInspector(inspector, properties)
     val constraints = inspector.checkTable(2).tableModel
-    val nonEditable = properties.values.filter { !constraints.isCellEditable(it, PTableColumn.VALUE) }
+    val nonEditable =
+      properties.values.filter { !constraints.isCellEditable(it, PTableColumn.VALUE) }
     assertThat(nonEditable).hasSize(1)
     assertThat(nonEditable.single().name).isEqualTo(ATTR_ID)
   }
@@ -170,7 +174,11 @@ class MotionLayoutAttributesViewTest {
     val controlTypeProvider = NlTwoStateBooleanControlTypeProvider(enumSupportProvider)
     val editorProvider = create(enumSupportProvider, controlTypeProvider)
     val tableUIProvider = TableUIProvider(controlTypeProvider, editorProvider)
-    return MotionLayoutAttributesView.MotionInspectorBuilder(motionRule.attributesModel, tableUIProvider, enumSupportProvider)
+    return MotionLayoutAttributesView.MotionInspectorBuilder(
+      motionRule.attributesModel,
+      tableUIProvider,
+      enumSupportProvider
+    )
   }
 
   private class SomeAction(title: String) : AnAction(title) {

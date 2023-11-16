@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertiesUiModel
+import com.android.tools.idea.gradle.structure.configurables.ui.androidGradlePluginVersionViewer
 import com.android.tools.idea.gradle.structure.configurables.ui.project.ProjectPropertiesConfigPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.androidGradlePluginVersionViewer
 import com.android.tools.idea.gradle.structure.configurables.ui.uiProperty
 import com.android.tools.idea.gradle.structure.model.PsProjectDescriptors
 import com.android.tools.idea.structure.dialog.TrackedConfigurable

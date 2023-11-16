@@ -18,13 +18,18 @@ package com.android.tools.idea.gradle.filters;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS;
 
+import com.android.tools.idea.explainer.IssueExplainer;
+import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput;
+import com.android.tools.idea.gradle.project.build.output.ExplainBuildErrorFilter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ExecutionConsole;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTask;
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemResolveProjectTask;
 import com.intellij.openapi.project.Project;
@@ -59,6 +64,39 @@ public class AndroidGradleExecutionConsoleManager extends GradleExecutionConsole
     return super.attachExecutionConsole(project, task, env, processHandler);
   }
 
+  @Override
+  public Filter[] getCustomExecutionFilters(@NotNull Project project,
+                                            @NotNull ExternalSystemTask task,
+                                            @Nullable ExecutionEnvironment env) {
+    // converts explainer console output to hyperlinks
+    Filter[] filters = super.getCustomExecutionFilters(project, task, env);
+    IssueExplainer explainer = IssueExplainer.get();
+    if (!explainer.isAvailable()) {
+      return filters;
+    }
+    String explainerLinkText = explainer.getConsoleLinkText();
+    Filter[] customFilters = new Filter[filters.length + 1];
+    System.arraycopy(filters, 0, customFilters, 0, filters.length);
+    customFilters[filters.length] = new ExplainBuildErrorFilter(explainerLinkText);
+    return customFilters;
+  }
+
+  @SuppressWarnings("UnstableApiUsage")
+  @Override
+  public AnAction[] getCustomContextActions(@NotNull Project project,
+                                            @NotNull ExternalSystemTask task,
+                                            @Nullable ExecutionEnvironment env) {
+    // add sync tree popup menu items for an explainer service
+    AnAction[] contextActions = super.getCustomContextActions(project, task, env);
+    IssueExplainer explainer = IssueExplainer.get();
+    if (!explainer.isAvailable()) {
+      return contextActions;
+    }
+    AnAction[] extendedActions = new AnAction[contextActions.length + 1];
+    System.arraycopy(contextActions, 0, extendedActions, 0, contextActions.length);
+    extendedActions[contextActions.length] = new ExplainSyncOrBuildOutput();
+    return extendedActions;
+  }
 
   static class AndroidReRunSyncFilter extends GradleReRunBuildFilter {
     AndroidReRunSyncFilter(@NotNull String projectPath) {

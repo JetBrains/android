@@ -16,15 +16,15 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.adtui.compose.ComposeStatus
-import com.android.tools.idea.editors.liveedit.ui.MANUAL_LIVE_EDIT_ACTION_ID
+import com.android.tools.idea.editors.liveedit.ui.REFRESH_ACTION_ID
 import com.android.tools.idea.editors.liveedit.ui.SHOW_LOGCAT_ACTION_ID
 import com.android.tools.idea.run.deployment.liveedit.LiveEditBundle.message
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DEFAULT
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DISABLED
+import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DISABLED_WITH_MESSAGE
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.RECOVERABLE_ERROR
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.REFRESHING
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.REFRESH_NEEDED
-import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DISABLED_WITH_MESSAGE
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.UNRECOVERABLE_ERROR
 import com.intellij.icons.AllIcons
 import com.intellij.ui.AnimatedIcon
@@ -123,7 +123,7 @@ open class LiveEditStatus(
     }
   }
 
-  object Disabled : LiveEditStatus(null, "", "", DISABLED)
+  object Disabled : LiveEditStatus(AllIcons.General.Warning, "Live Edit disabled", "Live Edit is disabled.", DISABLED)
 
   object UnrecoverableError :
     LiveEditStatus(
@@ -150,7 +150,7 @@ open class LiveEditStatus(
       message("le.status.out_of_date.description"),
       REFRESH_NEEDED,
       redeployMode = RedeployMode.REFRESH,
-      actionId = MANUAL_LIVE_EDIT_ACTION_ID
+      actionId = REFRESH_ACTION_ID
     )
 
   object NoMultiDeploy :

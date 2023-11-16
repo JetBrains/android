@@ -45,6 +45,7 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -53,6 +54,7 @@ import java.io.IOException
 import java.time.Duration
 import java.util.UUID
 
+@Ignore("Feature is not in use now, do not waste resources  on actively testing it.")
 class BuildAnalyzerStorageFileManagerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()

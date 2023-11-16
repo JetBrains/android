@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.performance;
 
-import com.android.tools.idea.bleak.UseBleak;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
+import com.android.tools.idea.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -42,8 +42,8 @@ public class InspectionsMemoryUseTest {
   public void inspectCode() throws IOException {
     guiTest.importSimpleApplication();
     guiTest.runWithBleak(() -> guiTest.ideFrame()
-      .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
-      .clickOk()
+      .openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code\u2026")
+      .clickAnalyze()
       .close()
     );
   }

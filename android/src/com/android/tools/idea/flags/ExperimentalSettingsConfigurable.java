@@ -19,7 +19,6 @@ import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.Trac
 import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.SPECIFIED_LOCATION;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileDescriptor;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
@@ -28,6 +27,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -54,7 +54,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   @NotNull private final RenderSettings myRenderSettings;
 
   private JPanel myPanel;
-  private JCheckBox myUseL2DependenciesCheckBox;
+  private JCheckBox myUseMultiVariantExtraArtifacts;
   private JSlider myLayoutEditorQualitySlider;
   private JCheckBox myConfigureAllGradleTasks;
   private JCheckBox myTraceGradleSyncCheckBox;
@@ -66,6 +66,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   private JCheckBox myEnableParallelSync;
 
   private JCheckBox myEnableDeviceApiOptimization;
+  private JCheckBox myDeriveRuntimeClasspathsForLibraries;
 
   private Runnable myRestartCallback;
 
@@ -80,19 +81,18 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
     mySettings = settings;
     myRenderSettings = renderSettings;
 
-    // TODO make visible once Gradle Sync switches to L2 dependencies
-    myUseL2DependenciesCheckBox.setVisible(false);
-
     myEnableParallelSync.setVisible(StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get());
+    myDeriveRuntimeClasspathsForLibraries.setVisible(StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get());
     myEnableDeviceApiOptimization.setVisible(StudioFlags.API_OPTIMIZATION_ENABLE.get());
 
     Hashtable<Integer, JComponent> qualityLabels = new Hashtable<>();
-    qualityLabels.put(0, new JLabel(AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.slider.quality.setting.fastest")));
-    qualityLabels.put(100, new JLabel(AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.slider.quality.setting.slowest")));
+    qualityLabels.put(20, new JLabel("Fastest"));
+    qualityLabels.put(100, new JLabel("Slowest"));
+    myLayoutEditorQualitySlider.setMinimum(20);
     myLayoutEditorQualitySlider.setLabelTable(qualityLabels);
     myLayoutEditorQualitySlider.setPaintLabels(true);
     myLayoutEditorQualitySlider.setPaintTicks(true);
-    myLayoutEditorQualitySlider.setMajorTickSpacing(25);
+    myLayoutEditorQualitySlider.setMajorTickSpacing(20);
     myPreviewPickerCheckBox.setVisible(StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get());
     myPreviewPickerLabel.setVisible(StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get());
     initTraceComponents();
@@ -108,9 +108,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   @Override
   @Nls
   public String getDisplayName() {
-    return IdeInfo.getInstance().isAndroidStudio()
-           ? AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.display.name.studio")
-           : AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.display.name.plugin");
+    return AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.display.name");
   }
 
   @Override
@@ -127,7 +125,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
 
   @Override
   public boolean isModified() {
-    return mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isL2DependenciesInSyncEnabled() ||
+    return mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS != isUseMultiVariantExtraArtifact() ||
            // SKIP_GRADLE_TASK_LIST is reversed since original text implies the opposite action.
            mySettings.SKIP_GRADLE_TASKS_LIST == isConfigureAllGradleTasksEnabled() ||
            mySettings.TRACE_GRADLE_SYNC != isTraceGradleSyncEnabled() ||
@@ -136,7 +134,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
            mySettings.ENABLE_PARALLEL_SYNC != isParallelSyncEnabled() ||
            mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimizationEnabled() ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
-           myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled();
+           myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
+           mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries();
   }
 
   private int getQualitySetting() {
@@ -145,10 +144,11 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
 
   @Override
   public void apply() throws ConfigurationException {
-    mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isL2DependenciesInSyncEnabled();
+    mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = isUseMultiVariantExtraArtifact();
     mySettings.SKIP_GRADLE_TASKS_LIST = !isConfigureAllGradleTasksEnabled();
     mySettings.ENABLE_PARALLEL_SYNC = isParallelSyncEnabled();
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = isGradleApiOptimizationEnabled();
+    mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = isDeriveRuntimeClasspathsForLibraries();
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
 
@@ -165,13 +165,13 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   }
 
   @VisibleForTesting
-  boolean isL2DependenciesInSyncEnabled() {
-    return myUseL2DependenciesCheckBox.isSelected();
+  boolean isUseMultiVariantExtraArtifact() {
+    return myUseMultiVariantExtraArtifacts.isSelected();
   }
 
   @TestOnly
-  void enableL2DependenciesInSync(boolean value) {
-    myUseL2DependenciesCheckBox.setSelected(value);
+  void enableUseMultiVariantExtraArtifacts(boolean value) {
+    myUseMultiVariantExtraArtifacts.setSelected(value);
   }
 
   boolean isConfigureAllGradleTasksEnabled() {
@@ -230,21 +230,29 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
     myEnableDeviceApiOptimization.setSelected(value);
   }
 
+  boolean isDeriveRuntimeClasspathsForLibraries() {
+    return myDeriveRuntimeClasspathsForLibraries.isSelected();
+  }
+
+  @TestOnly
+  void enableDeriveRuntimeClasspathsForLibraries(boolean value) {
+    myDeriveRuntimeClasspathsForLibraries.setSelected(value);
+  }
+
   private void initTraceComponents() {
     myTraceGradleSyncCheckBox.addActionListener(e -> updateTraceComponents());
 
     myTraceProfileComboBox.addActionListener(e -> {
       myTraceProfilePathField.setEnabled(SPECIFIED_LOCATION.equals(myTraceProfileComboBox.getSelectedItem()));
       if (isTraceProfileInvalid()) {
-        ExternalSystemUiUtil.showBalloon(myTraceProfilePathField, MessageType.WARNING,
-                                         AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.error.invalid.profile.location"));
+        ExternalSystemUiUtil.showBalloon(myTraceProfilePathField, MessageType.WARNING, "Invalid profile location");
       }
     });
 
-    myTraceProfilePathField.addBrowseFolderListener(
-      AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.dialog.title.trace"),
-      AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.label.select.trace.profile"),
-      null, createSingleFileDescriptor("profile"));
+    myUseMultiVariantExtraArtifacts.setVisible(StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get());
+
+    myTraceProfilePathField.addBrowseFolderListener("Trace Profile", "Please select trace profile",
+                                                    null, createSingleFileDescriptor("profile"));
     myTraceProfileComboBox.addItem(DEFAULT);
     myTraceProfileComboBox.addItem(SPECIFIED_LOCATION);
   }
@@ -279,14 +287,12 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
         !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation())) {
       // Restart of studio is required to apply the changes, because the jvm args are specified at startup of studio.
       boolean canRestart = app.isRestartCapable();
-      String okText = canRestart ? AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.restart")
-                                 : AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.exit");
-      String message = AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.dialog.trace.restart.required",
-                                             ApplicationNamesInfo.getInstance().getFullProductName());
-      int result = Messages.showOkCancelDialog(message,
-                                               AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.restart"), okText,
-                                               AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.cancel"),
-                                               Messages.getQuestionIcon());
+      String okText = canRestart ? "Restart" : "Exit";
+      String message = "A restart of " +
+                       ApplicationNamesInfo.getInstance().getFullProductName() +
+                       " is required to apply changes related to tracing.\n\n" +
+                       "Do you want to proceed?";
+      int result = Messages.showOkCancelDialog(message, "Restart", okText, "Cancel", Messages.getQuestionIcon());
 
       if (result == Messages.OK) {
         saveTraceSettings();
@@ -316,7 +322,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
 
   @Override
   public void reset() {
-    myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
+    myUseMultiVariantExtraArtifacts.setSelected(mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS);
     myConfigureAllGradleTasks.setSelected(!mySettings.SKIP_GRADLE_TASKS_LIST);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
     myTraceGradleSyncCheckBox.setSelected(mySettings.TRACE_GRADLE_SYNC);
@@ -324,18 +330,18 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
     myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);
     myEnableParallelSync.setSelected(mySettings.ENABLE_PARALLEL_SYNC);
     myEnableDeviceApiOptimization.setSelected(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
+    myDeriveRuntimeClasspathsForLibraries.setSelected(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
     updateTraceComponents();
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
   }
 
   public enum TraceProfileItem {
-    DEFAULT(AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.combobox.trace.default")),
-    SPECIFIED_LOCATION(AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.combobox.trace.specified"));
+    DEFAULT("Default profile"),
+    SPECIFIED_LOCATION("Specified location");
 
-    @Nls
     private final String displayValue;
 
-    TraceProfileItem(@Nls @NotNull String value) {
+    TraceProfileItem(@NotNull String value) {
       displayValue = value;
     }
 

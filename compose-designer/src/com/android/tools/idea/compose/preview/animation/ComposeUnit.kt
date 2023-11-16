@@ -59,7 +59,7 @@ object ComposeUnit {
   abstract class Unit1D<A>(val component1: A) : Unit<A> {
     override val components = listOf(component1)
     override fun toString(componentId: Int) = component1.toString()
-    override fun toString(): String = components.joinToString { it.toString() }
+    override fun toString(): String = components.joinToString() { it.toString() }
   }
 
   abstract class Unit2D<A>(val component1: A, val component2: A) : Unit<A> {

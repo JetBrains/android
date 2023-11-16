@@ -17,13 +17,13 @@ package com.android.tools.idea.streaming.benchmark
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.streaming.AbstractDisplayView
 import com.android.tools.idea.streaming.benchmark.Benchmarker.Adapter
-import com.android.tools.idea.streaming.bottom
-import com.android.tools.idea.streaming.right
-import com.android.tools.idea.streaming.rotatedByQuadrants
-import com.android.tools.idea.streaming.scaled
-import com.android.tools.idea.streaming.scaledUnbiased
+import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.bottom
+import com.android.tools.idea.streaming.core.right
+import com.android.tools.idea.streaming.core.rotatedByQuadrants
+import com.android.tools.idea.streaming.core.scaled
+import com.android.tools.idea.streaming.core.scaledUnbiased
 import com.android.utils.time.TimeSource
 import com.android.utils.time.TimeSource.TimeMark
 import com.intellij.openapi.diagnostic.Logger

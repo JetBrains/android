@@ -23,9 +23,10 @@ import javax.swing.event.ListSelectionListener
 /**
  * A fake implementation of [ListPopup] for tests.
  */
-internal class FakeListPopup<T>(items: List<T>) : FakeJBPopup<T>(items), ListPopup {
-  override fun getListStep(): ListPopupStep<*> {
-    TODO("Not yet implemented")
+class FakeListPopup<T>(private val step: ListPopupStep<T>) : FakeJBPopup<T>(step.values), ListPopup {
+
+  override fun getListStep(): ListPopupStep<T> {
+    return step
   }
 
   override fun handleSelect(handleFinalChoices: Boolean) {
@@ -42,5 +43,9 @@ internal class FakeListPopup<T>(items: List<T>) : FakeJBPopup<T>(items), ListPop
 
   override fun addListSelectionListener(listSelectionListener: ListSelectionListener?) {
     TODO("Not yet implemented")
+  }
+
+  fun choose(index: Int, finalChoice: Boolean = true) {
+    step.onChosen(items[index], finalChoice)
   }
 }

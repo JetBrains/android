@@ -16,17 +16,16 @@
 package com.android.gmdcodecompletion
 
 import com.android.gmdcodecompletion.completions.GmdCodeCompletionLookupElement
-import com.android.gmdcodecompletion.completions.lookupelementprovider.BaseLookupElementProvider
-import com.android.gmdcodecompletion.completions.lookupelementprovider.CurrentDeviceProperties
-import com.android.gmdcodecompletion.completions.lookupelementprovider.FtlLookupElementProvider
 import com.android.gmdcodecompletion.ftl.FtlDeviceCatalog
 import com.android.gmdcodecompletion.ftl.FtlDeviceCatalogState
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalog
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalogState
 import com.android.sdklib.devices.DeviceManager
+import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mockStatic
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioSdkUtil
 import com.google.api.services.testing.model.AndroidDeviceCatalog
@@ -35,6 +34,7 @@ import com.google.api.services.testing.model.AndroidRuntimeConfiguration
 import com.google.api.services.testing.model.AndroidVersion
 import com.google.api.services.testing.model.Locale
 import com.google.api.services.testing.model.Orientation
+import com.intellij.codeInsight.lookup.LookupElement
 import org.junit.Assert.assertEquals
 import java.util.Calendar
 
@@ -137,13 +137,8 @@ fun managedVirtualDeviceCatalogTestHelper(
 
 val testMinAndTargetApiLevel = MinAndTargetApiLevel(targetSdk = 33, minSdk = 20)
 
-fun lookupElementProviderTestHelper(devicePropertyName: DevicePropertyName, currentDeviceProperties: CurrentDeviceProperties,
-                                    deviceCatalog: GmdDeviceCatalog, expectedResult: List<GmdCodeCompletionLookupElement>,
-                                    lookupElementProvider: BaseLookupElementProvider) {
-  val result = lookupElementProvider.generateDevicePropertyValueSuggestionList(devicePropertyName,
-                                                                               currentDeviceProperties,
-                                                                               testMinAndTargetApiLevel,
-                                                                               deviceCatalog)
+fun verifyConfigurationLookupElementProviderResult(result: Collection<LookupElement>,
+                                                   expectedResult: Collection<GmdCodeCompletionLookupElement>) {
   val sortedResult = result.map { it as GmdCodeCompletionLookupElement }
     .sortedWith { element1, element2 ->
       element1.compareTo(element2)

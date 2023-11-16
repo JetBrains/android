@@ -16,11 +16,10 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.ProjectSyncIssues
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
-import com.android.ide.gradle.model.LegacyApplicationIdModel
+import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
@@ -40,7 +39,6 @@ import com.android.utils.findGradleBuildFile
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
-import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
@@ -97,9 +95,7 @@ class JavaModule(
  */
 sealed class AndroidModule(
   val agpVersion: AgpVersion?,
-  val buildName: String,
-  val buildNameMap: Map<String, BuildId>,
-  val buildIdMap: Map<BuildId, String>,
+  val buildPathMap: Map<String, BuildId>,
   gradleProject: BasicGradleProject,
   val androidProject: IdeAndroidProjectImpl,
   /** All configured variant names if supported by the AGP version. */
@@ -111,7 +107,7 @@ sealed class AndroidModule(
   private val nativeAndroidProject: IdeNativeAndroidProject?,
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
   private val nativeModule: IdeNativeModule?,
-  val legacyApplicationIdModel: LegacyApplicationIdModel?,
+  val legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
 ) : GradleModule(gradleProject) {
   val projectType: IdeAndroidProjectType get() = androidProject.projectType
 
@@ -148,9 +144,7 @@ sealed class AndroidModule(
 
   class V1(
     agpVersion: AgpVersion?,
-    buildName: String,
-    buildNameMap: Map<String, BuildId>,
-    buildIdMap: Map<BuildId, String>,
+    buildPathMap: Map<String, BuildId>,
     gradleProject: BasicGradleProject,
     androidProject: IdeAndroidProjectImpl,
     /** All configured variant names if supported by the AGP version. */
@@ -161,12 +155,10 @@ sealed class AndroidModule(
     nativeAndroidProject: IdeNativeAndroidProject?,
     /** New V2 native model. It's only set if [nativeAndroidProject] is not set. */
     nativeModule: IdeNativeModule?,
-    legacyApplicationIdModel: LegacyApplicationIdModel?,
+    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
   ) : AndroidModule(
     agpVersion = agpVersion,
-    buildName = buildName,
-    buildNameMap = buildNameMap,
-    buildIdMap = buildIdMap,
+    buildPathMap = buildPathMap,
     gradleProject = gradleProject,
     androidProject = androidProject,
     /** All configured variant names if supported by the AGP version. */
@@ -178,7 +170,7 @@ sealed class AndroidModule(
     nativeAndroidProject = nativeAndroidProject,
     /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
     nativeModule = nativeModule,
-    legacyApplicationIdModel = legacyApplicationIdModel,
+    legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
   ) {
     override fun getFetchSyncIssuesAction(): ActionToRun<Unit> {
       return ActionToRun(
@@ -188,8 +180,8 @@ sealed class AndroidModule(
 
           if (syncIssues != null) {
             // These would have been attached above if there is no separate sync issue model.
-            val legacyApplicationIdModelProblems = this.legacyApplicationIdModel.getProblemsAsSyncIssues()
-            this.setSyncIssues(syncIssues + legacyApplicationIdModelProblems)
+            val legacyModelProblems = this.legacyAndroidGradlePluginProperties.getProblemsAsSyncIssues()
+            this.setSyncIssues(syncIssues + legacyModelProblems)
           }
         },
         fetchesV1Models = true
@@ -199,9 +191,7 @@ sealed class AndroidModule(
 
   class V2(
     agpVersion: AgpVersion?,
-    buildName: String,
-    buildNameMap: Map<String, BuildId>,
-    buildIdMap: Map<BuildId, String>,
+    buildPathMap: Map<String, BuildId>,
     gradleProject: BasicGradleProject,
     androidProject: IdeAndroidProjectImpl,
     allVariantNames: Set<String>,
@@ -209,12 +199,10 @@ sealed class AndroidModule(
     variantFetcher: IdeVariantFetcher,
     androidVariantResolver: AndroidVariantResolver,
     nativeModule: IdeNativeModule?,
-    legacyApplicationIdModel: LegacyApplicationIdModel?,
+    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
   ) : AndroidModule(
     agpVersion = agpVersion,
-    buildName = buildName,
-    buildNameMap = buildNameMap,
-    buildIdMap = buildIdMap,
+    buildPathMap = buildPathMap,
     gradleProject = gradleProject,
     androidProject = androidProject,
     allVariantNames = allVariantNames,
@@ -224,14 +212,14 @@ sealed class AndroidModule(
     /** Old V1 model. Not used with V2. */
     nativeAndroidProject = null,
     nativeModule = nativeModule,
-    legacyApplicationIdModel = legacyApplicationIdModel,
+    legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
   ) {
     override fun getFetchSyncIssuesAction(): ActionToRun<Unit> {
       return ActionToRun(
         fun(controller: BuildController) {
           val syncIssues =
             controller.findModel(this.findModelRoot, ProjectSyncIssuesV2::class.java)?.syncIssues?.toV2SyncIssueData() ?: listOf()
-          val legacyApplicationIdModelProblems = this.legacyApplicationIdModel.getProblemsAsSyncIssues()
+          val legacyModelProblems = this.legacyAndroidGradlePluginProperties.getProblemsAsSyncIssues()
           // For V2: we do not populate SyncIssues with Unresolved dependencies because we pass them through builder models.
           val v2UnresolvedDependenciesIssues = this.unresolvedDependencies.map {
             IdeSyncIssueImpl(
@@ -242,7 +230,7 @@ sealed class AndroidModule(
               type = IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY
             )
           }
-          this.setSyncIssues(syncIssues + v2UnresolvedDependenciesIssues + legacyApplicationIdModelProblems)
+          this.setSyncIssues(syncIssues + v2UnresolvedDependenciesIssues + legacyModelProblems)
         },
         fetchesV2Models = true,
         fetchesKotlinModels = false
@@ -314,7 +302,15 @@ private fun List<IdeVariantCoreImpl>.patchForKapt(kaptModel: KaptGradleModel?): 
   }
 }
 
-data class ModuleConfiguration(val id: String, val variant: String, val abi: String?)
+data class ModuleConfiguration(
+  val id: String,
+  val variant: String,
+  val abi: String?,
+  // Whether this configuration was requested as the root of a request.
+  // Here root means that this Gradle project is not depended upon by any other Gradle projects.
+  // This is used to determine whether to fetch the runtime classpath for libraries.
+  val isRoot: Boolean,
+)
 
 class NativeVariantsAndroidModule private constructor(
   gradleProject: BasicGradleProject,
@@ -363,9 +359,8 @@ private fun collectIdentifiers(
         .filterNotNull()
     }
     .flatMap { it.dependencies.asSequence() }
-    .mapNotNull { (libraryResolver(it.target) as? IdeArtifactLibrary)?.artifactAddress }
-    .mapNotNull { GradleCoordinate.parseCoordinateString(it) }
-    .map { ArtifactIdentifierImpl(it.groupId, it.artifactId, it.lowerBoundVersion?.toString().orEmpty()) }
+    .mapNotNull { (libraryResolver(it.target) as? IdeArtifactLibrary)?.component }
+    .map { ArtifactIdentifierImpl(it.group, it.name, it.version.toString()) }
     .distinct()
     .toList()
 }

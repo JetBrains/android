@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.UNSPECIFIED_FOR_NOW;
-
 import com.android.tools.idea.gradle.dsl.api.android.KotlinOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
@@ -28,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class KotlinOptionsModelImpl extends GradleDslBlockModel implements KotlinOptionsModel {
   @NonNls public static final ModelPropertyDescription FREE_COMPILER_ARGS =
-    new ModelPropertyDescription("mFreeCompilerArgs", UNSPECIFIED_FOR_NOW);
+    new ModelPropertyDescription("mFreeCompilerArgs");
   @NonNls public static final String JVM_TARGET = "mJvmTarget";
   @NonNls public static final String USE_IR = "mUseIR";
 

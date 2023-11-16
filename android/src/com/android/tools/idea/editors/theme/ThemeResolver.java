@@ -24,6 +24,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.ResourceResolver;
@@ -31,15 +32,11 @@ import com.android.ide.common.resources.ResourceValueMap;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.configurations.ResourceResolverCache;
+import com.android.tools.configurations.Configuration;
+import com.android.tools.configurations.ConfigurationModelModule;
+import com.android.tools.configurations.ResourceResolverCache;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.res.AndroidDependenciesCache;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.StudioResourceRepositoryManager;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.res.ResourceNamespacing;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
@@ -137,8 +134,7 @@ public class ThemeResolver {
   @Slow
   @NotNull
   private List<StyleResourceValue> resolveFrameworkThemes() {
-    ConfigurationManager configurationManager = myConfiguration.getConfigurationManager();
-    ResourceResolverCache resolverCache = configurationManager.getResolverCache();
+    ResourceResolverCache resolverCache = myConfiguration.getSettings().getResolverCache();
 
     IAndroidTarget target = myConfiguration.getTarget();
     if (target == null) {
@@ -173,20 +169,21 @@ public class ThemeResolver {
   @NotNull
   private List<Pair<StyleResourceValue, Module>> resolveLocallyDefinedModuleThemes() {
     Module module = myConfiguration.getModule();
+    ConfigurationModelModule configModule = myConfiguration.getConfigModule();
     List<Pair<StyleResourceValue, Module>> result = new ArrayList<>();
 
-    fillModuleResources(module, StudioResourceRepositoryManager.getModuleResources(module), result);
+    fillModuleResources(module, configModule.getResourceRepositoryManager().getModuleResources(), result);
 
     List<AndroidFacet> allAndroidDependencies = AndroidDependenciesCache.getAllAndroidDependencies(module, false);
     for (AndroidFacet facet : allAndroidDependencies) {
-      fillModuleResources(facet.getModule(), StudioResourceRepositoryManager.getModuleResources(facet), result);
+      fillModuleResources(facet.getModule(), configModule.getResourceRepositoryManager().getModuleResources(), result);
     }
 
     return result;
   }
 
   private void fillModuleResources(@NotNull Module module,
-                                   @Nullable LocalResourceRepository repository,
+                                   @Nullable ResourceRepository repository,
                                    @NotNull List<Pair<StyleResourceValue, Module>> sink) {
     if (repository == null) {
       return;
@@ -291,7 +288,7 @@ public class ThemeResolver {
   @NotNull
   public List<ResourceReference> getRecommendedThemes() {
     if (myRecommendedThemes == null) {
-      myRecommendedThemes = computeRecommendedThemes(myConfiguration.getModule());
+      myRecommendedThemes = computeRecommendedThemes(myConfiguration.getConfigModule());
     }
     return myRecommendedThemes;
   }
@@ -300,9 +297,9 @@ public class ThemeResolver {
   public StyleResourceValue[] requiredBaseThemes() {
     // The components in the design library requires the application theme to be derived from
     // either: Platform.AppCompat or Platform.AppCompat.Light
-    Module module = myConfiguration.getModule();
-    if (!(DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.DESIGN) ||
-          DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_DESIGN))) {
+    ConfigurationModelModule module = myConfiguration.getConfigModule();
+    if (!(module.getDependencies().dependsOn(GoogleMavenArtifactId.DESIGN) ||
+          module.getDependencies().dependsOn(GoogleMavenArtifactId.ANDROIDX_DESIGN))) {
       return NO_BASE_THEMES;
     }
 
@@ -328,17 +325,17 @@ public class ThemeResolver {
   }
 
   @Nullable
-  private static ResourceNamespace getAppCompatNamespace(@NotNull Module module) {
-    if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)) {
+  private static ResourceNamespace getAppCompatNamespace(@NotNull ConfigurationModelModule module) {
+    if (module.getDependencies().dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)) {
       return isNamespacingEnabled(module) ? ResourceNamespace.APPCOMPAT : ResourceNamespace.RES_AUTO;
-    } else if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7)) {
+    } else if (module.getDependencies().dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7)) {
       return isNamespacingEnabled(module) ? ResourceNamespace.APPCOMPAT_LEGACY : ResourceNamespace.RES_AUTO;
     }
     return null;
   }
 
   @NotNull
-  private static List<ResourceReference> computeRecommendedThemes(@NotNull Module module) {
+  private static List<ResourceReference> computeRecommendedThemes(@NotNull ConfigurationModelModule module) {
     ResourceNamespace appcompatNamespace = getAppCompatNamespace(module);
 
     if (appcompatNamespace == null) {
@@ -354,8 +351,8 @@ public class ThemeResolver {
         ResourceReference.style(appcompatNamespace, "Theme.AppCompat.NoActionBar"));
   }
 
-  private static boolean isNamespacingEnabled(@NotNull Module module) {
-    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(module);
+  private static boolean isNamespacingEnabled(@NotNull ConfigurationModelModule module) {
+    ResourceRepositoryManager repositoryManager = module.getResourceRepositoryManager();
     return repositoryManager != null && repositoryManager.getNamespacing() == ResourceNamespacing.REQUIRED;
   }
 }

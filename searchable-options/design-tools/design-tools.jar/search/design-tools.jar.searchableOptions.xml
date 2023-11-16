@@ -1,5 +1,6 @@
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
+    <option name="" path="ActionManager" hit="" />
     <option name="action" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
     <option name="and" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
     <option name="create" path="ActionManager" hit="Action to switch and create qualifiers for layout files" />
@@ -96,6 +97,18 @@
     <option name="layout" path="ActionManager" hit="Motion Layout Help Panel" />
     <option name="motion" path="ActionManager" hit="Motion Layout Help Panel" />
     <option name="panel" path="ActionManager" hit="Motion Layout Help Panel" />
+    <option name="and" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
+    <option name="clipboard" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
+    <option name="from" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
+    <option name="generate" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
+    <option name="ids" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
+    <option name="new" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
+    <option name="paste" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
+    <option name="views" path="ActionManager" hit="Paste Views from Clipboard and generate new ids" />
+    <option name="ids" path="ActionManager" hit="Paste with New Ids" />
+    <option name="new" path="ActionManager" hit="Paste with New Ids" />
+    <option name="paste" path="ActionManager" hit="Paste with New Ids" />
+    <option name="with" path="ActionManager" hit="Paste with New Ids" />
     <option name="device" path="ActionManager" hit="Preview Next Device" />
     <option name="next" path="ActionManager" hit="Preview Next Device" />
     <option name="preview" path="ActionManager" hit="Preview Next Device" />
@@ -194,6 +207,8 @@
   </configurable>
   <configurable id="nele.options" configurable_name="Design Tools">
     <option name="code" hit="Code" />
+    <option name="compose" hit="Compose Preview" />
+    <option name="preview" hit="Compose Preview" />
     <option name="compose" hit="Compose files:" />
     <option name="files" hit="Compose files:" />
     <option name="default" hit="Default Editor Mode" />
@@ -203,6 +218,9 @@
     <option name="design" hit="Design Tools" />
     <option name="tools" hit="Design Tools" />
     <option name="drawables" hit="Drawables:" />
+    <option name="enable" hit="Enable live updates" />
+    <option name="live" hit="Enable live updates" />
+    <option name="updates" hit="Enable live updates" />
     <option name="files" hit="Other Kotlin files:" />
     <option name="kotlin" hit="Other Kotlin files:" />
     <option name="other" hit="Other Kotlin files:" />
@@ -213,12 +231,6 @@
     <option name="navigation" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
     <option name="other" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
     <option name="resources" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
-    <option name="design" hit="Show lint icons on design surface" />
-    <option name="icons" hit="Show lint icons on design surface" />
-    <option name="lint" hit="Show lint icons on design surface" />
-    <option name="on" hit="Show lint icons on design surface" />
-    <option name="show" hit="Show lint icons on design surface" />
-    <option name="surface" hit="Show lint icons on design surface" />
     <option name="split" hit="Split" />
   </configurable>
 </options>

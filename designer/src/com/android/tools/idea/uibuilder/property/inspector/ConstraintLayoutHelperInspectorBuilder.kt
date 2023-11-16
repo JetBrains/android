@@ -54,12 +54,15 @@ import javax.swing.border.EmptyBorder
 private const val ADD_PROPERTY_ACTION_TITLE = "Add View Reference"
 private const val DELETE_ROW_ACTION_TITLE = "Remove selected View reference"
 
-/**
- * Builder for the ConstraintHelper references panel
- */
-class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) : InspectorBuilder<NlPropertyItem> {
+/** Builder for the ConstraintHelper references panel */
+class ConstraintLayoutHelperInspectorBuilder(
+  private val editorProvider: EditorProvider<NlPropertyItem>
+) : InspectorBuilder<NlPropertyItem> {
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>
+  ) {
     if (properties.isEmpty || !InspectorSection.REFERENCES.visible) {
       return
     }
@@ -79,7 +82,8 @@ class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorP
     inspector.addEditor(editorProvider.createEditor(property), titleModel)
   }
 
-  private class AddNewRowAction(panel: ReferencesIdsPanel) : AnAction(null, ADD_PROPERTY_ACTION_TITLE, StudioIcons.Common.ADD) {
+  private class AddNewRowAction(panel: ReferencesIdsPanel) :
+    AnAction(null, ADD_PROPERTY_ACTION_TITLE, StudioIcons.Common.ADD) {
     var panel = panel
     var dataModel = panel.getDataModel()
     var titleModel: InspectorLineModel? = null
@@ -114,11 +118,12 @@ class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorP
       picker.isFocusCycleRoot = true
       picker.focusTraversalPolicy = LayoutFocusTraversalPolicy()
       val escapeKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false)
-      val escapeAction: Action = object : AbstractAction() {
-        override fun actionPerformed(e: ActionEvent) {
-          popupMenu.close()
+      val escapeAction: Action =
+        object : AbstractAction() {
+          override fun actionPerformed(e: ActionEvent) {
+            popupMenu.close()
+          }
         }
-      }
       picker.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escapeKeyStroke, "ESCAPE")
       picker.actionMap.put("ESCAPE", escapeAction)
 
@@ -132,7 +137,8 @@ class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorP
     }
   }
 
-  private class DeleteRowAction(panel: ReferencesIdsPanel) : AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
+  private class DeleteRowAction(panel: ReferencesIdsPanel) :
+    AnAction(null, DELETE_ROW_ACTION_TITLE, StudioIcons.Common.REMOVE) {
     var panel = panel
     var titleModel: InspectorLineModel? = null
 
@@ -160,5 +166,4 @@ class ConstraintLayoutHelperInspectorBuilder(private val editorProvider: EditorP
       return component!!.isOrHasSuperclass(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_HELPER)
     }
   }
-
 }

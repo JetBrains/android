@@ -18,6 +18,7 @@ package com.android.tools.inspectors.common.ui.dataviewer;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.codeInsight.folding.CodeFoldingManager;
 import com.intellij.lang.Language;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.EditorSettings;
@@ -84,7 +85,8 @@ public class IntellijDataViewer implements DataViewer {
   public static IntellijDataViewer createPrettyViewerIfPossible(@NotNull Project project,
                                                                 byte[] content,
                                                                 @Nullable FileType fileType,
-                                                                boolean formatted) {
+                                                                boolean formatted,
+                                                                Disposable parentDisposable) {
     try {
       EditorFactory editorFactory = EditorFactory.getInstance();
 
@@ -139,7 +141,7 @@ public class IntellijDataViewer implements DataViewer {
         editor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(project, fileType));
       }
 
-      Disposer.register(project, () -> editorFactory.releaseEditor(editor));
+      Disposer.register(parentDisposable, () -> editorFactory.releaseEditor(editor));
 
       return new IntellijDataViewer(editor.getComponent(), style);
     }

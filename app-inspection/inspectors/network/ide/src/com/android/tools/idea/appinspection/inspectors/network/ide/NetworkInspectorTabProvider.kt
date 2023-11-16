@@ -36,8 +36,8 @@ import com.android.tools.idea.flags.StudioFlags.ENABLE_NETWORK_MANAGER_INSPECTOR
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
-import javax.swing.Icon
 import kotlinx.coroutines.launch
+import javax.swing.Icon
 
 /** The number of updates per second our simulated object models receive. */
 private const val UPDATES_PER_SECOND = 60
@@ -68,7 +68,7 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
     messenger: AppInspectorMessenger,
     parentDisposable: Disposable
   ): AppInspectorTab {
-    val componentsProvider = DefaultUiComponentsProvider(project)
+    val componentsProvider = DefaultUiComponentsProvider(project, parentDisposable)
     val codeNavigationProvider = DefaultCodeNavigationProvider(project)
     val scope = AndroidCoroutineScope(parentDisposable)
     val dataSource = NetworkInspectorDataSourceImpl(messenger, scope)

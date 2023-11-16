@@ -20,11 +20,12 @@ import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.repository.Revision
 import com.android.tools.analytics.UsageTracker.log
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.*
-import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl.Companion.fromLibraryTable
+import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl.Companion.fromLibraryTables
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
@@ -42,10 +43,12 @@ import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getIdeModuleSo
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil.addTraceJvmArgs
 import com.android.tools.idea.gradle.project.sync.idea.VariantProjectDataNodes.Companion.collectCurrentAndPreviouslyCachedVariants
+import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectJdkUpdateData
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.issues.validateProjectGradleJdk
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
@@ -58,7 +61,6 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.findModule
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.stats.withProjectId
 import com.android.utils.appendCapitalized
 import com.android.utils.findGradleSettingsFile
 import com.google.common.annotations.VisibleForTesting
@@ -93,7 +95,8 @@ import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.android.configure.patchFromMppModel
-import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver
+import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService
@@ -101,6 +104,7 @@ import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
 import org.jetbrains.plugins.gradle.model.*
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 import org.jetbrains.plugins.gradle.service.project.ArtifactMappingService
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
@@ -197,7 +201,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     }
     val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java)
     val moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode) ?: return null
-    createAndAttachModelsToDataNode(projectDataNode, moduleDataNode, gradleModule, androidModels)
+    createAndAttachModelsToDataNode(moduleDataNode, gradleModule, androidModels)
     ideAndroidSyncIssuesAndExceptions?.process(moduleDataNode)
     patchLanguageLevels(moduleDataNode, gradleModule, androidModels?.androidProject)
     registerModuleData(gradleModule, moduleDataNode)
@@ -246,8 +250,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       val languageLevel = LanguageLevel.parse(androidProject.javaCompileOptions.sourceCompatibility)
       moduleData.languageLevel = languageLevel
       moduleData.targetBytecodeVersion = androidProject.javaCompileOptions.targetCompatibility
-    }
-    else {
+    } else {
       // Workaround BaseGradleProjectResolverExtension since the IdeaJavaLanguageSettings doesn't contain any information.
       // For this we set the language level based on the "main" source set of the module.
       // TODO: Remove once we have switched to module per source set. The base resolver should handle that correctly.
@@ -285,13 +288,11 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
    *  * JavaModuleModel
    *
    *
-   * @param projectDataNode the project node
    * @param moduleNode      the module node to attach the models to
    * @param gradleModule    the module in question
    * @param androidModels   the android project models obtained from this module (null is none found)
    */
   private fun createAndAttachModelsToDataNode(
-    projectDataNode: DataNode<ProjectData>,
     moduleNode: DataNode<ModuleData>,
     gradleModule: IdeaModule,
     androidModels: IdeAndroidModels?
@@ -307,7 +308,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     var androidModel: GradleAndroidModelData? = null
     var ndkModuleModel: NdkModuleModel? = null
     var gradleModel: GradleModuleModel? = null
-    var issueData: Collection<IdeSyncIssue>? = null
     if (androidModels != null) {
       androidModel = createGradleAndroidModel(moduleName, rootModulePath, androidModels, mppModel)
       val ndkModuleName = moduleName + "." + getModuleName(androidModel.mainArtifactCore.name)
@@ -358,6 +358,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
 
       // Setup testData nodes for testing sources used by Gradle test runners.
       createAndSetupTestDataNode(moduleNode, androidModel)
+
+      addGeneratedClassesToLibraryDependencies(variant, moduleNode)
     }
     patchMissingKaptInformationOntoModelAndDataNode(androidModel, moduleNode, kaptGradleModel)
 
@@ -384,6 +386,19 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     val taskNamePrefix = if (gradlePath == ":") gradlePath else "$gradlePath:"
     val testData = TestData(GradleConstants.SYSTEM_ID, testTaskName, taskNamePrefix + testTaskName, sourceFolders)
     moduleDataNode.createChild(ProjectKeys.TEST, testData)
+  }
+
+  private fun addGeneratedClassesToLibraryDependencies(
+    variant: IdeVariantCore,
+    moduleNode: DataNode<ModuleData>)
+  {
+    variant.mainArtifact.generatedClassPaths.forEach {
+      addToNewOrExistingLibraryData(
+        moduleNode.findSourceSetDataForArtifact(variant.mainArtifact),
+        it.key,
+        setOf(it.value),
+        false)
+    }
   }
 
   private fun createAndSetupGradleSourceSetDataNode(
@@ -445,15 +460,14 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       val ideLibraryTable = resolverCtx.models.getModel(
         IdeUnresolvedLibraryTableImpl::class.java
       )
-                            ?: throw IllegalStateException(
-                              "IdeLibraryTableImpl is unavailable in resolverCtx when GradleAndroidModel's are present")
-      myResolvedLibraryTable = buildResolvedLibraryTable(ideLibraryTable)
+        ?: throw IllegalStateException("IdeLibraryTableImpl is unavailable in resolverCtx when GradleAndroidModel's are present")
+      myResolvedLibraryTable = buildResolvedLibraryTable(ideProject, ideLibraryTable)
       ideProject.createChild(
         AndroidProjectKeys.IDE_LIBRARY_TABLE,
         myResolvedLibraryTable!!
       )
     }
-    val libraryResolver = fromLibraryTable(myResolvedLibraryTable!!)
+    val libraryResolver = fromLibraryTables(myResolvedLibraryTable!!, null)
 
     val additionalArtifacts = resolverCtx.getExtraProject(gradleModule, AdditionalClassifierArtifactsModel::class.java)
     // TODO: Log error messages from additionalArtifacts.
@@ -469,7 +483,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       }
 
       // Otherwise fall back to using the model from the injected model builder.
-      val artifactId = stripExtensionAndClassifier(library.name)
+      val artifactId = library.component?.toIdentifier() ?: library.name
       // First check to see if we just obtained any paths from Gradle. Since we don't request all the paths this can be null
       // or contain an incomplete set of entries. In order to complete this set we need to obtain the reminder from LibraryFilePaths cache.
       val artifacts = additionalArtifactsMap[artifactId]
@@ -498,13 +512,23 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   }
 
   private fun buildResolvedLibraryTable(
+    ideProject: DataNode<ProjectData>,
     ideLibraryTable: IdeUnresolvedLibraryTable
   ): IdeResolvedLibraryTable {
     val artifactModuleIdMap = buildArtifactsModuleIdMap()
+    val kotlinMultiplatformAndroidSourceSetData = ExternalSystemApiUtil.find(
+      ideProject,
+      AndroidProjectKeys.KOTLIN_MULTIPLATFORM_ANDROID_SOURCE_SETS_TABLE
+    )?.data
     return ResolvedLibraryTableBuilder(
       { key: Any? -> myGradlePathByModuleId[key] },
       { key: Any? -> myModuleDataByGradlePath[key] },
-      { artifact: File -> resolveArtifact(artifactModuleIdMap, artifact) }
+      { artifact: File -> resolveArtifact(artifactModuleIdMap, artifact) },
+      {
+        kotlinMultiplatformAndroidSourceSetData?.sourceSetsByGradleProjectPath?.get(
+          it.path
+        )?.get(KotlinMultiplatformAndroidSourceSetType.MAIN)
+      }
     ).buildResolvedLibraryTable(ideLibraryTable)
   }
 
@@ -559,8 +583,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
    */
   private fun removeExternalSourceSetsAndReportWarnings(project: Project, gradleProject: IdeaModule) {
     resolverCtx.getExtraProject(gradleProject, IdeAndroidModels::class.java)
-    ?: // Not an android module
-    return
+      ?: // Not an android module
+      return
     val externalProject = resolverCtx.getExtraProject(gradleProject, ExternalProject::class.java)
     if (externalProject == null || externalProject.sourceSets.isEmpty()) {
       // No create source sets exist
@@ -601,8 +625,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     }
     SimulatedSyncErrors.simulateRegisteredSyncError()
     val projectPath = resolverCtx.projectPath
+    SdkSync.getInstance().syncAndroidSdks(projectPath)
     val project = project
-    SdkSync.getInstance().syncAndroidSdks(projectPath, project)
 
     if (IdeInfo.getInstance().isAndroidStudio) {
       // do not confuse IDEA users with warnings and quick fixes that suggest something about Android Studio in pure gradle-java projects (IDEA-266355)
@@ -616,7 +640,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     }
 
     project?.getService(AssistantInvoker::class.java)?.expireProjectUpgradeNotifications(project)
-    if (IdeInfo.getInstance().isAndroidStudio) {
+    if (IdeInfo.getInstance().isAndroidStudio && !ApplicationManager.getApplication().isHeadlessEnvironment) {
       // Don't execute in IDEA in order to avoid conflicting behavior with IDEA's proxy support in gradle project.
       // (https://youtrack.jetbrains.com/issue/IDEA-245273, see BaseResolverExtension#getExtraJvmArgs)
       // To be discussed with the AOSP team to find a way to unify configuration across IDEA and AndroidStudio.
@@ -630,8 +654,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       if (IdeInfo.getInstance().isAndroidStudio) {
         // Inject javaagent args.
         addTraceJvmArgs(args)
-      }
-      else {
+      } else {
         val localProperties = localProperties
         if (localProperties.androidSdkPath == null) {
           val androidHomePath = IdeSdks.getInstance().androidSdkPath
@@ -651,8 +674,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       val projectDir = FilePaths.stringToFile(resolverCtx.projectPath)
       return try {
         LocalProperties(projectDir!!)
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         val msg = String.format("Unable to read local.properties file in project '%1\$s'", projectDir!!.path)
         throw ExternalSystemException(msg, e)
       }
@@ -691,6 +713,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         }
       }
       else if (rootCause is AndroidSyncException) {
+        rootCause.reportFailureTypeIfNecessary(projectPath)
         val ideSyncIssues = rootCause.mySyncIssues
         if (ideSyncIssues?.isNotEmpty() == true) {
           val ideaProject = resolverCtx.models.getModel(IdeaProject::class.java)
@@ -713,6 +736,17 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     return super.getUserFriendlyError(buildEnvironment, error, projectPath, buildFilePath)
   }
 
+  //TODO(b/292231180): This can and should be refactored but for now it is better than nothing reported at all.
+  private fun AndroidSyncException.reportFailureTypeIfNecessary(rootProjectPath: String) = when {
+    message?.startsWith("No variants found for '") == true ->
+      SyncFailureUsageReporter.getInstance().collectFailure(rootProjectPath, GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND)
+    message?.startsWith("No valid Native abi found to request!") == true ->
+      SyncFailureUsageReporter.getInstance().collectFailure(rootProjectPath, GradleSyncFailure.ANDROID_SYNC_NO_VALID_NATIVE_ABI_FOUND)
+    // Other cases currently should be covered by MultipleAgpVersionsIssueChecker and AgpVersionNotSupportedIssueChecker
+    else -> Unit
+
+  }
+
   private fun displayInternalWarningIfForcedUpgradesAreDisabled() {
     if (StudioFlags.DISABLE_FORCED_UPGRADES.get()) {
       val project = project
@@ -723,7 +757,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   private fun cleanUpHttpProxySettings() {
     val project = project
     if (project != null) {
-      ApplicationManager.getApplication().invokeAndWait { HttpProxySettingsCleanUp.cleanUp(project) }
+      HttpProxySettingsCleanUp.cleanUp(project)
     }
   }
 
@@ -760,8 +794,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     ): GradleModuleModel {
       val buildScriptPath = try {
         gradleModule.gradleProject.buildScript.sourceFile
-      }
-      catch (e: UnsupportedOperationException) {
+      } catch (e: UnsupportedOperationException) {
         null
       }
       return GradleModuleModel(
@@ -834,8 +867,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
      * @return the test task for the module. This does not include the full task path, but only the task name.
      * The full task path will be configured later at the execution level in the Gradle producers.
      */
-    private fun getTasksFromAndroidModuleData(androidModuleModel: GradleAndroidModelData): String {
-      val variant = androidModuleModel.selectedVariantName
+    private fun getTasksFromAndroidModuleData(gradleAndroidModel: GradleAndroidModelData): String {
+      val variant = gradleAndroidModel.selectedVariantName
       return "test".appendCapitalized(variant, "unitTest")
     }
 
@@ -867,8 +900,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       }
       kaptGradleModel.sourceSets.forEach { sourceSet: KaptSourceSetModel ->
         val result = findVariantAndDataNode(sourceSet, androidModel, moduleDataNode)
-                     ?: // No artifact was found for the current source set
-                     return@forEach
+          ?: // No artifact was found for the current source set
+          return@forEach
         val variant = result.first
         if (variant == androidModel.selectedVariantCore) {
           val classesDirFile = sourceSet.generatedClassesDirFile
@@ -892,8 +925,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         .firstOrNull()
       if (existingData != null) {
         files.forEach { file: File? -> existingData.addPath(LibraryPathType.BINARY, file!!.absolutePath) }
-      }
-      else {
+      } else {
         files.forEach { file: File? -> newLibrary.addPath(LibraryPathType.BINARY, file!!.absolutePath) }
         val libraryDependencyData = LibraryDependencyData(moduleDataNode.data, newLibrary, LibraryLevel.MODULE)
         libraryDependencyData.scope = if (isTest) DependencyScope.TEST else DependencyScope.COMPILE
@@ -1030,7 +1062,6 @@ private fun IdeAndroidSyncIssuesAndExceptions.process(moduleDataNode: DataNode<M
       )
     }
   }
-
   val allSyncIssues = (exceptions.toSyncIssues() + syncIssues)
 
   fun Collection<IdeSyncIssue>.createAsDataNodesAndAttach(moduleDataNode: DataNode<ModuleData>) {
@@ -1051,4 +1082,3 @@ private fun IdeaModule.getHolderProjectPath(): GradleHolderProjectPath {
     projectIdentifier.buildIdentifier.rootDir.path,
     projectIdentifier.projectPath)
 }
-

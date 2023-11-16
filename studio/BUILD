@@ -1,5 +1,36 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
-load("//tools/adt/idea/studio:studio.bzl", "android_studio", "studio_plugin")
+load("//tools/base/common:version.bzl", "LAST_STABLE_BUILD_VERSION")
+load("//tools/adt/idea/studio:studio.bzl", "android_studio", "iml_studio_test", "studio_plugin")
+load(":version.bzl", "STUDIO_CODENAME", "STUDIO_MICRO_PATCH", "STUDIO_RELEASE_NUMBER", "STUDIO_VERSION")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
+load("//tools/adt/idea/studio/rules:app-icon.bzl", "app_icon")
+
+app_icon(
+    name = "nightly-icon",
+    icns = "nightly/studio.icns",
+    ico = "nightly/studio.ico",
+    png = "nightly/studio.png",
+    svg = "nightly/studio.svg",
+)
+
+bool_flag(
+    name = "create-nightly-build",
+    build_setting_default = False,
+)
+
+# Examples of version suffix are
+# Canary 2, RC 1, Patch 1, Nightly 2023-04-10.
+string_flag(
+    name = "version-suffix",
+    build_setting_default = "",
+)
+
+config_setting(
+    name = "nightly-build",
+    flag_values = {
+        ":create-nightly-build": "True",
+    },
+)
 
 studio_plugin(
     name = "org.jetbrains.android",
@@ -9,7 +40,6 @@ studio_plugin(
         "//prebuilts/tools/common/archive-patcher:explainer",
         "//prebuilts/tools/common/archive-patcher:generator",
         "//prebuilts/tools/common/archive-patcher:shared",
-        "//prebuilts/tools/common/google-api-java-client/1.20.0:google-api-java-client",
         "//prebuilts/tools/common/m2:eclipse-layout-kernel",
         "//prebuilts/tools/common/m2:juniversalchardet",
         "//prebuilts/tools/common/m2:commons-lang",
@@ -26,27 +56,28 @@ studio_plugin(
         "//prebuilts/tools/common/m2:compose-desktop-material",
         "//prebuilts/tools/common/m2:compose-desktop-runtime",
         "//prebuilts/tools/common/m2:compose-desktop-ui",
+        "//prebuilts/tools/common/m2:oauth2",
         "//prebuilts/tools/common/m2:skiko",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
-        "//tools/adt/idea/.idea/libraries:aia-proto",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
         "//tools/adt/idea/.idea/libraries:asm-tools",
-        "//tools/adt/idea/.idea/libraries:dexlib2",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:ffmpeg",
-        "//tools/adt/idea/.idea/libraries:firebase_java_proto",
+        "//tools/adt/idea/.idea/libraries:google-api-client",
         "//tools/adt/idea/.idea/libraries:google-baksmali",
         "//tools/adt/idea/.idea/libraries:google-dexlib2",
+        "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
         "//tools/adt/idea/.idea/libraries:HdrHistogram",
         "//tools/adt/idea/.idea/libraries:javax-inject",
+        "//tools/adt/idea/.idea/libraries:jetty",
         "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
+        "//tools/adt/idea/.idea/libraries:kotlin-multiplatform-android-models-proto",
         "//tools/adt/idea/.idea/libraries:kxml2",
         "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
         "//tools/adt/idea/.idea/libraries:libam-instrumentation-data-proto",
         "//tools/adt/idea/.idea/libraries:libapp-processes-proto",
         "//tools/adt/idea/.idea/libraries:network_inspector_java_proto",
-        "//tools/adt/idea/.idea/libraries:oauth2",
         "//tools/adt/idea/.idea/libraries:perfetto-proto",
         "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
         "//tools/adt/idea/.idea/libraries:sqlite",
@@ -57,10 +88,10 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
         "//tools/adt/idea/.idea/libraries:zxing-core",
         "//tools/adt/idea/android:libandroid-core-proto",
+        "//tools/adt/idea/project-system-gradle:libandroid-core-proto",
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/android/lib:android-sdk-tools-jps",
         "//tools/adt/idea/android/lib:instantapps-api",
-        "//tools/adt/idea/android/lib:spantable",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:workmanager-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
@@ -74,6 +105,7 @@ studio_plugin(
         "//tools/base/deploy/deployer:deploy_java_proto",
         "//tools/base/deploy/deployer:libjava_sites",
         "//tools/base/lint:liblint-checks-proto",
+        "//tools/base/sdk-common:aia-proto",
         "//tools/adt/idea/debuggers:libjava_sites",
         "//tools/base/deploy/deployer:libjava_version",
         "//tools/vendor/google/game-tools/main:game-tools-protos",
@@ -163,6 +195,7 @@ studio_plugin(
             "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common",
             "//tools/adt/idea/device-manager:intellij.android.device-manager",
             "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
+            "//tools/adt/idea/explainer:intellij.android.explainer",
             "//tools/adt/idea/streaming:intellij.android.streaming",
             "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
             "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
@@ -170,6 +203,7 @@ studio_plugin(
             "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding",
             "//tools/adt/idea/android-lang:intellij.android.lang",
             "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector",
+            "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector.gradle",
             "//tools/adt/idea/layout-ui:intellij.android.layout-ui",
             "//tools/adt/idea/logcat:intellij.android.logcat",
             "//tools/adt/idea/mlkit:intellij.android.mlkit",
@@ -179,6 +213,7 @@ studio_plugin(
             "//tools/adt/idea/observable-ui:intellij.android.observable.ui",
             "//tools/adt/idea/observable:intellij.android.observable",
             "//tools/adt/idea/android-plugin:intellij.android.plugin",
+            "//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor",
             "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid",
             "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
             "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch",
@@ -204,6 +239,7 @@ studio_plugin(
             "//tools/adt/idea/server-flags:intellij.android.server-flags",
             "//tools/adt/idea/codenavigation:codenavigation",
             "//tools/adt/idea/execution/common:intellij.android.execution.common",
+            "//tools/base/kotlin-multiplatform-models:studio.android.kotlin-multiplatform-models",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",
@@ -243,6 +279,7 @@ studio_plugin(
         ],
         "sdk-common.jar": [
             "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
+            "//tools/base/sdk-common/gradle:studio.android.sdktools.sdk-common.gradle",
         ],
         "sdk-tools.jar": [
             "//tools/base/annotations:studio.android.sdktools.android-annotations",
@@ -255,6 +292,7 @@ studio_plugin(
             "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility",
             "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
             "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
+            "//tools/base/jdwp-scache:studio.android.sdktools.jdwpscache",
             "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
             "//tools/base/deploy/deployer:studio.android.sdktools.deployer",
             "//tools/base/device_validator:studio.android.sdktools.dvlib",
@@ -397,11 +435,13 @@ studio_plugin(
         "design-tools.jar": [
             "//tools/adt/idea/compose-designer:intellij.android.compose-designer",
             "//tools/adt/idea/design-plugin:intellij.android.design-plugin",
+            "//tools/adt/idea/design-plugin/descriptor:intellij.android.design-plugin.descriptor",
             "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
             "//tools/adt/idea/designer:intellij.android.designer",
             "//tools/adt/idea/glance-designer:intellij.android.glance-designer",
             "//tools/adt/idea/layoutlib:intellij.android.layoutlib",
             "//tools/adt/idea/nav/editor:intellij.android.nav.editor",
+            "//tools/adt/idea/nav/editor:intellij.android.nav.editor.gradle",
             "//tools/adt/idea/preview-designer:intellij.android.preview-designer",
             "//tools/adt/idea/wear-designer:intellij.android.wear-designer",
         ],
@@ -422,7 +462,7 @@ studio_plugin(
 studio_plugin(
     name = "androidx.compose.plugins.idea",
     directory = "android-compose-ide-plugin",
-    libs = ["//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.4.0-SNAPSHOT"],
+    libs = ["//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.5.1"],
     modules = {"android-compose-ide-plugin.jar": ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"]},
     visibility = ["//visibility:public"],
     deps = [
@@ -432,11 +472,22 @@ studio_plugin(
 )
 
 studio_plugin(
+    name = "com.google.services.git4insights",
+    directory = "git4insights",
+    modules = {"git4insights.jar": ["//tools/vendor/google/git4insights:git4insights"]},
+    visibility = ["//visibility:public"],
+    deps = [
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-git",
+    ],
+)
+
+studio_plugin(
     name = "com.google.services.firebase",
     directory = "firebase",
     libs = [
-        "//tools/vendor/google/firebase:google-api-services-mobilesdk-v1",
-        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0",
+        "//tools/vendor/google/firebase:firebase_java_proto",
+        "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
     ],
     licenses = [
         "//tools/vendor/google/firebase:licenses",
@@ -455,8 +506,8 @@ studio_plugin(
     name = "com.google.gct.directaccess",
     directory = "directaccess",
     libs = [
-        "//tools/adt/idea/.idea/libraries:directaccess_client_proto",
-        "//tools/adt/idea/.idea/libraries:adb_proxy_proto",
+        "//tools/base/adb-proxy:adb_proxy_proto",
+        "//tools/vendor/google/directaccess-client:directaccess_client_proto",
     ],
     modules = {
         "directaccess.jar": [
@@ -471,6 +522,7 @@ studio_plugin(
     visibility = ["//visibility:public"],
     deps = [
         ":com.google.gct.testing",
+        ":com.google.services.firebase",
         ":org.jetbrains.android",
     ],
 )
@@ -480,36 +532,18 @@ studio_plugin(
     directory = "firebase-testing",
     libs = [
         "//prebuilts/tools/common/m2:JSch",
-        "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-storage-v1-rev1-1.18.0-rc",
-        "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-testing-v1-revsnapshot-1.20.0",
-        "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-toolresults-v1beta3-rev20151013-1.20.0",
-        "//tools/adt/idea/.idea/libraries:tightvnc",
+        "//tools/studio/google/cloud/testing/firebase-testing:google_api_services_testing",
+        "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
     ],
-    licenses = [
-        "//tools/studio/google/cloud/testing/firebase-testing/lib:licenses",
-    ],
-    modules = {"firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"]},
+    modules = {
+        "firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"],
+        "gmd-code-completion.jar": ["//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion"],
+    },
     visibility = ["//visibility:public"],
     deps = [
-        ":com.google.gct.core",
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-    ],
-)
-
-studio_plugin(
-    name = "com.google.appindexing",
-    directory = "google-appindexing",
-    libs = ["//tools/studio/google/appindexing/lib:fetchasgoogle"],
-    licenses = [
-        "//tools/studio/google/appindexing/lib:licenses",
-    ],
-    modules = {"google-appindexing.jar": ["//tools/studio/google/appindexing:google-appindexing"]},
-    visibility = ["//visibility:public"],
-    deps = [
-        ":com.google.urlassistant",
-        ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
 )
 
@@ -518,16 +552,23 @@ studio_plugin(
     directory = "google-cloud-tools-as",
     libs = [
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:gradle-appengine-builder-model-0.1.0",
-        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:samplesindex-v1-1.0-SNAPSHOT",
-        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:google-api-services-source",
+        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-appengine-v1-rev9-1.22.0",
+        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-source",
+        "//tools/studio/google/cloud/tools/core-plugin/third_party/gradle-appengine-builder-model:gradle-appengine-builder-model-0.1.0",
+        "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
     ],
     licenses = [
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
+        "//tools/studio/google/cloud/tools/core-plugin/lib:licenses",
     ],
-    modules = {"google-cloud-tools-as.jar": ["//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as"]},
+    modules = {
+        "google-cloud-tools-as.jar": [
+            "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as",
+            "//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as",
+        ],
+    },
     visibility = ["//visibility:public"],
     deps = [
-        ":com.google.gct.core",
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
@@ -538,58 +579,10 @@ studio_plugin(
 )
 
 studio_plugin(
-    name = "com.google.gct.core",
-    directory = "google-cloud-tools-core-as",
-    libs = [
-        "//tools/studio/google/cloud/tools/core-plugin/third_party/gradle-appengine-builder-model:gradle-appengine-builder-model-0.1.0",
-        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0",
-        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-appengine-v1-rev9-1.22.0",
-        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-source",
-    ],
-    licenses = [
-        "//tools/studio/google/cloud/tools/core-plugin/lib:licenses",
-    ],
-    modules = {"google-cloud-tools-core-as.jar": ["//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as"]},
-    visibility = ["//visibility:public"],
-    deps = [
-        "org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-git",
-    ],
-)
-
-studio_plugin(
-    name = "com.google.cluestick.studioclient",
-    directory = "google-samples",
-    modules = {"google-samples.jar": ["//tools/studio/google/samples:google-samples"]},
-    visibility = ["//visibility:public"],
-    deps = [
-        ":org.jetbrains.android",
-    ],
-)
-
-studio_plugin(
     name = "com.android.tools.idea.smali",
     directory = "smali",
     modules = {"smali.jar": ["//tools/adt/idea/smali:intellij.android.smali"]},
     visibility = ["//visibility:public"],
-)
-
-studio_plugin(
-    name = "com.android.gmdcodecompletion",
-    directory = "gmd-code-completion",
-    libs = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/.idea/libraries:mockito",
-        "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-testing-v1-revsnapshot-1.20.0",
-    ],
-    modules = {"gmd-code-completion.jar": ["//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion"]},
-    visibility = ["//visibility:public"],
-    deps = [
-        ":com.google.gct.testing",
-        ":org.jetbrains.android",
-    ],
 )
 
 studio_plugin(
@@ -635,12 +628,38 @@ studio_plugin(
     ],
 )
 
+studio_plugin(
+    name = "com.android.tools.studiobot",
+    directory = "studio-bot",
+    libs = [
+        "//tools/vendor/google/ml/sml-core:aida_grpc",
+        "//tools/vendor/google/ml/sml-core:aida_proto",
+        "//tools/vendor/google/ml/sml-core:aida_protobuf",
+        "//tools/vendor/google/ml/sml-core:studio_bot_proto",
+        "//prebuilts/tools/common/m2:commonmark-0.20.0",
+    ],
+    modules = {
+        "sml.jar": [
+            "//tools/vendor/google/ml/sml-core:ml.sml-core",
+            "//tools/vendor/google/ml/sml-android:ml.sml-android",
+        ],
+    },
+    deps = [
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+    ],
+)
+
 exports_files([
     "codesign/entitlements.xml",
 ])
 
 android_studio(
     name = "android-studio",
+    application_icon = select({
+        ":nightly-build": ":nightly-icon",
+        "//conditions:default": None,
+    }),
     codesign_entitlements = "codesign/entitlements.xml",
     files_linux = {},
     files_mac = {},
@@ -650,31 +669,43 @@ android_studio(
     platform = "//prebuilts/studio/intellij-sdk:studio-sdk",
     plugins = [
         ":org.jetbrains.android",
-        ":com.android.gmdcodecompletion",
         ":com.android.tools.apk",
         ":com.android.tools.ndk",
         ":com.android.tools.design",
         ":androidx.compose.plugins.idea",
+        ":com.google.services.git4insights",
         ":com.google.services.firebase",
         ":com.google.gct.directaccess",
         ":com.google.gct.testing",
-        ":com.google.appindexing",
         ":com.google.gct",
-        ":com.google.gct.core",
-        ":com.google.cluestick.studioclient",
         ":com.android.tools.idea.smali",
         ":com.google.gct.test.recorder",
         ":com.google.urlassistant",
         ":com.google.targetsdkversionassistant",
     ],
+    properties = select({
+        "//conditions:default": [],
+        "//tools/adt/idea/studio:nightly-build": [
+            "gradle.ide.agp.version.to.use=" + LAST_STABLE_BUILD_VERSION,
+        ],
+    }),
     searchable_options = "//tools/adt/idea/searchable-options",
     update_message_template = ":update_message.html",
-    version_code_name = "Giraffe",
-    version_micro_patch = "1.18",
+    version_code_name = STUDIO_CODENAME,
+    version_micro_patch = STUDIO_MICRO_PATCH,
     # This will get added to the end of the full-version string.
     # TODO(b/240707039): automate this.
-    version_release_number = 1,
-    version_type = "Stable",
+    version_release_number = STUDIO_RELEASE_NUMBER,
+    version_suffix = select({
+        ":nightly-build": ":version-suffix",
+        # The android_studio rule will generate suffixes depending on the
+        # version_type and version_release_number.
+        "//conditions:default": None,
+    }),
+    version_type = select({
+        ":nightly-build": "Nightly",
+        "//conditions:default": STUDIO_VERSION,
+    }),
     visibility = ["//visibility:public"],
 )
 
@@ -696,24 +727,6 @@ py_test(
     ],
 )
 
-config_setting(
-    name = "macos-arm64",
-    constraint_values = [
-        "@platforms//os:macos",
-        "@platforms//cpu:arm64",
-    ],
-    visibility = ["//visibility:private"],
-)
-
-config_setting(
-    name = "macos-x86_64",
-    constraint_values = [
-        "@platforms//os:macos",
-        "@platforms//cpu:x86_64",
-    ],
-    visibility = ["//visibility:private"],
-)
-
 py_test(
     name = "test_updater",
     timeout = "long",  # b/233245811
@@ -722,21 +735,21 @@ py_test(
         ":updater",
         ":updater.jar",
     ] + select({
-        # On macOS, the test converts macOS to Windows
-        ":macos-arm64": [
+        # On macOS, the test converts macOS ↔ Windows
+        "//tools/base/bazel/platforms:macos-arm64": [
             ":android-studio.mac_arm.zip",
             ":android-studio.win.zip",
         ],
-        ":macos-x86_64": [
+        "//tools/base/bazel/platforms:macos-x86_64": [
             ":android-studio.mac.zip",
             ":android-studio.win.zip",
         ],
-        # On Windows, the test converts Windows to macOS
+        # On Windows, the test converts Windows ↔ macOS
         "@platforms//os:windows": [
             ":android-studio.mac.zip",
             ":android-studio.win.zip",
         ],
-        # On Linux, the test converts Linux to Windows
+        # On Linux, the test converts Linux ↔ Windows
         "@platforms//os:linux": [
             ":android-studio.linux.zip",
             ":android-studio.win.zip",
@@ -745,10 +758,24 @@ py_test(
     tags = ["no_windows"],  # b/233968084
 )
 
+py_library(
+    name = "utils",
+    srcs = ["utils.py"],
+    visibility = ["//visibility:public"],
+)
+
 py_binary(
     name = "stamper",
     srcs = ["stamper.py"],
     visibility = ["//visibility:public"],
+    deps = [":utils"],
+)
+
+py_binary(
+    name = "generate_build_metadata",
+    srcs = ["generate_build_metadata.py"],
+    visibility = ["//visibility:public"],
+    deps = [":utils"],
 )
 
 py_binary(
@@ -848,14 +875,13 @@ iml_module(
         "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module]",
         "//tools/adt/idea/design-plugin:intellij.android.design-plugin[module]",
         "//tools/vendor/google/android-ndk[module]",
+        "//tools/vendor/google/git4insights[module]",
         "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as[module]",
         "//tools/vendor/google/firebase[module]",
         "//tools/studio/google/cloud/testing/directaccess[module]",
         "//tools/studio/google/cloud/testing/firebase-testing[module]",
-        "//tools/studio/google/appindexing:google-appindexing[module]",
         "//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as[module]",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
-        "//tools/studio/google/samples:google-samples[module]",
         "//tools/adt/idea/smali:intellij.android.smali[module]",
         "//tools/studio/google/cloud/testing/test-recorder[module]",
         "//tools/vendor/google/url-assistant[module]",
@@ -873,6 +899,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-ide-customization",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-lombok",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-maven-model",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
@@ -889,6 +916,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-debugger-plugin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-completionMlRanking",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-clangdBridge",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-completionMlRankingModels",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-dev",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-devkit",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-debugger-streams",
@@ -903,6 +931,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-svn",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion[module]",
+        "//tools/vendor/google/ml/sml-android:ml.sml-android[module]",
     ],
 )
 
@@ -949,44 +978,35 @@ iml_module(
     deps = [
         "//prebuilts/tools/common/m2:junit-4.12[test]",
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
+        "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )
 
-iml_test(
+iml_studio_test(
     name = "StartUpTest",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-    }),
     module = ":intellij.android.studio.integration",
     tags_linux = ["block-network"],
-    tags_windows = ["block-network"],
+    tags_windows = [
+        "block-network",
+        "manual",  # Disabled due to b/284516925
+    ],
     test_class = "com.android.tools.idea.StartUpTest",
 )
 
-iml_test(
+iml_studio_test(
+    name = "StartUpCustomJvmTest",
+    module = ":intellij.android.studio.integration",
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.StartUpCustomJvmTest",
+)
+
+iml_studio_test(
     name = "UpdateTest",
-    data = select({
-        "@platforms//os:linux": [
-            ":android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            ":android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            ":android-studio.win.zip",
-        ],
-    }) + [
+    data = [
         ":updater",
         ":updater.jar",
     ],

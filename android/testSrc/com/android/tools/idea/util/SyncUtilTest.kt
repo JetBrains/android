@@ -32,7 +32,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -100,19 +99,15 @@ class SyncUtilTest {
   }
 
   @Test
-  fun waitForSmartAndSyncedWhenDumbAndSynced() {
-    runBlocking {
-      val callCount = AtomicInteger(0)
-      // Start dumb mode
-      DumbServiceImpl.getInstance(project).runInDumbMode {
-        project.runWhenSmartAndSynced(callback = Consumer { callCount.incrementAndGet() })
-        assertThat(callCount.get()).isEqualTo(0)
-        emulateSync(SyncResult.SUCCESS)
-        assertThat(callCount.get()).isEqualTo(0)
-      }
-      ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-      assertThat(callCount.get()).isEqualTo(1)
+  fun waitForSmartAndSyncedWhenDumbAndSynced() = runBlocking {
+    val latch = CountDownLatch(1)
+    DumbServiceImpl.getInstance(project).runInDumbMode {
+      project.runWhenSmartAndSynced(callback = { latch.countDown() })
+      assertThat(latch.count).isEqualTo(1)
+      emulateSync(SyncResult.SUCCESS)
+      assertThat(latch.count).isEqualTo(1)
     }
+    assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue()
   }
 
   @Test
@@ -128,24 +123,21 @@ class SyncUtilTest {
     assertThat(callCount.get()).isEqualTo(1)
   }
 
-  @Ignore
   @Test
-  fun waitForSmartAndSyncedWhenDumbAndNotSynced() {
-    runBlocking {
-      val callCount = AtomicInteger(0)
-      val syncManager = TestSyncManager(project)
-      syncManager.testIsSyncInProgress = true
+  fun waitForSmartAndSyncedWhenDumbAndNotSynced() = runBlocking {
+    val callCount = AtomicInteger(0)
+    val syncManager = TestSyncManager(project)
+    syncManager.testIsSyncInProgress = true
 
-      DumbServiceImpl.getInstance(project).runInDumbMode {
-        project.runWhenSmartAndSynced(
-          callback = Consumer { callCount.incrementAndGet() },
-          syncManager = syncManager)
-        assertThat(callCount.get()).isEqualTo(0)
-        syncManager.testIsSyncInProgress = false
-        emulateSync(SyncResult.SUCCESS)
-        // Now we are in dumb mode but synced
-        assertThat(callCount.get()).isEqualTo(0)
-      }
+    DumbServiceImpl.getInstance(project).runInDumbMode {
+      project.runWhenSmartAndSynced(
+        callback = { callCount.incrementAndGet() },
+        syncManager = syncManager)
+      assertThat(callCount.get()).isEqualTo(0)
+      syncManager.testIsSyncInProgress = false
+      emulateSync(SyncResult.SUCCESS)
+      // Now we are in dumb mode but synced
+      assertThat(callCount.get()).isEqualTo(0)
 
       ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
       assertThat(callCount.get()).isEqualTo(1)

@@ -87,6 +87,15 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
       })).distinct()
       val model = traceProcessor.loadCpuData(traceId, processesToQuery, selectedProcess, ideProfilerServices)
 
+      // Track the power rail and battery counter count for power profiler usage metrics.
+      // Note: "powerRailCount" is the number of raw power rails. Counting this raw count
+      // will help us know the capabilities of phones when ODPM devices get more popular.
+      // It will additionally tell us if total number is more than what we anticipate for
+      // a certain device.
+      val powerRailCount = model.getPowerRails().size
+      val batteryCounterCount = model.getBatteryDrain().size
+      ideProfilerServices.featureTracker.trackPowerProfilerCapture(powerRailCount, batteryCounterCount)
+
       val builder = SystemTraceCpuCaptureBuilder(model)
 
       if (initialViewRange.isEmpty) {

@@ -24,13 +24,13 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.runBlocking
+import org.junit.Rule
+import org.junit.Test
 import java.io.InputStream
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlinx.coroutines.runBlocking
-import org.junit.Rule
-import org.junit.Test
 
 class HttpArtifactResolverTest {
 

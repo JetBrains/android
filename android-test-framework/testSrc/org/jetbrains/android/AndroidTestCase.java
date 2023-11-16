@@ -7,10 +7,13 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
+import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
@@ -35,10 +38,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectType;
 import com.intellij.openapi.project.ProjectTypeService;
 import com.intellij.openapi.project.ex.ProjectEx;
-import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Disposer;
@@ -130,7 +131,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     Path jdkPath = TestUtils.getEmbeddedJdk17Path();
     WriteAction.runAndWait(() -> {
       cleanJdkTable();
-      VfsRootAccess.allowRootAccess(myFixture.getProjectDisposable(), jdkPath.toAbsolutePath().toString());
       setupJdk(jdkPath);
     });
     myFacet = addAndroidFacetAndSdk(myModule);
@@ -178,6 +178,13 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
     ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
+    // ddmlib might sometimes leak the DCM thread. adblib will address this when fully replaces ddmlib
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device Client Monitor");
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device List Monitor");
+    // AdbService is application-level and so executor threads are reported as leaked
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "AdbService Executor");
+    // MonitorThread from ddmlib is often created during unrelated tests
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Monitor");
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
@@ -185,6 +192,14 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myIdeComponents = new IdeComponents(myFixture);
 
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
+    IdeSdks ideSdks = IdeSdks.getInstance();
+
+    final var oldAndroidSdkPath = ideSdks.getAndroidSdkPath();
+    Disposer.register(myFixture.getTestRootDisposable(), () -> {
+      WriteAction.runAndWait(() -> {
+        AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.getAbsolutePath() : null);
+      });
+    });
     ProjectTypeService.setProjectType(getProject(), new ProjectType("Android"));
   }
 
@@ -192,7 +207,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     assert path.isAbsolute() : "JDK path should be an absolute path: " + path;
 
     VfsRootAccess.allowRootAccess(getTestRootDisposable(), path.toString());
-    @Nullable Sdk addedSdk = SdkConfigurationUtil.createAndAddSDK(path.toString(), JavaSdk.getInstance());
+    @Nullable Sdk addedSdk = Jdks.getInstance().createAndAddJdk(path.toString());
     if (addedSdk != null) {
       Disposer.register(getTestRootDisposable(), () -> {
         WriteAction.runAndWait(() -> ProjectJdkTable.getInstance().removeJdk(addedSdk));

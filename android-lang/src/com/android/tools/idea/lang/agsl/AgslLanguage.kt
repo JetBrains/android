@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.lang.agsl
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.lang.Language
-import com.intellij.openapi.fileTypes.PlainTextLanguage
 import org.jetbrains.annotations.NonNls
 
 /**
@@ -29,16 +27,9 @@ class AgslLanguage : Language(ID) {
   }
 
   companion object {
-    fun getInstance(): Language = if (StudioFlags.AGSL_LANGUAGE_SUPPORT.get()) PRIVATE_AGSL_LANGUAGE else PlainTextLanguage.INSTANCE
+    val INSTANCE = AgslLanguage()
 
-    /**
-     * This should *only* be accessed from within existing AGSL token and PSI implementation; all feature code should be using [getInstance]
-     * instead to make sure they're working with the feature flag being off.
-     *
-     * Once we make the AGSL support unconditional and remove the [StudioFlags], we should inline this field as getInstance()
-     */
-    @JvmStatic
-    val PRIVATE_AGSL_LANGUAGE: AgslLanguage = AgslLanguage()
+    fun getInstance(): AgslLanguage = INSTANCE
 
     @NonNls
     const val ID = "AGSL"

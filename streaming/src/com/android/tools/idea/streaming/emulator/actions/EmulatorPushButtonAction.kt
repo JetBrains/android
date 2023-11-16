@@ -16,7 +16,7 @@
 package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.emulator.control.KeyboardEvent
-import com.android.tools.idea.streaming.PushButtonAction
+import com.android.tools.idea.streaming.core.PushButtonAction
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
 import com.android.tools.idea.streaming.emulator.createKeyboardEvent
 import com.intellij.openapi.actionSystem.ActionUpdateThread

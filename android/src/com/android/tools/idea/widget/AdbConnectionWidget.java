@@ -21,11 +21,10 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.StatusBarWidget;
+import java.awt.Color;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
 
 import static com.android.tools.idea.widget.AdbConnectionWidget.ConnectionState.*;
 import static icons.StudioIcons.Shell.StatusBar.ADB_MANAGED;

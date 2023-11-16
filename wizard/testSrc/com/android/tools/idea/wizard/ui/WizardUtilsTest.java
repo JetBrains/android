@@ -22,10 +22,11 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.ide.GeneralSettings;
+import com.intellij.ide.GeneralLocalSettings;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,7 +38,7 @@ public class WizardUtilsTest {
   @Test
   public void defaultProjectLocation() {
     setRecentProjectLocation(null);
-    setDefaultProjectDirectory(null);
+    setDefaultProjectDirectory("");
 
     assertThat(getProjectLocationParent().getName()).isEqualTo(IdeInfo.getInstance().isAndroidStudio() ? "AndroidStudioProjects" : "IntelliJIDEAProjects");
   }
@@ -46,6 +47,16 @@ public class WizardUtilsTest {
   public void defaultProjectLocationSetByUser() {
     String dpd = "default/project/directory";
     setRecentProjectLocation(null);
+    setDefaultProjectDirectory(dpd);
+
+    File actualLocation = getProjectLocationParent();
+    assertThat(FileUtil.toSystemIndependentName(actualLocation.toString())).isEqualTo(dpd);
+  }
+
+  @Test
+  public void defaultProjectLocationSetByUserOverridesRecent() {
+    String dpd = "default/project/directory";
+    setRecentProjectLocation("recent/project/location");
     setDefaultProjectDirectory(dpd);
 
     File actualLocation = getProjectLocationParent();
@@ -66,9 +77,9 @@ public class WizardUtilsTest {
     projectRule.replaceService(RecentProjectsManager.class, rcpMock);
   }
 
-  private void setDefaultProjectDirectory(@Nullable String defaultProjectDirectory) {
-    GeneralSettings generalSettingsMock = mock(GeneralSettings.class);
+  private void setDefaultProjectDirectory(@NotNull String defaultProjectDirectory) {
+    GeneralLocalSettings generalSettingsMock = mock(GeneralLocalSettings.class);
     when(generalSettingsMock.getDefaultProjectDirectory()).thenReturn(defaultProjectDirectory);
-    projectRule.replaceService(GeneralSettings.class, generalSettingsMock);
+    projectRule.replaceService(GeneralLocalSettings.class, generalSettingsMock);
   }
 }

@@ -22,7 +22,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.intellij.testFramework.runInEdtAndGet
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -31,14 +31,17 @@ import java.util.concurrent.Executor
 
 class ModelLintIssueAnnotatorTest {
 
-  @Rule
-  @JvmField
-  val rule = AndroidProjectRule.inMemory()
+  @Rule @JvmField val rule = AndroidProjectRule.inMemory()
 
   @Test
   fun testMultipleRequests() {
-    val builder = NlModelBuilderUtil.model(rule, "res/layout", "my_layout.xml",
-                                         ComponentDescriptor("FrameLayout").matchParentHeight().matchParentWidth())
+    val builder =
+      NlModelBuilderUtil.model(
+        rule,
+        "res/layout",
+        "my_layout.xml",
+        ComponentDescriptor("FrameLayout").matchParentHeight().matchParentWidth()
+      )
     val model = runInEdtAndGet { builder.build() }
 
     val surface = model.surface
@@ -52,7 +55,8 @@ class ModelLintIssueAnnotatorTest {
     executor.pause()
     annotator.annotateRenderInformationToLint(model)
     // Now there is a running task in annotator.
-    // Calling ModelLintIssueAnnotator.annotateRenderInformationToLint doesn't add the new task into Executor.
+    // Calling ModelLintIssueAnnotator.annotateRenderInformationToLint doesn't add the new task into
+    // Executor.
     annotator.annotateRenderInformationToLint(model)
     annotator.annotateRenderInformationToLint(model)
     executor.resume()
@@ -65,7 +69,7 @@ class ModelLintIssueAnnotatorTest {
     val model = mock<NlModel>()
     `when`(model.file).thenAnswer { throw Exception() }
     val surface = mock<DesignSurface<*>>()
-    `when`(surface.repaint()).then { }
+    `when`(surface.repaint()).then {}
 
     val executor = CountableExecutor()
     val annotator = ModelLintIssueAnnotator(surface, executor)
@@ -78,7 +82,6 @@ class ModelLintIssueAnnotatorTest {
     assertEquals(2, executor.getTaskCount())
     annotator.annotateRenderInformationToLint(model)
     assertEquals(3, executor.getTaskCount())
-
   }
 }
 
@@ -108,9 +111,7 @@ private class CountableExecutor : Executor {
     while (tasks.isNotEmpty()) {
       try {
         tasks.pop().run()
-      }
-      catch (_: Exception) { }
-      finally {
+      } catch (_: Exception) {} finally {
         count++
       }
     }

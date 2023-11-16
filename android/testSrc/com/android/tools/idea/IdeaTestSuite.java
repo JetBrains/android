@@ -23,18 +23,6 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses({
-  com.android.tools.idea.IdeaTestSuite.class,  // a suite mustn't contain itself
-  com.android.tools.idea.rendering.RenderSecurityManagerTest.class,  // calls System.setSecurityManager
-  com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class, // This is for a standalone, test-only application
-
-  // The following classes had failures when run in Bazel.
-  com.android.tools.idea.gradle.project.sync.perf.GradleSyncPerfTest.class, // Sync performance test only runs on perf buildbot
-  // Require resources with spaces (HTML File template)
-  // https://github.com/bazelbuild/bazel/issues/374
-  com.android.tools.idea.actions.annotations.InferAnnotationsTest.class,
-  org.jetbrains.android.dom.CreateMissingClassFixTest.class
-})
 public class IdeaTestSuite extends IdeaTestSuiteBase {
 
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();

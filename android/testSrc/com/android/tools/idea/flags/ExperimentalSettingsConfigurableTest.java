@@ -19,7 +19,6 @@ import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.Trac
 import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.SPECIFIED_LOCATION;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.dsl.model.GradleDslModelExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.intellij.openapi.options.ConfigurationException;
@@ -42,10 +41,10 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
   }
 
   public void testIsModified() {
-    myConfigurable.enableL2DependenciesInSync(true);
-    mySettings.USE_L2_DEPENDENCIES_ON_SYNC = false;
+    myConfigurable.enableUseMultiVariantExtraArtifacts(true);
+    mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = false;
     assertTrue(myConfigurable.isModified());
-    mySettings.USE_L2_DEPENDENCIES_ON_SYNC = true;
+    mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = true;
     assertFalse(myConfigurable.isModified());
 
     myConfigurable.enableConfigureAllGradleTasks(false);
@@ -83,82 +82,96 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertTrue(myConfigurable.isModified());
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = true;
     assertFalse(myConfigurable.isModified());
+
+    myConfigurable.enableDeriveRuntimeClasspathsForLibraries(true);
+    mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = false;
+    assertTrue(myConfigurable.isModified());
+    mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true;
+    assertFalse(myConfigurable.isModified());
   }
 
   public void testApply() throws ConfigurationException {
-    myConfigurable.enableL2DependenciesInSync(true);
+    myConfigurable.enableUseMultiVariantExtraArtifacts(true);
     myConfigurable.enableConfigureAllGradleTasks(false);
     myConfigurable.enableTraceGradleSync(true);
     myConfigurable.setTraceProfileLocation("/tmp/text1.profile");
     myConfigurable.setTraceProfileSelection(DEFAULT);
     myConfigurable.enableParallelSync(true);
     myConfigurable.enableGradleApiOptimization(true);
+    myConfigurable.enableDeriveRuntimeClasspathsForLibraries(true);
 
     myConfigurable.apply();
 
-    assertTrue(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
+    assertTrue(mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS);
     assertTrue(mySettings.SKIP_GRADLE_TASKS_LIST);
     assertTrue(mySettings.TRACE_GRADLE_SYNC);
     assertEquals("/tmp/text1.profile", mySettings.TRACE_PROFILE_LOCATION);
     assertEquals(DEFAULT, mySettings.TRACE_PROFILE_SELECTION);
     assertTrue(mySettings.SKIP_GRADLE_TASKS_LIST);
     assertTrue(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
+    assertTrue(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
 
-    myConfigurable.enableL2DependenciesInSync(false);
+    myConfigurable.enableUseMultiVariantExtraArtifacts(false);
     myConfigurable.enableConfigureAllGradleTasks(true);
     myConfigurable.enableTraceGradleSync(false);
     myConfigurable.setTraceProfileLocation("/tmp/text2.profile");
     myConfigurable.setTraceProfileSelection(SPECIFIED_LOCATION);
     myConfigurable.enableParallelSync(false);
     myConfigurable.enableGradleApiOptimization(false);
+    myConfigurable.enableDeriveRuntimeClasspathsForLibraries(false);
 
     myConfigurable.apply();
 
-    assertFalse(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
+    assertFalse(mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS);
     assertFalse(mySettings.SKIP_GRADLE_TASKS_LIST);
     assertFalse(mySettings.TRACE_GRADLE_SYNC);
     assertEquals("/tmp/text2.profile", mySettings.TRACE_PROFILE_LOCATION);
     assertEquals(SPECIFIED_LOCATION, mySettings.TRACE_PROFILE_SELECTION);
     assertFalse(mySettings.ENABLE_PARALLEL_SYNC);
     assertFalse(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
+    assertFalse(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
   }
 
   public void testReset() {
-    mySettings.USE_L2_DEPENDENCIES_ON_SYNC = true;
+    mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = true;
     mySettings.SKIP_GRADLE_TASKS_LIST = true;
     mySettings.TRACE_GRADLE_SYNC = true;
     mySettings.TRACE_PROFILE_LOCATION = "/tmp/text1.profile";
     mySettings.TRACE_PROFILE_SELECTION = DEFAULT;
     mySettings.ENABLE_PARALLEL_SYNC = true;
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = true;
+    mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true;
 
     myConfigurable.reset();
 
-    assertTrue(myConfigurable.isL2DependenciesInSyncEnabled());
+    assertTrue(myConfigurable.isUseMultiVariantExtraArtifact());
     assertFalse(myConfigurable.isConfigureAllGradleTasksEnabled());
     assertTrue(myConfigurable.isTraceGradleSyncEnabled());
     assertEquals("/tmp/text1.profile", myConfigurable.getTraceProfileLocation());
     assertEquals(DEFAULT, myConfigurable.getTraceProfileSelection());
     assertTrue(myConfigurable.isParallelSyncEnabled());
     assertTrue(myConfigurable.isGradleApiOptimizationEnabled());
+    assertTrue(myConfigurable.isDeriveRuntimeClasspathsForLibraries());
 
-    mySettings.USE_L2_DEPENDENCIES_ON_SYNC = false;
+    mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = false;
     mySettings.SKIP_GRADLE_TASKS_LIST = false;
     mySettings.TRACE_GRADLE_SYNC = false;
     mySettings.TRACE_PROFILE_LOCATION = "/tmp/text2.profile";
     mySettings.TRACE_PROFILE_SELECTION = SPECIFIED_LOCATION;
     mySettings.ENABLE_PARALLEL_SYNC = false;
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = false;
+    mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = false;
 
     myConfigurable.reset();
 
-    assertFalse(myConfigurable.isL2DependenciesInSyncEnabled());
+    assertFalse(myConfigurable.isUseMultiVariantExtraArtifact());
     assertTrue(myConfigurable.isConfigureAllGradleTasksEnabled());
     assertFalse(myConfigurable.isTraceGradleSyncEnabled());
     assertEquals("/tmp/text2.profile", myConfigurable.getTraceProfileLocation());
     assertEquals(SPECIFIED_LOCATION, myConfigurable.getTraceProfileSelection());
     assertFalse(myConfigurable.isParallelSyncEnabled());
     assertFalse(myConfigurable.isGradleApiOptimizationEnabled());
+    assertFalse(myConfigurable.isDeriveRuntimeClasspathsForLibraries());
   }
 
   public void testIsTraceProfileValid() {

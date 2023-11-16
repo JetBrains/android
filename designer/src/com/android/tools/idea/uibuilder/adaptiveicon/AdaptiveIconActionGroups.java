@@ -20,8 +20,8 @@ import static com.android.tools.idea.flags.StudioFlags.NELE_DYNAMIC_THEMING_ACTI
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.SystemUiModeAction;
 import com.android.tools.idea.configurations.ShapeMenuAction;
+import com.android.tools.idea.configurations.SystemUiModeAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;

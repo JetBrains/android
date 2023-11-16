@@ -15,9 +15,7 @@
  */
 package com.android.tools.componenttree.api
 
-/**
- * The model returned by the [ComponentTreeBuilder].
- */
+/** The model returned by the [ComponentTreeBuilder]. */
 interface ComponentTreeSelectionModel {
   /**
    * The current selection.
@@ -33,8 +31,6 @@ interface ComponentTreeSelectionModel {
    */
   fun addSelectionListener(listener: (List<Any>) -> Unit)
 
-  /**
-   * Remove a selection listener.
-   */
+  /** Remove a selection listener. */
   fun removeSelectionListener(listener: (List<Any>) -> Unit)
 }

@@ -17,19 +17,23 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslElement implements GradleDslNamedDomainContainer {
   public static final PropertiesElementDescription<BuildTypesDslElement> BUILD_TYPES =
-    new PropertiesElementDescription<>("buildTypes", BuildTypesDslElement.class, BuildTypesDslElement::new);
+    new PropertiesElementDescription<>("buildTypes", BuildTypesDslElement.class, BuildTypesDslElement::new, BuildTypesDslElementSchema::new);
 
   @Override
   public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
@@ -59,5 +63,25 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
       }
     }
     return result;
+  }
+
+  public static final class BuildTypesDslElementSchema extends GradlePropertiesDslElementSchema {
+    @Override
+    @NotNull
+    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+      return ImmutableMap.of();
+    }
+
+    @Override
+    @Nullable
+    public PropertiesElementDescription getBlockElementDescription(String name) {
+      return BuildTypeDslElement.BUILD_TYPE;
+    }
+
+    @Override
+    @NotNull
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return ExternalToModelMap.empty;
+    }
   }
 }

@@ -28,9 +28,9 @@ public class AdbConfigurableProvider extends DebuggerConfigurableProvider {
   @NotNull
   @Override
   public Collection<? extends Configurable> getConfigurables(@NotNull DebuggerSettingsCategory category) {
-    if (AdbConfigurableUi.hasComponents() && category == DebuggerSettingsCategory.GENERAL) {
+    if (category == DebuggerSettingsCategory.GENERAL) {
       return ImmutableList.of(SimpleConfigurable.create("adbSettingsConfigurable", "Android Debug Bridge (adb)", AdbConfigurableUi.class,
-                                                        () -> AdbOptionsService.getInstance()));
+                                                        AdbOptionsService::getInstance));
     }
     return Collections.emptyList();
   }

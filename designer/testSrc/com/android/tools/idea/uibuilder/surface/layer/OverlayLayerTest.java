@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface.layer;
 
+import static com.android.tools.idea.uibuilder.surface.layer.OverlayLayerKt.PLACEHOLDER_ALPHA;
+import static com.android.tools.idea.uibuilder.surface.layer.OverlayLayerKt.PLACEHOLDER_TEXT;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -62,10 +64,9 @@ public class OverlayLayerTest {
   @Test
   public void testPaintOverlay() throws Exception {
     DesignSurface<?> surface = mock(DesignSurface.class);
-    when(surface.getOverlayConfiguration()).thenReturn(myOverlayConfiguration);
     SceneView sceneView = getSceneViewMock(surface);
 
-    OverlayLayer layer = new OverlayLayer(sceneView);
+    OverlayLayer layer = new OverlayLayer(sceneView, () -> myOverlayConfiguration) ;
 
     BufferedImage screenViewReference = ImageUtil.createImage(SCREEN_VIEW_WIDTH,
                                                               SCREEN_VIEW_HEIGHT,
@@ -89,13 +90,12 @@ public class OverlayLayerTest {
   @Test
   public void testPaintPlaceholder() throws Exception {
     DesignSurface<?> surface = mock(DesignSurface.class);
-    when(surface.getOverlayConfiguration()).thenReturn(myOverlayConfiguration);
     SceneView sceneView = getSceneViewMock(surface);
 
     BufferedImage sceneViewTestImage = ImageUtil.createImage(SCREEN_VIEW_WIDTH,
                                                              SCREEN_VIEW_HEIGHT,
                                                              BufferedImage.TYPE_INT_ARGB);
-    OverlayLayer layer = new OverlayLayer(sceneView);
+    OverlayLayer layer = new OverlayLayer(sceneView, () -> myOverlayConfiguration);
     myOverlayConfiguration.showPlaceholder();
     Graphics2D g = paintColor(sceneViewTestImage, Color.BLACK, null);
     layer.paint(g);
@@ -104,10 +104,8 @@ public class OverlayLayerTest {
                                                              SCREEN_VIEW_HEIGHT,
                                                              BufferedImage.TYPE_INT_ARGB);
     paintColor(sceneViewBaseImage, Color.BLACK, null);
-    paintColor(sceneViewBaseImage, Color.WHITE, OverlayLayer.getPlaceholderAlpha(), null);
-    paintText(sceneViewBaseImage,
-              OverlayLayer.getPlaceholderText(),
-              OverlayLayer.getPlaceholderAlpha());
+    paintColor(sceneViewBaseImage, Color.WHITE, PLACEHOLDER_ALPHA, null);
+    paintText(sceneViewBaseImage, PLACEHOLDER_TEXT, PLACEHOLDER_ALPHA);
 
     ImageDiffUtil.assertImageSimilar("overlaylayer_result.png",
                                      sceneViewBaseImage,
@@ -118,7 +116,6 @@ public class OverlayLayerTest {
   @Test
   public void testPaintPlaceholderShape() throws Exception {
     DesignSurface<?> surface = mock(DesignSurface.class);
-    when(surface.getOverlayConfiguration()).thenReturn(myOverlayConfiguration);
     SceneView sceneView = getSceneViewMock(surface);
     Shape shape = new Ellipse2D.Double(0, 0, SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT);
     when(sceneView.getScreenShape()).thenReturn(shape);
@@ -126,7 +123,7 @@ public class OverlayLayerTest {
     BufferedImage sceneViewTestImage = ImageUtil.createImage(SCREEN_VIEW_WIDTH,
                                                              SCREEN_VIEW_HEIGHT,
                                                              BufferedImage.TYPE_INT_ARGB);
-    OverlayLayer layer = new OverlayLayer(sceneView);
+    OverlayLayer layer = new OverlayLayer(sceneView,  () -> myOverlayConfiguration);
     myOverlayConfiguration.showPlaceholder();
     Graphics2D g = paintColor(sceneViewTestImage, Color.BLACK, shape);
     layer.paint(g);
@@ -135,10 +132,8 @@ public class OverlayLayerTest {
                                                              SCREEN_VIEW_HEIGHT,
                                                              BufferedImage.TYPE_INT_ARGB);
     paintColor(sceneViewBaseImage, Color.BLACK, shape);
-    paintColor(sceneViewBaseImage, Color.WHITE, OverlayLayer.getPlaceholderAlpha(), shape);
-    paintText(sceneViewBaseImage,
-              OverlayLayer.getPlaceholderText(),
-              OverlayLayer.getPlaceholderAlpha());
+    paintColor(sceneViewBaseImage, Color.WHITE, PLACEHOLDER_ALPHA, shape);
+    paintText(sceneViewBaseImage, PLACEHOLDER_TEXT, PLACEHOLDER_ALPHA);
 
     ImageDiffUtil.assertImageSimilar("overlaylayer_result.png",
                                      sceneViewBaseImage,

@@ -18,36 +18,32 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.resources.Density
 import com.intellij.ide.util.PropertiesComponent
 
-enum class DimensionUnits { PIXELS, DP }
+enum class DimensionUnits {
+  PIXELS,
+  DP
+}
 
 private const val DIMENSION_UNITS = "live.layout.inspector.attr.dimension.unit"
 private val DEFAULT_VALUE = DimensionUnits.DP
 
-/**
- * Global properties settings.
- */
+/** Global properties settings. */
 object PropertiesSettings {
 
-  /**
-   * The units to be used for all attributes with dimension values.
-   */
+  /** The units to be used for all attributes with dimension values. */
   var dimensionUnits: DimensionUnits = initialDimensionUnitsValue()
     set(value) {
       field = value
       PropertiesComponent.getInstance().setValue(DIMENSION_UNITS, value.name, DEFAULT_VALUE.name)
     }
 
-  /**
-   * The dpi of the device we are currently inspecting.
-   */
+  /** The dpi of the device we are currently inspecting. */
   var dpi: Int = Density.DEFAULT_DENSITY
 
   private fun initialDimensionUnitsValue(): DimensionUnits {
     val strValue = PropertiesComponent.getInstance().getValue(DIMENSION_UNITS)
     try {
       return strValue?.let { DimensionUnits.valueOf(it) } ?: DEFAULT_VALUE
-    }
-    catch (ex: Exception) {
+    } catch (ex: Exception) {
       // ignore...
       return DEFAULT_VALUE
     }

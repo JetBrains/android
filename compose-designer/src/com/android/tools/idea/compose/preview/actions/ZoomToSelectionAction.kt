@@ -73,7 +73,7 @@ class ZoomToSelectionAction(
       sceneView.scene.root
         ?.nlComponent
         ?.viewInfo
-        ?.let { viewInfo -> parseViewInfo(viewInfo, { it }, logger) }
+        ?.let { viewInfo -> parseViewInfo(viewInfo, logger) }
         ?.findDeepestHits(x, y)
     if (deepestViewInfos.isNullOrEmpty()) {
       // This is expected for example when the Preview contains showSystemUi=true

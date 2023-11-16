@@ -19,10 +19,10 @@ package org.jetbrains.android.actions;
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectView;
-import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.rendering.parsers.LayoutPullParsers;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -59,7 +59,6 @@ import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
 import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -155,11 +154,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
     if (file.isValid() && LayoutPullParsers.isSupported(new PsiXmlFile(file))) {
       VirtualFile virtualFile = file.getVirtualFile();
       if (virtualFile != null && virtualFile.isValid()) {
-        if (AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()) {
-          new OpenFileDescriptor(file.getProject(), virtualFile, 0).navigate(true);
-        } else {
-          new OpenFileDescriptor(file.getProject(), virtualFile).navigate(true);
-        }
+        new OpenFileDescriptor(file.getProject(), virtualFile).navigate(true);
       }
     } else {
       PsiNavigateUtil.navigate(file);

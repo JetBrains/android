@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities.registerAttributeHelp;
 import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_BOTTOM;
 import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_LEFT;
 import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_RIGHT;
@@ -307,6 +308,11 @@ public class SingleWidgetView extends JPanel {
     mHbar2.addPropertyChangeListener(TriStateControl.STATE, e -> setHorizontalState(mHbar2));
     mVbar1.addPropertyChangeListener(TriStateControl.STATE, e -> setVerticalState(mVbar1));
     mVbar2.addPropertyChangeListener(TriStateControl.STATE, e -> setVerticalState(mVbar2));
+
+    registerAttributeHelp(mTopMargin, () -> myWidgetModel.getMarginAttribute(CONNECTION_TOP));
+    registerAttributeHelp(mBottomMargin, () -> myWidgetModel.getMarginAttribute(CONNECTION_BOTTOM));
+    registerAttributeHelp(mLeftMargin, () -> myWidgetModel.getMarginAttribute(CONNECTION_LEFT));
+    registerAttributeHelp(mRightMargin, () -> myWidgetModel.getMarginAttribute(CONNECTION_RIGHT));
 
     mGraphicList.add(mWidgetRender);
     myInitialized = true;

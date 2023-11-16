@@ -141,7 +141,7 @@ class OptionsPanel : JComponent() {
 
   private fun buildPropertyUI(properties: List<PropertyInfo>) {
     // Group by groups
-    val sortedProperties = properties.sortedWith(compareBy { it.order })
+    val sortedProperties = properties.sortedWith(compareBy<PropertyInfo> { it.order })
     for (property in sortedProperties) {
       if (property.accessor == null) {
         continue

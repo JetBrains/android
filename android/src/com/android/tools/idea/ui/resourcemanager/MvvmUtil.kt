@@ -35,7 +35,7 @@ abstract class InputParam<T : Any?>(
   var placeholder: String? = null
 ) : Observable() {
 
-  var paramValue: T? by Delegates.observable(null) { _, old, new ->
+  var paramValue: T? by Delegates.observable<T?>(null) { _, old, new ->
     if (new != old) setChanged(); notifyObservers(new)
   }
 
@@ -86,7 +86,7 @@ private class UpdateLock {
  */
 fun <T, ComboBox : JComboBox<T>> CollectionParam<T>.bind(comboBox: ComboBox): ComboBox {
   val lock = UpdateLock()
-  val comboModel = CollectionComboBoxModel(values.toMutableList(), paramValue)
+  val comboModel = CollectionComboBoxModel<T>(values.toMutableList(), paramValue)
 
   comboBox.model = comboModel
   comboBox.addActionListener {

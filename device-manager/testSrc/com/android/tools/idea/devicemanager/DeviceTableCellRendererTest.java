@@ -18,9 +18,7 @@ package com.android.tools.idea.devicemanager;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import com.android.flags.junit.FlagRule;
 import com.android.tools.idea.devicemanager.physicaltab.TestPhysicalDevices;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.ConnectionState;
 import com.android.tools.idea.wearpairing.PairingDevice;
 import com.android.tools.idea.wearpairing.WearPairingManager;
@@ -30,7 +28,6 @@ import com.intellij.ui.table.JBTable;
 import icons.StudioIcons;
 import java.util.List;
 import javax.swing.JTable;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -38,9 +35,6 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class DeviceTableCellRendererTest {
-  @Rule
-  public FlagRule<Boolean> setWearPairingFlag = new FlagRule<>(StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED, true);
-
   private final WearPairingManager myManager = Mockito.mock(WearPairingManager.class);
   private final JTable myTable = new JBTable();
 

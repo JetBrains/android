@@ -31,20 +31,41 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
   override val isRemote: Boolean = true
 
   override fun doSearch(request: SearchRequest): SearchResult =
-    HttpRequests
-      .request(createRequestUrl(request))
-      .accept("application/xml")
-      .connect {
-        try {
-          parse(it.reader)
-        }
-        catch (e: JDOMException) {
-          throw IOException("Failed to parse request: $it", e)
-        }
-      }
+    when (val query = request.query) {
+      is ArbitraryModulesSearchQuery ->
+        HttpRequests
+          .request(createArbitraryModulesRequestUrl(request))
+          .accept("application/xml")
+          .connect {
+            try {
+              parseArbitraryModulesResponse(it.reader)
+            }
+            catch (e: JDOMException) {
+              throw IOException("Failed to parse request: $it", e)
+            }
+          }
+      is SingleModuleSearchQuery ->
+        HttpRequests
+          .request(createSingleModuleRequestUrl(request, query))
+          .accept("application/xml")
+          .connect {
+            try {
+              parseSingleModuleResponse(it.reader, query)
+            }
+            catch (e: HttpRequests.HttpStatusException) {
+              // fall back to ArbitraryModulesSearch
+              val fallbackQuery = ArbitraryModulesSearchQuery(query.groupId, query.artifactName)
+              val fallbackRequest = SearchRequest(fallbackQuery, request.rowCount, request.start)
+              doSearch(fallbackRequest)
+            }
+            catch (e: JDOMException) {
+              throw IOException("Failed to parse request: $it", e)
+            }
+          }
+    }
 
   @VisibleForTesting
-  fun parse(response: Reader): SearchResult {
+  fun parseArbitraryModulesResponse(response: Reader): SearchResult {
     /*
     Sample response:
 
@@ -90,7 +111,7 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
   }
 
   @VisibleForTesting
-  fun createRequestUrl(request: SearchRequest): String = buildString {
+  fun createArbitraryModulesRequestUrl(request: SearchRequest): String = buildString {
     fun String.escapeQueryExpression() = this
 
     val queryGroupId = request.query.groupId?.takeUnless { it.isBlank() }
@@ -105,5 +126,30 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
     append("start=${request.start}&")
     append("wt=xml&")
     append("q=$query")
+  }
+
+  @VisibleForTesting
+  fun parseSingleModuleResponse(response: Reader, query: SingleModuleSearchQuery): SearchResult {
+    val root = load(response) ?: return SearchResult(listOf())
+    if (query.groupId != root.getChild("groupId").textTrim) return SearchResult(listOf())
+    if (query.artifactName != root.getChild("artifactId").textTrim) return SearchResult(listOf())
+
+    val result = root
+      .getChild("versioning")
+      ?.getChild("versions")
+      ?.getChildren("version")
+      ?.map { Version.parse(it.textTrim) }
+      ?.let { FoundArtifact(MavenCentralRepository.name, query.groupId, query.artifactName, it) }
+
+    return result?.let { SearchResult(listOf(result)) } ?: SearchResult(listOf())
+  }
+
+  @VisibleForTesting
+  fun createSingleModuleRequestUrl(request: SearchRequest, query: SingleModuleSearchQuery): String = buildString {
+    append("https://repo.maven.apache.org/maven2/")
+    append(query.groupId.replace('.', '/'))
+    append("/")
+    append(query.artifactName)
+    append("/maven-metadata.xml")
   }
 }

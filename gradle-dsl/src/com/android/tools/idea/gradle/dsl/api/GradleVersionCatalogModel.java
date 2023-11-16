@@ -16,13 +16,15 @@
 package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogLibraries;
+import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogPlugins;
+import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogVersions;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Version Catalog Model covers one version catalog.
  * Each ExtModel returned from this model represents the entries in the corresponding table
- *
+ * <p>
  * Effective model of GradleVersionCatalogModel is a list of maps. VersionCatalogModel -> ExtModel -> name-value properties.
  */
 public interface GradleVersionCatalogModel extends GradleFileModel {
@@ -35,6 +37,12 @@ public interface GradleVersionCatalogModel extends GradleFileModel {
    */
   @NotNull
   GradleVersionCatalogLibraries libraryDeclarations();
+
+  @NotNull
+  GradleVersionCatalogVersions versionDeclarations();
+
+  @NotNull
+  GradleVersionCatalogPlugins pluginDeclarations();
 
   @NotNull
   ExtModel plugins();

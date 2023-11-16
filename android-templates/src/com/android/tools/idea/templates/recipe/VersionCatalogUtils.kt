@@ -101,14 +101,12 @@ fun getOrAddPluginToVersionCatalog(
   } else {
     val plugins = catalogModel.plugins()
     val versions = catalogModel.versions()
-    val pickedNameForPlugin = pickNameInToml(
-      sectionInCatalog = plugins,
-      libraryName = pluginName,
-      resolvedVersion = resolvedVersion)
-    val pluginProperty = plugins.findProperty(pickedNameForPlugin)
-    pluginProperty.getMapValue("id")?.setValue(pluginName)
-
-    val versionProperty = PluginUtils.getVersionProperty(
+    val pluginProperty = PluginUtils.createPluginProperty(
+      plugins = plugins,
+      pluginName = pluginName,
+      resolvedVersion = resolvedVersion,
+    )
+    val versionProperty = PluginUtils.getOrCreateVersionProperty(
       versions = versions,
       plugins = plugins,
       pluginName = pluginName,
@@ -214,14 +212,26 @@ object PluginUtils {
 
   private val agpPluginIds = AgpPlugin.values().map { it.id }.toSet()
 
-  fun getVersionProperty(versions: ExtModel, plugins: ExtModel, pluginName: String, resolvedVersion: String): GradlePropertyModel {
+  /**
+   * Get existing version property or create a new one if the matching property doesn't exist in the [versions] model.
+   *
+   * Some plugins should have the common version property (e.g. plugins listed in the [AgpPlugin]) instead of creating own one.
+   * This method first checks if the [pluginName] is part of the predefined plugins that should have the common version property,
+   * then get the existing version property if it's present or create a new one if it isn't present
+   */
+  fun getOrCreateVersionProperty(versions: ExtModel, plugins: ExtModel, pluginName: String, resolvedVersion: String): GradlePropertyModel {
     return if (agpPluginIds.contains(pluginName)) {
       getAgpVersionProperty(versions, plugins, resolvedVersion)
     } else {
       // When the plugin doesn't depend on AGP, follow the regular rule to pick the name for the version
+      val defaultVersionName = if (pluginName == KotlinPlugin.KOTLIN_ANDROID.id) {
+        KotlinPlugin.KOTLIN_ANDROID.defaultVersionName
+      } else {
+        pluginName
+      }
       val pickedNameForVersion = pickNameInToml(
         sectionInCatalog = versions,
-        libraryName = pluginName,
+        libraryName = defaultVersionName,
         resolvedVersion = resolvedVersion)
       val versionProperty = versions.findProperty(pickedNameForVersion)
       versionProperty.setValue(resolvedVersion)
@@ -257,24 +267,73 @@ object PluginUtils {
       versionProperty
     }
   }
+
+  /**
+   * Create a new plugin property in the [plugins] model.
+   *
+   * This method first checks if the [pluginName] has the default suggested plugin name
+   * (e.g. common plugins such as "com.android.application" has a default plugin name)
+   * Then, pick a plugin name from the catalog and return the created plugin property.
+   */
+  fun createPluginProperty(plugins: ExtModel, pluginName: String, resolvedVersion: String): GradlePropertyModel {
+
+    fun getDefaultPluginNameOrNull(pluginName: String): String? {
+      val defaultNameForAgp = AgpPlugin.values().firstOrNull {
+        it.id == pluginName
+      }?.defaultPluginName
+      if (defaultNameForAgp != null) { return defaultNameForAgp }
+
+      return KotlinPlugin.values().firstOrNull {
+        it.id == pluginName
+      }?.defaultPluginName
+    }
+
+    val defaultPluginName = getDefaultPluginNameOrNull(pluginName)
+    val pickedNameForPlugin = if (defaultPluginName != null) {
+      pickNameInToml(
+        sectionInCatalog = plugins,
+        libraryName = defaultPluginName,
+        resolvedVersion = resolvedVersion)
+    } else {
+      pickNameInToml(
+        sectionInCatalog = plugins,
+        libraryName = pluginName,
+        resolvedVersion = resolvedVersion)
+    }
+    val pluginProperty = plugins.findProperty(pickedNameForPlugin)
+    pluginProperty.getMapValue("id")?.setValue(pluginName)
+    return pluginProperty
+  }
 }
 
 /**
  * Enum class whose values represent each plugin that should have the common Android Gradle Plugin
  * version in the app.
  */
-enum class AgpPlugin(val id: String) {
-  APPLICATION("com.android.application"),
-  LIBRARY("com.android.library"),
-  TEST("com.android.test"),
-  ASSET_PACK("com.android.asset-pack"),
-  ASSET_PACK_BUNDLE("com.android.asset-pack-bundle"),
-  DYNAMIC_FEATURE("com.android.dynamic-feature"),
-  FUSED_LIBRARY("com.android.fused-library"),
-  INTERNAL_SETTINGS("com.android.internal.settings"),
-  SETTINGS("com.android.settings"),
-  LINT("com.android.lint")
+enum class AgpPlugin(val id: String, val defaultPluginName: String) {
+  APPLICATION("com.android.application", "androidApplication"),
+  LIBRARY("com.android.library", "androidLibrary"),
+  TEST("com.android.test", "androidTest"),
+  ASSET_PACK("com.android.asset-pack", "androidAssetPack"),
+  ASSET_PACK_BUNDLE("com.android.asset-pack-bundle", "androidAssetPackBundle"),
+  DYNAMIC_FEATURE("com.android.dynamic-feature", "androidDynamicFeature"),
+  FUSED_LIBRARY("com.android.fused-library", "androidFusedLibrary"),
+  INTERNAL_SETTINGS("com.android.internal.settings", "androidInternalSettings"),
+  SETTINGS("com.android.settings", "androidSettings"),
+  LINT("com.android.lint", "androidLint")
   ;
 
   val defaultVersionName = "agp"
+}
+
+/**
+ * Enum class whose values represent each plugin that should have the common Kotlin
+ * version in the app. At the moment, this doesn't have to be an enum class because
+ * it only has one value. But defining it as an enum to be consistent with [AgpPlugin].
+ */
+enum class KotlinPlugin(val id: String, val defaultPluginName: String) {
+  KOTLIN_ANDROID("org.jetbrains.kotlin.android", "kotlinAndroid")
+  ;
+
+  val defaultVersionName = "kotlin"
 }

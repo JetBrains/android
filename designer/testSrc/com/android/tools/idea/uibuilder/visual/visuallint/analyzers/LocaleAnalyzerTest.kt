@@ -17,11 +17,11 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.ide.common.resources.Locale
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
+import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.application.ApplicationManager
 import junit.framework.Assert
 import org.intellij.lang.annotations.Language
@@ -33,8 +33,7 @@ import org.junit.Test
 
 class LocaleAnalyzerTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   @Before
   fun setup() {
@@ -43,14 +42,13 @@ class LocaleAnalyzerTest {
 
   @After
   fun tearDown() {
-    ApplicationManager.getApplication().invokeAndWait {
-      RenderTestUtil.afterRenderTestCase()
-    }
+    ApplicationManager.getApplication().invokeAndWait { RenderTestUtil.afterRenderTestCase() }
   }
 
   @Test
   fun testLocaleTooBig() {
-    @Language("XML") val layout =
+    @Language("XML")
+    val layout =
       """<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
           android:layout_width="match_parent"
           android:layout_height="match_parent">
@@ -62,23 +60,27 @@ class LocaleAnalyzerTest {
             android:text="@string/text" />
        </FrameLayout>"""
 
-    @Language("XML") val defaultStrings =
+    @Language("XML")
+    val defaultStrings =
       """<resources>
           <string name="text">This is a short string</string>
         </resources>"""
 
-    @Language("XML") val localeStrings =
+    @Language("XML")
+    val localeStrings =
       """<resources>
           <string name="text">This is a very very very very very very very very very very very very very very very very very very very long string</string>
         </resources>"""
 
-    val layoutFile = projectRule.fixture.addFileToProject("res/layout/layout.xml", layout).virtualFile
+    val layoutFile =
+      projectRule.fixture.addFileToProject("res/layout/layout.xml", layout).virtualFile
     projectRule.fixture.addFileToProject("res/values/strings.xml", defaultStrings)
     projectRule.fixture.addFileToProject("res/values-fr/strings.xml", localeStrings)
 
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, layoutFile)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, layoutFile)
+    val nlModel =
+      SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, layoutFile)
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
     RenderTestUtil.withRenderTask(facet, layoutFile, configuration) { task: RenderTask ->
@@ -87,8 +89,7 @@ class LocaleAnalyzerTest {
         val result = task.render().get()
         val issues = analyzer.findIssues(result, nlModel)
         Assert.assertEquals(0, issues.size)
-      }
-      catch (ex: java.lang.Exception) {
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }
@@ -101,8 +102,7 @@ class LocaleAnalyzerTest {
         val issues = analyzer.findIssues(result, nlModel)
         Assert.assertEquals(1, issues.size)
         Assert.assertEquals("The text might be cut off.", issues[0].message)
-      }
-      catch (ex: java.lang.Exception) {
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }
@@ -110,7 +110,8 @@ class LocaleAnalyzerTest {
 
   @Test
   fun testLocaleEllipsis() {
-    @Language("XML") val layout =
+    @Language("XML")
+    val layout =
       """<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
           android:layout_width="match_parent"
           android:layout_height="match_parent">
@@ -123,23 +124,27 @@ class LocaleAnalyzerTest {
             android:text="@string/text" />
        </FrameLayout>"""
 
-    @Language("XML") val defaultStrings =
+    @Language("XML")
+    val defaultStrings =
       """<resources>
           <string name="text">This is a short string</string>
         </resources>"""
 
-    @Language("XML") val localeStrings =
+    @Language("XML")
+    val localeStrings =
       """<resources>
           <string name="text">This is a very very very very very very very very very very very very very very very very very very very long string</string>
         </resources>"""
 
-    val layoutFile = projectRule.fixture.addFileToProject("res/layout/layout.xml", layout).virtualFile
+    val layoutFile =
+      projectRule.fixture.addFileToProject("res/layout/layout.xml", layout).virtualFile
     projectRule.fixture.addFileToProject("res/values/strings.xml", defaultStrings)
     projectRule.fixture.addFileToProject("res/values-fr/strings.xml", localeStrings)
 
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, layoutFile)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, layoutFile)
+    val nlModel =
+      SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, layoutFile)
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
     RenderTestUtil.withRenderTask(facet, layoutFile, configuration) { task: RenderTask ->
@@ -148,8 +153,7 @@ class LocaleAnalyzerTest {
         val result = task.render().get()
         val issues = analyzer.findIssues(result, nlModel)
         Assert.assertEquals(0, issues.size)
-      }
-      catch (ex: java.lang.Exception) {
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }
@@ -162,8 +166,7 @@ class LocaleAnalyzerTest {
         val issues = analyzer.findIssues(result, nlModel)
         Assert.assertEquals(1, issues.size)
         Assert.assertEquals("The text is ellipsized in locale \"fr\".", issues[0].message)
-      }
-      catch (ex: java.lang.Exception) {
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }
@@ -171,7 +174,8 @@ class LocaleAnalyzerTest {
 
   @Test
   fun testBothTooBig() {
-    @Language("XML") val layout =
+    @Language("XML")
+    val layout =
       """<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
           android:layout_width="match_parent"
           android:layout_height="match_parent">
@@ -183,23 +187,27 @@ class LocaleAnalyzerTest {
             android:text="@string/text" />
        </FrameLayout>"""
 
-    @Language("XML") val defaultStrings =
+    @Language("XML")
+    val defaultStrings =
       """<resources>
           <string name="text">This is a very very very very very very very very very very very very very very very very very very very long string</string>
         </resources>"""
 
-    @Language("XML") val localeStrings =
+    @Language("XML")
+    val localeStrings =
       """<resources>
           <string name="text">This is also a very very very very very very very very very very very very very very long string</string>
         </resources>"""
 
-    val layoutFile = projectRule.fixture.addFileToProject("res/layout/layout.xml", layout).virtualFile
+    val layoutFile =
+      projectRule.fixture.addFileToProject("res/layout/layout.xml", layout).virtualFile
     projectRule.fixture.addFileToProject("res/values/strings.xml", defaultStrings)
     projectRule.fixture.addFileToProject("res/values-fr/strings.xml", localeStrings)
 
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, layoutFile)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, layoutFile)
+    val nlModel =
+      SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, layoutFile)
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
     RenderTestUtil.withRenderTask(facet, layoutFile, configuration) { task: RenderTask ->
@@ -208,8 +216,7 @@ class LocaleAnalyzerTest {
         val result = task.render().get()
         val issues = analyzer.findIssues(result, nlModel)
         Assert.assertEquals(0, issues.size)
-      }
-      catch (ex: java.lang.Exception) {
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }
@@ -221,8 +228,7 @@ class LocaleAnalyzerTest {
         val result = task.render().get()
         val issues = analyzer.findIssues(result, nlModel)
         Assert.assertEquals(0, issues.size)
-      }
-      catch (ex: java.lang.Exception) {
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }

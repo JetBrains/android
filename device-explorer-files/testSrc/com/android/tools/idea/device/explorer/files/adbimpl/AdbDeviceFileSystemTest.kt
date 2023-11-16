@@ -16,9 +16,9 @@
 package com.android.tools.idea.device.explorer.files.adbimpl
 
 import com.android.adblib.ConnectedDevice
-import com.android.adblib.deviceInfo
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.CoroutineTestUtils.waitNonNull
+import com.android.ddmlib.FileListingService
 import com.android.fakeadbserver.DeviceFileState
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.ShellProtocolType.SHELL
@@ -28,12 +28,15 @@ import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
+import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
 import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
 import com.android.tools.idea.testing.DebugLoggerRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -68,7 +71,7 @@ class AdbDeviceFileSystemTest {
   private lateinit var connectedDevice: ConnectedDevice
   private lateinit var deviceState: DeviceState
 
-  val shellCommands = TestShellCommands()
+  private val shellCommands = TestShellCommands()
 
   @JvmField
   @Rule
@@ -137,12 +140,6 @@ class AdbDeviceFileSystemTest {
   }
 
   @Test
-  fun test_FileSystem_Exposes_DeviceState() {
-    assertThat(connectedDevice.deviceInfo.deviceState.toString())
-      .isEqualTo(myFileSystem.deviceState.toString())
-  }
-
-  @Test
   fun test_FileSystem_Has_Root(): Unit = runBlocking {
     // Prepare
     TestDevices.NEXUS_7_API23.addCommands(shellCommands)
@@ -152,7 +149,7 @@ class AdbDeviceFileSystemTest {
 
     // Assert
     assertThat(result).isNotNull()
-    assertThat(result.name).isEqualTo("")
+    assertThat(result.name).isEqualTo("/")
   }
 
   @Test
@@ -175,21 +172,24 @@ class AdbDeviceFileSystemTest {
     TestDevices.NEXUS_7_API23.addCommands(shellCommands)
 
     // Act
-    val result = myFileSystem.getEntry("")
+    val result = getEntry("", myFileSystem)
 
     // Assert
     assertThat(result).isNotNull()
-    assertThat(result.name).isEqualTo("")
+    assertThat(result.name).isEqualTo("/")
   }
 
   @Test
   fun test_FileSystem_GetEntry_Returns_Root(): Unit = runBlocking {
+    // Prepare
+    TestDevices.NEXUS_7_API23.addCommands(shellCommands)
+
     // Act
-    val result = myFileSystem.getEntry("/")
+    val result = getEntry("/", myFileSystem)
 
     // Assert
     assertThat(result).isNotNull()
-    assertThat(result.name).isEqualTo("")
+    assertThat(result.name).isEqualTo("/")
   }
 
   @Test
@@ -198,7 +198,7 @@ class AdbDeviceFileSystemTest {
     TestDevices.NEXUS_7_API23.addCommands(shellCommands)
 
     // Act
-    val result = myFileSystem.getEntry("/charger")
+    val result = getEntry("/charger", myFileSystem)
 
     // Assert
     assertThat(result).isNotNull()
@@ -215,7 +215,7 @@ class AdbDeviceFileSystemTest {
     TestDevices.NEXUS_7_API23.addCommands(shellCommands)
 
     // Act
-    val result = myFileSystem.getEntry("/data")
+    val result = getEntry("/data", myFileSystem)
 
     // Assert
     assertThat(result).isNotNull()
@@ -228,7 +228,7 @@ class AdbDeviceFileSystemTest {
     TestDevices.NEXUS_7_API23.addCommands(shellCommands)
 
     // Act
-    val result = myFileSystem.getEntry("/data/app")
+    val result = getEntry("/data/app", myFileSystem)
 
     // Assert
     assertThat(result).isNotNull()
@@ -239,7 +239,7 @@ class AdbDeviceFileSystemTest {
   fun test_FileSystem_GetEntries_Returns_DataAppPackages(): Unit = runBlocking {
     // Prepare
     TestDevices.NEXUS_7_API23.addCommands(shellCommands)
-    val dataEntry = myFileSystem.getEntry("/data/app")
+    val dataEntry = getEntry("/data/app", myFileSystem)
 
     // Act
     val result = dataEntry.entries()
@@ -263,7 +263,7 @@ class AdbDeviceFileSystemTest {
     TestDevices.NEXUS_7_API23.addCommands(shellCommands)
 
     // Act
-    val result = myFileSystem.getEntry("/data/data")
+    val result = getEntry("/data/data", myFileSystem)
 
     // Assert
     assertThat(result).isNotNull()
@@ -274,7 +274,7 @@ class AdbDeviceFileSystemTest {
   fun test_FileSystem_GetEntries_Returns_DataDataPackages(): Unit = runBlocking {
     // Prepare
     TestDevices.NEXUS_7_API23.addCommands(shellCommands)
-    val dataEntry = myFileSystem.getEntry("/data/data")
+    val dataEntry = getEntry("/data/data", myFileSystem)
 
     // Act
     val result = dataEntry.entries()
@@ -290,7 +290,7 @@ class AdbDeviceFileSystemTest {
     TestDevices.NEXUS_7_API23.addCommands(shellCommands)
 
     // Act
-    val result = myFileSystem.getEntry("/data/local")
+    val result = getEntry("/data/local", myFileSystem)
 
     // Assert
     assertThat(result).isNotNull()
@@ -303,7 +303,7 @@ class AdbDeviceFileSystemTest {
     TestDevices.NEXUS_7_API23.addCommands(shellCommands)
 
     // Act
-    val result = myFileSystem.getEntry("/data/local/tmp")
+    val result = getEntry("/data/local/tmp", myFileSystem)
 
     // Assert
     assertThat(result).isNotNull()
@@ -317,14 +317,14 @@ class AdbDeviceFileSystemTest {
 
     // Act/Assert
     thrown.expect(IllegalArgumentException::class.java)
-    /*DeviceFileEntry result = */myFileSystem.getEntry("/data/invalid/path")
+    /*DeviceFileEntry result = */getEntry("/data/invalid/path", myFileSystem)
   }
 
   @Test
   fun test_FileSystem_UploadLocalFile_Works(): Unit = runBlocking {
     // Prepare
     TestDevices.NEXUS_7_API23.addCommands(shellCommands)
-    val dataEntry = myFileSystem.getEntry("/data/local/tmp")
+    val dataEntry = getEntry("/data/local/tmp", myFileSystem)
     val tempFile = FileUtil.createTempFile("localFile", "tmp").toPath()
     Files.write(tempFile, ByteArray(1024))
 
@@ -348,19 +348,11 @@ class AdbDeviceFileSystemTest {
     assertThat(totalBytesRef.get()).isEqualTo(1024)
   }
 
-  fun addRemoteFile(path: String, length: Long) {
-    deviceState.createFile(DeviceFileState(path, OWNER_READABLE, 0, ByteArray(length.toInt())))
-  }
-
-  fun addRemoteRestrictedAccessFile(path: String, length: Long) {
-    deviceState.createFile(DeviceFileState(path, UNREADABLE, 0, ByteArray(length.toInt())))
-  }
-
   @Test
   fun test_FileSystem_DownloadRemoteFile_Works(): Unit = runBlocking {
     // Prepare
     TestDevices.NEXUS_7_API23.addCommands(shellCommands)
-    val deviceEntry = myFileSystem.getEntry("/default.prop")
+    val deviceEntry = getEntry("/default.prop", myFileSystem)
     addRemoteFile(deviceEntry.fullPath, deviceEntry.size)
     val tempFile = FileUtil.createTempFile("localFile", "tmp").toPath()
 
@@ -391,7 +383,7 @@ class AdbDeviceFileSystemTest {
     // Prepare
     TestDevices.EMULATOR_API25.addCommands(shellCommands)
     addRemoteRestrictedAccessFile("/system/build.prop", 1024)
-    val dataEntry = myFileSystem.getEntry("/system")
+    val dataEntry = getEntry("/system", myFileSystem)
     val tempFile = FileUtil.createTempFile("localFile", "tmp").toPath()
     val uploadFileSize = 1100
     Files.write(tempFile, ByteArray(uploadFileSize))
@@ -424,7 +416,7 @@ class AdbDeviceFileSystemTest {
   fun test_FileSystem_DownloadAccessibleSystemFile_Works(): Unit = runBlocking {
     // Prepare
     TestDevices.EMULATOR_API25.addCommands(shellCommands)
-    val deviceEntry = myFileSystem.getEntry("/system/build.prop")
+    val deviceEntry = getEntry("/system/build.prop", myFileSystem)
     addRemoteFile(deviceEntry.fullPath, deviceEntry.size)
     val tempFile = FileUtil.createTempFile("localFile", "tmp").toPath()
 
@@ -453,7 +445,7 @@ class AdbDeviceFileSystemTest {
   fun test_FileSystem_DownloadRestrictedSystemFile_RecoversFromPullError(): Unit = runBlocking {
     // Prepare
     TestDevices.EMULATOR_API25.addCommands(shellCommands)
-    val deviceEntry = myFileSystem.getEntry("/system/build.prop")
+    val deviceEntry = getEntry("/system/build.prop", myFileSystem)
     addRemoteRestrictedAccessFile(deviceEntry.fullPath, deviceEntry.size)
     addRemoteFile("/data/local/tmp/temp0", deviceEntry.size)
     val tempFile = FileUtil.createTempFile("localFile", "tmp").toPath()
@@ -481,6 +473,34 @@ class AdbDeviceFileSystemTest {
 
   private fun setUserIsRoot(isRoot: Boolean) {
     shellCommands.add("echo \$USER_ID", if (isRoot) "0\n" else "4\n")
+  }
+
+  private fun addRemoteFile(path: String, length: Long) {
+    deviceState.createFile(DeviceFileState(path, OWNER_READABLE, 0, ByteArray(length.toInt())))
+  }
+
+  private fun addRemoteRestrictedAccessFile(path: String, length: Long) {
+    deviceState.createFile(DeviceFileState(path, UNREADABLE, 0, ByteArray(length.toInt())))
+  }
+
+  private suspend fun getEntry(path: String, device: DeviceFileSystem): DeviceFileEntry {
+    val root = device.rootDirectory()
+    if (StringUtil.isEmpty(path) || StringUtil.equals(path, FileListingService.FILE_SEPARATOR)) {
+      return root
+    }
+    val pathSegments = path.substring(1).split(FileListingService.FILE_SEPARATOR.toRegex()).toList()
+    return resolvePathSegments(root, pathSegments)
+  }
+
+  private suspend fun resolvePathSegments(
+    rootEntry: DeviceFileEntry,
+    segments: List<String>
+  ): DeviceFileEntry {
+    var currentEntry = rootEntry
+    for (segment in segments) {
+      currentEntry = currentEntry.entries().find { it.name == segment } ?: throw IllegalArgumentException("Path not found")
+    }
+    return currentEntry
   }
 
   companion object {

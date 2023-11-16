@@ -27,10 +27,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiFile
-import java.io.File
-import java.io.FileNotFoundException
-import java.nio.file.Path
-import java.util.UUID
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -40,6 +36,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.sdk.getInstance
 import org.jetbrains.android.uipreview.getLibraryDependenciesJars
+import java.io.File
+import java.io.FileNotFoundException
+import java.nio.file.Path
+import java.util.UUID
 
 /** Command received from the daemon to indicate the result is available. */
 private const val CMD_RESULT = "RESULT"

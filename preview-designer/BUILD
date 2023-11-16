@@ -20,6 +20,8 @@ iml_module(
         "//tools/adt/idea/designer:intellij.android.designer[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 
@@ -27,7 +29,6 @@ iml_module(
 iml_module(
     name = "intellij.android.preview-designer.tests",
     iml_files = ["intellij.android.preview-designer.tests.iml"],
-    resources = ["testSrc/META-INF"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.preview.PreviewDesignerTestSuite",
     test_friends = ["//tools/adt/idea/preview-designer:intellij.android.preview-designer"],
@@ -37,6 +38,7 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
@@ -45,5 +47,7 @@ iml_module(
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
+        "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
     ],
 )

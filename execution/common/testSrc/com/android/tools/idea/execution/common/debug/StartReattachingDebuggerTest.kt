@@ -23,9 +23,13 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.idea.execution.common.assertTaskPresentedInStats
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
+import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.execution.common.stats.RunStatsService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentManager
@@ -33,6 +37,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.xdebugger.XDebuggerManager
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.fail
 import org.junit.Before
@@ -57,6 +62,9 @@ class StartReattachingDebuggerTest {
   @get:Rule
   val projectRule = ProjectRule()
 
+  @get:Rule
+  val usageTrackerRule = UsageTrackerRule()
+
   val project
     get() = projectRule.project
 
@@ -79,8 +87,11 @@ class StartReattachingDebuggerTest {
   }
 
   @Test
-  fun testStartReattachingDebuggerForOneClient() {
-    val masterProcessHandler = AndroidProcessHandler(executionEnvironment.project, MASTER_PROCESS_NAME,{})
+  fun testStartReattachingDebuggerForOneClient() = runTest {
+    val stats = RunStatsService.get(project).create().also {
+      executionEnvironment.putUserData(RunStats.KEY, it)
+    }
+    val masterProcessHandler = AndroidProcessHandler(MASTER_PROCESS_NAME, {})
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, true)
     val firstSession = DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,
@@ -95,7 +106,8 @@ class StartReattachingDebuggerTest {
     assertThat(firstSession.sessionName).isEqualTo("myTestConfiguration")
     assertThat(firstSession.debugProcess.processHandler).isInstanceOf(
       AndroidRemoteDebugProcessHandler::class.java)
-
+    stats.success()
+    assertTaskPresentedInStats(usageTrackerRule.usages, "startReattachingDebuggerSession")
     // Clean up.
     // force close process monitor, as SingleDeviceAndroidProcessMonitor never connected and keep holding Project reference for 3 minutes
     masterProcessHandler.destroyProcess()
@@ -122,7 +134,7 @@ class StartReattachingDebuggerTest {
   }
 
   @Test
-  fun testStartReattachingDebuggerForFewClients() {
+  fun testStartReattachingDebuggerForFewClients() = runTest {
 
     val ADDITIONAL_CLIENTS = 2
     // RunContentManagerImpl.showRunContent content does nothing on showRunContent in Unit tests, we want to check it was invoked.
@@ -164,7 +176,7 @@ class StartReattachingDebuggerTest {
   }
 
   @Test
-  fun testStopping() {
+  fun testStopping() = runTest {
 
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1111, MASTER_PROCESS_NAME, false)
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, true)
@@ -179,7 +191,6 @@ class StartReattachingDebuggerTest {
       }
     }
 
-
     val sessionImpl = DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,
       APP_ID,
@@ -187,7 +198,10 @@ class StartReattachingDebuggerTest {
       executionEnvironment,
       AndroidJavaDebugger(),
       AndroidJavaDebugger().createState(),
-      destroyRunningProcess = { it.forceStop(APP_ID) },
+      destroyRunningProcess = {
+        it.forceStop(APP_ID)
+        it.forceStop(MASTER_PROCESS_NAME)
+      },
       EmptyProgressIndicator()
     )
 

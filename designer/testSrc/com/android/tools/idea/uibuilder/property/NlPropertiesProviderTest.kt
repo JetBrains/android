@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property
 
+import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ELEVATION
 import com.android.SdkConstants.ATTR_FONT_FAMILY
@@ -43,113 +44,145 @@ import com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.property.testutils.APPCOMPAT_IMAGE_VIEW
 import com.android.tools.idea.uibuilder.property.testutils.APPCOMPAT_TEXT_VIEW
+import com.android.tools.idea.uibuilder.property.testutils.ComponentUtil.component
+import com.android.tools.idea.uibuilder.property.testutils.ComponentUtil.createComponents
+import com.android.tools.idea.uibuilder.property.testutils.MinApiRule
 import com.android.tools.idea.uibuilder.property.testutils.MockAppCompat
-import com.android.tools.idea.uibuilder.property.testutils.PropertyTestCase
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.truth.Truth.assertThat
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.asJava.classes.runReadAction
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
 private const val CUSTOM_TAG = "com.example.PieChart"
 private const val ATTR_LEGEND = "legend"
 private const val ATTR_LABEL_POS = "labelPosition"
 
-internal const val EXPECTED_ID_TOOLTIP =
-  "<html><b>android:id:</b><br/>" +
-  "Supply an identifier name for this view, to later retrieve it with {@link android.view.View#findViewById View.findViewById()} or " +
-  "{@link android.app.Activity#findViewById Activity.findViewById()}. This must be a resource reference; typically you set this using " +
-  "the &lt;code&gt;@+&lt;/code&gt; syntax to create a new ID resources. " +
-  "For example: &lt;code&gt;android:id=&quot;@+id/my_id&quot;&lt;/code&gt; which allows you to " +
-  "later retrieve the view with &lt;code&gt;findViewById(R.id.my_id)&lt;/code&gt;.</html>"
-
-internal const val EXPECTED_TEXT_TOOLTIP =
-  "<html><b>android:text:</b><br/>Text to display.</html>"
-
 private fun PropertiesTable<NlPropertyItem>.contains(namespace: String, name: String): Boolean {
   return this.getOrNull(namespace, name) != null
 }
 
-private fun PropertiesTable<NlPropertyItem>.doesNotContain(namespace: String, name: String): Boolean {
+private fun PropertiesTable<NlPropertyItem>.doesNotContain(
+  namespace: String,
+  name: String
+): Boolean {
   return !this.contains(namespace, name)
 }
 
-class NlPropertiesProviderTest : PropertyTestCase() {
-  private val viewAttrs = listOf(ATTR_ID, ATTR_PADDING, ATTR_VISIBILITY, ATTR_TEXT_ALIGNMENT, ATTR_ELEVATION)
+class NlPropertiesProviderTest {
+  private val projectRule = AndroidProjectRule.withSdk()
+
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(MinApiRule(projectRule))!!
+
+  private val viewAttrs =
+    listOf(ATTR_ID, ATTR_PADDING, ATTR_VISIBILITY, ATTR_TEXT_ALIGNMENT, ATTR_ELEVATION)
   private val frameLayoutAttrs = listOf("layout_gravity")
   private val gridLayoutAttrs = listOf("layout_rowSpan", "layout_column")
   private val linearLayoutAttrs = listOf("layout_weight")
   private val relativeLayoutAttrs = listOf("layout_toLeftOf", "layout_above", "layout_alignTop")
 
+  @Test
   fun testViewAttributes() {
-    val provider = NlPropertiesProvider(myFacet)
-    val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createViewTagComponent())
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    val provider = NlPropertiesProvider(facet)
+    val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
+    val components = createViewTagComponent()
+    val properties = runReadAction { provider.getProperties(model, null, components) }
     assertThat(properties.size).isAtLeast(124)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(viewAttrs)
     assertThat(properties.getByNamespace("").keys).contains(ATTR_STYLE)
   }
 
+  @Test
   fun testRootHasAllLayoutAttributes() {
-    val provider = NlPropertiesProvider(myFacet)
-    val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createViewTagComponent())
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    val provider = NlPropertiesProvider(facet)
+    val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
+    val components = createViewTagComponent()
+    val properties = runReadAction { provider.getProperties(model, null, components) }
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(frameLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(gridLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(linearLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(relativeLayoutAttrs)
   }
 
+  @Test
   fun testSubViewHasLayoutAttributesOfParent() {
-    val provider = NlPropertiesProvider(myFacet)
-    val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createComponents(component(TEXT_VIEW)))
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    val provider = NlPropertiesProvider(facet)
+    val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
+    val components = createComponents(component(TEXT_VIEW))
+    val properties = runReadAction { provider.getProperties(model, null, components) }
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(linearLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsNoneIn(gridLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsNoneIn(relativeLayoutAttrs)
   }
 
+  @Test
   fun testFontFamilyFromAppCompatForMinApi14() {
     setUpAppCompat()
-    val provider = NlPropertiesProvider(myFacet)
-    val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW)))
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    val provider = NlPropertiesProvider(facet)
+    val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
+    val components = createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW))
+    val properties = runReadAction { provider.getProperties(model, null, components) }
     assertThat(properties.contains(AUTO_URI, ATTR_FONT_FAMILY)).isTrue()
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_FONT_FAMILY)).isTrue()
   }
 
+  @Test
   fun testFontFamilyFromAndroidForMinApi16() {
     setUpAppCompat()
-    val provider = NlPropertiesProvider(myFacet)
-    val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW)))
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    val provider = NlPropertiesProvider(facet)
+    val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
+    val components = createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW))
+    val properties = runReadAction { provider.getProperties(model, null, components) }
     assertThat(properties.doesNotContain(AUTO_URI, ATTR_FONT_FAMILY)).isTrue()
     assertThat(properties.contains(ANDROID_URI, ATTR_FONT_FAMILY)).isTrue()
   }
 
+  @Test
   fun testSrcCompatIncludedWhenUsingAppCompat() {
     setUpAppCompat()
-    val provider = NlPropertiesProvider(myFacet)
-    val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW)))
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    val provider = NlPropertiesProvider(facet)
+    val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
+    val components =
+      createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
+    val properties = runReadAction { provider.getProperties(model, null, components) }
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_SRC)).isTrue()
     assertThat(properties.contains(AUTO_URI, ATTR_SRC_COMPAT)).isTrue()
   }
 
+  @Test
   fun testSrcCompatNotIncludedWhenNotUsingAppCompat() {
-    val provider = NlPropertiesProvider(myFacet)
-    val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createComponents(component(IMAGE_VIEW)))
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    val provider = NlPropertiesProvider(facet)
+    val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
+    val components = createComponents(component(IMAGE_VIEW))
+    val properties = runReadAction { provider.getProperties(model, null, components) }
     assertThat(properties.contains(ANDROID_URI, ATTR_SRC)).isTrue()
     assertThat(properties.doesNotContain(AUTO_URI, ATTR_SRC_COMPAT)).isTrue()
   }
 
+  @Test
   fun testCustomViewProperties() {
-    SupportTestUtil.setUpCustomView(myFixture)
-    val provider = NlPropertiesProvider(myFacet)
-    val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createComponents(component(CUSTOM_TAG)))
+    SupportTestUtil.setUpCustomView(projectRule.fixture)
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    val provider = NlPropertiesProvider(facet)
+    val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
+    val components = createComponents(component(CUSTOM_TAG))
+    val properties = runReadAction { provider.getProperties(model, null, components) }
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(viewAttrs)
     assertThat(properties.getByNamespace("").keys).contains(ATTR_STYLE)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(linearLayoutAttrs)
@@ -157,41 +190,44 @@ class NlPropertiesProviderTest : PropertyTestCase() {
     assertThat(properties.getByNamespace(AUTO_URI).keys).containsAllOf(ATTR_LEGEND, ATTR_LABEL_POS)
   }
 
-  fun testToolTip() {
-    SupportTestUtil.setUpCustomView(myFixture)
-    val provider = NlPropertiesProvider(myFacet)
-    val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createComponents(component(CUSTOM_TAG)))
-    val id = properties[ANDROID_URI, ATTR_ID]
-    val legend = properties[AUTO_URI, ATTR_LEGEND]
-    assertThat(id.tooltipForName.trim()).isEqualTo(EXPECTED_ID_TOOLTIP.trim())
-    assertThat(legend.tooltipForName).isEqualTo("<html><b>legend:</b><br/>Help Text</html>")
-  }
-
+  @Test
   fun testComponentName() {
     setUpAppCompat()
-    val provider = NlPropertiesProvider(myFacet)
-    val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW)))
-    assertThat(properties[ResourceNamespace.TODO().xmlNamespaceUri, ATTR_SRC_COMPAT].componentName).isEqualTo(APPCOMPAT_IMAGE_VIEW)
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    val provider = NlPropertiesProvider(facet)
+    val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
+    val components =
+      createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
+    val properties = runReadAction { provider.getProperties(model, null, components) }
+    assertThat(properties[ResourceNamespace.TODO().xmlNamespaceUri, ATTR_SRC_COMPAT].componentName)
+      .isEqualTo(APPCOMPAT_IMAGE_VIEW)
     assertThat(properties[ANDROID_URI, ATTR_SCALE_TYPE].componentName).isEqualTo(FQCN_IMAGE_VIEW)
     assertThat(properties[ANDROID_URI, ATTR_VISIBILITY].componentName).isEqualTo(CLASS_VIEW)
   }
 
+  @Test
   fun testInputType() {
-    val provider = NlPropertiesProvider(myFacet)
-    val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createComponents(component(EDIT_TEXT)))
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    val provider = NlPropertiesProvider(facet)
+    val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
+    val components = createComponents(ComponentDescriptor(EDIT_TEXT))
+    val properties = runReadAction { provider.getProperties(model, null, components) }
     val property = properties[ANDROID_URI, ATTR_INPUT_TYPE]
     assertThat(property).isInstanceOf(InputTypePropertyItem::class.java)
   }
 
+  @Test
   fun testPreferenceListForMinApi26() {
-    val provider = NlPropertiesProvider(myFacet)
-    val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(
-      model, null, createComponents(component(LIST_PREFERENCE).viewObjectClassName(FQCN_LINEAR_LAYOUT),
-                                    parentTag = PREFERENCE_SCREEN, resourceFolder = FD_RES_XML))
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    val provider = NlPropertiesProvider(facet)
+    val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
+    val components =
+      createComponents(
+        component(LIST_PREFERENCE).viewObjectClassName(FQCN_LINEAR_LAYOUT),
+        PREFERENCE_SCREEN,
+        FD_RES_XML
+      )
+    val properties = runReadAction { provider.getProperties(model, null, components) }
 
     // From ListPreference: (2)
     properties.check(ATTR_ENTRIES, NlPropertyType.STRING_ARRAY)
@@ -233,11 +269,26 @@ class NlPropertiesProviderTest : PropertyTestCase() {
   }
 
   private fun setUpAppCompat() {
-    MockAppCompat.setUp(myFacet, myFixture)
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    MockAppCompat.setUp(facet, projectRule.fixture)
+  }
+
+  private fun createComponents(
+    descriptor: ComponentDescriptor,
+    parentTag: String = SdkConstants.LINEAR_LAYOUT,
+    resourceFolder: String = SdkConstants.FD_RES_LAYOUT
+  ): List<NlComponent> {
+    return createComponents(
+      projectRule,
+      descriptor,
+      parentTag = parentTag,
+      resourceFolder = resourceFolder
+    )
   }
 
   private fun createViewTagComponent(): List<NlComponent> {
-    val builder = model("view.xml", component(VIEW))
+    val builder =
+      NlModelBuilderUtil.model(projectRule, SdkConstants.FD_RES_LAYOUT, "view.xml", component(VIEW))
     val nlModel = builder.build()
     return nlModel.components
   }

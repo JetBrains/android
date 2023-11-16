@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiRecursiveElementWalkingVisitor
-import com.intellij.psi.TokenType
-import com.intellij.psi.util.elementType
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
@@ -38,7 +34,6 @@ import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
-import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.InvalidModuleException
@@ -52,12 +47,11 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.source.PsiSourceFile
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
-import org.jetbrains.kotlin.types.isPrimitiveNumberUntil
 import org.jetbrains.kotlin.utils.IDEAPluginsCompatibilityAPI
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-private fun handleCompilerErrors(e: Throwable) {
+private fun handleCompilerErrors(e: Throwable): Nothing {
   // These should be rethrown as per the javadoc for ProcessCanceledException. This allows the
   // internal IDE code for handling read/write actions to function as expected.
   if (e is ProcessCanceledException) {
@@ -125,7 +119,7 @@ interface CompileScope {
   fun analyze(input: List<KtFile>, resolution: ResolutionFacade): AnalysisResult
 
   /**
-   * Invoke the Kotlin compiler that is part of the plugin. The compose plugin is also attached by the
+   * Invoke the Kotlin compiler that is part of the plugin. The compose plugin is also attached by
    * the extension point to generate code for @composable functions.
    */
   fun backendCodeGen(project: Project,
@@ -187,6 +181,9 @@ private object CompileScopeImpl : CompileScope {
     val compilerConfiguration = CompilerConfiguration()
     compilerConfiguration.languageVersionSettings = input.first().languageVersionSettings
 
+    // Needed so we can diff changes to method parameters and parameter annotations.
+    compilerConfiguration.put(JVMConfigurationKeys.PARAMETERS_METADATA, true)
+
     // The Kotlin compiler is built on top of the PSI parse tree which is used in the IDE.
     // In order to support things like auto-complete when the user is still typing code, the IDE needs to be able to perform
     // analysis of syntactically incorrect code during the Analysis phrase. The parser will try to continue to build the PSI tree by
@@ -211,15 +208,21 @@ private object CompileScopeImpl : CompileScope {
       }
     }
 
-    val useComposeIR = LiveEditAdvancedConfiguration.getInstance().useEmbeddedCompiler
-    if (useComposeIR) {
-      // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
-      compilerConfiguration.put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
+    // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
+    compilerConfiguration.put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
 
-      // We don't support INVOKE_DYNAMIC in the interpeter at the moment.
-      compilerConfiguration.put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
-      compilerConfiguration.put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.CLASS)
-    }
+    // We don't support INVOKE_DYNAMIC in the interpreter at the moment.
+    compilerConfiguration.put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
+    compilerConfiguration.put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.CLASS)
+
+    // Link via signatures and not descriptors.
+    //
+    // This ensures that even if the project has descriptors for basic types from multiple stdlib
+    // versions, they all end up mapping to the basic types from the stdlib used for the current
+    // compilation.
+    //
+    // See b/256957527 for details.
+    compilerConfiguration.put(JVMConfigurationKeys.LINK_VIA_SIGNATURES, true)
 
     val generationStateBuilder = GenerationState.Builder(project,
                                                          ClassBuilderFactories.BINARIES,
@@ -228,20 +231,18 @@ private object CompileScopeImpl : CompileScope {
                                                          input,
                                                          compilerConfiguration)
 
-    if (useComposeIR) {
-      generationStateBuilder.codegenFactory(JvmIrCodegenFactory(
-        compilerConfiguration,
-        PhaseConfig(org.jetbrains.kotlin.backend.jvm.jvmPhases),
-        jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
-          override fun getContainerSource(descriptor: DeclarationDescriptor): DeserializedContainerSource? {
-            val psiSourceFile =
-              descriptor.toSourceElement.containingFile as? PsiSourceFile ?: return super.getContainerSource(descriptor)
-            return FacadeClassSourceShimForFragmentCompilation(psiSourceFile)
-          }
+    generationStateBuilder.codegenFactory(JvmIrCodegenFactory(
+      compilerConfiguration,
+      PhaseConfig(org.jetbrains.kotlin.backend.jvm.jvmPhases),
+      jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
+        override fun getContainerSource(descriptor: DeclarationDescriptor): DeserializedContainerSource? {
+          val psiSourceFile =
+            descriptor.toSourceElement.containingFile as? PsiSourceFile ?: return super.getContainerSource(descriptor)
+          return FacadeClassSourceShimForFragmentCompilation(psiSourceFile)
+        }
         },
-        ideCodegenSettings = JvmIrCodegenFactory.IdeCodegenSettings(shouldStubAndNotLinkUnboundSymbols = true),
-      ))
-    }
+      ideCodegenSettings = JvmIrCodegenFactory.IdeCodegenSettings(shouldStubAndNotLinkUnboundSymbols = true),
+    ))
 
     val generationState = generationStateBuilder.build()
     inlineClassRequest?.forEach {
@@ -262,7 +263,7 @@ private object CompileScopeImpl : CompileScope {
 /**
  * Executes the given [callable] in the context of a [CompileScope] that allows running the different compilation
  * phases.
- * Only one caller of this method will have access to the [CompileScope] at at time.
+ * Only one caller of this method will have access to the [CompileScope] at the moment.
  */
 fun <T> runWithCompileLock(callable: CompileScope.() -> T) = CompileScopeImpl.compileLock.withLock {
   CompileScopeImpl.callable()

@@ -24,7 +24,6 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.file.explorer.toolwindow.cancelAndThrow
 import com.android.tools.idea.file.explorer.toolwindow.fs.FileTransferProgress
 import com.android.tools.idea.file.explorer.toolwindow.fs.ThrottledProgress
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.diagnostic.logger
 import kotlinx.coroutines.CoroutineDispatcher

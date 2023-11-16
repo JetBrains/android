@@ -72,6 +72,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -85,25 +86,17 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private static final String ENCRYPTED_PRIVATE_KEY_FILE = "private_key.pepk";
   private static final String GOOGLE_PUBLIC_KEY =
     "eb10fe8f7c7c9df715022017b00c6471f8ba8170b13049a11e6c09ffe3056a104a3bbe4ac5a955f4ba4fe93fc8cef27558a3eb9d2a529a2092761fb833b656cd48b9de6a";
-
-  private static Logger getLog() {
-    return Logger.getInstance(ExportSignedPackageWizard.class);
-  }
-
   @NotNull private final Project myProject;
-
+  private final boolean mySigned;
+  // build variants and gradle signing info are valid only for Gradle projects
+  @NotNull private final ExportEncryptedPrivateKeyTool myEncryptionTool;
   private AndroidFacet myFacet;
   private PrivateKey myPrivateKey;
   private X509Certificate myCertificate;
-
-  private boolean mySigned;
   private CompileScope myCompileScope;
   private String myApkPath;
   private String myExportKeyPath;
   @NotNull private String myTargetType = APK;
-
-  // build variants and gradle signing info are valid only for Gradle projects
-  @NotNull private ExportEncryptedPrivateKeyTool myEncryptionTool;
   private boolean myExportPrivateKey;
   private List<String> myBuildVariants;
   private GradleSigningInfo myGradleSigningInfo;
@@ -172,122 +165,282 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Generating Signed APKs", false, null) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        GradleFacet gradleFacet = GradleFacet.getInstance(myFacet.getModule());
-        if (gradleFacet == null) {
-          getLog().error("Unable to get gradle project information for module: " + myFacet.getModule().getName());
-          trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_FACET);
-          return;
-        }
-
-        GradleProjectPath gradleProjectPath = GradleProjectPathKt.getGradleProjectPath(myFacet.getModule());
-        if (gradleProjectPath == null) {
-          getLog().error("Unable to get gradle project information for module: " + myFacet.getModule().getName());
-          trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_FACET);
-          return;
-        }
-
-        String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(myFacet.getModule());
-        if (StringUtil.isEmpty(rootProjectPath)) {
-          getLog().error("Unable to get gradle root project path for module: " + myFacet.getModule().getName());
-          trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_ROOT_PATH);
-          return;
-        }
-
-        // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
-        GradleAndroidModel androidModel = GradleAndroidModel.get(myFacet);
-        if (androidModel == null) {
-          getLog().error("Unable to obtain Android project model. Did the last Gradle sync complete successfully?");
-          trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_ANDROID_MODEL);
-          return;
-        }
-
-        // should have been set by previous steps
-        if (myBuildVariants == null) {
-          getLog().error("Unable to find required information. Please check the previous steps are completed.");
-          trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_VARIANTS_SELECTED);
-          return;
-        }
-        List<String> gradleTasks = getGradleTasks(gradleProjectPath.getPath(), androidModel, myBuildVariants, myTargetType);
-        List<String> projectProperties = new ArrayList<>();
-        projectProperties.add(createProperty(PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
-        projectProperties
-          .add(createProperty(PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));
-        projectProperties.add(createProperty(PROPERTY_SIGNING_KEY_ALIAS, myGradleSigningInfo.keyAlias));
-        projectProperties.add(createProperty(PROPERTY_SIGNING_KEY_PASSWORD, new String(myGradleSigningInfo.keyPassword)));
-        projectProperties.add(createProperty(PROPERTY_APK_LOCATION, myApkPath));
-
-        assert myProject != null;
-
-        GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
         List<Module> modules = ImmutableList.of(myFacet.getMainModule());
-        SigningWizardEvent.SigningTargetType targetType;
-        boolean isKeyExported = false;
-        Consumer<ListenableFuture<AssembleInvocationResult>> buildResultHandler;
-        if (myTargetType.equals(BUNDLE)) {
-          targetType = SigningWizardEvent.SigningTargetType.TARGET_TYPE_BUNDLE;
-          File exportedKeyFile = null;
-          if (myExportPrivateKey) {
-            isKeyExported = true;
-            exportedKeyFile = generatePrivateKeyPath();
-            try {
-              myEncryptionTool.run(myGradleSigningInfo.keyStoreFilePath,
-                                   myGradleSigningInfo.keyAlias,
-                                   GOOGLE_PUBLIC_KEY,
-                                   exportedKeyFile.getPath(),
-                                   myGradleSigningInfo.keyStorePassword,
-                                   myGradleSigningInfo.keyPassword
-              );
-
-              final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(myProject);
-              //We want to only export the private key once. Anymore would be redundant.
-              settings.EXPORT_PRIVATE_KEY = false;
-            }
-            catch (Exception e) {
-              getLog().error("Something went wrong with the encryption tool", e);
-              invokeLaterIfNeeded(() -> Messages.showErrorDialog(
-                getProject(), AndroidBundle.message("android.export.package.bundle.key.export.error.description", e.getMessage()),
-                AndroidBundle.message("android.export.package.bundle.key.export.error.title")));
-              trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_ENCRYPTION_ERROR);
-              return;
-            }
-          }
-          buildResultHandler = new GoToBundleLocationTask(myProject,
-                                                          modules,
-                                                          "Generate Signed Bundle",
-                                                          myBuildVariants,
-                                                          exportedKeyFile
-          )::executeWhenBuildFinished;
+        AtomicReference<Boolean> isKeyExported = new AtomicReference<>(false);
+        Consumer<ListenableFuture<AssembleInvocationResult>> buildHandler = prepareBuildResultHandler(modules, isKeyExported);
+        if (buildHandler == null) {
+          // Nothing to do, there was an error detected while generating the result handler (and was already logged)
+          return;
         }
-        else {
-          targetType = SigningWizardEvent.SigningTargetType.TARGET_TYPE_APK;
-          buildResultHandler = new GoToApkLocationTask(myProject,
-                                                       modules,
-                                                       "Generate Signed APK",
-                                                       myBuildVariants
-          )::executeWhenBuildFinished;
-        }
-        final File file = new File(rootProjectPath);
-        buildResultHandler.consume(
-          gradleBuildInvoker.executeAssembleTasks(
-            modules.toArray(new Module[0]),
-            ImmutableList.of(
-              GradleBuildInvoker.Request.builder(gradleBuildInvoker.getProject(), file, gradleTasks)
-                .setCommandLineArguments(projectProperties)
-                .setMode(getBuildModeFromTarget(myTargetType))
-                .build())
-          ));
-        trackWizardGradleSigning(myProject, targetType, modules.size(), myBuildVariants.size(), isKeyExported);
-
-        getLog().info("Export " + StringUtil.toUpperCase(myTargetType) + " command: " +
-                      Joiner.on(',').join(gradleTasks) +
-                      ", destination: " +
-                      createProperty(PROPERTY_APK_LOCATION, myApkPath));
-      }
-
-      private String createProperty(@NotNull String name, @NotNull String value) {
-        return AndroidGradleSettings.createProjectProperty(name, value);
+        doBuildAndSignGradleProject(myProject, myFacet, myBuildVariants, modules, myGradleSigningInfo, myApkPath, myTargetType,
+                                    buildHandler);
+        trackWizardGradleSigning(myProject, toSigningTargetType(myTargetType), modules.size(), myBuildVariants.size(), isKeyExported.get());
       }
     });
+  }
+
+  private Consumer<ListenableFuture<AssembleInvocationResult>> prepareBuildResultHandler(@NotNull List<Module> modules,
+                                                                                 @NotNull AtomicReference<Boolean> isKeyExported) {
+    isKeyExported.set(false);
+    if (myTargetType.equals(BUNDLE)) {
+      File exportedKeyFile = null;
+      if (myExportPrivateKey) {
+        isKeyExported.set(true);
+        exportedKeyFile = generatePrivateKeyPath();
+        try {
+          myEncryptionTool.run(myGradleSigningInfo.keyStoreFilePath,
+                               myGradleSigningInfo.keyAlias,
+                               GOOGLE_PUBLIC_KEY,
+                               exportedKeyFile.getPath(),
+                               myGradleSigningInfo.keyStorePassword,
+                               myGradleSigningInfo.keyPassword
+          );
+
+          final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(myProject);
+          //We want to only export the private key once. Anymore would be redundant.
+          settings.EXPORT_PRIVATE_KEY = false;
+        }
+        catch (Exception e) {
+          getLog().error("Something went wrong with the encryption tool", e);
+          invokeLaterIfNeeded(() -> Messages.showErrorDialog(
+            getProject(), AndroidBundle.message("android.export.package.bundle.key.export.error.description", e.getMessage()),
+            AndroidBundle.message("android.export.package.bundle.key.export.error.title")));
+          trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_ENCRYPTION_ERROR);
+          return null;
+        }
+      }
+      return new GoToBundleLocationTask(myProject, modules, "Generate Signed Bundle", myBuildVariants,
+                                        exportedKeyFile)::executeWhenBuildFinished;
+    }
+    else {
+      return new GoToApkLocationTask(myProject, modules, "Generate Signed APK", myBuildVariants)::executeWhenBuildFinished;
+    }
+  }
+
+  @Override
+  protected void doNextAction() {
+    if (!commitCurrentStep()) return;
+    super.doNextAction();
+  }
+
+  private boolean commitCurrentStep() {
+    try {
+      mySteps.get(myCurrentStep).commitForNext();
+    }
+    catch (CommitStepException e) {
+      Messages.showErrorDialog(getContentPane(), e.getMessage());
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  protected int getNextStep(int stepIndex) {
+    int result = super.getNextStep(stepIndex);
+    if (result != myCurrentStep) {
+      mySteps.get(result).setPreviousStepIndex(myCurrentStep);
+    }
+    return result;
+  }
+
+  @Override
+  protected int getPreviousStep(int stepIndex) {
+    ExportSignedPackageWizardStep step = mySteps.get(stepIndex);
+    int prevStepIndex = step.getPreviousStepIndex();
+    assert prevStepIndex >= 0;
+    return prevStepIndex;
+  }
+
+  @Override
+  protected void updateStep() {
+    int step = getCurrentStep();
+    final ExportSignedPackageWizardStep currentStep = mySteps.get(step);
+
+    // API REMOVED
+
+    super.updateStep();
+
+    invokeLaterIfNeeded(() -> {
+      getRootPane().setDefaultButton(getNextButton());
+      JComponent component = currentStep.getPreferredFocusedComponent();
+      if (component != null) {
+        component.requestFocus();
+      }
+    });
+  }
+
+  @Override
+  protected String getHelpID() {
+    ExportSignedPackageWizardStep step = getCurrentStepObject();
+    if (step != null) {
+      return step.getHelpId();
+    }
+    return null;
+  }
+
+  @NotNull
+  public Project getProject() {
+    return myProject;
+  }
+
+  public AndroidFacet getFacet() {
+    return myFacet;
+  }
+
+  public void setFacet(@NotNull AndroidFacet facet) {
+    myFacet = facet;
+  }
+
+  public PrivateKey getPrivateKey() {
+    return myPrivateKey;
+  }
+
+  public void setPrivateKey(@NotNull PrivateKey privateKey) {
+    myPrivateKey = privateKey;
+  }
+
+  public X509Certificate getCertificate() {
+    return myCertificate;
+  }
+
+  public void setCertificate(@NotNull X509Certificate certificate) {
+    myCertificate = certificate;
+  }
+
+  public void setCompileScope(@NotNull CompileScope compileScope) {
+    myCompileScope = compileScope;
+  }
+
+  public void setApkPath(@NotNull String apkPath) {
+    myApkPath = apkPath;
+  }
+
+  public void setGradleOptions(@NotNull List<String> buildVariants) {
+    myBuildVariants = buildVariants;
+  }
+
+  @NotNull
+  public String getTargetType() {
+    return myTargetType;
+  }
+
+  public void setTargetType(@NotNull String targetType) {
+    myTargetType = targetType;
+  }
+
+  @NotNull
+  private File generatePrivateKeyPath() {
+    return new File(myExportKeyPath, ENCRYPTED_PRIVATE_KEY_FILE);
+  }
+
+  public void setGradleSigningInfo(GradleSigningInfo gradleSigningInfo) {
+    myGradleSigningInfo = gradleSigningInfo;
+  }
+
+  public void setExportPrivateKey(boolean exportPrivateKey) {
+    myExportPrivateKey = exportPrivateKey;
+  }
+
+  public void setExportKeyPath(@NotNull String exportKeyPath) {
+    myExportKeyPath = exportKeyPath;
+  }
+
+  private static Logger getLog() {
+    return Logger.getInstance(ExportSignedPackageWizard.class);
+  }
+
+  static private SigningWizardEvent.SigningTargetType toSigningTargetType(@NotNull String targetType) {
+    if (targetType.equals(BUNDLE)) {
+      return SigningWizardEvent.SigningTargetType.TARGET_TYPE_BUNDLE;
+    }
+    if (targetType.equals(APK)) {
+      return SigningWizardEvent.SigningTargetType.TARGET_TYPE_APK;
+    }
+    return SigningWizardEvent.SigningTargetType.TARGET_TYPE_UNKNOWN;
+  }
+
+  @VisibleForTesting
+  static void doBuildAndSignGradleProject(Project project,
+                                          AndroidFacet facet,
+                                          List<String> variants,
+                                          List<Module> modules,
+                                          GradleSigningInfo signInfo,
+                                          String apkPath,
+                                          String targetType,
+                                          Consumer<ListenableFuture<AssembleInvocationResult>> buildResultHandler) {
+    assert project != null;
+    @NotNull Module facetModule = facet.getModule();
+    GradleFacet gradleFacet = GradleFacet.getInstance(facetModule);
+    if (gradleFacet == null) {
+      getLog().error("Unable to get gradle project information for module: " + facetModule.getName());
+      trackWizardGradleSigningFailed(project, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_FACET);
+      return;
+    }
+
+    GradleProjectPath gradleProjectPath = GradleProjectPathKt.getGradleProjectPath(facetModule);
+    if (gradleProjectPath == null) {
+      getLog().error("Unable to get gradle project information for module: " + facetModule.getName());
+      trackWizardGradleSigningFailed(project, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_FACET);
+      return;
+    }
+
+    String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(facetModule);
+    if (StringUtil.isEmpty(rootProjectPath)) {
+      getLog().error("Unable to get gradle root project path for module: " + facetModule.getName());
+      trackWizardGradleSigningFailed(project, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_ROOT_PATH);
+      return;
+    }
+
+    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
+    GradleAndroidModel androidModel = GradleAndroidModel.get(facet);
+    if (androidModel == null) {
+      getLog().error("Unable to obtain Android project model. Did the last Gradle sync complete successfully?");
+      trackWizardGradleSigningFailed(project, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_ANDROID_MODEL);
+      return;
+    }
+
+    // should have been set by previous steps
+    if (variants == null) {
+      getLog().error("Unable to find required information. Please check the previous steps are completed.");
+      trackWizardGradleSigningFailed(project, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_VARIANTS_SELECTED);
+      return;
+    }
+
+    List<String> signingProperties = prepareSigningProperties(signInfo, apkPath);
+    final File rootProjectFile = new File(rootProjectPath);
+
+    GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
+    List<String> gradleTasks = getGradleTasks(gradleProjectPath.getPath(), androidModel, variants, targetType);
+    buildResultHandler.consume(
+      gradleBuildInvoker.executeAssembleTasks(
+        modules.toArray(new Module[0]),
+        ImmutableList.of(
+          GradleBuildInvoker.Request.builder(gradleBuildInvoker.getProject(), rootProjectFile, gradleTasks)
+            .setCommandLineArguments(signingProperties)
+            .setMode(getBuildModeFromTarget(targetType))
+            .build()))
+    );
+    getLog().info("Export " + StringUtil.toUpperCase(targetType) + " command: " +
+                  Joiner.on(',').join(gradleTasks) +
+                  ", destination: " +
+                  createProperty(PROPERTY_APK_LOCATION, apkPath));
+  }
+
+  @NotNull
+  @VisibleForTesting
+  static List<String> prepareSigningProperties(@NotNull GradleSigningInfo signingInfo, @NotNull String apkPath) {
+    List<String> projectProperties = new ArrayList<>();
+    projectProperties.add(createProperty(PROPERTY_SIGNING_STORE_FILE, signingInfo.keyStoreFilePath));
+    projectProperties
+      .add(createProperty(PROPERTY_SIGNING_STORE_PASSWORD, new String(signingInfo.keyStorePassword)));
+    projectProperties.add(createProperty(PROPERTY_SIGNING_KEY_ALIAS, signingInfo.keyAlias));
+    projectProperties.add(createProperty(PROPERTY_SIGNING_KEY_PASSWORD, new String(signingInfo.keyPassword)));
+    projectProperties.add(createProperty(PROPERTY_APK_LOCATION, apkPath));
+    return projectProperties;
+  }
+
+  private static String createProperty(@NotNull String name, @NotNull String value) {
+    return AndroidGradleSettings.createProjectProperty(name, value);
   }
 
   @VisibleForTesting
@@ -337,7 +490,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     List<String> taskNames = Lists.newArrayListWithExpectedSize(buildVariants.size());
     Map<String, IdeVariantBuildInformation> buildInformationByVariantName =
       GradleAndroidModel.getAndroidProject().getVariantsBuildInformation().stream()
-        .collect(Collectors.toMap(x -> x.getVariantName(), x -> x));
+        .collect(Collectors.toMap(IdeVariantBuildInformation::getVariantName, x -> x));
 
     for (String variantName : buildVariants) {
       IdeVariantBuildInformation buildInformation = buildInformationByVariantName.get(variantName);
@@ -398,131 +551,5 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     else {
       return v.getMainArtifact().getBuildInformation().getAssembleTaskName();
     }
-  }
-
-  @Override
-  protected void doNextAction() {
-    if (!commitCurrentStep()) return;
-    super.doNextAction();
-  }
-
-  private boolean commitCurrentStep() {
-    try {
-      mySteps.get(myCurrentStep).commitForNext();
-    }
-    catch (CommitStepException e) {
-      Messages.showErrorDialog(getContentPane(), e.getMessage());
-      return false;
-    }
-    return true;
-  }
-
-  @Override
-  protected int getNextStep(int stepIndex) {
-    int result = super.getNextStep(stepIndex);
-    if (result != myCurrentStep) {
-      mySteps.get(result).setPreviousStepIndex(myCurrentStep);
-    }
-    return result;
-  }
-
-  @Override
-  protected int getPreviousStep(int stepIndex) {
-    ExportSignedPackageWizardStep step = mySteps.get(stepIndex);
-    int prevStepIndex = step.getPreviousStepIndex();
-    assert prevStepIndex >= 0;
-    return prevStepIndex;
-  }
-
-  @Override
-  protected void updateStep() {
-    int step = getCurrentStep();
-    final ExportSignedPackageWizardStep currentStep = mySteps.get(step);
-
-    super.updateStep();
-
-    invokeLaterIfNeeded(() -> {
-      getRootPane().setDefaultButton(getNextButton());
-      JComponent component = currentStep.getPreferredFocusedComponent();
-      if (component != null) {
-        component.requestFocus();
-      }
-    });
-  }
-
-  @Override
-  protected String getHelpID() {
-    ExportSignedPackageWizardStep step = getCurrentStepObject();
-    if (step != null) {
-      return step.getHelpId();
-    }
-    return null;
-  }
-
-  @NotNull
-  public Project getProject() {
-    return myProject;
-  }
-
-  public void setFacet(@NotNull AndroidFacet facet) {
-    myFacet = facet;
-  }
-
-  public AndroidFacet getFacet() {
-    return myFacet;
-  }
-
-  public void setPrivateKey(@NotNull PrivateKey privateKey) {
-    myPrivateKey = privateKey;
-  }
-
-  public void setCertificate(@NotNull X509Certificate certificate) {
-    myCertificate = certificate;
-  }
-
-  public PrivateKey getPrivateKey() {
-    return myPrivateKey;
-  }
-
-  public X509Certificate getCertificate() {
-    return myCertificate;
-  }
-
-  public void setCompileScope(@NotNull CompileScope compileScope) {
-    myCompileScope = compileScope;
-  }
-
-  public void setApkPath(@NotNull String apkPath) {
-    myApkPath = apkPath;
-  }
-
-  public void setGradleOptions(@NotNull List<String> buildVariants) {
-    myBuildVariants = buildVariants;
-  }
-
-  public void setTargetType(@NotNull String targetType) {
-    myTargetType = targetType;
-  }
-
-  @NotNull
-  public String getTargetType() {
-    return myTargetType;
-  }
-
-  @NotNull
-  private File generatePrivateKeyPath() {
-    return new File(myExportKeyPath, ENCRYPTED_PRIVATE_KEY_FILE);
-  }
-
-  public void setGradleSigningInfo(GradleSigningInfo gradleSigningInfo) {
-    myGradleSigningInfo = gradleSigningInfo;
-  }
-
-  public void setExportPrivateKey(boolean exportPrivateKey) {
-    myExportPrivateKey = exportPrivateKey;
-  }
-
-  public void setExportKeyPath(@NotNull String exportKeyPath) {
-    myExportKeyPath = exportKeyPath;
   }
 }

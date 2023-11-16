@@ -23,13 +23,16 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import org.jetbrains.android.util.AndroidBundle.message
 
-/**
- * Action class to switch the [ScreenViewProvider.colorBlindFilter] in a [NlDesignSurface].
- */
+/** Action class to switch the [ScreenViewProvider.colorBlindFilter] in a [NlDesignSurface]. */
 class SetColorBlindModeAction(
   val colorBlindMode: ColorBlindMode,
-  private val designSurface: NlDesignSurface) : ToggleAction(
-  colorBlindMode.displayName, message("android.layout.screenview.action.description", colorBlindMode.displayName), null) {
+  private val designSurface: NlDesignSurface
+) :
+  ToggleAction(
+    colorBlindMode.displayName,
+    message("android.layout.screenview.action.description", colorBlindMode.displayName),
+    null
+  ) {
 
   var isSelected = false
 

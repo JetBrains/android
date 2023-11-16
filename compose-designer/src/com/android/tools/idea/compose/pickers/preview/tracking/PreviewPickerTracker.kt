@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.pickers.preview.tracking
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.compose.pickers.base.tracking.BaseComposePickerTracker
 import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
 import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
@@ -38,7 +39,6 @@ import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.groupDevices
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent

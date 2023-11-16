@@ -27,6 +27,7 @@ import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.lint.AttributeKey
@@ -47,7 +48,6 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.intellij.lang.annotations.Language
-import com.android.tools.dom.attrs.AttributeDefinition
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.util.Arrays
@@ -57,43 +57,89 @@ import java.util.function.Predicate
 
 private const val DEFAULT_FILENAME = "layout.xml"
 
-open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixture, val components: MutableList<NlComponent>) {
+open class SupportTestUtil
+private constructor(
+  facet: AndroidFacet,
+  val fixture: CodeInsightTestFixture,
+  val components: MutableList<NlComponent>
+) {
   private var updates = 0
-  private val queue = MergingUpdateQueue("MQ", 100, true, null, fixture.testRootDisposable).apply { isPassThrough = true }
+  private val queue =
+    MergingUpdateQueue("MQ", 100, true, null, fixture.testRootDisposable).apply {
+      isPassThrough = true
+    }
   val model = NlPropertiesModel(fixture.testRootDisposable, facet, queue)
   val nlModel = components.first().model
-  private val frameworkResourceManager = ModuleResourceManagers.getInstance(facet).frameworkResourceManager
+  private val frameworkResourceManager =
+    ModuleResourceManagers.getInstance(facet).frameworkResourceManager
 
-  constructor(facet: AndroidFacet, fixture: CodeInsightTestFixture,
-              vararg tags: String, parentTag: String = "", resourceFolder: String = FD_RES_LAYOUT,
-              fileName: String = DEFAULT_FILENAME, activityName: String = ""):
-    this(facet, fixture, createComponents(facet, fixture, activityName, parentTag, resourceFolder, fileName, *tags).toMutableList())
+  private constructor(
+    facet: AndroidFacet,
+    fixture: CodeInsightTestFixture,
+    vararg tags: String,
+    parentTag: String = "",
+    resourceFolder: String = FD_RES_LAYOUT,
+    fileName: String = DEFAULT_FILENAME,
+    activityName: String = ""
+  ) : this(
+    facet,
+    fixture,
+    createComponents(facet, fixture, activityName, parentTag, resourceFolder, fileName, *tags)
+      .toMutableList()
+  )
 
-  constructor(facet: AndroidFacet, fixture: CodeInsightTestFixture, component: ComponentDescriptor):
-    this(facet, fixture, createComponent(facet, fixture, FD_RES_LAYOUT, DEFAULT_FILENAME, component).toMutableList())
+  private constructor(
+    facet: AndroidFacet,
+    fixture: CodeInsightTestFixture,
+    component: ComponentDescriptor
+  ) : this(
+    facet,
+    fixture,
+    createComponent(facet, fixture, FD_RES_LAYOUT, DEFAULT_FILENAME, component).toMutableList()
+  )
 
-  constructor(projectRule: AndroidProjectRule, vararg tags: String, parentTag: String = "",
-              resourceFolder: String = FD_RES_LAYOUT, fileName: String = DEFAULT_FILENAME):
-    this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, *tags, parentTag = parentTag, resourceFolder = resourceFolder,
-         fileName = fileName)
+  constructor(
+    projectRule: AndroidProjectRule,
+    vararg tags: String,
+    parentTag: String = "",
+    resourceFolder: String = FD_RES_LAYOUT,
+    fileName: String = DEFAULT_FILENAME,
+    activityName: String = ""
+  ) : this(
+    AndroidFacet.getInstance(projectRule.module)!!,
+    projectRule.fixture,
+    *tags,
+    parentTag = parentTag,
+    resourceFolder = resourceFolder,
+    fileName = fileName,
+    activityName = activityName
+  )
 
-  constructor(projectRule: AndroidProjectRule, component: ComponentDescriptor):
-    this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, component)
+  constructor(
+    projectRule: AndroidProjectRule,
+    component: ComponentDescriptor
+  ) : this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, component)
 
   init {
-    model.addListener(object : PropertiesModelListener<NlPropertyItem> {
-      override fun propertiesGenerated(model: PropertiesModel<NlPropertyItem>) {
-        updates++
-      }
+    model.addListener(
+      object : PropertiesModelListener<NlPropertyItem> {
+        override fun propertiesGenerated(model: PropertiesModel<NlPropertyItem>) {
+          updates++
+        }
 
-      override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
-        updates++
+        override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+          updates++
+        }
       }
-    })
+    )
     model.surface = (nlModel as? SyncNlModel)?.surface
   }
 
-  fun waitForPropertiesUpdate(updatesToWaitFor: Int, timeout: Long = 10, unit: TimeUnit = TimeUnit.SECONDS) {
+  fun waitForPropertiesUpdate(
+    updatesToWaitFor: Int,
+    timeout: Long = 10,
+    unit: TimeUnit = TimeUnit.SECONDS
+  ) {
     val stop = System.currentTimeMillis() + unit.toMillis(timeout)
     while (updates < updatesToWaitFor && System.currentTimeMillis() < stop) {
       Thread.sleep(100)
@@ -107,25 +153,46 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
   fun makeProperty(namespace: String, name: String, type: NlPropertyType): NlPropertyItem {
     val definition = findDefinition(namespace, name)
     return when {
-      definition == null ->
-        NlPropertyItem(namespace, name, type, null, "", "", model, components)
+      definition == null -> NlPropertyItem(namespace, name, type, null, "", "", model, components)
       definition.formats.contains(AttributeFormat.FLAGS) ->
-        NlFlagsPropertyItem(namespace, name, NlPropertyType.ENUM, definition, "", "", model, components)
-      else ->
-        makeProperty(namespace, definition, type)
+        NlFlagsPropertyItem(
+          namespace,
+          name,
+          NlPropertyType.ENUM,
+          definition,
+          "",
+          "",
+          model,
+          components
+        )
+      else -> makeProperty(namespace, definition, type)
     }
   }
 
-  fun makeProperty(namespace: String, definition: AttributeDefinition, type: NlPropertyType): NlPropertyItem {
+  fun makeProperty(
+    namespace: String,
+    definition: AttributeDefinition,
+    type: NlPropertyType
+  ): NlPropertyItem {
     return NlPropertyItem(namespace, definition.name, type, definition, "", "", model, components)
   }
 
   fun makeFlagsProperty(namespace: String, definition: AttributeDefinition): NlPropertyItem {
-    return NlFlagsPropertyItem(namespace, definition.name, NlPropertyType.STRING, definition, "", "", model, components)
+    return NlFlagsPropertyItem(
+      namespace,
+      definition.name,
+      NlPropertyType.STRING,
+      definition,
+      "",
+      "",
+      model,
+      components
+    )
   }
 
   fun makeFlagsProperty(namespace: String, name: String, values: List<String>): NlPropertyItem {
-    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, listOf(AttributeFormat.FLAGS))
+    val definition =
+      AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, listOf(AttributeFormat.FLAGS))
     val valueMappings = HashMap<String, Int?>()
     values.forEach { valueMappings[it] = null }
     definition.setValueMappings(valueMappings)
@@ -165,10 +232,21 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
   }
 
   fun addIssue(property: NlPropertyItem, level: HighlightDisplayLevel, message: String) {
-    val lintModel = nlModel.lintAnnotationsModel ?: LintAnnotationsModel().apply { nlModel.lintAnnotationsModel = this }
+    val lintModel =
+      nlModel.lintAnnotationsModel
+        ?: LintAnnotationsModel().apply { nlModel.lintAnnotationsModel = this }
     val component = property.components.single()
-    lintModel.addIssue(component, AttributeKey(component, property.namespace, property.name), mock(), message,
-                       mock(), level, mock(), mock(), mock())
+    lintModel.addIssue(
+      component,
+      AttributeKey(component, property.namespace, property.name),
+      mock(),
+      message,
+      mock(),
+      level,
+      mock(),
+      mock(),
+      mock()
+    )
   }
 
   private fun findDefinition(namespace: String, name: String): AttributeDefinition? {
@@ -183,7 +261,8 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
 
     fun setUpCustomView(fixture: CodeInsightTestFixture) {
       @Language("XML")
-      val attrsSrc = """<?xml version="1.0" encoding="utf-8"?>
+      val attrsSrc =
+        """<?xml version="1.0" encoding="utf-8"?>
       <resources>
         <declare-styleable name="PieChart">
           <!-- Help Text -->
@@ -194,10 +273,12 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
           </attr>
         </declare-styleable>
       </resources>
-      """.trimIndent()
+      """
+          .trimIndent()
 
       @Language("JAVA")
-      val javaSrc = """
+      val javaSrc =
+        """
       package com.example;
 
       import android.content.Context;
@@ -208,7 +289,8 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
               super(context);
           }
       }
-      """.trimIndent()
+      """
+          .trimIndent()
 
       fixture.addFileToProject("res/values/attrs.xml", attrsSrc)
       fixture.addFileToProject("src/com/example/PieChart.java", javaSrc)
@@ -225,7 +307,8 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
       fileName: String,
       descriptor: ComponentDescriptor
     ): List<NlComponent> {
-      val model = NlModelBuilderUtil.model(facet, fixture, resourceFolder, fileName, descriptor).build()
+      val model =
+        NlModelBuilderUtil.model(facet, fixture, resourceFolder, fileName, descriptor).build()
       val root = model.getRoot()
       return if (root.childCount > 0) root.children else model.components
     }
@@ -239,16 +322,15 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
       fileName: String,
       vararg tags: String
     ): List<NlComponent> {
-      val descriptor = if (tags.size == 1 && parentTag.isEmpty()) fromSingleTag(activityName, tags[0])
-      else fromMultipleTags(activityName, parentTag, resourceFolder, *tags)
+      val descriptor =
+        if (tags.size == 1 && parentTag.isEmpty()) fromSingleTag(activityName, tags[0])
+        else fromMultipleTags(activityName, parentTag, resourceFolder, *tags)
 
       return createComponent(facet, fixture, resourceFolder, fileName, descriptor)
     }
 
     private fun fromSingleTag(activityName: String, tag: String): ComponentDescriptor {
-      val descriptor = ComponentDescriptor(tag)
-        .withBounds(0, 0, 100, 100)
-        .id(toId(tag))
+      val descriptor = ComponentDescriptor(tag).withBounds(0, 0, 100, 100).id(toId(tag))
 
       if (activityName.isNotEmpty()) {
         descriptor
@@ -258,9 +340,7 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
       if (tag.contains('.')) {
         descriptor.withAttribute(XMLNS_PREFIX + APP_PREFIX, AUTO_URI)
       }
-      return descriptor
-        .wrapContentWidth()
-        .wrapContentHeight()
+      return descriptor.wrapContentWidth().wrapContentHeight()
     }
 
     private fun fromMultipleTags(
@@ -270,13 +350,10 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
       vararg tags: String
     ): ComponentDescriptor {
       if (parentTag.isEmpty()) throw IllegalArgumentException("parentTag must be supplied")
-      val descriptor = ComponentDescriptor(parentTag)
-        .withBounds(0, 0, 1000, 1000)
+      val descriptor = ComponentDescriptor(parentTag).withBounds(0, 0, 1000, 1000)
 
       if (resourceFolder == FD_RES_LAYOUT) {
-        descriptor.id(toId(parentTag))
-          .matchParentWidth()
-          .matchParentHeight()
+        descriptor.id(toId(parentTag)).matchParentWidth().matchParentHeight()
       }
       if (activityName.isNotEmpty()) {
         descriptor.withAttribute(TOOLS_URI, ATTR_CONTEXT, activityName)
@@ -288,10 +365,7 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
       for ((index, tag) in tags.withIndex()) {
         val child = ComponentDescriptor(tag).withBounds(0, index * 100, 100, 100)
         if (resourceFolder == FD_RES_LAYOUT) {
-          child
-            .id(toId(tag, index + 1))
-            .wrapContentWidth()
-            .wrapContentHeight()
+          child.id(toId(tag, index + 1)).wrapContentWidth().wrapContentHeight()
         }
         descriptor.addChild(child, null)
       }
@@ -300,7 +374,7 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
 
     private fun toId(tagName: String, index: Int = 0): String {
       val offset = if (index == 0) "" else index.toString()
-      return "@+id/${tagName.toLowerCase().substringAfterLast('.')}$offset"
+      return "@+id/${tagName.lowercase().substringAfterLast('.')}$offset"
     }
   }
 }

@@ -16,8 +16,6 @@
 package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.logcat.LogcatBundle
-import com.android.tools.idea.logcat.message.LogcatMessage
-import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.intellij.ide.scratch.ScratchFileCreationHelper
@@ -27,9 +25,8 @@ import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.json.JsonLanguage
 import com.intellij.lang.Language
 import com.intellij.lang.xml.XMLLanguage
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.util.PathUtil
 import org.jetbrains.annotations.VisibleForTesting
@@ -53,6 +50,7 @@ internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File 
 
   private val navigationSupport = PsiNavigationSupport.getInstance()
 
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible = false
@@ -79,7 +77,9 @@ internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File 
     val endChar: Char,
     val isValid: (String) -> Boolean,
   ) {
+    @Suppress("unused") // Not used explicitly but `EmbeddedLanguage.values() is used
     JSON(JsonLanguage.INSTANCE, '{', '}', { isJson(it) }),
+    @Suppress("unused") // Not used explicitly but `EmbeddedLanguage.values() is used
     XML(XMLLanguage.INSTANCE, '<', '>', { isXml(it) }),
     ;
 
@@ -137,16 +137,4 @@ private fun isXml(text: String): Boolean {
   catch (e: Exception) {
     false
   }
-}
-
-private fun AnActionEvent.getLogcatMessage(): LogcatMessage? {
-  val editor = getData(CommonDataKeys.EDITOR) as EditorEx? ?: return null
-  val offset = editor.caretModel.offset
-
-  var message: LogcatMessage? = null
-  editor.document.processRangeMarkersOverlappingWith(offset, offset) {
-    message = it.getUserData(LOGCAT_MESSAGE_KEY)
-    false
-  }
-  return message
 }

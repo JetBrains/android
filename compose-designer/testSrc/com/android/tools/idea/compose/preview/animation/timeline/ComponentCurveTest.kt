@@ -22,8 +22,8 @@ import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ComponentCurveTest {
@@ -56,22 +56,22 @@ class ComponentCurveTest {
     ui.render() // paint() method within render() should be called to update BoxedLabel positions.
     assertEquals(0, slider.scanForTooltips().size)
 
-    assertTrue { componentCurve.height > 0 }
+    assertTrue(componentCurve.height > 0)
     // Point in the middle of curve baseline
-    assertTrue {
+    assertTrue(
       componentCurve.contains(slider.sliderUI.positionProxy.xPositionForValue(50), curveBaseLine)
-    }
+    )
     // Point inside left diamond
-    assertTrue {
+    assertTrue(
       componentCurve.contains(slider.sliderUI.positionProxy.xPositionForValue(0) - 5, curveBaseLine)
-    }
+    )
     // Point inside right diamond
-    assertTrue {
+    assertTrue(
       componentCurve.contains(
         slider.sliderUI.positionProxy.xPositionForValue(100) + 5,
         curveBaseLine
       )
-    }
+    )
     // Uncomment to preview ui.
     // ui.render() // Curve is from 0ms to 100ms
 
@@ -81,52 +81,52 @@ class ComponentCurveTest {
 
     componentCurve.move(shift50ms)
     // Point in the middle of curve baseline
-    assertTrue {
+    assertTrue(
       componentCurve.contains(
         shift50ms + slider.sliderUI.positionProxy.xPositionForValue(50),
         curveBaseLine
       )
-    }
+    )
     // Point inside left diamond
-    assertTrue {
+    assertTrue(
       componentCurve.contains(
         shift50ms + slider.sliderUI.positionProxy.xPositionForValue(0) - 5,
         curveBaseLine
       )
-    }
+    )
     // Point inside right diamond
-    assertTrue {
+    assertTrue(
       componentCurve.contains(
         shift50ms + slider.sliderUI.positionProxy.xPositionForValue(100) + 5,
         curveBaseLine
       )
-    }
+    )
     assertEquals(50, componentCurve.state.valueOffset)
     // Uncomment to preview ui.
     // ui.render() // Curve is shifted to the right and starts in 50ms
 
     componentCurve.move(-2 * shift50ms)
     // Point in the middle of curve baseline
-    assertTrue {
+    assertTrue(
       componentCurve.contains(
         -shift50ms + slider.sliderUI.positionProxy.xPositionForValue(50),
         curveBaseLine
       )
-    }
+    )
     // Point inside left diamond
-    assertTrue {
+    assertTrue(
       componentCurve.contains(
         -shift50ms + slider.sliderUI.positionProxy.xPositionForValue(0) - 5,
         curveBaseLine
       )
-    }
+    )
     // Point inside right diamond
-    assertTrue {
+    assertTrue(
       componentCurve.contains(
         -shift50ms + slider.sliderUI.positionProxy.xPositionForValue(100) + 5,
         curveBaseLine
       )
-    }
+    )
     assertEquals(-50, componentCurve.state.valueOffset)
     // Uncomment to preview ui.
     // ui.render() // Curve is shifted to the left and ends in 50ms

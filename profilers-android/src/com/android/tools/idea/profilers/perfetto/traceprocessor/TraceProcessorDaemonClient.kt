@@ -130,6 +130,6 @@ data class TraceProcessorDaemonQueryResult<A> private constructor(
 
   val completed = response != null
 
-  constructor(response: A): this(response, null)
-  constructor(failure: Exception): this(null, failure)
+  constructor(response: A): this(response, null) { }
+  constructor(failure: Exception): this(null, failure) { }
 }

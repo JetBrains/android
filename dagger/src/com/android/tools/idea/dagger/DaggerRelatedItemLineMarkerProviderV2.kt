@@ -16,6 +16,7 @@
 package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider.DaggerWrappedRelatedItemLineMarkerProvider
 import com.android.tools.idea.dagger.concepts.AssistedFactoryMethodDaggerElement
 import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase
 import com.android.tools.idea.dagger.concepts.DaggerElement
@@ -36,19 +37,23 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.presentation.java.SymbolPresentationUtil
 import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
+import org.jetbrains.annotations.PropertyKey
+import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
+import org.jetbrains.kotlin.lexer.KtTokens
 import java.awt.event.MouseEvent
 import javax.swing.Icon
 import kotlin.system.measureTimeMillis
-import org.jetbrains.annotations.PropertyKey
-import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.lexer.KtTokens
 
 /**
  * Provides [RelatedItemLineMarkerInfo] for Dagger elements.
  *
  * Adds gutter icon that allows to navigate between Dagger elements.
  */
-class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
+class DaggerRelatedItemLineMarkerProviderV2 :
+  RelatedItemLineMarkerProvider(), DaggerWrappedRelatedItemLineMarkerProvider {
+
+  override fun isEnabledByDefault(): Boolean = true
 
   override fun collectNavigationMarkers(elements: MutableList<out PsiElement>,
                                         result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
@@ -63,6 +68,10 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
     element: PsiElement,
     result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
   ) {
+    if (suppressAndroidPlugin()) return
+
+    if (!isDaggerWithIndexEnabled()) return
+
     val metricsType: DaggerEditorEvent.ElementType
     val lineMarkerInfo: RelatedItemLineMarkerInfo<PsiElement>
 
@@ -127,17 +136,26 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
     /**
      * Returns [GotoRelatedItem]s representing related [DaggerElement]s for a given source element.
      */
-    private fun DaggerElement.getGotoItems(): List<GotoItemWithAnalytics> =
-      getRelatedDaggerElements().map {
-        (relatedItem, relationName, relationDescriptionKey, customDisplayName) ->
-        GotoItemWithAnalytics(
-          this,
-          relatedItem,
-          relationName,
-          relationDescriptionKey,
-          customDisplayName
+    @VisibleForTesting
+    internal fun DaggerElement.getGotoItems(): List<GotoItemWithAnalytics> =
+      getRelatedDaggerElements()
+        .map { (relatedItem, relationName, relationDescriptionKey, customDisplayName) ->
+          GotoItemWithAnalytics(
+            this,
+            relatedItem,
+            relationName,
+            relationDescriptionKey,
+            customDisplayName
+          )
+        }
+        .sortedWith(
+          // Goto items in the dropdown should be displayed in a predictable manner. Sort by groups
+          // first, then within the groups sort by the displayed text.
+          compareBy(
+            GotoItemWithAnalytics::getGroup,
+            { it.customName ?: it.element?.let(SymbolPresentationUtil::getSymbolPresentableText) }
+          )
         )
-      }
 
     /**
      * Returns true if element is Java/Kotlin identifier or kotlin "constructor" keyword.

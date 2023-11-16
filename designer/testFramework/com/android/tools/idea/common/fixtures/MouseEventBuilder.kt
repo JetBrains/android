@@ -25,7 +25,10 @@ import java.awt.Point
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
 
-open class MouseEventBuilder(@SwingCoordinate private val myX: Int, @SwingCoordinate private val myY: Int) {
+open class MouseEventBuilder(
+  @SwingCoordinate private val myX: Int,
+  @SwingCoordinate private val myY: Int
+) {
   private var mySource: Any = LayoutTestUtilities::class.java
   private var myComponent: Component? = null
   private var myButton = 1
@@ -41,7 +44,8 @@ open class MouseEventBuilder(@SwingCoordinate private val myX: Int, @SwingCoordi
     return this
   }
 
-  open fun withComponent(component: Component?): MouseEventBuilder = this.apply { myComponent = component }
+  open fun withComponent(component: Component?): MouseEventBuilder =
+    this.apply { myComponent = component }
 
   open fun withMask(@JdkConstants.InputEventMask mask: Int): MouseEventBuilder {
     myMask = mask
@@ -72,7 +76,8 @@ open class MouseEventBuilder(@SwingCoordinate private val myX: Int, @SwingCoordi
   }
 
   /**
-   * Set the value of [MouseEvent.getLocationOnScreen]. If this is not set, then [myX] and [myY] is used by default.
+   * Set the value of [MouseEvent.getLocationOnScreen]. If this is not set, then [myX] and [myY] is
+   * used by default.
    */
   open fun withLocationOnScreen(x: Int, y: Int) {
     screenLocationX = x
@@ -80,10 +85,10 @@ open class MouseEventBuilder(@SwingCoordinate private val myX: Int, @SwingCoordi
   }
 
   open fun build(): MouseEvent {
-    return createMockEvent(MouseEvent::class.java);
+    return createMockEvent(MouseEvent::class.java)
   }
 
-  protected fun <T: MouseEvent, U: Class<out T>> createMockEvent(clazz: U): T {
+  protected fun <T : MouseEvent, U : Class<out T>> createMockEvent(clazz: U): T {
     val event = Mockito.mock(clazz)
     whenever(event.source).thenReturn(mySource)
     whenever(event.component).thenReturn(myComponent)

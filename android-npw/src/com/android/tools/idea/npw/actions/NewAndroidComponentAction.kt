@@ -41,6 +41,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.isAndroidx
@@ -52,6 +53,9 @@ val NEW_WIZARD_CATEGORIES = setOf(Category.Activity, Category.Google, Category.A
 @JvmField
 val CREATED_FILES = DataKey.create<MutableList<File>>("CreatedFiles")
 
+private fun defaultShowWizardDialog(modelWizard: ModelWizard, dialogTitle: String, project: Project): Unit =
+  StudioWizardDialogBuilder(modelWizard, dialogTitle).setProject(project).build(SimpleStudioWizardLayout()).show()
+
 /**
  * An action to launch a wizard to create a component from a template.
  */
@@ -60,7 +64,8 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
   private val category: Category,
   private val templateName: String,
   private val minSdkApi: Int,
-  private val templateConstraints: Collection<TemplateConstraint> = setOf()
+  private val templateConstraints: Collection<TemplateConstraint> = setOf(),
+  private val showWizardDialog: (ModelWizard, String, Project) -> Unit = ::defaultShowWizardDialog,
 ) : AnAction(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null) {
 
   @Deprecated("Please use the main constructor")
@@ -70,7 +75,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     minSdkApi: Int
   ): this(Category.values().find { it.name == category }!!, templateName, minSdkApi)
 
-  private var shouldOpenFiles = true
+  var shouldOpenFiles = true
 
   private val isActivityTemplate: Boolean
     get() = NEW_WIZARD_CATEGORIES.contains(category)
@@ -130,6 +135,11 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     val activityDescription = e.presentation.text // e.g. "Empty Activity", "Tabbed Activity"
     // TODO(qumeric): always show all available templates but preselect a good default
     val moduleTemplates = facet.getModuleTemplates(targetDirectory)
+      .filter {
+        // Do not allow to create Android Components from the templates into source sets without a source root.
+        // This will filter out androidTest and unit tests source sets.
+        it.paths.getSrcDirectory(null) != null
+      }
     assert(moduleTemplates.isNotEmpty())
     val initialPackageSuggestion =
       if (targetDirectory == null) facet.getModuleSystem().getPackageName() else facet.getPackageForPath(moduleTemplates, targetDirectory)
@@ -152,8 +162,8 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     val wizardBuilder = ModelWizard.Builder().apply {
       addStep(ConfigureTemplateParametersStep(templateModel, stepTitle, moduleTemplates))
     }
-    val wizardLayout = SimpleStudioWizardLayout()
-    StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(module.project).build(wizardLayout).show()
+
+    showWizardDialog(wizardBuilder.build(), dialogTitle, module.project)
     e.dataContext.getData(CREATED_FILES)?.addAll(templateModel.createdFiles)
   }
 }

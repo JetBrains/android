@@ -17,13 +17,13 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
-import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
-import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
+import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
+import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
 import com.android.tools.idea.gradle.structure.GradleResolver
 import com.android.tools.idea.gradle.structure.model.android.DependencyResultLocation
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
@@ -47,7 +47,7 @@ class PsProjectImpl(
   override val pomDependencyCache: PsPomDependencyCache = PsPomDependencies(ideProject)
   private var internalResolvedModuleModels: Map<String, PsResolvedModuleModel>? = null
   private val moduleCollection: PsModuleCollection
-  private val buildScript : PsBuildScript = PsBuildScript(this)
+  val buildScript : PsBuildScript = PsBuildScript(this)
   private val versionCatalogCollection : PsVersionCatalogCollection
   override val name: String get() = ideProject.name  // Supposedly there is no way to rename the project from within the PSD.
 

@@ -309,7 +309,7 @@ class PsProductFlavorTest {
 
       val productFlavor = nested2Module.findProductFlavor("foo", "paid")
       assertThat(productFlavor, notNullValue()); productFlavor!!
-      assertThat(productFlavor.configuredDimension, equalTo(ParsedValue.NotSet))
+      assertThat(productFlavor.configuredDimension, equalTo<ParsedValue<String>>(ParsedValue.NotSet))
       assertThat(productFlavor.effectiveDimension, equalTo("foo"))
     }
     run {
@@ -318,7 +318,7 @@ class PsProductFlavorTest {
 
       val productFlavor = nested1Module.addNewProductFlavor("new_bad", "new_with_bad")
       assertThat(productFlavor, notNullValue())
-      assertThat(productFlavor.configuredDimension, equalTo("new_bad".asParsed()))
+      assertThat(productFlavor.configuredDimension, equalTo<ParsedValue<String>>("new_bad".asParsed()))
       assertThat(productFlavor.effectiveDimension, nullValue())
     }
   }
@@ -411,7 +411,7 @@ class PsProductFlavorTest {
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
       assertThat(
         signingConfig.parsedValue,
-        equalTo(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()))
+        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()))
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
       assertThat(matchingFallbacks.parsedValue.asTestValue(), equalTo(listOf("free")))

@@ -1,10 +1,14 @@
 MODULE                        : gradle_project
     externalProject               : gradle_project (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : gradle_project
         qName                         : gradle_project
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : gradle_project
@@ -144,7 +148,6 @@ MODULE                        : gradle_project.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>/gradle_project
     BuildId                       : <ROOT>/gradle_project
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
@@ -189,6 +192,7 @@ MODULE                        : gradle_project.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : google.simpleapplication
         testApplicationId             : google.simpleapplication.test
@@ -884,6 +888,7 @@ MODULE                        : gradle_project.app
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources

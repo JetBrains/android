@@ -18,7 +18,7 @@ package com.android.tools.idea.lang.agsl
 import com.intellij.psi.tree.IElementType
 import org.jetbrains.annotations.NonNls
 
-class AgslTokenType(@NonNls debugName: String) : IElementType(debugName, AgslLanguage.PRIVATE_AGSL_LANGUAGE) {
+class AgslTokenType(@NonNls debugName: String) : IElementType(debugName, AgslLanguage.INSTANCE) {
   override fun toString(): String {
     return "AgslTokenType." + super.toString()
   }

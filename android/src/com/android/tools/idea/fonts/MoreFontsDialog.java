@@ -27,6 +27,8 @@ import com.android.resources.ResourceType;
 import com.android.tools.adtui.validation.Validator.Result;
 import com.android.tools.adtui.validation.Validator.Severity;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.fonts.DownloadableFontCacheService;
+import com.android.tools.fonts.ProjectFonts;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
@@ -152,7 +154,7 @@ public class MoreFontsDialog extends DialogWrapper {
     myFontList.setName("Font list");
     myFontDetailList.setMinimumSize(new Dimension(MIN_FONT_PREVIEW_WIDTH, MIN_FONT_PREVIEW_HEIGHT));
     myFontDetailList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    ProjectFonts projectFonts = showExistingFonts? new ProjectFonts(myResourceRepository) : null;
+    ProjectFonts projectFonts = showExistingFonts ? new ProjectFonts(myResourceRepository) : null;
     myModel = new FontListModel(projectFonts, showExistingFonts);
     myModel.setRepopulateListener(this::repopulated);
     myDetailModel = new DefaultListModel<>();

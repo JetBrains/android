@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -43,7 +44,12 @@ public class DeviceManagerAction extends DumbAwareAction {
   @Override
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
-    presentation.setVisible(true);
+    if (StudioFlags.DUAL_DEVICE_MANAGER_ENABLED.get() || !StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get()) {
+      presentation.setVisible(true);
+    } else {
+      presentation.setEnabledAndVisible(false);
+      return;
+    }
 
     switch (event.getPlace()) {
       case ActionPlaces.TOOLBAR:

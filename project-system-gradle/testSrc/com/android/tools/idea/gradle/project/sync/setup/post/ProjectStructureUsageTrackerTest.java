@@ -16,15 +16,17 @@
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
-import static junit.framework.Assert.assertEquals;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.verifySyncSkipped;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
+import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject;
 import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AnonymizerUtil;
@@ -43,7 +45,6 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -52,155 +53,200 @@ import org.junit.Test;
  */
 @RunsInEdt
 public class ProjectStructureUsageTrackerTest {
-
-  @Rule
-  public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
-
-  // Used to test the scheduling of usage tracking.
-  private VirtualTimeScheduler scheduler;
+  @Rule public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
   // A UsageTracker implementation that allows introspection of logged metrics in tests.
   private TestUsageTracker myUsageTracker;
 
   @Before
   public void setUp() throws Exception {
-
-    scheduler = new VirtualTimeScheduler();
+    // Used to test the scheduling of usage tracking.
+    VirtualTimeScheduler scheduler = new VirtualTimeScheduler();
     myUsageTracker = new TestUsageTracker(scheduler);
     UsageTracker.setWriterForTest(myUsageTracker);
   }
 
   @After
   public void tearDown() throws Exception {
-      if (myUsageTracker != null) myUsageTracker.close();
-      UsageTracker.cleanAfterTesting();
+    if (myUsageTracker != null) myUsageTracker.close();
+    UsageTracker.cleanAfterTesting();
   }
 
   @Test
-  public void testProductStructureUsageTrackingBasic() throws Exception {
+  public void testProductStructureUsageTrackingBasic() {
     trackGradleProject(AndroidCoreTestProject.PROJECT_WITH_APP_AND_LIB_DEPENDENCY, project -> {
-
-      List<LoggedUsage> usages = myUsageTracker.getUsages();
-
-      assertEquals(1,
-                   usages.stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind())
-                     .count());
-      LoggedUsage usage =
-        usages.stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind()).findFirst().get();
-      assertEquals(0, usage.getTimestamp());
-      assertEquals(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS, usage.getStudioEvent().getKind());
-      assertEquals(GradleBuildDetails.newBuilder()
-                     .setAndroidPluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get())
-                     .setGradleVersion(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
-                     .addLibraries(GradleLibrary.newBuilder()
-                                     .setJarDependencyCount(12)
-                                     .setAarDependencyCount(49))
-                     .addModules(GradleModule.newBuilder()
-                                   .setTotalModuleCount(3)
-                                   .setAppModuleCount(1)
-                                   .setLibModuleCount(1))
-                     .addAndroidModules(GradleAndroidModule.newBuilder()
-                                          .setModuleName(AnonymizerUtil.anonymizeUtf8("project.app"))
-                                          .setIsLibrary(false)
-                                          .setBuildTypeCount(2)
-                                          .setFlavorCount(2)
-                                          .setFlavorDimension(1)
-                                          .setSigningConfigCount(1))
-                     .addAndroidModules(GradleAndroidModule.newBuilder()
-                                          .setModuleName(AnonymizerUtil.anonymizeUtf8("project.lib"))
-                                          .setIsLibrary(true)
-                                          .setBuildTypeCount(2)
-                                          .setFlavorCount(0)
-                                          .setFlavorDimension(0)
-                                          .setSigningConfigCount(1))
-                     .setModuleCount(3)
-                     .setLibCount(82)
-                     .setAppId(AnonymizerUtil.anonymizeUtf8("com.example.projectwithappandlib.app"))
-                     .build(), usage.getStudioEvent().getGradleBuildDetails());
+      List<LoggedUsage> usages =
+        myUsageTracker.getUsages().stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind())
+          .toList();
+      assertThat(usages).hasSize(1);
+      verifyAppAndLibBuildDetails(usages.get(0));
     });
   }
 
-
   @Test
-  public void testProductStructureUsageWithWearHardware() throws Exception {
+  public void testProductStructureUsageWithWearHardware() {
     trackGradleProject(AndroidCoreTestProject.RUN_CONFIG_WATCHFACE, project -> {
-
-      List<LoggedUsage> usages = myUsageTracker.getUsages();
-
-      assertEquals(1,
-                   usages.stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind())
-                     .count());
-      LoggedUsage usage =
-        usages.stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind()).findFirst().get();
-      assertEquals(0, usage.getTimestamp());
-      assertEquals(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS, usage.getStudioEvent().getKind());
-      String appId = usage.getStudioEvent().getGradleBuildDetails().getAppId();
-      assertEquals(GradleBuildDetails.newBuilder()
-                     .setAndroidPluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get())
-                     .setGradleVersion(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
-                     .addLibraries(GradleLibrary.newBuilder()
-                                     .setJarDependencyCount(0)
-                                     .setAarDependencyCount(0))
-                     .addModules(GradleModule.newBuilder()
-                                   .setTotalModuleCount(1)
-                                   .setAppModuleCount(1)
-                                   .setLibModuleCount(0))
-                     .addAndroidModules(GradleAndroidModule.newBuilder()
-                                          .setModuleName(AnonymizerUtil.anonymizeUtf8("project"))
-                                          .setIsLibrary(false)
-                                          .setBuildTypeCount(2)
-                                          .setFlavorCount(0)
-                                          .setFlavorDimension(0)
-                                          .setSigningConfigCount(1)
-                                          .setRequiredHardware("android.hardware.type.watch"))
-                     .setModuleCount(1)
-                     .setLibCount(0)
-                     .setAppId(appId)
-                     .build(), usage.getStudioEvent().getGradleBuildDetails());
+      List<LoggedUsage> usages =
+        myUsageTracker.getUsages().stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind())
+          .toList();
+      assertThat(usages).hasSize(1);
+      LoggedUsage usage = usages.get(0);
+      assertThat(usage.getTimestamp()).isEqualTo(0);
+      assertThat(usage.getStudioEvent().getKind()).isEqualTo(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS);
+      assertThat(usage.getStudioEvent().getGradleBuildDetails()).isEqualTo(
+        GradleBuildDetails.newBuilder()
+          .setAndroidPluginVersion(AgpVersions.getLatestKnown().toString())
+          .setGradleVersion(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
+          .addLibraries(GradleLibrary.newBuilder()
+                          .setJarDependencyCount(0)
+                          .setAarDependencyCount(0))
+          .addModules(GradleModule.newBuilder()
+                        .setTotalModuleCount(1)
+                        .setAppModuleCount(1)
+                        .setLibModuleCount(0))
+          .addAndroidModules(GradleAndroidModule.newBuilder()
+                               .setModuleName(AnonymizerUtil.anonymizeUtf8("project"))
+                               .setIsLibrary(false)
+                               .setBuildTypeCount(2)
+                               .setFlavorCount(0)
+                               .setFlavorDimension(0)
+                               .setSigningConfigCount(1)
+                               .setRequiredHardware("android.hardware.type.watch"))
+          .setModuleCount(1)
+          .setLibCount(0)
+          .setAppId(AnonymizerUtil.anonymizeUtf8("from.gradle.debug"))
+          .build());
     });
   }
 
-  // See https://code.google.com/p/android/issues/detail?id=224985
-  // Disabled until the prebuilt SDK has CMake.
   @Test
-  @Ignore("Disabled until the prebuilt SDK has CMake.")
-  public void testProductStructureUsageTrackingJni() throws Exception {
+  public void testProductStructureUsageTrackingJni() {
     trackGradleProject(AndroidCoreTestProject.HELLO_JNI, project -> {
-
-      List<LoggedUsage> usages = myUsageTracker.getUsages();
-
-      assertEquals(3, usages.size());
-      LoggedUsage usage = usages.get(2);
-      assertEquals(0, usage.getTimestamp());
-      assertEquals(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS, usage.getStudioEvent().getKind());
-      assertEquals(GradleBuildDetails.newBuilder()
-                     //TODO: add once reenabled
-                     .build(), usage.getStudioEvent().getGradleBuildDetails());
+      List<LoggedUsage> usages =
+        myUsageTracker.getUsages().stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind())
+          .toList();
+      assertThat(usages).hasSize(1);
+      LoggedUsage usage = usages.get(0);
+      assertThat(usage.getTimestamp()).isEqualTo(0);
+      assertThat(usage.getStudioEvent().getGradleBuildDetails()).isEqualTo(
+        GradleBuildDetails.newBuilder()
+          .setAndroidPluginVersion(AgpVersions.getLatestKnown().toString())
+          .setGradleVersion(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
+          .addLibraries(GradleLibrary.newBuilder()
+                          .setJarDependencyCount(5)
+                          .setAarDependencyCount(27))
+          .addModules(GradleModule.newBuilder()
+                        .setTotalModuleCount(2)
+                        .setAppModuleCount(1)
+                        .setLibModuleCount(0))
+          .addAndroidModules(GradleAndroidModule.newBuilder()
+                               .setModuleName(AnonymizerUtil.anonymizeUtf8("project.app"))
+                               .setIsLibrary(false)
+                               .setBuildTypeCount(2)
+                               .setFlavorCount(5)
+                               .setFlavorDimension(1)
+                               .setSigningConfigCount(1))
+          .addNativeAndroidModules(GradleNativeAndroidModule.newBuilder()
+                                     .setModuleName(AnonymizerUtil.anonymizeUtf8("project.app.main"))
+                                     .setBuildSystemType(GradleNativeAndroidModule.NativeBuildSystemType.CMAKE))
+          .setModuleCount(2)
+          .setLibCount(32)
+          .setAppId(AnonymizerUtil.anonymizeUtf8("com.example.hellojni"))
+          .build());
     });
   }
 
   @Test
   public void testStringToBuildSystemType() {
-    assertEquals(GradleNativeAndroidModule.NativeBuildSystemType.NDK_BUILD,
-                 ProjectStructureUsageTracker.stringToBuildSystemType("ndkBuild"));
-    assertEquals(GradleNativeAndroidModule.NativeBuildSystemType.CMAKE,
-                 ProjectStructureUsageTracker.stringToBuildSystemType("cmake"));
-    assertEquals(GradleNativeAndroidModule.NativeBuildSystemType.NDK_COMPILE,
-                 ProjectStructureUsageTracker.stringToBuildSystemType("ndkCompile"));
-    assertEquals(GradleNativeAndroidModule.NativeBuildSystemType.GRADLE_EXPERIMENTAL,
-                 ProjectStructureUsageTracker.stringToBuildSystemType("gradle"));
-    assertEquals(GradleNativeAndroidModule.NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE,
-                 ProjectStructureUsageTracker.stringToBuildSystemType("blaze"));
+    assertThat(ProjectStructureUsageTracker.stringToBuildSystemType("ndkBuild")).isEqualTo(
+      GradleNativeAndroidModule.NativeBuildSystemType.NDK_BUILD);
+    assertThat(ProjectStructureUsageTracker.stringToBuildSystemType("cmake")).isEqualTo(
+      GradleNativeAndroidModule.NativeBuildSystemType.CMAKE);
+    assertThat(ProjectStructureUsageTracker.stringToBuildSystemType("ndkCompile")).isEqualTo(
+      GradleNativeAndroidModule.NativeBuildSystemType.NDK_COMPILE);
+    assertThat(ProjectStructureUsageTracker.stringToBuildSystemType("gradle")).isEqualTo(
+      GradleNativeAndroidModule.NativeBuildSystemType.GRADLE_EXPERIMENTAL);
+    assertThat(ProjectStructureUsageTracker.stringToBuildSystemType("blaze")).isEqualTo(
+      GradleNativeAndroidModule.NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE);
+  }
+
+  /**
+   * Confirm that build details are tracked when a sync is skipped (when a previously synced project was reopened)
+   */
+  @Test
+  public void testSkippedSyncTracksBuildDetails() {
+    PreparedTestProject preparedProject = trackGradleProject(AndroidCoreTestProject.PROJECT_WITH_APP_AND_LIB_DEPENDENCY, project -> {
+      List<LoggedUsage> usages =
+        myUsageTracker.getUsages().stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind())
+          .toList();
+      // Only an event should happen the first time it is open
+      assertThat(usages).hasSize(1);
+    });
+    preparedProject.open(it -> it, project -> {
+      verifySyncSkipped(project, projectRule.getTestRootDisposable());
+      List<LoggedUsage> usages =
+        myUsageTracker.getUsages().stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind())
+          .toList();
+      // Now 2 events should have been logged
+      assertThat(usages).hasSize(2);
+      for (LoggedUsage usage : usages) {
+        verifyAppAndLibBuildDetails(usage);
+      }
+    });
   }
 
   /**
    * Builds a set of mock objects representing an Android Studio project with a set of modules
    * and calls the tracking code to report metrics on this project.
+   *
+   * @return the prepared project that was created
    */
-  private void trackGradleProject(@NotNull TemplateBasedTestProject testProject, @NotNull Consumer<Project> test) throws Exception {
+  private PreparedTestProject trackGradleProject(@NotNull TemplateBasedTestProject testProject, @NotNull Consumer<Project> test) {
     final var preparedProject = prepareTestProject(projectRule, testProject);
     preparedProject.open(it -> it, project -> {
       test.accept(project);
       return null;
     });
+    return preparedProject;
+  }
+
+  private void verifyAppAndLibBuildDetails(LoggedUsage usage) {
+    assertThat(usage.getTimestamp()).isEqualTo(0);
+    assertThat(usage.getStudioEvent().getKind()).isEqualTo(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS);
+    // The order of the modules is not always the same, and thus we cannot compare the details directly
+    // since assertEquals will fail when the order is different to the expected details
+    GradleBuildDetails buildDetails = usage.getStudioEvent().getGradleBuildDetails();
+    assertThat(buildDetails.getAndroidPluginVersion()).isEqualTo(AgpVersions.getLatestKnown().toString());
+    assertThat(buildDetails.getGradleVersion()).isEqualTo(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION));
+    assertThat(buildDetails.getLibrariesList()).containsExactly(
+      GradleLibrary.newBuilder()
+        .setJarDependencyCount(12)
+        .setAarDependencyCount(49)
+        .build());
+    assertThat(buildDetails.getModulesList()).containsExactly(
+      GradleModule.newBuilder()
+        .setTotalModuleCount(3)
+        .setAppModuleCount(1)
+        .setLibModuleCount(1)
+        .build());
+    assertThat(buildDetails.getAndroidModulesList()).containsExactly(
+      GradleAndroidModule.newBuilder()
+        .setModuleName(AnonymizerUtil.anonymizeUtf8("project.lib"))
+        .setIsLibrary(true)
+        .setBuildTypeCount(2)
+        .setFlavorCount(0)
+        .setFlavorDimension(0)
+        .setSigningConfigCount(1)
+        .build(),
+      GradleAndroidModule.newBuilder()
+        .setModuleName(AnonymizerUtil.anonymizeUtf8("project.app"))
+        .setIsLibrary(false)
+        .setBuildTypeCount(2)
+        .setFlavorCount(2)
+        .setFlavorDimension(1)
+        .setSigningConfigCount(1)
+        .build());
+    assertThat(buildDetails.getModuleCount()).isEqualTo(3);
+    assertThat(buildDetails.getLibCount()).isEqualTo(82);
+    assertThat(buildDetails.getAppId()).isEqualTo(AnonymizerUtil.anonymizeUtf8("com.example.projectwithappandlib.app"));
   }
 }

@@ -25,8 +25,8 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
-import java.nio.file.Path
 import kotlinx.coroutines.withContext
+import java.nio.file.Path
 
 /**
  * This resolver uses the IDE's module system to look for inspector artifacts.

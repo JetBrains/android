@@ -21,13 +21,20 @@ import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ui.TreeDropDownPopup
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.ui.popup.JBPopup
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
+import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Point
 import javax.swing.JComponent
+import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,6 +45,9 @@ import org.jetbrains.annotations.TestOnly
 private fun allSelected(name: String) = "All $name"
 
 private fun noneSelected(name: String) = "No $name selected"
+
+/** The maximum number of items the dropdown can show before it refuses to display anything. */
+val MAX_DROPDOWN_ITEMS = 3000
 
 class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
   private val name: String,
@@ -69,6 +79,8 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
       }
       .stateIn(scope, SharingStarted.Eagerly, allSelected(name))
 
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   private fun generateTitle(
     selection: MultiSelection<WithCount<ValueT>>,
     groupedSelection: Map<String, List<WithCount<ValueT>>>,
@@ -96,6 +108,38 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
     }
 
   override fun actionPerformed(eve: AnActionEvent) {
+    val popup =
+      if (selectionState.value.items.size > MAX_DROPDOWN_ITEMS) {
+        createFilterUnavailablePopup()
+      } else {
+        createFilterPopup()
+      }
+    val owner = eve.inputEvent!!.component
+    val location = getLocationOnScreen(owner)
+    location.translate(0, owner.height)
+    popup.showInScreenCoordinates(owner, location)
+  }
+
+  // This is a workaround for the performance issue caused by having
+  // too many items in the tree drop down.
+  private fun createFilterUnavailablePopup(): JBPopup {
+    val panel =
+      JPanel(BorderLayout()).apply {
+        isOpaque = true
+        border = JBUI.Borders.empty(6)
+      }
+    val label = JBLabel("Filter unavailable: too many items.")
+    panel.add(label)
+    return JBPopupFactory.getInstance()
+      .createComponentPopupBuilder(panel, null)
+      .setCancelOnClickOutside(true)
+      .setCancelOnOtherWindowOpen(true)
+      .setFocusable(true)
+      .setRequestFocus(true)
+      .createPopup()
+  }
+
+  private fun createFilterPopup(): JBPopup {
     val dropdown =
       TreeDropDownPopup(
         selectionState.value,
@@ -116,11 +160,7 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
         }
       }
     )
-
-    val owner = eve.inputEvent.component
-    val location = getLocationOnScreen(owner)
-    location.translate(0, owner.height)
-    popup.showInScreenCoordinates(owner, location)
+    return popup
   }
 
   override fun displayTextInToolbar() = true

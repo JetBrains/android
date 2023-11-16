@@ -19,6 +19,7 @@ import static com.android.tools.idea.common.model.NlComponentUtil.isDescendant;
 import static com.google.common.base.Verify.verifyNotNull;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
+import android.view.View;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -26,6 +27,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
@@ -34,18 +36,18 @@ import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileTypeKt;
 import com.android.tools.idea.common.util.XmlTagUtil;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.util.ListenerCollection;
+import com.android.tools.rendering.parsers.TagSnapshot;
+import com.android.tools.res.LocalResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -71,8 +73,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -83,6 +87,7 @@ import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Model for an XML file
@@ -101,7 +106,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
 
   public static final int DELAY_AFTER_TYPING_MS = 250;
 
-  static final boolean CHECK_MODEL_INTEGRITY = false;
   private final Set<String> myPendingIds = new HashSet<>();
 
   @NotNull private final AndroidFacet myFacet;
@@ -112,7 +116,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   /** Model name. This can be used when multiple models are displayed at the same time */
   @Nullable private String myModelDisplayName = null;
   /** Text to display when displaying a tooltip related to this model */
-  @Nullable private String myModelTooltip;
+  @Nullable private final String myModelTooltip;
   @Nullable private NlComponent myRootComponent;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
@@ -215,11 +219,9 @@ public class NlModel implements ModificationTracker, DataContextHolder {
     myUpdateQueue = new MergingUpdateQueue("android.layout.preview.edit", DELAY_AFTER_TYPING_MS,
                                            true, null, this, null, SWING_THREAD);
     myUpdateQueue.setRestartTimerOnAdd(true);
-    if (modelUpdater == null) {
-      myModelUpdater = new DefaultModelUpdater();
-    } else {
-      myModelUpdater = modelUpdater;
-    }
+    // Suspend events until there is an activation.
+    myUpdateQueue.suspend();
+    myModelUpdater = Objects.requireNonNullElseGet(modelUpdater, DefaultModelUpdater::new);
     myDataContext = dataContext;
   }
 
@@ -227,6 +229,15 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   @VisibleForTesting
   public MergingUpdateQueue getUpdateQueue() {
     return myUpdateQueue;
+  }
+
+  /**
+   * Returns if this model is currently active.
+   */
+  private boolean isActive() {
+    synchronized (myActivations) {
+      return !myActivations.isEmpty();
+    }
   }
 
   /**
@@ -256,6 +267,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
         updateTheme();
       }
       myListeners.forEach(listener -> listener.modelActivated(this));
+      myUpdateQueue.resume();
       return true;
     }
     else {
@@ -272,7 +284,10 @@ public class NlModel implements ModificationTracker, DataContextHolder {
       if (oldComputation != null) {
         Disposer.dispose(oldComputation);
       }
-      ReadAction.nonBlocking(() -> updateTheme(themeUrl, computationToken)).expireWith(computationToken).submit(myUpdateExecutor);
+      ReadAction.nonBlocking((Callable<Void>) () -> {
+        updateTheme(themeUrl, computationToken);
+        return null;
+      }).expireWith(computationToken).submit(myUpdateExecutor);
     }
   }
 
@@ -283,8 +298,11 @@ public class NlModel implements ModificationTracker, DataContextHolder {
     }
     try {
       ResourceResolver resolver = myConfiguration.getResourceResolver();
-      if (resolver.getTheme(themeUrl.name, themeUrl.isFramework()) == null) {
-        String theme = myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration);
+      ResourceReference themeReference = ResourceReference.style(
+        themeUrl.isFramework() ? ResourceNamespace.ANDROID : ResourceNamespace.RES_AUTO,
+        themeUrl.name);
+      if (resolver.getStyle(themeReference) == null) {
+        String theme = myConfiguration.computePreferredTheme();
         if (myThemeUpdateComputation.get() != computationToken) {
           return; // A new update has already been scheduled.
         }
@@ -300,6 +318,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
 
   private void deactivate() {
     myConfigurationModificationCount = myConfiguration.getModificationCount();
+    myUpdateQueue.suspend();
   }
 
   /**
@@ -379,99 +398,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
     myRootComponent = root;
   }
 
-  public void checkStructure() {
-    if (CHECK_MODEL_INTEGRITY) {
-      ApplicationManager.getApplication().runReadAction(() -> {
-        Set<NlComponent> unique = Sets.newIdentityHashSet();
-        Set<XmlTag> uniqueTags = Sets.newIdentityHashSet();
-        checkUnique(getFile().getRootTag(), uniqueTags);
-        uniqueTags.clear();
-        if (myRootComponent != null) {
-          checkUnique(myRootComponent.getTagDeprecated(), uniqueTags);
-          checkUnique(myRootComponent, unique);
-          checkStructure(myRootComponent);
-        }
-      });
-    }
-  }
-
-  @SuppressWarnings("MethodMayBeStatic")
-  private void checkUnique(NlComponent component, Set<NlComponent> unique) {
-    if (CHECK_MODEL_INTEGRITY) {
-      assert !unique.contains(component);
-      unique.add(component);
-
-      for (NlComponent child : component.getChildren()) {
-        checkUnique(child, unique);
-      }
-    }
-  }
-
-  @SuppressWarnings("MethodMayBeStatic")
-  private void checkUnique(XmlTag tag, Set<XmlTag> unique) {
-    if (CHECK_MODEL_INTEGRITY) {
-      assert !unique.contains(tag);
-      unique.add(tag);
-      for (XmlTag subTag : tag.getSubTags()) {
-        checkUnique(subTag, unique);
-      }
-    }
-  }
-
-  @SuppressWarnings("MethodMayBeStatic")
-  private void checkStructure(NlComponent component) {
-    if (CHECK_MODEL_INTEGRITY) {
-      // This is written like this instead of just "assert component.w != -1" to ease
-      // setting breakpoint to debug problems
-      if (NlComponentHelperKt.getHasNlComponentInfo(component)) {
-        int w = NlComponentHelperKt.getW(component);
-        if (w == -1) {
-          assert false : w;
-        }
-      }
-      if (component.getSnapshot() == null) {
-        assert false;
-      }
-      if (component.getTagDeprecated() == null) {
-        assert false;
-      }
-      if (!component.getTagName().equals(component.getTagDeprecated().getName())) {
-        assert false;
-      }
-
-      if (!component.getTagDeprecated().isValid()) {
-        assert false;
-      }
-
-      // Look for parent chain cycle
-      NlComponent p = component.getParent();
-      while (p != null) {
-        if (p == component) {
-          assert false;
-        }
-        p = p.getParent();
-      }
-
-      for (NlComponent child : component.getChildren()) {
-        if (child == component) {
-          assert false;
-        }
-        if (child.getParent() == null) {
-          assert false;
-        }
-        if (child.getParent() != component) {
-          assert false;
-        }
-        if (child.getTagDeprecated().getParent() != component.getTagDeprecated()) {
-          assert false;
-        }
-
-        // Check recursively
-        checkStructure(child);
-      }
-    }
-  }
-
   /**
    * Adds a new {@link ModelListener}. If the listener already exists, this method will make sure that the listener is only
    * added once.
@@ -486,7 +412,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
 
   /**
    * Calls all the listeners {@link ModelListener#modelDerivedDataChanged(NlModel)} method.
-   *
    * // TODO: move this mechanism to LayoutlibSceneManager, or, ideally, remove the need for it entirely by
    * // moving all the derived data into the Scene.
    */
@@ -496,7 +421,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
 
   /**
    * Calls all the listeners {@link ModelListener#modelChangedOnLayout(NlModel, boolean)} method.
-   *
    * TODO: move these listeners out of NlModel, since the model shouldn't care about being laid out.
    *
    * @param animate if true, warns the listeners to animate the layout update
@@ -566,6 +490,11 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   @Nullable
   public NlComponent findViewByTag(@NotNull XmlTag tag) {
     return myRootComponent != null ? myRootComponent.findViewByTag(tag) : null;
+  }
+
+  @Nullable
+  public NlComponent findViewByAccessibilityId(long id) {
+    return myRootComponent != null ? myRootComponent.findViewByAccessibilityId(id) : null;
   }
 
   @Nullable
@@ -900,21 +829,21 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   }
 
   @NotNull
-  public InsertType determineInsertType(@NotNull DragType dragType, @Nullable DnDTransferItem item, boolean asPreview) {
+  public InsertType determineInsertType(
+    @NotNull DragType dragType,
+    @Nullable DnDTransferItem item,
+    boolean asPreview,
+    boolean generateIds
+  ) {
     if (item != null && item.isFromPalette()) {
       return asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
     }
-    switch (dragType) {
-      case CREATE:
-        return asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
-      case MOVE:
-        return item != null && myId != item.getModelId() ? InsertType.COPY : InsertType.MOVE;
-      case COPY:
-        return InsertType.COPY;
-      case PASTE:
-      default:
-        return InsertType.PASTE;
-    }
+    return switch (dragType) {
+      case CREATE -> asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
+      case MOVE -> item != null && myId != item.getModelId() ? InsertType.COPY : InsertType.MOVE;
+      case COPY -> InsertType.COPY;
+      default -> generateIds ? InsertType.PASTE_GENERATE_NEW_IDS : InsertType.PASTE;
+    };
   }
 
   public long getId() {
@@ -976,7 +905,9 @@ public class NlModel implements ModificationTracker, DataContextHolder {
     RESIZE_END, RESIZE_COMMIT,
     UPDATE_HIERARCHY,
     BUILD,
-    CONFIGURATION_CHANGE
+    CONFIGURATION_CHANGE,
+    /** When the model is not active, it will batch all the notifications and send this one on reactivation. */
+    MODEL_ACTIVATION,
   }
 
   /**
@@ -1001,15 +932,22 @@ public class NlModel implements ModificationTracker, DataContextHolder {
     return myModelVersion.getVersion();
   }
 
-  public long getConfigurationModificationCount() {
-    return myConfigurationModificationCount;
-  }
-
-  public void notifyModified(@NotNull ChangeType reason) {
+  private void fireNotifyModified(@NotNull ChangeType reason) {
     myModelVersion.increase(reason);
     updateTheme();
     myModificationTrigger = reason;
     myListeners.forEach(listener -> listener.modelChanged(this));
+  }
+
+  public void notifyModified(@NotNull ChangeType reason) {
+    if (!isActive()) {
+      // The model is not currently active so delay the notification. The queue will deliver this notification
+      // when it is active again.
+      notifyModifiedViaUpdateQueue(ChangeType.MODEL_ACTIVATION);
+    }
+    else {
+      fireNotifyModified(reason);
+    }
   }
 
   /**
@@ -1022,7 +960,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
       new Update("edit") {
         @Override
         public void run() {
-          notifyModified(reason);
+          fireNotifyModified(reason);
         }
 
         @Override
@@ -1031,6 +969,15 @@ public class NlModel implements ModificationTracker, DataContextHolder {
         }
       }
     );
+  }
+
+  /**
+   * Flushes any pending updates created by {@link #notifyModifiedViaUpdateQueue}. After this method
+   * returns, all pending updates will have been processed.
+   */
+  @TestOnly
+  public void flushPendingUpdates() {
+    myUpdateQueue.run();
   }
 
   @Nullable
@@ -1045,7 +992,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   /**
    * Returns the {@link DataContext} associated to this model. The {@link DataContext} allows storing information that is specific to this
    * model but is not part of it. For example, context information about how the model should be represented in a specific surface.
-   *
    * The {@link DataContext} might change at any point so make sure you always call this method to obtain the latest data.
    */
   @NotNull

@@ -32,13 +32,13 @@ import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROP
 import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.npw.actions.NewAndroidFragmentAction
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.Token
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.rendering.LayoutSlowPreviewProvider
 import com.android.tools.idea.ui.resourcemanager.rendering.SlowResourcePreviewManager
-import com.android.tools.idea.util.addDependenciesWithUiConfirmation
-import com.android.tools.idea.util.dependsOn
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -51,6 +51,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
@@ -62,7 +63,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
-import com.intellij.psi.PsiModifier
 import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.CollectionListModel
@@ -107,8 +107,6 @@ import javax.swing.border.CompoundBorder
 import javax.swing.event.DocumentEvent
 
 const val DESTINATION_MENU_MAIN_PANEL_NAME = "destinationMenuMainPanel"
-private val DYNAMIC_DEPENDENCIES
-  = listOf(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT.getCoordinate("+"))
 
 /**
  * "Add" popup menu in the navigation editor.
@@ -326,7 +324,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
           val dests = DumbService.getInstance(project).runReadActionInSmartMode(Computable { destinations })
           maxIconWidth = dests.maxOfOrNull { it.iconWidth } ?: 0
           val listModel = FilteringListModel(CollectionListModel(dests))
-          listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.toLowerCase()) }
+          listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.lowercase()) }
           searchField.addDocumentListener(
             object : DocumentAdapter() {
               override fun textChanged(e: DocumentEvent) {
@@ -452,12 +450,10 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   private fun addDynamicDependency(destination: Destination) {
     (destination as? Destination.RegularDestination)?.dynamicModuleName ?: return
 
-    val module = surface.model?.module ?: return
-    if (module.dependsOn(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT)) {
-      return
-    }
-
-    module.addDependenciesWithUiConfirmation(DYNAMIC_DEPENDENCIES, promptUserBeforeAdding = true, requestSync = false)
+    val project = surface.model?.module?.project ?: return
+    val projectSystem = project.getProjectSystem()
+    val token = AddDestinationMenuToken.EP_NAME.getExtensions(project).firstOrNull { it.isApplicable(projectSystem) } ?: return
+    token.modifyProject(projectSystem, AddDestinationMenuToken.Data(destination, surface))
   }
 
   private fun getAllLayoutFiles() : Map<PsiClass?, XmlFile> {
@@ -478,4 +474,13 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       .filterIsInstance<XmlFile>()
       .associateBy { AndroidUtils.getContextClass(module, it) }
   }
+}
+
+interface AddDestinationMenuToken<P : AndroidProjectSystem>: Token {
+  companion object {
+    val EP_NAME = ExtensionPointName<AddDestinationMenuToken<AndroidProjectSystem>>("com.android.tools.idea.naveditor.editor.addDestinationMenuToken")
+  }
+  fun modifyProject(projectSystem: P, data: Data)
+
+  data class Data(val destination: Destination, val surface: NavDesignSurface)
 }

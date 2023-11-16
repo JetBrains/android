@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.editors.manifest
 
+import com.android.SdkConstants
 import com.android.ide.common.blame.SourcePosition
-import com.android.tools.idea.editors.manifest.UnknownManifestFile.isProjectFile
-import com.android.tools.idea.projectsystem.FilenameConstants
 import java.io.File
 
 enum class ManifestXmlType {
@@ -53,7 +52,7 @@ sealed class ManifestFileWithMetadata(val sortPriority: Int) : Comparable <Manif
           else -> Int.MAX_VALUE
         }
       },{
-        it.file?.path?.contains(FilenameConstants.EXPLODED_AAR)
+        it.file?.path?.contains(SdkConstants.EXPLODED_AAR)
       },{
         it.file?.path
       }

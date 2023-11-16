@@ -33,7 +33,9 @@ import com.android.tools.idea.compose.pickers.preview.enumsupport.UiMode
 import com.android.tools.idea.compose.pickers.preview.enumsupport.Wallpaper
 import com.android.tools.idea.compose.pickers.preview.inspector.PreviewPropertiesInspectorBuilder
 import com.android.tools.idea.compose.pickers.preview.property.DeviceParameterPropertyItem
+import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
 import com.android.tools.idea.compose.pickers.preview.utils.findOrParseFromDefinition
+import com.android.tools.idea.compose.pickers.preview.utils.getArgumentForParameter
 import com.android.tools.idea.compose.pickers.preview.utils.getDefaultPreviewDevice
 import com.android.tools.idea.compose.pickers.preview.utils.getSdkDevices
 import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
@@ -60,21 +62,35 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.calls.symbol
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.js.descriptorUtils.nameIfStandardType
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtCallElement
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
+import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 
 /** The model for pickers that handles calls to the Preview annotation in Compose. */
 internal class PreviewPickerPropertiesModel
 private constructor(
   project: Project,
   module: Module,
-  resolvedCall: ResolvedCall<*>,
+  ktFile: KtFile,
   psiPropertiesProvider: PreviewPropertiesProvider,
   valuesProvider: EnumSupportValuesProvider,
   tracker: ComposePickerTracker
@@ -82,7 +98,7 @@ private constructor(
   PsiCallPropertiesModel(
     project = project,
     module = module,
-    resolvedCall = resolvedCall,
+    ktFile = ktFile,
     psiPropertiesProvider = psiPropertiesProvider,
     tracker = tracker
   ) {
@@ -116,8 +132,6 @@ private constructor(
       tracker: ComposePickerTracker
     ): PreviewPickerPropertiesModel {
       val annotationEntry = previewElementDefinitionPsi?.element as? KtAnnotationEntry
-      val resolvedCall =
-        annotationEntry?.getResolvedCall(annotationEntry.analyze(BodyResolveMode.FULL))!!
       val libraryDefaultValues: Map<String, String?> =
         (annotationEntry.toUElement() as? UAnnotation)?.findPreviewDefaultValues()
           ?: kotlin.run {
@@ -128,7 +142,7 @@ private constructor(
       val valuesProvider =
         PreviewPickerValuesProvider.createPreviewValuesProvider(
           module = module,
-          containingFile = previewElementDefinitionPsi.virtualFile
+          containingFile = previewElementDefinitionPsi?.virtualFile
         )
       val defaultApiLevel =
         ConfigurationManager.findExistingInstance(module)
@@ -163,11 +177,16 @@ private constructor(
           }
         }
 
+      if (annotationEntry == null) {
+        Logger.getInstance(PsiCallPropertiesModel::class.java)
+          .error("Non-null value is expected for annotation entry")
+      }
+
       return PreviewPickerPropertiesModel(
         project = project,
         module = module,
-        resolvedCall = resolvedCall,
-        psiPropertiesProvider = PreviewPropertiesProvider(defaultValues),
+        ktFile = annotationEntry?.containingKtFile!!,
+        psiPropertiesProvider = PreviewPropertiesProvider(defaultValues, annotationEntry),
         tracker = tracker,
         valuesProvider = valuesProvider
       )
@@ -185,111 +204,186 @@ private constructor(
  * [PsiPropertiesProvider] for the Preview annotation. Provides specific implementations for known
  * parameters of the annotation.
  */
-private class PreviewPropertiesProvider(private val defaultValues: Map<String, String?>) :
-  PsiPropertiesProvider {
+private class PreviewPropertiesProvider(
+  private val defaultValues: Map<String, String?>,
+  private val annotationEntry: KtAnnotationEntry,
+) : PsiPropertiesProvider {
+  val resolvedCall: ResolvedCall<out CallableDescriptor>? =
+    if (isK2Plugin()) null
+    else annotationEntry.getResolvedCall(annotationEntry.analyzeK1(BodyResolveMode.FULL))
+
   override fun invoke(
     project: Project,
-    model: PsiCallPropertiesModel,
-    resolvedCall: ResolvedCall<*>
+    model: PsiCallPropertiesModel
   ): Collection<PsiPropertyItem> {
     val properties = mutableListOf<PsiPropertyItem>()
     ReadAction.run<Throwable> {
-      resolvedCall.valueArguments
+      if (isK2Plugin()) {
+        collectParameterPropertyItemsForK2(project, model, properties)
+        return@run
+      }
+      resolvedCall!!
+        .valueArguments
         .toList()
         .sortedBy { (descriptor, _) -> descriptor.index }
         .forEach { (descriptor, resolved) ->
           val argumentExpression =
             (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
           val defaultValue = defaultValues[descriptor.name.asString()]
-          when (descriptor.name.asString()) {
-            // TODO(b/197021783): Capitalize the displayed name of the parameters, without affecting
-            // the output of the model or hardcoding the names
-            PARAMETER_FONT_SCALE ->
-              FloatPsiCallParameter(
-                project,
-                model,
-                resolvedCall,
-                descriptor,
-                argumentExpression,
-                defaultValue
-              )
-            PARAMETER_BACKGROUND_COLOR ->
-              ColorPsiCallParameter(
-                project,
-                model,
-                resolvedCall,
-                descriptor,
-                argumentExpression,
-                defaultValue
-              )
-            PARAMETER_WIDTH,
-            PARAMETER_WIDTH_DP,
-            PARAMETER_HEIGHT,
-            PARAMETER_HEIGHT_DP ->
-              PsiCallParameterPropertyItem(
-                project,
-                model,
-                resolvedCall,
-                descriptor,
-                argumentExpression,
-                defaultValue,
-                IntegerNormalValidator
-              )
-            PARAMETER_API_LEVEL ->
-              PsiCallParameterPropertyItem(
-                project,
-                model,
-                resolvedCall,
-                descriptor,
-                argumentExpression,
-                defaultValue,
-                IntegerStrictValidator
-              )
-            PARAMETER_DEVICE -> {
-              // Note that DeviceParameterPropertyItem sets its own name to
-              // PARAMETER_HARDWARE_DEVICE
-              DeviceParameterPropertyItem(
-                  project,
-                  model,
-                  resolvedCall,
-                  descriptor,
-                  argumentExpression,
-                  defaultValue
-                )
-                .also { properties.addAll(it.innerProperties) }
-            }
-            PARAMETER_UI_MODE,
-            PARAMETER_WALLPAPER ->
-              ClassPsiCallParameter(
-                project,
-                model,
-                resolvedCall,
-                descriptor,
-                argumentExpression,
-                defaultValue
-              )
-            PARAMETER_SHOW_SYSTEM_UI,
-            PARAMETER_SHOW_BACKGROUND ->
-              BooleanPsiCallParameter(
-                project,
-                model,
-                resolvedCall,
-                descriptor,
-                argumentExpression,
-                defaultValue
-              )
-            else ->
-              PsiCallParameterPropertyItem(
-                project,
-                model,
-                resolvedCall,
-                descriptor,
-                argumentExpression,
-                defaultValue
-              )
-          }.also { properties.add(it) }
+          val parameterName = descriptor.name
+          val parameterTypeNameIfStandard = descriptor.type.nameIfStandardType
+          collectParameterPropertyItems(
+            project,
+            model,
+            properties,
+            parameterName,
+            parameterTypeNameIfStandard,
+            argumentExpression,
+            defaultValue,
+            null,
+          )
         }
     }
     return properties
+  }
+
+  private fun collectParameterPropertyItems(
+    project: Project,
+    model: PsiCallPropertiesModel,
+    properties: MutableCollection<PsiPropertyItem>,
+    parameterName: Name,
+    parameterTypeNameIfStandard: Name?,
+    argumentExpression: KtExpression?,
+    defaultValue: String?,
+    callElement: KtCallElement?,
+  ) {
+    fun addNewValueArgument(newValueArgument: KtValueArgument, psiFactory: KtPsiFactory) =
+      if (isK2Plugin()) {
+        callElement?.addNewValueArgument(newValueArgument, psiFactory)
+      } else {
+        resolvedCall?.addNewValueArgument(newValueArgument, psiFactory)
+      }
+
+    when (
+      parameterName.asString()
+    ) { // TODO(b/197021783): Capitalize the displayed name of the parameters, without affecting
+      // the output of the model or hardcoding the names
+      PARAMETER_FONT_SCALE ->
+        FloatPsiCallParameter(
+          project,
+          model,
+          ::addNewValueArgument,
+          parameterName,
+          parameterTypeNameIfStandard,
+          argumentExpression,
+          defaultValue
+        )
+      PARAMETER_BACKGROUND_COLOR ->
+        ColorPsiCallParameter(
+          project,
+          model,
+          ::addNewValueArgument,
+          parameterName,
+          parameterTypeNameIfStandard,
+          argumentExpression,
+          defaultValue
+        )
+      PARAMETER_WIDTH,
+      PARAMETER_WIDTH_DP,
+      PARAMETER_HEIGHT,
+      PARAMETER_HEIGHT_DP ->
+        PsiCallParameterPropertyItem(
+          project,
+          model,
+          ::addNewValueArgument,
+          parameterName,
+          parameterTypeNameIfStandard,
+          argumentExpression,
+          defaultValue,
+          IntegerNormalValidator
+        )
+      PARAMETER_API_LEVEL ->
+        PsiCallParameterPropertyItem(
+          project,
+          model,
+          ::addNewValueArgument,
+          parameterName,
+          parameterTypeNameIfStandard,
+          argumentExpression,
+          defaultValue,
+          IntegerStrictValidator
+        )
+      PARAMETER_DEVICE -> { // Note that DeviceParameterPropertyItem sets its own name to
+        // PARAMETER_HARDWARE_DEVICE
+        DeviceParameterPropertyItem(
+            project,
+            model,
+            ::addNewValueArgument,
+            parameterName,
+            parameterTypeNameIfStandard,
+            argumentExpression,
+            defaultValue
+          )
+          .also { properties.addAll(it.innerProperties) }
+      }
+      PARAMETER_UI_MODE,
+      PARAMETER_WALLPAPER ->
+        ClassPsiCallParameter(
+          project,
+          model,
+          ::addNewValueArgument,
+          parameterName,
+          parameterTypeNameIfStandard,
+          argumentExpression,
+          defaultValue
+        )
+      PARAMETER_SHOW_SYSTEM_UI,
+      PARAMETER_SHOW_BACKGROUND ->
+        BooleanPsiCallParameter(
+          project,
+          model,
+          ::addNewValueArgument,
+          parameterName,
+          parameterTypeNameIfStandard,
+          argumentExpression,
+          defaultValue
+        )
+      else ->
+        PsiCallParameterPropertyItem(
+          project,
+          model,
+          ::addNewValueArgument,
+          parameterName,
+          parameterTypeNameIfStandard,
+          argumentExpression,
+          defaultValue
+        )
+    }.also { properties.add(it) }
+  }
+
+  @OptIn(KtAllowAnalysisOnEdt::class)
+  private fun collectParameterPropertyItemsForK2(
+    project: Project,
+    model: PsiCallPropertiesModel,
+    properties: MutableCollection<PsiPropertyItem>,
+  ) = allowAnalysisOnEdt {
+    analyze(annotationEntry) {
+      val resolvedFunctionCall = annotationEntry.resolveCall()?.singleFunctionCallOrNull() ?: return
+      val callableSymbol = resolvedFunctionCall.symbol
+      callableSymbol.valueParameters.forEach { parameter ->
+        val argument = getArgumentForParameter(resolvedFunctionCall, parameter)
+        val defaultValue = defaultValues[parameter.name.asString()]
+        collectParameterPropertyItems(
+          project,
+          model,
+          properties,
+          parameter.name,
+          parameter.returnType.expandedClassSymbol?.name,
+          argument,
+          defaultValue,
+          annotationEntry,
+        )
+      }
+    }
   }
 }

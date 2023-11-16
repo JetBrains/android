@@ -40,14 +40,17 @@ class CommonAttributesInspectorBuilder(
     viewInspector.resetCache()
   }
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>
+  ) {
     if (!InspectorSection.COMMON.visible) {
       return
     }
     val generator = TitleGenerator(inspector)
     viewInspector.attachToInspector(inspector, properties) { generator.title }
     textInspector.attachToInspector(inspector, properties) { generator.title }
-    progressBarInspector.attachToInspector(inspector, properties)  { generator.title }
+    progressBarInspector.attachToInspector(inspector, properties) { generator.title }
     constraintLayoutFlowInspector.attachToInspector(inspector, properties) { generator.title }
     addCommonForAll(inspector, properties, generator)
   }
@@ -68,7 +71,11 @@ class CommonAttributesInspectorBuilder(
       }
   }
 
-  private fun addCommonForAll(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, generator: TitleGenerator) {
+  private fun addCommonForAll(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>,
+    generator: TitleGenerator
+  ) {
     if (!generator.titleAdded) {
       // Only add the common elements if the basic section was added already.
       return
@@ -76,7 +83,11 @@ class CommonAttributesInspectorBuilder(
     addIfExist(inspector, properties.getOrNull(ANDROID_URI, ATTR_ALPHA), generator.title)
   }
 
-  private fun addIfExist(inspector: InspectorPanel, property: NlPropertyItem?, title: InspectorLineModel) {
+  private fun addIfExist(
+    inspector: InspectorPanel,
+    property: NlPropertyItem?,
+    title: InspectorLineModel
+  ) {
     if (property != null) {
       inspector.addEditor(editorProvider.createEditor(property), title)
     }

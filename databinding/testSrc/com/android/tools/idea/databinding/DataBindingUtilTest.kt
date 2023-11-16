@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.databinding
 
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_DATA_BINDING_LIB
+import com.android.ide.common.repository.GoogleMavenArtifactId.DATA_BINDING_LIB
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.ANDROIDX_DATA_BINDING_LIB
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.DATA_BINDING_LIB
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule

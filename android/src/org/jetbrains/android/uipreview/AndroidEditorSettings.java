@@ -87,74 +87,12 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
   }
 
   public static class GlobalState {
-    private boolean myVisible = true;
-    private boolean myHideForNonLayoutFiles = true;
-    private boolean myShowDeviceFrames = true;
-    private boolean myShowEffects = true;
-    private boolean myRetina = true;
-    private boolean myPreferXmlEditor = false;
-    private boolean myShowLint = false;
     private EditorMode myPreferredEditorMode;
     private EditorMode myPreferredDrawableEditorMode;
     private EditorMode myPreferredComposableEditorMode;
     private EditorMode myPreferredKotlinEditorMode;
     private double myMagnifySensitivity = DEFAULT_MAGNIFY_SENSITIVITY;
-
-    public boolean isRetina() {
-      return myRetina;
-    }
-
-    public void setRetina(boolean retina) {
-      myRetina = retina;
-    }
-
-    public boolean isVisible() {
-      return myVisible;
-    }
-
-    public void setVisible(boolean visible) {
-      myVisible = visible;
-    }
-
-    public boolean isHideForNonLayoutFiles() {
-      return myHideForNonLayoutFiles;
-    }
-
-    public void setHideForNonLayoutFiles(boolean hideForNonLayoutFiles) {
-      myHideForNonLayoutFiles = hideForNonLayoutFiles;
-    }
-
-    public boolean isShowDeviceFrames() {
-      return myShowDeviceFrames;
-    }
-
-    public void setShowDeviceFrames(boolean showDeviceFrames) {
-      myShowDeviceFrames = showDeviceFrames;
-    }
-
-    public boolean isShowEffects() {
-      return myShowEffects;
-    }
-
-    public void setShowEffects(boolean showEffects) {
-      myShowEffects = showEffects;
-    }
-
-    public boolean isPreferXmlEditor() {
-      return myPreferXmlEditor;
-    }
-
-    public void setShowLint(boolean showLint) {
-      myShowLint = showLint;
-    }
-
-    public boolean isShowLint() {
-      return myShowLint;
-    }
-
-    public void setPreferXmlEditor(boolean preferXmlEditor) {
-      myPreferXmlEditor = preferXmlEditor;
-    }
+    private boolean myComposePreviewEssentialsModeEnabled = false;
 
     public EditorMode getPreferredEditorMode() {
       return myPreferredEditorMode;
@@ -194,6 +132,14 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
 
     public void setMagnifySensitivity(double magnifySensitivity) {
       myMagnifySensitivity = magnifySensitivity;
+    }
+
+    public boolean isComposePreviewEssentialsModeEnabled() {
+      return myComposePreviewEssentialsModeEnabled;
+    }
+
+    public void setComposePreviewEssentialsModeEnabled(boolean composePreviewEssentialsModeEnabled) {
+      myComposePreviewEssentialsModeEnabled = composePreviewEssentialsModeEnabled;
     }
   }
 }

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.util.fsm
 
+import com.android.tools.idea.util.fsm.StateMachine.Builder
+import com.android.tools.idea.util.fsm.StateMachine.Companion.stateMachine
+import com.android.tools.idea.util.fsm.StateMachine.IllegalTransitionHandler
 import com.android.utils.time.TimeSource
 import com.android.utils.time.TimeSource.TimeMark
 import com.intellij.openapi.diagnostic.LogLevel

@@ -28,7 +28,6 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncIssueType;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;

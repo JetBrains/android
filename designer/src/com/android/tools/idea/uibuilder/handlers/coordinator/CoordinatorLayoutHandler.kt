@@ -45,55 +45,54 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.collect.ImmutableList
 
-/**
- * Handler for android.support.design.widget.CoordinatorLayout
- */
+/** Handler for android.support.design.widget.CoordinatorLayout */
 class CoordinatorLayoutHandler : ScrollViewHandler() {
 
-  enum class InteractionState { NORMAL, DRAGGING }
+  enum class InteractionState {
+    NORMAL,
+    DRAGGING
+  }
 
   var interactionState: InteractionState = InteractionState.NORMAL
 
   override fun handlesPainting() = true
 
-  override fun getInspectorProperties(): List<String> = listOf(ATTR_CONTEXT, ATTR_FITS_SYSTEM_WINDOWS)
+  override fun getInspectorProperties(): List<String> =
+    listOf(ATTR_CONTEXT, ATTR_FITS_SYSTEM_WINDOWS)
 
   override fun getLayoutInspectorProperties(): List<String> {
     return listOf(ATTR_LAYOUT_BEHAVIOR, ATTR_LAYOUT_ANCHOR, ATTR_LAYOUT_ANCHOR_GRAVITY)
   }
 
-  override fun onChildInserted(
-    parent: NlComponent,
-    child: NlComponent,
-    insertType: InsertType
-  ) {
+  override fun onChildInserted(parent: NlComponent, child: NlComponent, insertType: InsertType) {
     // b/67452405 Do not call super()
     if (COORDINATOR_LAYOUT.newName() == parent.tagName && BOTTOM_APP_BAR == child.tagName) {
       configureNewBottomAppBar(parent, child)
     }
   }
 
-  override fun onChildRemoved(layout: NlComponent,
-                              newChild: NlComponent,
-                              insertType: InsertType) {
+  override fun onChildRemoved(layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
     newChild.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY)
     newChild.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR)
 
     val removedId = newChild.id ?: return
 
-    layout.children.filterNot { it == newChild }.forEach {
-      val anchor = it.getAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR) ?: return@forEach
-      if (NlComponent.extractId(anchor) == removedId) {
-        it.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR)
-        it.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY)
+    layout.children
+      .filterNot { it == newChild }
+      .forEach {
+        val anchor = it.getAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR) ?: return@forEach
+        if (NlComponent.extractId(anchor) == removedId) {
+          it.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR)
+          it.removeAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY)
+        }
       }
-    }
   }
 
-  override fun createDragHandler(editor: ViewEditor,
-                                 layout: SceneComponent,
-                                 components: List<NlComponent>,
-                                 type: DragType
+  override fun createDragHandler(
+    editor: ViewEditor,
+    layout: SceneComponent,
+    components: List<NlComponent>,
+    type: DragType
   ): DragHandler? {
     // The {@link CoordinatorDragHandler} handles the logic for anchoring a
     // single component to an existing component in the CoordinatorLayout.
@@ -102,8 +101,7 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
     // this case.
     return if (components.size == 1) {
       CoordinatorDragHandler(editor, this, layout, components, type)
-    }
-    else {
+    } else {
       super.createDragHandler(editor, layout, components, type)
     }
   }
@@ -112,43 +110,44 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
    * Return a new ConstraintInteraction instance to handle a mouse interaction
    *
    * @param screenView the associated screen view
-   * @param x          mouse down (x)
-   * @param y          mouse down (y)
-   * @param component  the component target of the interaction
+   * @param x mouse down (x)
+   * @param y mouse down (y)
+   * @param component the component target of the interaction
    * @return a new instance of ConstraintInteraction
    */
-  override fun createInteraction(screenView: ScreenView,
-                                 x: Int,
-                                 y: Int,
-                                 component: NlComponent) = SceneInteraction(screenView)
+  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent) =
+    SceneInteraction(screenView)
 
-  override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent): MutableList<Target> {
+  override fun createChildTargets(
+    parentComponent: SceneComponent,
+    childComponent: SceneComponent
+  ): MutableList<Target> {
     val listBuilder = ImmutableList.builder<Target>()
 
     if (childComponent !is TemporarySceneComponent) {
       listBuilder.add(
-          CoordinatorDragTarget(),
-          CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
-          CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT),
-          CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
-          CoordinatorResizeTarget(ResizeBaseTarget.Type.TOP),
-          CoordinatorResizeTarget(ResizeBaseTarget.Type.BOTTOM),
-          CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
-          CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT),
-          CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM)
+        CoordinatorDragTarget(),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.TOP),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.BOTTOM),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT),
+        CoordinatorResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM)
       )
     }
 
     if (!childComponent.isSelected && interactionState == InteractionState.DRAGGING) {
       listBuilder.add(
-          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT),
-          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.TOP),
-          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT),
-          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.BOTTOM),
-          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT_TOP),
-          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT_BOTTOM),
-          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT_TOP),
-          CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT_BOTTOM)
+        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT),
+        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.TOP),
+        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT),
+        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.BOTTOM),
+        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT_TOP),
+        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.LEFT_BOTTOM),
+        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT_TOP),
+        CoordinatorSnapTarget(CoordinatorSnapTarget.Type.RIGHT_BOTTOM)
       )
     }
 
@@ -160,7 +159,11 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
   override fun getPlaceholders(component: SceneComponent, draggedComponents: List<SceneComponent>) =
     component.children
       .filterNot { component.scene.selection.contains(it.nlComponent) }
-      .flatMap { child -> CoordinatorPlaceholder.Type.values().map { type -> CoordinatorPlaceholder(component, child, type) } }
+      .flatMap { child ->
+        CoordinatorPlaceholder.Type.values().map { type ->
+          CoordinatorPlaceholder(component, child, type)
+        }
+      }
       .toList()
       .plus(ViewGroupPlaceholder(component))
 
@@ -177,4 +180,4 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
 }
 
 // The resize behaviour is similar to the FrameResizeTarget so far.
-private class CoordinatorResizeTarget(type: ResizeBaseTarget.Type): FrameResizeTarget(type)
+private class CoordinatorResizeTarget(type: ResizeBaseTarget.Type) : FrameResizeTarget(type)

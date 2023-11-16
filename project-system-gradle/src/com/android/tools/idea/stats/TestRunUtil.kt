@@ -17,7 +17,6 @@
 
 package com.android.tools.idea.stats
 
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.analytics.recordTestLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
@@ -40,10 +39,8 @@ fun recordTestLibraries(builder: TestLibraries.Builder, artifact: IdeBaseArtifac
   val dependencies = artifact.compileClasspath
 
   for (lib in Iterables.concat(dependencies.androidLibraries, dependencies.javaLibraries)) {
-    val coordinate = GradleCoordinate.parseCoordinateString(lib.target.artifactAddress) ?: continue
-    val groupId = coordinate.groupId
-    val artifactId = coordinate.artifactId
-    val version = coordinate.lowerBoundVersion?.toString() ?: continue
-    builder.recordTestLibrary(groupId, artifactId, version)
+    lib.target.component?.run {
+      builder.recordTestLibrary(group, name, version.toString())
+    }
   }
 }

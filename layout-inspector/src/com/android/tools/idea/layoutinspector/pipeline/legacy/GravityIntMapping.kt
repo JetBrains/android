@@ -37,9 +37,7 @@ const val GRAVITY_RTL_FLAG = 0x800000
 const val GRAVITY_START = 0x800003
 const val GRAVITY_END = 0x800005
 
-/**
- * Utility for mapping an integer gravity value to a user readable string.
- */
+/** Utility for mapping an integer gravity value to a user readable string. */
 class GravityIntMapping {
   private val intMapping = IntFlagMapping()
 
@@ -59,19 +57,43 @@ class GravityIntMapping {
   init {
     intMapping.add(GRAVITY_FILL, GRAVITY_FILL, SdkConstants.GRAVITY_VALUE_FILL)
 
-    intMapping.add(GRAVITY_FILL_VERTICAL, GRAVITY_FILL_VERTICAL, SdkConstants.GRAVITY_VALUE_FILL_VERTICAL)
+    intMapping.add(
+      GRAVITY_FILL_VERTICAL,
+      GRAVITY_FILL_VERTICAL,
+      SdkConstants.GRAVITY_VALUE_FILL_VERTICAL
+    )
     intMapping.add(GRAVITY_FILL_VERTICAL, GRAVITY_TOP, SdkConstants.GRAVITY_VALUE_TOP)
     intMapping.add(GRAVITY_FILL_VERTICAL, GRAVITY_BOTTOM, SdkConstants.GRAVITY_VALUE_BOTTOM)
 
-    intMapping.add(GRAVITY_FILL_HORIZONTAL, GRAVITY_FILL_HORIZONTAL, SdkConstants.GRAVITY_VALUE_FILL_HORIZONTAL)
+    intMapping.add(
+      GRAVITY_FILL_HORIZONTAL,
+      GRAVITY_FILL_HORIZONTAL,
+      SdkConstants.GRAVITY_VALUE_FILL_HORIZONTAL
+    )
     intMapping.add(GRAVITY_FILL_HORIZONTAL, GRAVITY_LEFT, SdkConstants.GRAVITY_VALUE_LEFT)
     intMapping.add(GRAVITY_FILL_HORIZONTAL, GRAVITY_RIGHT, SdkConstants.GRAVITY_VALUE_RIGHT)
 
     intMapping.add(GRAVITY_FILL, GRAVITY_CENTER, SdkConstants.GRAVITY_VALUE_CENTER)
-    intMapping.add(GRAVITY_FILL_VERTICAL, GRAVITY_CENTER_VERTICAL, SdkConstants.GRAVITY_VALUE_CENTER_VERTICAL)
-    intMapping.add(GRAVITY_FILL_HORIZONTAL, GRAVITY_CENTER_HORIZONTAL, SdkConstants.GRAVITY_VALUE_CENTER_HORIZONTAL)
+    intMapping.add(
+      GRAVITY_FILL_VERTICAL,
+      GRAVITY_CENTER_VERTICAL,
+      SdkConstants.GRAVITY_VALUE_CENTER_VERTICAL
+    )
+    intMapping.add(
+      GRAVITY_FILL_HORIZONTAL,
+      GRAVITY_CENTER_HORIZONTAL,
+      SdkConstants.GRAVITY_VALUE_CENTER_HORIZONTAL
+    )
 
-    intMapping.add(GRAVITY_CLIP_VERTICAL, GRAVITY_CLIP_VERTICAL, SdkConstants.GRAVITY_VALUE_CLIP_VERTICAL)
-    intMapping.add(GRAVITY_CLIP_HORIZONTAL, GRAVITY_CLIP_HORIZONTAL, SdkConstants.GRAVITY_VALUE_CLIP_HORIZONTAL)
+    intMapping.add(
+      GRAVITY_CLIP_VERTICAL,
+      GRAVITY_CLIP_VERTICAL,
+      SdkConstants.GRAVITY_VALUE_CLIP_VERTICAL
+    )
+    intMapping.add(
+      GRAVITY_CLIP_HORIZONTAL,
+      GRAVITY_CLIP_HORIZONTAL,
+      SdkConstants.GRAVITY_VALUE_CLIP_HORIZONTAL
+    )
   }
 }

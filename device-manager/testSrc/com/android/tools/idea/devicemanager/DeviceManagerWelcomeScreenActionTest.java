@@ -20,10 +20,13 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.android.annotations.Nullable;
+import com.android.flags.junit.FlagRule;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -31,6 +34,9 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class DeviceManagerWelcomeScreenActionTest {
+  @Rule
+  public FlagRule<Boolean> unifiedDeviceManagerRule = new FlagRule<>(StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED, false);
+
   private @Nullable DeviceManagerWelcomeScreenAction myAction;
   private final @NotNull AnActionEvent myEvent;
 

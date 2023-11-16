@@ -16,7 +16,7 @@
 package com.android.tools.idea.streaming.emulator.dialogs
 
 import com.android.tools.adtui.util.getHumanizedSize
-import com.android.tools.idea.streaming.CloseDialogAction
+import com.android.tools.idea.streaming.core.CloseDialogAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
@@ -44,9 +44,10 @@ internal class IncompatibleSnapshotsDeletionConfirmationDialog(
         val snapshotsClause = if (incompatibleSnapshotsCount == 1) "There is 1 snapshot"
                               else "There are $incompatibleSnapshotsCount snapshots"
         val pronoun = if (incompatibleSnapshotsCount == 1) "it" else "them"
-        label("""$snapshotsClause incompatible with the current configuration occupying
-|                ${getHumanizedSize(incompatibleSnapshotsSize)} of disk space. Do you want to permanently delete $pronoun?
-|             """.trimMargin())
+        text("""
+          |  $snapshotsClause incompatible with the current configuration occupying<br>
+|            ${getHumanizedSize(incompatibleSnapshotsSize)} of disk space. Do you want to permanently delete $pronoun?
+|            """.trimMargin())
       }
       row {
         checkBox("Do this from now on without asking")

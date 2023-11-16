@@ -34,7 +34,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.ui.JBUI;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.KeyEventDispatcher;

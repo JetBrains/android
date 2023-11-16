@@ -23,6 +23,7 @@ import com.android.tools.datastore.TestGrpcService
 import com.android.tools.datastore.energy.BatteryModel
 import com.android.tools.datastore.energy.PowerProfile
 import com.android.tools.datastore.service.EnergyService
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
@@ -38,7 +39,6 @@ import com.android.tools.profiler.proto.Transport.TimeRequest
 import com.android.tools.profiler.proto.Transport.TimeResponse
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.collect.Lists
-import com.android.tools.idea.io.grpc.stub.StreamObserver
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule

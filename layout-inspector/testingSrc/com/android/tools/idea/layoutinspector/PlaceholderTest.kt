@@ -18,10 +18,9 @@ package com.android.tools.idea.layoutinspector
 import org.junit.Test
 
 /**
- * There has to be at least one test in a module that contains test code or junit complains.
- * This should be deleted if any actual tests are added to this module.
+ * There has to be at least one test in a module that contains test code or junit complains. This
+ * should be deleted if any actual tests are added to this module.
  */
 class PlaceholderTest {
-  @Test
-  fun placeholder() = Unit
+  @Test fun placeholder() = Unit
 }

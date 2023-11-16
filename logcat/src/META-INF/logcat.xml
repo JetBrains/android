@@ -16,6 +16,7 @@
 
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
     <android.toolWindow
         id="Logcat"
         anchor="bottom"
@@ -65,9 +66,6 @@
         serviceInterface="com.android.tools.idea.logcat.service.LogcatService"
         serviceImplementation="com.android.tools.idea.logcat.service.LogcatServiceImpl"/>
     <projectService
-        serviceInterface="com.android.tools.idea.logcat.ProjectApplicationIdsProvider"
-        serviceImplementation="com.android.tools.idea.logcat.ProjectApplicationIdsProviderImpl"/>
-    <projectService
         serviceInterface="com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTrackerFactory"
         serviceImplementation="com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTrackerFactoryImpl"/>
     <projectService
@@ -80,6 +78,8 @@
     <annotator language="LogcatFilter" implementationClass="com.android.tools.idea.logcat.filters.LogcatFilterErrorAnnotator"/>
 
     <keymapExtension implementation="com.android.tools.idea.logcat.actions.LogcatKeymapExtension"/>
+
+    <notificationGroup id="Logcat" displayType="BALLOON"/>
   </extensions>
 
   <actions>
@@ -105,6 +105,10 @@
               text="Soft-Wrap"
               description="Toggle soft wrap of Logcat messages"/>
     </group>
+
+    <!-- A public action group where 3rd party plugins can add pupup actions -->
+    <group id="Logcat.PopupActions"/>
+
   </actions>
 
 </idea-plugin>

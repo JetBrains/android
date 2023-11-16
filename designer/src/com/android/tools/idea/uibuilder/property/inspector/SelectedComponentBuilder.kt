@@ -36,10 +36,14 @@ import javax.swing.Icon
 private const val UNNAMED_COMPONENT = "<unnamed>"
 private const val MULTIPLE_COMPONENTS = "<multiple>"
 
-class SelectedComponentBuilder(private val model: NlPropertiesModel) : InspectorBuilder<NlPropertyItem> {
+class SelectedComponentBuilder(private val model: NlPropertiesModel) :
+  InspectorBuilder<NlPropertyItem> {
   private val hiddenTags = setOf(TAG_DEEP_LINK, TAG_ARGUMENT)
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>
+  ) {
     val components = properties.first?.components ?: emptyList()
     if (components.isEmpty()) {
       return
@@ -54,41 +58,43 @@ class SelectedComponentBuilder(private val model: NlPropertiesModel) : Inspector
     if (components.size == 1) {
       iconValue = components[0].mixin?.icon ?: StudioIcons.LayoutEditor.Palette.VIEW
       qualifiedTagName = components[0].tagName
-    }
-    else {
+    } else {
       // TODO: Get another icon for multiple components
       iconValue = StudioIcons.LayoutEditor.Palette.VIEW_SWITCHER
       qualifiedTagName = ""
     }
     val tagName = qualifiedTagName.substring(qualifiedTagName.lastIndexOf('.') + 1)
-    val selectedComponentModel = object : SelectedComponentModel {
-      private var lastId: String? = null
-      private var currentListener: ValueChangedListener? = null
-      val modelListener = object : PropertiesModelListener<NlPropertyItem> {
-        override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
-          val newId = id
-          if (newId != lastId) {
-            lastId = newId
-            currentListener?.valueChanged()
+    val selectedComponentModel =
+      object : SelectedComponentModel {
+        private var lastId: String? = null
+        private var currentListener: ValueChangedListener? = null
+        val modelListener =
+          object : PropertiesModelListener<NlPropertyItem> {
+            override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+              val newId = id
+              if (newId != lastId) {
+                lastId = newId
+                currentListener?.valueChanged()
+              }
+            }
           }
+        override val id: String
+          get() {
+            return if (components.size == 1)
+              model.properties.getOrNull(ANDROID_URI, ATTR_ID)?.value.nullize() ?: UNNAMED_COMPONENT
+            else MULTIPLE_COMPONENTS
+          }
+        override val icon = iconValue
+        override val description = tagName
+        override fun addValueChangedListener(listener: ValueChangedListener) {
+          currentListener = listener
+          model.addListener(modelListener)
+        }
+        override fun removeValueChangedListener(listener: ValueChangedListener) {
+          currentListener = null
+          model.removeListener(modelListener)
         }
       }
-      override val id: String
-        get() {
-          return if (components.size == 1) model.properties.getOrNull(ANDROID_URI, ATTR_ID)?.value.nullize() ?: UNNAMED_COMPONENT
-          else MULTIPLE_COMPONENTS
-        }
-      override val icon = iconValue
-      override val description = tagName
-      override fun addValueChangedListener(listener: ValueChangedListener) {
-        currentListener = listener
-        model.addListener(modelListener)
-      }
-      override fun removeValueChangedListener(listener: ValueChangedListener) {
-        currentListener = null
-        model.removeListener(modelListener)
-      }
-    }
     val panel = SelectedComponentPanel(selectedComponentModel)
     inspector.addComponent(panel, null)
   }

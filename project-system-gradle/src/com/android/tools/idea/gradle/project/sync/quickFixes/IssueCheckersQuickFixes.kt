@@ -22,8 +22,9 @@ import com.android.repository.api.RepoManager
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.Projects
+import com.android.tools.idea.Projects.getBaseDirPath
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
@@ -105,7 +106,7 @@ class DownloadAndroidStudioQuickFix : DescribedBuildIssueQuickFix {
  */
 class FixAndroidGradlePluginVersionQuickFix(givenPluginVersion: AgpVersion?, givenGradleVersion: GradleVersion?) : BuildIssueQuickFix {
   override val id = "fix.gradle.elements"
-  val pluginVersion = givenPluginVersion ?: AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  val pluginVersion = givenPluginVersion ?: AgpVersions.latestKnown
   val gradleVersion = givenGradleVersion ?: GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
@@ -291,13 +292,13 @@ class OpenPluginBuildFileQuickFix : BuildIssueQuickFix {
   }
 }
 
-class OpenProjectStructureQuickfix : BuildIssueQuickFix {
-  override val id = "open.jdk.ndk.settings"
+class OpenGradleJdkSettingsQuickfix : BuildIssueQuickFix {
+  override val id = "open.gradle.jdk.settings"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val service = ProjectSettingsService.getInstance(project)
     if (service is AndroidProjectSettingsService) {
-      service.openSdkSettings()
+      service.chooseJdkLocation(project.basePath)
     }
     return CompletableFuture.completedFuture<Any>(null)
   }
@@ -310,7 +311,7 @@ class SetCmakeDirQuickFix(private val myPath: File) : BuildIssueQuickFix {
     val future = CompletableFuture<Any>()
 
     invokeLater {
-      val localProperties = LocalProperties(project)
+      val localProperties = LocalProperties(getBaseDirPath(project))
       localProperties.androidCmakePath = myPath
       localProperties.save()
       GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_CMAKE_INSTALLED)

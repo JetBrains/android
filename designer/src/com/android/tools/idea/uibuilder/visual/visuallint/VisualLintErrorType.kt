@@ -29,9 +29,7 @@ enum class VisualLintErrorType(val shortName: String) {
   LOCALE_TEXT("LocaleText"),
   WEAR_MARGIN("WearMargin");
 
-  /**
-   * The values for tools:ignore attribute. This is used by suppression.
-   */
+  /** The values for tools:ignore attribute. This is used by suppression. */
   val ignoredAttributeValue: String
     get() = ATTRIBUTE_PREFIX + shortName
 

@@ -15,24 +15,50 @@
  */
 package com.android.tools.idea.layoutlib;
 
-import com.intellij.DynamicBundle;
-import java.util.function.Supplier;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
+import java.text.MessageFormat;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import org.jetbrains.annotations.Nls;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
+/**
+ * Messages bundle.
+ */
 public final class LayoutlibBundle {
-  private static final @NonNls String BUNDLE = "messages.LayoutlibBundle";
-  private static final DynamicBundle INSTANCE = new DynamicBundle(LayoutlibBundle.class, BUNDLE);
+  @NonNls
+  private static final String BUNDLE_NAME = "messages.LayoutlibBundle";
+  private static Reference<ResourceBundle> ourBundle;
 
-  private LayoutlibBundle() {}
-
-  public static @NotNull @Nls String message(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, @NotNull Object... params) {
-    return INSTANCE.getMessage(key, params);
+  private static ResourceBundle getBundle() {
+    ResourceBundle bundle = com.intellij.reference.SoftReference.dereference(ourBundle);
+    if (bundle == null) {
+      bundle = ResourceBundle.getBundle(BUNDLE_NAME);
+      ourBundle = new SoftReference<>(bundle);
+    }
+    return bundle;
   }
 
-  public static @NotNull Supplier<String> messagePointer(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, @NotNull Object... params) {
-    return INSTANCE.getLazyMessage(key, params);
+  private LayoutlibBundle() {
+  }
+
+  @NotNull
+  public static @Nls String message(@NotNull @PropertyKey(resourceBundle = BUNDLE_NAME) String key, @NotNull Object... params) {
+    return readFromBundleAndFormat(getBundle(), key, params);
+  }
+
+  public static Supplier<String> messagePointer(@NotNull @PropertyKey(resourceBundle = BUNDLE_NAME) String key, @NotNull Object... params) {
+    return () -> message(key, params);
+  }
+
+  private static String readFromBundleAndFormat(@NotNull ResourceBundle bundle, @NotNull String key, @NotNull Object... params) {
+    String rawValue = bundle.getString(key);
+    Locale locale = bundle.getLocale();
+    MessageFormat format = new MessageFormat(rawValue, locale);
+    return format.format(params);
   }
 }

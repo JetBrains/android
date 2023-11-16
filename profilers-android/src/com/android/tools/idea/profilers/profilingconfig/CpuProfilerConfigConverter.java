@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.profilingconfig;
 import static com.android.tools.profilers.cpu.config.ProfilingConfiguration.SYSTEM_TRACE_BUFFER_SIZE_MB;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
@@ -100,8 +101,14 @@ public class CpuProfilerConfigConverter {
         ((SimpleperfConfiguration)configuration).setProfilingSamplingIntervalUs(config.getSamplingIntervalUs());
         break;
       case SYSTEM_TRACE:
+        if (StudioFlags.PROFILER_TRACEBOX.get()) {
+          if (deviceApi >= AndroidVersion.VersionCodes.M) {
+            configuration = new PerfettoConfiguration(name, true);
+            break;
+          }
+        }
         if (deviceApi >= AndroidVersion.VersionCodes.P) {
-          configuration = new PerfettoConfiguration(name);
+          configuration = new PerfettoConfiguration(name, false);
         }
         else {
           configuration = new AtraceConfiguration(name);

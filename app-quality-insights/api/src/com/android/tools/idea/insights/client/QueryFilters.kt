@@ -20,6 +20,7 @@ import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.Version
+import com.android.tools.idea.insights.VisibilityType
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import java.time.Duration
 import java.time.Instant
@@ -60,5 +61,6 @@ data class QueryFilters(
   val devices: Set<Device> = setOf(Device.ALL),
   val operatingSystems: Set<OperatingSystemInfo> = setOf(OperatingSystemInfo.ALL),
   val eventTypes: List<FailureType> = emptyList(),
-  val signal: SignalType = SignalType.SIGNAL_UNSPECIFIED
+  val signal: SignalType = SignalType.SIGNAL_UNSPECIFIED,
+  val visibilityType: VisibilityType = VisibilityType.ALL
 )

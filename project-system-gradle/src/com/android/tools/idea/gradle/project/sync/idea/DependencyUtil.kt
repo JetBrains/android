@@ -121,10 +121,13 @@ private class AndroidDependenciesSetupContext(
   private inner class JavaLibraryWorkItem(library: IdeJavaLibrary) : LibraryWorkItem<IdeJavaLibrary>(library) {
     override fun setupTargetData(): LibraryData {
       val libraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
-      ArtifactDependencySpec.create(library.artifactAddress)?.also {
-        libraryData.setGroup(it.group)
-        libraryData.artifactId = it.name
-        libraryData.version = it.version
+
+      library.component?.let { component ->
+        ArtifactDependencySpec.create(component.name, component.group, component.version.toString()).let {
+          libraryData.setGroup(it.group)
+          libraryData.artifactId = it.name
+          libraryData.version = it.version
+        }
       }
 
       libraryData.addPath(BINARY, library.artifact.absolutePath)

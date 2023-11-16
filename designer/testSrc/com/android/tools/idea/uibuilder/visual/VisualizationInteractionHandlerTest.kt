@@ -49,45 +49,61 @@ class VisualizationInteractionHandlerTest : SceneTest() {
 
   fun testNoPopupMenuTriggerWhenNotHoveredOnSceneView() {
     val surface = myModel.surface
-    val interactionHandler = VisualizationInteractionHandler(surface) {
-      CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), object : ConfigurationSetListener {
-        override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) = Unit
+    val interactionHandler =
+      VisualizationInteractionHandler(surface) {
+        CustomModelsProvider(
+          "test",
+          CustomConfigurationSet("Custom", emptyList()),
+          object : ConfigurationSetListener {
+            override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) =
+              Unit
 
-        override fun onCurrentConfigurationSetUpdated() = Unit
-      })
-    }
+            override fun onCurrentConfigurationSetUpdated() = Unit
+          }
+        )
+      }
 
     val view = surface.sceneManager!!.sceneView
-    val mouseEvent = MouseEventBuilder(view.x + view.scaledContentSize.width * 2, view.y + view.scaledContentSize.height * 2)
-      .withSource(Any())
-      .build()
+    val mouseEvent =
+      MouseEventBuilder(
+          view.x + view.scaledContentSize.width * 2,
+          view.y + view.scaledContentSize.height * 2
+        )
+        .withSource(Any())
+        .build()
 
     val popupMenuListener = Mockito.mock(ActionPopupMenuListener::class.java)
-    (ActionManager.getInstance() as ActionManagerEx).addActionPopupMenuListener(popupMenuListener, testRootDisposable)
+    (ActionManager.getInstance() as ActionManagerEx).addActionPopupMenuListener(
+      popupMenuListener,
+      testRootDisposable
+    )
 
     interactionHandler.popupMenuTrigger(mouseEvent)
     Mockito.verifyNoMoreInteractions(popupMenuListener)
 
     // TODO(b/147799910): Also test the case which popup menu is created.
-    //                    For now it is not testable in unit test because the create JComponent is invisible and an exception is thrown.
+    //                    For now it is not testable in unit test because the create JComponent is
+    // invisible and an exception is thrown.
   }
 
   fun testEnterPanModeWithPanShortcut() {
     val surface = myModel.surface
     val interactionHandler = VisualizationInteractionHandler(surface) { EmptyModelsProvider }
 
-    val keyEvent = KeyEventBuilder(DesignSurfaceShortcut.PAN.keyCode, KeyEvent.CHAR_UNDEFINED).build()
+    val keyEvent =
+      KeyEventBuilder(DesignSurfaceShortcut.PAN.keyCode, KeyEvent.CHAR_UNDEFINED).build()
     val interaction = interactionHandler.keyPressedWithoutInteraction(keyEvent)
     assertInstanceOf(interaction, PanInteraction::class.java)
   }
 
   override fun createModel(): ModelBuilder {
-    return model("constraint.xml",
-                 component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-                   .withBounds(0, 0, 2000, 2000)
-                   .id("@id/constraint")
-                   .matchParentWidth()
-                   .matchParentHeight()
+    return model(
+      "constraint.xml",
+      component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
+        .withBounds(0, 0, 2000, 2000)
+        .id("@id/constraint")
+        .matchParentWidth()
+        .matchParentHeight()
     )
   }
 }

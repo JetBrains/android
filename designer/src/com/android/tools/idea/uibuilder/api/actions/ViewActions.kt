@@ -26,31 +26,30 @@ import com.google.common.collect.ImmutableList
 import icons.StudioIcons
 import javax.swing.Icon
 
-/**
- * An abstract view action
- */
+/** An abstract view action */
 abstract class AbstractViewAction
 /**
- * Creates a new view action with a given icon and label.
- * By default, this class will make the action visible and set the {@link ViewAction} icon
- * and label into the passed {@link ViewActionPresentation}.
+ * Creates a new view action with a given icon and label. By default, this class will make the
+ * action visible and set the {@link ViewAction} icon and label into the passed {@link
+ * ViewActionPresentation}.
  *
- * @param myIcon  the icon to be shown if in the toolbar
+ * @param myIcon the icon to be shown if in the toolbar
  * @param myLabel the menu label (if in a context menu) or the tooltip (if in a toolbar)
  */
-constructor(private val myIcon: Icon?,
-            private val myLabel: String) : ViewAction {
+constructor(protected val myIcon: Icon?, protected val myLabel: String) : ViewAction {
 
   override fun getLabel(): String = myLabel
   override fun getIcon(): Icon? = myIcon
   override fun affectsUndo(): Boolean = true
 
-  override fun updatePresentation(presentation: ViewActionPresentation,
-                                  editor: ViewEditor,
-                                  handler: ViewHandler,
-                                  component: NlComponent,
-                                  selectedChildren: MutableList<NlComponent>,
-                                  modifiersEx: Int) {
+  override fun updatePresentation(
+    presentation: ViewActionPresentation,
+    editor: ViewEditor,
+    handler: ViewHandler,
+    component: NlComponent,
+    selectedChildren: MutableList<NlComponent>,
+    modifiersEx: Int
+  ) {
     presentation.setIcon(icon)
     presentation.setLabel(label)
     presentation.setVisible(true)
@@ -59,30 +58,47 @@ constructor(private val myIcon: Icon?,
 
 object ViewActionUtils {
   /**
-   * Returns the "View Options" default menu item. This can be used by handlers that one to customize the
-   * option by adding additional actions to it
+   * Returns the "View Options" default menu item. This can be used by handlers that one to
+   * customize the option by adding additional actions to it
    */
   @JvmStatic
   @JvmOverloads
   fun getViewOptionsAction(additionalActions: List<ViewAction> = listOf()): ViewAction =
-    NestedViewActionMenu("View Options",
-                         StudioIcons.Common.VISIBILITY_INLINE,
-                         listOf(ImmutableList.builder<ViewAction>()
-                                  .addAll(additionalActions)
-                                  .add(ToggleAllShowDecorationsAction())
-                                  .add(ToggleShowTooltipsAction())
-                                  .build()))
+    NestedViewActionMenu(
+      "View Options",
+      StudioIcons.Common.VISIBILITY_INLINE,
+      listOf(
+        ImmutableList.builder<ViewAction>()
+          .addAll(additionalActions)
+          .add(ToggleAllShowDecorationsAction())
+          .add(ToggleShowTooltipsAction())
+          .build()
+      )
+    )
 
   /**
-   * Returns the toggle size actions, which contains the [ToggleSizeViewAction] for horizontal and vertical directions.
+   * Returns the toggle size actions, which contains the [ToggleSizeViewAction] for horizontal and
+   * vertical directions.
    */
   @JvmStatic
   fun getToggleSizeActions(): List<ViewAction> {
     val actions = mutableListOf<ViewAction>()
-    actions.add(ToggleSizeViewAction("Toggle Width", SdkConstants.ATTR_LAYOUT_WIDTH, StudioIcons.LayoutEditor.Toolbar.EXPAND_HORIZONTAL,
-                                     StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL))
-    actions.add(ToggleSizeViewAction("Toggle Height", SdkConstants.ATTR_LAYOUT_HEIGHT, StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
-                                     StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL))
+    actions.add(
+      ToggleSizeViewAction(
+        "Toggle Width",
+        SdkConstants.ATTR_LAYOUT_WIDTH,
+        StudioIcons.LayoutEditor.Toolbar.EXPAND_HORIZONTAL,
+        StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL
+      )
+    )
+    actions.add(
+      ToggleSizeViewAction(
+        "Toggle Height",
+        SdkConstants.ATTR_LAYOUT_HEIGHT,
+        StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
+        StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL
+      )
+    )
     return actions
   }
 }

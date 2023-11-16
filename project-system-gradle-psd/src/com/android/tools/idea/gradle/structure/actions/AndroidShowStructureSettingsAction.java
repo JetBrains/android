@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
+import com.intellij.ide.impl.TrustedProjects;
 import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -31,17 +32,25 @@ import org.jetbrains.annotations.NotNull;
  * Displays the "Project Structure" dialog.
  */
 public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAction {
+  public AndroidShowStructureSettingsAction() {
+    super();
+    Presentation templatePresentation = getTemplatePresentation();
+    templatePresentation.setIcon(AllIcons.General.ProjectStructure);
+    templatePresentation.setText(ActionsBundle.actionText("ShowProjectStructureSettings"));
+    templatePresentation.setDescription(ActionsBundle.actionDescription("ShowProjectStructureSettings"));
+  }
 
    @Override
   public void update(@NotNull AnActionEvent e) {
+    Presentation presentation = e.getPresentation();
+
     Project project = e.getProject();
-    if (project != null) {
-      Presentation presentation = e.getPresentation();
-      presentation.setEnabledAndVisible(true);
-      presentation.setIcon(AllIcons.General.ProjectStructure);
-      presentation.setText(ActionsBundle.actionText("ShowProjectStructureSettings"));
-      presentation.setDescription(ActionsBundle.actionDescription("ShowProjectStructureSettings"));
+     presentation.setEnabledAndVisible(e.getProject() != null);
+     //noinspection UnstableApiUsage
+     if (project == null || !TrustedProjects.isTrusted(project)) {
+       presentation.setEnabled(false);
     }
+
     super.update(e);
   }
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.menu;
 
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.TAG_MENU;
 
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
@@ -39,6 +40,12 @@ public class MenuHandler extends ViewGroupHandler {
                                        @NotNull List<NlComponent> items,
                                        @NotNull DragType type) {
     return new GroupDragHandler(editor, this, group, items, type);
+  }
+
+  @Override
+  public boolean acceptsChild(@NotNull NlComponent layout,
+                              @NotNull NlComponent newChild) {
+    return !TAG_MENU.equals(newChild.getTagName());
   }
 
   @Override

@@ -39,7 +39,7 @@ private fun collectSceneManagerInfo(sceneManagerInfo: SceneManager?): String =
   """
       .trimIndent()
   }
-  ?: ""
+    ?: ""
 
 private fun collectModelAndSceneManagerInfo(model: NlModel, sceneManager: SceneManager?): String =
   """
@@ -64,9 +64,7 @@ private fun collectSurfaceInfo(surface: DesignSurface<*>?): String {
   return surfaceContent.toString()
 }
 
-/**
- * Collects general information about the editors and design surfaces.
- */
+/** Collects general information about the editors and design surfaces. */
 internal class DesignSurfaceTroubleInfoCollector : TroubleInfoCollector {
   override fun collectInfo(project: Project): String {
     val editors = FileEditorManager.getInstance(project).allEditors
@@ -75,7 +73,7 @@ internal class DesignSurfaceTroubleInfoCollector : TroubleInfoCollector {
         .mapNotNull {
           val surface =
             UIUtil.invokeAndWaitIfNeeded(Computable<DesignSurface<*>> { it.getDesignSurface() })
-            ?: return@mapNotNull null
+              ?: return@mapNotNull null
           it to surface
         }
         .toMap()

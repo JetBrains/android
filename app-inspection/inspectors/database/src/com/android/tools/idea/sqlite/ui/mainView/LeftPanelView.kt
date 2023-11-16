@@ -501,7 +501,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
             else icon = StudioIcons.DatabaseInspector.COLUMN
             append(userObject.name)
             append("  :  ", colorTextAttributes)
-            append(userObject.affinity.name.toUpperCase(Locale.US), colorTextAttributes)
+            append(userObject.affinity.name.uppercase(Locale.US), colorTextAttributes)
             append(if (userObject.isNullable) "" else ", NOT NULL", colorTextAttributes)
           }
 

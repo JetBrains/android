@@ -15,27 +15,12 @@
  */
 package com.android.tools.idea.lang.agsl
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.lang.AndroidParsingTestCase
 import com.intellij.psi.TokenType
 import org.intellij.lang.annotations.Language
 
 /** Tests parsing for AGSL files */
 class AgslParserTest : AndroidParsingTestCase("", AgslParserDefinition()) {
-
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.AGSL_LANGUAGE_SUPPORT.override(true)
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.AGSL_LANGUAGE_SUPPORT.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
 
   override fun getTestDataPath(): String = com.android.tools.idea.lang.getTestDataPath()
 
@@ -57,11 +42,6 @@ class AgslParserTest : AndroidParsingTestCase("", AgslParserDefinition()) {
       assert(lexer.tokenType != TokenType.BAD_CHARACTER) { "BAD_CHARACTER ${lexer.tokenText}" }
       lexer.advance()
     }
-  }
-
-  fun testLanguageOff() {
-    StudioFlags.AGSL_LANGUAGE_SUPPORT.override(false)
-    check("struct 123 1.0 abc")
   }
 
   fun testBasics() {

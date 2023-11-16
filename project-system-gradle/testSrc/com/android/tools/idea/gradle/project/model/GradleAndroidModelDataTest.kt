@@ -141,20 +141,26 @@ private fun validate(klass: KClass<*>, asInterface: Boolean = false) {
             kl == AgpVersion::class && asInterface -> Unit
             propertyType.isEnum -> Unit
             !propertyType.isKotlinClass() -> unexpected("Non-kotlin class is not allowed: $propertyKType")
-            !asInterface && !kl.isFinal -> unexpected("Final class is required: $propertyKType")
             kl.isOpen -> unexpected("Open class is not allowed: $propertyKType")
             kl.objectInstance != null -> unexpected("Object is not allowed: $propertyKType")
-            !asInterface && propertyType.isInterface -> unexpected("Interface type is not allowed: $propertyKType")
-            asInterface && !propertyType.isInterface -> unexpected("Must be primitive, enum or interface type: $propertyKType")
             propertyType.isPrimitive -> unexpected("Primitive type is unexpected: $propertyKType")
             propertyType.isAnnotation -> unexpected("Annotation type is not allowed: $propertyKType")
             propertyType.isAnonymousClass -> unexpected("Anonymous type is not allowed: $propertyKType")
             propertyType.isArray -> unexpected("Array type is not allowed: $propertyKType")
             propertyType.isLocalClass -> unexpected("Local class is not allowed: $propertyKType")
             propertyType.isSynthetic -> unexpected("Synthetic class is not allowed: $propertyKType")
-            !asInterface && kl.isData -> validate(kl)
-            asInterface && propertyType.isInterface -> validate(kl)
-            else -> unexpected()
+            // Conditions if we are validating the set of model interfaces
+            asInterface -> when {
+              !propertyType.isInterface -> unexpected("Must be primitive, enum or interface type: $propertyKType")
+              propertyType.isInterface -> validate(kl)
+            }
+            // Conditions if we are validated the set of concrete model classes
+            !asInterface -> when {
+              !kl.isSealed && propertyType.isInterface -> unexpected("Final class or sealed interface is required: $propertyKType")
+              // We allow sealed interfaces where all subclasses also pass validation.
+              propertyType.isInterface && kl.isSealed -> validate(kl).also { kl.sealedSubclasses.map { validate(it) } }
+              kl.isData -> validate(kl)
+            }
           }
         }
         else -> unexpected()

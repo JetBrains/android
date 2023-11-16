@@ -228,7 +228,7 @@ public class UIUtils {
     String text = "<html><head><style>body { font-family: " + defaultFont.getFamily() + "; margin: 0px; } " +
                   "ol {margin: 0 0 0 20px; } ul {list-style-type: circle; margin: 0 0 0 20px; } " +
                   "li {margin: 0 0 10px 10px; } " +
-                  "code { font-family: 'Roboto Mono', 'Courier New', monospace; color: " + getCssColor(CODE_COLOR) + "; font-size: 1em; }" +
+                  "code { font-family: monospace; color: " + getCssColor(CODE_COLOR) + "; font-size: 1em;}" +
                   // In some scenario, containers render contents at 0 height on theme change. Override this class to have 1px of top margin
                   // in that event and accommodate the size change in your document.
                   ".as-shim { margin: 0 0 0 0; }";

@@ -17,10 +17,10 @@ package com.android.tools.idea.compose.annotator.check.device
 
 import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.intellij.openapi.actionSystem.DataProvider
-import kotlin.test.assertFails
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -82,7 +82,7 @@ internal class DimensionParameterRuleTest {
     val rule = DimensionParameterRule(name = "bar", defaultNumber = 100)
 
     // Calling fix before checkValue
-    assertFails { rule.attemptFix("abc", dataProvider) }
+    assertThrows(Throwable::class.java) { rule.attemptFix("abc", dataProvider) }
 
     fun checkAndFix(valueToCheckAndFix: String): String? {
       rule.checkValue(valueToCheckAndFix, dataProvider)

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.rendering.RenderProblem
 import com.intellij.openapi.project.Project
 
 /** A [RenderProblem.RunnableFixFactory] that creates [ShowExceptionFix] as the [Runnable] fix. */

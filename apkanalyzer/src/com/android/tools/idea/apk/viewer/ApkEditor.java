@@ -461,6 +461,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     }
 
     List<FileEditorProvider> providers = FileEditorProviderManager.getInstance().getProviderList(myProject, file);
+
     // Skip 9 patch editor since nine patch information has been stripped out.
     return providers.stream().filter(
       fileEditorProvider -> !fileEditorProvider.getClass().getName().equals("com.android.tools.idea.editors.NinePatchEditorProvider")).findFirst();

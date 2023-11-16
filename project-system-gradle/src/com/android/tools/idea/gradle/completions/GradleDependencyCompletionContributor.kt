@@ -30,14 +30,15 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.PlatformPatterns.psiFile
+import com.intellij.patterns.PsiElementPattern
 import com.intellij.patterns.StandardPatterns
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
@@ -46,6 +47,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlo
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral
 import org.toml.lang.TomlLanguage
+import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlLiteral
 import org.toml.lang.psi.TomlTable
 
@@ -137,6 +139,24 @@ private val LIBRARIES_IN_VERSIONS_TOML_PATTTERN = psiElement()
   .inFile(INSIDE_VERSIONS_TOML_FILE)
   .withSuperParent(3, TOML_LIBRARIES_TABLE_PATTERN)
 
+// Literal in inline TOML table for library dependency
+private fun createLiteralTomlPattern(pattern: PsiElementPattern.Capture<TomlKeyValue>) =
+    psiElement()
+      .withLanguage(TomlLanguage)
+      .withParent(TomlLiteral::class.java)
+      .inFile(INSIDE_VERSIONS_TOML_FILE)
+      .withSuperParent(2, pattern)
+      .withSuperParent(5,TOML_LIBRARIES_TABLE_PATTERN)
+
+// Creates pattern for key value with given key name
+private fun createKeyValuePattern(keyName:String) =
+  psiElement(TomlKeyValue::class.java).with(
+    object : PatternCondition<TomlKeyValue>(null) {
+      override fun accepts(keyValue: TomlKeyValue, context: ProcessingContext?): Boolean =
+        keyValue.key.text == keyName
+    }
+  )
+
 /**
  * Allowed pattern for providing auto-completion when managing dependencies in gradle projects.
  *
@@ -153,6 +173,20 @@ private val ALLOW_CODE_COMPLETION_PATTERN = psiElement()
     DEPENDENCIES_IN_BUILD_SRC_JAVA_PATTERN,
     LIBRARIES_IN_VERSIONS_TOML_PATTTERN,
   )
+
+const val GROUP_ELEMENT_TOML = "group"
+const val MODULE_ELEMENT_TOML = "module"
+const val NAME_ELEMENT_TOML = "name"
+const val VERSION_ELEMENT_TOML = "version"
+
+private val ALLOW_INLINE_TOML_COMPLETION_PATTERN = psiElement()
+  .andOr(
+    createLiteralTomlPattern (createKeyValuePattern(GROUP_ELEMENT_TOML)),
+    createLiteralTomlPattern (createKeyValuePattern(MODULE_ELEMENT_TOML)),
+    createLiteralTomlPattern (createKeyValuePattern(NAME_ELEMENT_TOML)),
+    createLiteralTomlPattern (createKeyValuePattern(VERSION_ELEMENT_TOML))
+  )
+
 
 /**
  * Code completion for managing dependencies in gradle projects in [ALLOW_CODE_COMPLETION_PATTERN] context.
@@ -173,9 +207,37 @@ class GradleDependencyCompletionContributor : CompletionContributor() {
         }
       }
     )
+    extend(
+      CompletionType.BASIC,
+      ALLOW_INLINE_TOML_COMPLETION_PATTERN,
+      object : CompletionProvider<CompletionParameters>() {
+        override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+          parameters.position.module ?: return
+          val keyValue = parameters.position.parent.parent as? TomlKeyValue
+          val name = keyValue?.key?.text
+          result.addAllElements(generateLookupFor(name))
+        }
+      }
+    )
   }
 
-  private fun generateLookup(): Collection<LookupElement> {
+  private fun generateLookupFor(tomlElementName: String?): Collection<LookupElement> {
+    val lookUpElements = generateLookup()
+    val suggestions: Set<String> = when (tomlElementName) {
+      GROUP_ELEMENT_TOML -> lookUpElements.map { it.coordinate.groupId }.toSet()
+      MODULE_ELEMENT_TOML -> lookUpElements.map { it.coordinate.groupId + ":" + it.coordinate.artifactId }.toSet()
+      NAME_ELEMENT_TOML -> lookUpElements.map { it.coordinate.artifactId }.toSet()
+      VERSION_ELEMENT_TOML -> lookUpElements.map { it.coordinate.version }.toSet()
+      else -> setOf()
+    }
+    return suggestions.map {
+      object : LookupElement() {
+        override fun getLookupString(): String = it
+      }
+    }
+  }
+
+  private fun generateLookup(): Collection<CoordinateLookUpElement> {
     return MavenClassRegistryManager.getInstance()
       .getMavenClassRegistry()
       .getCoordinates()
@@ -201,7 +263,8 @@ class GradleDependencyCompletionContributor : CompletionContributor() {
  */
 class EnableAutoPopupInStringLiteralForGradleDependencyCompletion : CompletionConfidence() {
   override fun shouldSkipAutopopup(contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState {
-    if (ALLOW_CODE_COMPLETION_PATTERN.accepts(contextElement)) return ThreeState.NO
+    if (ALLOW_CODE_COMPLETION_PATTERN.accepts(contextElement) ||
+        ALLOW_INLINE_TOML_COMPLETION_PATTERN.accepts(contextElement)) return ThreeState.NO
 
     return ThreeState.UNSURE
   }

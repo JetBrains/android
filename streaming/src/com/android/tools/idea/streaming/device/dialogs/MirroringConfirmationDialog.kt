@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.streaming.device.dialogs
 
-import com.android.tools.idea.streaming.CloseDialogAction
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.CloseDialogAction
 import com.android.tools.idea.streaming.StreamingBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
@@ -72,7 +73,9 @@ internal class MirroringConfirmationDialog(@NlsContexts.DialogTitle val title: S
       createActions = {
         listOf(
           CloseDialogAction(dialogPanel, "Acknowledge", ACCEPT_EXIT_CODE, isDefault = true),
-          CloseDialogAction(dialogPanel, "Disable Mirroring", REJECT_EXIT_CODE)
+          CloseDialogAction(dialogPanel,
+                            if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) "Cancel" else "Disable Mirroring",
+                            REJECT_EXIT_CODE)
         )
       })
   }

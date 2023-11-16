@@ -23,7 +23,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.FastPreviewRule
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -31,22 +30,19 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.ActionLink
 import com.intellij.xml.util.XmlStringUtil
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TestRule
 
 /** Use this method when [PreviewIssueNotificationAction] should not create a popup. */
 @Suppress("UNUSED_PARAMETER")
@@ -54,9 +50,7 @@ private fun noPopupFactor(project: Project, dataContext: DataContext): Informati
   throw IllegalStateException("Unexpected popup created")
 
 internal class PreviewIssueNotificationActionTest {
-  val projectRule = AndroidProjectRule.inMemory()
-
-  @get:Rule val chain: TestRule = RuleChain.outerRule(projectRule).around(FastPreviewRule())
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val composePreviewManager = TestComposePreviewManager()
 
@@ -80,10 +74,7 @@ internal class PreviewIssueNotificationActionTest {
 
   @Test
   fun `check simple states`() {
-    val action =
-      PreviewIssueNotificationAction(::noPopupFactor).also {
-        Disposer.register(projectRule.testRootDisposable, it)
-      }
+    val action = PreviewIssueNotificationAction(projectRule.testRootDisposable, ::noPopupFactor)
     val event = TestActionEvent.createTestEvent(context)
 
     action.update(event)
@@ -131,10 +122,7 @@ internal class PreviewIssueNotificationActionTest {
 
   @Test
   fun `check state priorities`() {
-    val action =
-      PreviewIssueNotificationAction(::noPopupFactor).also {
-        Disposer.register(projectRule.testRootDisposable, it)
-      }
+    val action = PreviewIssueNotificationAction(projectRule.testRootDisposable, ::noPopupFactor)
     val event = TestActionEvent.createTestEvent(context)
 
     composePreviewManager.currentStatus =
@@ -333,17 +321,21 @@ internal class PreviewIssueNotificationActionTest {
         override fun hidePopup() {}
         override fun showPopup(disposableParent: Disposable, event: InputEvent) {}
         override fun isVisible(): Boolean = false
+        override fun dispose() {}
       }
 
     var popupRequested = 0
     val action =
-      PreviewIssueNotificationAction { _, _ ->
-          popupRequested++
-          fakePopup
-        }
-        .also { Disposer.register(projectRule.testRootDisposable, it) }
-    val event = TestActionEvent.createTestEvent(action, context, MouseEvent(
-        JPanel(), 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1))
+      PreviewIssueNotificationAction(projectRule.testRootDisposable) { _, _ ->
+        popupRequested++
+        fakePopup
+      }
+    val event =
+      TestActionEvent.createTestEvent(
+        action,
+        context,
+        MouseEvent(JPanel(), 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1)
+      )
     action.update(event)
     assertEquals(0, popupRequested)
     action.actionPerformed(event)

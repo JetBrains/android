@@ -33,22 +33,25 @@ import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 
-fun ProjectRule.createFakeActionEvent(issueNotificationAction: IssueNotificationAction): AnActionEvent {
-  val dataContext = object : DataContext {
-    var files: Array<VirtualFile> = arrayOf()
+fun ProjectRule.createFakeActionEvent(
+  issueNotificationAction: IssueNotificationAction
+): AnActionEvent {
+  val dataContext =
+    object : DataContext {
+      var files: Array<VirtualFile> = arrayOf()
 
-    override fun getData(dataId: String): Any {
-      return project
-    }
+      override fun getData(dataId: String): Any {
+        return project
+      }
 
-    override fun <T> getData(key: DataKey<T>): T? {
-      @Suppress("UNCHECKED_CAST")
-      return when (key) {
-        CommonDataKeys.PROJECT -> project as T
-        else -> null
+      override fun <T> getData(key: DataKey<T>): T? {
+        @Suppress("UNCHECKED_CAST")
+        return when (key) {
+          CommonDataKeys.PROJECT -> project as T
+          else -> null
+        }
       }
     }
-  }
 
   val mouseEvent = createFakeMouseEvent()
   AnActionEvent.createFromInputEvent(
@@ -56,47 +59,39 @@ fun ProjectRule.createFakeActionEvent(issueNotificationAction: IssueNotification
     ActionPlaces.EDITOR_POPUP,
     PresentationFactory().getPresentation(issueNotificationAction),
     ActionToolbar.getDataContextFor(mouseEvent.component),
-    false, true
+    false,
+    true
   )
   return AnActionEvent.createFromInputEvent(mouseEvent, "", Presentation(), dataContext)
 }
 
-fun createFakeMouseEvent(): MouseEvent = MouseEvent(
-  object : JComponent() {},
-  0,
-  0,
-  0,
-  0,
-  0,
-  1,
-  true,
-  MouseEvent.BUTTON1
-)
+fun createFakeMouseEvent(): MouseEvent =
+  MouseEvent(object : JComponent() {}, 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1)
 
-fun createFakeAlarm(
-  onAddRequest: (Int) -> Unit = { },
-  onCancelAllRequest: () -> Unit = { }
-) = object : Alarm() {
-  override fun cancelAllRequests(): Int {
-    onCancelAllRequest()
-    return super.cancelAllRequests()
-  }
+fun createFakeAlarm(onAddRequest: (Int) -> Unit = {}, onCancelAllRequest: () -> Unit = {}) =
+  object : Alarm() {
+    override fun cancelAllRequests(): Int {
+      onCancelAllRequest()
+      return super.cancelAllRequests()
+    }
 
-  override fun addRequest(request: Runnable, delayMillis: Int) {
-    request.run()
-    onAddRequest(delayMillis)
+    override fun addRequest(request: Runnable, delayMillis: Int) {
+      request.run()
+      onAddRequest(delayMillis)
+    }
   }
-}
 
 fun createFakePopup(
   onHidePopup: () -> Unit = {},
   onShowPopup: () -> Unit = {},
   onMouseEnterCallback: () -> Unit = {},
   isPopupVisible: Boolean = false
-): InformationPopup = object : InformationPopup {
-  override val popupComponent: JComponent = object : JComponent() {}
-  override var onMouseEnteredCallback: () -> Unit = onMouseEnterCallback
-  override fun hidePopup() = onHidePopup()
-  override fun showPopup(disposableParent: Disposable, event: InputEvent) = onShowPopup()
-  override fun isVisible(): Boolean = isPopupVisible
-}
+): InformationPopup =
+  object : InformationPopup {
+    override val popupComponent: JComponent = object : JComponent() {}
+    override var onMouseEnteredCallback: () -> Unit = onMouseEnterCallback
+    override fun hidePopup() = onHidePopup()
+    override fun showPopup(disposableParent: Disposable, event: InputEvent) = onShowPopup()
+    override fun isVisible(): Boolean = isPopupVisible
+    override fun dispose() {}
+  }

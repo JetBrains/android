@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.tests.util;
 
-import static org.fest.swing.util.Strings.match;
-
-import java.util.regex.Pattern;
 import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.regex.Pattern;
+
+import static org.fest.swing.util.Strings.match;
 
 public class NotMatchingPatternMatcher implements TextMatcher {
   @NotNull private final Pattern myPattern;

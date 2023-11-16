@@ -36,19 +36,24 @@ import com.android.tools.idea.insights.events.FatalityToggleChanged
 import com.android.tools.idea.insights.events.IntervalChanged
 import com.android.tools.idea.insights.events.IssueToggled
 import com.android.tools.idea.insights.events.OSesChanged
+import com.android.tools.idea.insights.events.PersistSettingsAdapter
 import com.android.tools.idea.insights.events.ResetSnapshot
+import com.android.tools.idea.insights.events.RestoreFilterFromSettings
 import com.android.tools.idea.insights.events.SafeFiltersAdapter
 import com.android.tools.idea.insights.events.SelectedIssueChanged
 import com.android.tools.idea.insights.events.SignalChanged
 import com.android.tools.idea.insights.events.VersionsChanged
+import com.android.tools.idea.insights.events.VisibilityChanged
 import com.android.tools.idea.insights.events.actions.ActionContext
 import com.android.tools.idea.insights.events.actions.ActionDispatcher
 import com.android.tools.idea.insights.events.actions.AppInsightsActionQueue
-import com.android.tools.idea.insights.inspection.CrashToLineNaiveMapper
+import com.android.tools.idea.insights.persistence.AppInsightsSettings
+import com.android.tools.idea.insights.persistence.InsightsFilterSettings
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.ImmutableSetMultimap
 import com.google.common.collect.SetMultimap
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -65,11 +70,14 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
+
+private val LOG = Logger.getInstance(AppInsightsProjectLevelControllerImpl::class.java)
 
 private data class ProjectState(
   val currentState: AppInsightsState,
@@ -77,12 +85,12 @@ private data class ProjectState(
 )
 
 class AppInsightsProjectLevelControllerImpl(
+  override val key: InsightsProviderKey,
   override val coroutineScope: CoroutineScope,
   dispatcher: CoroutineDispatcher,
   appInsightsClient: AppInsightsClient,
-  appConnection: Flow<List<VariantConnection>>,
-  offlineStatus: Flow<ConnectionMode>,
-  private val setOfflineMode: (ConnectionMode) -> Unit,
+  appConnection: Flow<List<Connection>>,
+  private val offlineStatusManager: OfflineStatusManager,
   @TestOnly private val flowStart: SharingStarted = SharingStarted.Eagerly,
   private val onIssuesChanged: () -> Unit = {},
   private val tracker: AppInsightsTracker,
@@ -90,7 +98,6 @@ class AppInsightsProjectLevelControllerImpl(
   private val project: Project,
   queue: AppInsightsActionQueue,
   onErrorAction: (String, HyperlinkListener?) -> Unit,
-  connectionInferrer: ActiveConnectionInferrer,
   private val defaultFilters: Filters,
   cache: AppInsightsCache
 ) : AppInsightsProjectLevelController {
@@ -115,7 +122,7 @@ class AppInsightsProjectLevelControllerImpl(
    * Represents a flow that is used by filter selectors and refresh to inject [ChangeEvent]s into
    * the main event flow(below).
    */
-  private val eventFlow: MutableSharedFlow<ChangeEvent> = MutableSharedFlow(extraBufferCapacity = 2)
+  val eventFlow: MutableSharedFlow<ChangeEvent> = MutableSharedFlow(extraBufferCapacity = 2)
 
   /**
    * A view of [AppInsightsIssue]s grouped by the filename they are associated to.
@@ -128,6 +135,22 @@ class AppInsightsProjectLevelControllerImpl(
 
   private val mutableIssuesPerFilename: AtomicReference<SetMultimap<String, IssueInFrame>> =
     AtomicReference(ImmutableSetMultimap.of())
+
+  private val settings: InsightsFilterSettings?
+    get() = project.service<AppInsightsSettings>().tabSettings[key.displayName]
+
+  /** Restores persisted settings on the first non empty connections list. */
+  private val connectionsFlow = flow {
+    var shouldRestorePreviousConfig = true
+    appConnection.collect { connections ->
+      var event: ChangeEvent = ConnectionsChanged(connections, defaultFilters)
+      if (shouldRestorePreviousConfig && connections.isNotEmpty()) {
+        shouldRestorePreviousConfig = false
+        settings?.let { event = RestoreFilterFromSettings(it, event) }
+      }
+      emit(wrapAdapters(event))
+    }
+  }
 
   init {
     val initialState =
@@ -147,21 +170,18 @@ class AppInsightsProjectLevelControllerImpl(
     @Suppress("RequiredOptIn")
     state =
       merge(
-          eventFlow,
-          appConnection.map {
-            SafeFiltersAdapter(ConnectionsChanged(it, connectionInferrer, defaultFilters))
-          },
-          offlineStatus.map { it.toEvent() }
+          eventFlow.map { wrapAdapters(it) },
+          connectionsFlow,
+          offlineStatusManager.offlineStatus.map { it.toEvent() }
         )
         .fold(initialState) { (currentState, lastGoodState), event ->
-          Logger.getInstance(AppInsightsProjectLevelControllerImpl::class.java)
-            .info("Got event $event for $project.")
+          LOG.debug("Got event $event for $project.")
           val (newState, action) = event.transition(currentState, tracker)
           if (currentState.issues != newState.issues) {
             updateIssueIndex(computeIssuesPerFilename(newState.issues.map { it.value }))
           }
           if (currentState.mode != newState.mode) {
-            setOfflineMode(newState.mode)
+            offlineStatusManager.enterMode(newState.mode)
           }
           ProjectState(
               currentState = newState,
@@ -208,7 +228,7 @@ class AppInsightsProjectLevelControllerImpl(
     emit(SignalChanged(value))
   }
 
-  override fun selectConnection(value: VariantConnection) {
+  override fun selectConnection(value: Connection) {
     emit(ActiveConnectionChanged(value))
   }
 
@@ -236,6 +256,10 @@ class AppInsightsProjectLevelControllerImpl(
     emit(DeleteNoteRequested(note.id))
   }
 
+  override fun selectVisibilityType(value: VisibilityType) {
+    emit(VisibilityChanged(value))
+  }
+
   override fun selectTimeInterval(value: TimeIntervalFilter) {
     emit(IntervalChanged(value))
   }
@@ -257,14 +281,26 @@ class AppInsightsProjectLevelControllerImpl(
   }
 
   private suspend fun doEmit(event: ChangeEvent) {
-    eventFlow.emit(SafeFiltersAdapter(event))
+    eventFlow.emit(event)
   }
 
-  override fun retrieveLineMatches(file: PsiFile): List<AppInsight> =
-    CrashToLineNaiveMapper(this::issuesForFile) { issue ->
-        selectIssue(issue, IssueSelectionSource.INSPECTION)
-      }
-      .retrieve(file)
+  override fun insightsInFile(file: PsiFile): List<AppInsight> {
+    val issues = issuesForFile(file).also { logIssues(it, file) }
+    val selectIssueCallback = { issue: AppInsightsIssue ->
+      selectIssue(issue, IssueSelectionSource.INSPECTION)
+    }
+
+    return issues.map { issueInFrame ->
+      AppInsight(
+        line = issueInFrame.crashFrame.frame.line.toInt() - 1,
+        issue = issueInFrame.issue,
+        stackFrame = issueInFrame.crashFrame.frame,
+        cause = issueInFrame.crashFrame.cause,
+        provider = key,
+        markAsSelectedCallback = selectIssueCallback
+      )
+    }
+  }
 
   override fun insightsInFile(
     file: PsiFile,
@@ -277,10 +313,9 @@ class AppInsightsProjectLevelControllerImpl(
           issues
             .map { it.issue.issueDetails.subtitle.ifEmpty { "<missingSubtitle>" } }
             .reduce { acc, value -> acc + "\n" + value }
-        Logger.getInstance(AppInsightsProjectLevelControllerImpl::class.java)
-          .debug(
-            "Found ${issues.size} issues related to ${file.name} [\n${formattedIssues}], analyzing..."
-          )
+        LOG.debug(
+          "Found ${issues.size} issues related to ${file.name} [\n${formattedIssues}], analyzing..."
+        )
       }
       .onEach {
         analyzer.match(file, it.crashFrame)?.let { match ->
@@ -302,6 +337,20 @@ class AppInsightsProjectLevelControllerImpl(
 
   private fun issuesForFile(file: PsiFile): List<IssueInFrame> =
     file.candidateFileNames.flatMap { issuesPerFilename.get(it) }
+
+  private fun logIssues(issues: List<IssueInFrame>, file: PsiFile) {
+    if (issues.isEmpty()) return
+    val formattedIssues =
+      issues
+        .map { it.issue.issueDetails.subtitle.ifEmpty { "<missingSubtitle>" } }
+        .reduce { acc, value -> acc + "\n" + value }
+    LOG.debug(
+      "Found ${issues.size} issues related to ${file.name} [\n${formattedIssues}], analyzing..."
+    )
+  }
+
+  private fun wrapAdapters(event: ChangeEvent) =
+    PersistSettingsAdapter(SafeFiltersAdapter(event), project, key)
 }
 
 data class IssueInFrame(val crashFrame: CrashFrame, val issue: AppInsightsIssue)

@@ -66,9 +66,13 @@ import com.android.resources.base.ResourceSourceFile;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.util.FileExtensions;
+import com.android.tools.module.ModuleKeyManager;
+import com.android.tools.res.LocalResourceRepository;
+import com.android.tools.sdk.AndroidTargetData;
 import com.android.utils.Base128InputStream;
 import com.android.utils.SdkUtils;
 import com.android.utils.TraceUtils;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
@@ -142,7 +146,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Consumer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatforms;
-import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -216,7 +219,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @NotNull private final ConcurrentMap<VirtualFile, ResourceItemSource<?>> mySources = new ConcurrentHashMap<>();
   @NotNull private final PsiManager myPsiManager;
   @NotNull private final PsiNameHelper myPsiNameHelper;
-  @NotNull private final WolfTheProblemSolver myWolfTheProblemSolver;
   @NotNull private final PsiDocumentManager myPsiDocumentManager;
 
   // Repository updates have to be applied in FIFO order to produce correct results.
@@ -233,6 +235,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   private int fileRescans;
   private int layoutlibCacheFlushes;
+
+  @GuardedBy("ITEM_MAP_LOCK")
+  @Nullable
+  private Map<ResourceType, ImmutableSet<FolderConfiguration>> myResourceTypeToFolderConfigs = null;
+
+  @GuardedBy("ITEM_MAP_LOCK")
+  private long myResourceTypeToFolderConfigsGeneration = 0;
 
   /**
    * Creates a ResourceFolderRepository and loads its contents.
@@ -274,7 +283,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     myPsiManager = PsiManager.getInstance(getProject());
     myPsiDocumentManager = PsiDocumentManager.getInstance(getProject());
     myPsiNameHelper = PsiNameHelper.getInstance(getProject());
-    myWolfTheProblemSolver = WolfTheProblemSolver.getInstance(getProject());
 
     PsiTreeChangeListener psiListener = new IncrementalUpdatePsiListener();
 
@@ -347,6 +355,37 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @VisibleForTesting
   public int getLayoutlibCacheFlushes() {
     return layoutlibCacheFlushes;
+  }
+
+  public ImmutableSet<FolderConfiguration> getFolderConfigurations(ResourceType resourceType) {
+    synchronized (ITEM_MAP_LOCK) {
+      // Ideally this would be stored on CachedValuesManager since ResourceFolderRepository is already a ModificationTracker; but we can't
+      // store cached values on a VirtualFile, and this repository is designed to work without PsiElements having been creating.
+      // This logic mimics what CachedValuesManager would do in terms of invalidation and lazy creation, since this is intended for use only
+      // by the translations editor and will not be needed for a majority of scenarios.
+      long modificationCount = getModificationCount();
+      if (myResourceTypeToFolderConfigs == null || myResourceTypeToFolderConfigsGeneration != modificationCount) {
+        // Get the FolderConfiguration for every resource contained in this repository, rather than by looking at folders/files. This
+        // ensures no configuration is created for any empty files, even though the folder containing such a file would exist.
+        Map<ResourceType, Set<FolderConfiguration>> map = new HashMap<>();
+        accept(item -> {
+          Set<FolderConfiguration> set = map.computeIfAbsent(item.getType(), key -> new HashSet<>());
+          set.add(item.getConfiguration());
+
+          return ResourceVisitor.VisitResult.CONTINUE;
+        });
+
+        // Convert to immutable sets to codify that consumers cannot modify the values.
+        myResourceTypeToFolderConfigs = new HashMap<>();
+        myResourceTypeToFolderConfigsGeneration = modificationCount;
+        for (Map.Entry<ResourceType, Set<FolderConfiguration>> entry : map.entrySet()) {
+          myResourceTypeToFolderConfigs.put(entry.getKey(), ImmutableSet.copyOf(entry.getValue()));
+        }
+      }
+
+      ImmutableSet<FolderConfiguration> folderConfigurations = myResourceTypeToFolderConfigs.get(resourceType);
+      return folderConfigurations != null ? folderConfigurations : ImmutableSet.of();
+    }
   }
 
   private static void addToResult(@NotNull ResourceItem item,
@@ -613,7 +652,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     if (FileResourceNameValidator.getErrorTextForFileResource(file.getFileName(), folderType) != null) {
       VirtualFile virtualFile = FileExtensions.toVirtualFile(file);
       if (virtualFile != null) {
-        myWolfTheProblemSolver.reportProblemsFromExternalSource(virtualFile, this);
+        WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this);
       }
     }
     return myPsiNameHelper.isIdentifier(SdkUtils.fileNameToResourceName(file.getFileName()));
@@ -623,7 +662,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     if (FileResourceNameValidator.getErrorTextForFileResource(file.getName(), folderType) != null) {
       VirtualFile virtualFile = file.getVirtualFile();
       if (virtualFile != null) {
-        myWolfTheProblemSolver.reportProblemsFromExternalSource(virtualFile, this);
+        WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this);
       }
     }
     return myPsiNameHelper.isIdentifier(SdkUtils.fileNameToResourceName(file.getName()));
@@ -1084,7 +1123,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    */
   private void bitmapUpdated(@NotNull VirtualFile bitmap) {
     Module module = myFacet.getModule();
-    getAndroidTargetDataThenRun(bitmap, targetData -> targetData.clearLayoutBitmapCache(module));
+    getAndroidTargetDataThenRun(bitmap, targetData -> targetData.clearLayoutBitmapCache(ModuleKeyManager.INSTANCE.getKey(module)));
   }
 
   /**
@@ -1975,7 +2014,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       if (source != null) {
         removeSource(file, source);
       }
-      myWolfTheProblemSolver.clearProblemsFromExternalSource(file, this);
+      WolfTheProblemSolver.getInstance(getProject()).clearProblemsFromExternalSource(file, this);
     }
   }
 

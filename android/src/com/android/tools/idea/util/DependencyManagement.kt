@@ -19,12 +19,13 @@ package com.android.tools.idea.util
 
 import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.support.AndroidxName
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.DependencyManagementException
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getSyncManager
@@ -118,7 +119,8 @@ fun Module.dependsOnAppCompat(): Boolean =
 @UiThread
 fun Module.addDependenciesWithUiConfirmation(coordinates: List<GradleCoordinate>,
                                              promptUserBeforeAdding: Boolean,
-                                             requestSync: Boolean = true)
+                                             requestSync: Boolean = true,
+                                             dependencyType: DependencyType = DependencyType.IMPLEMENTATION)
   : List<GradleCoordinate> {
   ThreadingAssertions.assertEventDispatchThread()
   if (coordinates.isEmpty()) {
@@ -151,7 +153,7 @@ fun Module.addDependenciesWithUiConfirmation(coordinates: List<GradleCoordinate>
       val coordinatesToExceptions: ArrayList<Pair<GradleCoordinate, DependencyManagementException>> = ArrayList()
       for (coordinate in compatibleDependencies) {
         try {
-          moduleSystem.registerDependency(coordinate)
+          moduleSystem.registerDependency(coordinate, dependencyType)
         }
         catch (e: DependencyManagementException) {
           coordinatesToExceptions.add(Pair(coordinate, e))

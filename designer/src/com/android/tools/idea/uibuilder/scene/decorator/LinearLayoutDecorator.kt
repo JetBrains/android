@@ -25,11 +25,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawComponentBackground
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler
-import java.awt.Color
-import java.awt.GradientPaint
-import java.awt.Graphics2D
-import java.awt.Paint
-import java.awt.Rectangle
+import java.awt.*
 
 class LinearLayoutDecorator : SceneDecorator() {
 
@@ -37,13 +33,15 @@ class LinearLayoutDecorator : SceneDecorator() {
     internal val paint: Paint?
     internal val vertical: Boolean
 
-    constructor(@SwingCoordinate x: Int,
-                @SwingCoordinate y: Int,
-                @SwingCoordinate width: Int,
-                @SwingCoordinate height: Int,
-                paint: Paint? = null,
-                vertical: Boolean = false,
-                mode: Int = DrawComponentBackground.NORMAL) : super(x, y, width, height, mode) {
+    constructor(
+      @SwingCoordinate x: Int,
+      @SwingCoordinate y: Int,
+      @SwingCoordinate width: Int,
+      @SwingCoordinate height: Int,
+      paint: Paint? = null,
+      vertical: Boolean = false,
+      mode: Int = DrawComponentBackground.NORMAL
+    ) : super(x, y, width, height, mode) {
       this.paint = paint
       this.vertical = vertical
     }
@@ -64,8 +62,7 @@ class LinearLayoutDecorator : SceneDecorator() {
         g.fillRect(0, 0, width, GRADIENT_SIZE.toInt())
         g.rotate(Math.PI, width / 2.0, height / 2.0)
         g.fillRect(0, 0, width, GRADIENT_SIZE.toInt())
-      }
-      else {
+      } else {
         g.fillRect(0, 0, GRADIENT_SIZE.toInt(), height)
         g.rotate(Math.PI, width / 2.0, height / 2.0)
         g.fillRect(0, 0, GRADIENT_SIZE.toInt(), height)
@@ -76,9 +73,11 @@ class LinearLayoutDecorator : SceneDecorator() {
     }
   }
 
-  override fun addBackground(list: DisplayList,
-                             sceneContext: SceneContext,
-                             component: SceneComponent) {
+  override fun addBackground(
+    list: DisplayList,
+    sceneContext: SceneContext,
+    component: SceneComponent
+  ) {
     @AndroidDpCoordinate val rect = Rectangle()
     component.fillDrawRect(0, rect)
     @SwingCoordinate val l = sceneContext.getSwingXDip(rect.x.toFloat())
@@ -88,7 +87,8 @@ class LinearLayoutDecorator : SceneDecorator() {
 
     var vertical = false
     sceneContext.surface?.project?.let {
-      val handler = ViewHandlerManager.get(it).getHandler(SdkConstants.LINEAR_LAYOUT) as LinearLayoutHandler
+      val handler =
+        ViewHandlerManager.get(it).getHandler(SdkConstants.LINEAR_LAYOUT) {} as LinearLayoutHandler
       vertical = handler.isVertical(component.nlComponent)
     }
 
@@ -98,8 +98,9 @@ class LinearLayoutDecorator : SceneDecorator() {
     val darkRgb = solid.darker().darker().rgb
     val transparent1 = Color((darkRgb and 0xFFFFFF) or 0x8F000000.toInt(), true)
     val transparent2 = Color(baseRgb and 0xFFFFFF, true)
-    val paint = if (vertical) GradientPaint(0f, 0f, transparent1, 0f, GRADIENT_SIZE, transparent2)
-    else GradientPaint(0f, 0f, transparent1, GRADIENT_SIZE, 0f, transparent2)
+    val paint =
+      if (vertical) GradientPaint(0f, 0f, transparent1, 0f, GRADIENT_SIZE, transparent2)
+      else GradientPaint(0f, 0f, transparent1, GRADIENT_SIZE, 0f, transparent2)
     list.add(LinearLayoutDecorator.DrawLinearLayout(l, t, w, h, paint, vertical))
 
     // Draw the regular background for hover only.

@@ -82,7 +82,7 @@ public class SingleDeclaredLibraryDependencyDetails implements ConfigurationDepe
     if (myVersionPropertyEditor == null) {
       myVersionPropertyEditor =
         DeclaredLibraryDependencyUiProperties.INSTANCE.makeVersionUiProperty(dependency)
-          .createEditor(myContext, dependency.getParent().getParent(), dependency.getParent(), Unit.INSTANCE, null);
+          .createEditor(myContext, dependency.getParent().getParent(), dependency.getParent(), Unit.INSTANCE, null, null);
       myEditorComponent = myVersionPropertyEditor.getComponent();
       myEditorComponent.setName("version");
       myRequestedVersion.add(myEditorComponent);

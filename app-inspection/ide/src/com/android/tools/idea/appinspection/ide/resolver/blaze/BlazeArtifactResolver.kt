@@ -15,19 +15,16 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver.blaze
 
-import com.android.tools.idea.appinspection.api.blazeFileName
 import com.android.tools.idea.appinspection.ide.resolver.INSPECTOR_JAR
 import com.android.tools.idea.appinspection.ide.resolver.ModuleSystemArtifactFinder
-import com.android.tools.idea.appinspection.ide.resolver.createRandomTempDir
-import com.android.tools.idea.appinspection.ide.resolver.extractZipIfNeeded
 import com.android.tools.idea.appinspection.ide.resolver.resolveExistsOrNull
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
-import java.nio.file.Path
 import kotlinx.coroutines.withContext
+import java.nio.file.Path
 
 /**
  * Special handling for blaze projects:
@@ -54,14 +51,7 @@ class BlazeArtifactResolver(
 ) : ArtifactResolver {
   override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path =
     withContext(AndroidDispatchers.diskIoThread) {
-      moduleSystemArtifactFinder.findLibrary(artifactCoordinate)?.let { libraryPath ->
-        extractZipIfNeeded(fileService.createRandomTempDir(), libraryPath)
-          .resolveExistsOrNull(artifactCoordinate.blazeFileName)
-          ?.let {
-            extractZipIfNeeded(fileService.createRandomTempDir(), it)
-              .resolveExistsOrNull(INSPECTOR_JAR)
-          }
-      }
+      moduleSystemArtifactFinder.findLibrary(artifactCoordinate)?.resolveExistsOrNull(INSPECTOR_JAR)
         ?: throw AppInspectionArtifactNotFoundException(
           "Artifact not found in blaze module system.",
           artifactCoordinate

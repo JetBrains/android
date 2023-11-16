@@ -19,43 +19,40 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorGotoDeclarati
 import com.intellij.openapi.actionSystem.AnActionEvent
 import java.awt.event.KeyEvent
 
-/**
- * Accumulator for Goto Declaration events.
- */
+/** Accumulator for Goto Declaration events. */
 class GotoDeclarationStatistics {
-  /**
-   * How many times was the popup menu for "Goto Declaration" used
-   */
+  /** How many times was the popup menu for "Goto Declaration" used */
   private var menuActionClicks = 0
 
-  /**
-   * How many times was the keyboard shortcut for "Goto Declaration" used
-   */
+  /** How many times was the keyboard shortcut for "Goto Declaration" used */
   private var actionShortcutKeyStrokes = 0
 
-  /**
-   * How many times was double click for "Goto Declaration" used
-   */
-  private var doubleClicks = 0
+  /** How many times was double click for "Goto Declaration" used, from the component tree */
+  private var treeDoubleClicks = 0
 
-  /**
-   * Start a new session by resetting all counters.
-   */
+  /** How many times was double click for "Goto Declaration" used, from the device image */
+  private var renderDoubleClicks = 0
+
+  /** Start a new session by resetting all counters. */
   fun start() {
     menuActionClicks = 0
     actionShortcutKeyStrokes = 0
-    doubleClicks = 0
+    treeDoubleClicks = 0
   }
 
-  /**
-   * Save the session data recorded since [start].
-   */
+  /** Save the session data recorded since [start]. */
   fun save(dataSupplier: () -> DynamicLayoutInspectorGotoDeclaration.Builder) {
-    if (menuActionClicks > 0 || actionShortcutKeyStrokes > 0 || doubleClicks > 0) {
+    if (
+      menuActionClicks > 0 ||
+        actionShortcutKeyStrokes > 0 ||
+        treeDoubleClicks > 0 ||
+        renderDoubleClicks > 0
+    ) {
       dataSupplier().let {
         it.clicksMenuAction = menuActionClicks
         it.keyStrokesShortcut = actionShortcutKeyStrokes
-        it.doubleClicks = doubleClicks
+        it.doubleClicks = treeDoubleClicks
+        it.doubleClicksFromRender = renderDoubleClicks
       }
     }
   }
@@ -63,13 +60,16 @@ class GotoDeclarationStatistics {
   fun gotoSourceFromTreeActionMenu(event: AnActionEvent) {
     if (event.inputEvent is KeyEvent) {
       actionShortcutKeyStrokes++
-    }
-    else {
+    } else {
       menuActionClicks++
     }
   }
 
-  fun gotoSourceFromDoubleClick() {
-    doubleClicks++
+  fun gotoSourceFromTreeDoubleClick() {
+    treeDoubleClicks++
+  }
+
+  fun gotoSourceFromRenderDoubleClick() {
+    renderDoubleClicks++
   }
 }

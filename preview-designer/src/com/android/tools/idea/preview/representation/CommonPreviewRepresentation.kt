@@ -221,8 +221,9 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
 
     val showingPreviewElements =
       surface.updatePreviewsAndRefresh(
-        true,
-        previewElementProvider,
+        tryReusingModels = true,
+        reinflate = true,
+        previewElementProvider.previewElements().toList(),
         LOG,
         psiFile,
         this,
@@ -308,7 +309,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       }
     }
 
-  private fun createRefreshJob(invalidate: Boolean): Job? {
+  fun createRefreshJob(invalidate: Boolean): Job? {
     val startTime = System.nanoTime()
     val refreshProgressIndicator =
       BackgroundableProcessIndicator(

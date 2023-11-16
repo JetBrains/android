@@ -19,7 +19,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
-        "//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.4.0-SNAPSHOT",
+        "//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.5.1",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/android-material:intellij.android.android-material[module]",
@@ -35,14 +35,14 @@ iml_module(
     test_class = "com.android.tools.tests.ComposeTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:licenses",
         "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/compose-ide-plugin/testData",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
         "//tools/base/build-system:gradle-distrib",
-        "//prebuilts/studio/sdk:licenses",
-        "//tools/adt/idea/compose-ide-plugin/testData",
+        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_friends = ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"],
     test_srcs = ["testSrc"],
@@ -68,7 +68,7 @@ iml_module(
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api[module, test]",
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
-        "//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.4.0-SNAPSHOT",
+        "//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.5.1",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/android-material:intellij.android.android-material[module, test]",
     ],
@@ -78,7 +78,7 @@ load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "compiler-hosted-1.4.0-SNAPSHOT",
-    jars = ["lib/compiler-hosted-1.4.0-SNAPSHOT.jar"],
+    name = "compiler-hosted-1.5.1",
+    jars = ["lib/compiler-hosted-1.5.1.jar"],
     visibility = ["//visibility:public"],
 )

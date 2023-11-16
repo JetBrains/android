@@ -42,6 +42,8 @@ data class IssueResponse(
 )
 
 interface AppInsightsClient {
+  suspend fun listConnections(): LoadingState.Done<List<AppConnection>>
+
   suspend fun listTopOpenIssues(
     request: IssueRequest,
     fetchSource: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource? = null,

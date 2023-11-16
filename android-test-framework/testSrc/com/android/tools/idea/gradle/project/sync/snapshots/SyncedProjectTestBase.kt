@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
+import com.android.testutils.AssumeUtil
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
@@ -104,6 +105,8 @@ abstract class SyncedProjectTestBase<TestProject: TemplateBasedTestProject>(
   abstract fun getTestDefs(testProject: TestProject): List<SyncedProjectTestDef>
 
   protected fun testProject(testProject: TestProject) {
+    // The test infrastructure does not support Windows.
+    AssumeUtil.assumeNotWindows()
     if (selfTest) throw ReportUsedProjectException(testProject)
     val testDefs = getTestDefs(testProject)
     val testDefinitions =
@@ -187,6 +190,8 @@ abstract class SyncedProjectTestSelfCheckBase<T: Any>
 {
   @Test
   fun `all test projects are tested`() {
+    // The test infrastructure does not support Windows.
+    AssumeUtil.assumeNotWindows()
     val testCase = instance
     val testMethods = syncedProjectTestCase.declaredMemberFunctions.filter { it.hasAnnotation<Test>() }
     val testedProjects = testMethods

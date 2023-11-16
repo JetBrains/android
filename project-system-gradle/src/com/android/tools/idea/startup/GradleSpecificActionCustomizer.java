@@ -50,7 +50,7 @@ public class GradleSpecificActionCustomizer implements ActionConfigurationCustom
     setUpGradleViewToolbarActions(actionManager);
   }
 
-  private void disableUnsupportedAction(ActionManager actionManager) {
+  private static void disableUnsupportedAction(ActionManager actionManager) {
     actionManager.unregisterAction("LoadUnloadModules"); // private LoadUnloadModulesActionKt.ACTION_ID
   }
 
@@ -98,14 +98,6 @@ public class GradleSpecificActionCustomizer implements ActionConfigurationCustom
     Actions.replaceAction(actionManager, "WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open"));
     Actions.replaceAction(actionManager, "WelcomeScreen.Configure.ProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
     Actions.replaceAction(actionManager, "TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
-
-    Actions.moveAction(actionManager, "WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
-               "WelcomeScreen.QuickStart", new Constraints(AFTER, "Vcs.VcsClone"));
-
-    AnAction getFromVcsAction = actionManager.getAction("Vcs.VcsClone");
-    if (getFromVcsAction != null) {
-      getFromVcsAction.getTemplatePresentation().setText("Get project from Version Control");
-    }
   }
 
   private static void replaceProjectPopupActions(ActionManager actionManager) {

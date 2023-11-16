@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.component.WatchFace
 import com.android.tools.deployer.model.component.WearComponent
 import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.run.ApkProvider
@@ -34,10 +35,11 @@ abstract class AndroidWearConfigurationExecutor(environment: ExecutionEnvironmen
                                                 deviceFutures: DeviceFutures,
                                                 appRunSettings: AppRunSettings,
                                                 applicationIdProvider: ApplicationIdProvider,
-                                                apkProvider: ApkProvider) : AndroidConfigurationExecutorBase(environment, deviceFutures,
-                                                                                                             appRunSettings,
-                                                                                                             applicationIdProvider,
-                                                                                                             apkProvider) {
+                                                apkProvider: ApkProvider,
+                                                deployer: ApplicationDeployer) : AndroidConfigurationExecutorBase(environment, deviceFutures,
+                                                                                                                  appRunSettings,
+                                                                                                                  applicationIdProvider,
+                                                                                                                  apkProvider, deployer) {
 
   override fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor {
     throw RuntimeException("Unsupported operation")
@@ -47,7 +49,7 @@ abstract class AndroidWearConfigurationExecutor(environment: ExecutionEnvironmen
     throw RuntimeException("Unsupported operation")
   }
 
-  override fun startDebugSession(
+  override suspend fun startDebugSession(
     device: IDevice,
     console: ConsoleView,
     indicator: ProgressIndicator

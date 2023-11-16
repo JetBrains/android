@@ -19,11 +19,11 @@ import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
 
 import android.view.View;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.model.LayoutParamsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.parsers.AttributeSnapshot;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;

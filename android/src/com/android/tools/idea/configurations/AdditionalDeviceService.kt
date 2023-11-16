@@ -24,11 +24,11 @@ import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
+import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
+import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
+import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
+import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.avdmanager.AvdScreenData
-import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_DESKTOP_ID
-import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_FOLDABLE_ID
-import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_PHONE_ID
-import com.android.tools.idea.configurations.AdditionalDeviceService.Companion.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAware
@@ -47,11 +47,6 @@ class AdditionalDeviceService: DumbAware {
     fun getInstance(): AdditionalDeviceService? {
       return ApplicationManager.getApplication().getService(AdditionalDeviceService::class.java)
     }
-
-    const val DEVICE_CLASS_PHONE_ID = "_device_class_phone"
-    const val DEVICE_CLASS_FOLDABLE_ID = "_device_class_foldable"
-    const val DEVICE_CLASS_TABLET_ID = "_device_class_tablet"
-    const val DEVICE_CLASS_DESKTOP_ID = "_device_class_desktop"
   }
 
   fun getWindowSizeDevices(): List<Device> = windowDevices

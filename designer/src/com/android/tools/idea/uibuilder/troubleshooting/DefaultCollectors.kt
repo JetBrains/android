@@ -27,53 +27,52 @@ import com.intellij.troubleshooting.TroubleInfoCollector
 import org.jetbrains.kotlin.idea.base.util.isGradleModule
 
 /**
- * List of prefixes of libraries that we want to collect version info from the project.
- * This list is used to prevent collecting unnecessary information of the user libraries.
+ * List of prefixes of libraries that we want to collect version info from the project. This list is
+ * used to prevent collecting unnecessary information of the user libraries.
  */
-private val libraryAllowedPrefixes = listOf(
-  "com.google.",
-  "androidx.",
-  "org.jetbrains.kotlin.",
-)
+private val libraryAllowedPrefixes =
+  listOf(
+    "com.google.",
+    "androidx.",
+    "org.jetbrains.kotlin.",
+  )
 
-/**
- * General collector with general information about the project.
- */
+/** General collector with general information about the project. */
 internal class ProjectInfoTroubleInfoCollector : TroubleInfoCollector {
   override fun collectInfo(project: Project): String {
     val output = StringBuilder()
 
     output.appendLine("Project:")
     project.modules.forEach { module ->
-      val moduleSystem = module.getModuleSystem()
-      output.appendLine(
-        """
-          Module(${module.name}): isLoaded=${module.isLoaded} isDisposed=${module.isDisposed} isGradleModule=${module.isGradleModule}
-            isAndroidTest=${module.isAndroidTestModule()} isUnitTest=${module.isUnitTestModule()}
-            useAndroidX=${moduleSystem.useAndroidX} rClassTransitive=${moduleSystem.isRClassTransitive}
-        """
-          .trimIndent()
-      )
       val scopeType =
         when {
           module.isAndroidTestModule() -> DependencyScopeType.ANDROID_TEST
           module.isUnitTestModule() -> DependencyScopeType.UNIT_TEST
           else -> DependencyScopeType.MAIN
         }
-      moduleSystem
-        .getAndroidLibraryDependencies(scopeType)
-        .filter { library -> libraryAllowedPrefixes.any { library.address.startsWith(it) } }
-        .forEach { library ->
-          output.appendLine("  Library: ${library.address} hasResources=${library.hasResources}")
-        }
+      val moduleSystem = module.getModuleSystem()
+      val libraryDependencies = moduleSystem.getAndroidLibraryDependencies(scopeType)
+      output.appendLine(
+        """
+          Module(${module.name}): isLoaded=${module.isLoaded} type=${moduleSystem.type} isDisposed=${module.isDisposed}
+            isGradleModule=${module.isGradleModule} isAndroidTest=${module.isAndroidTestModule()} isUnitTest=${module.isUnitTestModule()}
+            scopeType=$scopeType useAndroidX=${moduleSystem.useAndroidX} rClassTransitive=${moduleSystem.isRClassTransitive}
+            libDepCount=${libraryDependencies.size}
+        """
+          .trimIndent()
+      )
+      libraryDependencies.forEach { library ->
+        val libraryName =
+          if (libraryAllowedPrefixes.any { library.address.startsWith(it) }) library.address
+          else "<user-lib>"
+        output.appendLine("  Library: $libraryName hasResources=${library.hasResources}")
+      }
     }
     return output.toString()
   }
 }
 
-/**
- * [TroubleInfoCollector] for build status.
- */
+/** [TroubleInfoCollector] for build status. */
 internal class BuildStatusTroubleInfoCollector : TroubleInfoCollector {
   override fun collectInfo(project: Project): String {
     val buildManager = ProjectSystemService.getInstance(project).projectSystem.getBuildManager()
@@ -81,9 +80,7 @@ internal class BuildStatusTroubleInfoCollector : TroubleInfoCollector {
   }
 }
 
-/**
- * [TroubleInfoCollector] for [FastPreviewManager] status.
- */
+/** [TroubleInfoCollector] for [FastPreviewManager] status. */
 internal class FastPreviewTroubleInfoCollector : TroubleInfoCollector {
   override fun collectInfo(project: Project): String {
     val fastPreview = FastPreviewManager.getInstance(project)

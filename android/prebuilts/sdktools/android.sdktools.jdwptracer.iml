@@ -8,34 +8,38 @@
     <orderEntry type="module" module-name="android.sdktools.jdwppacket" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-jdwptracer" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwptracer:223.0.1.0">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwptracer:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer/223.0.1.0/studio.android.sdktools.jdwptracer-223.0.1.0.jar">
-              <sha256sum>3f12f4f727082b90fb0d8e8a07d901e116433477db8f6bbf42ed92f4d0ca9fdc</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer/231.0.1.4/studio.android.sdktools.jdwptracer-231.0.1.4.jar">
+              <sha256sum>42f5e21e34d38d3c778db902743208571b25957942d2420a3d0be47442843482</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer/223.0.1.0/studio.android.sdktools.jdwptracer-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer/231.0.1.4/studio.android.sdktools.jdwptracer-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer/231.0.1.4/studio.android.sdktools.jdwptracer-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-jdwptracer-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwptracer_test:223.0.1.0">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwptracer_test:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer_test/223.0.1.0/studio.android.sdktools.jdwptracer_test-223.0.1.0.jar">
-              <sha256sum>80543c09a0954de41172bfb44b102abde8c95ea24e996ac5564688f3a7d2af91</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer_test/231.0.1.4/studio.android.sdktools.jdwptracer_test-231.0.1.4.jar">
+              <sha256sum>ac8f6c32e9cb526eb1762c3bf201fa9dda9e0933f257cc613b8bafa862af5c2e</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer_test/223.0.1.0/studio.android.sdktools.jdwptracer_test-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer_test/231.0.1.4/studio.android.sdktools.jdwptracer_test-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwptracer_test/231.0.1.4/studio.android.sdktools.jdwptracer_test-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
   </component>

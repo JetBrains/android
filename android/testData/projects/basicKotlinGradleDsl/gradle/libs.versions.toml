@@ -1,0 +1,14 @@
+[versions]
+constraint-layout = "1.0.2"
+agpVersion = "8.0.0-beta01"  # this will be substituted by test import
+kotlinVersion = "1.7.20"
+
+[libraries]
+constraint-layout = { module = "com.android.support.constraint:constraint-layout", version.ref = "constraint-layout" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agpVersion" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinVersion" }
+
+[bundles]
+both = ["constraint-layout"]

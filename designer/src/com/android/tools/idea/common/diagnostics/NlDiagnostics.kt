@@ -15,46 +15,31 @@
  */
 package com.android.tools.idea.common.diagnostics
 
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.EvictingQueue
 import com.google.common.math.Quantiles
 import java.util.concurrent.TimeUnit
 
-/**
- * Interface for reading the diagnose information
- */
+/** Interface for reading the diagnose information */
 interface NlDiagnosticsRead {
-  /**
-   * Returns the [percentile] percentile for the render time
-   */
+  /** Returns the [percentile] percentile for the render time */
   fun renderTime(percentile: Int): Long
 
-  /**
-   * Returns the last renders time in ms
-   */
+  /** Returns the last renders time in ms */
   fun lastRenders(): List<Long>
 
-  /**
-   * Returns the last render image size in bytes
-   */
+  /** Returns the last render image size in bytes */
   fun lastRenderImageSize(): Long
 }
 
-/**
- * Interface for the layout editor to provide diagnostics information
- */
+/** Interface for the layout editor to provide diagnostics information */
 interface NlDiagnosticsWrite {
-  /**
-   * Record a render action with the time and the size of the generated image
-   */
+  /** Record a render action with the time and the size of the generated image */
   fun recordRender(timeMs: Long, lastRenderSizeBytes: Long)
 }
 
-/**
- * Implementation returned when diagnostics are disabled
- */
+/** Implementation returned when diagnostics are disabled */
 object NopNlDiagnosticsImpl : NlDiagnosticsRead, NlDiagnosticsWrite {
   override fun lastRenderImageSize(): Long = -1
 
@@ -71,42 +56,44 @@ private class NlDiagnosticsImpl : NlDiagnosticsRead, NlDiagnosticsWrite {
 
   override fun lastRenderImageSize(): Long = lastRenderImageBytes
 
-
   override fun recordRender(timeMs: Long, lastRenderSizeBytes: Long) {
     lastRenderTimes.add(timeMs)
     lastRenderImageBytes = lastRenderSizeBytes
   }
 
-  override fun renderTime(percentile: Int): Long = if (lastRenderTimes.size > 0)
-    Quantiles.percentiles().index(percentile).compute(lastRenderTimes).toLong()
-  else -1
+  override fun renderTime(percentile: Int): Long =
+    if (lastRenderTimes.size > 0)
+      Quantiles.percentiles().index(percentile).compute(lastRenderTimes).toLong()
+    else -1
 }
 
+/** Key for [NlDiagnosticsManager] to read/write from cache. */
+interface NlDiagnosticKey
+
 object NlDiagnosticsManager {
-  private val cache = CacheBuilder.newBuilder()
-    .weakKeys()
-    .expireAfterAccess(5, TimeUnit.MINUTES)
-    .build<DesignSurface<*>, NlDiagnosticsImpl>()
+  private val cache =
+    CacheBuilder.newBuilder()
+      .weakKeys()
+      .expireAfterAccess(5, TimeUnit.MINUTES)
+      .build<NlDiagnosticKey, NlDiagnosticsImpl>()
 
-  /**
-   * Returns the [NlDiagnosticsRead] instance associated to the given surface
-   */
+  /** Returns the [NlDiagnosticsRead] instance associated to the given surface */
   @JvmStatic
-  fun getReadInstance(surface: DesignSurface<*>?): NlDiagnosticsRead = if (surface == null || !NELE_RENDER_DIAGNOSTICS.get()) {
-    NopNlDiagnosticsImpl
-  }
-  else cache.get(surface) {
-    return@get NlDiagnosticsImpl()
-  }
+  fun getReadInstance(key: NlDiagnosticKey?): NlDiagnosticsRead =
+    if (key == null || !NELE_RENDER_DIAGNOSTICS.get()) {
+      NopNlDiagnosticsImpl
+    } else
+      cache.get(key) {
+        return@get NlDiagnosticsImpl()
+      }
 
-  /**
-   * Returns the [NlDiagnosticsWrite] instance associated to the given surface
-   */
+  /** Returns the [NlDiagnosticsWrite] instance associated to the given surface */
   @JvmStatic
-  fun getWriteInstance(surface: DesignSurface<*>?): NlDiagnosticsWrite = if (surface == null || !NELE_RENDER_DIAGNOSTICS.get()) {
-    NopNlDiagnosticsImpl
-  }
-  else cache.get(surface) {
-    return@get NlDiagnosticsImpl()
-  }
+  fun getWriteInstance(key: NlDiagnosticKey?): NlDiagnosticsWrite =
+    if (key == null || !NELE_RENDER_DIAGNOSTICS.get()) {
+      NopNlDiagnosticsImpl
+    } else
+      cache.get(key) {
+        return@get NlDiagnosticsImpl()
+      }
 }

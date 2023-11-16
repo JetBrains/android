@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.ui.resourcemanager.plugin
 
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.layoutlib.RenderingException
-import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
+import com.android.tools.rendering.RenderResult
+import com.android.tools.rendering.RenderTask
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
@@ -39,18 +40,15 @@ const val MAX_RENDER_WIDTH = 768
 @VisibleForTesting
 const val MAX_RENDER_HEIGHT = 1024
 
-@VisibleForTesting
-const val QUALITY = 0.25f
-
 private val LAYOUT_KEY = Key.create<LayoutRenderer>(LayoutRenderer::class.java.name)
 
 private fun createRenderTask(facet: AndroidFacet,
                              xmlFile: XmlFile,
-                             configuration: Configuration): CompletableFuture<RenderTask?> {
+                             configuration: Configuration
+): CompletableFuture<RenderTask?> {
   return StudioRenderService.getInstance(facet.module.project)
     .taskBuilder(facet, configuration)
-    .withPsiFile(xmlFile)
-    .withQuality(QUALITY)
+    .withPsiFile(PsiXmlFile(xmlFile))
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableDecorations()
     .build()
@@ -105,7 +103,7 @@ constructor(
         manager = LayoutRenderer(
           facet,
           ::createRenderTask,
-          ImageFuturesManager()
+          ImageFuturesManager<VirtualFile>()
         )
         setInstance(facet, manager)
       }

@@ -41,14 +41,14 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.awt.RelativePoint
-import java.awt.Component
-import java.awt.Point
-import java.awt.event.MouseEvent
-import javax.swing.JComponent
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import java.awt.Component
+import java.awt.Point
+import java.awt.event.MouseEvent
+import javax.swing.JComponent
 
 class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var ideComponents: IdeComponents

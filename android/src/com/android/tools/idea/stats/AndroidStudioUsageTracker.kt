@@ -16,16 +16,16 @@
 package com.android.tools.idea.stats
 
 import com.android.ddmlib.IDevice
-import com.android.ide.common.util.isMdnsAutoConnectTls
-import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettings.optedIn
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.actions.FeatureSurveyNotificationAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.diagnostics.report.DefaultMetricsLogFileProvider
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
 import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
 import com.android.tools.idea.serverflags.ServerFlagService
@@ -48,6 +48,9 @@ import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.ide.ui.LafManager
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
@@ -82,9 +85,6 @@ import kotlin.math.abs
 object AndroidStudioUsageTracker {
   private const val IDLE_TIME_BEFORE_SHOWING_DIALOG = 3 * 60 * 1000
   const val STUDIO_EXPERIMENTS_OVERRIDE = "studio.experiments.override"
-
-  private const val DAYS_IN_LEAP_YEAR = 366
-  private const val DAYS_IN_NON_LEAP_YEAR = 365
   private const val DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN = 7
 
   // Broadcast channel for Android Studio events being logged
@@ -177,6 +177,7 @@ object AndroidStudioUsageTracker {
     studioPing()
     scheduler.scheduleWithFixedDelay({ studioPing() }, 1, 1, TimeUnit.DAYS)
 
+    updateNewUISettings()
   }
 
   private fun subscribeToEvents() {
@@ -241,20 +242,58 @@ object AndroidStudioUsageTracker {
   }
 
   private fun logNewUI() {
-    val newUI: Boolean
-    try {
-      newUI = ExperimentalUI.isNewUI()
-    } catch (_: Throwable) {
-      // Don't send the message if the new UI check fails
-      return
-    }
+    val enabled =
+      try {
+        ExperimentalUI.isNewUI()
+      }
+      catch (_: Throwable) {
+        // Don't send the message if the new UI check fails
+        return
+      }
     UsageTracker.log(
       AndroidStudioEvent.newBuilder().apply {
         kind = EventKind.INTELLIJ_NEW_UI_STATE_EVENT
         intellijNewUiStateEvent = IntelliJNewUIState.newBuilder().apply {
-          isEnabled = newUI
+          isEnabled = enabled
         }.build()
       })
+  }
+
+  // Persist the initial new UI state for this session, so the
+  // next session can detect whether this session has disabled it
+  private fun updateNewUISettings() {
+    val enabled =
+      try {
+        ExperimentalUI.isNewUI()
+      }
+      catch (_: Throwable) {
+        return
+      }
+
+    val instance = ExperimentalUISettings.getInstance()
+
+    // If the user disabled the new UI during the previous
+    // session, display a survey asking them why
+    if (StudioFlags.EXPERIMENTAL_UI_SURVEY_ENABLED.get() && !enabled && instance.enabled) {
+      showNewUISurvey();
+    }
+
+    instance.enabled = enabled
+  }
+
+  private fun showNewUISurvey() {
+    val notificationGroup =
+      NotificationGroupManager.getInstance().getNotificationGroup("Feature Survey") ?: return
+
+    val notification = notificationGroup.createNotification(
+      "New UI Survey",
+      "We noticed that you recently disabled the New UI. Please tell us why so we can improve the experience.",
+      NotificationType.INFORMATION
+    )
+
+    notification.addAction(FeatureSurveyNotificationAction(EXPERIMENTAL_UI_INTERACTION_SURVEY))
+
+    ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
   }
 
   private fun processUserSentiment() {
@@ -275,7 +314,7 @@ object AndroidStudioUsageTracker {
 
     val now = AnalyticsSettings.dateProvider.now()
 
-    if (isWithinPastYear(now, lastSentimentAnswerDate)) {
+    if (!exceedRefreshDeadline(now, lastSentimentAnswerDate)) {
       return false
     }
 
@@ -297,7 +336,7 @@ object AndroidStudioUsageTracker {
         Hashing.farmHashFingerprint64()
           .hashString(AnalyticsSettings.userId, Charsets.UTF_8)
           .asLong()
-      ) % daysInYear(now)
+      ) % AnalyticsSettings.popSentimentQuestionFrequency
     return daysSinceJanFirst == offset
   }
 
@@ -330,7 +369,6 @@ object AndroidStudioUsageTracker {
       AnalyticsSettings.lastSentimentAnswerDate = now
       AnalyticsSettings.saveSettings()
     }
-
     eventQueue.addIdleListener(runner, IDLE_TIME_BEFORE_SHOWING_DIALOG)
   }
 
@@ -361,28 +399,6 @@ object AndroidStudioUsageTracker {
     ManifestMergerStatsTracker.reportMergerStats()
   }
 
-  /**
-   * Creates a [DeviceInfo] from a [IDevice] instance.
-   */
-  @JvmStatic
-  fun deviceToDeviceInfo(device: IDevice): DeviceInfo {
-    return DeviceInfo.newBuilder()
-      .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(device.serialNumber))
-      .setBuildTags(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_TAGS)))
-      .setBuildType(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_TYPE)))
-      .setBuildVersionRelease(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_VERSION)))
-      .setBuildApiLevelFull(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)))
-      .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI)))
-      .setManufacturer(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)))
-      .setDeviceType(if (device.isEmulator) DeviceInfo.DeviceType.LOCAL_EMULATOR else DeviceInfo.DeviceType.LOCAL_PHYSICAL)
-      .setMdnsConnectionType(when {
-                               device.isMdnsAutoConnectUnencrypted -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
-                               device.isMdnsAutoConnectTls -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
-                               else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
-                             })
-      .addAllCharacteristics(device.hardwareCharacteristics)
-      .setModel(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MODEL))).build()
-  }
 
   /**
    * Retrieves the corresponding [ProductDetails.IdeTheme] based on current IDE's settings
@@ -397,6 +413,7 @@ object AndroidStudioUsageTracker {
           "high contrast" -> ProductDetails.IdeTheme.HIGH_CONTRAST
           else -> ProductDetails.IdeTheme.CUSTOM
         }
+
       UIUtil.isUnderIntelliJLaF() ->
         // When the theme is IntelliJ, there are mac and window specific registries that govern whether the theme refers to the native
         // themes, or the newer, platform-agnostic Light theme. UIUtil.isUnderWin10LookAndFeel() and UIUtil.isUnderDefaultMacTheme() take
@@ -406,6 +423,7 @@ object AndroidStudioUsageTracker {
           UIUtil.isUnderDefaultMacTheme() -> ProductDetails.IdeTheme.LIGHT_MAC_NATIVE
           else -> ProductDetails.IdeTheme.LIGHT
         }
+
       else -> ProductDetails.IdeTheme.UNKNOWN_THEME
     }
   }
@@ -450,8 +468,8 @@ object AndroidStudioUsageTracker {
     }
   }
 
-  private fun isWithinPastYear(now: Date, date: Date?): Boolean {
-    return isBeforeDayCount(now, date, -daysInYear(now))
+  private fun exceedRefreshDeadline(now: Date, date: Date?): Boolean {
+    return !isBeforeDayCount(now, date, -AnalyticsSettings.popSentimentQuestionFrequency)
   }
 
   private fun isBeforeDayCount(now: Date, date: Date?, days: Int): Boolean {
@@ -465,14 +483,5 @@ object AndroidStudioUsageTracker {
     calendar.time = now
     calendar.add(Calendar.DATE, days)
     return calendar.time
-  }
-
-  private fun daysInYear(now: Date): Int {
-    return if (GregorianCalendar().isLeapYear(now.year + 1900)) {
-      DAYS_IN_LEAP_YEAR
-    }
-    else {
-      DAYS_IN_NON_LEAP_YEAR
-    }
   }
 }

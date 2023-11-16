@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapNull
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.BuildModel
 import java.util.LinkedList
-import java.util.concurrent.locks.ReentrantLock
 
 internal class SyncProjectActionWorker(
   private val buildInfo: BuildInfo,
@@ -31,7 +30,6 @@ internal class SyncProjectActionWorker(
   private val syncOptions: SyncProjectActionOptions,
   private val actionRunner: SyncActionRunner
 ) {
-  private val modelCacheLock = ReentrantLock()
   private val internedModels = InternedModels(buildInfo.buildRootDirectory)
   private val androidModulesById: MutableMap<String, AndroidModule> = HashMap()
   private val rootBuildModel: BuildModel get() = buildInfo.rootBuild
@@ -95,7 +93,7 @@ internal class SyncProjectActionWorker(
     // Requesting ProjectSyncIssues must be performed "last" since all other model requests may produces additional issues.
     // Note that "last" here means last among Android models since many non-Android models are requested after this point.
     actionRunner.runActions(androidModules.mapNotNull { it.getFetchSyncIssuesAction() })
-    internedModels.prepare(modelCacheLock)
+    internedModels.prepare()
     val indexedModels = indexModels(modules)
     return modules.map { it.prepare(indexedModels) } + GradleProject(rootBuildModel, internedModels.createLibraryTable())
   }
@@ -120,7 +118,7 @@ internal class SyncProjectActionWorker(
   ): List<GradleModule> {
     return actionRunner.runActions(
       incompleteBasicModules
-        .map { it.getGradleModuleAction(internedModels, modelCacheLock, buildInfo) }
+        .map { it.getGradleModuleAction(internedModels, buildInfo) }
         .toList()
     )
   }
@@ -135,13 +133,12 @@ internal class SyncProjectActionWorker(
       actionRunner
         .runActions(inputModules.flatMap { module ->
           module.allVariantNames.orEmpty().map { variant ->
-            getVariantAction(ModuleConfiguration(module.id, variant, abi = null), androidProjectPathResolver)
+            getVariantAction(ModuleConfiguration(module.id, variant, abi = null, isRoot = true), androidProjectPathResolver)
           }
         })
         .mapNotNull { it.ignoreExceptionsAndGet()?.let { result -> result.module to it } }
         .groupBy({ it.first }, { it.second })
 
-    // TODO(b/220325253): Kotlin parallel model fetching is broken.
     actionRunner.runActions(variants.entries.map { (module, result) ->
       ActionToRun(fun(controller: BuildController) {
         result.map {
@@ -247,8 +244,6 @@ internal class SyncProjectActionWorker(
         }
 
       val preModuleDependenciesWithoutKotlin: List<ModelResult<SyncVariantResult>> = actionRunner.runActions(actions)
-
-      // TODO(b/220325253): Kotlin parallel model fetching is broken.
       val preModuleDependencies = actionRunner.runActions(preModuleDependenciesWithoutKotlin.map { syncResult ->
         ActionToRun(fun(controller: BuildController): ModelResult<SyncVariantResult> {
           return syncResult.mapCatching { syncResult ->
@@ -358,7 +353,7 @@ internal class SyncProjectActionWorker(
           val abiToRequest: String? = chooseAbiToRequest(module, variantName, moduleConfiguration.abi)
           val nativeVariantAbi: NativeVariantAbiResult = abiToRequest?.let {
             controller.findNativeVariantAbiModel(
-              modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths, modelCacheLock),
+              modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths),
               module,
               variantName,
               it
@@ -464,10 +459,10 @@ internal class SyncProjectActionWorker(
             }
         } ?: selectedVariantName
         val selectedAbi = requestedAbi.takeIf { module.getVariantAbiNames(selectedVariantName)?.contains(it) == true } ?: selectedAbi
-        ModuleConfiguration(module.id, selectedVariantName, selectedAbi)
+        ModuleConfiguration(module.id, selectedVariantName, selectedAbi, isRoot = true)
       }
       else -> {
-        ModuleConfiguration(module.id, selectedVariantName, selectedAbi)
+        ModuleConfiguration(module.id, selectedVariantName, selectedAbi, isRoot = true)
       }
     }
   }

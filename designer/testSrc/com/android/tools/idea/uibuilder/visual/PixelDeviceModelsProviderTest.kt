@@ -68,19 +68,18 @@ class PixelDeviceModelsProviderTest : LayoutTestCase() {
   }
 
   fun testPickCorrectFile() {
-    val defaultFile = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
-    val bigFile = myFixture.addFileToProject("/res/layout-sw600dp/test.xml", LAYOUT_FILE_CONTENT);
+    val defaultFile = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
+    val bigFile = myFixture.addFileToProject("/res/layout-sw600dp/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = PixelDeviceModelsProvider
     val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myFacet)
 
     assertNotEmpty(nlModels)
     for (nlModel in nlModels) {
-      val device =  nlModel.configuration.device!!
+      val device = nlModel.configuration.device!!
       if (device.displayName == "Pixel C") {
         assertEquals(bigFile, nlModel.file)
-      }
-      else {
+      } else {
         assertEquals(defaultFile, nlModel.file)
       }
     }
@@ -111,7 +110,8 @@ class PixelDeviceModelsProviderTest : LayoutTestCase() {
 }
 
 @Language("Xml")
-private const val LAYOUT_FILE_CONTENT = """
+private const val LAYOUT_FILE_CONTENT =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent"
@@ -121,7 +121,8 @@ private const val LAYOUT_FILE_CONTENT = """
 """
 
 @Language("Xml")
-private const val DRAWABLE_FILE_CONTENT = """
+private const val DRAWABLE_FILE_CONTENT =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
   android:shape="line">

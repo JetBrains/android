@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.ui.screenshot
 
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth
-import org.junit.Before
 import org.junit.Test
 import java.awt.Color
 import java.awt.Dimension
@@ -29,11 +27,6 @@ import java.awt.image.BufferedImage
 class DeviceArtScreenshotOptionsTest {
 
   private val screenshotOptions = DeviceArtScreenshotOptions(serialNumber = "some serial number", deviceModel = null)
-
-  @Before
-  fun setup() {
-    StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.override(true)
-  }
 
   @Test
   fun testCreateScreenshotImage() {
@@ -93,34 +86,12 @@ class DeviceArtScreenshotOptionsTest {
   }
 
   @Test
-  fun testGetFramingOptionsWatchRound_FlagDisabled() {
-    StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.override(false)
-    val image = createImage(384, 384, Color.DARK_GRAY)
-    val displayInfo = "DisplayDeviceInfo{..., 384 x 384, ..., density 200, ..., FLAG_ROUND}"
-    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.WEAR)
-    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
-    Truth.assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Watch Square", "Watch Round", "Generic Phone",
-                                                                                     "Generic Tablet")
-  }
-
-  @Test
   fun testGetFramingOptionsWatchSquare() {
     val image = createImage(384, 384, Color.DARK_GRAY)
     val displayInfo = "DisplayDeviceInfo{..., 384 x 384, ..., density 200, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.WEAR)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
     Truth.assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Watch Square")
-  }
-
-  @Test
-  fun testGetFramingOptionsWatchSquare_FlagDisabled() {
-    StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.override(false)
-    val image = createImage(384, 384, Color.DARK_GRAY)
-    val displayInfo = "DisplayDeviceInfo{..., 384 x 384, ..., density 200, ...}"
-    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.WEAR)
-    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
-    Truth.assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Watch Square", "Watch Round", "Generic Phone",
-                                                                                     "Generic Tablet")
   }
 
   private fun createImage(width: Int, height: Int, color: Color): BufferedImage {
@@ -131,5 +102,4 @@ class DeviceArtScreenshotOptionsTest {
     g2.dispose()
     return image
   }
-
 }

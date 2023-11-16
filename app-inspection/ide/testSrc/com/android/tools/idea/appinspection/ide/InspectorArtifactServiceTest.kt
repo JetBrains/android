@@ -23,10 +23,10 @@ import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResol
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
-import java.nio.file.Path
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
+import java.nio.file.Path
 
 class InspectorArtifactServiceTest {
 
@@ -39,7 +39,7 @@ class InspectorArtifactServiceTest {
 
   @Test
   fun getInspectorJar() =
-    runBlocking {
+    runBlocking<Unit> {
       val fileService = TestFileService()
       val artifactResolverFactory =
         object : ArtifactResolverFactory {

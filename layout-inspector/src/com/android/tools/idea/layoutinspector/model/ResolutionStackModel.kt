@@ -23,35 +23,35 @@ import com.android.tools.property.panel.api.PropertiesModelListener
 /**
  * Model for keeping track of expanded detail traces in an attribute resolution stack.
  *
- * The detail traces are shown if there are references found in attribute values.
- * A [ResolutionStackModel] is required per table (i.e. 1 for declared attributes and 1 for all attributes).
+ * The detail traces are shown if there are references found in attribute values. A
+ * [ResolutionStackModel] is required per table (i.e. 1 for declared attributes and 1 for all
+ * attributes).
  */
 class ResolutionStackModel(val propertiesModel: InspectorPropertiesModel) {
   private val expandedItems = mutableSetOf<InspectorPropertyItem>()
-  private val listener = object : PropertiesModelListener<InspectorPropertyItem> {
-    var updates = 0
+  private val listener =
+    object : PropertiesModelListener<InspectorPropertyItem> {
+      var updates = 0
 
-    override fun propertiesGenerated(model: PropertiesModel<InspectorPropertyItem>) {
-      if (updates != propertiesModel.structuralUpdates) {
-        // Reset the expanded items when a significant structural change happens:
-        clear()
-        updates = propertiesModel.structuralUpdates
+      override fun propertiesGenerated(model: PropertiesModel<InspectorPropertyItem>) {
+        if (updates != propertiesModel.structuralUpdates) {
+          // Reset the expanded items when a significant structural change happens:
+          clear()
+          updates = propertiesModel.structuralUpdates
+        }
       }
     }
-  }
 
   init {
     propertiesModel.addListener(listener)
   }
 
-  fun isExpanded(property: InspectorPropertyItem): Boolean =
-    expandedItems.contains(property)
+  fun isExpanded(property: InspectorPropertyItem): Boolean = expandedItems.contains(property)
 
   fun toggle(property: InspectorPropertyItem) {
     if (expandedItems.contains(property)) {
       expandedItems.remove(property)
-    }
-    else {
+    } else {
       expandedItems.add(property)
     }
   }

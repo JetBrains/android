@@ -42,10 +42,13 @@ class ConfigurationSetMenuActionTest : AndroidTestCase() {
     val firstOption = menuGroups.firstOrNull()?.firstOrNull() ?: return
     val menuAction = ConfigurationSetMenuAction(form, firstOption)
     // Call update(AnActionEvent) for updating text of menuAction.
-    menuAction.update(createTestActionEvent(menuAction, dataContext = Mockito.mock(DataContext::class.java)))
+    menuAction.update(
+      createTestActionEvent(menuAction, dataContext = Mockito.mock(DataContext::class.java))
+    )
 
     val actual = prettyPrintActions(menuAction)
-    // The displayed text of dropdown action is the current selected option, which is Pixel Devices in this case.
+    // The displayed text of dropdown action is the current selected option, which is Pixel Devices
+    // in this case.
     val builder = StringBuilder("${firstOption.name}\n") // The current selection of dropdown action
 
     // Note: The options in dropdown menu have 4 spaces as indent.

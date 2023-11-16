@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValueImpl;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -30,7 +30,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
 
   public ConfiguredThemeEditorStyle(@NotNull Configuration configuration,
                                     @NotNull StyleResourceValue styleResourceValue) {
-    super(configuration.getConfigurationManager(), styleResourceValue.asReference());
+    super(configuration.getSettings(), styleResourceValue.asReference());
     myStyleResourceValue = StyleResourceValueImpl.copyOf(styleResourceValue);
   }
 

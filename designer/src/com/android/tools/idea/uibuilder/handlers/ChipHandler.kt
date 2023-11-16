@@ -39,7 +39,8 @@ class ChipHandler : ViewHandler() {
       ATTR_CHECKED_ICON,
       ATTR_CHECKED_ICON_VISIBLE,
       ATTR_CLOSE_ICON,
-      ATTR_CLOSE_ICON_VISIBLE)
+      ATTR_CLOSE_ICON_VISIBLE
+    )
   }
 
   override fun getBaseStyles(tagName: String): List<String> {

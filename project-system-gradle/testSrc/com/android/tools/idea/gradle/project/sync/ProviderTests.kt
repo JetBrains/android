@@ -42,6 +42,7 @@ import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Expect
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -49,7 +50,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import org.hamcrest.Matchers
 import org.jetbrains.annotations.Contract
-import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.junit.Assume
 import org.junit.Assume.assumeFalse
 import org.junit.Rule
@@ -136,11 +136,6 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
     Assume.assumeThat(runCatching { testConfiguration.IGNORE() }.exceptionOrNull(), Matchers.nullValue())
     outputCurrentlyRunningTest(this)
     val preparedProject = prepareTestProject(scenario.testProject, agpVersion = agpVersion)
-    val projectPath = preparedProject.root
-    val gradlePropertiesPath = projectPath.resolve("gradle.properties")
-    gradlePropertiesPath.writeText(
-      gradlePropertiesPath.readText() + "\n android.suppressUnsupportedCompileSdk=${testDefinition.agpVersion.compileSdk}"
-    )
     preparedProject.open { project ->
       try {
         val variant = scenario.variant

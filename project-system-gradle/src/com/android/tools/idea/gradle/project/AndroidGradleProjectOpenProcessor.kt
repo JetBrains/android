@@ -36,7 +36,6 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.projectImport.ProjectOpenProcessor
 import com.intellij.ui.IdeUICustomization
-
 /**
  * A project open processor to open Gradle projects in Android Studio.
  *
@@ -51,11 +50,9 @@ internal class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
       GradleProjects.canImportAsGradleProject(file)
 
   override fun doOpenProject(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {
-    if (!canOpenProject(virtualFile)) return null
-
-    val importTarget = findGradleTarget(virtualFile) ?: virtualFile
+    val importTarget = findGradleTarget(virtualFile) ?: return null
     val adjustedOpenTarget =
-        if (importTarget.isDirectory)importTarget
+        if (importTarget.isDirectory) importTarget
         else importTarget.parent
 
     val gradleImporter = GradleProjectImporter.getInstance()
@@ -66,14 +63,13 @@ internal class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
         }
       }
 
-      val projectFolder = if (virtualFile.isDirectory) virtualFile else virtualFile.parent
-      return gradleImporter.importAndOpenProjectCore(projectToClose, forceOpenInNewFrame, projectFolder)
+      return gradleImporter.importAndOpenProjectCore(projectToClose, forceOpenInNewFrame, adjustedOpenTarget)
     }
     return ProjectManagerEx.getInstanceEx().openProject(
-      adjustedOpenTarget.toNioPath(), OpenProjectTask {
-        this.forceOpenInNewFrame = forceOpenInNewFrame
-        this.projectToClose = projectToClose
-      }
+      adjustedOpenTarget.toNioPath(), OpenProjectTask(
+        forceOpenInNewFrame = forceOpenInNewFrame,
+        projectToClose = projectToClose,
+      )
     )
   }
 

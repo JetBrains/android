@@ -99,10 +99,12 @@ var NlComponent.viewInfo: ViewInfo?
     this.nlComponentData.viewInfo = value
   }
 
-fun NlComponent.setBounds(@AndroidCoordinate x: Int,
-                          @AndroidCoordinate y: Int,
-                          @AndroidCoordinate w: Int,
-                          @AndroidCoordinate h: Int) {
+fun NlComponent.setBounds(
+  @AndroidCoordinate x: Int,
+  @AndroidCoordinate y: Int,
+  @AndroidCoordinate w: Int,
+  @AndroidCoordinate h: Int
+) {
   this.x = x
   this.y = y
   this.w = w
@@ -122,12 +124,14 @@ fun NlComponent.containsY(@AndroidCoordinate y: Int): Boolean {
 }
 
 /**
- * Determines whether the given new component should have an id attribute.
- * This is generally false for layouts, and generally true for other views,
- * not including the `<include>` and `<merge>` tags. Note that
- * `<fragment>` tags **should** specify an id.
-
+ * Determines whether the given new component should have an id attribute. This is generally false
+ * for layouts, and generally true for other views, not including the `<include>` and `<merge>`
+ * tags. Note that `<fragment>` tags **should** specify an id.
+ *
  * @return true if the component should have a default id
+ *
+ * Note: if this is called on the UI thread this function may return false for components the
+ * ViewHandlerManager need to do a background lookup for.
  */
 fun NlComponent.needsDefaultId(): Boolean {
   if (!hasNlComponentInfo) {
@@ -138,31 +142,28 @@ fun NlComponent.needsDefaultId(): Boolean {
   }
 
   // Handle <Space> in the compatibility library b
-  if (tagName.endsWith(SPACE) && tagName.length > SPACE.length && tagName[tagName.length - SPACE.length] == '.') {
+  if (
+    tagName.endsWith(SPACE) &&
+      tagName.length > SPACE.length &&
+      tagName[tagName.length - SPACE.length] == '.'
+  ) {
     return false
   }
 
   // Assign id's to ViewGroups like ListViews, but not to views like LinearLayout
-  if (viewHandler == null) {
-    if (tagName.endsWith("Layout")) {
-      return false
-    }
-  }
-  else if (viewHandler is ViewGroupHandler) {
-    return false
-  }
-
-  return true
+  val handler = getViewHandler {}
+  return handler !is ViewGroupHandler && !(handler == null && tagName.endsWith("Layout"))
 }
 
 /**
- * Ensure that there's a id, if not execute a write command to add
- * the id to the component.
-
+ * Ensure that there's a id, if not execute a write command to add the id to the component.
+ *
  * @return
  */
 fun NlComponent.ensureLiveId(): String {
-  id?.let { return id!! }
+  id?.let {
+    return id!!
+  }
 
   val attributes = startAttributeTransaction()
   val id = assignId()
@@ -189,8 +190,7 @@ val NlComponent.margins: Insets
       val viewInfo = viewInfo
       if (viewInfo == null) {
         result = Insets.NONE
-      }
-      else {
+      } else {
         try {
           val layoutParams = viewInfo.layoutParamsObject
           val layoutClass = layoutParams.javaClass
@@ -202,14 +202,13 @@ val NlComponent.margins: Insets
           // Doesn't look like we need to read startMargin and endMargin here;
           // ViewGroup.MarginLayoutParams#doResolveMargins resolves and assigns values to the others
 
-          result = if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-            Insets.NONE
-          }
-          else {
-            Insets(left, top, right, bottom)
-          }
-        }
-        catch (e: Throwable) {
+          result =
+            if (left == 0 && top == 0 && right == 0 && bottom == 0) {
+              Insets.NONE
+            } else {
+              Insets(left, top, right, bottom)
+            }
+        } catch (e: Throwable) {
           result = Insets.NONE
         }
       }
@@ -232,18 +231,20 @@ fun NlComponent.getPadding(force: Boolean): Insets {
       val layoutParams = viewInfo.viewObject
       val layoutClass = layoutParams.javaClass
 
-      val left = fixDefault(layoutClass.getMethod("getPaddingLeft").invoke(layoutParams) as Int) // TODO: getPaddingStart!
+      val left =
+        fixDefault(
+          layoutClass.getMethod("getPaddingLeft").invoke(layoutParams) as Int
+        ) // TODO: getPaddingStart!
       val top = fixDefault(layoutClass.getMethod("getPaddingTop").invoke(layoutParams) as Int)
       val right = fixDefault(layoutClass.getMethod("getPaddingRight").invoke(layoutParams) as Int)
       val bottom = fixDefault(layoutClass.getMethod("getPaddingBottom").invoke(layoutParams) as Int)
-      result = if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-        Insets.NONE
-      }
-      else {
-        Insets(left, top, right, bottom)
-      }
-    }
-    catch (e: Throwable) {
+      result =
+        if (left == 0 && top == 0 && right == 0 && bottom == 0) {
+          Insets.NONE
+        } else {
+          Insets(left, top, right, bottom)
+        }
+    } catch (e: Throwable) {
       result = Insets.NONE
     }
     this.nlComponentData.padding = result
@@ -255,8 +256,8 @@ fun NlComponent.isGroup(): Boolean {
   if (isOrHasSuperclass(CLASS_VIEWGROUP)) {
     return true
   }
-  val handler = viewHandler
-  if (handler is ViewGroupHandler && !handler.holdsReferences()) {
+  val handler = getViewHandler {}
+  if ((handler is ViewGroupHandler && !handler.holdsReferences()) || tagName.endsWith("Layout")) {
     return true
   }
 
@@ -271,9 +272,9 @@ fun NlComponent.isGroup(): Boolean {
 }
 
 /**
- * Returns true if this NlComponent's class is the specified class,
- * or if one of its super classes is the specified class.
-
+ * Returns true if this NlComponent's class is the specified class, or if one of its super classes
+ * is the specified class.
+ *
  * @param className A fully qualified class name
  */
 fun NlComponent.isOrHasSuperclass(className: String): Boolean {
@@ -282,7 +283,10 @@ fun NlComponent.isOrHasSuperclass(className: String): Boolean {
   }
   val viewInfo = viewInfo
   if (viewInfo != null) {
-    val viewObject = viewInfo.viewObject ?: return ApplicationManager.getApplication().isUnitTestMode && isOrHasSuperclassInTest(className)
+    val viewObject =
+      viewInfo.viewObject
+        ?: return ApplicationManager.getApplication().isUnitTestMode &&
+          isOrHasSuperclassInTest(className)
     var viewClass: Class<*> = viewObject.javaClass
     while (viewClass != Any::class.java) {
       if (className == viewClass.name) {
@@ -297,9 +301,9 @@ fun NlComponent.isOrHasSuperclass(className: String): Boolean {
 }
 
 /**
- * Returns true if this NlComponent's class is the specified class,
- * or if one of its super classes is the specified class.
-
+ * Returns true if this NlComponent's class is the specified class, or if one of its super classes
+ * is the specified class.
+ *
  * @param className A fully qualified class name
  */
 fun NlComponent.isOrHasSuperclass(className: AndroidxName): Boolean {
@@ -311,23 +315,24 @@ fun NlComponent.isOrHasSuperclass(className: AndroidxName): Boolean {
  *
  * In tests the classes from ConstraintLayout may not be available on the classpath and the
  * viewObject check in [isOrHasSuperclass] will not work.
- * 
+ *
  * Instead check the [NlComponent.getTagName] or if this is a constraint helper.
  */
-private fun NlComponent.isOrHasSuperclassInTest(className: String): Boolean = when (className) {
-  CLASS_CONSTRAINT_LAYOUT_HELPER.newName(),
-  CLASS_CONSTRAINT_LAYOUT_HELPER.oldName() -> viewHandler is ConstraintHelperHandler
-  else -> className == tagName
-}
+private fun NlComponent.isOrHasSuperclassInTest(className: String): Boolean =
+  when (className) {
+    CLASS_CONSTRAINT_LAYOUT_HELPER.newName(),
+    CLASS_CONSTRAINT_LAYOUT_HELPER.oldName() -> getViewHandler {} is ConstraintHelperHandler
+    else -> className == tagName
+  }
 
-/**
- * Returns true if this NlComponent's class has a class in the androidx. namespace
- */
+/** Returns true if this NlComponent's class has a class in the androidx. namespace */
 fun NlComponent.isOrHasAndroidxSuperclass(): Boolean {
   val viewInfo = viewInfo
   if (viewInfo != null) {
-    val viewObject = viewInfo.viewObject ?: return ApplicationManager.getApplication().isUnitTestMode && tagName.startsWith(
-      ANDROIDX_PKG_PREFIX)
+    val viewObject =
+      viewInfo.viewObject
+        ?: return ApplicationManager.getApplication().isUnitTestMode &&
+          tagName.startsWith(ANDROIDX_PKG_PREFIX)
     var viewClass: Class<*> = viewObject.javaClass
     while (viewClass != Any::class.java) {
       if (viewClass.name.startsWith(ANDROIDX_PKG_PREFIX)) {
@@ -340,9 +345,9 @@ fun NlComponent.isOrHasAndroidxSuperclass(): Boolean {
 }
 
 /**
- * Returns the class within the className set that is the
- * the most derived (specific) class that matches NlComponent's class
-
+ * Returns the class within the className set that is the the most derived (specific) class that
+ * matches NlComponent's class
+ *
  * @param classNames Set of class names to search
  */
 fun NlComponent.getMostSpecificClass(classNames: Set<String>): String? {
@@ -361,43 +366,66 @@ fun NlComponent.getMostSpecificClass(classNames: Set<String>): String? {
 }
 
 /**
- * Return the [ViewHandler] for the current [NlComponent].
- */
-val NlComponent.viewHandler: ViewHandler?
-  get() = if (!model.project.isDisposed) ViewHandlerManager.get(model.project).getHandler(this) else null
-
-/**
- * Return the [ViewGroupHandler] for the current [NlComponent] or <code>null</code> if
- */
-val NlComponent.viewGroupHandler: ViewGroupHandler?
-  get() = viewHandler as? ViewGroupHandler
-
-/**
- * Return the [ViewGroupHandler] for the nearest layout starting with the current [NlComponent].
+ * Return the [ViewHandler] for the current [NlComponent] or <code>null</code> if the project is
+ * disposed or a handler is not know at this time.
  *
- * If the current [NlComponent] is a ViewGroup then return the view handler for the current [NlComponent].
- * Otherwise a view handler for a parent component is returned (if such a view handler exists).
+ * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
+ *   performed on a background thread and {@link ViewHandlerManager#TEMP} is returned. This callback
+ *   is called if the background finds a handler.
  */
-val NlComponent.layoutHandler: ViewGroupHandler?
-  get() = if (!model.project.isDisposed) ViewHandlerManager.get(model.project).findLayoutHandler(this, false) else null
+fun NlComponent.getViewHandler(handlerUpdated: Runnable): ViewHandler? =
+  if (!model.project.isDisposed)
+    ViewHandlerManager.get(model.project).getHandler(this, handlerUpdated)
+  else null
 
 /**
- * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end).
- * Note: This operation can only be called when the caller is already holding a write lock. This will be the
- * case from [ViewHandler] callbacks such as [ViewHandler.onCreate] and [DragHandler.commit].
+ * Return the [ViewGroupHandler] for the current [NlComponent] or <code>null</code> if the project
+ * is disposed, a handler is not know at this time, or the handler is not a ViewGroupHandler.
+ *
+ * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
+ *   performed on a background thread and <code>null</code> is returned. This callback is called if
+ *   the background finds a handler.
+ */
+fun NlComponent.getViewGroupHandler(handlerUpdated: Runnable): ViewGroupHandler? =
+  getViewHandler(handlerUpdated) as? ViewGroupHandler
 
- * @param editor     The editor showing the component
- * @param fqcn       The fully qualified name of the widget to insert, such as `android.widget.LinearLayout`
- *                   You can also pass XML tags here (this is typically the same as the fully qualified class name
- *                   of the custom view, but for Android framework views in the android.view or android.widget packages,
- *                   you can omit the package.)
- * @param before     The sibling to insert immediately before, or null to append
+/**
+ * Return the [ViewGroupHandler] for the nearest layout starting with the current [NlComponent] or
+ * <code>null</code> if the project is disposed or a handler is not known for that component at this
+ * time.
+ *
+ * If the current [NlComponent] is a ViewGroup then return the view handler for the current
+ * [NlComponent]. Otherwise a view handler for a parent component is returned (if such a view
+ * handler exists).
+ *
+ * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
+ *   performed on a background thread and <code>null</code> is returned. This callback is called if
+ *   the background finds a handler.
+ */
+fun NlComponent.getLayoutHandler(handlerUpdated: Runnable): ViewGroupHandler? =
+  if (!model.project.isDisposed)
+    ViewHandlerManager.get(model.project).findLayoutHandler(this, false, handlerUpdated)
+  else null
+
+/**
+ * Creates a new child of the given type, and inserts it before the given sibling (or null to append
+ * at the end). Note: This operation can only be called when the caller is already holding a write
+ * lock. This will be the case from [ViewHandler] callbacks such as [ViewHandler.onCreate] and
+ * [DragHandler.commit].
+ *
+ * @param editor The editor showing the component
+ * @param fqcn The fully qualified name of the widget to insert, such as
+ *   `android.widget.LinearLayout` You can also pass XML tags here (this is typically the same as
+ *   the fully qualified class name of the custom view, but for Android framework views in the
+ *   android.view or android.widget packages, you can omit the package.)
+ * @param before The sibling to insert immediately before, or null to append
  * @param insertType The type of insertion
  */
 // FIXME: Remove editor.
-fun NlComponent.createChild(fqcn: String,
-                            before: NlComponent?,
-                            insertType: InsertType
+fun NlComponent.createChild(
+  fqcn: String,
+  before: NlComponent?,
+  insertType: InsertType
 ): NlComponent? {
   val tagName = NlComponentHelper.viewClassToTag(fqcn)
   return createChild(tagName, false, null, null, before, insertType)
@@ -406,24 +434,30 @@ fun NlComponent.createChild(fqcn: String,
 /**
  * See [createChild]
  *
- * @param tagName                 The new tag name of the child. Not the fully qualified name such as 'android.widget.LinearLayout' but
- *                                rather 'LinearLayout'.
- * @param enforceNamespacesDeep   If you pass some xml tags to {@code bodyText} parameter, this flag sets namespace prefixes for them.
- * @param namespace               Namespaces of the tag name.
- * @param surface                 The surface showing the component
- * @param before                  The sibling to insert immediately before, or null to append
- * @param insertType              The type of insertion
+ * @param tagName The new tag name of the child. Not the fully qualified name such as
+ *   'android.widget.LinearLayout' but rather 'LinearLayout'.
+ * @param enforceNamespacesDeep If you pass some xml tags to {@code bodyText} parameter, this flag
+ *   sets namespace prefixes for them.
+ * @param namespace Namespaces of the tag name.
+ * @param surface The surface showing the component
+ * @param before The sibling to insert immediately before, or null to append
+ * @param insertType The type of insertion
  */
-fun NlComponent.createChild(tagName: String,
-                            enforceNamespacesDeep: Boolean = false,
-                            namespace: String? = null,
-                            bodyText: String? = null,
-                            before: NlComponent? = null,
-                            insertType: InsertType = InsertType.CREATE
+fun NlComponent.createChild(
+  tagName: String,
+  enforceNamespacesDeep: Boolean = false,
+  namespace: String? = null,
+  bodyText: String? = null,
+  before: NlComponent? = null,
+  insertType: InsertType = InsertType.CREATE
 ): NlComponent? {
   if (!ApplicationManager.getApplication().isWriteAccessAllowed) {
-    Logger.getInstance(NlWriteCommandActionUtil::class.java).error(
-        Throwable("Unable to create child NlComponent ${tagName}. The createChild method must be called within a write action."))
+    Logger.getInstance(NlWriteCommandActionUtil::class.java)
+      .error(
+        Throwable(
+          "Unable to create child NlComponent ${tagName}. The createChild method must be called within a write action."
+        )
+      )
     return null
   }
 
@@ -468,21 +502,14 @@ internal data class NlComponentData(
   var scrollY: Int = 0,
   var viewInfo: ViewInfo? = null,
   var margins: Insets? = null,
-  var padding: Insets? = null)
+  var padding: Insets? = null
+)
 
 @VisibleForTesting
-class NlComponentMixin(component: NlComponent)
-  : NlComponent.XmlModelComponentMixin(component) {
+class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMixin(component) {
 
-  override fun maybeHandleDeletion(children: Collection<NlComponent>): Boolean {
-    val viewHandlerManager = ViewHandlerManager.get(component.model.facet)
-
-    val handler = viewHandlerManager.getHandler(this.component)
-    if (handler is ViewGroupHandler) {
-      return handler.deleteChildren(component, children)
-    }
-    return false
-  }
+  override fun maybeHandleDeletion(children: Collection<NlComponent>): Boolean =
+    component.getViewGroupHandler {}?.deleteChildren(component, children) ?: false
 
   internal val data: NlComponentData = NlComponentData()
 
@@ -495,18 +522,29 @@ class NlComponentMixin(component: NlComponent)
 
     val resources = component.model.configuration.resourceResolver ?: return null
 
-    // Pretend the style was referenced from a proper resource by constructing a temporary ResourceValue. TODO: aapt namespace?
-    val tmpResourceValue = ResourceValueImpl(ResourceNamespace.TODO(), ResourceType.STYLE, component.tagName, styleAttributeValue)
+    // Pretend the style was referenced from a proper resource by constructing a temporary
+    // ResourceValue. TODO: aapt namespace?
+    val tmpResourceValue =
+      ResourceValueImpl(
+        ResourceNamespace.TODO(),
+        ResourceType.STYLE,
+        component.tagName,
+        styleAttributeValue
+      )
 
-    val styleResourceValue = resources.resolveResValue(tmpResourceValue) as? StyleResourceValue ?: return null
+    val styleResourceValue =
+      resources.resolveResValue(tmpResourceValue) as? StyleResourceValue ?: return null
 
-    val itemResourceValue = resources.findItemInStyle(styleResourceValue, attribute, true) ?: return null
+    val itemResourceValue =
+      resources.findItemInStyle(styleResourceValue, attribute, true) ?: return null
 
     return itemResourceValue.value
   }
 
   override fun getTooltipText(): String? {
-    component.id?.let { return it }
+    component.id?.let {
+      return it
+    }
     val str = component.componentClassName ?: return null
     return str.substring(str.lastIndexOf('.') + 1)
   }
@@ -515,22 +553,20 @@ class NlComponentMixin(component: NlComponent)
     if (!receiver.hasNlComponentInfo) {
       return false
     }
-    val parentHandler = receiver.viewHandler as? ViewGroupHandler ?: return false
+    val parentHandler = receiver.getViewGroupHandler {} ?: return false
 
     if (!parentHandler.acceptsChild(receiver, component)) {
       return false
     }
 
-    val handler = ViewHandlerManager.get(component.model.project).getHandler(component)
-    return handler == null || handler.acceptsParent(receiver, component)
+    val handler = component.getViewHandler {}
+    return handler != null && handler.acceptsParent(receiver, component)
   }
 
-  /**
-   * Find the Gradle dependency for the given component and return them as a list of String
-   */
+  /** Find the Gradle dependency for the given component and return them as a list of String */
   override fun getDependencies(): Set<String> {
     val artifacts = mutableSetOf<String>()
-    val handler = ViewHandlerManager.get(component.model.project).getHandler(component) ?: return emptySet()
+    val handler = component.getViewHandler {} ?: return emptySet()
     val artifactId = handler.getGradleCoordinateId(component.tagDeprecated.name)
     if (artifactId != PaletteComponentHandler.IN_PLATFORM) {
       artifacts.add(artifactId)
@@ -542,17 +578,23 @@ class NlComponentMixin(component: NlComponent)
 
   override fun beforeMove(insertType: InsertType, receiver: NlComponent, ids: MutableSet<String>) {
     // AssignId
-    if (component.needsDefaultId() && insertType != InsertType.MOVE) {
+    if (
+      component.needsDefaultId() && insertType != InsertType.MOVE && insertType != InsertType.PASTE
+    ) {
       component.incrementId(ids)
     }
   }
 
-  override fun afterMove(insertType: InsertType, previousParent: NlComponent?, receiver: NlComponent) {
+  override fun afterMove(
+    insertType: InsertType,
+    previousParent: NlComponent?,
+    receiver: NlComponent
+  ) {
     if (previousParent != receiver) {
-      previousParent?.layoutHandler?.onChildRemoved(previousParent, component, insertType)
+      previousParent?.getLayoutHandler {}?.onChildRemoved(previousParent, component, insertType)
     }
 
-    receiver.layoutHandler?.onChildInserted(receiver, component, insertType)
+    receiver.getLayoutHandler {}?.onChildInserted(receiver, component, insertType)
   }
 
   override fun postCreate(insertType: InsertType): Boolean {
@@ -565,8 +607,7 @@ class NlComponentMixin(component: NlComponent)
       if (realTag.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI) == null) {
         realTag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT)
       }
-    }
-    else {
+    } else {
       // No namespace yet: use the default prefix instead
       if (realTag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH) == null) {
         realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
@@ -577,13 +618,15 @@ class NlComponentMixin(component: NlComponent)
     }
 
     // Notify view handlers
-    val viewHandlerManager = ViewHandlerManager.get(component.model.project)
-    val childHandler = viewHandlerManager.getHandler(component)
+    val childHandler = component.getViewHandler {}
 
     if (childHandler != null) {
       var ok = childHandler.onCreate(component.parent, component, insertType)
       if (component.parent != null) {
-        ok = ok and NlDependencyManager.getInstance().addDependencies((listOf(component)), component.model.facet, true)
+        ok =
+          ok and
+            NlDependencyManager.getInstance()
+              .addDependencies((listOf(component)), component.model.facet, true)
       }
       if (!ok) {
         component.parent?.removeChild(component)
@@ -591,10 +634,7 @@ class NlComponentMixin(component: NlComponent)
         return false
       }
     }
-    component.parent?.let {
-      val parentHandler = viewHandlerManager.getHandler(it)
-      (parentHandler as? ViewGroupHandler)?.onChildInserted(it, component, insertType)
-    }
+    component.parent?.let { it.getViewGroupHandler {}?.onChildInserted(it, component, insertType) }
     return true
   }
 
@@ -603,11 +643,8 @@ class NlComponentMixin(component: NlComponent)
     component.h = dndComponent.height
   }
 
-  override fun getIcon(): Icon {
-    val manager = ViewHandlerManager.get(component.model.project)
-    val handler = manager.getHandler(component) ?: return StudioIcons.LayoutEditor.Palette.VIEW
-    return handler.getIcon(component)
-  }
+  override fun getIcon(): Icon =
+    component.getViewHandler {}?.getIcon(component) ?: StudioIcons.LayoutEditor.Palette.VIEW
 }
 
 /**
@@ -624,23 +661,22 @@ object NlComponentRegistrar : Consumer<NlComponent> {
 object NlComponentHelper {
 
   // TODO Add a needsId method to the handler classes
-  val TAGS_THAT_DONT_NEED_DEFAULT_IDS: Collection<String> = ImmutableSet.Builder<String>()
-    .add(REQUEST_FOCUS)
-    .add(SPACE)
-    .add(TAG_ITEM)
-    .add(VIEW_INCLUDE)
-    .add(VIEW_MERGE)
-    .addAll(PreferenceUtils.VALUES)
-    .build()
+  val TAGS_THAT_DONT_NEED_DEFAULT_IDS: Collection<String> =
+    ImmutableSet.Builder<String>()
+      .add(REQUEST_FOCUS)
+      .add(SPACE)
+      .add(TAG_ITEM)
+      .add(VIEW_INCLUDE)
+      .add(VIEW_MERGE)
+      .addAll(PreferenceUtils.VALUES)
+      .build()
 
   /**
-   * Maps a custom view class to the corresponding layout tag;
-   * e.g. `android.widget.LinearLayout` maps to just `LinearLayout`, but
-   * `android.support.v4.widget.DrawerLayout` maps to
+   * Maps a custom view class to the corresponding layout tag; e.g. `android.widget.LinearLayout`
+   * maps to just `LinearLayout`, but `android.support.v4.widget.DrawerLayout` maps to
    * `android.support.v4.widget.DrawerLayout`.
-
-   * @param fqcn fully qualified class name
-   * *
+   *
+   * @param fqcn fully qualified class name *
    * @return the corresponding view tag
    */
   fun viewClassToTag(fqcn: String): String {
@@ -652,18 +688,17 @@ object NlComponentHelper {
   }
 
   /**
-   * Returns true if views with the given fully qualified class name need to include
-   * their package in the layout XML tag
-
-   * @param fqcn the fully qualified class name, such as android.widget.Button
-   * *
+   * Returns true if views with the given fully qualified class name need to include their package
+   * in the layout XML tag
+   *
+   * @param fqcn the fully qualified class name, such as android.widget.Button *
    * @return true if the full package path should be included in the layout XML element
    * * tag
    */
   private fun viewNeedsPackage(fqcn: String): Boolean {
-    return !(fqcn.startsWith(ANDROID_WIDGET_PREFIX)
-             || fqcn.startsWith(ANDROID_VIEW_PKG)
-             || fqcn.startsWith(ANDROID_WEBKIT_PKG))
+    return !(fqcn.startsWith(ANDROID_WIDGET_PREFIX) ||
+      fqcn.startsWith(ANDROID_VIEW_PKG) ||
+      fqcn.startsWith(ANDROID_WEBKIT_PKG))
   }
 
   fun hasNlComponentInfo(component: NlComponent): Boolean {

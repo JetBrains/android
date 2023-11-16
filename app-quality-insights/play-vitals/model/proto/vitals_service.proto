@@ -96,6 +96,9 @@ message GetCrashRateMetricSetRequest {
 //  * [DAILY][google.play.developer.reporting.v1beta1.AggregationPeriod.DAILY]:
 //    metrics are aggregated in calendar date intervals. Due to historical
 //    constraints, the only supported timezone is `America/Los_Angeles`.
+//  * [HOURLY][google.play.developer.reporting.v1beta1.AggregationPeriod.HOURLY]:
+//    metrics are aggregated in hourly intervals. The default and only
+//    supported timezone is `UTC`.
 //
 // **Supported metrics:**
 //
@@ -103,10 +106,10 @@ message GetCrashRateMetricSetRequest {
 //     aggregation period that experienced at least one crash.
 //  * `crashRate7dUserWeighted` (`google.type.Decimal`): Rolling average value
 //     of `crashRate` in the last 7 days. The daily values are weighted by the
-//     count of distinct users for the day.
+//     count of distinct users for the day. Not supported in HOURLY granularity.
 //  * `crashRate28dUserWeighted` (`google.type.Decimal`): Rolling average value
 //     of `crashRate` in the last 28 days. The daily values are weighted by the
-//     count of distinct users for the day.
+//     count of distinct users for the day. Not supported in HOURLY granularity.
 //  * `userPerceivedCrashRate` (`google.type.Decimal`): Percentage of distinct
 //     users in the aggregation period that experienced at least one crash while
 //     they were actively using your app
@@ -114,10 +117,12 @@ message GetCrashRateMetricSetRequest {
 //     if it is displaying any activity or executing any foreground service.
 //  * `userPerceivedCrashRate7dUserWeighted` (`google.type.Decimal`): Rolling
 //     average value of `userPerceivedCrashRate` in the last 7 days. The daily
-//     values are weighted by the count of distinct users for the day.
+//     values are weighted by the count of distinct users for the day. Not
+//     supported in HOURLY granularity.
 //  * `userPerceivedCrashRate28dUserWeighted` (`google.type.Decimal`): Rolling
 //     average value of `userPerceivedCrashRate` in the last 28 days. The daily
-//     values are weighted by the count of distinct users for the day.
+//     values are weighted by the count of distinct users for the day. Not
+//     supported in HOURLY granularity.
 //  * `distinctUsers` (`google.type.Decimal`): Count of distinct users
 //     in the aggregation period that were used as normalization value for the
 //     `crashRate` and `userPerceivedCrashRate` metrics. A user is counted in
@@ -125,22 +130,30 @@ message GetCrashRateMetricSetRequest {
 //     An app is considered to be in active use
 //     if it is displaying any activity or executing any foreground service.
 //     Care must be taken not to aggregate this count further, as it may
-//     result in users being counted multiple times.
+//     result in users being counted multiple times. The value is rounded to the
+//     nearest multiple of 10, 100, 1,000 or 1,000,000, depending on the
+//     magnitude of the value.
 //
 // **Supported dimensions:**
 //
 //  * `apiLevel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     the API level of Android that was running on the user's device.
+//     the API level of Android that was running on the user's device, e.g., 26.
 //  * `versionCode`
 //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
 //     version of the app that was running on the user's device.
 //  * `deviceModel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     unique identifier of the user's device model.
+//     unique identifier of the user's device model. The form of the
+//     identifier is 'deviceBrand/device', where deviceBrand corresponds
+//     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+//     google/coral.
+//  * `deviceBrand`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     unique identifier of the user's device brand, e.g., google.
 //  * `deviceType`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     the type (also known as form factor) of the user's device.
+//     the type (also known as form factor) of the user's device, e.g., PHONE.
 //  * `countryCode`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     the country or region of the user's device based on their IP address,
@@ -222,6 +235,9 @@ message QueryCrashRateMetricSetRequest {
   //    metrics are aggregated in calendar date intervals. Due to historical
   //    constraints, the default and only supported timezone is
   //    `America/Los_Angeles`.
+  //  * [HOURLY][google.play.developer.reporting.v1beta1.AggregationPeriod.HOURLY]:
+  //    metrics are aggregated in hourly intervals. The default and only
+  //    supported timezone is `UTC`.
   TimelineSpec timeline_spec = 2;
 
   // Dimensions to slice the metrics by.
@@ -230,16 +246,23 @@ message QueryCrashRateMetricSetRequest {
   //
   //  * `apiLevel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     the API level of Android that was running on the user's device.
+  //     the API level of Android that was running on the user's device,
+  //     e.g., 26.
   //  * `versionCode`
   //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
   //     version of the app that was running on the user's device.
   //  * `deviceModel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     unique identifier of the user's device model.
+  //     unique identifier of the user's device model. The form of the
+  //     identifier is 'deviceBrand/device', where deviceBrand corresponds
+  //     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+  //     google/coral.
+  //  * `deviceBrand`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     unique identifier of the user's device brand, e.g., google.
   //  * `deviceType`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     the type (also known as form factor) of the user's device.
+  //     the type (also known as form factor) of the user's device, e.g., PHONE.
   //  * `countryCode`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     the country or region of the user's device based on their IP address,
@@ -296,7 +319,8 @@ message QueryCrashRateMetricSetRequest {
   //     count of distinct users for the day.
   //  * `crashRate28dUserWeighted` (`google.type.Decimal`): Rolling average
   //     value of `crashRate` in the last 28 days. The daily values are weighted
-  //     by the count of distinct users for the day.
+  //     by the count of distinct users for the day. Not supported in HOURLY
+  //     granularity.
   //  * `userPerceivedCrashRate` (`google.type.Decimal`): Percentage of distinct
   //     users in the aggregation period that experienced at least one crash
   //     while they were actively using your app (a user-perceived crash). An
@@ -304,10 +328,12 @@ message QueryCrashRateMetricSetRequest {
   //     or executing any foreground service.
   //  * `userPerceivedCrashRate7dUserWeighted` (`google.type.Decimal`): Rolling
   //     average value of `userPerceivedCrashRate` in the last 7 days. The daily
-  //     values are weighted by the count of distinct users for the day.
+  //     values are weighted by the count of distinct users for the day. Not
+  //     supported in HOURLY granularity.
   //  * `userPerceivedCrashRate28dUserWeighted` (`google.type.Decimal`): Rolling
   //     average value of `userPerceivedCrashRate` in the last 28 days. The
   //     daily values are weighted by the count of distinct users for the day.
+  //     Not supported in HOURLY granularity.
   //  * `distinctUsers` (`google.type.Decimal`): Count of distinct users
   //     in the aggregation period that were used as normalization value for the
   //     `crashRate` and `userPerceivedCrashRate` metrics. A user is counted in
@@ -315,7 +341,9 @@ message QueryCrashRateMetricSetRequest {
   //     period. An app is considered to be in active use if it is displaying
   //     any activity or executing any foreground service. Care must be taken
   //     not to aggregate this count further, as it may result in users being
-  //     counted multiple times.
+  //     counted multiple times. The value is rounded to the nearest
+  //     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+  //     the value.
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows
@@ -392,6 +420,9 @@ message GetAnrRateMetricSetRequest {
 //  * [DAILY][google.play.developer.reporting.v1beta1.AggregationPeriod.DAILY]:
 //    metrics are aggregated in calendar date intervals. Due to historical
 //    constraints, the only supported timezone is `America/Los_Angeles`.
+//  * [HOURLY][google.play.developer.reporting.v1beta1.AggregationPeriod.HOURLY]:
+//    metrics are aggregated in hourly intervals. The default and only
+//    supported timezone is `UTC`.
 //
 // **Supported metrics:**
 //
@@ -399,17 +430,19 @@ message GetAnrRateMetricSetRequest {
 //     aggregation period that experienced at least one ANR.
 //  *  `anrRate7dUserWeighted` (`google.type.Decimal`): Rolling average value
 //     of `anrRate` in the last 7 days. The daily values are weighted by the
-//     count of distinct users for the day.
+//     count of distinct users for the day. Not supported in HOURLY granularity.
 //  *  `anrRate28dUserWeighted` (`google.type.Decimal`): Rolling average
 //     value of `anrRate` in the last 28 days. The daily values are weighted
-//     by the count of distinct users for the day.
+//     by the count of distinct users for the day. Not supported in HOURLY
+//     granularity.
 //  *  `userPerceivedAnrRate` (`google.type.Decimal`): Percentage of distinct
 //     users in the aggregation period that experienced at least one
 //     user-perceived ANR. User-perceived ANRs are currently those of 'Input
 //     dispatching' type.
 //  *  `userPerceivedAnrRate7dUserWeighted` (`google.type.Decimal`): Rolling
 //     average value of `userPerceivedAnrRate` in the last 7 days. The daily
-//     values are weighted by the count of distinct users for the day.
+//     values are weighted by the count of distinct users for the day. Not
+//     supported in HOURLY granularity.
 //  *  `userPerceivedAnrRate28dUserWeighted` (`google.type.Decimal`): Rolling
 //     average value of `userPerceivedAnrRate` in the last 28 days. The daily
 //     values are weighted by the count of distinct users for the day.
@@ -418,22 +451,30 @@ message GetAnrRateMetricSetRequest {
 //     `anrRate` and `userPerceivedAnrRate` metrics. A user is counted in this
 //     metric if they used the app in the foreground during the aggregation
 //     period. Care must be taken not to aggregate this count further, as it may
-//     result in users being counted multiple times.
+//     result in users being counted multiple times. The value is rounded to the
+//     nearest multiple of 10, 100, 1,000 or 1,000,000, depending on the
+//     magnitude of the value.
 //
 // **Supported dimensions:**
 //
 //  * `apiLevel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     the API level of Android that was running on the user's device.
+//     the API level of Android that was running on the user's device, e.g., 26.
 //  * `versionCode`
 //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
 //     version of the app that was running on the user's device.
 //  * `deviceModel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     unique identifier of the user's device model.
+//     unique identifier of the user's device model. The form of the
+//     identifier is 'deviceBrand/device', where deviceBrand corresponds
+//     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+//     google/coral.
+//  * `deviceBrand`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     unique identifier of the user's device brand, e.g., google.
 //  * `deviceType`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     the type (also known as form factor) of the user's device.
+//     the type (also known as form factor) of the user's device, e.g., PHONE.
 //  * `countryCode`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     the country or region of the user's device based on their IP address,
@@ -515,6 +556,9 @@ message QueryAnrRateMetricSetRequest {
   //    metrics are aggregated in calendar date intervals. Due to historical
   //    constraints, the default and only supported timezone is
   //    `America/Los_Angeles`.
+  //  * [HOURLY][google.play.developer.reporting.v1beta1.AggregationPeriod.HOURLY]:
+  //    metrics are aggregated in hourly intervals. The default and only
+  //    supported timezone is `UTC`.
   TimelineSpec timeline_spec = 2;
 
   // Dimensions to slice the metrics by.
@@ -523,16 +567,23 @@ message QueryAnrRateMetricSetRequest {
   //
   //  * `apiLevel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     the API level of Android that was running on the user's device.
+  //     the API level of Android that was running on the user's device,
+  //     e.g., 26.
   //  * `versionCode`
   //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
   //     version of the app that was running on the user's device.
   //  * `deviceModel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     unique identifier of the user's device model.
+  //     unique identifier of the user's device model. The form of the
+  //     identifier is 'deviceBrand/device', where deviceBrand corresponds
+  //     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+  //     google/coral.
+  //  * `deviceBrand`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     unique identifier of the user's device brand, e.g., google.
   //  * `deviceType`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     the type (also known as form factor) of the user's device.
+  //     the type (also known as form factor) of the user's device, e.g., PHONE.
   //  * `countryCode`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     the country or region of the user's device based on their IP address,
@@ -586,26 +637,32 @@ message QueryAnrRateMetricSetRequest {
   //     aggregation period that experienced at least one ANR.
   //  *  `anrRate7dUserWeighted` (`google.type.Decimal`): Rolling average value
   //     of `anrRate` in the last 7 days. The daily values are weighted by the
-  //     count of distinct users for the day.
+  //     count of distinct users for the day. Not supported in HOURLY
+  //     granularity.
   //  *  `anrRate28dUserWeighted` (`google.type.Decimal`): Rolling average
   //     value of `anrRate` in the last 28 days. The daily values are weighted
-  //     by the count of distinct users for the day.
+  //     by the count of distinct users for the day. Not supported in HOURLY
+  //     granularity.
   //  *  `userPerceivedAnrRate` (`google.type.Decimal`): Percentage of distinct
   //     users in the aggregation period that experienced at least one
   //     user-perceived ANR. User-perceived ANRs are currently those of 'Input
   //     dispatching' type.
   //  *  `userPerceivedAnrRate7dUserWeighted` (`google.type.Decimal`): Rolling
   //     average value of `userPerceivedAnrRate` in the last 7 days. The daily
-  //     values are weighted by the count of distinct users for the day.
+  //     values are weighted by the count of distinct users for the day. Not
+  //     supported in HOURLY granularity.
   //  *  `userPerceivedAnrRate28dUserWeighted` (`google.type.Decimal`): Rolling
   //     average value of `userPerceivedAnrRate` in the last 28 days. The daily
-  //     values are weighted by the count of distinct users for the day.
+  //     values are weighted by the count of distinct users for the day. Not
+  // .    supported in HOURLY granularity.
   //  *  `distinctUsers` (`google.type.Decimal`): Count of distinct users
   //     in the aggregation period that were used as normalization value for the
   //     `anrRate` and `userPerceivedAnrRate` metrics. A user is counted in this
   //     metric if they used the app in the foreground during the aggregation
   //     period. Care must be taken not to aggregate this count further, as it
-  //     may result in users being counted multiple times.
+  //     may result in users being counted multiple times. The value is rounded
+  //     to the nearest multiple of 10, 100, 1,000 or 1,000,000, depending on
+  //     the magnitude of the value.
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows
@@ -698,22 +755,30 @@ message GetExcessiveWakeupRateMetricSetRequest {
 //     they app was doing any work on the device, i.e., not just active
 //     foreground usage but also background work. Care must be taken
 //     not to aggregate this count further, as it may result in users being
-//     counted multiple times.
+//     counted multiple times. The value is rounded to the nearest
+//     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+//     the value.
 //
 // **Supported dimensions:**
 //
 //  * `apiLevel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     the API level of Android that was running on the user's device.
+//     the API level of Android that was running on the user's device, e.g., 26.
 //  * `versionCode`
 //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
 //     version of the app that was running on the user's device.
 //  * `deviceModel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     unique identifier of the user's device model.
+//     unique identifier of the user's device model. The form of the
+//     identifier is 'deviceBrand/device', where deviceBrand corresponds
+//     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+//     google/coral.
+//  * `deviceBrand`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     unique identifier of the user's device brand, e.g., google.
 //  * `deviceType`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     the type (also known as form factor) of the user's device.
+//     the type (also known as form factor) of the user's device, e.g., PHONE.
 //  * `countryCode`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     the country or region of the user's device based on their IP address,
@@ -796,16 +861,23 @@ message QueryExcessiveWakeupRateMetricSetRequest {
   //
   //  * `apiLevel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     the API level of Android that was running on the user's device.
+  //     the API level of Android that was running on the user's device,
+  //     e.g., 26.
   //  * `versionCode`
   //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
   //     version of the app that was running on the user's device.
   //  * `deviceModel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     unique identifier of the user's device model.
+  //     unique identifier of the user's device model. The form of the
+  //     identifier is 'deviceBrand/device', where deviceBrand corresponds
+  //     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+  //     google/coral.
+  //  * `deviceBrand`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     unique identifier of the user's device brand, e.g., google.
   //  * `deviceType`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     the type (also known as form factor) of the user's device.
+  //     the type (also known as form factor) of the user's device, e.g., PHONE.
   //  * `countryCode`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     the country or region of the user's device based on their IP address,
@@ -869,7 +941,9 @@ message QueryExcessiveWakeupRateMetricSetRequest {
   //     they app was doing any work on the device, i.e., not just active
   //     foreground usage but also background work. Care must be taken
   //     not to aggregate this count further, as it may result in users being
-  //     counted multiple times.
+  //     counted multiple times. The value is rounded to the nearest
+  //     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+  //     the value.
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows
@@ -963,22 +1037,30 @@ message GetStuckBackgroundWakelockRateMetricSetRequest {
 //     their app was doing any work on the device, i.e., not just active
 //     foreground usage but also background work. Care must be taken
 //     not to aggregate this count further, as it may result in users being
-//     counted multiple times.
+//     counted multiple times. The value is rounded to the nearest
+//     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+//     the value.
 //
 // **Supported dimensions:**
 //
 //  * `apiLevel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     the API level of Android that was running on the user's device.
+//     the API level of Android that was running on the user's device, e.g., 26.
 //  * `versionCode`
 //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
 //     version of the app that was running on the user's device.
 //  * `deviceModel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     unique identifier of the user's device model.
+//     unique identifier of the user's device model. The form of the
+//     identifier is 'deviceBrand/device', where deviceBrand corresponds
+//     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+//     google/coral.
+//  * `deviceBrand`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     unique identifier of the user's device brand, e.g., google.
 //  * `deviceType`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     the type (also known as form factor) of the user's device.
+//     the type (also known as form factor) of the user's device, e.g., PHONE.
 //  * `countryCode`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     the country or region of the user's device based on their IP address,
@@ -1061,16 +1143,23 @@ message QueryStuckBackgroundWakelockRateMetricSetRequest {
   //
   //  * `apiLevel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     the API level of Android that was running on the user's device.
+  //     the API level of Android that was running on the user's device,
+  //     e.g., 26.
   //  * `versionCode`
   //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
   //     version of the app that was running on the user's device.
   //  * `deviceModel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     unique identifier of the user's device model.
+  //     unique identifier of the user's device model. The form of the
+  //     identifier is 'deviceBrand/device', where deviceBrand corresponds
+  //     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+  //     google/coral.
+  //  * `deviceBrand`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     unique identifier of the user's device brand, e.g., google.
   //  * `deviceType`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     the type (also known as form factor) of the user's device.
+  //     the type (also known as form factor) of the user's device, e.g., PHONE.
   //  * `countryCode`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     the country or region of the user's device based on their IP address,
@@ -1135,7 +1224,9 @@ message QueryStuckBackgroundWakelockRateMetricSetRequest {
   //     they app was doing any work on the device, i.e., not just active
   //     foreground usage but also background work. Care must be taken
   //     not to aggregate this count further, as it may result in users being
-  //     counted multiple times.
+  //     counted multiple times. The value is rounded to the nearest
+  //     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+  //     the value.
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows
@@ -1225,7 +1316,9 @@ message GetSlowStartRateMetricSetRequest {
 //     `slowStartRate` metric. A user is counted in this metric if
 //     their app was launched in the device. Care must be taken
 //     not to aggregate this count further, as it may result in users being
-//     counted multiple times.
+//     counted multiple times. The value is rounded to the nearest
+//     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+//     the value.
 //
 // **Required dimension:**
 //
@@ -1241,16 +1334,22 @@ message GetSlowStartRateMetricSetRequest {
 //
 //  * `apiLevel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     the API level of Android that was running on the user's device.
+//     the API level of Android that was running on the user's device, e.g., 26.
 //  * `versionCode`
 //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
 //     version of the app that was running on the user's device.
 //  * `deviceModel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     unique identifier of the user's device model.
+//     unique identifier of the user's device model. The form of the
+//     identifier is 'deviceBrand/device', where deviceBrand corresponds
+//     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+//     google/coral.
+//  * `deviceBrand`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     unique identifier of the user's device brand, e.g., google.
 //  * `deviceType`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     the type (also known as form factor) of the user's device.
+//     the type (also known as form factor) of the user's device, e.g., PHONE.
 //  * `countryCode`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     the country or region of the user's device based on their IP address,
@@ -1333,16 +1432,23 @@ message QuerySlowStartRateMetricSetRequest {
   //
   //  * `apiLevel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     the API level of Android that was running on the user's device.
+  //     the API level of Android that was running on the user's device,
+  //     e.g., 26.
   //  * `versionCode`
   //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
   //     version of the app that was running on the user's device.
   //  * `deviceModel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     unique identifier of the user's device model.
+  //     unique identifier of the user's device model. The form of the
+  //     identifier is 'deviceBrand/device', where deviceBrand corresponds
+  //     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+  //     google/coral.
+  //  * `deviceBrand`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     unique identifier of the user's device brand, e.g., google.
   //  * `deviceType`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     the type (also known as form factor) of the user's device.
+  //     the type (also known as form factor) of the user's device, e.g., PHONE.
   //  * `countryCode`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     the country or region of the user's device based on their IP address,
@@ -1405,7 +1511,9 @@ message QuerySlowStartRateMetricSetRequest {
   //     `slowStartRate` metric. A user is counted in this metric if
   //     their app was launched in the device. Care must be taken
   //     not to aggregate this count further, as it may result in users being
-  //     counted multiple times.
+  //     counted multiple times. The value is rounded to the nearest
+  //     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+  //     the value.
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows
@@ -1510,22 +1618,30 @@ message GetSlowRenderingRateMetricSetRequest {
 //     `slowRenderingRate20Fps`/`slowRenderingRate30Fps` metric. A user is
 //     counted in this metric if their app rendered any frames. Care must
 //     be taken not to aggregate this count further, as it may result in users
-//     being counted multiple times.
+//     being counted multiple times. The value is rounded to the nearest
+//     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+//     the value.
 //
 // **Supported dimensions:**
 //
 //  * `apiLevel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     the API level of Android that was running on the user's device.
+//     the API level of Android that was running on the user's device, e.g., 26.
 //  * `versionCode`
 //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
 //     version of the app that was running on the user's device.
 //  * `deviceModel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     unique identifier of the user's device model.
+//     unique identifier of the user's device model. The form of the
+//     identifier is 'deviceBrand/device', where deviceBrand corresponds
+//     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+//     google/coral.
+//  * `deviceBrand`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     unique identifier of the user's device brand, e.g., google.
 //  * `deviceType`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     the type (also known as form factor) of the user's device.
+//     the type (also known as form factor) of the user's device, e.g., PHONE.
 //  * `countryCode`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     the country or region of the user's device based on their IP address,
@@ -1608,16 +1724,23 @@ message QuerySlowRenderingRateMetricSetRequest {
   //
   //  * `apiLevel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     the API level of Android that was running on the user's device.
+  //     the API level of Android that was running on the user's device,
+  //     e.g., 26.
   //  * `versionCode`
   //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
   //     version of the app that was running on the user's device.
   //  * `deviceModel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     unique identifier of the user's device model.
+  //     unique identifier of the user's device model. The form of the
+  //     identifier is 'deviceBrand/device', where deviceBrand corresponds
+  //     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+  //     google/coral.
+  //  * `deviceBrand`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     unique identifier of the user's device brand, e.g., google.
   //  * `deviceType`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     the type (also known as form factor) of the user's device.
+  //     the type (also known as form factor) of the user's device, e.g., PHONE.
   //  * `countryCode`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     the country or region of the user's device based on their IP address,
@@ -1688,7 +1811,9 @@ message QuerySlowRenderingRateMetricSetRequest {
   //     `slowRenderingRate20Fps`/`slowRenderingRate30Fps` metric. A user is
   //     counted in this metric if their app was launched in the device. Care
   //     must be taken not to aggregate this count further, as it may result in
-  //     users being counted multiple times.
+  //     users being counted multiple times. The value is rounded to the nearest
+  //     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+  //     the value.
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
-import com.android.resources.ResourceType
 import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_HDR_YES
 import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_WIDE_COLOR_GAMUT_YES
 import com.android.tools.idea.layoutinspector.resource.KEYBOARDHIDDEN_NO
@@ -30,7 +29,6 @@ import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_SIZE_SMALL
 import com.android.tools.idea.layoutinspector.resource.TOUCHSCREEN_STYLUS
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_NIGHT_NO
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_NORMAL
-import com.android.tools.idea.layoutinspector.resource.data.Resource
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
@@ -49,49 +47,61 @@ class FromProtoConversionTest {
 
   @Test
   fun testConvertConfiguration() {
-    val proto = LayoutInspectorViewProtocol.Configuration.newBuilder().apply {
-      countryCode = 310
-      networkCode = 410
-      screenLayout = SCREENLAYOUT_SIZE_SMALL or SCREENLAYOUT_LONG_YES or SCREENLAYOUT_LAYOUTDIR_RTL or SCREENLAYOUT_ROUND_YES
-      colorMode = COLOR_MODE_WIDE_COLOR_GAMUT_YES or COLOR_MODE_HDR_YES
-      touchScreen = TOUCHSCREEN_STYLUS
-      keyboard = KEYBOARD_QWERTY
-      keyboardHidden = KEYBOARDHIDDEN_NO
-      hardKeyboardHidden = KEYBOARDHIDDEN_NO
-      navigation = NAVIGATION_WHEEL
-      navigationHidden = NAVIGATIONHIDDEN_NO
-      uiMode = UI_MODE_TYPE_NORMAL or UI_MODE_NIGHT_NO
-      smallestScreenWidthDp = 200
-      density = 0
-      orientation = ORIENTATION_PORTRAIT
-      screenWidthDp = 480
-      screenHeightDp = 800
-      grammaticalGender = GRAMMATICAL_GENDER_FEMININE
-    }.build()
+    val proto =
+      LayoutInspectorViewProtocol.Configuration.newBuilder()
+        .apply {
+          countryCode = 310
+          networkCode = 410
+          screenLayout =
+            SCREENLAYOUT_SIZE_SMALL or
+              SCREENLAYOUT_LONG_YES or
+              SCREENLAYOUT_LAYOUTDIR_RTL or
+              SCREENLAYOUT_ROUND_YES
+          colorMode = COLOR_MODE_WIDE_COLOR_GAMUT_YES or COLOR_MODE_HDR_YES
+          touchScreen = TOUCHSCREEN_STYLUS
+          keyboard = KEYBOARD_QWERTY
+          keyboardHidden = KEYBOARDHIDDEN_NO
+          hardKeyboardHidden = KEYBOARDHIDDEN_NO
+          navigation = NAVIGATION_WHEEL
+          navigationHidden = NAVIGATIONHIDDEN_NO
+          uiMode = UI_MODE_TYPE_NORMAL or UI_MODE_NIGHT_NO
+          smallestScreenWidthDp = 200
+          density = 0
+          orientation = ORIENTATION_PORTRAIT
+          screenWidthDp = 480
+          screenHeightDp = 800
+          grammaticalGender = GRAMMATICAL_GENDER_FEMININE
+        }
+        .build()
 
     val folderConfiguration = proto.convert(29)
 
-    assertThat(folderConfiguration.qualifierString).isEqualTo(join("-",
-        "mcc310",
-        "mnc410",
-        "feminine",
-        "ldrtl",
-        "sw200dp",
-        "w480dp",
-        "h800dp",
-        "small",
-        "long",
-        "round",
-        "widecg",
-        "highdr",
-        "port",
-        "notnight",
-        "stylus",
-        "keysexposed",
-        "qwerty",
-        "navexposed",
-        "wheel",
-        "v29"))
+    assertThat(folderConfiguration.qualifierString)
+      .isEqualTo(
+        join(
+          "-",
+          "mcc310",
+          "mnc410",
+          "feminine",
+          "ldrtl",
+          "sw200dp",
+          "w480dp",
+          "h800dp",
+          "small",
+          "long",
+          "round",
+          "widecg",
+          "highdr",
+          "port",
+          "notnight",
+          "stylus",
+          "keysexposed",
+          "qwerty",
+          "navexposed",
+          "wheel",
+          "v29"
+        )
+      )
   }
 
   private fun id(str: String): Int = table[str] ?: addId(++stringIndex, str)

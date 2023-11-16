@@ -24,24 +24,35 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.UsefulTestCase
 import org.junit.Test
 
-private val LAYOUT_SCREEN_SIMPLE = ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "screen_simple")
-private val LAYOUT_APPCOMPAT_SCREEN_SIMPLE = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
-private val LAYOUT_MAIN = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+private val LAYOUT_SCREEN_SIMPLE =
+  ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "screen_simple")
+private val LAYOUT_APPCOMPAT_SCREEN_SIMPLE =
+  ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
+private val LAYOUT_MAIN =
+  ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 
 class ViewNodeTest {
   @Test
   fun testFlatten() {
     val model = model {
       view(ROOT) {
-        view(VIEW1) {
-          view(VIEW3)
-        }
+        view(VIEW1) { view(VIEW3) }
         view(VIEW2)
       }
     }
 
-    UsefulTestCase.assertSameElements(model[ROOT]!!.flattenedList().map { it.drawId }.toList(), ROOT, VIEW1, VIEW3, VIEW2)
-    UsefulTestCase.assertSameElements(model[VIEW1]!!.flattenedList().map { it.drawId }.toList(), VIEW1, VIEW3)
+    UsefulTestCase.assertSameElements(
+      model[ROOT]!!.flattenedList().map { it.drawId }.toList(),
+      ROOT,
+      VIEW1,
+      VIEW3,
+      VIEW2
+    )
+    UsefulTestCase.assertSameElements(
+      model[VIEW1]!!.flattenedList().map { it.drawId }.toList(),
+      VIEW1,
+      VIEW3
+    )
   }
 
   @Test
@@ -91,8 +102,7 @@ class ViewNodeTest {
       view(ROOT, layout = null, qualifiedName = "com.android.internal.policy.DecorView") {
         view(VIEW1, layout = LAYOUT_MAIN) {
           view(VIEW2, layout = LAYOUT_SCREEN_SIMPLE) {
-            view(VIEW3, layout = LAYOUT_APPCOMPAT_SCREEN_SIMPLE) {
-            }
+            view(VIEW3, layout = LAYOUT_APPCOMPAT_SCREEN_SIMPLE) {}
           }
         }
       }

@@ -26,8 +26,6 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import java.util.concurrent.Executors
-import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.emptyFlow
@@ -35,13 +33,15 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol
+import java.util.concurrent.Executors
+import javax.swing.JPanel
 
 class NetworkInspectorTabTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun pressActionButtons() =
-    runBlocking {
+    runBlocking<Unit> {
       val scope = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
       val timer = FakeTimer()
       timer.start()

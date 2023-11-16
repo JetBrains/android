@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.insights
 
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+
 enum class TimeIntervalFilter(val numDays: Long, private val displayString: String) {
   ONE_DAY(1, "Last 24 hours"),
   SEVEN_DAYS(7, "Last 7 days"),
@@ -26,5 +29,17 @@ enum class TimeIntervalFilter(val numDays: Long, private val displayString: Stri
 
   override fun toString(): String {
     return this.displayString
+  }
+
+  /**
+   * Returns a [Pair] of [Long] values representing the (start, end) times as millis since epoch.
+   *
+   * A [TimeIntervalFilter] represents a timeframe, from "now" to "X" time in the past. This
+   * extension function calculates this interval as Milliseconds from the time it was called.
+   */
+  fun asMillisFromNow(): Pair<Long, Long> {
+    val endOfRange = Instant.now()
+    val startOfRange = endOfRange.minus(numDays, ChronoUnit.DAYS)
+    return startOfRange.toEpochMilli() to endOfRange.toEpochMilli()
   }
 }

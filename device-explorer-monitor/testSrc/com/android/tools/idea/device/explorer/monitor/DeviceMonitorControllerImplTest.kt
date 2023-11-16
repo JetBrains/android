@@ -23,6 +23,8 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorControllerImpl.Companion.getProjectController
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
 import com.android.tools.idea.device.explorer.monitor.mocks.MockDeviceMonitorView
+import com.android.tools.idea.device.explorer.monitor.mocks.MockProjectApplicationIdsProvider
+import com.android.tools.idea.device.explorer.monitor.options.DeviceMonitorSettings
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
 import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
 import com.android.tools.idea.device.explorer.monitor.processes.safeProcessName
@@ -30,8 +32,10 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigura
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -57,6 +61,7 @@ class DeviceMonitorControllerImplTest {
   private lateinit var processService: DeviceProcessService
   private lateinit var mockView: MockDeviceMonitorView
   private lateinit var testDevice1: DeviceState
+  private lateinit var packageNameProvider: MockProjectApplicationIdsProvider
 
   @Before
   fun setup() {
@@ -66,7 +71,13 @@ class DeviceMonitorControllerImplTest {
       // Add new client to trigger device update
       addClient(testDevice1, 60)
     }
-    model = DeviceMonitorModel(processService)
+    ApplicationManager.getApplication().registerOrReplaceServiceInstance(
+      DeviceMonitorSettings::class.java,
+      DeviceMonitorSettings(),
+      androidProjectRule.testRootDisposable
+    )
+    packageNameProvider = MockProjectApplicationIdsProvider(project)
+    model = DeviceMonitorModel(processService, packageNameProvider)
     mockView = MockDeviceMonitorView(model)
     mockView.setup()
     testDevice1 = adb.attachDevice("test_device_01", "Google", "Pix3l", "versionX", "29")
@@ -206,6 +217,66 @@ class DeviceMonitorControllerImplTest {
     // Assert
     checkMockViewActiveDevice(0)
     controller.setActiveConnectedDevice(testDevice1.deviceId)
+    checkMockViewActiveDevice(1)
+  }
+
+  @Test
+  fun filterOneProcessOut() = runBlocking(AndroidDispatchers.uiThread) {
+    // Prepare
+    val controller = createController()
+    controller.setup()
+    waitForServiceToRetrieveInitialDevice()
+    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    checkMockViewInitialState()
+
+    addClient(testDevice1, 10)
+    checkMockViewActiveDevice(2)
+
+    // Act
+    packageNameProvider.setApplicationIds("package-10")
+    model.setPackageFilter(true)
+
+    // Assert
+    checkMockViewActiveDevice(1)
+  }
+
+  @Test
+  fun filterAllProcesses() = runBlocking(AndroidDispatchers.uiThread) {
+    // Prepare
+    val controller = createController()
+    controller.setup()
+    waitForServiceToRetrieveInitialDevice()
+    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    checkMockViewInitialState()
+
+    addClient(testDevice1, 10)
+    checkMockViewActiveDevice(2)
+
+    // Act
+    packageNameProvider.setApplicationIds("no-process-package")
+    model.setPackageFilter(true)
+
+    // Assert
+    checkMockViewActiveDevice(0)
+  }
+
+  @Test
+  fun filterProcessesAfterProjectSync() = runBlocking(AndroidDispatchers.uiThread) {
+    // Prepare
+    val controller = createController()
+    controller.setup()
+    waitForServiceToRetrieveInitialDevice()
+    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    checkMockViewInitialState()
+
+    model.setPackageFilter(true)
+    addClient(testDevice1, 10)
+    checkMockViewActiveDevice(2)
+
+    // Act
+    packageNameProvider.setApplicationIds("package-10")
+
+    // Assert
     checkMockViewActiveDevice(1)
   }
 

@@ -15,39 +15,32 @@
  */
 package com.android.tools.idea.compose.preview.analytics
 
-import com.android.flags.junit.FlagRule
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder.getPreviewNodes
+import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.vfs.VirtualFile
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.kotlin.idea.util.application.runReadAction
+import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
-private const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.runtime"
-private const val PREVIEW_TOOLING_PACKAGE = "androidx.compose.ui.tooling.preview"
-
 class MultiPreviewUsageTrackerTest {
 
-  @get:Rule val multiPreviewRule = FlagRule(StudioFlags.COMPOSE_MULTIPREVIEW, true)
-
-  @get:Rule
-  val projectRule =
-    ComposeProjectRule(
-      previewAnnotationPackage = PREVIEW_TOOLING_PACKAGE,
-      composableAnnotationPackage = COMPOSABLE_ANNOTATION_FQN
-    )
+  @get:Rule val projectRule = ComposeProjectRule()
   private val project
     get() = projectRule.project
   private val fixture
@@ -58,7 +51,7 @@ class MultiPreviewUsageTrackerTest {
       package a
 
       import $PREVIEW_TOOLING_PACKAGE.Preview
-      import $COMPOSABLE_ANNOTATION_FQN.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
 
       annotation class EmptyAnnotation
 
@@ -95,7 +88,7 @@ class MultiPreviewUsageTrackerTest {
         // language=kotlin
         """
         import $PREVIEW_TOOLING_PACKAGE.Preview
-        import $COMPOSABLE_ANNOTATION_FQN.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
 
         ${
         buildMultiPreviewGraph(1, 7,
@@ -164,7 +157,7 @@ class MultiPreviewUsageTrackerTest {
         // language=kotlin
         """
         import $PREVIEW_TOOLING_PACKAGE.Preview
-        import $COMPOSABLE_ANNOTATION_FQN.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
 
         ${
         buildMultiPreviewGraph(2, 11,
@@ -254,7 +247,7 @@ class MultiPreviewUsageTrackerTest {
         // language=kotlin
         """
         import $PREVIEW_TOOLING_PACKAGE.Preview
-        import $COMPOSABLE_ANNOTATION_FQN.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
 
         ${
         buildMultiPreviewGraph(2, 11,
@@ -331,6 +324,26 @@ class MultiPreviewUsageTrackerTest {
         )
         .sorted()
     )
+  }
+
+  @Test
+  fun testLogEvent_EssentialsMode() {
+    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.override(true)
+    fun logAndGetMultiPreviewEvent() =
+      MultiPreviewUsageTracker.getInstance(null)
+        .logEvent(MultiPreviewEvent(listOf(), ""))
+        .composeMultiPreviewEvent
+
+    try {
+      val settings = AndroidEditorSettings.getInstance().globalState
+      settings.isComposePreviewEssentialsModeEnabled = false
+      assertFalse(logAndGetMultiPreviewEvent().isComposePreviewLiteMode)
+
+      settings.isComposePreviewEssentialsModeEnabled = true
+      assertTrue(logAndGetMultiPreviewEvent().isComposePreviewLiteMode)
+    } finally {
+      StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.clearOverride()
+    }
   }
 
   @Test
@@ -423,7 +436,7 @@ class MultiPreviewUsageTrackerTest {
       package b // use a different package that the one baseFile uses
 
       import $PREVIEW_TOOLING_PACKAGE.Preview
-      import $COMPOSABLE_ANNOTATION_FQN.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Preview // change annotation order
       @MyAnnotation
@@ -464,8 +477,12 @@ class MultiPreviewUsageTrackerTest {
   }
 
   private fun getPreviewNodes(vFile: VirtualFile) = runBlocking {
-    findAnnotatedMethodsValues(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME) {
-        methods ->
+    findAnnotatedMethodsValues(
+        project,
+        vFile,
+        COMPOSABLE_ANNOTATION_FQ_NAME,
+        COMPOSABLE_ANNOTATION_NAME
+      ) { methods ->
         getPreviewNodes(methods, true).asSequence()
       }
       .filterIsInstance<MultiPreviewNode>()

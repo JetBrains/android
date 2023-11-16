@@ -16,9 +16,9 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.tools.adtui.ZOOMABLE_KEY
-import com.android.tools.idea.streaming.AbstractDisplayPanel
-import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
-import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
+import com.android.tools.idea.streaming.core.AbstractDisplayPanel
+import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
+import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import java.awt.Dimension

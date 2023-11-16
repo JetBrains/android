@@ -23,8 +23,8 @@ import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.ModuleModelBuilder
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
-import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.android.tools.idea.testing.openProjectAndRunTestWithTestFixturesAvailable
+import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project

@@ -16,33 +16,34 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.evaluateConstant
 import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.layoutlib.isLayoutLibTarget
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtVisitorVoid
-import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
-import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
 
@@ -111,7 +112,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
               COMPOSE_PREVIEW_ANNOTATION_FQN == importDirective.importedFqName?.asString()
           isComposableFile =
             isComposableFile ||
-              COMPOSABLE_FQ_NAMES.contains(importDirective.importedFqName?.asString())
+              COMPOSABLE_ANNOTATION_FQ_NAME == importDirective.importedFqName?.asString()
         }
 
         override fun visitAnnotationEntry(annotationEntry: KtAnnotationEntry) {
@@ -119,7 +120,8 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
 
           isPreviewFile =
             isPreviewFile || annotationEntry.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN)
-          isComposableFile = isComposableFile || annotationEntry.fqNameMatches(COMPOSABLE_FQ_NAMES)
+          isComposableFile =
+            isComposableFile || annotationEntry.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME)
         }
 
         override fun visitNamedFunction(function: KtNamedFunction) {
@@ -146,7 +148,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
         override fun visitClass(klass: KtClass) {
           super.visitClass(klass)
 
-          if (!klass.isAnnotation() || !StudioFlags.COMPOSE_MULTIPREVIEW.get()) return
+          if (!klass.isAnnotation()) return
 
           klass.annotationEntries.forEach {
             when {
@@ -205,6 +207,8 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
     // This inspection only applies for functions, not for Annotation classes
     return
   }
+
+  override fun getStaticDescription() = message("inspection.no.parameters.or.provider.description")
 }
 
 /**
@@ -247,6 +251,9 @@ class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspect
     // This inspection only applies for functions, not for Annotation classes
     return
   }
+
+  override fun getStaticDescription() =
+    message("inspection.no.multiple.preview.provider.description")
 }
 
 /**
@@ -260,7 +267,8 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
     previewAnnotation: KtAnnotationEntry,
     isMultiPreview: Boolean
   ) {
-    val nonComposable = function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_FQ_NAMES) }
+    val nonComposable =
+      function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }
     if (nonComposable) {
       holder.registerProblem(
         previewAnnotation.psiOrParent as PsiElement,
@@ -279,6 +287,8 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
     // This inspection only applies for functions, not for Annotation classes
     return
   }
+
+  override fun getStaticDescription() = message("inspection.no.composable.description")
 }
 
 /**
@@ -311,6 +321,8 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
     // This inspection only applies for functions, not for Annotation classes
     return
   }
+
+  override fun getStaticDescription() = message("inspection.top.level.function")
 }
 
 /**
@@ -364,6 +376,9 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
       }
     }
   }
+
+  override fun getStaticDescription() =
+    message("inspection.width.height.limit.description", MAX_WIDTH, MAX_HEIGHT)
 }
 
 /** Inspection that checks if `@Preview` fontScale parameter is not positive. */
@@ -396,10 +411,7 @@ class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() 
 
     previewAnnotation.findValueArgument(PARAMETER_FONT_SCALE)?.let {
       val argumentExpression = it.getArgumentExpression() ?: return
-      val fontScale =
-        (ConstantExpressionEvaluator.getConstant(argumentExpression, argumentExpression.analyze())
-          ?.getValue(TypeUtils.DONT_CARE) as? Float)
-          ?: return
+      val fontScale = argumentExpression.evaluateConstant<Float>() ?: return
 
       if (fontScale <= 0) {
         holder.registerProblem(
@@ -410,6 +422,8 @@ class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() 
       }
     }
   }
+
+  override fun getStaticDescription() = message("inspection.preview.font.scale.description")
 }
 
 /** Inspection that checks if `@Preview` apiLevel is valid. */
@@ -444,8 +458,9 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
       previewAnnotation.module?.let { module ->
         ConfigurationManager.findExistingInstance(module)
           ?.targets
-          ?.filter { ConfigurationManager.isLayoutLibTarget(it) }
+          ?.filter { it.isLayoutLibTarget }
           ?.map { it.version.apiLevel }
+          ?.takeIf { it.isNotEmpty() }
       }
         ?: listOf(SdkVersionInfo.LOWEST_COMPILE_SDK_VERSION, SdkVersionInfo.HIGHEST_SUPPORTED_API)
 
@@ -453,10 +468,7 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
 
     previewAnnotation.findValueArgument(PARAMETER_API_LEVEL)?.let {
       val argumentExpression = it.getArgumentExpression() ?: return
-      val apiLevel =
-        (ConstantExpressionEvaluator.getConstant(argumentExpression, argumentExpression.analyze())
-          ?.getValue(TypeUtils.DONT_CARE) as? Int)
-          ?: return
+      val apiLevel = argumentExpression.evaluateConstant<Int>() ?: return
 
       if (apiLevel < min || apiLevel > max) {
         holder.registerProblem(
@@ -467,11 +479,13 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
       }
     }
   }
+
+  override fun getStaticDescription() = message("inspection.preview.api.level.static.description")
 }
 
 /**
  * Inspection that checks that functions annotated with `@Preview`, or with a MultiPreview, are not
- * in a unit test file
+ * in a unit test file.
  */
 class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {
   override fun visitPreviewAnnotation(
@@ -499,13 +513,48 @@ class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {
     // This inspection only applies for functions, not for Annotation classes
     return
   }
+
+  override fun getStaticDescription() = message("inspection.unit.test.files")
+}
+
+/** Inspection that checks that Preview functions are not called recursively. */
+class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
+
+  override fun getStaticDescription() = message("inspection.preview.recursive.description")
+
+  override fun buildVisitor(
+    holder: ProblemsHolder,
+    isOnTheFly: Boolean,
+    session: LocalInspectionToolSession
+  ): PsiElementVisitor =
+    if (session.file.androidFacet != null || ApplicationManager.getApplication().isUnitTestMode) {
+      object : KtVisitorVoid() {
+        override fun visitCallExpression(expression: KtCallExpression) {
+          super.visitCallExpression(expression)
+          val parentFunction = expression.psiOrParent.parentOfType<KtNamedFunction>() ?: return
+          val resolvedExpression = expression.resolveToCall()
+          if (
+            resolvedExpression?.resultingDescriptor?.name?.asString() == parentFunction.name &&
+              parentFunction.annotationEntries.any {
+                it.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN) ||
+                  (it.toUElement() as? UAnnotation).isMultiPreviewAnnotation()
+              }
+          ) {
+            holder.registerProblem(
+              expression.psiOrParent as PsiElement,
+              message("inspection.preview.recursive.description"),
+              ProblemHighlightType.WEAK_WARNING
+            )
+          }
+        }
+      }
+    } else {
+      PsiElementVisitor.EMPTY_VISITOR
+    }
 }
 
 private fun KtValueArgument.exceedsLimit(limit: Int): Boolean {
   val argumentExpression = getArgumentExpression() ?: return false
-  val dimension =
-    (ConstantExpressionEvaluator.getConstant(argumentExpression, argumentExpression.analyze())
-      ?.getValue(TypeUtils.DONT_CARE) as? Int)
-      ?: return false
+  val dimension = argumentExpression.evaluateConstant<Int>() ?: return false
   return dimension > limit
 }

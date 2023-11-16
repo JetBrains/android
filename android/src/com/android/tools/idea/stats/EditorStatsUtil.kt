@@ -62,6 +62,7 @@ import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_RAW
 import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_TRANSITION
 import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_VALUES
 import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_XML
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -111,6 +112,6 @@ suspend fun getEditorFileTypeForAnalytics(file: VirtualFile, project: Project?):
 @WorkerThread
 private fun isComposeEnabled(file: VirtualFile, project: Project?): Boolean {
   if (project == null) return false
-  val module = ModuleUtilCore.findModuleForFile(file, project) ?: return false
+  val module = runReadAction { ModuleUtilCore.findModuleForFile(file, project) } ?: return false
   return module.getModuleSystem().usesCompose
 }

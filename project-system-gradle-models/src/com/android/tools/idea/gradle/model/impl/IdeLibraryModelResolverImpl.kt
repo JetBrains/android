@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.model.IdeUnknownLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
+import com.android.tools.idea.gradle.model.ResolverType
 import org.jetbrains.annotations.VisibleForTesting
 import java.io.Serializable
 
@@ -77,8 +78,18 @@ class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
 
   companion object {
     @JvmStatic
-    fun fromLibraryTable(resolvedLibraryTable: IdeResolvedLibraryTable): IdeLibraryModelResolver {
-      return IdeLibraryModelResolverImpl { resolvedLibraryTable.libraries[it.libraryIndex].asSequence() }
+    fun fromLibraryTables(
+      globalLibraryTable: IdeResolvedLibraryTable?,
+      kmpLibraryTable: IdeResolvedLibraryTable?,
+    ): IdeLibraryModelResolver {
+      return IdeLibraryModelResolverImpl {
+        if (it.resolverType == ResolverType.KMP_ANDROID) {
+          kmpLibraryTable!!.libraries[it.libraryIndex].asSequence()
+        }
+        else {
+          globalLibraryTable!!.libraries[it.libraryIndex].asSequence()
+        }
+      }
     }
   }
 }
@@ -91,10 +102,12 @@ interface IdeResolvedLibraryTable {
   val libraries: List<List<IdeLibrary>>
 }
 
+interface KotlinMultiplatformIdeLibraryTable: IdeResolvedLibraryTable
+
 data class IdeUnresolvedLibraryTableImpl(
   override val libraries: List<IdeUnresolvedLibrary>
 ) : IdeUnresolvedLibraryTable, Serializable
 
 data class IdeResolvedLibraryTableImpl(
   override val libraries: List<List<IdeLibrary>>
-) : IdeResolvedLibraryTable, Serializable
+) : IdeResolvedLibraryTable, KotlinMultiplatformIdeLibraryTable, Serializable

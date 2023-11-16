@@ -34,7 +34,7 @@ data class IssueToggled(
     tracker: AppInsightsTracker
   ): StateTransition<Action> {
     if ((issueState == IssueState.OPEN || issueState == IssueState.CLOSED) && !isUndo) {
-      state.connections.selected?.connection?.appId?.let { appId ->
+      state.connections.selected?.appId?.let { appId ->
         tracker.logIssueStatusChanged(
           appId,
           state.mode,

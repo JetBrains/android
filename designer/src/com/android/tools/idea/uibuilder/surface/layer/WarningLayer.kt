@@ -16,10 +16,8 @@
 package com.android.tools.idea.uibuilder.surface.layer
 
 import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.Layer
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
@@ -28,47 +26,58 @@ import com.android.tools.idea.uibuilder.model.y
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintHighlightingIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
-import java.awt.Color
+import com.intellij.ui.JBColor
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.Shape
+import java.awt.geom.Area
 
-class WarningLayer(private val screenView: ScreenView) : Layer() {
+class WarningLayer(
+  private val screenView: ScreenView,
+  private val issuesProvider: () -> List<Issue>
+) : Layer() {
 
   override fun paint(gc: Graphics2D) {
     val screenShape: Shape? = screenView.screenShape
-    gc.color = Color.ORANGE
+    gc.color = JBColor.ORANGE
     gc.stroke = NlConstants.DASHED_STROKE
     val selectedIssueSources = getSelectedIssues().map { it.source }
-    val relevantComponents = selectedIssueSources.filterIsInstance<VisualLintIssueProvider.VisualLintIssueSource>()
-      .flatMap { it.components }
-      .filter { it.model == screenView.sceneManager.model }
+    val relevantComponents =
+      selectedIssueSources
+        .filterIsInstance<VisualLintIssueProvider.VisualLintIssueSource>()
+        .flatMap { it.components }
+        .filter { it.model == screenView.sceneManager.model }
     relevantComponents.forEach {
       gc.drawRect(
         Coordinates.getSwingX(screenView, it.x),
         Coordinates.getSwingY(screenView, it.y),
         Coordinates.getSwingDimension(screenView, it.w),
-        Coordinates.getSwingDimension(screenView, it.h))
+        Coordinates.getSwingDimension(screenView, it.h)
+      )
     }
     gc.stroke = NlConstants.SOLID_STROKE
     val clip = gc.clip
     if (screenShape != null) {
       gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-      gc.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC)
+      gc.setRenderingHint(
+        RenderingHints.KEY_INTERPOLATION,
+        RenderingHints.VALUE_INTERPOLATION_BICUBIC
+      )
       gc.draw(screenShape)
-      gc.clip = screenShape
-    }
-    else {
+      val screenShapeClip = Area(screenShape).apply { intersect(Area(clip)) }
+      gc.clip = screenShapeClip
+    } else {
       val sceneSize = screenView.scaledContentSize
       gc.drawRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
-      gc.setClip(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
+      gc.clipRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
     }
     relevantComponents.forEach {
       gc.drawRect(
         Coordinates.getSwingX(screenView, it.x),
         Coordinates.getSwingY(screenView, it.y),
         Coordinates.getSwingDimension(screenView, it.w),
-        Coordinates.getSwingDimension(screenView, it.h))
+        Coordinates.getSwingDimension(screenView, it.h)
+      )
     }
     gc.clip = clip
   }
@@ -76,15 +85,12 @@ class WarningLayer(private val screenView: ScreenView) : Layer() {
   override val isVisible: Boolean
     get() {
       val selectedIssues = getSelectedIssues()
-      return selectedIssues.filterIsInstance<VisualLintHighlightingIssue>().any { it.shouldHighlight(screenView.sceneManager.model) }
+      return selectedIssues.filterIsInstance<VisualLintHighlightingIssue>().any {
+        it.shouldHighlight(screenView.sceneManager.model)
+      }
     }
 
   private fun getSelectedIssues(): List<Issue> {
-    return if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-      IssuePanelService.getInstance(screenView.surface.project).getSelectedIssues()
-    }
-    else {
-      listOfNotNull(screenView.surface.issuePanel.selectedIssue)
-    }
+    return issuesProvider()
   }
 }

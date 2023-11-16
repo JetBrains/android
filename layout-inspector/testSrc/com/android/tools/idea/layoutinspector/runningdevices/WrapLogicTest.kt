@@ -76,8 +76,7 @@ class WrapLogicTest {
     try {
       wrapLogic.wrapComponent { JPanel() }
       fail("Expected exception not thrown")
-    } catch (_: IllegalStateException) {
-    }
+    } catch (_: IllegalStateException) {}
   }
 
   @Test
@@ -92,7 +91,6 @@ class WrapLogicTest {
     try {
       wrapLogic.unwrapComponent()
       fail("Expected exception not thrown")
-    } catch (_: IllegalStateException) {
-    }
+    } catch (_: IllegalStateException) {}
   }
 }

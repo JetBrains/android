@@ -29,17 +29,15 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.vfs.VirtualFile
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import kotlin.test.assertEquals
 
 class LayoutQualifierDropdownMenuTest {
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var context: DataContext
   private lateinit var file: VirtualFile
@@ -61,7 +59,8 @@ class LayoutQualifierDropdownMenuTest {
   fun checkActionsWithNoOtherVariantFiles() {
     val action = LayoutQualifierDropdownMenu(file)
     action.updateActions(context)
-    val expected = """layout1.xml
+    val expected =
+      """layout1.xml
     ✔ layout1.xml
     ------------------------------------------------------
     Create Landscape Qualifier
@@ -77,7 +76,8 @@ class LayoutQualifierDropdownMenuTest {
     waitForResourceRepositoryUpdates(projectRule.module)
     val action = LayoutQualifierDropdownMenu(file)
     action.updateActions(context)
-    val expected = """layout1.xml
+    val expected =
+      """layout1.xml
     ✔ layout1.xml
     land/layout1.xml
     ------------------------------------------------------
@@ -94,7 +94,8 @@ class LayoutQualifierDropdownMenuTest {
     waitForResourceRepositoryUpdates(projectRule.module)
     val action = LayoutQualifierDropdownMenu(file)
     action.updateActions(context)
-    val expected = """layout1.xml
+    val expected =
+      """layout1.xml
     ✔ layout1.xml
     land/layout1.xml
     sw600dp/layout1.xml
@@ -107,11 +108,20 @@ class LayoutQualifierDropdownMenuTest {
   @Test
   fun checkActionTitle() {
     val file2 = projectRule.fixture.addFileToProject("res/layout-land/layout1.xml", "").virtualFile
-    val file3 = projectRule.fixture.addFileToProject("res/layout-sw600dp/layout1.xml", "").virtualFile
+    val file3 =
+      projectRule.fixture.addFileToProject("res/layout-sw600dp/layout1.xml", "").virtualFile
     waitForResourceRepositoryUpdates(projectRule.module)
 
     val presentation = Presentation()
-    val event = AnActionEvent(null, context, ActionPlaces.UNKNOWN, presentation, ActionManager.getInstance(), 0)
+    val event =
+      AnActionEvent(
+        null,
+        context,
+        ActionPlaces.UNKNOWN,
+        presentation,
+        ActionManager.getInstance(),
+        0
+      )
 
     val action1 = LayoutQualifierDropdownMenu(file)
     action1.update(event)
@@ -133,11 +143,13 @@ class LayoutQualifierDropdownMenuTest {
     waitForResourceRepositoryUpdates(projectRule.module)
 
     val landConfig =
-      ConfigurationManager.getOrCreateInstance(projectRule.module).getConfiguration(variantFile.virtualFile)
+      ConfigurationManager.getOrCreateInstance(projectRule.module)
+        .getConfiguration(variantFile.virtualFile)
     whenever(surface.configurations).thenReturn(ImmutableList.of(landConfig))
     val action = LayoutQualifierDropdownMenu(variantFile.virtualFile)
     action.updateActions(context)
-    val expected = """land/layout1.xml
+    val expected =
+      """land/layout1.xml
     layout1.xml
     ✔ land/layout1.xml
     sw600dp/layout1.xml

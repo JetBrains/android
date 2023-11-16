@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.SeriesData
+import com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.Companion.getUnitFromTrackName
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -27,13 +28,13 @@ class BatteryDrainTooltipViewTest {
   @Test
   fun textUpdatesOnRangeChanged() {
     val timeline = DefaultTimeline()
-    val tooltip = BatteryDrainTooltip(timeline, "batt.foo", RangedSeries(timeline.dataRange, LazyDataSeries { BATTERY_DRAIN_VALUES }))
+    val counterName = "batt.foo"
+    val tooltip = BatteryDrainTooltip(timeline, counterName, getUnitFromTrackName(counterName), RangedSeries(timeline.dataRange, LazyDataSeries { BATTERY_DRAIN_VALUES }))
     val tooltipView = BatteryDrainTooltipView(JPanel(), tooltip)
 
     timeline.dataRange.set(0.0, TimeUnit.MILLISECONDS.toMicros(3).toDouble())
     timeline.tooltipRange.set(0.0, 0.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.000")
-    assertThat(tooltipView.descriptionLabel.text).contains("[PLACEHOLDER BATTERY DESCRIPTION]")
     assertThat(tooltipView.valueLabel.text).endsWith("batt.foo: 0")
 
     timeline.tooltipRange.set(TimeUnit.MILLISECONDS.toMicros(1).toDouble() + 1.0, TimeUnit.MILLISECONDS.toMicros(1).toDouble() + 1.0)
@@ -43,6 +44,33 @@ class BatteryDrainTooltipViewTest {
     timeline.tooltipRange.set(TimeUnit.MILLISECONDS.toMicros(2).toDouble() + 1.0, TimeUnit.MILLISECONDS.toMicros(2).toDouble() + 1.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.002")
     assertThat(tooltipView.valueLabel.text).endsWith("batt.foo: 200")
+  }
+
+  @Test
+  fun percentTrackHasCorrectlyFormattedUnit() {
+    val timeline = DefaultTimeline()
+    val counterName = "foo_pct"
+    val percentTooltip = BatteryDrainTooltip(timeline, "foo_pct", getUnitFromTrackName(counterName), RangedSeries(timeline.dataRange, LazyDataSeries { BATTERY_DRAIN_VALUES }))
+    val percentTooltipView = BatteryDrainTooltipView(JPanel(), percentTooltip)
+    assertThat(percentTooltipView.valueLabel.text).endsWith("foo_pct: 0%")
+  }
+
+  @Test
+  fun chargeTrackHasCorrectlyFormattedUnit() {
+    val timeline = DefaultTimeline()
+    val counterName = "foo_uah"
+    val chargeTooltip = BatteryDrainTooltip(timeline, counterName, getUnitFromTrackName(counterName), RangedSeries(timeline.dataRange, LazyDataSeries { BATTERY_DRAIN_VALUES }))
+    val chargeTooltipView = BatteryDrainTooltipView(JPanel(), chargeTooltip)
+    assertThat(chargeTooltipView.valueLabel.text).endsWith("foo_uah: 0 µah")
+  }
+
+  @Test
+  fun currentTrackHasCorrectlyFormattedUnit() {
+    val timeline = DefaultTimeline()
+    val counterName = "foo_ua"
+    val currentTooltip = BatteryDrainTooltip(timeline, counterName, getUnitFromTrackName(counterName), RangedSeries(timeline.dataRange, LazyDataSeries { BATTERY_DRAIN_VALUES }))
+    val currentTooltipView = BatteryDrainTooltipView(JPanel(), currentTooltip)
+    assertThat(currentTooltipView.valueLabel.text).endsWith("foo_ua: 0 µa")
   }
 
   private companion object {

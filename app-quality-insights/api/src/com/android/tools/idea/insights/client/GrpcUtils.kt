@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.client
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusRuntimeException
+import com.android.tools.idea.io.grpc.protobuf.StatusProto
 import com.google.api.client.auth.oauth2.TokenResponseException
 import com.intellij.openapi.diagnostic.Logger
 import java.io.IOException
@@ -77,8 +78,8 @@ suspend fun <T> retryRpc(
       Random.nextLong(currentDelay)
         .also {
           log()
-            .debug(
-              "Retry attempt #${count + 1} for $rpcCall, retrying in ${it / 1000.0} second(s)..."
+            .warn(
+              "Retry attempt #${count + 1} for a rpc call, retrying in ${it / 1000.0} second(s)..."
             )
         }
         .apply { delay(this) }
@@ -121,7 +122,8 @@ suspend fun <T> runGrpcCatching(
           LoadingState.NetworkFailure(exception.message, exception)
         }
         else -> {
-          log().warn("Got StatusRuntimeException: ${exception.message}")
+          val parsed = StatusProto.fromThrowable(exception)
+          log().warn("Got StatusRuntimeException: ${exception.message} (parsed info: $parsed)")
           LoadingState.UnknownFailure(exception.message, exception)
         }
       }

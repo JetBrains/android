@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.test.assertNotNull
 
 class AnimatedPropertyTest {
 
@@ -41,9 +41,9 @@ class AnimatedPropertyTest {
     assertTrue(result.grouped)
 
     result.components[0].let {
-      assertFalse { it.linkToNext }
-      assertEquals(10.0, it.maxValue)
-      assertEquals(10.0, it.minValue)
+      assertFalse(it.linkToNext)
+      assertEquals(10.0, it.maxValue, 0.0)
+      assertEquals(10.0, it.minValue, 0.0)
       assertEquals(mapOf(0 to 10.0, 1 to 10.0, 2 to 10.0, 3 to 10.0, 4 to 10.0), it.points)
     }
   }
@@ -65,9 +65,9 @@ class AnimatedPropertyTest {
     assertTrue(result.grouped)
 
     result.components[0].let {
-      assertFalse { it.linkToNext }
-      assertEquals(15.0, it.maxValue)
-      assertEquals(10.0, it.minValue)
+      assertFalse(it.linkToNext)
+      assertEquals(15.0, it.maxValue, 0.0)
+      assertEquals(10.0, it.minValue, 0.0)
       assertEquals(mapOf(2 to 10.0, 3 to 15.0), it.points)
     }
   }
@@ -87,30 +87,30 @@ class AnimatedPropertyTest {
     assertFalse(result.grouped)
 
     result.components[0].let {
-      assertTrue { it.linkToNext }
-      assertEquals(6.0, it.maxValue)
-      assertEquals(1.0, it.minValue)
+      assertTrue(it.linkToNext)
+      assertEquals(6.0, it.maxValue, 0.0)
+      assertEquals(1.0, it.minValue, 0.0)
       assertEquals(mapOf(5 to 1.0, 10 to 6.0, 15 to 1.0), it.points)
     }
 
     result.components[1].let {
-      assertTrue { it.linkToNext }
-      assertEquals(3.0, it.maxValue)
-      assertEquals(2.0, it.minValue)
+      assertTrue(it.linkToNext)
+      assertEquals(3.0, it.maxValue, 0.0)
+      assertEquals(2.0, it.minValue, 0.0)
       assertEquals(mapOf(5 to 3.0, 10 to 3.0, 15 to 2.0), it.points)
     }
 
     result.components[2].let {
-      assertTrue { it.linkToNext }
-      assertEquals(6.0, it.maxValue)
-      assertEquals(3.0, it.minValue)
+      assertTrue(it.linkToNext)
+      assertEquals(6.0, it.maxValue, 0.0)
+      assertEquals(3.0, it.minValue, 0.0)
       assertEquals(mapOf(5 to 6.0, 10 to 6.0, 15 to 3.0), it.points)
     }
 
     result.components[3].let {
-      assertFalse { it.linkToNext }
-      assertEquals(4.0, it.maxValue)
-      assertEquals(2.0, it.minValue)
+      assertFalse(it.linkToNext)
+      assertEquals(4.0, it.maxValue, 0.0)
+      assertEquals(2.0, it.minValue, 0.0)
       assertEquals(mapOf(5 to 3.0, 10 to 2.0, 15 to 4.0), it.points)
     }
   }
@@ -130,9 +130,9 @@ class AnimatedPropertyTest {
     assertTrue(result.grouped)
 
     result.components[0].let {
-      assertFalse { it.linkToNext }
-      assertEquals(3.0, it.maxValue)
-      assertEquals(1.0, it.minValue)
+      assertFalse(it.linkToNext)
+      assertEquals(3.0, it.maxValue, 0.0)
+      assertEquals(1.0, it.minValue, 0.0)
       assertEquals(mapOf(5 to 1.0, 10 to 2.0, 15 to 3.0), it.points)
     }
   }
@@ -145,8 +145,7 @@ class AnimatedPropertyTest {
       builder.add(10, ComposeUnit.Rect(2f, 2f, it.key, -6f))
       builder.add(15, ComposeUnit.Rect(3f, 3f, 200f, -3f))
       val result = builder.build()
-      assertNotNull(result)
-      assertEquals(it.value, result.grouped, "Grouped for ${it.key}")
+      assertEquals("Grouped for ${it.key}", it.value, result!!.grouped)
     }
   }
 
@@ -164,8 +163,8 @@ class AnimatedPropertyTest {
 
     result.components[0].let {
       assertFalse(it.linkToNext)
-      assertEquals(6.0, it.maxValue)
-      assertEquals(6.0, it.minValue)
+      assertEquals(6.0, it.maxValue, 0.0)
+      assertEquals(6.0, it.minValue, 0.0)
       assertEquals(mapOf(10 to 6.0), it.points)
     }
   }

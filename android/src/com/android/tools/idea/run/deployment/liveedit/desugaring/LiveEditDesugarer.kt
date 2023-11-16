@@ -18,16 +18,21 @@ package com.android.tools.idea.run.deployment.liveedit.desugaring
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiledClass
+import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.buildLibraryDesugarFailure
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.desugarFailure
 import com.android.tools.r8.ClassFileResourceProvider
+import com.android.tools.r8.CompilationFailedException
 import com.android.tools.r8.D8
 import com.android.tools.r8.D8Command
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressManager
 import java.nio.file.Files
 import java.nio.file.Paths
 
+typealias ApiLevel = Int
 typealias MinApiLevel = Int
 typealias ClassName = String
 typealias ByteCode = ByteArray
@@ -150,6 +155,16 @@ internal class LiveEditDesugar : AutoCloseable{
     return allDesugaredClasses
   }
 
+  // Utility method to let R8 know that it should cancel its desugaring command
+  private fun isCancelled() : Boolean {
+    try {
+      ProgressManager.checkCanceled()
+    } catch (e: ProcessCanceledException) {
+      return true
+    }
+    return false
+  }
+
   private fun desugarClassesForModule(classes : List<LiveEditCompiledClass>, module: Module, minApiLevel: MinApiLevel) : Map<String, ByteArray>{
      val memClassFileProvider = R8MemoryProgramResourceProvider(classes, logger)
      val memClassFileConsumer = R8MemoryClassFileConsumer(logger)
@@ -167,7 +182,10 @@ internal class LiveEditDesugar : AutoCloseable{
         // Set output to Cf in memory consumer
         .setProgramConsumer(memClassFileConsumer)
 
-     // Pass android.jar of the target device (not the min-api)
+        // Allow Studio to cancel desugaring
+        .setCancelCompilationChecker { isCancelled() }
+
+    // Pass android.jar of the target device (not the min-api)
      getAndroidJar(module).forEach {
        command.addLibraryResourceProvider(it)
      }
@@ -194,7 +212,7 @@ internal class LiveEditDesugar : AutoCloseable{
      val moduleSys = module.getModuleSystem()
      if (!moduleSys.desugarLibraryConfigFilesKnown) {
        // If AGP does not support config retrieval, we cannot proceed
-       desugarFailure("${moduleSys.desugarLibraryConfigFilesNotKnownUserMessage}")
+       buildLibraryDesugarFailure("${moduleSys.desugarLibraryConfigFilesNotKnownUserMessage}")
      }
 
      // Enable desugared library if it was used.
@@ -203,8 +221,16 @@ internal class LiveEditDesugar : AutoCloseable{
        command.addDesugaredLibraryConfiguration(desugarConfig)
      }
 
-     // By default, D8 run on an executor with one thread per core
-     D8.run(command.build())
+     try {
+       // By default, D8 run on an executor with one thread per core
+       D8.run(command.build())
+     } catch (e: CompilationFailedException) {
+       // Check if we were cancelled. If we were, this method will throw ProcessCanceledException
+       ProgressManager.checkCanceled()
+
+       // We were not cancelled. This is an actual compilation error.
+       desugarFailure("R8 compilation error",  e)
+     }
      return memClassFileConsumer.classes
   }
 

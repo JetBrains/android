@@ -15,25 +15,40 @@
  */
 package com.android.tools.compose.code.completion
 
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES_ROOT
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.compose.COMPOSE_UI_PACKAGE
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.completion.CompletionResult
+import com.intellij.codeInsight.completion.CompletionResultSet
+import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
+import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtFunction
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
 
 /**
  * Test for [ComposeModifierCompletionContributor].
  */
+@RunWith(JUnit4::class)
 class ComposeModifierCompletionContributorTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory().onEdt()
@@ -43,7 +58,7 @@ class ComposeModifierCompletionContributorTest {
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
+    myFixture.stubComposableAnnotation()
     myFixture.addFileToProject(
       "src/${COMPOSE_UI_PACKAGE.replace(".", "/")}/Modifier.kt",
       // language=kotlin
@@ -76,7 +91,7 @@ class ComposeModifierCompletionContributorTest {
   }
 
   @Test
-  fun testPrioritizeExtensionFunctionForMethodCalledOnModifier() {
+  fun prioritizeExtensionFunctionForMethodCalledOnModifier() {
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
       """
@@ -159,7 +174,7 @@ class ComposeModifierCompletionContributorTest {
 
   @RunsInEdt
   @Test
-  fun testModifierAsArgument() {
+  fun modifierAsArgument() {
     fun checkArgumentCompletion() {
       myFixture.lookup.currentItem = myFixture.lookupElements?.find { it.lookupString.contains("extensionFunction") }
       myFixture.finishLookup('\n')
@@ -297,7 +312,7 @@ class ComposeModifierCompletionContributorTest {
 
   @RunsInEdt
   @Test
-  fun testModifierAsProperty() {
+  fun modifierAsProperty() {
 
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
@@ -384,7 +399,7 @@ class ComposeModifierCompletionContributorTest {
 
   @RunsInEdt
   @Test
-  fun testWhenModifierIsNotImported() {
+  fun modifierIsNotImported() {
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
       """
@@ -426,7 +441,7 @@ class ComposeModifierCompletionContributorTest {
 
   @RunsInEdt
   @Test
-  fun testNewExtensionFunction() {
+  fun newExtensionFunction() {
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
       """
@@ -445,5 +460,74 @@ class ComposeModifierCompletionContributorTest {
     assertThat(lookupStrings).contains("extensionFunction")
     assertThat(lookupStrings).contains("extensionFunctionReturnsNonModifier")
     assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
+  }
+
+  /** Regression test for b/279049842 */
+  @Test
+  fun invisibleObjectExtensionMethods() {
+    val contributor = ComposeModifierCompletionContributor()
+    val mockResultSet: CompletionResultSet = mock()
+
+    // This is a super-contrived example to try to regression test b/279049842. I haven't been able to reproduce the real scenario, which
+    // involves internal items coming from other libs/modules and relies on Kotlin plugin bugs which (hopefully) would get fixed at some
+    // some point.
+
+    ApplicationManager.getApplication().invokeAndWait {
+      myFixture.loadNewFile(
+        "src/com/example/Test.kt",
+        //language=kotlin
+        """
+        package com.example
+
+        import androidx.compose.ui.Modifier
+
+        object ParentObject {
+          object VisibleChild {
+            fun Modifier.visibleChildFunction(): Modifier = this
+          }
+
+          // Contrived for testing. The private wrapping object makes this not visible to the function below, and the
+          // internal wrapping object is needed to pass checks in [ComposeModifierCompletionContributor].
+          private object PrivateChild {
+            internal object NestedChild {
+              fun Modifier.notVisibleChildFunction(): Modifier = this
+            }
+          }
+        }
+
+        fun functionNeedingModifier(modifier: Modifier) {}
+
+        fun doSomething() {
+            functionNeedingModifier(modifier = MyModifier.)
+        }
+        """.trimIndent()
+      )
+    }
+
+    runReadAction {
+      val functionCompletionCall: KtCallExpression = myFixture.findParentElement("functionNeeding|Modifier(modifier = MyModifier")
+
+      val visibleChildFunctionCompletion = mockCompletionResult(
+        myFixture.findParentElement<KtFunction>("Modifier.visibleChild|Function():"))
+      contributor.consumerCompletionResultFromRemainingContributor(
+        visibleChildFunctionCompletion, emptySet(), functionCompletionCall, mockResultSet)
+      verify(mockResultSet).passResult(visibleChildFunctionCompletion)
+
+      val notVisibleChildFunctionCompletion = mockCompletionResult(
+        myFixture.findParentElement<KtFunction>("Modifier.notVisibleChild|Function():"))
+      contributor.consumerCompletionResultFromRemainingContributor(
+        notVisibleChildFunctionCompletion, emptySet(), functionCompletionCall, mockResultSet)
+      verify(mockResultSet, never()).passResult(notVisibleChildFunctionCompletion)
+    }
+  }
+
+  private fun mockCompletionResult(psiElement: PsiElement): CompletionResult {
+    val completionResult: CompletionResult = mock()
+    val lookupElement: LookupElement = mock()
+
+    whenever(completionResult.lookupElement).thenReturn(lookupElement)
+    whenever(lookupElement.psiElement).thenReturn(psiElement)
+
+    return completionResult
   }
 }

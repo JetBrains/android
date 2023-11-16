@@ -193,7 +193,7 @@ public class MemoryClassifierViewTest {
     assertThat(((MemoryObjectTreeNode<?>)root).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
-    List<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
+    @NotNull List<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
 
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, childrenOfRoot.get(0)}));
     MemoryObject selectedClassifier = ((MemoryObjectTreeNode<?>)classifierTree.getSelectionPath().getLastPathComponent()).getAdapter();
@@ -346,7 +346,7 @@ public class MemoryClassifierViewTest {
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
 
     //noinspection unchecked
-    List<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
+    @NotNull List<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
     assertThat(childrenOfRoot.size()).isEqualTo(3);
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, childrenOfRoot.get(0)}));
     MemoryObjectTreeNode<ClassifierSet> selectedClassNode = childrenOfRoot.get(0);
@@ -444,7 +444,7 @@ public class MemoryClassifierViewTest {
     MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
 
     //noinspection unchecked
-    List<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
+    @NotNull List<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
     assertThat(childrenOfRoot.size()).isEqualTo(3);
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, childrenOfRoot.get(0)}));
 

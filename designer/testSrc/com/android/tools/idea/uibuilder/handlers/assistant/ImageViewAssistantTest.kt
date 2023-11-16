@@ -24,18 +24,17 @@ import com.android.tools.idea.uibuilder.handlers.ImageViewHandler
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JList
-import kotlin.test.assertTrue
 
 class ImageViewAssistantTest {
 
-  @get:Rule
-  val rule = AndroidProjectRule.inMemory()
+  @get:Rule val rule = AndroidProjectRule.inMemory()
 
   @Test
   fun uiState() {
@@ -44,19 +43,21 @@ class ImageViewAssistantTest {
     val facet = AndroidFacet.getInstance(rule.module)!!
     whenever(model.facet).thenReturn(facet)
     whenever(nlComponent.model).thenReturn(model)
-    var toolSrc : String? = null
+    var toolSrc: String? = null
 
-    val imageHandler = object : ImageViewHandler() {
-      override fun getToolsSrc(component: NlComponent): String? {
-        return toolSrc
+    val imageHandler =
+      object : ImageViewHandler() {
+        override fun getToolsSrc(component: NlComponent): String? {
+          return toolSrc
+        }
+
+        override fun setToolsSrc(component: NlComponent, value: String?) {
+          toolSrc = value
+        }
       }
 
-      override fun setToolsSrc(component: NlComponent, value: String?) {
-        toolSrc = value
-      }
-    }
-
-    val assistant = ImageViewAssistant(ComponentAssistantFactory.Context(nlComponent) {}, imageHandler)
+    val assistant =
+      ImageViewAssistant(ComponentAssistantFactory.Context(nlComponent) {}, imageHandler)
     val content = assistant.component.content
 
     assistant.sampleDataLoaded.get()

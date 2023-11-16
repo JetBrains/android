@@ -26,6 +26,7 @@ iml_module(
         "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module]",
         "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility[module]",
         "//tools/base/jdwp-tracer:studio.android.sdktools.jdwptracer[module]",
+        "//tools/base/jdwp-scache:studio.android.sdktools.jdwpscache[module]",
     ],
 )
 

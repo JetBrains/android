@@ -39,6 +39,7 @@ class BuildAnalyzerMasterTreeCellRenderer private constructor() : NodeRenderer()
 
   private val rightAlignedFont = JBUI.Fonts.create(Font.MONOSPACED, 11)
   private var durationTextPresentation: RightAlignedDurationTextPresentation? = null
+  private var selected: Boolean = false
 
   companion object {
     fun install(tree: JTree) {
@@ -77,6 +78,7 @@ class BuildAnalyzerMasterTreeCellRenderer private constructor() : NodeRenderer()
       NodeIconState.EMPTY_PLACEHOLDER -> EmptyIcon.ICON_16
       NodeIconState.WARNING_ICON -> if (selected && hasFocus && !ExperimentalUI.isNewUI()) generateWhiteIcon(warningIcon()) else warningIcon()
     }
+    this.selected = selected
     append(nodePresentation.mainText, SimpleTextAttributes.REGULAR_ATTRIBUTES, true)
     append(" ${nodePresentation.suffix}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
 
@@ -99,7 +101,7 @@ class BuildAnalyzerMasterTreeCellRenderer private constructor() : NodeRenderer()
     setupAntialiasing(g)
     var width = this.width
     val height = this.height
-    if (isOpaque) {
+    if (isOpaque || selected) {
       // paint background for expanded row
       g.color = background
       g.fillRect(0, 0, width, height)

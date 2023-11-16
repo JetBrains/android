@@ -37,25 +37,35 @@ import javax.swing.JPanel
 class TableEditorTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   @Test
   fun testRequestFocusInBestMatch() {
-    val editorProvider = object : PTableCellEditorProvider {
-      val editor = object : DefaultPTableCellEditor() {
-        override val editorComponent = JPanel()
-      }
+    val editorProvider =
+      object : PTableCellEditorProvider {
+        val editor =
+          object : DefaultPTableCellEditor() {
+            override val editorComponent = JPanel()
+          }
 
-      override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellEditor {
-        return editor
+        override fun invoke(
+          table: PTable,
+          property: PTableItem,
+          column: PTableColumn
+        ): PTableCellEditor {
+          return editor
+        }
       }
-    }
-    val group1: PTableGroupItem = TestGroupItem("border", mapOf("left" to "4", "right" to "4", "top" to "8", "bottom" to "8"))
+    val group1: PTableGroupItem =
+      TestGroupItem("border", mapOf("left" to "4", "right" to "4", "top" to "8", "bottom" to "8"))
     val group2: PTableGroupItem = TestGroupItem("group2", mapOf("size" to "4dp", "tone" to "C"))
-    val tableModel = FakePTableModel(true, mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"), listOf(group1, group2))
+    val tableModel =
+      FakePTableModel(
+        true,
+        mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"),
+        listOf(group1, group2)
+      )
     val model = TableLineModelImpl(tableModel, true)
     val editor = TableEditor(model, DefaultPTableCellRendererProvider(), editorProvider)
     model.filter = "top"
@@ -68,18 +78,30 @@ class TableEditorTest {
 
   @Test
   fun testSelectionOfExpandedItems() {
-    val editorProvider = object : PTableCellEditorProvider {
-      val editor = object : DefaultPTableCellEditor() {
-        override val editorComponent = JPanel()
-      }
+    val editorProvider =
+      object : PTableCellEditorProvider {
+        val editor =
+          object : DefaultPTableCellEditor() {
+            override val editorComponent = JPanel()
+          }
 
-      override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellEditor {
-        return editor
+        override fun invoke(
+          table: PTable,
+          property: PTableItem,
+          column: PTableColumn
+        ): PTableCellEditor {
+          return editor
+        }
       }
-    }
     val group1: PTableGroupItem = TestGroupItem("group1", mapOf("size" to "4dp", "tone" to "C"))
-    val group2: PTableGroupItem = TestGroupItem("border", mapOf("left" to "4", "right" to "4", "top" to "8", "bottom" to "8"))
-    val tableModel = FakePTableModel(false, mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"), listOf(group1, group2))
+    val group2: PTableGroupItem =
+      TestGroupItem("border", mapOf("left" to "4", "right" to "4", "top" to "8", "bottom" to "8"))
+    val tableModel =
+      FakePTableModel(
+        false,
+        mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"),
+        listOf(group1, group2)
+      )
     val lineModel = TableLineModelImpl(tableModel, true)
     val editor = TableEditor(lineModel, DefaultPTableCellRendererProvider(), editorProvider)
     val model = editor.component.model as PTableModelImpl

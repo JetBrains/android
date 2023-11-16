@@ -37,38 +37,45 @@ import javax.swing.KeyStroke
 private const val ACTION_HIDE = "actionHide"
 
 /**
- * A [DirectViewAction] that displays a popup displaying a [JComponent]
- * provided by [ComponentAssistantFactory].
+ * A [DirectViewAction] that displays a popup displaying a [JComponent] provided by
+ * [ComponentAssistantFactory].
  */
 // TODO(b/120382660): Replace icon with the final version
-class ComponentAssistantViewAction @JvmOverloads constructor(
+class ComponentAssistantViewAction
+@JvmOverloads
+constructor(
   assistantLabel: String = "Set Sample Data",
   private val panelFactoryFactory: (NlComponent) -> ComponentAssistantFactory?
 ) : DirectViewAction(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE, assistantLabel) {
 
   private var onClose: (cancelled: Boolean) -> Unit = {}
 
-  /**
-   * Add an action to the action map so that the popup is hidden when the user presses escape.
-   */
+  /** Add an action to the action map so that the popup is hidden when the user presses escape. */
   private fun setupActionInputMap(component: JComponent, onCancel: () -> Unit) {
-    component.actionMap.put(ACTION_HIDE, object : AbstractAction() {
-      override fun actionPerformed(e: ActionEvent?) {
-        fireCancelEvent()
-        onCancel()
+    component.actionMap.put(
+      ACTION_HIDE,
+      object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent?) {
+          fireCancelEvent()
+          onCancel()
+        }
       }
-    })
-    component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), ACTION_HIDE)
+    )
+    component
+      .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+      .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), ACTION_HIDE)
   }
 
   private fun fireCloseEvent() = onClose(false)
   private fun fireCancelEvent() = onClose(true)
 
-  override fun perform(editor: ViewEditor,
-                       handler: ViewHandler,
-                       parent: NlComponent,
-                       selectedChildren: MutableList<NlComponent>,
-                       modifiers: Int) {
+  override fun perform(
+    editor: ViewEditor,
+    handler: ViewHandler,
+    parent: NlComponent,
+    selectedChildren: MutableList<NlComponent>,
+    modifiers: Int
+  ) {
     if (selectedChildren.size != 1) {
       // The ComponentAssistant can only be invoked on 1 specific component. If there are multiple
       // selected, we can not execute this actions (and should not be displayed).
@@ -82,44 +89,62 @@ class ComponentAssistantViewAction @JvmOverloads constructor(
     val scene = sceneComponent.scene
     val designSurface = scene.designSurface
     val context = scene.sceneManager.sceneView.context
-    val popup = LightCalloutPopup(closedCallback = this::fireCloseEvent, cancelCallBack = this::fireCancelEvent)
+    val popup =
+      LightCalloutPopup(
+        closedCallback = this::fireCloseEvent,
+        cancelCallBack = this::fireCancelEvent
+      )
     val popupRef = WeakReference(popup)
-    val assistantContext = ComponentAssistantFactory.Context(selectedComponent) { cancel ->
-      if (cancel) popupRef.get()?.cancel() else popupRef.get()?.close()
-    }
-    val component = panelFactory.createComponent(assistantContext).apply {
-      name = "Component Assistant" // For UI tests
-    }
+    val assistantContext =
+      ComponentAssistantFactory.Context(selectedComponent) { cancel ->
+        if (cancel) popupRef.get()?.cancel() else popupRef.get()?.close()
+      }
+    val component =
+      panelFactory.createComponent(assistantContext).apply {
+        name = "Component Assistant" // For UI tests
+      }
 
-    setupActionInputMap(component) {
-      popupRef.get()?.cancel()
-    }
+    setupActionInputMap(component) { popupRef.get()?.cancel() }
 
     onClose = { cancelled ->
       onClose = {} // One-off trigger. Disable the callback
       assistantContext.onClose(cancelled)
     }
 
-    val position = Point(context.getSwingXDip(sceneComponent.centerX.toFloat()),
-                         context.getSwingYDip(sceneComponent.drawBottom.toFloat()))
+    val position =
+      Point(
+        context.getSwingXDip(sceneComponent.centerX.toFloat()),
+        context.getSwingYDip(sceneComponent.drawBottom.toFloat())
+      )
     val parentComponent = designSurface.layeredPane
     if (canShowBelow(parentComponent, position, component)) {
       popup.show(component, parentComponent, position)
-    }
-    else {
-      val location = Point(context.getSwingXDip(sceneComponent.centerX.toFloat()),
-                           context.getSwingYDip(sceneComponent.drawBottom.toFloat()))
+    } else {
+      val location =
+        Point(
+          context.getSwingXDip(sceneComponent.centerX.toFloat()),
+          context.getSwingYDip(sceneComponent.drawBottom.toFloat())
+        )
       popup.show(component, parentComponent, location, position = Balloon.Position.above)
     }
   }
 
-  override fun updatePresentation(presentation: ViewActionPresentation,
-                                  editor: ViewEditor,
-                                  handler: ViewHandler,
-                                  component: NlComponent,
-                                  selectedChildren: MutableList<NlComponent>,
-                                  modifiersEx: Int) {
-    super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiersEx)
+  override fun updatePresentation(
+    presentation: ViewActionPresentation,
+    editor: ViewEditor,
+    handler: ViewHandler,
+    component: NlComponent,
+    selectedChildren: MutableList<NlComponent>,
+    modifiersEx: Int
+  ) {
+    super.updatePresentation(
+      presentation,
+      editor,
+      handler,
+      component,
+      selectedChildren,
+      modifiersEx
+    )
 
     val visible = (selectedChildren.size == 1).and(panelFactoryFactory(selectedChildren[0]) != null)
     presentation.setVisible(visible)

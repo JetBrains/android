@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.DragBaseTarget;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 public class AbsoluteDragTarget extends DragBaseTarget {
@@ -32,7 +33,7 @@ public class AbsoluteDragTarget extends DragBaseTarget {
   protected void updateAttributes(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     SceneComponent parent = myComponent.getParent();
     assert parent != null;
-    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_X, String.format(VALUE_N_DP, x - myComponent.getParent().getDrawX()));
-    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_Y, String.format(VALUE_N_DP, y - myComponent.getParent().getDrawY()));
+    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_X, String.format(Locale.US, VALUE_N_DP, x - myComponent.getParent().getDrawX()));
+    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_Y, String.format(Locale.US, VALUE_N_DP, y - myComponent.getParent().getDrawY()));
   }
 }

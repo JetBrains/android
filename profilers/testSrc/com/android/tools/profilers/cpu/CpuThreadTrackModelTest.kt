@@ -23,7 +23,6 @@ import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel.Type
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.ApplicationManager
 import org.junit.Test
 import org.mockito.Mockito
 

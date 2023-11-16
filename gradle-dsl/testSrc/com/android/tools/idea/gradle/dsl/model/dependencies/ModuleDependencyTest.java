@@ -22,6 +22,7 @@ import static org.junit.Assume.assumeTrue;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.PlatformDependencyModel;
@@ -268,6 +269,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_NAME_ON_COMPACT_NOTATION_EXPECTED);
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
@@ -291,6 +293,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION_EXPECTED);
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
@@ -348,6 +351,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION_EXPECTED);
     dependency = dependencies.get(0);
 
     dependencies = buildModel.dependencies().modules();
@@ -526,14 +530,31 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     writeToBuildFile(TestFile.INSERTION_ORDER);
 
     GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+    dependenciesModel.addModule("api", ":module1");
+    dependenciesModel.addModule("testImplementation", ":module2");
+    dependenciesModel.addModule("androidTestApi", ":module3");
 
-    buildModel.dependencies().addModule("api", ":module1");
-    buildModel.dependencies().addModule("testImplementation", ":module2");
-    buildModel.dependencies().addModule("androidTestApi", ":module3");
     assertTrue(buildModel.isModified());
+    assertSize(3, dependenciesModel.modules());
     applyChangesAndReparse(buildModel);
-
     verifyFileContents(myBuildFile, TestFile.INSERTION_ORDER_EXPECTED);
+  }
+
+  @Test
+  public void testInsertionOrderWithConfigurations() throws IOException {
+    writeToBuildFile(TestFile.INSERTION_ORDER);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+    dependenciesModel.addModule("api", ":module1", "api");
+    dependenciesModel.addModule("testImplementation", ":module2", "implementation");
+    dependenciesModel.addModule("androidTestApi", ":module3", "api");
+
+    assertTrue(buildModel.isModified());
+    assertSize(3, dependenciesModel.modules());
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.INSERTION_ORDER_WITH_CONFIGURATIONS_EXPECTED);
   }
 
   @Test
@@ -565,6 +586,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT_EXPECTED("insertPsiElementsAfterFileBlockCommentExpected"),
     INSERTION_ORDER("insertionOrder"),
     INSERTION_ORDER_EXPECTED("insertionOrderExpected"),
+    INSERTION_ORDER_WITH_CONFIGURATIONS_EXPECTED("insertionOrderWithConfigurationsExpected"),
     PARSING_WITH_COMPACT_NOTATION("parsingWithCompactNotation"),
     PARSING_WITH_DEPENDENCY_ON_ROOT("parsingWithDependencyOnRoot"),
     PARSING_WITH_MAP_NOTATION("parsingWithMapNotation"),
@@ -572,8 +594,11 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     SET_CONFIGURATION_WHEN_SINGLE("setConfigurationWhenSingle"),
     SET_CONFIGURATION_WHEN_MULTIPLE("setConfigurationWhenMultiple"),
     SET_NAME_ON_COMPACT_NOTATION("setNameOnCompactNotation"),
+    SET_NAME_ON_COMPACT_NOTATION_EXPECTED("setNameOnCompactNotationExpected"),
     SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION("setNameOnMapNotationWithConfiguration"),
+    SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION_EXPECTED("setNameOnMapNotationWithConfigurationExpected"),
     SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION("setNameOnMapNotationWithoutConfiguration"),
+    SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION_EXPECTED("setNameOnMapNotationWithoutConfigurationExpected"),
     SET_NAME_WITH_PATH_HAVING_SAME_SEGMENT_NAMES("setNameWithPathHavingSameSegmentNames"),
     SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST("setNamesOnItemsInExpressionList"),
     RESET("reset"),

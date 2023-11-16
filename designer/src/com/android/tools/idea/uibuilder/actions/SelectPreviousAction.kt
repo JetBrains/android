@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.actions
 import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import kotlin.math.max
 
 class SelectPreviousAction(private val surface: DesignSurface<*>) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
@@ -30,13 +29,13 @@ class SelectPreviousAction(private val surface: DesignSurface<*>) : AnAction() {
     val selectionModel = surface.selectionModel
     val selection = selectionModel.selection
 
-    val previous = if (selection.size == 1) {
-      val index = max(selectable.indexOf(selection[0]), 0)
-      selectable[(index - 1 + selectable.size) % selectable.size]
-    }
-    else {
-      selectable.last()
-    }
+    val previous =
+      if (selection.size == 1) {
+        val index = Math.max(selectable.indexOf(selection[0]), 0)
+        selectable[(index - 1 + selectable.size) % selectable.size]
+      } else {
+        selectable.last()
+      }
 
     selectionModel.setSelection(listOf(previous))
     surface.repaint()

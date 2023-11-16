@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule
 
-import com.android.SdkConstants
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
@@ -27,17 +26,18 @@ import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.Baseline
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.exampleMacrobenchmarkJava
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.exampleMacrobenchmarkKt
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
+import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
-import java.io.File
 
 private const val EXAMPLE_BENCHMARK_NAME = "ExampleStartupBenchmark"
 private const val BENCHMARK_BUILD_TYPE_NAME = "benchmark"
-private const val MACROBENCHMARK_MIN_REV = "1.1.1"
+private const val MACROBENCHMARK_MIN_REV = "1.2.0-beta01"
 
 fun RecipeExecutor.generateMacrobenchmarkModule(
   newModule: ModuleTemplateData,
@@ -92,8 +92,7 @@ fun RecipeExecutor.updateTargetModule(
     targetModuleModel = targetModuleAndroidModel,
   )
 
-  val targetModuleDir = AndroidRootUtil.getModuleDirPath(targetModule)?.let { File(it) } ?: return
-  addProfileableToTargetManifest(targetModule, targetModuleDir)
+  addProfileableToTargetManifest(targetModule)
 }
 
 /**
@@ -149,18 +148,20 @@ fun RecipeExecutor.addBuildTypeToTargetBuildGradle(
  * TODO(b/269582562): Can be replaced with isProfileable since AGP 8.0
  */
 @VisibleForTesting
-fun RecipeExecutor.addProfileableToTargetManifest(targetModule: Module, targetModuleRootDir: File) {
+fun RecipeExecutor.addProfileableToTargetManifest(targetModule: Module) {
   // Only do the actions for the default executor, not when just finding references.
   if (this is FindReferencesRecipeExecutor) return
 
-  val androidModel = com.android.tools.idea.model.AndroidModel.get(targetModule) ?: return
-  val targetModuleManifest = File(targetModuleRootDir, "/" + SdkConstants.FN_ANDROID_MANIFEST_XML)
-  if (!targetModuleManifest.exists()) return
+  val androidFacet = AndroidFacet.getInstance(targetModule) ?: return
+  // Get the primary manifest to add <profileable> tag
+  val primaryManifest = AndroidRootUtil.getPrimaryManifestFile(androidFacet) ?: return
+  if (!primaryManifest.exists()) return
 
+  val androidModel = com.android.tools.idea.model.AndroidModel.get(androidFacet) ?: return
   // if it's older API, add targetApi flag to the manifest
   val needsTargetFlag = !androidModel.minSdkVersion.isGreaterOrEqualThan(AndroidVersion.VersionCodes.Q)
 
-  mergeXml(appAndroidManifest(needsTargetFlag), targetModuleManifest)
+  mergeXml(appAndroidManifest(needsTargetFlag), primaryManifest.toIoFile())
 }
 
 @VisibleForTesting

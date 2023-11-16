@@ -23,7 +23,7 @@ interface DeviceFileExplorerActionListener {
   fun openNodes(nodes: List<DeviceFileEntryNode>)
   fun saveNodesAs(nodes: List<DeviceFileEntryNode>)
   fun deleteNodes(nodes: List<DeviceFileEntryNode>)
-  fun synchronizeNodes(nodes: List<DeviceFileEntryNode>)
+  fun synchronizeNodes()
   fun newFile(node: DeviceFileEntryNode)
   fun newDirectory(node: DeviceFileEntryNode)
   fun uploadFile(node: DeviceFileEntryNode)

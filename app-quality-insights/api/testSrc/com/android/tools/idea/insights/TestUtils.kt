@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.insights
 
-import com.intellij.openapi.module.Module
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.delay
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 
 suspend fun waitForCondition(timeoutMs: Long = 500, condition: () -> Boolean) {
   val waitIntervalMs = 50L
@@ -55,15 +52,10 @@ val TEST_FILTERS =
     selectionOf(SignalType.SIGNAL_UNSPECIFIED)
   )
 
-val MODULE1 = mock(Module::class.java).apply { `when`(this.name).thenReturn("app1") }
-val MODULE2 = mock(Module::class.java).apply { `when`(this.name).thenReturn("app2") }
-val MODULE3 = mock(Module::class.java).apply { `when`(this.name).thenReturn("app3") }
-
-val CONNECTION1 = Connection("app1", "app-id1", "project1", "123")
-val CONNECTION2 = Connection("app2", "app-id2", "project2", "456")
-val VARIANT1 = VariantConnection(MODULE1, "variant1", CONNECTION1)
-val VARIANT2 = VariantConnection(MODULE2, "variant2", CONNECTION2)
-val PLACEHOLDER_CONNECTION = VariantConnection(MODULE3, "", null)
+val CONNECTION1 = TestConnection("app1", "app-id1", "project1", "123", "variant1", "app1")
+val CONNECTION2 = TestConnection("app2", "app-id2", "project2", "456", "variant2", "app2")
+val PLACEHOLDER_CONNECTION =
+  TestConnection("app3", "app-id3", "project3", "789", "variant3", "app3", isConfigured = false)
 
 val DEFAULT_FETCHED_VERSIONS = WithCount(10, Version("1", "1.0"))
 
@@ -77,6 +69,9 @@ const val NOTE2_BODY = "Update: I managed to reproduce this issue."
 
 val NOW = Instant.parse("2022-06-08T10:00:00Z")
 
+val REPO_INFO =
+  RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "123")
+
 val ISSUE1 =
   AppInsightsIssue(
     IssueDetails(
@@ -86,12 +81,15 @@ val ISSUE1 =
       FailureType.FATAL,
       "Sample Event",
       "1.2.3",
-      "1.2.3",
+      "2.0.0",
+      8L,
+      13L,
       5L,
       50L,
       setOf(SignalType.SIGNAL_FRESH),
       "https://url.for-crash.com",
-      0
+      0,
+      emptyList()
     ),
     Event(
       eventData =
@@ -119,6 +117,8 @@ val ISSUE1 =
                         Frame(
                           line = 23,
                           file = "ResponseWrapper.kt",
+                          rawSymbol =
+                            "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build(ResponseWrapper.kt:23)",
                           symbol =
                             "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build",
                           offset = 23,
@@ -129,6 +129,8 @@ val ISSUE1 =
                         Frame(
                           line = 31,
                           file = "ResponseWrapper.kt",
+                          rawSymbol =
+                            "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError(ResponseWrapper.kt:31)",
                           symbol =
                             "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError",
                           offset = 31,
@@ -139,10 +141,12 @@ val ISSUE1 =
                       )
                   ),
                 type = "retrofit2.HttpException",
-                exceptionMessage = "HTTP 401 "
+                exceptionMessage = "HTTP 401 ",
+                rawExceptionMessage = "retrofit2.HttpException: HTTP 401 "
               )
             )
-        )
+        ),
+      appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
     )
   )
 val ISSUE1_DETAILS =
@@ -185,11 +189,14 @@ val ISSUE2 =
       "Sample Event 2",
       "1.0.0",
       "2.0.0",
+      12L,
+      14L,
       10L,
       100L,
       setOf(SignalType.SIGNAL_REGRESSED),
       "https://url.for-crash.com/2",
-      0
+      0,
+      emptyList()
     ),
     Event(
       eventData =
@@ -217,6 +224,8 @@ val ISSUE2 =
                         Frame(
                           line = 362,
                           file = "SSLUtils.java",
+                          rawSymbol =
+                            "com.android.org.conscrypt.SSLUtils.toSSLHandshakeException(SSLUtils.java:362)",
                           symbol = "com.android.org.conscrypt.SSLUtils.toSSLHandshakeException",
                           offset = 23,
                           address = 0,
@@ -226,6 +235,8 @@ val ISSUE2 =
                         Frame(
                           line = 1134,
                           file = "ConscryptEngine.java",
+                          rawSymbol =
+                            "com.android.org.conscrypt.ConscryptEngine.convertException(ConscryptEngine.java:1134)",
                           symbol = "com.android.org.conscrypt.ConscryptEngine.convertException",
                           offset = 31,
                           address = 0,
@@ -235,7 +246,9 @@ val ISSUE2 =
                       )
                   ),
                 type = "javax.net.ssl.SSLHandshakeException",
-                exceptionMessage = "Trust anchor for certification path not found "
+                exceptionMessage = "Trust anchor for certification path not found ",
+                rawExceptionMessage =
+                  "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found "
               ),
               ExceptionStack(
                 stacktrace =
@@ -251,6 +264,8 @@ val ISSUE2 =
                         Frame(
                           line = 677,
                           file = "TrustManagerImpl.java",
+                          rawSymbol =
+                            "com.android.org.conscrypt.TrustManagerImpl.verifyChain(TrustManagerImpl.java:677)",
                           symbol = "com.android.org.conscrypt.TrustManagerImpl.verifyChain",
                           offset = 23,
                           address = 0,
@@ -260,6 +275,8 @@ val ISSUE2 =
                         Frame(
                           line = 320,
                           file = "RealConnection.java",
+                          rawSymbol =
+                            "okhttp3.internal.connection.RealConnection.connectTls(RealConnection.java:320)",
                           symbol = "okhttp3.internal.connection.RealConnection.connectTls",
                           offset = 31,
                           address = 0,
@@ -269,7 +286,9 @@ val ISSUE2 =
                       )
                   ),
                 type = "javax.net.ssl.SSLHandshakeException",
-                exceptionMessage = "Trust anchor for certification path not found "
+                exceptionMessage = "Trust anchor for certification path not found ",
+                rawExceptionMessage =
+                  "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found "
               ),
             )
         )
@@ -293,3 +312,8 @@ val NOTE2 =
     body = NOTE2_BODY,
     state = NoteState.CREATED
   )
+
+// Used for testing cached issues because their counts are zeroed out.
+fun IssueDetails.zeroCounts() = copy(impactedDevicesCount = 0, eventsCount = 0)
+// Used for testing cached issues because their counts are zeroed out.
+fun AppInsightsIssue.zeroCounts() = copy(issueDetails = issueDetails.zeroCounts())

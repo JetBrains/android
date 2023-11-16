@@ -16,15 +16,17 @@
 package com.android.tools.idea.stats
 
 import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.analytics.HostData.graphicsEnvironment
 import com.android.tools.analytics.HostData.osBean
+import com.android.tools.analytics.deviceToDeviceInfo
 import com.android.tools.analytics.stubs.StubDateProvider
 import com.android.tools.analytics.stubs.StubGraphicsDevice.Companion.withBounds
 import com.android.tools.analytics.stubs.StubGraphicsEnvironment
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.buildActiveExperimentList
-import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfo
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfoApiLevelOnly
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.getMachineDetails
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.shouldRequestUserSentiment
@@ -35,14 +37,13 @@ import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DisplayDetails
 import com.google.wireless.android.sdk.stats.MachineDetails
 import junit.framework.TestCase
-import org.easymock.EasyMock
 import org.junit.Assert
 import java.awt.GraphicsDevice
 import java.io.File
 import java.time.ZoneOffset
+import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
-import java.util.Locale
 import java.util.TimeZone
 
 class AndroidStudioUsageTrackerTest : TestCase() {
@@ -144,6 +145,31 @@ class AndroidStudioUsageTrackerTest : TestCase() {
         lastSentimentAnswerDate = Date(115, 4, 17)
       })
       Assert.assertTrue(shouldRequestUserSentiment())
+
+      // 91 days ago
+      val calendar: Calendar = Calendar.getInstance()
+      calendar.setTime(AnalyticsSettings.dateProvider.now())
+      calendar.add(Calendar.DAY_OF_YEAR, -91)
+
+      // opted in user who was asked more than the frequency set
+      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = true
+        popSentimentQuestionFrequency=90
+        lastSentimentAnswerDate = calendar.getTime()
+        lastSentimentQuestionDate = calendar.getTime()
+      })
+      Assert.assertTrue(shouldRequestUserSentiment())
+
+      // opted in user who was asked less than the frequency set
+      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = true
+        popSentimentQuestionFrequency=90
+        lastSentimentAnswerDate = AnalyticsSettings.dateProvider.now()
+        lastSentimentQuestionDate = AnalyticsSettings.dateProvider.now()
+      })
+      Assert.assertFalse(shouldRequestUserSentiment())
 
       // opted in user who was asked less than a year ago should not be asked
       AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
@@ -317,18 +343,17 @@ class AndroidStudioUsageTrackerTest : TestCase() {
 
   companion object {
     fun createMockDevice(): IDevice {
-      val mockDevice = EasyMock.createMock<IDevice>(IDevice::class.java)
-      EasyMock.expect(mockDevice.serialNumber).andStubReturn("serial")
-      EasyMock.expect(mockDevice.getProperty(IDevice.PROP_BUILD_TAGS)).andStubReturn("release-keys")
-      EasyMock.expect(mockDevice.getProperty(IDevice.PROP_BUILD_TYPE)).andStubReturn("userdebug")
-      EasyMock.expect(mockDevice.getProperty(IDevice.PROP_BUILD_VERSION)).andStubReturn("5.1.1")
-      EasyMock.expect(mockDevice.getProperty(IDevice.PROP_BUILD_API_LEVEL)).andStubReturn("24")
-      EasyMock.expect(mockDevice.getProperty(IDevice.PROP_DEVICE_CPU_ABI)).andStubReturn("x86")
-      EasyMock.expect(mockDevice.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)).andStubReturn("Samsung")
-      EasyMock.expect(mockDevice.isEmulator).andStubReturn(java.lang.Boolean.FALSE)
-      EasyMock.expect(mockDevice.getProperty(IDevice.PROP_DEVICE_MODEL)).andStubReturn("pixel")
-      EasyMock.expect(mockDevice.getHardwareCharacteristics()).andStubReturn(setOf("emulator", "watch"))
-      EasyMock.replay(mockDevice)
+      val mockDevice = mock<IDevice>()
+      whenever(mockDevice.serialNumber).thenReturn("serial")
+      whenever(mockDevice.getProperty(IDevice.PROP_BUILD_TAGS)).thenReturn("release-keys")
+      whenever(mockDevice.getProperty(IDevice.PROP_BUILD_TYPE)).thenReturn("userdebug")
+      whenever(mockDevice.getProperty(IDevice.PROP_BUILD_VERSION)).thenReturn("5.1.1")
+      whenever(mockDevice.getProperty(IDevice.PROP_BUILD_API_LEVEL)).thenReturn("24")
+      whenever(mockDevice.getProperty(IDevice.PROP_DEVICE_CPU_ABI)).thenReturn("x86")
+      whenever(mockDevice.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)).thenReturn("Samsung")
+      whenever(mockDevice.isEmulator).thenReturn(java.lang.Boolean.FALSE)
+      whenever(mockDevice.getProperty(IDevice.PROP_DEVICE_MODEL)).thenReturn("pixel")
+      whenever(mockDevice.getHardwareCharacteristics()).thenReturn(setOf("emulator", "watch"))
       return mockDevice
     }
   }

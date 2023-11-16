@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertyEditorModel
@@ -44,13 +45,11 @@ import javax.swing.border.Border
 /**
  * Implementation of a [PTableCellEditorProvider]
  *
- * Create a provider for a [PTableCellEditor] based on the column being edited.
- * If the user is editing a property name:
- *    use the [nameControlTypeProvider] and [nameEditorProvider] for creating
- *    an editor for a [nameType] property.
- * If the user is editing a property value:
- *    use the [valueControlTypeProvider] and [valueEditorProvider] for creating
- *    an editor for a [valueType] property.
+ * Create a provider for a [PTableCellEditor] based on the column being edited. If the user is
+ * editing a property name: use the [nameControlTypeProvider] and [nameEditorProvider] for creating
+ * an editor for a [nameType] property. If the user is editing a property value: use the
+ * [valueControlTypeProvider] and [valueEditorProvider] for creating an editor for a [valueType]
+ * property.
  */
 class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
   private val nameType: Class<N>,
@@ -58,7 +57,8 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
   private val nameEditorProvider: EditorProvider<N>,
   private val valueType: Class<P>,
   private val valueControlTypeProvider: ControlTypeProvider<P>,
-  private val valueEditorProvider: EditorProvider<P>) : PTableCellEditorProvider {
+  private val valueEditorProvider: EditorProvider<P>
+) : PTableCellEditorProvider {
 
   private val defaultNameEditor = DefaultNameTableCellEditor()
   private val nullEditor = DefaultPTableCellEditor()
@@ -66,19 +66,32 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
 
   override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellEditor =
     when {
-      column == PTableColumn.NAME && nameType.isInstance(property) -> configureEditorForNewPropertyItemName(table, property)
-      column == PTableColumn.NAME && property is PTableGroupItem -> defaultNameEditor.nowEditing(table, property)
-      column == PTableColumn.VALUE && valueType.isInstance(property) -> configureEditorPropertyValue(table, property)
+      column == PTableColumn.NAME && nameType.isInstance(property) ->
+        configureEditorForNewPropertyItemName(table, property)
+      column == PTableColumn.NAME && property is PTableGroupItem ->
+        defaultNameEditor.nowEditing(table, property)
+      column == PTableColumn.VALUE && valueType.isInstance(property) ->
+        configureEditorPropertyValue(table, property)
       else -> nullEditor
     }
 
-  private fun configureEditorForNewPropertyItemName(table: PTable, property: PTableItem): PTableCellEditor {
+  private fun configureEditorForNewPropertyItemName(
+    table: PTable,
+    property: PTableItem
+  ): PTableCellEditor {
     val newProperty = nameType.cast(property)
     val controlType = nameControlTypeProvider(newProperty)
-    val (newModel, newEditor) = nameEditorProvider.createEditor(newProperty, asTableCellEditor = true)
+    val (newModel, newEditor) =
+      nameEditorProvider.createEditor(newProperty, EditorContext.TABLE_EDITOR)
     val border = JBUI.Borders.empty(0, LEFT_STANDARD_INDENT - newEditor.insets.left, 0, 0)
-    editor.nowEditing(table, property, PTableColumn.NAME, controlType, newModel,
-                      EditorPanel(newEditor, border, table.backgroundColor))
+    editor.nowEditing(
+      table,
+      property,
+      PTableColumn.NAME,
+      controlType,
+      newModel,
+      EditorPanel(newEditor, border, table.backgroundColor)
+    )
     newModel.tableSupport = editor
     return editor
   }
@@ -86,11 +99,19 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
   private fun configureEditorPropertyValue(table: PTable, property: PTableItem): PTableCellEditor {
     val valueProperty = valueType.cast(property)
     val controlType = valueControlTypeProvider(valueProperty)
-    val (newModel, newEditor) = valueEditorProvider.createEditor(valueProperty, asTableCellEditor = true)
+    val (newModel, newEditor) =
+      valueEditorProvider.createEditor(valueProperty, EditorContext.TABLE_EDITOR)
     val border = JBUI.Borders.customLine(table.gridLineColor, 0, 1, 0, 0)
-    newModel.isExpandedTableItem = (property as? PTableGroupItem)?.let { table.isExpanded(it) } ?: false
-    editor.nowEditing(table, property, PTableColumn.VALUE, controlType, newModel,
-                      EditorPanel(newEditor, border, table.backgroundColor))
+    newModel.isExpandedTableItem =
+      (property as? PTableGroupItem)?.let { table.isExpanded(it) } ?: false
+    editor.nowEditing(
+      table,
+      property,
+      PTableColumn.VALUE,
+      controlType,
+      newModel,
+      EditorPanel(newEditor, border, table.backgroundColor)
+    )
     newModel.tableSupport = editor
     return editor
   }
@@ -160,8 +181,14 @@ class PTableCellEditorImpl : PTableCellEditor, TableSupport {
     model?.refresh()
   }
 
-  fun nowEditing(newTable: PTable, newItem: PTableItem, newColumn: PTableColumn,
-                 newControlType: ControlType, newModel: PropertyEditorModel, newEditor: EditorPanel) {
+  fun nowEditing(
+    newTable: PTable,
+    newItem: PTableItem,
+    newColumn: PTableColumn,
+    newControlType: ControlType,
+    newModel: PropertyEditorModel,
+    newEditor: EditorPanel
+  ) {
     table = newTable
     item = newItem
     column = newColumn
@@ -183,11 +210,8 @@ class PTableCellEditorImpl : PTableCellEditor, TableSupport {
 }
 
 @VisibleForTesting
-class EditorPanel(
-  val editor: JComponent,
-  withBorder: Border,
-  backgroundColor: Color?
-): JPanel(BorderLayout()) {
+class EditorPanel(val editor: JComponent, withBorder: Border, backgroundColor: Color?) :
+  JPanel(BorderLayout()) {
 
   init {
     add(editor, BorderLayout.CENTER)

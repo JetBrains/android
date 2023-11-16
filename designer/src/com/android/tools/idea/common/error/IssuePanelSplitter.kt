@@ -21,15 +21,16 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.OnePixelSplitter
 import javax.swing.JComponent
-import kotlin.math.max
 
 /**
- * A [com.intellij.ui.JBSplitter] that display the [IssuePanel] from the provided [surface] on bottom and the provided [JComponent] on top.
+ * A [com.intellij.ui.JBSplitter] that display the [IssuePanel] from the provided [surface] on
+ * bottom and the provided [JComponent] on top.
  */
 class IssuePanelSplitter(
   file: VirtualFile?,
   private val surface: DesignSurface<*>,
-  content: JComponent) : OnePixelSplitter(true, 1f, 0.5f, 1f) {
+  content: JComponent
+) : OnePixelSplitter(true, 1f, 0.5f, 1f) {
 
   init {
     Disposer.register(surface) {
@@ -43,8 +44,7 @@ class IssuePanelSplitter(
       if (file != null) {
         IssuePanelService.getInstance(surface.project).registerFile(file, surface.name)
       }
-    }
-    else {
+    } else {
       val issuePanel = surface.issuePanel
       issuePanel.addEventListener(createIssueEventListener(issuePanel))
       setHonorComponentsMinimumSize(true)
@@ -58,11 +58,12 @@ class IssuePanelSplitter(
     isShowDividerControls = showDivider
     setResizeEnabled(showDivider)
 
-    proportion = if (!isExpanded) 1f
-    else {
-      val newProportion = 1 - height / parent.height.toFloat()
-      max(0.5f, newProportion)
-    }
+    proportion =
+      if (!isExpanded) 1f
+      else {
+        val newProportion = 1 - height / parent.height.toFloat()
+        Math.max(0.5f, newProportion)
+      }
   }
 
   private fun createIssueEventListener(issuePanel: IssuePanel): IssuePanel.EventListener {
@@ -72,7 +73,7 @@ class IssuePanelSplitter(
         updateSplitter(isExpanded, issuePanel.suggestedHeight)
       }
 
-      override fun onIssueExpanded(issue: Issue?, isExpanded: Boolean) { }
+      override fun onIssueExpanded(issue: Issue?, isExpanded: Boolean) {}
     }
   }
 }

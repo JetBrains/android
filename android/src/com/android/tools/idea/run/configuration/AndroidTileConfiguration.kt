@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.AndroidTileConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.TileLaunchOptions
 import com.intellij.execution.configurations.ConfigurationFactory
@@ -56,8 +57,9 @@ class AndroidTileConfiguration(project: Project, factory: ConfigurationFactory) 
                            deviceFutures: DeviceFutures,
                            appRunSettings: AppRunSettings,
                            applicationIdProvider: ApplicationIdProvider,
-                           apkProvider: ApkProvider): AndroidConfigurationExecutor {
-    return AndroidTileConfigurationExecutor(environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider)
+                           apkProvider: ApkProvider,
+                           deployer: ApplicationDeployer): AndroidConfigurationExecutor {
+    return AndroidTileConfigurationExecutor(environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider, deployer)
   }
 }
 

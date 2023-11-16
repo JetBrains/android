@@ -32,14 +32,13 @@ import com.android.tools.idea.uibuilder.model.w
 
 private const val ERROR_UNDEFINED = "undefined"
 
-/**
- * [DragHandler] handles the dragging from Palette and ComponentTree to RelativeLayout
- */
-internal class RelativeDragHandler(editor: ViewEditor,
-                                   handler: RelativeLayoutHandler,
-                                   layout: SceneComponent,
-                                   components: List<NlComponent>,
-                                   type: DragType
+/** [DragHandler] handles the dragging from Palette and ComponentTree to RelativeLayout */
+internal class RelativeDragHandler(
+  editor: ViewEditor,
+  handler: RelativeLayoutHandler,
+  layout: SceneComponent,
+  components: List<NlComponent>,
+  type: DragType
 ) : DragHandler(editor, handler, layout, components, type) {
 
   private val component: SceneComponent?
@@ -48,19 +47,21 @@ internal class RelativeDragHandler(editor: ViewEditor,
   init {
     if (components.size == 1) {
       val dragged = components[0]
-      component = layout.scene.getSceneComponent(dragged) ?: TemporarySceneComponent(layout.scene, dragged).apply {
-        setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h))
-      }
+      component =
+        layout.scene.getSceneComponent(dragged)
+          ?: TemporarySceneComponent(layout.scene, dragged).apply {
+            setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h))
+          }
 
       component.setTargetProvider { _ -> mutableListOf<Target>(dragTarget) }
       component.updateTargets()
-      // Note: Don't use [dragged] in this lambda function since the content of components may be replaced within interaction.
+      // Note: Don't use [dragged] in this lambda function since the content of components may be
+      // replaced within interaction.
       // This weird implementation may be fixed in the future, but we just work around here.
       component.setComponentProvider { _ -> components[0] }
       layout.addChild(component)
       component.drawState = SceneComponent.DrawState.DRAG
-    }
-    else {
+    } else {
       component = null
     }
   }
@@ -73,7 +74,12 @@ internal class RelativeDragHandler(editor: ViewEditor,
     dragTarget.mouseDown(x, y)
   }
 
-  override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int, sceneContext: SceneContext): String? {
+  override fun update(
+    @AndroidDpCoordinate x: Int,
+    @AndroidDpCoordinate y: Int,
+    modifiers: Int,
+    sceneContext: SceneContext
+  ): String? {
     if (component == null) {
       return ERROR_UNDEFINED
     }
@@ -84,8 +90,12 @@ internal class RelativeDragHandler(editor: ViewEditor,
     return result
   }
 
-  override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int,
-                      insertType: InsertType) {
+  override fun commit(
+    @AndroidCoordinate x: Int,
+    @AndroidCoordinate y: Int,
+    modifiers: Int,
+    insertType: InsertType
+  ) {
     if (component == null) {
       return
     }

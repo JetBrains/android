@@ -16,6 +16,7 @@
 package com.android.tools.asdriver.tests;
 
 import static com.android.tools.asdriver.tests.MemoryUsageReportProcessorKt.COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS;
+import static com.android.tools.asdriver.tests.MemoryUsageReportProcessorKt.DUMP_HPROF_SNAPSHOT;
 
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
@@ -61,7 +62,11 @@ public class AndroidStudioInstallation {
     String platform = "linux";
     String studioDir = "android-studio";
     if (SystemInfo.isMac) {
-      platform = "mac";
+      if (SystemInfo.OS_ARCH.equals("aarch64")) {
+        platform = "mac_arm";
+      } else {
+        platform = "mac";
+      }
       studioDir = "Android Studio Preview.app/Contents";
     } else if (SystemInfo.isWindows) {
       platform = "win";
@@ -147,12 +152,30 @@ public class AndroidStudioInstallation {
     if (Boolean.getBoolean(COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS)) {
       vmOptions.append(String.format("-D%s=true%n", COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS));
     }
+    if (Boolean.getBoolean(DUMP_HPROF_SNAPSHOT)) {
+      vmOptions.append(String.format("-D%s=true%n", DUMP_HPROF_SNAPSHOT));
+    }
 
     Files.writeString(vmOptionsPath, vmOptions.toString());
 
     // Handy utility to allow run configurations to force debugging
     if (Sets.newHashSet("true", "1").contains(System.getenv("AS_TEST_DEBUG"))) {
       addDebugVmOption(true);
+    }
+  }
+
+  public void enableBleak() throws IOException {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(vmOptionsPath.toFile(), true))) {
+      try {
+        Path jvmtiAgent = TestUtils.resolveWorkspacePath(
+          "_solib_k8/libtools_Sadt_Sidea_Sbleak_Ssrc_Scom_Sandroid_Stools_Sidea_Sbleak_Sagents_Slibjnibleakhelper.so").toRealPath();
+        writer.append(String.format("-agentpath:%s%n", jvmtiAgent));
+        writer.append(String.format("-Denable.bleak=true%n"));
+        writer.append(String.format("-Dbleak.jvmti.enabled=true%n"));
+      }
+      catch (IOException ignored) {
+        throw new IllegalStateException("BLeak JVMTI agent not found");
+      }
     }
   }
 
@@ -165,14 +188,15 @@ public class AndroidStudioInstallation {
   }
 
   /**
-   * Emits the agent's stdout and stderr logs to the console. When running a test locally, this can
-   * be helpful for viewing the logs without having to suspend any processes; without this, you
-   * would have to manually locate the randomly created temporary directories holding the logs.
+   * Emits the agent's logs to the console. When running a test locally, this can be helpful for
+   * viewing the logs without having to suspend any processes; without this, you would have to
+   * manually locate the randomly created temporary directories holding the logs.
    */
   public void debugEmitLogs() {
     try {
       stdout.printContents();
       stderr.printContents();
+      ideaLog.printContents();
     }
     catch (IOException e) {
       e.printStackTrace();

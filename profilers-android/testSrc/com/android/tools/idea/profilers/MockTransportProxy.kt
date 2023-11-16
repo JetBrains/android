@@ -19,9 +19,9 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Common
-import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder
 import java.util.concurrent.LinkedBlockingDeque
 
 
@@ -30,7 +30,7 @@ fun mockTransportProxy(): TransportProxy {
   val channel = NettyChannelBuilder.forTarget("someTarget").usePlaintext().build()
   whenever(mockProxy.transportChannel).thenReturn(channel)
   whenever(mockProxy.bytesCache).thenReturn(mutableMapOf())
-  whenever(mockProxy.eventQueue).thenReturn(LinkedBlockingDeque())
+  whenever(mockProxy.eventQueue).thenReturn(LinkedBlockingDeque<Common.Event>())
 
   val mockDevice: IDevice = mock()
   whenever(mockDevice.serialNumber).thenReturn("Serial")

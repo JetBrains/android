@@ -26,48 +26,60 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.tree.TreePathUtil
 import com.intellij.ui.tree.TreeVisitor
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class DesignerIssueNodeVisitorTest {
 
-  @JvmField
-  @Rule
-  val rule = EdtAndroidProjectRule(AndroidProjectRule.inMemory())
+  @JvmField @Rule val rule = EdtAndroidProjectRule(AndroidProjectRule.inMemory())
 
   @RunsInEdt
   @Test
   fun testContinueVisitingNodesWhenIssueSummaryIsDifferent() {
     val errorType = VisualLintErrorType.WEAR_MARGIN
-    val model = NlModelBuilderUtil.model(
-      rule.projectRule,
-      "layout",
-      "layout.xml",
-      ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
-        .withBounds(0, 0, 1000, 1000)
-        .matchParentWidth()
-        .matchParentHeight()
-        .children(ComponentDescriptor(SdkConstants.TEXT_VIEW)
-                    .width("100dp")
-                    .height("20dp")
-                    .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, errorType.ignoredAttributeValue)
+    val model =
+      NlModelBuilderUtil.model(
+          rule.projectRule,
+          "layout",
+          "layout.xml",
+          ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
+            .withBounds(0, 0, 1000, 1000)
+            .matchParentWidth()
+            .matchParentHeight()
+            .children(
+              ComponentDescriptor(SdkConstants.TEXT_VIEW)
+                .width("100dp")
+                .height("20dp")
+                .withAttribute(
+                  SdkConstants.TOOLS_URI,
+                  SdkConstants.ATTR_IGNORE,
+                  errorType.ignoredAttributeValue
+                )
+            )
         )
-    ).build()
+        .build()
 
-    val issue1 = createTestVisualLintRenderIssue(errorType, model.components.first().children, "summaryA")
-    val issue2 = createTestVisualLintRenderIssue(errorType, model.components.first().children, "summaryB")
+    val issue1 =
+      createTestVisualLintRenderIssue(errorType, model.components.first().children, "summaryA")
+    val issue2 =
+      createTestVisualLintRenderIssue(errorType, model.components.first().children, "summaryB")
 
     val node1 = TestIssueNode(issue1)
     val node2 = TestIssueNode(issue2)
 
     val visitor = DesignerIssueNodeVisitor(node1)
-    assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit (TreePathUtil.pathToCustomNode(node2) { null }))
+    assertEquals(
+      TreeVisitor.Action.CONTINUE,
+      visitor.visit(TreePathUtil.pathToCustomNode(node2) { null })
+    )
   }
 
   @Test
   fun testVisitIssuedFileNode() {
-    val getParentFunc: (DesignerCommonIssueNode?) -> DesignerCommonIssueNode? = { it?.parentDescriptor as? DesignerCommonIssueNode }
+    val getParentFunc: (DesignerCommonIssueNode?) -> DesignerCommonIssueNode? = {
+      it?.parentDescriptor as? DesignerCommonIssueNode
+    }
 
     val mockedFile = mock<VirtualFile>()
     val comparedNode = IssuedFileNode(mockedFile, null)
@@ -96,12 +108,14 @@ class DesignerIssueNodeVisitorTest {
 
   @Test
   fun testVisitNoFileNode() {
-    val getParentFunc: (DesignerCommonIssueNode?) -> DesignerCommonIssueNode? = { it?.parentDescriptor as? DesignerCommonIssueNode }
-    val comparedNode = NoFileNode(null)
+    val getParentFunc: (DesignerCommonIssueNode?) -> DesignerCommonIssueNode? = {
+      it?.parentDescriptor as? DesignerCommonIssueNode
+    }
+    val comparedNode = LayoutValidationNoFileNode(null)
     val visitor = DesignerIssueNodeVisitor(comparedNode)
 
     run {
-      val testNode = NoFileNode(null)
+      val testNode = LayoutValidationNoFileNode(null)
       val path = TreePathUtil.pathToCustomNode(testNode, getParentFunc)
       assertEquals(TreeVisitor.Action.INTERRUPT, visitor.visit(path))
     }
@@ -138,7 +152,7 @@ class DesignerIssueNodeVisitorTest {
     }
 
     run {
-      val testNode = NoFileNode(null)
+      val testNode = LayoutValidationNoFileNode(null)
       val path = TreePathUtil.pathToCustomNode(testNode) { null }
       assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit(path))
     }
@@ -151,7 +165,7 @@ class DesignerIssueNodeVisitorTest {
     val mockedFile = mock<VirtualFile>()
     val node1 = IssuedFileNode(mockedFile, null)
     val visitor = DesignerIssueNodeVisitor(node1)
-    val node2 = NoFileNode(null)
+    val node2 = LayoutValidationNoFileNode(null)
 
     val path = TreePathUtil.pathToCustomNode(node2) { null }
     assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit(path))
@@ -159,7 +173,7 @@ class DesignerIssueNodeVisitorTest {
 
   @Test
   fun testVisitOtherNodeTypes() {
-    val node1 = NoFileNode(null)
+    val node1 = LayoutValidationNoFileNode(null)
     val visitor = DesignerIssueNodeVisitor(node1)
     val node2: DesignerCommonIssueNode = mock()
     val path = TreePathUtil.pathToCustomNode(node2) { null }

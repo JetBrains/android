@@ -27,7 +27,6 @@ import static com.android.SdkConstants.PreferenceAttributes.ATTR_SUMMARY_OFF;
 import static com.android.SdkConstants.PreferenceAttributes.ATTR_SUMMARY_ON;
 import static com.android.SdkConstants.PreferenceAttributes.ATTR_SWITCH_TEXT_OFF;
 import static com.android.SdkConstants.PreferenceAttributes.ATTR_SWITCH_TEXT_ON;
-import static com.android.SdkConstants.PreferenceTags.SWITCH_PREFERENCE;
 
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
@@ -89,7 +88,7 @@ public final class SwitchPreferenceHandler extends PreferenceHandler {
 
     if (type == InsertType.CREATE) {
       NlWriteCommandActionUtil.run(newChild, "Set SwitchPreference", () -> {
-        newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, SWITCH_PREFERENCE, "switch_preference_"));
+        newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, newChild.getTagName(), "switch_preference_"));
       });
     }
     return true;

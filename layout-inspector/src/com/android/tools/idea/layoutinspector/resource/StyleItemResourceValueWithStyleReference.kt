@@ -18,9 +18,7 @@ package com.android.tools.idea.layoutinspector.resource
 import com.android.ide.common.rendering.api.StyleItemResourceValue
 import com.android.ide.common.rendering.api.StyleResourceValue
 
-/**
- * A style item with a reference to the style it was found in.
- */
+/** A style item with a reference to the style it was found in. */
 class StyleItemResourceValueWithStyleReference(
   val style: StyleResourceValue,
   private val item: StyleItemResourceValue
@@ -29,7 +27,9 @@ class StyleItemResourceValueWithStyleReference(
   override fun getResourceType() = item.resourceType
   override fun getLibraryName() = item.libraryName
   override fun isUserDefined() = item.isUserDefined
-  override fun setValue(value: String?) { item.value = value }
+  override fun setValue(value: String?) {
+    item.value = value
+  }
   override fun getAttrName() = item.attrName
   override fun getName() = item.attrName
   override fun getNamespace() = item.namespace

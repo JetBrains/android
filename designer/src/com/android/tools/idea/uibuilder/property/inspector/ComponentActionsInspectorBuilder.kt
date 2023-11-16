@@ -24,7 +24,7 @@ import com.android.tools.idea.uibuilder.api.actions.DirectViewAction
 import com.android.tools.idea.uibuilder.api.actions.ViewAction
 import com.android.tools.idea.uibuilder.api.actions.ViewActionMenu
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
-import com.android.tools.idea.uibuilder.model.viewHandler
+import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.InspectorBuilder
@@ -40,25 +40,26 @@ import javax.swing.JPanel
 
 private const val COMPONENT_ACTION_INSPECTOR_PLACE = "component_action_inspector"
 
-/**
- * An [InspectorBuilder] for the component actions shown on top in the Nele inspector.
- */
-class ComponentActionsInspectorBuilder(private val model: NlPropertiesModel) : InspectorBuilder<NlPropertyItem> {
+/** An [InspectorBuilder] for the component actions shown on top in the Nele inspector. */
+class ComponentActionsInspectorBuilder(private val model: NlPropertiesModel) :
+  InspectorBuilder<NlPropertyItem> {
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>
+  ) {
     val surface = model.surface ?: return
     val selectedComponents = surface.selectionModel.selection
     if (selectedComponents.isEmpty()) {
       return
     }
-    val panel = JPanel(BorderLayout()).apply {
-      background = secondaryPanelBackground
-    }
+    val panel = JPanel(BorderLayout()).apply { background = secondaryPanelBackground }
 
     val group = DefaultActionGroup("PropertyPanelActions", false)
 
     val primary = selectedComponents[0]
-    val parentActions = primary.parent?.viewHandler?.getPropertyActions(selectedComponents) ?: emptyList()
+    val parentActions =
+      primary.parent?.getViewHandler {}?.getPropertyActions(selectedComponents) ?: emptyList()
     if (parentActions.isNotEmpty()) {
       for (action in parentActions) {
         group.add(convertToAnAction(action, surface, selectedComponents))
@@ -66,7 +67,9 @@ class ComponentActionsInspectorBuilder(private val model: NlPropertiesModel) : I
     }
 
     if (selectedComponents.size == 1) {
-      val childrenActions = selectedComponents[0].viewHandler?.getPropertyActions(selectedComponents) ?: emptyList()
+      val childrenActions =
+        selectedComponents[0].getViewHandler {}?.getPropertyActions(selectedComponents)
+          ?: emptyList()
       if (childrenActions.isNotEmpty()) {
         if (parentActions.isNotEmpty()) {
           // Both parent and children actions are not empty
@@ -83,24 +86,33 @@ class ComponentActionsInspectorBuilder(private val model: NlPropertiesModel) : I
       val toolbar = actionManager.createActionToolbar(COMPONENT_ACTION_INSPECTOR_PLACE, group, true)
       ActionToolbarUtil.makeToolbarNavigable(toolbar)
       toolbar.setTargetComponent(panel)
-      panel.add(toolbar.component.apply { background = secondaryPanelBackground }, BorderLayout.WEST)
+      panel.add(
+        toolbar.component.apply { background = secondaryPanelBackground },
+        BorderLayout.WEST
+      )
       inspector.addComponent(panel)
     }
   }
 
-  private fun convertToAnAction(viewAction: ViewAction, surface: DesignSurface<*>, selectedComponent: List<NlComponent>): AnAction {
+  private fun convertToAnAction(
+    viewAction: ViewAction,
+    surface: DesignSurface<*>,
+    selectedComponent: List<NlComponent>
+  ): AnAction {
     return when (viewAction) {
       is ViewActionMenu -> NoArrowDropDownButton(viewAction, surface, selectedComponent)
       is DirectViewAction -> ViewActionWrapper(viewAction, surface, selectedComponent)
-      else -> throw IllegalArgumentException("Unacceptable ViewAction class ${viewAction::javaClass}")
+      else ->
+        throw IllegalArgumentException("Unacceptable ViewAction class ${viewAction::javaClass}")
     }
   }
 }
 
-private class ViewActionWrapper(private val viewAction: ViewAction,
-                                private val surface: DesignSurface<*>,
-                                private val nlComponents: List<NlComponent>)
-  : AnAction(viewAction.label, viewAction.label, viewAction.icon) {
+private class ViewActionWrapper(
+  private val viewAction: ViewAction,
+  private val surface: DesignSurface<*>,
+  private val nlComponents: List<NlComponent>
+) : AnAction(viewAction.label, viewAction.label, viewAction.icon) {
 
   override fun actionPerformed(e: AnActionEvent) {
     if (nlComponents.isEmpty()) {
@@ -108,13 +120,22 @@ private class ViewActionWrapper(private val viewAction: ViewAction,
     }
     val primary = nlComponents[0]
     val scene = surface.scene ?: return
-    val handler = primary.viewHandler ?: return
-    viewAction.perform(ViewEditorImpl(primary.model, scene), handler, primary, nlComponents, e.modifiers)
+    val handler = primary.getViewHandler {} ?: return
+    viewAction.perform(
+      ViewEditorImpl(primary.model, scene),
+      handler,
+      primary,
+      nlComponents,
+      e.modifiers
+    )
   }
 }
 
-private class NoArrowDropDownButton(menu: ViewActionMenu, surface: DesignSurface<*>, nlComponents: List<NlComponent>)
-  : DropDownAction(menu.label, menu.label, menu.icon) {
+private class NoArrowDropDownButton(
+  menu: ViewActionMenu,
+  surface: DesignSurface<*>,
+  nlComponents: List<NlComponent>
+) : DropDownAction(menu.label, menu.label, menu.icon) {
 
   init {
     addAll(menu.actions.map { ViewActionWrapper(it, surface, nlComponents) })

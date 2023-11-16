@@ -30,7 +30,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.concurrency.EdtExecutorService
-import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.ide.PooledThreadExecutor
@@ -76,29 +75,6 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     )
   }
 
-  fun testNoIconWhenDatabaseIsNotOpen() {
-    myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      // language=java
-      """
-        package com.example;
-        class Foo {
-          void bar() {
-            // language=RoomSql
-            String query = "select * from Foo";${caret}
-          }
-        }
-        """
-        .trimIndent()
-    )
-
-    myFixture.doHighlighting()
-
-    val highlightInfo = myFixture.findGuttersAtCaret()
-    assertThat(highlightInfo).hasSize(1)
-    assertThat(highlightInfo.first().icon).isEqualTo(EmptyIcon.ICON_0)
-  }
-
   fun testRunIconWhenDatabaseIsOpen() {
     databaseInspectorProjectService.openSqliteDatabase(
       sqliteDatabaseId1,
@@ -123,10 +99,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
 
     val highlightInfo = myFixture.findGuttersAtCaret()
     assertThat(highlightInfo).hasSize(1)
-    assertThat(
-      highlightInfo.first().icon).isEqualTo(
-      StudioIcons.DatabaseInspector.NEW_QUERY
-    )
+    assertThat(highlightInfo.first().icon).isEqualTo(StudioIcons.DatabaseInspector.NEW_QUERY)
   }
 
   fun testRendererVisibleWhenSqlStatementMadeOfMultipleStrings() {
@@ -153,10 +126,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
 
     val highlightInfo = myFixture.findGuttersAtCaret()
     assertThat(highlightInfo).hasSize(1)
-    assertThat(
-      highlightInfo.first().icon).isEqualTo(
-      StudioIcons.DatabaseInspector.NEW_QUERY
-    )
+    assertThat(highlightInfo.first().icon).isEqualTo(StudioIcons.DatabaseInspector.NEW_QUERY)
   }
 
   fun testAnnotatorWorksWithKotlin() {

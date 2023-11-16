@@ -31,7 +31,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
 import com.intellij.openapi.externalSystem.util.Order
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
-import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleJava.configuration.getMppModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModelBuilder
@@ -69,9 +69,8 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
     return super.createModule(gradleModule, projectDataNode)!!.also { ideModule ->
       val sourceSetByName = ideModule.sourceSetsByName()
       for ((sourceSetDesc, compilation) in mppModel.androidCompilationsForVariant(selectedVariantName)) {
-        val kotlinSourceSetInfo = KotlinMPPGradleProjectResolver.createSourceSetInfo(
-          mppModel, compilation, gradleModule, resolverCtx
-        ) ?: continue
+        val kotlinSourceSetInfo = KotlinMppGradleProjectResolver.createSourceSetInfo(
+          mppModel, compilation, gradleModule, resolverCtx) ?: continue
         val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: continue
 
         androidGradleSourceSetDataNode.createChild(KotlinSourceSetData.KEY, KotlinSourceSetData(kotlinSourceSetInfo))
@@ -298,18 +297,18 @@ private fun IdeModuleWellKnownSourceSet.getRootKotlinSourceSet(compilation: Kotl
 }
 
 private fun IdeModuleWellKnownSourceSet.androidCompilationNameSuffix() = when (this) {
-  IdeModuleWellKnownSourceSet.MAIN -> ""
-  IdeModuleWellKnownSourceSet.ANDROID_TEST -> "AndroidTest"
-  IdeModuleWellKnownSourceSet.UNIT_TEST -> "UnitTest"
-  IdeModuleWellKnownSourceSet.TEST_FIXTURES -> "TestFixtures"
+  MAIN -> ""
+  ANDROID_TEST -> "AndroidTest"
+  UNIT_TEST -> "UnitTest"
+  TEST_FIXTURES -> "TestFixtures"
 }
 
 // TODO(b/246924347): Add an integration test for KMP v2 source layout.
 private fun IdeModuleWellKnownSourceSet.kmpSourceSetSuffixes() = when (this) {
-  IdeModuleWellKnownSourceSet.MAIN -> setOf("main")
-  IdeModuleWellKnownSourceSet.ANDROID_TEST -> setOf("androidTest", "instrumentedTest")
-  IdeModuleWellKnownSourceSet.UNIT_TEST -> setOf("test", "unitTest")
-  IdeModuleWellKnownSourceSet.TEST_FIXTURES -> setOf("testFixtures")
+  MAIN -> setOf("main")
+  ANDROID_TEST -> setOf("androidTest", "instrumentedTest")
+  UNIT_TEST -> setOf("test", "unitTest")
+  TEST_FIXTURES -> setOf("testFixtures")
 }
 
 private fun KotlinMPPGradleModel.androidTargets() =
@@ -334,18 +333,19 @@ private fun KotlinMPPGradleModel.mergeSourceSets(sourceSetsToRemove: Set<String>
   kotlin.runCatching {
     val validAndroidSourceSetNames = validAndroidSourceSets.map { it.name }.toSet()
     androidTargets().flatMap { it.androidCompilations() }.forEach { androidCompilation ->
-      val compilationMainSourceSet = androidCompilation.allSourceSets.single {
-        it.name in validAndroidSourceSetNames
-      }
       val compilationRemovedSourceSets = androidCompilation.allSourceSets.filter { it.name in sourceSetsToRemove }.toSet()
+      androidCompilation.allSourceSets
+        .filter { it.name in validAndroidSourceSetNames }
+        .forEach { compilationSourceSet ->
+          compilationSourceSet.sourceDirs.castTo<MutableSet<File>>().addAll(compilationRemovedSourceSets.flatMap { it.sourceDirs })
+          compilationSourceSet.resourceDirs.castTo<MutableSet<File>>().addAll(compilationRemovedSourceSets.flatMap { it.resourceDirs })
+        }
       androidCompilation.allSourceSets.takeUnless { it.isEmpty() }
         ?.castTo<MutableSet<KotlinSourceSet>>()
         ?.removeAll(compilationRemovedSourceSets)
       androidCompilation.declaredSourceSets.takeUnless { it.isEmpty() }
         ?.castTo<MutableSet<KotlinSourceSet>>()
         ?.removeAll(compilationRemovedSourceSets)
-      compilationMainSourceSet.sourceDirs.castTo<MutableSet<File>>().addAll(compilationRemovedSourceSets.flatMap { it.sourceDirs })
-      compilationMainSourceSet.resourceDirs.castTo<MutableSet<File>>().addAll(compilationRemovedSourceSets.flatMap { it.resourceDirs })
     }
 
     val mutableSourceSetsByName = sourceSetsByName as? MutableMap<String, KotlinSourceSet> ?: return

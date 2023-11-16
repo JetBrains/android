@@ -22,15 +22,17 @@ import com.intellij.testFramework.LightVirtualFile
 private val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
 
 /**
- * A [LightVirtualFile] defined to allow quickly identifying the given file as an XML that is used as adapter to be able to preview custom
- * entities.
- * The contents of the file only reside in memory and contain some XML that will be passed to Layoutlib.
+ * A [LightVirtualFile] defined to allow quickly identifying the given file as an XML that is used
+ * as adapter to be able to preview custom entities. The contents of the file only reside in memory
+ * and contain some XML that will be passed to Layoutlib.
  *
- * Historically, design tools were only able to preview xml layouts. Each preview corresponded to a single layout and a layout corresponded
- * to a xml file. The internal logic of [com.android.tools.idea.common.model.NlModel] and Layoutlib heavily relies on this and that is why
- * we pretend there is a xml file that backs each preview.
+ * Historically, design tools were only able to preview xml layouts. Each preview corresponded to a
+ * single layout and a layout corresponded to a xml file. The internal logic of
+ * [com.android.tools.idea.common.model.NlModel] and Layoutlib heavily relies on this and that is
+ * why we pretend there is a xml file that backs each preview.
  *
- * TODO(b/227474522): Consider making this generic type so that clients do not need subclass but use a specified generic instead.
+ * TODO(b/227474522): Consider making this generic type so that clients do not need subclass but use
+ *   a specified generic instead.
  */
 open class InMemoryLayoutVirtualFile(
   name: String,

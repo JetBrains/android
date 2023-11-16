@@ -100,12 +100,12 @@ class AdbFileListingTest {
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
-    val root = fileListing.root
+    val root = fileListing.getRoot()
 
     // Assert
     assertThat(root).isNotNull()
     assertThat(root.fullPath).isEqualTo("/")
-    assertThat(root.name).isEqualTo("")
+    assertThat(root.name).isEqualTo("/")
     assertThat(root.isDirectory).isTrue()
   }
 
@@ -117,7 +117,7 @@ class AdbFileListingTest {
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
-    val root = fileListing.root
+    val root = fileListing.getRoot()
 
     // Assert
     thrown.expect(TimeoutException::class.java)
@@ -131,7 +131,7 @@ class AdbFileListingTest {
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
-    val root = fileListing.root
+    val root = fileListing.getRoot()
     val rootEntries = fileListing.getChildren(root)
 
     // Assert
@@ -193,7 +193,7 @@ class AdbFileListingTest {
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
-    val root = fileListing.root
+    val root = fileListing.getRoot()
     val rootEntries = fileListing.getChildren(root)
 
     // Assert
@@ -213,12 +213,12 @@ class AdbFileListingTest {
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
-    val root = fileListing.root
+    val root = fileListing.getRoot()
 
     // Assert
     assertThat(root).isNotNull()
     assertThat(root.fullPath).isEqualTo("/")
-    assertThat(root.name).isEqualTo("")
+    assertThat(root.name).isEqualTo("/")
     assertThat(root.isDirectory).isTrue()
   }
 
@@ -230,7 +230,7 @@ class AdbFileListingTest {
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
-    val root = fileListing.root
+    val root = fileListing.getRoot()
 
     // Assert
     thrown.expect(TimeoutException::class.java)
@@ -244,7 +244,7 @@ class AdbFileListingTest {
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
-    val root = fileListing.root
+    val root = fileListing.getRoot()
     val rootEntries = fileListing.getChildren(root)
 
     // Assert
@@ -343,7 +343,7 @@ class AdbFileListingTest {
     val fileListing = AdbFileListing(device, AdbDeviceCapabilities(scope, deviceName, device), dispatcher)
 
     // Act
-    val root = fileListing.root
+    val root = fileListing.getRoot()
     val rootEntries = fileListing.getChildren(root)
 
     // Assert

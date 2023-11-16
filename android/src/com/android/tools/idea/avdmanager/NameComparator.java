@@ -16,45 +16,58 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
+import com.ibm.icu.text.Collator;
+import com.ibm.icu.util.ULocale;
 import java.util.Comparator;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This comparator special cases the canonical device definitions ("Small Phone", "Medium Phone", and "Medium Tablet") to sort before other
- * names in the device definition table. After that, names that start with a letter sort before names that do not (as before). And after
- * that we use natural string order (as before).
+ * Sorts names so they appear in the device definition table in the following order
+ *
+ * <ol>
+ *   <li>Small Phone
+ *   <li>Medium Phone
+ *   <li>Medium Tablet
+ *   <li>The other devices (in reversed natural order)
+ *   <li>Pixel XL
+ *   <li>Pixel
+ *   <li>7.6" Fold-in with outer display
+ *   <li>Resizable (Experimental)
+ * </ol>
  */
+@SuppressWarnings("GrazieInspection")
 final class NameComparator implements Comparator<Device> {
   @NotNull
-  private static final Comparator<String> COMPARATOR = Comparator.comparing(SortKey::valueOfDeviceName)
-    .thenComparing(Comparator.naturalOrder());
+  private static final Comparator<Device> COMPARATOR = Comparator.comparing(SortKey::valueOfDevice)
+    .thenComparing(Device::getDisplayName, Collator.getInstance(ULocale.ROOT).reversed());
 
   private enum SortKey {
-    FIRST_CHAR_ISNT_LETTER,
-    FIRST_CHAR_IS_LETTER,
-    MEDIUM_TABLET,
+    SMALL_PHONE,
     MEDIUM_PHONE,
-    SMALL_PHONE;
+    MEDIUM_TABLET,
+    DEVICE,
+    PIXEL_XL,
+    PIXEL,
+    SEVEN_POINT_SIX_INCH_FOLD_IN_WITH_OUTER_DISPLAY,
+    RESIZABLE_EXPERIMENTAL;
 
     @NotNull
-    private static SortKey valueOfDeviceName(@NotNull String deviceName) {
-      return switch (deviceName) {
-        case "Medium Tablet" -> MEDIUM_TABLET;
-        case "Medium Phone" -> MEDIUM_PHONE;
+    private static SortKey valueOfDevice(@NotNull Device device) {
+      return switch (device.getDisplayName()) {
         case "Small Phone" -> SMALL_PHONE;
-        default -> Character.isLetter(deviceName.charAt(0)) ? FIRST_CHAR_IS_LETTER : FIRST_CHAR_ISNT_LETTER;
+        case "Medium Phone" -> MEDIUM_PHONE;
+        case "Medium Tablet" -> MEDIUM_TABLET;
+        case "Pixel XL" -> PIXEL_XL;
+        case "Pixel" -> PIXEL;
+        case "7.6\" Fold-in with outer display" -> SEVEN_POINT_SIX_INCH_FOLD_IN_WITH_OUTER_DISPLAY;
+        case "Resizable (Experimental)" -> RESIZABLE_EXPERIMENTAL;
+        default -> DEVICE;
       };
     }
   }
 
   @Override
   public int compare(@NotNull Device device1, @NotNull Device device2) {
-    var name1 = device1.getDisplayName();
-    assert !name1.isEmpty();
-
-    var name2 = device2.getDisplayName();
-    assert !name2.isEmpty();
-
-    return COMPARATOR.compare(name1, name2);
+    return COMPARATOR.compare(device1, device2);
   }
 }

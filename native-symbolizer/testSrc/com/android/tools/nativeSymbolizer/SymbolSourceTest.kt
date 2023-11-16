@@ -21,7 +21,6 @@ import com.android.tools.idea.projectsystem.SourceProviderManager.Companion.repl
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.inMemory
 import com.google.common.truth.Truth
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -44,15 +43,17 @@ class SymbolSourceTest {
       .add(Abi.X86.cpuArch, x86Libraries)
       .add(Abi.X86.cpuArch, moreX86Libraries)
 
-    Assert.assertEquals(2, source.getDirsFor(Abi.ARMEABI).size)
-    Assert.assertTrue(source.getDirsFor(Abi.ARMEABI).containsAll(listOf(armLibraries,
-                                                                        moreArmLibraries)))
+    source.getDirsFor(Abi.ARMEABI).also {
+      Truth.assertThat(it).containsExactly(armLibraries, moreArmLibraries)
+    }
 
-    Assert.assertEquals(2, source.getDirsFor(Abi.X86).size)
-    Assert.assertTrue(source.getDirsFor(Abi.X86).containsAll(listOf(x86Libraries,
-                                                                    moreX86Libraries)))
+    source.getDirsFor(Abi.X86).also {
+      Truth.assertThat(it).containsExactly(x86Libraries, moreX86Libraries)
+    }
 
-    Assert.assertTrue(source.getDirsFor(Abi.MIPS).isEmpty())
+    source.getDirsFor(Abi.MIPS).also {
+      Truth.assertThat(it).isEmpty()
+    }
   }
 
   @Test
@@ -75,27 +76,31 @@ class SymbolSourceTest {
     // act as if everything was added to the same DynamicSymbolSource.
     val source = MergeSymbolSource(listOf(armSource, x86Source))
 
-    Assert.assertEquals(2, source.getDirsFor(Abi.ARMEABI).size)
-    Assert.assertTrue(source.getDirsFor(Abi.ARMEABI).containsAll(listOf(armLibraries,
-                                                                        moreArmLibraries)))
+    source.getDirsFor(Abi.ARMEABI).also {
+      Truth.assertThat(it).containsExactly(armLibraries, moreArmLibraries)
+    }
 
-    Assert.assertEquals(2, source.getDirsFor(Abi.X86).size)
-    Assert.assertTrue(source.getDirsFor(Abi.X86).containsAll(listOf(x86Libraries,
-                                                                    moreX86Libraries)))
+    source.getDirsFor(Abi.X86).also {
+      Truth.assertThat(it).containsExactly(x86Libraries, moreX86Libraries)
+    }
 
-    Assert.assertTrue(source.getDirsFor(Abi.MIPS).isEmpty())
+    source.getDirsFor(Abi.MIPS).also {
+      Truth.assertThat(it).isEmpty()
+    }
   }
 
   @Test
   fun emptyJniLibs() {
-    val src = JniSymbolSource(projectRule.module)
-    val result: Collection<File?> = src.getDirsFor(Abi.ARM64_V8A)
-    Truth.assertThat(result).isEmpty()
+    val source = JniSymbolSource(projectRule.module)
+
+    source.getDirsFor(Abi.ARM64_V8A).also {
+      Truth.assertThat(it).isEmpty()
+    }
   }
 
   @Test
   fun withJniLibs() {
-    val src = JniSymbolSource(projectRule.module)
+    val source = JniSymbolSource(projectRule.module)
 
     // Create foo.so file and get the jniLibs URL.
     val jniLibsUrl = projectRule.fixture
@@ -113,7 +118,9 @@ class SymbolSourceTest {
       create("main", "AndroidManifest.xml")
         .withJniLibsDirectoryUrls(listOf(jniLibsUrl))
         .build())
-    val result: Collection<File?> = src.getDirsFor(Abi.ARM64_V8A)
-    Truth.assertThat(result).isNotEmpty()
+
+    source.getDirsFor(Abi.ARM64_V8A).also {
+      Truth.assertThat(it).isNotEmpty()
+    }
   }
 }

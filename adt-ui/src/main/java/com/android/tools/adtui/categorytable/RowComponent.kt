@@ -15,15 +15,19 @@
  */
 package com.android.tools.adtui.categorytable
 
+import com.android.tools.adtui.event.DelegateMouseEventHandler
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
+import com.intellij.ui.util.preferredWidth
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.LayoutManager
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.BoxLayout
@@ -33,6 +37,7 @@ import javax.swing.SizeRequirements
 import javax.swing.SwingConstants
 import javax.swing.UIManager
 import javax.swing.table.JTableHeader
+import kotlin.math.max
 
 /** An identifier for a table row, either a value row or a category row. */
 sealed interface RowKey<T> {
@@ -44,15 +49,21 @@ sealed interface RowKey<T> {
 /** A UI component for a row in a CategoryTable that is either a category or a value. */
 internal sealed class RowComponent<T> : JBPanel<RowComponent<T>>(), TableComponent {
   init {
-    isFocusable = true
+    isFocusCycleRoot = true
   }
+
+  private var rowSelected = false
+    set(value) {
+      field = value
+      isOpaque = value
+    }
 
   /** Updates the display of the row based on the current selection status. */
   override fun updateTablePresentation(
     manager: TablePresentationManager,
     presentation: TablePresentation
   ) {
-    isOpaque = presentation.rowSelected
+    rowSelected = presentation.rowSelected
     manager.defaultApplyPresentation(this, presentation)
   }
 
@@ -76,11 +87,7 @@ internal class CategoryRowComponent<T>(val path: CategoryList<T>) : RowComponent
     add(iconLabel)
     add(Box.createHorizontalStrut(JBUI.scale(4)))
     // TODO: Support custom UI here?
-    add(
-      JBLabel("<html><b>${path.last().value}</b></html>").also {
-        it.horizontalAlignment = SwingConstants.LEFT
-      }
-    )
+    add(JBLabel(path.last().value.toString()).also { it.horizontalAlignment = SwingConstants.LEFT })
     add(Box.createHorizontalGlue())
   }
 
@@ -122,13 +129,37 @@ internal class ValueRowComponent<T>(
   initialValue: T,
   primaryKey: Any
 ) : RowComponent<T>(), DataProvider {
+  private val mouseDelegate = DelegateMouseEventHandler.delegateTo(this)
+
   /** The components of this row, in model order. */
   val componentList: List<ColumnComponent<T, *, *>> =
-    columns.map { ColumnComponent(it, initialValue) }
+    columns.map { ColumnComponent(it, initialValue, mouseDelegate) }
 
   init {
     layout = ValueRowLayout(header)
     componentList.forEach { add(it.component) }
+
+    addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseExited(e: MouseEvent) {
+          hoveredComponent = null
+        }
+      }
+    )
+    addMouseMotionListener(
+      object : MouseAdapter() {
+        override fun mouseMoved(e: MouseEvent) {
+          for (i in 0 until componentList.size - 1) {
+            // We need to use the next component's x coordinate
+            if (componentList[i].component.isVisible && e.x < componentList[i + 1].component.x) {
+              hoveredComponent = componentList[i].component
+              return
+            }
+          }
+          hoveredComponent = componentList.lastOrNull()?.component
+        }
+      }
+    )
   }
 
   private val valueRowLayout: ValueRowLayout
@@ -142,6 +173,20 @@ internal class ValueRowComponent<T>(
       componentList.forEach { it.updateValue(value) }
     }
 
+  internal var hoveredComponent: JComponent? = null
+    set(value) {
+      if (field != value) {
+        field?.isOpaque = false
+        field = value
+        field?.isOpaque = true
+        if (value != null) {
+          // Paint this component after all others.
+          setComponentZOrder(value, 0)
+        }
+        revalidate()
+      }
+    }
+
   override val rowKey = RowKey.ValueRowKey<T>(primaryKey)
 
   /**
@@ -150,9 +195,11 @@ internal class ValueRowComponent<T>(
    */
   internal class ColumnComponent<T, C, U : JComponent>(
     val column: Column<T, C, U>,
-    initialValue: T
+    initialValue: T,
+    mouseDelegate: DelegateMouseEventHandler,
   ) {
-    val component = column.createUi(initialValue)
+    val component =
+      column.createUi(initialValue).also { column.installMouseDelegate(it, mouseDelegate) }
     fun updateValue(rowValue: T) {
       column.updateValue(rowValue, component, column.attribute.value(rowValue))
     }
@@ -229,7 +276,15 @@ private class ValueRowLayout(val header: JTableHeader) : LayoutManager {
     xpos.forEachIndexed { i, x ->
       val component = row.componentList[i].component
       if (x >= 0) {
-        component.setBounds(xpos[i], 0, width[i], parent.height)
+        component.setBounds(
+          xpos[i],
+          0,
+          when {
+            component == row.hoveredComponent -> max(width[i], component.preferredWidth)
+            else -> width[i]
+          },
+          parent.height
+        )
         component.isVisible = true
       } else {
         component.isVisible = false

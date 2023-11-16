@@ -68,6 +68,22 @@ interface IdeUnresolvedModuleLibrary : IdeUnresolvedLibrary {
   val artifact: File
 }
 
+/**
+ * Marks a dependency on a kotlin multiplatform module that has been resolved to the android target.
+ * The dependency should resolve later to the main sourceSet of the android target (typically "androidMain").
+ */
+interface IdeUnresolvedKmpAndroidModuleLibrary : IdeUnresolvedLibrary {
+  /**
+   * Returns the gradle path.
+   */
+  val projectPath: String
+
+  /**
+   * Returns the build id.
+   */
+  val buildId: String
+}
+
 interface IdePreResolvedModuleLibrary : IdeUnresolvedLibrary {
   /**
    * Returns the gradle path.

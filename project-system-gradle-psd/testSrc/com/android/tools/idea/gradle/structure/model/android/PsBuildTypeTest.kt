@@ -131,7 +131,7 @@ class PsBuildTypeTest {
       val mySigningConfigDslText =  "signingConfigs.myConfig"
       assertThat(
         signingConfig.parsedValue,
-        equalTo(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()))
+        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()))
 
       assertThat(versionNameSuffix.resolved.asTestValue(), equalTo("vsuffix"))
       assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("vsuffix"))
@@ -336,8 +336,8 @@ class PsBuildTypeTest {
       assertThat(signingConfig.parsedValue.asTestValue(), nullValue())
       assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("new_vsuffix"))
 
-      assertThat(matchingFallbacks.map { it.resolved.asTestValue() }, equalTo(listOf(null)))
-      assertThat(matchingFallbacks.map { it.parsedValue.asTestValue() }, equalTo(listOf("debug")))
+      assertThat(matchingFallbacks.map { it.resolved.asTestValue() }, equalTo<List<String?>>(listOf(null)))
+      assertThat(matchingFallbacks.map { it.parsedValue.asTestValue() }, equalTo<List<String?>>(listOf("debug")))
       // TODO(b/72814329): Resolved values are not yet supported on list properties.
       assertThat(proGuardFiles[0].resolved.asTestValue(), nullValue())
       // TODO(b/142454204): DslText is not language-agnostic

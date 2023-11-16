@@ -21,10 +21,11 @@ import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_FREEFORM_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_HINGE_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_PIXEL_4A_DEVICE_API;
-import static com.android.sdklib.AndroidVersion.MIN_RECTANGULAR_WEAR_API;
-import static com.android.sdklib.AndroidVersion.MIN_RESIZABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
+import static com.android.sdklib.AndroidVersion.MIN_RECTANGULAR_WEAR_API;
+import static com.android.sdklib.AndroidVersion.MIN_RESIZABLE_DEVICE_API;
+import static com.android.sdklib.AndroidVersion.VersionCodes.TIRAMISU;
 
 import com.android.repository.Revision;
 import com.android.resources.ScreenOrientation;
@@ -207,6 +208,8 @@ public class ChooseSystemImagePanel extends JPanel
     }
     if (SystemImageDescription.TAGS_WITH_GOOGLE_API.contains(tag) &&
         (isArm64HostOs ||
+         (SystemImageDescription.TV_TAGS.contains(tag) && // Android TV does not ship x86_64 images at any API level.
+          apiLevel != TIRAMISU) || // Tiramisu is an unsupported Android TV version.
          (apiLevel <= MAX_32_BIT_API && abi == Abi.X86) ||
          (apiLevel > MAX_32_BIT_API && abi == Abi.X86_64))
     ) {

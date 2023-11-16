@@ -28,8 +28,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
-import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.openapi.util.IconLoader
 import com.intellij.util.ui.JBUI
 import org.fest.swing.core.GenericTypeMatcher
@@ -43,6 +41,7 @@ import java.awt.Dimension
 import java.awt.Point
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JMenuItem
 
 private const val TIMEOUT_FOR_SCENE_COMPONENT_ANIMATION_SECONDS = 5L
@@ -67,7 +66,7 @@ class SceneComponentFixture internal constructor(
   val height: Int
     @AndroidDpCoordinate get() = sceneComponent.drawHeight
 
-  val sceneView: SceneView
+  private val sceneView: SceneView
     get() = sceneComponent.scene.sceneManager.sceneView
 
   val midPoint: Point
@@ -192,17 +191,6 @@ class SceneComponentFixture internal constructor(
 
     return this
   }
-
-  fun waitForConnectToPopup(): JPopupMenuFixture {
-    val menu = GuiTests.waitUntilFound(robot, null,
-                                       object : GenericTypeMatcher<JBPopupMenu>(
-                                         JBPopupMenu::class.java) {
-                                         override fun isMatching(menu: JBPopupMenu): Boolean {
-                                           return "Connect to:" == menu.label
-                                         }
-                                       })
-    return JPopupMenuFixture(robot, menu)
-  }
 }
 
 class SceneFixture(private val robot: Robot, private val scene: Scene) {
@@ -223,11 +211,6 @@ class SceneFixture(private val robot: Robot, private val scene: Scene) {
 }
 
 class SceneViewTopPanelFixture(private val robot: Robot, private val toolbar: JComponent) {
-  fun clickButtonByText(text: String): SceneViewTopPanelFixture = also {
-    val button = robot.finder().find(toolbar, Matchers.byText(ActionButtonWithText::class.java, text))
-    robot.click(button)
-  }
-
   fun findButtonByIcon(icon: Icon, secondsToWait: Long = 10L): ActionButtonFixture {
     val button = GuiTests.waitUntilShowing(
       robot, toolbar, object : GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
@@ -236,6 +219,13 @@ class SceneViewTopPanelFixture(private val robot: Robot, private val toolbar: JC
       }
     }, secondsToWait)
     return ActionButtonFixture(robot, button)
+  }
+
+  fun clickActionByIcon(label: String, actionIcon: Icon) {
+    // Click on the label first to make sure the toolbar actions show up.
+    val toolbarLabel = GuiTests.waitUntilShowing(robot, Matchers.byText(JLabel::class.java, label))
+    robot.click(toolbarLabel)
+    ActionButtonFixture.findByIcon(actionIcon, robot, toolbar).click()
   }
 }
 

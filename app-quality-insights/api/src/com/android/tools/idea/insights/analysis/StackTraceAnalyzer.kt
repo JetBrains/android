@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.insights.analysis
 
-import com.intellij.openapi.components.Service
 import com.intellij.psi.PsiFile
 import org.jetbrains.annotations.TestOnly
 
 /** Main entry point to the analyzer infrastructure. */
-@Service
-class StackTraceAnalyzer
-@JvmOverloads
-constructor(
+class StackTraceAnalyzer(
   @TestOnly
   private val matcher: CrashMatcher =
     DelegatingConfidenceMatcher(

@@ -25,7 +25,6 @@ import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceFrame.FrameThread
 import kotlin.streams.asSequence
-import kotlin.streams.toList
 
 class SystemTraceCpuCapture(traceId: Long,
                             model: SystemTraceModelAdapter,
@@ -35,17 +34,16 @@ class SystemTraceCpuCapture(traceId: Long,
                             override val cpuUtilizationSeries: List<SeriesData<Long>>,
                             override val cpuCounters: List<Map<String, List<SeriesData<Long>>>>,
                             override val memoryCounters: Map<String, List<SeriesData<Long>>>,
-                            override val powerRailCounters: Map<String, List<SeriesData<Long>>>,
+                            override val powerRailCounters: Map<String, PowerCounterData>,
                             override val batteryDrainCounters: Map<String, List<SeriesData<Long>>>,
                             private val blastBufferQueueCounter: List<SeriesData<Long>>,
                             private val frameManager: SystemTraceFrameManager,
                             private val surfaceflingerManager: SystemTraceSurfaceflingerManager,
                             initialViewRangeUs: Range)
-          // System Traces don't support dual clock.
-          : BaseCpuCapture(traceId, model.getSystemTraceTechnology(), false, null,
-                           Range(model.getCaptureStartTimestampUs().toDouble(), model.getCaptureEndTimestampUs().toDouble()),
-                           captureNodes)
-           , CpuSystemTraceData {
+  // System Traces don't support dual clock.
+  : BaseCpuCapture(traceId, model.getSystemTraceTechnology(), false, null,
+                   Range(model.getCaptureStartTimestampUs().toDouble(), model.getCaptureEndTimestampUs().toDouble()),
+                   captureNodes), CpuSystemTraceData {
   override val isMissingData = model.isCapturePossibleCorrupted()
   override val androidFrameLayers = model.getAndroidFrameLayers()
   override val androidFrameTimelineEvents = model.getAndroidFrameTimelineEvents()
@@ -53,7 +51,7 @@ class SystemTraceCpuCapture(traceId: Long,
   override val surfaceflingerEvents get() = surfaceflingerManager.surfaceflingerEvents
   override val vsyncCounterValues get() = surfaceflingerManager.vsyncCounterValues
   override val renderThreadId get() = frameManager.renderThreadId
-  private val gpuThreadId by lazy { threads.first { it.isGpuThread }.id }
+  val gpuThreadId by lazy { threads.first { it.isGpuThread }.id }
 
   // Each search is a full scan over the thread's nodes, and GPU's result is dependent on Render's,
   // and this is potentially called many times during rendering, so we cache the few most recent ones.

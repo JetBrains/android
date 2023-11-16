@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
+
+import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
@@ -22,12 +25,15 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.visual.VisualizationForm;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import icons.StudioIcons;
 import java.awt.event.KeyEvent;
 import java.util.stream.Collectors;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -65,8 +71,64 @@ public class VisualizationFixture extends ToolWindowFixture {
     }
   }
 
+  /**
+   * Zoom to fit the screen
+   */
   public void zoomToFit() {
-    myDesignSurfaceFixture.target().zoomToFit();
+    myDesignSurfaceFixture.target()
+      .zoomToFit();
+    myDesignSurfaceFixture.waitForRenderToFinish();
+  }
+
+  /**
+   * To use the Zoom In feature from the Pan button
+   */
+  public void zoomIn() {
+    myDesignSurfaceFixture.target()
+      .zoom(ZoomType.IN);
+    myDesignSurfaceFixture.waitForRenderToFinish();
+  }
+
+  /**
+   * To use the Zoom out feature from the Pan button
+   */
+  public void zoomOut() {
+    myDesignSurfaceFixture.target()
+      .zoom((ZoomType.OUT));
+    myDesignSurfaceFixture.waitForRenderToFinish();
+  }
+
+  /**
+   * To zoom to the 100% or 1:1
+   */
+  public  void zoomToActual() {
+    myDesignSurfaceFixture.target()
+      .zoom(ZoomType.ACTUAL);
+    myDesignSurfaceFixture.waitForRenderToFinish();
+  }
+
+  public void clickZoomButton(String buttonName) {
+    ActionButton button = waitUntilShowingAndEnabled(robot(), myDesignSurfaceFixture.target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override protected boolean isMatching(@NotNull ActionButton actionButton) {
+        return buttonName.equals(actionButton.getAccessibleContext().getAccessibleName());
+      }
+    });
+    robot().focus(button);
+    robot().click(button);
+    Wait.seconds(10);
+  }
+
+  public double getScale() {
+    return myDesignSurfaceFixture.getScale();
+  }
+
+  public boolean panButtonPresent() {
+    ActionButton panButton = waitUntilShowingAndEnabled(robot(), myDesignSurfaceFixture.target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override protected boolean isMatching(@NotNull ActionButton actionButton) {
+        return "Pan screen (hold SPACE bar and drag)".equals(actionButton.getAccessibleContext().getAccessibleName());
+      }
+    });
+    return (panButton.isEnabled() && panButton.isShowing());
   }
 
   public int getRowNumber() {

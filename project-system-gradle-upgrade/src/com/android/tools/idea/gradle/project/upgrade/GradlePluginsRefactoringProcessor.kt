@@ -125,7 +125,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     val WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE =
       UsageType(AndroidBundle.messagePointer("project.upgrade.gradlePluginsRefactoringProcessor.wellKnownGradlePluginUsageType"))
 
-    private fun `kotlin-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
+    fun `kotlin-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4 -> Version.parse("1.1.3")
         VERSION_4_6 -> Version.parse("1.2.51")
@@ -145,7 +145,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_FOR_DEV -> Version.parse("1.6.21")
       }
 
-    private fun `androidx-navigation-safeargs-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
+    fun `androidx-navigation-safeargs-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
         VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 ->
@@ -155,7 +155,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
       }
 
     // compatibility information from b/174686925 and https://github.com/mannodermaus/android-junit5/releases
-    private fun `de-mannodermaus-android-junit5-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
+    fun `de-mannodermaus-android-junit5-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1 -> Version.parse("1.3.1.0")
         VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1 -> Version.parse("1.4.2.1")
@@ -163,14 +163,14 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("1.6.1.0")
       }
 
-    private fun `com-google-firebase-crashlytics-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
+    fun `com-google-firebase-crashlytics-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
         VERSION_6_5, VERSION_6_7_1 -> Version.parse("2.0.0")
         VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("2.5.2")
       }
 
-    private fun `com-google-firebase-appdistribution-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
+    fun `com-google-firebase-appdistribution-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN -> Version.parse("1.0.0")
         VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4 -> Version.parse("1.1.0")
@@ -178,28 +178,28 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("2.1.1")
       }
 
-    private fun `com-google-firebase-perf-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
+    fun `com-google-firebase-perf-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
         VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 -> Version.parse("1.2.1")
         VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("1.4.1")
       }
 
-    private fun `com-google-android-gms-oss-licenses-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
+    fun `com-google-android-gms-oss-licenses-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1 -> Version.parse("0.9.3")
         VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1, VERSION_6_5, VERSION_6_7_1 -> Version.parse("0.10.1")
         VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("0.10.4")
       }
 
-    private fun `com-google-gms-google-services-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
+    fun `com-google-gms-google-services-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
         VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 -> Version.parse("4.0.1")
         VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("4.3.10")
       }
 
-    private fun `com-google-dagger-hilt-android-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
+    fun `com-google-dagger-hilt-android-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
         VERSION_6_5 -> Version.parse("2.0")
@@ -208,7 +208,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("2.40.1")
       }
 
-    private fun `com-google-protobuf-protobuf-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
+    fun `com-google-protobuf-protobuf-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1 -> Version.parse("0.8.8")
         VERSION_5_6_4 -> Version.parse("0.8.11")
@@ -261,7 +261,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 class WellKnownGradlePluginDependencyUsageInfo(
   element: WrappedPsiElement,
   val dependency: ArtifactDependencyModel,
-  private val resultModel: GradlePropertyModel,
+  val resultModel: GradlePropertyModel,
   val version: String
 ): GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -276,7 +276,7 @@ class WellKnownGradlePluginDependencyUsageInfo(
 class WellKnownGradlePluginDslUsageInfo(
   element: WrappedPsiElement,
   val plugin: PluginModel,
-  private val resultModel: GradlePropertyModel,
+  val resultModel: GradlePropertyModel,
   val version: String
 ): GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {

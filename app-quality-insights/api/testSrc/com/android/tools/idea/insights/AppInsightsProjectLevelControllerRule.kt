@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
+import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
@@ -44,9 +45,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import org.junit.runner.Description
@@ -65,23 +64,21 @@ class AppInsightsProjectLevelControllerRule(
     get() = disposableRule.disposable
   private lateinit var scope: CoroutineScope
   lateinit var clock: FakeClock
-  lateinit var client: TestCrashlyticsClient
+  lateinit var client: TestAppInsightsClient
   lateinit var controller: AppInsightsProjectLevelController
-  private lateinit var connections: MutableStateFlow<List<VariantConnection>>
+  private lateinit var connections: MutableSharedFlow<List<Connection>>
   private lateinit var internalState: Channel<AppInsightsState>
   lateinit var tracker: AppInsightsTracker
-  lateinit var connectionInferrer: ActiveConnectionInferrer
   private lateinit var cache: AppInsightsCache
 
   override fun before(description: Description) {
-    val offlineStateFlow = MutableSharedFlow<ConnectionMode>(replay = 1)
+    val offlineStatusManager = OfflineStatusManagerImpl()
     scope = AndroidCoroutineScope(disposable, AndroidDispatchers.uiThread)
     clock = FakeClock(NOW)
     cache = AppInsightsCacheImpl()
-    client = Mockito.spy(TestCrashlyticsClient(cache))
-    connections = MutableStateFlow(listOf(VARIANT1, VARIANT2, PLACEHOLDER_CONNECTION))
+    client = Mockito.spy(TestAppInsightsClient(cache))
+    connections = MutableSharedFlow(replay = 1)
     tracker = mock(AppInsightsTracker::class.java)
-    connectionInferrer = mock(ActiveConnectionInferrer::class.java)
     ApplicationManager.getApplication()
       .registerOrReplaceServiceInstance(
         GoogleLogin::class.java,
@@ -92,19 +89,18 @@ class AppInsightsProjectLevelControllerRule(
       )
     controller =
       AppInsightsProjectLevelControllerImpl(
+        InsightsProviderKey("Fake provider"),
         scope,
         AndroidDispatchers.workerThread,
         client,
         appConnection = connections,
-        offlineStatus = offlineStateFlow,
-        setOfflineMode = { mode -> scope.launch { offlineStateFlow.emit(mode) } },
+        offlineStatusManager,
         flowStart = SharingStarted.Lazily,
         tracker = tracker,
         clock = clock,
         project = projectRule.project,
         queue = AppInsightsActionQueueImpl(ConcurrentLinkedQueue()),
         onErrorAction = onErrorAction,
-        connectionInferrer = connectionInferrer,
         defaultFilters = TEST_FILTERS,
         cache = cache
       )
@@ -113,8 +109,8 @@ class AppInsightsProjectLevelControllerRule(
   }
 
   override fun after(description: Description) {
-    internalState.close()
     runInEdtAndWait { disposableRule.after() }
+    internalState.close()
   }
 
   suspend fun consumeFetchState(
@@ -137,8 +133,6 @@ class AppInsightsProjectLevelControllerRule(
       assertThat(consumeNext().mode == ConnectionMode.ONLINE).isTrue()
     }
     var resultState = consumeNext()
-    assertThat(resultState.filters.versions)
-      .isEqualTo(MultiSelection(state.value.versions.toSet(), state.value.versions))
     if (state.value.issues.isNotEmpty()) {
       if (resultState.mode == ConnectionMode.ONLINE) {
         client.completeDetailsCallWith(detailsState)
@@ -162,11 +156,13 @@ class AppInsightsProjectLevelControllerRule(
         )
       ),
     detailsState: LoadingState.Done<DetailedIssueStats?> = LoadingState.Ready(null),
-    notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList())
+    notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
+    connectionsState: List<Connection> = listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)
   ): AppInsightsState {
+    connections.emit(connectionsState)
     val loadingState = consumeNext()
     assertThat(loadingState.connections)
-      .isEqualTo(Selection(VARIANT1, listOf(VARIANT1, VARIANT2, PLACEHOLDER_CONNECTION)))
+      .isEqualTo(Selection(connectionsState.firstOrNull(), connectionsState))
     assertThat(loadingState.issues).isInstanceOf(LoadingState.Loading::class.java)
     assertThat(loadingState.currentIssueDetails).isEqualTo(LoadingState.Ready(null))
     assertThat(loadingState.currentNotes).isEqualTo(LoadingState.Ready(null))
@@ -190,13 +186,13 @@ class AppInsightsProjectLevelControllerRule(
   fun selectVersions(values: Set<Version>) = controller.selectVersions(values)
   fun selectTimeInterval(value: TimeIntervalFilter) = controller.selectTimeInterval(value)
   fun selectSignal(value: SignalType) = controller.selectSignal(value)
-
+  fun selectOsVersion(value: Set<OperatingSystemInfo>) = controller.selectOperatingSystems(value)
   fun selectDevices(values: Set<Device>) = controller.selectDevices(values)
-  fun selectFirebaseConnection(value: VariantConnection) = controller.selectConnection(value)
+  fun selectFirebaseConnection(value: Connection) = controller.selectConnection(value)
   fun toggleFatality(value: FailureType) = controller.toggleFailureType(value)
-  fun updateConnections(variantConnections: List<VariantConnection>) =
-    connections.update { variantConnections }
+  fun updateConnections(connections: List<Connection>) = this.connections.tryEmit(connections)
   fun enterOfflineMode() = controller.enterOfflineMode()
+  fun selectVisibilityType(value: VisibilityType) = controller.selectVisibilityType(value)
 }
 
 /** Utility class that allows suspending functions until `completeWith` is called. */
@@ -219,13 +215,19 @@ class CallInProgress<T> {
 }
 
 /** Test client that gives precise control and synchronization useful in tests. */
-class TestCrashlyticsClient(private val cache: AppInsightsCache) : AppInsightsClient {
+class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsClient {
+  private val listConnections = CallInProgress<LoadingState.Done<List<AppConnection>>>()
   private val topIssuesCall = CallInProgress<LoadingState.Done<IssueResponse>>()
   private val detailsCall = CallInProgress<LoadingState.Done<DetailedIssueStats?>>()
   private val setIssueStateCall = CallInProgress<LoadingState.Done<Unit>>()
   private val listNotesCall = CallInProgress<LoadingState.Done<List<Note>>>()
   private val createNoteCall = CallInProgress<LoadingState.Done<Note>>()
   private val deleteNoteCall = CallInProgress<LoadingState.Done<Unit>>()
+  override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> =
+    listConnections.initiateCall()
+
+  suspend fun completeConnectionsCallWith(value: LoadingState.Done<List<AppConnection>>) =
+    listConnections.completeWith(value)
 
   override suspend fun listTopOpenIssues(
     request: IssueRequest,

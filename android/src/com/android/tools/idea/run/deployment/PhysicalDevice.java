@@ -15,14 +15,9 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.LayeredIcon;
@@ -30,35 +25,58 @@ import icons.StudioIcons;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class PhysicalDevice extends Device {
-  private static final Icon ourPhoneIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
-  private static final Icon ourWearIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR);
-  private static final Icon ourTvIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV);
+public record PhysicalDevice(@NotNull Key key,
+                      @NotNull Type type,
+                      @NotNull LaunchCompatibility launchCompatibility,
+                      @Nullable Instant connectionTime,
+                      @NotNull String name,
+                      @NotNull AndroidDevice androidDevice,
+                      @NotNull UnaryOperator<Icon> getLiveIndicator) implements Device {
+  private PhysicalDevice(@NotNull Builder builder) {
+    this(Objects.requireNonNull(builder.myKey),
+         builder.myType,
+         builder.myLaunchCompatibility,
+         builder.myConnectionTime,
+         Objects.requireNonNull(builder.myName),
+         Objects.requireNonNull(builder.myAndroidDevice),
+         builder.myGetLiveIndicator);
+  }
 
   public static @NotNull PhysicalDevice newDevice(@NotNull Device device, @NotNull KeyToConnectionTimeMap map) {
-    Key key = device.getKey();
+    var key = device.key();
 
     return new Builder()
-      .setName(device.getName())
-      .setLaunchCompatibility(device.getLaunchCompatibility())
       .setKey(key)
+      .setType(device.type())
+      .setLaunchCompatibility(device.launchCompatibility())
       .setConnectionTime(map.get(key))
-      .setAndroidDevice(device.getAndroidDevice())
-      .setType(device.getType())
+      .setName(device.name())
+      .setAndroidDevice(device.androidDevice())
       .build();
   }
 
   @VisibleForTesting
   static final class Builder extends Device.Builder {
+    private UnaryOperator<Icon> myGetLiveIndicator = ExecutionUtil::getLiveIndicator;
+
     @NotNull
     @VisibleForTesting
-    Builder setName(@NotNull String name) {
-      myName = name;
+    Builder setKey(@NotNull Key key) {
+      myKey = key;
+      return this;
+    }
+
+    @NotNull
+    @VisibleForTesting
+    Builder setType(@NotNull Type type) {
+      myType = type;
       return this;
     }
 
@@ -71,15 +89,15 @@ public final class PhysicalDevice extends Device {
 
     @NotNull
     @VisibleForTesting
-    Builder setKey(@NotNull Key key) {
-      myKey = key;
+    Builder setConnectionTime(@NotNull Instant connectionTime) {
+      myConnectionTime = connectionTime;
       return this;
     }
 
     @NotNull
     @VisibleForTesting
-    Builder setConnectionTime(@NotNull Instant connectionTime) {
-      myConnectionTime = connectionTime;
+    Builder setName(@NotNull String name) {
+      myName = name;
       return this;
     }
 
@@ -92,8 +110,8 @@ public final class PhysicalDevice extends Device {
 
     @NotNull
     @VisibleForTesting
-    Builder setType(@NotNull Type type) {
-      myType = type;
+    Builder setGetLiveIndicator(@NotNull UnaryOperator<Icon> getLiveIndicator) {
+      myGetLiveIndicator = getLiveIndicator;
       return this;
     }
 
@@ -104,20 +122,16 @@ public final class PhysicalDevice extends Device {
     }
   }
 
-  private PhysicalDevice(@NotNull Builder builder) {
-    super(builder);
-  }
-
   @NotNull
   @Override
-  Icon getIcon() {
-    Icon icon = switch (getType()) {
-      case TV -> ourTvIcon;
-      case WEAR -> ourWearIcon;
-      case PHONE -> ourPhoneIcon;
+  public Icon icon() {
+    var icon = switch (type) {
+      case PHONE -> getLiveIndicator.apply(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
+      case WEAR -> getLiveIndicator.apply(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR);
+      case TV -> getLiveIndicator.apply(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV);
     };
 
-    return switch (getLaunchCompatibility().getState()) {
+    return switch (launchCompatibility.getState()) {
       case ERROR -> new LayeredIcon(icon, StudioIcons.Common.ERROR_DECORATOR);
       case WARNING -> new LayeredIcon(icon, AllIcons.General.WarningDecorator);
       case OK -> icon;
@@ -129,60 +143,31 @@ public final class PhysicalDevice extends Device {
    * disconnected physical devices.
    */
   @Override
-  public boolean isConnected() {
+  public boolean connected() {
     return true;
   }
 
   @NotNull
   @Override
-  Collection<Snapshot> getSnapshots() {
+  public Collection<Snapshot> snapshots() {
     return Collections.emptyList();
   }
 
   @NotNull
   @Override
-  public Target getDefaultTarget() {
-    return new RunningDeviceTarget(getKey());
+  public Target defaultTarget() {
+    return new RunningDeviceTarget(key);
   }
 
   @NotNull
   @Override
-  Collection<Target> getTargets() {
-    return Collections.singletonList(new RunningDeviceTarget(getKey()));
+  public Collection<Target> targets() {
+    return List.of(new RunningDeviceTarget(key));
   }
 
   @NotNull
   @Override
-  ListenableFuture<AndroidVersion> getAndroidVersionAsync() {
-    var service = DeploymentApplicationService.getInstance();
-
-    // noinspection UnstableApiUsage
-    return Futures.transformAsync(getDdmlibDeviceAsync(), service::getVersion, MoreExecutors.directExecutor());
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof PhysicalDevice)) {
-      return false;
-    }
-
-    Device device = (Device)object;
-
-    return getName().equals(device.getName()) &&
-           getType().equals(device.getType()) &&
-           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
-           getKey().equals(device.getKey()) &&
-           Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
-           getAndroidDevice().equals(device.getAndroidDevice());
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(getName(),
-                        getType(),
-                        getLaunchCompatibility(),
-                        getKey(),
-                        getConnectionTime(),
-                        getAndroidDevice());
+  public String toString() {
+    return name;
   }
 }

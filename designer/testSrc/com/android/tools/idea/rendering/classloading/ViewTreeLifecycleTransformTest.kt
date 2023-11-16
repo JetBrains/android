@@ -17,8 +17,9 @@ package com.android.tools.idea.rendering.classloading
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
-import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
-import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.rendering.classloading.toClassTransform
 import org.jetbrains.android.uipreview.createUrlClassLoader
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -65,16 +66,15 @@ class ViewTreeLifecycleTransformTest {
     assertEquals(getOriginalReturnValue, getReturnValue)
   }
 
-  private fun getClassTransformedWithViewTreeLifecycleTransform() = ViewTreeLifecycleLoader()
-    .loadClass("androidx/lifecycle/ViewTreeLifecycleOwner")
+  private fun getClassTransformedWithViewTreeLifecycleTransform() =
+    ViewTreeLifecycleLoader().loadClass("androidx/lifecycle/ViewTreeLifecycleOwner")
 
-  /**
-   * Calls the [methodName] method from the class passing null value for every argument
-   */
-  private fun Class<*>.callMethod(methodName: String, vararg arguments: Any?): Any? = declaredMethods
-    .firstOrNull { it.name == methodName }
-    ?.apply { isAccessible = true }
-    ?.invoke(this, *arguments)
+  /** Calls the [methodName] method from the class passing null value for every argument */
+  private fun Class<*>.callMethod(methodName: String, vararg arguments: Any?): Any? =
+    declaredMethods
+      .firstOrNull { it.name == methodName }
+      ?.apply { isAccessible = true }
+      ?.invoke(this, *arguments)
 
   /**
    * Loads the jar containing all the class to be tested:
@@ -89,20 +89,20 @@ class ViewTreeLifecycleTransformTest {
    *
    * It is possible to find these classes in: compose-designer/testData/classloader/
    */
-  inner class ViewTreeLifecycleLoader : DelegatingClassLoader(
-    this.javaClass.classLoader,
-    AsmTransformingLoader(
-      toClassTransform({ ViewTreeLifecycleTransform(it) }),
-      ClassLoaderLoader(
-        createUrlClassLoader(
-          listOf(
-            TestUtils
-              .resolveWorkspacePath(LOADER_WORKSPACE_PATH)
-              .resolve(CLASSES_TO_LOAD_JAR_NAME)
+  inner class ViewTreeLifecycleLoader :
+    DelegatingClassLoader(
+      this.javaClass.classLoader,
+      AsmTransformingLoader(
+        toClassTransform({ ViewTreeLifecycleTransform(it) }),
+        ClassLoaderLoader(
+          createUrlClassLoader(
+            listOf(
+              TestUtils.resolveWorkspacePath(LOADER_WORKSPACE_PATH)
+                .resolve(CLASSES_TO_LOAD_JAR_NAME)
+            )
           )
-        )
-      ),
-      NopClassLocator
+        ),
+        NopClassLocator
+      )
     )
-  )
 }

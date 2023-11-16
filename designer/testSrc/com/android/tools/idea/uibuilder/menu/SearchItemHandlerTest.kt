@@ -16,12 +16,12 @@
 package com.android.tools.idea.uibuilder.menu
 
 import com.android.SdkConstants
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentBackend
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -37,10 +37,12 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
 @RunWith(Parameterized::class)
-class SearchItemHandlerTest(private val projectMinSdk: Int,
-                            private val dependencies: List<GoogleMavenArtifactId>,
-                            private val expectedNameSpace: String,
-                            private val expectedValue: String) {
+class SearchItemHandlerTest(
+  private val projectMinSdk: Int,
+  private val dependencies: List<GoogleMavenArtifactId>,
+  private val expectedNameSpace: String,
+  private val expectedValue: String
+) {
   private val model = mock(NlModel::class.java)
   private val newChild = mock(NlComponent::class.java)
   private val backend = mock(NlComponentBackend::class.java)
@@ -48,25 +50,66 @@ class SearchItemHandlerTest(private val projectMinSdk: Int,
 
   @Rule
   @JvmField
-  val rule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder().withMinSdk { projectMinSdk })
+  val rule =
+    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder().withMinSdk { projectMinSdk })
 
   companion object {
-    @Parameterized.Parameters(name = "projectMinSdk={0}, dependencies={1}, expectedNameSpace={2}, expectedValue={3}")
-    @JvmStatic
-    fun params(): List<Any> = listOf(
-      arrayOf(10, listOf<Any>(), SdkConstants.ANDROID_URI, "android.support.v7.widget.SearchView"),
-      arrayOf(10, listOf<Any>(GoogleMavenArtifactId.APP_COMPAT_V7), SdkConstants.AUTO_URI, "android.support.v7.widget.SearchView"),
-      arrayOf(10, listOf<Any>(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7), SdkConstants.AUTO_URI,
-              "android.support.v7.widget.SearchView"),
-      arrayOf(10, listOf<Any>(GoogleMavenArtifactId.APP_COMPAT_V7, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7), SdkConstants.AUTO_URI,
-              "android.support.v7.widget.SearchView"),
-
-      arrayOf(11, listOf<Any>(), SdkConstants.ANDROID_URI, "android.widget.SearchView"),
-      arrayOf(11, listOf<Any>(GoogleMavenArtifactId.APP_COMPAT_V7), SdkConstants.AUTO_URI, "android.widget.SearchView"),
-      arrayOf(11, listOf<Any>(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7), SdkConstants.AUTO_URI, "android.widget.SearchView"),
-      arrayOf(11, listOf<Any>(GoogleMavenArtifactId.APP_COMPAT_V7, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7), SdkConstants.AUTO_URI,
-              "android.widget.SearchView"),
+    @Parameterized.Parameters(
+      name = "projectMinSdk={0}, dependencies={1}, expectedNameSpace={2}, expectedValue={3}"
     )
+    @JvmStatic
+    fun params(): List<Any> =
+      listOf(
+        arrayOf(
+          10,
+          listOf<Any>(),
+          SdkConstants.ANDROID_URI,
+          "android.support.v7.widget.SearchView"
+        ),
+        arrayOf(
+          10,
+          listOf<Any>(GoogleMavenArtifactId.APP_COMPAT_V7),
+          SdkConstants.AUTO_URI,
+          "android.support.v7.widget.SearchView"
+        ),
+        arrayOf(
+          10,
+          listOf<Any>(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7),
+          SdkConstants.AUTO_URI,
+          "android.support.v7.widget.SearchView"
+        ),
+        arrayOf(
+          10,
+          listOf<Any>(
+            GoogleMavenArtifactId.APP_COMPAT_V7,
+            GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7
+          ),
+          SdkConstants.AUTO_URI,
+          "android.support.v7.widget.SearchView"
+        ),
+        arrayOf(11, listOf<Any>(), SdkConstants.ANDROID_URI, "android.widget.SearchView"),
+        arrayOf(
+          11,
+          listOf<Any>(GoogleMavenArtifactId.APP_COMPAT_V7),
+          SdkConstants.AUTO_URI,
+          "android.widget.SearchView"
+        ),
+        arrayOf(
+          11,
+          listOf<Any>(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7),
+          SdkConstants.AUTO_URI,
+          "android.widget.SearchView"
+        ),
+        arrayOf(
+          11,
+          listOf<Any>(
+            GoogleMavenArtifactId.APP_COMPAT_V7,
+            GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7
+          ),
+          SdkConstants.AUTO_URI,
+          "android.widget.SearchView"
+        ),
+      )
   }
 
   @Before

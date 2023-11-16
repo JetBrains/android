@@ -13,17 +13,15 @@
 // limitations under the License.
 package com.android.tools.idea.common.scene
 
-/**
- * [LerpValue] Represents a linear interpolation between two values.
- */
+/** [LerpValue] Represents a linear interpolation between two values. */
 abstract class LerpValue<T>(val start: T, val end: T, val duration: Int) : AnimatedValue<T>() {
   private var startTime = -1L
 
   constructor(value: T) : this(value, value, 0)
 
   /**
-   * Gets the interpolated value at the specified time. The start
-   * time is measured from the first time getValue is called.
+   * Gets the interpolated value at the specified time. The start time is measured from the first
+   * time getValue is called.
    */
   override fun getValue(time: Long): T {
     if (startTime == -1L) {

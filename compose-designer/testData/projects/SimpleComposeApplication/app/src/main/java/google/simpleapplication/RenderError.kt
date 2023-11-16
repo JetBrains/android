@@ -17,10 +17,13 @@ package google.simpleapplication
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import kotlin.random.Random
 
@@ -53,4 +56,25 @@ fun PreviewWithoutRenderErrors() {
 @Composable
 fun PreviewWithContrastError() {
   Text(text = "Contrast error", modifier = Modifier.background(color = Color.DarkGray))
+}
+
+@Preview
+@Composable
+fun PreviewWithContrastErrorAgain() {
+  Text(text = "Another contrast error", modifier = Modifier.background(color = Color.DarkGray))
+}
+
+@Preview
+@Composable
+fun PreviewWithWideButton() {
+  Button(onClick = {}, modifier = Modifier.fillMaxWidth()) { Text(text = "This is a wide button") }
+}
+
+@Preview(device = Devices.TABLET)
+@Composable
+fun PreviewWithLongText() {
+  Text(
+    text =
+      "This text is too looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong"
+  )
 }

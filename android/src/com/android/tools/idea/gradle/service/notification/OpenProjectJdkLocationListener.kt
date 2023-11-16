@@ -16,23 +16,35 @@
 package com.android.tools.idea.gradle.service.notification
 
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationListener
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
+import org.jetbrains.annotations.SystemIndependent
 import javax.swing.event.HyperlinkEvent
 
-class OpenProjectJdkLocationListener(private val service: AndroidProjectSettingsService): NotificationListener.Adapter()
-{
+/**
+ * A [NotificationListener.Adapter] that allows user to change their project Gradle JDK location from the Project settings popup
+ * @param settingsService Android custom settings service for navigation intents
+ * @param gradleRootProjectPath Gradle project root absolute path, if specified allows to select the current project
+ */
+class OpenProjectJdkLocationListener private constructor(
+  private val settingsService: AndroidProjectSettingsService,
+  private val gradleRootProjectPath: @SystemIndependent String?
+): NotificationListener.Adapter() {
   companion object {
     const val ID = "open.project.jdk.location"
+
+    @JvmStatic
+    fun create(project: Project, rootProjectPath: @SystemIndependent String?): OpenProjectJdkLocationListener? {
+      (ProjectSettingsService.getInstance(project) as? AndroidProjectSettingsService)?.let { service ->
+        return OpenProjectJdkLocationListener(service, rootProjectPath)
+      }
+      return null
+    }
   }
 
   override fun hyperlinkActivated(notification: Notification, event: HyperlinkEvent) {
-    followLink()
-  }
-
-  @VisibleForTesting
-  fun followLink() {
-    service.chooseJdkLocation()
+    settingsService.chooseJdkLocation(gradleRootProjectPath)
   }
 }

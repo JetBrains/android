@@ -17,7 +17,6 @@ package com.android.tools.idea.memorysettings;
 
 import com.android.tools.analytics.HostData;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.MemorySettings;
 import com.google.wireless.android.sdk.stats.MemorySettingsEvent;
@@ -41,14 +40,7 @@ public class MemorySettingsUtil {
 
   // Show memory settings configuration only for machines with at least this much RAM.
   private static final int MIN_RAM_IN_GB_FOR_CONFIG = 5;
-  private static final int LOW_IDE_XMX_CAP_IN_GB = 4;
-  private static final int HIGH_IDE_XMX_CAP_IN_GB = 8;
-
   static final int NO_XMX_IN_VM_ARGS = -1;
-
-  static final int getIdeXmxCapInGB() {
-    return StudioFlags.LOW_IDE_XMX_CAP.get() ? LOW_IDE_XMX_CAP_IN_GB : HIGH_IDE_XMX_CAP_IN_GB;
-  }
 
   public static boolean memorySettingsEnabled() {
     return !CpuArch.is32Bit() && getMachineMem() >= MIN_RAM_IN_GB_FOR_CONFIG << 10;
@@ -59,7 +51,7 @@ public class MemorySettingsUtil {
     // Return -1 if unknown
     int current = stored == -1 ? VMOptions.readOption(VMOptions.MemoryKind.HEAP, true) : stored;
     if (ApplicationManager.getApplication().isUnitTestMode()
-        && current == getIdeXmxCapInGB() << 10) {
+        && current == MemorySettingsRecommendation.DEFAULT_HEAP_SIZE_IN_MB) {
       // In unit tests, reduce current xmx if it reaches cap in order to test recommendation.
       LOG.info("current Xmx reaches IDE_XMX_CAP_IN_GB already, reducing to 1GB");
       current = 1024;

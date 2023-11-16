@@ -17,6 +17,8 @@ package com.android.tools.idea.configurations;
 
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 
+import com.android.tools.configurations.Configuration;
+import com.android.tools.configurations.ConfigurationListener;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -35,7 +37,7 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-abstract class ConfigurationAction extends AnAction implements ConfigurationListener, Toggleable {
+public abstract class ConfigurationAction extends AnAction implements ConfigurationListener, Toggleable {
   private static final String FILE_ARROW = " \u2192 ";
   protected final ConfigurationHolder myRenderContext;
   private int myFlags;
@@ -91,7 +93,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
           if (!matchingFiles.isEmpty() && !matchingFiles.contains(file)) {
             // Switch files, and leave this configuration alone.
             pickedBetterMatch(matchingFiles.get(0), file);
-            ConfigurationManager configurationManager = configuration.getConfigurationManager();
+            ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(configuration.getModule());
             updateConfiguration(configurationManager.getConfiguration(matchingFiles.get(0)), true /*commit*/);
             return;
           }

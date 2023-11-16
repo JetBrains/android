@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
-/**
- * Loose adoption of android.view.inspector.IntFlagMapping
- */
+/** Loose adoption of android.view.inspector.IntFlagMapping */
 class IntFlagMapping {
   private val flags = ArrayList<Flag>()
 
@@ -52,9 +50,7 @@ class IntFlagMapping {
     flags.add(Flag(mask, target, name))
   }
 
-  /**
-   * Inner class that holds the name, mask, and target value of a flag
-   */
+  /** Inner class that holds the name, mask, and target value of a flag */
   private class Flag(private val mask: Int, val target: Int, val name: String) {
 
     /**

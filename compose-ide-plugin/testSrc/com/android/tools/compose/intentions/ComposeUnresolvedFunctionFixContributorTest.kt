@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose.intentions
 
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
@@ -50,7 +51,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -70,7 +71,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
     val expectedText = """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -97,7 +98,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -120,7 +121,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
         """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -139,7 +140,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
         """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -164,7 +165,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -185,7 +186,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -206,7 +207,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -229,7 +230,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
         """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {
@@ -248,7 +249,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
         """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       @Composable
       fun NewsStory() {

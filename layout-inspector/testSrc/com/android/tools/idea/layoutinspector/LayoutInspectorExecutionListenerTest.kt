@@ -44,21 +44,24 @@ private const val PROCESS_NAME = "applicationId"
 
 class LayoutInspectorExecutionListenerTest {
   private val commandHandler = FakeShellCommandHandler()
-  private val projectRule = AndroidProjectRule.testProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION)
+  private val projectRule =
+    AndroidProjectRule.testProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION)
   private val adbRule = FakeAdbRule().withDeviceCommandHandler(commandHandler)
   private val adbService = AdbServiceRule(projectRule::project, adbRule)
   private lateinit var env: ExecutionEnvironment
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)!!
 
   @Before
   fun resetAttributes() {
     DebugViewAttributes.reset()
-    env = ExecutionEnvironmentBuilder.create(
-      DefaultRunExecutor.getRunExecutorInstance(),
-      RunManager.getInstance(projectRule.project).createConfiguration("app", AndroidRunConfigurationType.getInstance().factory)
-    ).build()
+    env =
+      ExecutionEnvironmentBuilder.create(
+          DefaultRunExecutor.getRunExecutorInstance(),
+          RunManager.getInstance(projectRule.project)
+            .createConfiguration("app", AndroidRunConfigurationType.getInstance().factory)
+        )
+        .build()
 
     (env.runProfile as AndroidRunConfiguration).setModule(projectRule.module)
   }
@@ -70,7 +73,7 @@ class LayoutInspectorExecutionListenerTest {
     (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = false
 
     // Start the process
-    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME)
+    val handler = AndroidProcessHandler(PROCESS_NAME)
     LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
     // Make sure the debug attributes are untouched.
@@ -82,46 +85,48 @@ class LayoutInspectorExecutionListenerTest {
   }
 
   @Test
-  fun testLaunchWithDebugAttributes() = runWithFlagState(false) {
-    val device = attachDevice(MODERN_DEVICE)
-    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
-    (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
+  fun testLaunchWithDebugAttributes() =
+    runWithFlagState(false) {
+      val device = attachDevice(MODERN_DEVICE)
+      env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
+      (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
-    // Start the process
-    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME).apply { startNotify() }
-    LayoutInspectorExecutionListener().processStarted("123", env, handler)
+      // Start the process
+      val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
+      LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
-    // Make sure the debug attributes are set.
-    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+      // Make sure the debug attributes are set.
+      assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
+      assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
 
-    // Kill process p1 and check that the debug attributes are reset.
-    handler.killProcess()
-    assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
-  }
+      // Kill process p1 and check that the debug attributes are reset.
+      handler.killProcess()
+      assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
+      assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
+    }
 
   @Test
-  fun testLaunchWithDebugAttributesAlreadySet() = runWithFlagState(false) {
-    commandHandler.debugViewAttributesApplicationPackage = PROCESS_NAME
+  fun testLaunchWithDebugAttributesAlreadySet() =
+    runWithFlagState(false) {
+      commandHandler.debugViewAttributesApplicationPackage = PROCESS_NAME
 
-    val device = attachDevice(MODERN_DEVICE)
-    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
-    (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
+      val device = attachDevice(MODERN_DEVICE)
+      env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
+      (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
-    // Start the process
-    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME).apply { startNotify() }
-    LayoutInspectorExecutionListener().processStarted("123", env, handler)
+      // Start the process
+      val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
+      LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
-    // Make sure the debug attributes are untouched.
-    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
+      // Make sure the debug attributes are untouched.
+      assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
+      assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
 
-    // Kill process p1 and check that the debug attributes are still untouched.
-    handler.killProcess()
-    assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
-  }
+      // Kill process p1 and check that the debug attributes are still untouched.
+      handler.killProcess()
+      assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
+      assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
+    }
 
   @Test
   fun testLaunchWithDebugAttributesOnLegacyDevice() {
@@ -130,7 +135,7 @@ class LayoutInspectorExecutionListenerTest {
     (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
     // Start the process
-    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME).apply { startNotify() }
+    val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
     LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
     // Make sure the debug attributes are untouched.
@@ -142,25 +147,26 @@ class LayoutInspectorExecutionListenerTest {
   }
 
   @Test
-  fun testPerDeviceViewDebugAttributesIsNotCleared() = runWithFlagState(true) {
-    val device = attachDevice(MODERN_DEVICE)
-    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
-    (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
+  fun testPerDeviceViewDebugAttributesIsNotCleared() =
+    runWithFlagState(true) {
+      val device = attachDevice(MODERN_DEVICE)
+      env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
+      (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
-    // Start the process
-    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME).apply { startNotify() }
-    LayoutInspectorExecutionListener().processStarted("123", env, handler)
+      // Start the process
+      val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
+      LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
-    // Make sure the debug attributes are set.
-    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+      // Make sure the debug attributes are set.
+      assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+      assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
 
-    // Kill process p1 and check that the debug attributes are not reset.
-    handler.killProcess()
+      // Kill process p1 and check that the debug attributes are not reset.
+      handler.killProcess()
 
-    assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
-    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
-  }
+      assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
+      assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
+    }
 
   private fun runWithFlagState(desiredFlagState: Boolean, task: () -> Unit) {
     val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
@@ -174,7 +180,13 @@ class LayoutInspectorExecutionListenerTest {
   }
 
   private fun attachDevice(device: DeviceDescriptor): IDevice {
-    adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
+    adbRule.attachDevice(
+      device.serial,
+      device.manufacturer,
+      device.model,
+      device.version,
+      device.apiLevel.toString()
+    )
     val adb = AndroidDebugBridge.getBridge()!!
     return adb.findDevice(device)!!
   }

@@ -20,22 +20,20 @@ import android.widget.TextView
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
+import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 import java.awt.Rectangle
 
-/**
- * Proportion of a view area allowed to be covered before emitting an issue.
- */
+/** Proportion of a view area allowed to be covered before emitting an issue. */
 private const val OVERLAP_RATIO_THRESHOLD = 0.5
 
 /**
- * [VisualLintAnalyzer] for issues where a view is covered by another sibling view.
- * Limit to covered [TextView] as they are the most likely to be wrongly covered by another view.
+ * [VisualLintAnalyzer] for issues where a view is covered by another sibling view. Limit to covered
+ * [TextView] as they are the most likely to be wrongly covered by another view.
  */
 object OverlapAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
@@ -44,7 +42,10 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
   override val backgroundEnabled: Boolean
     get() = OverlapAnalyzerInspection.overlapBackground
 
-  override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
+  override fun findIssues(
+    renderResult: RenderResult,
+    model: NlModel
+  ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
     while (viewsToAnalyze.isNotEmpty()) {
@@ -55,8 +56,15 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     return issues
   }
 
-  private fun findOverlapOfTextViewIssues(view: ViewInfo, model: NlModel, issueList: MutableList<VisualLintIssueContent>) {
-    val children = view.children.filter { it.cookie != null && (it.viewObject as? View)?.visibility == View.VISIBLE }
+  private fun findOverlapOfTextViewIssues(
+    view: ViewInfo,
+    model: NlModel,
+    issueList: MutableList<VisualLintIssueContent>
+  ) {
+    val children =
+      view.children.filter {
+        it.cookie != null && (it.viewObject as? View)?.visibility == View.VISIBLE
+      }
     for (i in children.indices) {
       val firstView = children[i]
       if (firstView.viewObject !is TextView) {
@@ -74,11 +82,16 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
     }
   }
 
-  private fun createIssueContent(firstView: ViewInfo, secondView: ViewInfo): VisualLintIssueContent {
+  private fun createIssueContent(
+    firstView: ViewInfo,
+    secondView: ViewInfo
+  ): VisualLintIssueContent {
     val summary = "${nameWithId(firstView)} is covered by ${nameWithId(secondView)}"
     val content = { count: Int ->
       HtmlBuilder()
-        .add("Content of ${nameWithId(firstView)} is partially covered by ${nameWithId(secondView)} in ${previewConfigurations(count)}.")
+        .add(
+          "Content of ${nameWithId(firstView)} is partially covered by ${nameWithId(secondView)} in ${previewConfigurations(count)}."
+        )
         .newline()
         .add("This may affect text readability. Fix this issue by adjusting widget positioning.")
     }
@@ -86,10 +99,17 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
   }
 
   /**
-   * Given two view infos, and their respective indices in layout, figure out of [firstViewInfo] is being overlapped by [secondViewInfo]
-   * and if the ratio of the area of the overlap region to the area of the [firstViewInfo] is bigger than [OVERLAP_RATIO_THRESHOLD].
+   * Given two view infos, and their respective indices in layout, figure out of [firstViewInfo] is
+   * being overlapped by [secondViewInfo] and if the ratio of the area of the overlap region to the
+   * area of the [firstViewInfo] is bigger than [OVERLAP_RATIO_THRESHOLD].
    */
-  private fun isPartiallyHidden(firstViewInfo: ViewInfo, i: Int, secondViewInfo: ViewInfo, j: Int, model: NlModel): Boolean {
+  private fun isPartiallyHidden(
+    firstViewInfo: ViewInfo,
+    i: Int,
+    secondViewInfo: ViewInfo,
+    j: Int,
+    model: NlModel
+  ): Boolean {
     if (!isFirstViewUnderneath(firstViewInfo, i, secondViewInfo, j, model)) {
       return false
     }
@@ -99,8 +119,13 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
       return false
     }
     val firstBounds = Rectangle(firstViewInfo.left, firstViewInfo.top, firstWidth, firstHeight)
-    val secondBounds = Rectangle(secondViewInfo.left, secondViewInfo.top, secondViewInfo.right - secondViewInfo.left,
-                                 secondViewInfo.bottom - secondViewInfo.top)
+    val secondBounds =
+      Rectangle(
+        secondViewInfo.left,
+        secondViewInfo.top,
+        secondViewInfo.right - secondViewInfo.left,
+        secondViewInfo.bottom - secondViewInfo.top
+      )
     val intersection = firstBounds.intersection(secondBounds)
     if (intersection.isEmpty) {
       return false
@@ -110,17 +135,31 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
   }
 
   /**
-   * Given two view infos, and their respective indices in layout, figure out if [firstViewInfo] is being drawn below [secondViewInfo].
+   * Given two view infos, and their respective indices in layout, figure out if [firstViewInfo] is
+   * being drawn below [secondViewInfo].
    */
-  private fun isFirstViewUnderneath(firstViewInfo: ViewInfo, firstViewIndex: Int, secondViewInfo: ViewInfo,
-                                    secondViewIndex: Int, model: NlModel): Boolean {
+  private fun isFirstViewUnderneath(
+    firstViewInfo: ViewInfo,
+    firstViewIndex: Int,
+    secondViewInfo: ViewInfo,
+    secondViewIndex: Int,
+    model: NlModel
+  ): Boolean {
     val comp1 = componentFromViewInfo(firstViewInfo, model)
     val comp2 = componentFromViewInfo(secondViewInfo, model)
 
     // Try to see if we can compare elevation attribute if it exists.
     if (comp1 != null && comp2 != null) {
-      val elev1 = ConstraintComponentUtilities.getDpValue(comp1, comp1.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION))
-      val elev2 = ConstraintComponentUtilities.getDpValue(comp2, comp2.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION))
+      val elev1 =
+        ConstraintComponentUtilities.getDpValue(
+          comp1,
+          comp1.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION)
+        )
+      val elev2 =
+        ConstraintComponentUtilities.getDpValue(
+          comp2,
+          comp2.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ELEVATION)
+        )
 
       if (elev1 < elev2) {
         return true
@@ -135,6 +174,9 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
   }
 }
 
-object OverlapAnalyzerInspection: VisualLintInspection(VisualLintErrorType.OVERLAP, "overlapBackground") {
-  var overlapBackground = true
+class OverlapAnalyzerInspection :
+  VisualLintInspection(VisualLintErrorType.OVERLAP, "overlapBackground") {
+  companion object {
+    var overlapBackground = true
+  }
 }

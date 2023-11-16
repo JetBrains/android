@@ -16,12 +16,9 @@
 package com.android.tools.tests
 
 import com.android.testutils.JarTestSuiteRunner
-import com.android.testutils.JarTestSuiteRunner.ExcludeClasses
-import com.android.tools.tests.ComposeTestSuite
 import org.junit.runner.RunWith
 
 @RunWith(JarTestSuiteRunner::class)
-@ExcludeClasses(ComposeTestSuite::class) // a suite mustn't contain itself
 class ComposeTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {

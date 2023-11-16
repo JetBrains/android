@@ -37,19 +37,25 @@ iml_module(
             "tags": [
                 "cpu:3",
                 "no_test_mac",
+                "no_test_windows",  # b/199156040, timeouts seen
             ],
             "shard_count": 11,
             "data": [
-                "//prebuilts/studio/sdk:build-tools/latest",
                 "//prebuilts/studio/sdk:cmake",
                 "//prebuilts/studio/sdk:ndk",
                 "//tools/data-binding:data_binding_runtime.zip",
             ],
             "test_filter": "com.android.tools.idea.templates.TemplateTest",
         },
+        "TemplateDiffTest": {
+            "shard_count": 1,
+            "data": [
+                "//tools/adt/idea/android/testData",
+            ],
+            "test_filter": "com.android.tools.idea.templates.diff.TemplateDiffTest",
+        },
         "other": {
             "data": [
-                "//prebuilts/studio/sdk:build-tools/latest",
                 "//tools/adt/idea/android/testData",
             ],
             # TODO(b/234749894) restore after fixing flakes
@@ -60,6 +66,7 @@ iml_module(
     test_data = [
         ":test_deps",
         "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData:projects",
         "//tools/base/build-system:android_gradle_plugin.zip",
@@ -71,8 +78,6 @@ iml_module(
     test_tags = [],
     test_timeout = "long",
     visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    runtime_deps = ["//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
@@ -110,35 +115,55 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:androidx.activity.activity-compose_1.5.1",  # Needed for com.android.tools.idea.wizard.template.impl.activities.composeWearActivity.commonRecipe
-        "@maven//:androidx.activity.activity-compose_1.7.0",
+        "@maven//:androidx.activity.activity-compose_1.7.2",
         "@maven//:androidx.activity.activity-ktx_1.6.0",  # Still needed from navigation-fragment-ktx:2.5.3
         "@maven//:androidx.activity.activity-ktx_1.7.0",
         "@maven//:androidx.annotation.annotation-jvm_1.6.0",
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.6.1",
+        "@maven//:androidx.compose.animation.animation-core-android_1.5.0-beta01",  # Necessary for Compose for TV
         "@maven//:androidx.compose.animation.animation_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.compiler.compiler_1.4.3",
+        "@maven//:androidx.compose.animation.animation_1.5.0-beta01",  # Necessary for Compose for TV
+        "@maven//:androidx.compose.compiler.compiler_1.5.1",
         "@maven//:androidx.compose.compose-bom_2022.10.00",
-        "@maven//:androidx.compose.compose-bom_2023.03.00",
-        "@maven//:androidx.compose.foundation.foundation-layout_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.foundation.foundation_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.foundation.foundation_1.4.0",
-        "@maven//:androidx.compose.material.material-ripple_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.material.material_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.material.material_1.4.0",
-        "@maven//:androidx.compose.material3.material3_1.0.0",
+        "@maven//:androidx.compose.compose-bom_2023.08.00",
+        "@maven//:androidx.compose.foundation.foundation-android_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.foundation.foundation_1.5.0",
+        "@maven//:androidx.compose.foundation.foundation_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.material.material_1.4.3",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.material.material_1.5.0",
+        "@maven//:androidx.compose.material.material_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.material3.material3_1.1.1",
+        "@maven//:androidx.compose.ui.ui-graphics-android_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui-test-android_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui-test-junit4-android_1.5.0-beta01",
         "@maven//:androidx.compose.ui.ui-test-junit4_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.ui.ui-test-junit4_1.4.0",
-        "@maven//:androidx.compose.ui.ui-test-manifest_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.ui.ui-test-manifest_1.4.0",
-        "@maven//:androidx.compose.ui.ui-tooling-preview_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.ui.ui-tooling_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.ui.ui-tooling_1.4.0",
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.5.0",
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.5.0",
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui-tooling-android_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui-tooling-data-android_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui-tooling-preview-android_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui-tooling-preview_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui-tooling_1.5.0",
+        "@maven//:androidx.compose.ui.ui-tooling_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-tooling_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui-unit-android_1.5.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.compose.ui.ui_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
-        "@maven//:androidx.core.core-ktx_1.9.0",
+        "@maven//:androidx.core.core-ktx_1.10.0",  # Compose Activity
+        "@maven//:androidx.core.core-ktx_1.10.1",
+        "@maven//:androidx.core.core-ktx_1.11.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.core.core-ktx_1.11.0-beta01",  # Necessary for Compose for TV.
+        "@maven//:androidx.core.core-splashscreen_1.0.1",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
+        "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0",  # Needed for TemplateTest#testNewEmptyComposeForTVActivity and TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0-beta03",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0-beta04",  # Necessary for Compose for TV.
         "@maven//:androidx.games.games-activity_1.2.2",
         "@maven//:androidx.leanback.leanback_1.0.0",
         "@maven//:androidx.legacy.legacy-support-v13_1.0.0",
@@ -158,9 +183,9 @@ maven_repository(
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.3.0-rc01",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.6.1",
         "@maven//:androidx.media.media_1.6.0",
-        "@maven//:androidx.navigation.navigation-fragment-ktx_2.5.3",
-        "@maven//:androidx.navigation.navigation-fragment_2.5.3",
-        "@maven//:androidx.navigation.navigation-ui-ktx_2.5.3",
+        "@maven//:androidx.navigation.navigation-fragment-ktx_2.6.0",
+        "@maven//:androidx.navigation.navigation-fragment_2.6.0",
+        "@maven//:androidx.navigation.navigation-ui-ktx_2.6.0",
         "@maven//:androidx.palette.palette-ktx_1.0.0",
         "@maven//:androidx.preference.preference_1.2.0",
         "@maven//:androidx.recyclerview.recyclerview_1.3.0",
@@ -168,9 +193,11 @@ maven_repository(
         "@maven//:androidx.slice.slice-builders_1.0.0",
         "@maven//:androidx.test.espresso.espresso-core_3.5.1",
         "@maven//:androidx.test.ext.junit_1.1.5",
-        "@maven//:androidx.wear.compose.compose-material_1.0.0",
-        "@maven//:androidx.wear.tiles.tiles-material_1.1.0",
-        "@maven//:androidx.wear.tiles.tiles_1.1.0",
+        "@maven//:androidx.tv.tv-foundation_1.0.0-alpha07",
+        "@maven//:androidx.tv.tv-material_1.0.0-alpha07",
+        "@maven//:androidx.wear.compose.compose-material_1.1.2",
+        "@maven//:androidx.wear.tiles.tiles-material_1.2.0-alpha05",
+        "@maven//:androidx.wear.tiles.tiles_1.2.0-alpha05",
         "@maven//:androidx.wear.watchface.watchface-complications-data-source-ktx_1.1.1",
         "@maven//:androidx.wear.wear_1.2.0",
         "@maven//:com.android.support.appcompat-v7_28.0.0",
@@ -181,11 +208,11 @@ maven_repository(
         "@maven//:com.google.android.gms.play-services-pay_16.1.0",
         "@maven//:com.google.android.gms.play-services-wallet_19.1.0",
         "@maven//:com.google.android.gms.play-services-wearable_18.0.0",
-        "@maven//:com.google.android.horologist.horologist-compose-tools_0.1.5",
-        "@maven//:com.google.android.horologist.horologist-tiles_0.1.5",
+        "@maven//:com.google.android.horologist.horologist-compose-tools_0.4.8",
+        "@maven//:com.google.android.horologist.horologist-tiles_0.4.8",
         "@maven//:com.google.android.libraries.mapsplatform.secrets-gradle-plugin.secrets-gradle-plugin_2.0.1",
         "@maven//:com.google.android.material.material_1.5.0",
-        "@maven//:com.google.android.material.material_1.8.0",
+        "@maven//:com.google.android.material.material_1.9.0",
         "@maven//:com.google.android.support.wearable_2.9.0",
         "@maven//:com.google.android.wearable.wearable_2.9.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
@@ -216,8 +243,11 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.6.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.7.1",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.7.1",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )

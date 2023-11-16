@@ -23,7 +23,12 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin.FakeDeviceHandle
+import com.android.sdklib.devices.Abi
+import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.idea.logcat.devices.Device
+import icons.StudioIcons
+import java.nio.file.Path
 
 internal class TestDevice(
   val serialNumber: String,
@@ -39,24 +44,24 @@ internal class TestDevice(
     serialNumber.isEmulatorSerial() -> Device.createEmulator(serialNumber, state == ONLINE, release, sdk, avdName)
     else -> Device.createPhysical(serialNumber, state == ONLINE, release, sdk, manufacturer, model)
   }
-  private val deviceProperties = when {
-    serialNumber.isEmulatorSerial() -> LocalEmulatorProperties.build {
-      manufacturer = this@TestDevice.manufacturer
-      model = this@TestDevice.model
-      androidRelease = release
-      androidVersion = AndroidVersion(sdk)
-      avdName = this@TestDevice.avdName
-      displayName = avdName
-    }
+  private val deviceProperties =
+    when {
+      serialNumber.isEmulatorSerial() ->
+        LocalEmulatorProperties.build(
+          makeAvdInfo(avdName, manufacturer, model, AndroidVersion(sdk))
+        ) {
+          icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+        }
 
-    else -> DeviceProperties.build {
-      manufacturer = this@TestDevice.manufacturer
-      model = this@TestDevice.model
-      androidRelease = release
-      androidVersion = AndroidVersion(sdk)
+      else ->
+        DeviceProperties.build {
+          manufacturer = this@TestDevice.manufacturer
+          model = this@TestDevice.model
+          androidRelease = release
+          androidVersion = AndroidVersion(sdk)
+          icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+        }
     }
-  }
-
 
   // Return a new TestDevice with a different serial number
   fun withSerialNumber(serialNumber: String): TestDevice =
@@ -79,3 +84,26 @@ internal class TestDevice(
 
 // Emulator can have a blank serial when it's offline
 private fun String.isEmulatorSerial() = startsWith("emulator") || isBlank()
+
+private fun makeAvdInfo(
+  avdName: String,
+  manufacturer: String,
+  model: String,
+  androidVersion: AndroidVersion
+): AvdInfo {
+  val basePath = Path.of("/tmp/fake_avds/$avdName")
+  return AvdInfo(
+    avdName,
+    basePath.resolve("config.ini"),
+    basePath,
+    null,
+    mapOf(
+      AvdManager.AVD_INI_DEVICE_MANUFACTURER to manufacturer,
+      AvdManager.AVD_INI_DEVICE_NAME to model,
+      AvdManager.AVD_INI_ANDROID_API to androidVersion.apiStringWithoutExtension,
+      AvdManager.AVD_INI_ABI_TYPE to Abi.ARM64_V8A.toString(),
+      AvdManager.AVD_INI_DISPLAY_NAME to avdName,
+    ),
+    AvdInfo.AvdStatus.OK
+  )
+}

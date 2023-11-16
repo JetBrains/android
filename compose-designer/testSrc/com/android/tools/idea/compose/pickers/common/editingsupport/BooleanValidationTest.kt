@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.pickers.common.editingsupport
 
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingValidation
-import kotlin.test.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class BooleanValidationTest {

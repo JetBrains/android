@@ -31,7 +31,7 @@ import javax.swing.Icon
 open class AndroidNewModuleAction : AnAction, DumbAware {
   constructor() : super(message("android.wizard.module.new.module.menu"), message("android.wizard.module.new.module.menu.description"), null)
 
-  constructor(text: String?, description: String?, icon: Icon?) : super(text, description, icon)
+  constructor(text: String?, description: String?, icon: Icon?) : super(text, description, icon) {}
 
   override fun update(e: AnActionEvent) {
     e.project?.let {

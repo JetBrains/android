@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.literals;
 
+import static com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE;
+
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -27,8 +29,10 @@ import com.intellij.openapi.project.Project;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+/**
+ * Monitor shortcut invocation and detect if they match "Save All". If that is the case, we trigger LiveEdit if it is in ON_SAVE mode.
+ **/
 public class LiveEditAnActionListener implements AnActionListener {
 
   private static final String SAVEALL_NO_SHORTCUT_MSG = "[SaveAll shortcut]";
@@ -39,28 +43,19 @@ public class LiveEditAnActionListener implements AnActionListener {
     if (project == null) {
       return;
     }
+    if (LiveEditApplicationConfiguration.getInstance().getLeTriggerMode() != ON_SAVE) {
+      return;
+    }
     if (Arrays.asList(getLiveEditTriggerShortCut()).contains(shortcut)) {
-      triggerLiveEdit(project);
+      LiveEditService.manualLiveEdit(project);
     }
   }
 
-  public static void triggerLiveEdit(@NotNull Project project) {
-    if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
-      return;
-    }
-
-    if (!LiveEditService.Companion.isLeTriggerManual()) {
-      return;
-    }
-
-    LiveEditService.getInstance(project).triggerLiveEdit();
-  }
-
-  @Nullable
+  @NotNull
   private static Shortcut[] getLiveEditTriggerShortCut() {
     AnAction saveAction = ActionManager.getInstance().getAction(LiveEditService.getPIGGYBACK_ACTION_ID());
     if (saveAction == null) {
-      return null;
+      return new Shortcut[0];
     }
 
     Shortcut[] shortcuts = saveAction.getShortcutSet().getShortcuts();
@@ -72,7 +67,7 @@ public class LiveEditAnActionListener implements AnActionListener {
 
   public static String getLiveEditTriggerShortCutString() {
     Shortcut[] shortcuts = getLiveEditTriggerShortCut();
-    if (shortcuts == null || shortcuts.length == 0) {
+    if (shortcuts.length == 0) {
       return SAVEALL_NO_SHORTCUT_MSG ;
     }
 

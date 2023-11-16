@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.designinfo
 
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.runInEdtAndWait
-import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -40,14 +38,8 @@ class DesignInfoProvidersUtilsTest {
 
   @Before
   fun setup() {
-    StudioFlags.COMPOSE_CONSTRAINT_VISUALIZATION.override(true)
     testProjectSystem = TestProjectSystem(project)
     runInEdtAndWait { testProjectSystem.useInTests() }
-  }
-
-  @After
-  fun teardown() {
-    StudioFlags.COMPOSE_CONSTRAINT_VISUALIZATION.clearOverride()
   }
 
   @Test

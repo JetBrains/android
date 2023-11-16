@@ -22,27 +22,32 @@
       <add-to-group group-id="AndroidToolsGroup" />
     </action>
 
+    <group id="ToggleLayoutInspectorActionGroup">
+      <separator/>
+      <add-to-group group-id="StreamingToolbarSecondary" anchor="first"/>
+    </group>
+
     <action
         id="com.android.tools.idea.layoutinspector.toggle.layout.inspector.action"
-        class="com.android.tools.idea.layoutinspector.runningdevices.ToggleLayoutInspectorAction"
+        class="com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleLayoutInspectorAction"
         text="Toggle Layout Inspector"
         description="Toggles Layout Inspection on and off for this device."
-        icon="AllIcons.Actions.Find" >
-      <add-to-group group-id="StreamingToolbarSecondary" anchor="last"/>
+        icon="StudioIcons.Shell.ToolWindows.CAPTURES" >
+      <add-to-group group-id="ToggleLayoutInspectorActionGroup" anchor="first"/>
     </action>
+
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
     <fileType name="Layout Inspector" extensions="li"
               implementationClass="com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileType" fieldName="INSTANCE"/>
 
-    <facet.toolWindow id="Layout Inspector"
-                      facetIdList="android"
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
+    <android.toolWindow id="Layout Inspector"
                       anchor="bottom"
                       secondary="true"
                       icon="StudioIcons.Shell.ToolWindows.CAPTURES"
                       factoryClass="com.android.tools.idea.layoutinspector.LayoutInspectorToolWindowFactory"/>
-    <projectService serviceImplementation="com.android.tools.idea.layoutinspector.ui.InspectorBannerService"/>
 
     <fileEditorProvider implementation="com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileEditor$Provider"/>
 
@@ -57,7 +62,15 @@
     <projectService
         serviceInterface="com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager"
         serviceImplementation="com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerImpl"/>
+    <projectService serviceImplementation="com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver" />
+    <notificationGroup id="LAYOUT_INSPECTOR_DISCOVERY" displayType="TOOL_WINDOW" toolWindowId="Running Devices"/>
   </extensions>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.getComposeLayoutInspectorJarToken"
+                    interface="com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposeLayoutInspectorJarToken"
+                    area="IDEA_PROJECT"/>
+  </extensionPoints>
 
   <projectListeners>
     <listener class="com.android.tools.idea.layoutinspector.LayoutInspectorExecutionListener"

@@ -38,9 +38,11 @@ import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditorCompletion
+import com.android.tools.configurations.Configuration
+import com.android.tools.dom.attrs.AttributeDefinition
+import com.android.tools.fonts.Fonts.Companion.AVAILABLE_FAMILIES
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.psi.TagToClassMapper
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -72,26 +74,22 @@ import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
 import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomUtil
-import com.android.tools.dom.attrs.AttributeDefinition
 import java.awt.Color
 import javax.swing.Icon
 
 /**
  * [PropertyItem] for Nele layouts, menus, preferences.
  *
- * Enables editing of attributes from an XmlTag that is wrapped
- * in one or more [NlComponent]s. If there are multiple components
- * only common values are shown. Setting the [value] property
- * writes the value back to all components.
+ * Enables editing of attributes from an XmlTag that is wrapped in one or more [NlComponent]s. If
+ * there are multiple components only common values are shown. Setting the [value] property writes
+ * the value back to all components.
  *
- * Resolved values are computed using the [ResourceResolver] from
- * the current [Configuration]. If the user changes the current
- * configuration the properties panel should be updated with
+ * Resolved values are computed using the [ResourceResolver] from the current [Configuration]. If
+ * the user changes the current configuration the properties panel should be updated with
  * potentially different resolved values.
  *
- * The [componentName] if present is the name of the View component
- * that this property was defined on. If it is not present the
- * origin of the property is unknown.
+ * The [componentName] if present is the name of the View component that this property was defined
+ * on. If it is not present the origin of the property is unknown.
  */
 open class NlPropertyItem(
   override val namespace: String,
@@ -133,16 +131,14 @@ open class NlPropertyItem(
   }
 
   override val namespaceIcon: Icon?
-    get() = when (namespace) {
-      "",
-      ANDROID_URI,
-      AUTO_URI -> null
-      TOOLS_URI -> StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE
-      else -> StudioIcons.LayoutEditor.Toolbar.INSERT_VERT_CHAIN
-    }
-
-  override val tooltipForName: String
-    get() = computeTooltipForName()
+    get() =
+      when (namespace) {
+        "",
+        ANDROID_URI,
+        AUTO_URI -> null
+        TOOLS_URI -> StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE
+        else -> StudioIcons.LayoutEditor.Toolbar.INSERT_VERT_CHAIN
+      }
 
   override val tooltipForValue: String
     get() = computeTooltipForValue()
@@ -166,7 +162,8 @@ open class NlPropertyItem(
       return ResourceReference.attr(ns, name)
     }
 
-  // TODO: Use the namespace resolver in ResourceHelper when it no longer returns [ResourceNamespace.Resolver.TOOLS_ONLY].
+  // TODO: Use the namespace resolver in ResourceHelper when it no longer returns
+  // [ResourceNamespace.Resolver.TOOLS_ONLY].
   // We need to find the prefix even when namespacing is turned off.
   // This property can be accessed from a non UI thread.
   val namespaceResolver: ResourceNamespace.Resolver
@@ -177,8 +174,7 @@ open class NlPropertyItem(
         return ReadAction.compute<String, RuntimeException> {
           if (!element.isValid) {
             null
-          }
-          else {
+          } else {
             val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false)
             tag?.let(compute).let(StringUtil::nullize)
           }
@@ -186,29 +182,54 @@ open class NlPropertyItem(
       }
 
       return object : ResourceNamespace.Resolver {
-        override fun uriToPrefix(namespaceUri: String): String? = withTag { tag -> tag.getPrefixByNamespace(namespaceUri) }
-        override fun prefixToUri(namespacePrefix: String): String? = withTag { tag -> tag.getNamespaceByPrefix(namespacePrefix).nullize() }
+        override fun uriToPrefix(namespaceUri: String): String? = withTag { tag ->
+          tag.getPrefixByNamespace(namespaceUri)
+        }
+        override fun prefixToUri(namespacePrefix: String): String? = withTag { tag ->
+          tag.getNamespaceByPrefix(namespacePrefix).nullize()
+        }
       }
     }
 
-  override val helpSupport = object : HelpSupport {
-    override val help = HelpActions.help
-    override val secondaryHelp = HelpActions.secondaryHelp
-    override fun browse() { model.browseToValue(this@NlPropertyItem) }
-  }
+  override val helpSupport =
+    object : HelpSupport {
+      override val help = HelpActions.help
+      override val secondaryHelp = HelpActions.secondaryHelp
+      override fun browse() {
+        model.browseToValue(this@NlPropertyItem)
+      }
+    }
 
-  override val editingSupport = object : EditingSupport {
-    override val completion : EditorCompletion = { getCompletionValues() }
-    override val allowCustomValues: Boolean
-      get() = type.allowCustomValues
-    override val validation = { text: String? -> validate(text) }
-    override val execution = { runnable: Runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }
-    override val uiExecution = { runnable: Runnable -> ApplicationManager.getApplication().invokeLater(runnable) }
-  }
+  override val editingSupport =
+    object : EditingSupport {
+      override val completion: EditorCompletion = { getCompletionValues() }
+      override val allowCustomValues: Boolean
+        get() = type.allowCustomValues
+      override val validation = { text: String? -> validate(text) }
+      override val execution = { runnable: Runnable ->
+        ApplicationManager.getApplication().executeOnPooledThread(runnable)
+      }
+      override val uiExecution = { runnable: Runnable ->
+        ApplicationManager.getApplication().invokeLater(runnable)
+      }
+    }
 
   val designProperty: NlPropertyItem
-    get() = if (namespace == TOOLS_URI) this else
-      NlPropertyItem(TOOLS_URI, name, type, definition, componentName, libraryName, model, components, optionalValue1, optionalValue2)
+    get() =
+      if (namespace == TOOLS_URI) this
+      else
+        NlPropertyItem(
+          TOOLS_URI,
+          name,
+          type,
+          definition,
+          componentName,
+          libraryName,
+          model,
+          components,
+          optionalValue1,
+          optionalValue2
+        )
 
   override fun equals(other: Any?) =
     when (other) {
@@ -246,8 +267,7 @@ open class NlPropertyItem(
     if (reference.resourceType == ResourceType.ATTR) {
       val resValue = resolver?.findItemInTheme(reference) ?: return null
       return resolver?.resolveResValue(resValue)
-    }
-    else {
+    } else {
       return resolver?.getResolvedResource(reference)
     }
   }
@@ -264,17 +284,19 @@ open class NlPropertyItem(
       ResourceType.BOOL,
       ResourceType.DIMEN,
       ResourceType.FRACTION,
-      ResourceType.STYLE_ITEM,  // Hack for default values from LayoutLib
+      ResourceType.STYLE_ITEM, // Hack for default values from LayoutLib
       ResourceType.INTEGER,
       ResourceType.STRING -> if (resValue.value != null) return resValue.value
       ResourceType.COLOR -> if (resValue.value?.startsWith("#") == true) return resValue.value
-      else -> {
-      }
+      else -> {}
     }
     // The value of the remaining resource types are file names or ids.
     // We don't want to show the file names and the ids don't have a value.
     // Instead show the url of this resolved resource.
-    return resValue.asReference().getRelativeResourceUrl(computeDefaultNamespace(), namespaceResolver).toString()
+    return resValue
+      .asReference()
+      .getRelativeResourceUrl(computeDefaultNamespace(), namespaceResolver)
+      .toString()
   }
 
   val resolver: ResourceResolver?
@@ -304,7 +326,9 @@ open class NlPropertyItem(
     get() = firstComponent?.model
 
   private fun computeDefaultNamespace(): ResourceNamespace =
-    ReadAction.compute<ResourceNamespace, RuntimeException> { StudioResourceRepositoryManager.getInstance(model.facet).namespace }
+    ReadAction.compute<ResourceNamespace, RuntimeException> {
+      StudioResourceRepositoryManager.getInstance(model.facet).namespace
+    }
 
   private fun isReferenceValue(value: String?): Boolean {
     return value != null && (value.startsWith("?") || value.startsWith("@") && !isId(value))
@@ -315,10 +339,6 @@ open class NlPropertyItem(
     return url?.type == ResourceType.ID
   }
 
-  private fun computeTooltipForName(): String {
-    return HelpActions.createHelpText(this, allowEmptyDescription = true)
-  }
-
   private fun computeTooltipForValue(): String {
     val currentValue = rawValue
     val defaultValue = defaultValue
@@ -327,16 +347,22 @@ open class NlPropertyItem(
     if (currentValue == actualValue) return ""
     val defaultText = if (currentValue == null) "[default] " else ""
     val keyStroke = KeymapUtil.getShortcutText(ToggleShowResolvedValueAction.SHORTCUT)
-    val resolvedText = if (resolvedValue != currentValue) " = \"$resolvedValue\" ($keyStroke)" else ""
+    val resolvedText =
+      if (resolvedValue != currentValue) " = \"$resolvedValue\" ($keyStroke)" else ""
     return "$defaultText\"${currentValue?:defaultValue}\"$resolvedText"
   }
 
   // Note: This can be called from a non UI thread.
   protected open fun getCompletionValues(): List<String> {
     if (namespace == TOOLS_URI && name == ATTR_PARENT_TAG) {
-      val tags = ReadAction.compute<Collection<String>, RuntimeException> {
-        AndroidDomUtil.removeUnambiguousNames(TagToClassMapper.getInstance(model.facet.module).getClassMap(SdkConstants.CLASS_VIEWGROUP))
-      }.toMutableList()
+      val tags =
+        ReadAction.compute<Collection<String>, RuntimeException> {
+            AndroidDomUtil.removeUnambiguousNames(
+              TagToClassMapper.getInstance(model.facet.module)
+                .getClassMap(SdkConstants.CLASS_VIEWGROUP)
+            )
+          }
+          .toMutableList()
       tags.sort()
       return tags
     }
@@ -353,7 +379,9 @@ open class NlPropertyItem(
     val frameworkRepository = repositoryManager.getFrameworkResources(emptySet())
     val types = type.resourceTypes
     val defaultNamespace = computeDefaultNamespace()
-    val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
+    val toName = { item: ResourceItem ->
+      item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString()
+    }
     if (types.isNotEmpty()) {
       // Resources may contain multiple entries for the same name
       val valueSet = mutableSetOf<String>()
@@ -361,7 +389,11 @@ open class NlPropertyItem(
       // Local resources.
       for (type in types) {
         // TODO(namespaces): Exclude non-public resources from library modules.
-        localRepository.getResources(defaultNamespace, type).values().filter { it.libraryName == null }.mapTo(valueSet, toName)
+        localRepository
+          .getResources(defaultNamespace, type)
+          .values()
+          .filter { it.libraryName == null }
+          .mapTo(valueSet, toName)
       }
 
       // Sort and add to the result list:
@@ -370,19 +402,24 @@ open class NlPropertyItem(
 
       val publicResources = mutableSetOf<ResourceItem>()
       // AAR resources.
-      localRepository.accept(object : ResourceVisitor {
-        override fun visit(resourceItem: ResourceItem): ResourceVisitor.VisitResult {
-          if (resourceItem is ResourceItemWithVisibility && resourceItem.visibility == ResourceVisibility.PUBLIC &&
-              resourceItem.libraryName != null) {
-            publicResources.add(resourceItem)
+      localRepository.accept(
+        object : ResourceVisitor {
+          override fun visit(resourceItem: ResourceItem): ResourceVisitor.VisitResult {
+            if (
+              resourceItem is ResourceItemWithVisibility &&
+                resourceItem.visibility == ResourceVisibility.PUBLIC &&
+                resourceItem.libraryName != null
+            ) {
+              publicResources.add(resourceItem)
+            }
+            return ResourceVisitor.VisitResult.CONTINUE
           }
-          return ResourceVisitor.VisitResult.CONTINUE
-        }
 
-        override fun shouldVisitResourceType(resourceType: ResourceType): Boolean {
-          return types.contains(resourceType)
+          override fun shouldVisitResourceType(resourceType: ResourceType): Boolean {
+            return types.contains(resourceType)
+          }
         }
-      })
+      )
 
       // Sort and add to the result list:
       values.addAll(publicResources.map(toName).sorted())
@@ -390,14 +427,16 @@ open class NlPropertyItem(
 
       // Framework resources.
       for (type in types) {
-        frameworkRepository?.getPublicResources(ResourceNamespace.ANDROID, type)?.mapTo(valueSet, toName)
+        frameworkRepository
+          ?.getPublicResources(ResourceNamespace.ANDROID, type)
+          ?.mapTo(valueSet, toName)
       }
 
       // Sort and add to the result list:
       values.addAll(valueSet.sorted())
     }
     if (type == NlPropertyType.FONT) {
-      values.addAll(AndroidDomUtil.AVAILABLE_FAMILIES)
+      values.addAll(AVAILABLE_FAMILIES)
     }
     return values
   }
@@ -419,8 +458,9 @@ open class NlPropertyItem(
     if (text == NULL_RESOURCE) {
       return EDITOR_NO_ERROR
     }
-    val parsed = org.jetbrains.android.dom.resources.ResourceValue.parse(text, true, true, false) ?:
-                 return Pair(EditingErrorCategory.ERROR, "Invalid syntax")
+    val parsed =
+      org.jetbrains.android.dom.resources.ResourceValue.parse(text, true, true, false)
+        ?: return Pair(EditingErrorCategory.ERROR, "Invalid syntax")
     val error = parsed.errorMessage
     if (error != null) {
       return Pair(EditingErrorCategory.ERROR, error)
@@ -432,19 +472,25 @@ open class NlPropertyItem(
     }
     if (!type.resourceTypes.contains(parsedType)) {
       val expected = type.resourceTypes.joinToString { it.getName() }
-      val message = when {
-        type.resourceTypes.size > 1 -> "Unexpected resource type: '${parsedType.getName()}' expected one of: $expected"
-        else -> "Unexpected resource type: '${parsedType.getName()}' expected: $expected"
-      }
+      val message =
+        when {
+          type.resourceTypes.size > 1 ->
+            "Unexpected resource type: '${parsedType.getName()}' expected one of: $expected"
+          else -> "Unexpected resource type: '${parsedType.getName()}' expected: $expected"
+        }
       return Pair(EditingErrorCategory.ERROR, message)
     }
     val value = asResourceValue(text)
-    return if (value == null) Pair(EditingErrorCategory.ERROR, "Cannot resolve symbol: '${parsed.resourceName}'") else null
+    return if (value == null)
+      Pair(EditingErrorCategory.ERROR, "Cannot resolve symbol: '${parsed.resourceName}'")
+    else null
   }
 
   private fun validateThemeReference(text: String): Pair<EditingErrorCategory, String>? {
     val value = asResourceValue(text)
-    return if (value == null) Pair(EditingErrorCategory.ERROR, "Cannot resolve theme reference: '${text.substring(1)}'") else null
+    return if (value == null)
+      Pair(EditingErrorCategory.ERROR, "Cannot resolve theme reference: '${text.substring(1)}'")
+    else null
   }
 
   private fun validateExplicitValue(text: String): Pair<EditingErrorCategory, String>? {
@@ -480,13 +526,14 @@ open class NlPropertyItem(
     return BrowseActionIconButton()
   }
 
-  private inner class BrowseActionIconButton: ActionIconButton {
+  private inner class BrowseActionIconButton : ActionIconButton {
     override val actionButtonFocusable
       get() = true
 
     override val actionIcon: Icon
-      get() = if (isReferenceValue(rawValue)) StudioIcons.Common.PROPERTY_BOUND else StudioIcons.Common.PROPERTY_UNBOUND
-
+      get() =
+        if (isReferenceValue(rawValue)) StudioIcons.Common.PROPERTY_BOUND
+        else StudioIcons.Common.PROPERTY_UNBOUND
 
     override val action: AnAction
       get() = OpenResourceManagerAction
@@ -497,14 +544,16 @@ open class NlPropertyItem(
   // region Implementation of colorButton
 
   private fun createColorButton(): ActionIconButton? {
-    if (!type.resourceTypes.contains(ResourceType.COLOR) &&
-        !type.resourceTypes.contains(ResourceType.DRAWABLE)) {
+    if (
+      !type.resourceTypes.contains(ResourceType.COLOR) &&
+        !type.resourceTypes.contains(ResourceType.DRAWABLE)
+    ) {
       return null
     }
     return ColorActionIconButton()
   }
 
-  private inner class ColorActionIconButton: ActionIconButton {
+  private inner class ColorActionIconButton : ActionIconButton {
     override val actionButtonFocusable
       get() = true
 
@@ -515,7 +564,8 @@ open class NlPropertyItem(
       }
 
     private fun getActionIconFromUnfinishedValue(value: String?): Icon =
-      if (isColor(value)) StudioIcons.LayoutEditor.Extras.PIPETTE else StudioIcons.LayoutEditor.Properties.IMAGE_PICKER
+      if (isColor(value)) StudioIcons.LayoutEditor.Extras.PIPETTE
+      else StudioIcons.LayoutEditor.Properties.IMAGE_PICKER
 
     private fun isColor(value: String?): Boolean {
       val parsed = org.jetbrains.android.dom.resources.ResourceValue.parse(value, true, true, false)
@@ -536,15 +586,15 @@ open class NlPropertyItem(
         return if (isColor(value)) ColorSelectionAction else OpenResourceManagerAction
       }
 
-      private fun resolveValueAsIcon(value: String?): Icon? {
-        if (value != null && !isReferenceValue(value)) {
-          val color = parseColor(value) ?: return null
-          return JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, color, false))
-        }
-        val resValue = asResourceValue(value) ?: return null
-        return resolver?.resolveAsIcon(resValue, project, model.facet)
+    private fun resolveValueAsIcon(value: String?): Icon? {
+      if (value != null && !isReferenceValue(value)) {
+        val color = parseColor(value) ?: return null
+        return JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, color, false))
       }
+      val resValue = asResourceValue(value) ?: return null
+      return resolver?.resolveAsIcon(resValue, project, model.facet)
     }
+  }
 
   // endregion
 }

@@ -45,17 +45,17 @@ fun ProjectDumper.dumpLintModels(project: Project) {
       .forEach { module ->
         head("MODULE") { module.name }
         nest {
-          val androidModuleModel = GradleAndroidModel.get(module)
+          val gradleAndroidModel = GradleAndroidModel.get(module)
           // Skip all but holders to prevent needless spam in the snapshots. All modules
           // point to the same facet.
-          if (module.isHolderModule() && androidModuleModel != null) {
+          if (module.isHolderModule() && gradleAndroidModel != null) {
             val lintModelModule =
               LintModelFactory()
                 .create(
-                  androidModuleModel.androidProject,
-                  androidModuleModel.variants,
-                  androidModuleModel.androidProject.multiVariantData!!,
-                  androidModuleModel.rootDirPath,
+                  gradleAndroidModel.androidProject,
+                  gradleAndroidModel.variants,
+                  gradleAndroidModel.androidProject.multiVariantData!!,
+                  gradleAndroidModel.rootDirPath,
                   deep = true
                 )
             dump(lintModelModule)

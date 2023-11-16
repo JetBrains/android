@@ -36,7 +36,6 @@
                     overrides="true"/>
   </extensions>
   <extensions defaultExtensionNs="com.android">
-    <moduleImporter implementation="com.android.tools.idea.gradle.adtimport.AdtModuleImporter$AdtAndroidModuleImporter"/>
     <ide.androidConfigurableContributor
         implementation="com.android.tools.idea.gradle.structure.configurables.GradleAndroidConfigurableContributor"/>
   </extensions>

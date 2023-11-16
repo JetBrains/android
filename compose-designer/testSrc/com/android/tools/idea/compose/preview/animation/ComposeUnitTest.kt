@@ -16,13 +16,13 @@
 package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimatedProperty
-import java.awt.Color
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.awt.Color
+import kotlin.test.assertNotNull
 
 class ComposeUnitTest {
 
@@ -35,7 +35,7 @@ class ComposeUnitTest {
     assertEquals(listOf(1), composeUnit.components)
     assertEquals("1", composeUnit.toString(0))
     assertEquals("1", composeUnit.toString())
-    assertFalse { composeUnit is ComposeUnit.Unit2D<*> }
+    assertFalse(composeUnit is ComposeUnit.Unit2D<*>)
   }
 
   @Test
@@ -62,7 +62,7 @@ class ComposeUnitTest {
     assertEquals(listOf(1.2345), composeUnit.components)
     assertEquals("1.2345", composeUnit.toString(0))
     assertEquals("1.2345", composeUnit.toString())
-    assertFalse { composeUnit is ComposeUnit.Unit2D<*> }
+    assertFalse(composeUnit is ComposeUnit.Unit2D<*>)
   }
 
   @Test
@@ -87,7 +87,7 @@ class ComposeUnitTest {
     assertEquals(listOf(1.2345f), composeUnit.components)
     assertEquals("1.2345", composeUnit.toString(0))
     assertEquals("1.2345", composeUnit.toString())
-    assertFalse { composeUnit is ComposeUnit.Unit2D<*> }
+    assertFalse(composeUnit is ComposeUnit.Unit2D<*>)
   }
 
   @Test
@@ -524,20 +524,20 @@ class ComposeUnitTest {
   fun parseStringUnit() {
     val unit = ComposeUnit.parseStateUnit("winter")
     assertNotNull(unit)
-    assertTrue { unit is ComposeUnit.StringUnit }
+    assertTrue(unit is ComposeUnit.StringUnit)
     assertEquals(listOf("winter"), unit.components)
   }
 
   @Test
   fun parseUnknown() {
     val unit = ComposeUnit.parseStateUnit(Any())
-    assertTrue { unit is ComposeUnit.UnitUnknown }
+    assertTrue(unit is ComposeUnit.UnitUnknown)
   }
 
   @Test
   fun parseUnknownNumber() {
     val unit = ComposeUnit.parseNumberUnit(Any())
-    assertTrue { unit is ComposeUnit.UnknownNumberUnit }
+    assertTrue(unit is ComposeUnit.UnknownNumberUnit)
   }
 
   @Test

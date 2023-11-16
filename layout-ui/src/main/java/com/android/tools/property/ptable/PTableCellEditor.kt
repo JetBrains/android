@@ -17,9 +17,7 @@ package com.android.tools.property.ptable
 
 import javax.swing.JComponent
 
-/**
- * Provider for a cell editor for a [PTable].
- */
+/** Provider for a cell editor for a [PTable]. */
 interface PTableCellEditor {
 
   /**
@@ -36,9 +34,7 @@ interface PTableCellEditor {
    */
   val value: String?
 
-  /**
-   * Return true to enable the [toggleValue] method below.
-   */
+  /** Return true to enable the [toggleValue] method below. */
   val isBooleanEditor: Boolean
 
   /**
@@ -48,9 +44,7 @@ interface PTableCellEditor {
    */
   fun toggleValue()
 
-  /**
-   * Called to request focus in the editor.
-   */
+  /** Called to request focus in the editor. */
   fun requestFocus()
 
   /**
@@ -60,14 +54,10 @@ interface PTableCellEditor {
    */
   fun cancelEditing(): Boolean
 
-  /**
-   * Close is called when the editor is no longer used.
-   */
+  /** Close is called when the editor is no longer used. */
   fun close(oldTable: PTable)
 
-  /**
-   * Refresh the value by making the editor read the current value of the property.
-   */
+  /** Refresh the value by making the editor read the current value of the property. */
   fun refresh()
 }
 
@@ -85,7 +75,9 @@ open class DefaultPTableCellEditor : PTableCellEditor {
 
   override fun requestFocus() {}
 
-  override fun cancelEditing(): Boolean { return true }
+  override fun cancelEditing(): Boolean {
+    return true
+  }
 
   override fun close(oldTable: PTable) {}
 

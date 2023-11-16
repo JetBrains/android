@@ -18,9 +18,6 @@ package com.android.tools.idea.common.editor;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 public class ToolbarActionGroups implements Disposable {
@@ -48,15 +45,5 @@ public class ToolbarActionGroups implements Disposable {
   @Override
   public void dispose() {
 
-  }
-
-  /**
-   * Includes a trailing separator when adding a non-empty collection of {@link AnAction}s to a {@link DefaultActionGroup}.
-   */
-  protected static void addActionsWithSeparator(@NotNull DefaultActionGroup group, @NotNull Collection<AnAction> actions) {
-    if (!actions.isEmpty()) {
-      group.addAll(actions);
-      group.addSeparator();
-    }
   }
 }

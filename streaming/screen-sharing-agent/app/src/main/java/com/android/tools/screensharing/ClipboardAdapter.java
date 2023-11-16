@@ -30,7 +30,7 @@ import java.lang.reflect.Method;
 @SuppressWarnings("unused") // Called through JNI.
 public class ClipboardAdapter {
   private static final String PACKAGE_NAME = "com.android.shell";
-  private static final String ATTRIBUTION_TAG = "ScreenSharing";
+  private static final String ATTRIBUTION_TAG = "studio.screen.sharing";
   private static final int USER_ID = 0;
   private static final int DEVICE_ID_DEFAULT = 0; // From android.companion.virtual.VirtualDeviceManager
 
@@ -40,7 +40,6 @@ public class ClipboardAdapter {
   private static Method addPrimaryClipChangedListenerMethod;
   private static Method removePrimaryClipChangedListenerMethod;
   private static ClipboardListener clipboardListener;
-  private static int numberOfExtraParameters;
   private static PersistableBundle overlaySuppressor;
 
   static {
@@ -54,8 +53,10 @@ public class ClipboardAdapter {
         setPrimaryClipMethod = findMethodAndMakeAccessible(methods, "setPrimaryClip");
         addPrimaryClipChangedListenerMethod = findMethodAndMakeAccessible(methods, "addPrimaryClipChangedListener");
         removePrimaryClipChangedListenerMethod = findMethodAndMakeAccessible(methods, "removePrimaryClipChangedListener");
-        numberOfExtraParameters = getPrimaryClipMethod.getParameterCount() - 1;
-        if (numberOfExtraParameters <= 3) {
+        if (checkNumberOfParameters(getPrimaryClipMethod, 0, 4) &&
+            checkNumberOfParameters(setPrimaryClipMethod, 1, 5) &&
+            checkNumberOfParameters(addPrimaryClipChangedListenerMethod, 1, 5) &&
+            checkNumberOfParameters(removePrimaryClipChangedListenerMethod, 1, 5)) {
           clipboardListener = new ClipboardListener();
           if (SDK_INT >= 33) {
             overlaySuppressor = new PersistableBundle(1);
@@ -63,12 +64,12 @@ public class ClipboardAdapter {
           }
         }
         else {
-          Log.e("ScreenSharing", "Unexpected number of getPrimaryClip parameters: " + (numberOfExtraParameters + 1));
+          clipboard = null;
         }
       }
     }
     catch (NoSuchMethodException e) {
-      Log.e("ScreenSharing", e.getMessage());
+      Log.e(ATTRIBUTION_TAG, e.getMessage());
       clipboard = null;
     }
   }
@@ -78,13 +79,16 @@ public class ClipboardAdapter {
       return "";
     }
 
-    ClipData clipData = numberOfExtraParameters == 0 ?
+    int numberOfParameters = getPrimaryClipMethod.getParameterCount();
+    ClipData clipData = numberOfParameters == 0 ?
+                        (ClipData)getPrimaryClipMethod.invoke(clipboard) :
+                        numberOfParameters == 1 ?
                         (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME) :
-                        numberOfExtraParameters == 1 ?
+                        numberOfParameters == 2 ?
                         (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, USER_ID) :
-                        numberOfExtraParameters == 2 ?
+                        numberOfParameters == 3 ?
                         (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID) :
-                        numberOfExtraParameters == 3 ?
+                        numberOfParameters == 4 ?
                         (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT) :
                         null;
     if (clipData == null || clipData.getItemCount() == 0) {
@@ -104,16 +108,20 @@ public class ClipboardAdapter {
       clipData.getDescription().setExtras(overlaySuppressor);
     }
 
-    if (numberOfExtraParameters == 0) {
+    int numberOfParameters = setPrimaryClipMethod.getParameterCount();
+    if (numberOfParameters == 1) {
+      setPrimaryClipMethod.invoke(clipboard, clipData);
+    }
+    else if (numberOfParameters == 2) {
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME);
     }
-    else if (numberOfExtraParameters == 1) {
+    else if (numberOfParameters == 3) {
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, USER_ID);
     }
-    else if (numberOfExtraParameters == 2) {
+    else if (numberOfParameters == 4) {
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID);
     }
-    else if (numberOfExtraParameters == 3) {
+    else if (numberOfParameters == 5) {
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT);
     }
   }
@@ -123,16 +131,20 @@ public class ClipboardAdapter {
       return;
     }
 
-    if (numberOfExtraParameters == 0) {
+    int numberOfParameters = addPrimaryClipChangedListenerMethod.getParameterCount();
+    if (numberOfParameters == 1) {
       addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME);
     }
-    else if (numberOfExtraParameters == 1) {
+    else if (numberOfParameters == 2) {
+      addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME);
+    }
+    else if (numberOfParameters == 3) {
       addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, USER_ID);
     }
-    else if (numberOfExtraParameters == 2) {
+    else if (numberOfParameters == 4) {
       addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID);
     }
-    else if (numberOfExtraParameters == 3) {
+    else if (numberOfParameters == 5) {
       addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT);
     }
   }
@@ -142,16 +154,20 @@ public class ClipboardAdapter {
       return;
     }
 
-    if (numberOfExtraParameters == 0) {
+    int numberOfParameters = removePrimaryClipChangedListenerMethod.getParameterCount();
+    if (numberOfParameters == 1) {
+      removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener);
+    }
+    else if (numberOfParameters == 2) {
       removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME);
     }
-    else if (numberOfExtraParameters == 1) {
+    else if (numberOfParameters == 3) {
       removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, USER_ID);
     }
-    else if (numberOfExtraParameters == 2) {
+    else if (numberOfParameters == 4) {
       removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID);
     }
-    else if (numberOfExtraParameters == 3) {
+    else if (numberOfParameters == 5) {
       removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID,
                                                     DEVICE_ID_DEFAULT);
     }
@@ -165,5 +181,14 @@ public class ClipboardAdapter {
       }
     }
     throw new NoSuchMethodException(name);
+  }
+
+  private static boolean checkNumberOfParameters(Method method, int minParam, int maxParam) {
+    int parameterCount = method.getParameterCount();
+    if (minParam <= parameterCount && parameterCount <= maxParam) {
+      return true;
+    }
+    Log.e(ATTRIBUTION_TAG, "Unexpected number of " + method.getName() + " parameters: " + parameterCount);
+    return false;
   }
 }

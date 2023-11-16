@@ -10,34 +10,38 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-perflib" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.perflib:223.0.1.0">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.perflib:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.perflib/223.0.1.0/studio.android.sdktools.perflib-223.0.1.0.jar">
-              <sha256sum>012564a6d57589e4e0f0f08147fede6a041b504c3f69b7959a988dece55fa7a0</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.perflib/231.0.1.4/studio.android.sdktools.perflib-231.0.1.4.jar">
+              <sha256sum>e4001656008c8e28414a9ca5370cfaedb315a14de1c43a82ecb59bd3b47be5a2</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.perflib/223.0.1.0/studio.android.sdktools.perflib-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.perflib/231.0.1.4/studio.android.sdktools.perflib-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.perflib/231.0.1.4/studio.android.sdktools.perflib-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-perflib-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.perflib_test:223.0.1.0">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.perflib_test:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.perflib_test/223.0.1.0/studio.android.sdktools.perflib_test-223.0.1.0.jar">
-              <sha256sum>1799fd58ded92ca4a08101d3f9ee9f23b5e2d8370f8bb76a5b22a83ebdb94bfb</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.perflib_test/231.0.1.4/studio.android.sdktools.perflib_test-231.0.1.4.jar">
+              <sha256sum>4b80162389fb37b276d557d10ace65e5cf1e5ca0e1443c6714818bbdf494bf71</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.perflib_test/223.0.1.0/studio.android.sdktools.perflib_test-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.perflib_test/231.0.1.4/studio.android.sdktools.perflib_test-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.perflib_test/231.0.1.4/studio.android.sdktools.perflib_test-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
   </component>

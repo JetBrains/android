@@ -21,39 +21,52 @@ import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.intellij.openapi.command.WriteCommandAction
 
 /**
- * Suppress the issue associated with the given [components]. Note that this doesn't suppress all the files under same qualifiers.
- * TODO: Have two different suppress tasks for: (1) a single file, (2) all variant files.
- *       We also needs another project-level suppress task in the future.
+ * Suppress the issue associated with the given [components]. Note that this doesn't suppress all
+ * the files under same qualifiers.
+ *
+ * TODO: Have two different suppress tasks for: (1) a single file, (2) all variant files. We also
+ *   needs another project-level suppress task in the future.
  */
-class VisualLintSuppressTask(private val typeToSuppress: VisualLintErrorType, private val components: List<NlComponent>) : Runnable {
+class VisualLintSuppressTask(
+  private val typeToSuppress: VisualLintErrorType,
+  private val components: List<NlComponent>
+) : Runnable {
   override fun run() {
     val attributeToAdd = typeToSuppress.ignoredAttributeValue
-    val transactions = components.mapNotNull { component ->
-      // First we check if tools:ignored="" attribute already exists.
-      val existIgnored = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE)
-      val newIgnoreAttribute = if (existIgnored != null) {
-        // It may ignore multiple things by using comma as separator already.
-        val ignores = existIgnored.split(",")
-        if (ignores.contains(attributeToAdd)) {
-          // This model has been suppressed by this type already. Ignore it.
-          return@mapNotNull null
+    val transactions =
+      components.mapNotNull { component ->
+        // First we check if tools:ignored="" attribute already exists.
+        val  existIgnored = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE)
+        val newIgnoreAttribute =
+          if (existIgnored != null) {
+            // It may ignore multiple things by using comma as separator already.
+            val ignores = existIgnored.split(",")
+            if (ignores.contains(attributeToAdd)) {
+              // This model has been suppressed by this type already. Ignore it.
+              return@mapNotNull null
+            }
+            "$existIgnored,$attributeToAdd"
+          } else {
+            attributeToAdd
+          }
+        component.startAttributeTransaction().apply {
+          setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, newIgnoreAttribute)
         }
-        "$existIgnored,$attributeToAdd"
       }
-      else {
-        attributeToAdd
-      }
-      component.startAttributeTransaction().apply { setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, newIgnoreAttribute) }
-    }
 
     if (transactions.isNotEmpty()) {
       val project = transactions.first().component.model.project
       val files = transactions.map { it.component.model.file }.toTypedArray()
-      VisualLintUsageTracker.getInstance().trackIssueIgnored(typeToSuppress, transactions.first().component.model.facet)
+      VisualLintUsageTracker.getInstance()
+        .trackIssueIgnored(typeToSuppress, transactions.first().component.model.facet)
       // All suppresses should in the same undo/redo action.
-      WriteCommandAction.runWriteCommandAction(project, "Suppress: " + typeToSuppress.toSuppressActionDescription(), null, {
-        transactions.forEach { it.commit() }
-      }, *files)
+      WriteCommandAction.runWriteCommandAction(
+        project,
+        "Suppress: " + typeToSuppress.toSuppressActionDescription(),
+        null,
+        { transactions.forEach { it.commit() } },
+        *files
+      )
     }
   }
 }

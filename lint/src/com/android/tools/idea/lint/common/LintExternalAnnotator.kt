@@ -35,11 +35,13 @@ import com.google.common.collect.Sets
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
+import com.intellij.codeInsight.daemon.impl.analysis.DaemonTooltipsUtil
 import com.intellij.codeInsight.intention.FileModifier.SafeFieldForPreview
 import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.InspectionProfile
 import com.intellij.codeInspection.LocalQuickFix
@@ -69,17 +71,15 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiFileRange
 import com.intellij.util.IncorrectOperationException
 import com.intellij.xml.util.XmlStringUtil
-import java.util.EnumSet
-import javax.swing.Icon
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.GradleFileType
 import org.toml.lang.psi.TomlFileType
+import java.util.EnumSet
+import javax.swing.Icon
 
 class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResult>() {
 
   companion object {
-    const val LINK_PREFIX =
-      "#lint/" // Should match the codeInsight.linkHandler prefix specified in lint-plugin.xml.
     const val INCLUDE_IDEA_SUPPRESS_ACTIONS = false
 
     init {
@@ -295,10 +295,30 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       val message =
         if (rawMessage.length <= 1000) rawMessage else rawMessage.take(1000) + "... [truncated]"
 
-      // This description link is not displayed. It is parsed by IDEA to
-      // populate the "Show Inspection Description" action.
-      val descriptionLink = "<a href=\"" + LINK_PREFIX + issue.id + "\"></a>"
-      val tooltip = XmlStringUtil.wrapInHtml(descriptionLink + RAW.convertTo(message, HTML))
+      // This description link is not displayed. When rendering the expanded tooltip, IDEA finds
+      // the first link and reads the href value to figure out which TooltipLinkHandler to call to
+      // get the inspection description. Because of LINK_PREFIX, it ends up calling
+      // LintInspectionDescriptionLinkHandler.getDescription.
+      val descriptionRef =
+        "<a href=\"${LintInspectionDescriptionLinkHandler.LINK_PREFIX}${issue.id}\"></a>"
+
+      // We add a "More... (Ctrl+F1)" link to the end of the error message so that users can expand
+      // the tooltip to see the issue description, which typically includes useful context and links
+      // to documentation. Any "unhandled" link click that is not just an HTTP link will toggle
+      // expansion of the inspection description. See
+      // com.intellij.codeInsight.highlighting.TooltipLinkHandler.handleLink and
+      // com.intellij.codeInsight.hint.LineTooltipRenderer.createHint. We could just use href="",
+      // but using LINK_PREFIX seems more future-proof.
+      val moreLink =
+        " <a href=\"${LintInspectionDescriptionLinkHandler.LINK_PREFIX}\">More...</a> ${DaemonTooltipsUtil.getShortcutText()}"
+
+      var messageHtml = RAW.convertTo(message, HTML)
+
+      // Allow LintInspectionDescriptionLinkHandler to handle URL links, for analytics. There
+      // probably shouldn't be URL links in the message, but it is possible.
+      messageHtml = LintInspectionDescriptionLinkHandler.replaceLinksInHtml(messageHtml, issue.id)
+
+      val tooltip = XmlStringUtil.wrapInHtml(descriptionRef + messageHtml + moreLink)
       var builder =
         holder.newAnnotation(severity, message).highlightType(type).range(range).tooltip(tooltip)
       val fixes =
@@ -311,7 +331,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
             fix.range
               ?: SmartPointerManager.getInstance(project)
                 .createSmartPsiFileRangePointer(file, range)
-          builder = builder.withFix(MyFixingIntention(fix, smartRange))
+          builder = builder.withFix(MyFixingIntention(fix, smartRange, issue))
         }
       }
       for (intention in inspection.getIntentions(startElement, endElement)) {
@@ -321,7 +341,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
         builder = builder.withFix(ideSupport.requestFeedbackIntentionAction(issue))
       }
       val id = key.id
-      builder = builder.withFix(SuppressLintIntentionAction(id, startElement))
+      builder = builder.withFix(SuppressLintIntentionAction(id, startElement, issue))
       if (INCLUDE_IDEA_SUPPRESS_ACTIONS) {
         builder = builder.withFix(MyDisableInspectionFix(key))
         builder = builder.withFix(MyEditInspectionToolsSettingsAction(key, inspection))
@@ -384,7 +404,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
   class MyFixingIntention(
     @SafeFieldForPreview private val myQuickFix: LintIdeQuickFix,
     /** If non-null, the fix is targeted for a different file than the current one in the editor. */
-    @SafeFieldForPreview private val myRange: SmartPsiFileRange
+    @SafeFieldForPreview private val myRange: SmartPsiFileRange,
+    @SafeFieldForPreview private val issue: Issue? = null
   ) : IntentionAction, HighPriorityAction {
     constructor(
       quickFix: LintIdeQuickFix,
@@ -430,6 +451,10 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       val textRange = myRange.range ?: return
       val start = targetFile.findElementAt(textRange.startOffset) ?: return
       val end = targetFile.findElementAt(textRange.endOffset - 1) ?: return
+
+      if (issue != null && !IntentionPreviewUtils.isPreviewElement(file)) {
+        LintIdeSupport.get().logQuickFixInvocation(project, issue, text)
+      }
       myQuickFix.apply(start, end, context)
     }
 

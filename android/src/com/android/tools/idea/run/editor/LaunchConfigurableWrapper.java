@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.run.activity.launch.ActivityLaunchOption;
-import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState;
+import com.android.tools.idea.run.activity.launch.LaunchOption;
 import com.android.tools.idea.run.activity.launch.LaunchOptionConfigurable;
 import com.android.tools.idea.run.activity.launch.LaunchOptionConfigurableContext;
+import com.android.tools.idea.run.activity.launch.LaunchOptionState;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
@@ -30,12 +30,12 @@ import org.jetbrains.annotations.Nullable;
 public class LaunchConfigurableWrapper implements Configurable, Configurable.NoScroll, Configurable.NoMargin {
   private final Project myProject;
   private final LaunchOptionConfigurableContext myContext;
-  private final ActivityLaunchOption myOption;
+  private final LaunchOption myOption;
   private LaunchOptionConfigurable myConfigurable;
 
   public LaunchConfigurableWrapper(@NotNull Project project,
                                    @NotNull LaunchOptionConfigurableContext context,
-                                   @NotNull ActivityLaunchOption option) {
+                                   @NotNull LaunchOption option) {
     myProject = project;
     myContext = context;
     myOption = option;
@@ -53,11 +53,11 @@ public class LaunchConfigurableWrapper implements Configurable, Configurable.NoS
     return getConfigurable().createComponent();
   }
 
-  public void resetFrom(@NotNull ActivityLaunchOptionState state) {
+  public void resetFrom(@NotNull LaunchOptionState state) {
     getConfigurable().resetFrom(state);
   }
 
-  public void applyTo(@NotNull ActivityLaunchOptionState state) {
+  public void applyTo(@NotNull LaunchOptionState state) {
     getConfigurable().applyTo(state);
   }
 

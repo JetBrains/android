@@ -19,10 +19,9 @@ import com.android.tools.profiler.perfetto.proto.Memory
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.google.common.truth.Truth.assertThat
-import com.intellij.util.Base64
 import org.junit.Before
 import org.junit.Test
-import kotlin.streams.toList
+import java.util.Base64
 
 class HeapProfdConverterTest {
 
@@ -30,22 +29,24 @@ class HeapProfdConverterTest {
 
   @Before
   fun buildBasicContext() {
+    val base64 = Base64.getEncoder()
+
     context = Memory.NativeAllocationContext.newBuilder()
       .addFrames(Memory.StackFrame.newBuilder()
                    .setId(1)
-                   .setName(Base64.encode("Frame 1".toByteArray()))
-                   .setModule(Base64.encode("/data/local/fakeModule%%".toByteArray())))
+                   .setName(base64.encodeToString("Frame 1".toByteArray()))
+                   .setModule(base64.encodeToString("/data/local/fakeModule%%".toByteArray())))
       .addFrames(Memory.StackFrame.newBuilder()
                    .setId(2)
-                   .setName(Base64.encode("Frame 1A".toByteArray()))
-                   .setModule(Base64.encode("TestModule".toByteArray()))
-                   .setSourceFile(Base64.encode("/path/to/file.cpp".toByteArray()))
+                   .setName(base64.encodeToString("Frame 1A".toByteArray()))
+                   .setModule(base64.encodeToString("TestModule".toByteArray()))
+                   .setSourceFile(base64.encodeToString("/path/to/file.cpp".toByteArray()))
                    .setLineNumber(10))
       .addFrames(Memory.StackFrame.newBuilder()
                    .setId(3)
-                   .setName(Base64.encode("Frame 2".toByteArray()))
-                   .setModule(Base64.encode("TestModule".toByteArray()))
-                   .setSourceFile(Base64.encode("/path/to/file2.cpp".toByteArray()))
+                   .setName(base64.encodeToString("Frame 2".toByteArray()))
+                   .setModule(base64.encodeToString("TestModule".toByteArray()))
+                   .setSourceFile(base64.encodeToString("/path/to/file2.cpp".toByteArray()))
                    .setLineNumber(20))
       .putPointers(1, Memory.StackPointer.newBuilder()
         .setFrameId(1)
@@ -86,7 +87,7 @@ class HeapProfdConverterTest {
                              .setSize(16)
                              .setStackId(4))
     val nativeHeapSet = NativeMemoryHeapSet(FakeCaptureObject.Builder().build())
-    val heapProfdConverter = HeapProfdConverter("", nativeHeapSet, FakeNameDemangler())
+    val heapProfdConverter = HeapProfdConverter(nativeHeapSet, FakeNameDemangler())
     heapProfdConverter.populateHeapSet(context.build())
     val instances = nativeHeapSet.instancesStream.toList()
     // Frame 1 -> Frame1A ( Frame1 has a valid symbol as such formats the name
@@ -99,7 +100,7 @@ class HeapProfdConverterTest {
   @Test
   fun heapSetConversion() {
     val nativeHeapSet = NativeMemoryHeapSet(FakeCaptureObject.Builder().build())
-    val heapProfdConverter = HeapProfdConverter("", nativeHeapSet, FakeNameDemangler())
+    val heapProfdConverter = HeapProfdConverter(nativeHeapSet, FakeNameDemangler())
     heapProfdConverter.populateHeapSet(context.build())
     assertThat(nativeHeapSet.deltaAllocationCount).isEqualTo(7)
     assertThat(nativeHeapSet.deltaDeallocationCount).isEqualTo(4)

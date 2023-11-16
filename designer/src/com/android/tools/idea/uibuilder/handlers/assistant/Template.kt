@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.assistant
 
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.dependsOnAndroidx
 import com.android.tools.idea.util.dependsOnOldSupportLib
@@ -35,42 +35,47 @@ internal enum class TemplateTag {
   },
   /** This template only supports the old version of the support library (not androidx) */
   SUPPORT_LIBRARY {
-    override fun availableFor(module: Module) = module.dependsOnOldSupportLib() && !module.dependsOnAndroidx()
+    override fun availableFor(module: Module) =
+      module.dependsOnOldSupportLib() && !module.dependsOnAndroidx()
   },
   /** This template has a constraint layout */
   CONSTRAINT_LAYOUT {
     override fun availableFor(module: Module): Boolean {
       return module.dependsOn(GoogleMavenArtifactId.CONSTRAINT_LAYOUT) ||
-             module.dependsOn(GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT)
+        module.dependsOn(GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT)
     }
   },
   /** This template uses GridLayoutManager (which is already included in recyclerview) */
   GRID;
 
   /**
-   * Returns true if a template tagged with this [TemplateTag] is available
-   * for the [module] based on its dependencies.
+   * Returns true if a template tagged with this [TemplateTag] is available for the [module] based
+   * on its dependencies.
    */
   open fun availableFor(module: Module) = true
 }
 
-/**
- * Holder class for the templates information
- */
-internal data class Template(private val myTemplateName: String, val myTemplate: String, private val tags: Set<TemplateTag>) {
+/** Holder class for the templates information */
+internal data class Template(
+  private val myTemplateName: String,
+  val myTemplate: String,
+  private val tags: Set<TemplateTag>
+) {
   private val hash: ByteArray by lazy { hash(myTemplate) }
 
   /**
-   * Returns true if this [Template] is available to [module], based on the template's
-   * tags and the module's dependencies.
+   * Returns true if this [Template] is available to [module], based on the template's tags and the
+   * module's dependencies.
    */
   fun availableFor(module: Module): Boolean = tags.all { it.availableFor(module) }
 
   fun hasSameContent(content: String?): Boolean {
-    return !content.isNullOrBlank() && content.length == myTemplate.length && hash.contentEquals(hash(content))
+    return !content.isNullOrBlank() &&
+      content.length == myTemplate.length &&
+      hash.contentEquals(hash(content))
   }
 
-  fun hasTag(tag : TemplateTag) = tags.contains(tag)
+  fun hasTag(tag: TemplateTag) = tags.contains(tag)
 
   fun hasTags(): Boolean = tags.isNotEmpty()
 
@@ -79,12 +84,9 @@ internal data class Template(private val myTemplateName: String, val myTemplate:
   }
 
   companion object {
-    @JvmField
-    val NONE_TEMPLATE = Template("Default", "", setOf())
+    @JvmField val NONE_TEMPLATE = Template("Default", "", setOf())
 
-    /**
-     * Returns a new template using the contents from the given stream
-     */
+    /** Returns a new template using the contents from the given stream */
     @JvmStatic
     @JvmOverloads
     fun fromStream(name: String, stream: InputStream, tags: Set<TemplateTag> = setOf()): Template {

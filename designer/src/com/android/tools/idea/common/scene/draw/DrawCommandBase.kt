@@ -20,12 +20,17 @@ import com.google.common.collect.ImmutableMap
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 
-val HQ_RENDERING_HINTS: Map<RenderingHints.Key, Any> = ImmutableMap.of(
-  RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
-  RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
-  RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR,
-  RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE
-)
+val HQ_RENDERING_HINTS: Map<RenderingHints.Key, Any> =
+  ImmutableMap.of(
+    RenderingHints.KEY_ANTIALIASING,
+    RenderingHints.VALUE_ANTIALIAS_ON,
+    RenderingHints.KEY_RENDERING,
+    RenderingHints.VALUE_RENDER_QUALITY,
+    RenderingHints.KEY_INTERPOLATION,
+    RenderingHints.VALUE_INTERPOLATION_BILINEAR,
+    RenderingHints.KEY_STROKE_CONTROL,
+    RenderingHints.VALUE_STROKE_PURE
+  )
 
 abstract class DrawCommandBase(private val level: Int = 0) : DrawCommand {
   override fun getLevel(): Int = level

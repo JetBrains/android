@@ -34,5 +34,5 @@ sealed class AppInsightsModel {
    * When the user is signed in, we pass in [AppInsightsProjectLevelController] which manages App
    * Insights state data.
    */
-  class Authenticated(val controller: AppInsightsProjectLevelController) : AppInsightsModel()
+  data class Authenticated(val controller: AppInsightsProjectLevelController) : AppInsightsModel()
 }

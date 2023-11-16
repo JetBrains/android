@@ -15,20 +15,18 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.ActiveConnectionInferrer
 import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.VariantConnection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
 /** Any change to the available connections is propagated here. */
 data class ConnectionsChanged(
-  val variantConnections: List<VariantConnection>,
-  private val connectionInferrer: ActiveConnectionInferrer,
+  val connections: List<Connection>,
   private val defaultFilters: Filters
 ) : ChangeEvent {
 
@@ -42,11 +40,10 @@ data class ConnectionsChanged(
     return if (activeConnectionChanged) {
       StateTransition(
         state.copy(
-          connections = Selection(activeConnection, variantConnections),
+          connections = Selection(activeConnection, connections),
           issues = LoadingState.Loading,
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null),
-          // reset all filters to default states.
           filters = defaultFilters
         ),
         action =
@@ -57,26 +54,25 @@ data class ConnectionsChanged(
       )
     } else {
       StateTransition(
-        state.copy(connections = Selection(activeConnection, variantConnections)),
+        state.copy(connections = Selection(activeConnection, connections)),
         action = Action.NONE
       )
     }
   }
 
-  private fun findActiveConnection(state: AppInsightsState): VariantConnection? {
-    // First, try to see if the previously selected connection is still valid, if so, pick it.
+  private fun findActiveConnection(state: AppInsightsState): Connection? {
     val currentSelection = state.connections.selected
-    if (currentSelection in variantConnections) return currentSelection
+    if (currentSelection in connections) return currentSelection
 
     // Next, try to see if there's a matching connection with the currently selected build variant,
     // if so, pick it.
-    variantConnections
-      .firstOrNull { connectionInferrer.canBecomeActiveConnection(it) }
+    connections
+      .firstOrNull { it.isPreferredConnection() }
       ?.let {
         return it
       }
 
     // Then, pick the first available connection if there is.
-    return variantConnections.firstOrNull { it.isConfigured() } ?: variantConnections.firstOrNull()
+    return connections.firstOrNull { it.isConfigured } ?: connections.firstOrNull()
   }
 }

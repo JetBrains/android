@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTestUtil;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.RenderTask;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import java.awt.image.BufferedImage;

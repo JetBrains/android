@@ -24,18 +24,21 @@ import org.junit.Test
 import java.awt.Dimension
 import java.awt.Insets
 
-class TestPositionableContent(override var x: Int = 0,
-                              override var y: Int = 0,
-                              val width: Int,
-                              val height: Int,
-                              override var scale: Double = 1.0,
-                              private val marginFunc: (Double) -> Insets = { JBInsets.emptyInsets() }) : PositionableContent {
+class TestPositionableContent(
+  override var x: Int = 0,
+  override var y: Int = 0,
+  val width: Int,
+  val height: Int,
+  override var scale: Double = 1.0,
+  private val marginFunc: (Double) -> Insets = { JBInsets.emptyInsets() }
+) : PositionableContent {
 
   private val dimension = Dimension(width, height)
 
   override val groupId: String? = null
 
-  override val isVisible: Boolean get() = true
+  override val isVisible: Boolean
+    get() = true
 
   override fun setLocation(x: Int, y: Int) {
     this.x = x
@@ -77,18 +80,23 @@ class ScanlineUtilsTest {
      *          S100           E110    S200           E212
      */
 
-    val sceneViews = listOf(
-      TestPositionableContent(100, 101, 10, 11),
-      TestPositionableContent(200, 201, 12, 13))
+    val sceneViews =
+      listOf(TestPositionableContent(100, 101, 10, 11), TestPositionableContent(200, 201, 12, 13))
 
     // Verify start vertical scanlines
     assertArrayEquals(arrayOf(100, 200), sceneViews.findAllScanlines { it.x }.toTypedArray())
     // Verify start horizontal scanlines
     assertArrayEquals(arrayOf(101, 201), sceneViews.findAllScanlines { it.y }.toTypedArray())
     // Verify end vertical scanlines
-    assertArrayEquals(arrayOf(110, 212), sceneViews.findAllScanlines { it.x + it.getScaledContentSize(null).width }.toTypedArray())
+    assertArrayEquals(
+      arrayOf(110, 212),
+      sceneViews.findAllScanlines { it.x + it.getScaledContentSize(null).width }.toTypedArray()
+    )
     // Verify end horizontal scanlines
-    assertArrayEquals(arrayOf(112, 214), sceneViews.findAllScanlines { it.y + it.getScaledContentSize(null).height }.toTypedArray())
+    assertArrayEquals(
+      arrayOf(112, 214),
+      sceneViews.findAllScanlines { it.y + it.getScaledContentSize(null).height }.toTypedArray()
+    )
   }
 
   @Test

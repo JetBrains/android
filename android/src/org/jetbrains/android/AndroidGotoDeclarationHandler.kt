@@ -34,6 +34,7 @@ import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.kotlin.utils.KotlinExceptionWithAttachments
 
 /**
  * GotoDeclarationHandler for Resources. This class handles multiple cases:
@@ -46,9 +47,17 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
     if (sourceElement == null) {
       return PsiElement.EMPTY_ARRAY
     }
-    return when (val targetElement = TargetElementUtil.getInstance().findTargetElement(editor,
-                                                                                       TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED,
-                                                                                       offset)) {
+    val targetElement =
+      try {
+        TargetElementUtil.getInstance().findTargetElement(editor,
+                                                          TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED,
+                                                          offset)
+      }
+      catch (_: KotlinExceptionWithAttachments) {
+        null
+      }
+
+    return when (targetElement) {
       is ResourceReferencePsiElement -> {
         // Depending on the context, we might need to check DynamicFeature modules.
         if (requiresDynamicFeatureModuleResources(sourceElement)) {

@@ -16,18 +16,17 @@
 package com.android.tools.idea.lint
 
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
+import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.SdkMavenRepository
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.STRONGLY_RECOMMEND
 import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
 import com.android.tools.idea.gradle.project.upgrade.findPluginInfo
-import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
-import com.android.tools.idea.gradle.project.upgrade.shouldRecommendPluginUpgrade
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.lint.common.LintBatchResult
@@ -65,14 +64,15 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
-import java.io.File
-import java.util.EnumSet
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.isGradleFile
 import org.toml.lang.psi.TomlFileType
+import java.io.File
+import java.util.EnumSet
+import com.android.ide.common.gradle.Module as ExternalModule
 
 class AndroidLintIdeSupport : LintIdeSupport() {
   override fun getIssueRegistry(): IssueRegistry {
@@ -214,16 +214,18 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   }
 
   // Gradle
-  override fun updateToLatest(module: Module, gc: GradleCoordinate) {
+  override fun updateToLatestStable(module: Module, externalModule: ExternalModule) {
     // Based on UpgradeConstraintLayoutFix
     StudioSdkUtil.reloadRemoteSdkWithModalProgress()
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val progress = StudioLoggerProgressIndicator(AndroidLintIdeSupport::class.java)
-    val p = SdkMavenRepository.findLatestVersion(gc, sdkHandler, null, progress)
+    val p = SdkMavenRepository.findLatestVersion(externalModule, false, sdkHandler, null, progress)
     if (p != null) {
-      val latest = SdkMavenRepository.getCoordinateFromSdkPath(p.path)
+      val latest = SdkMavenRepository.getComponentFromSdkPath(p.path)
       if (latest != null) { // should always be the case unless the version suffix is somehow wrong
-        module.getModuleSystem().updateLibrariesToVersion(listOf(latest))
+        val latestCoordinate =
+          latest.toIdentifier()?.let { GradleCoordinate.parseCoordinateString(it) } ?: return
+        module.getModuleSystem().updateLibrariesToVersion(listOf(latestCoordinate))
         module.project
           .getProjectSystem()
           .getSyncManager()
@@ -234,7 +236,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun recommendedAgpVersion(project: Project): AgpVersion? {
     val current = project.findPluginInfo()?.pluginVersion ?: return null
-    val latestKnown = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val latestKnown = AgpVersions.latestKnown
     val published = IdeGoogleMavenRepository.getAgpVersions()
     val state = computeGradlePluginUpgradeState(current, latestKnown, published)
     return when (state.importance) {
@@ -243,13 +245,15 @@ class AndroidLintIdeSupport : LintIdeSupport() {
       else -> null
     }
   }
+
   override fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean {
-    return shouldRecommendPluginUpgrade(project).upgrade
+    return project
+      .getService(AssistantInvoker::class.java)
+      .shouldRecommendPluginUpgradeToLatest(project)
   }
+
   override fun updateAgpToLatest(project: Project) {
-    ApplicationManager.getApplication().executeOnPooledThread {
-      performRecommendedPluginUpgrade(project)
-    }
+    project.getService(AssistantInvoker::class.java).performRecommendedPluginUpgrade(project)
   }
 
   override fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project) = true
@@ -262,9 +266,9 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     }
   }
 
-  override fun resolveDynamic(project: Project, gc: GradleCoordinate): String? {
+  override fun resolveDynamicDependency(project: Project, dependency: Dependency): String? {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-    return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(gc, project, sdkHandler)
+    return RepositoryUrlManager.get().resolveDependencyRichVersion(dependency, project, sdkHandler)
   }
 
   override fun getPlatforms(): EnumSet<Platform> = Platform.ANDROID_SET
@@ -308,6 +312,16 @@ class AndroidLintIdeSupport : LintIdeSupport() {
       null,
       lintResult.problemMap
     )
+  }
+
+  override fun logQuickFixInvocation(project: Project, issue: Issue, fixDescription: String) {
+    val analytics = LintIdeAnalytics(project)
+    analytics.logQuickFixInvocation(issue, fixDescription)
+  }
+
+  override fun logTooltipLink(url: String, issue: Issue, project: Project) {
+    val analytics = LintIdeAnalytics(project)
+    analytics.logTooltipLink(url, issue)
   }
 
   override fun ensureNamespaceImported(

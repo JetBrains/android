@@ -19,7 +19,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyInt
@@ -30,8 +30,8 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
   @Test
   fun testSetLayoutManagerWillResetTheScrollPosition() {
     val mockedSurface = mock<NlDesignSurface>()
-    whenever(mockedSurface.setSceneViewAlignment(any())).then { } // Do nothing
-    whenever(mockedSurface.revalidateScrollArea()).then { } // Do nothing
+    whenever(mockedSurface.setSceneViewAlignment(any())).then {} // Do nothing
+    whenever(mockedSurface.revalidateScrollArea()).then {} // Do nothing
 
     val position = Point(0, 0)
     whenever(mockedSurface.setScrollPosition(anyInt(), anyInt())).then { inv ->
@@ -42,7 +42,8 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
 
     val layoutManager1 = GridSurfaceLayoutManager(0, 0, 0, 0)
     val layoutManager2 = GridSurfaceLayoutManager(0, 0, 0, 0)
-    val contentLayoutManager = NlDesignSurfacePositionableContentLayoutManager(mockedSurface, layoutManager1)
+    val contentLayoutManager =
+      NlDesignSurfacePositionableContentLayoutManager(mockedSurface, layoutManager1)
 
     position.setLocation(100, 100)
 
@@ -53,8 +54,8 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
 
   fun testMeasurePosition() {
     val mockedSurface = mock<NlDesignSurface>()
-    whenever(mockedSurface.setSceneViewAlignment(any())).then { } // Do nothing
-    whenever(mockedSurface.revalidateScrollArea()).then { } // Do nothing
+    whenever(mockedSurface.setSceneViewAlignment(any())).then {} // Do nothing
+    whenever(mockedSurface.revalidateScrollArea()).then {} // Do nothing
 
     val position = Point(0, 0)
     whenever(mockedSurface.setScrollPosition(anyInt(), anyInt())).then { inv ->
@@ -65,9 +66,9 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
 
     val layoutManager1 = GridSurfaceLayoutManager(0, 0, 0, 0)
     val layoutManager2 = GridSurfaceLayoutManager(0, 0, 0, 0)
-    val contentLayoutManager = NlDesignSurfacePositionableContentLayoutManager(mockedSurface, layoutManager1)
+    val contentLayoutManager =
+      NlDesignSurfacePositionableContentLayoutManager(mockedSurface, layoutManager1)
     contentLayoutManager.setLayoutManager(layoutManager2)
-
 
     val content1 = TestPositionableContent(width = 100, height = 100)
     val content2 = TestPositionableContent(width = 100, height = 100)

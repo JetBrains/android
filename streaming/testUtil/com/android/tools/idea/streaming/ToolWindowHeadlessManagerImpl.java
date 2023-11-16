@@ -185,10 +185,9 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     return Collections.emptyList();
   }
 
-  @NotNull
   @Override
-  public ToolWindowAnchor getMoreButtonSide() {
-    return null;
+  public @NotNull ToolWindowAnchor getMoreButtonSide() {
+    return ToolWindowAnchor.LEFT;
   }
 
   public static class MockToolWindow implements ToolWindowEx {

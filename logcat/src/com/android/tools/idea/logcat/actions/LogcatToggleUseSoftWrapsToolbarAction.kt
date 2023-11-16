@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
@@ -32,12 +31,12 @@ internal class LogcatToggleUseSoftWrapsToolbarAction : ToggleAction(), DumbAware
   }
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    val logcatPresenter = e.getData(LOGCAT_PRESENTER_ACTION) ?: return false
+    val logcatPresenter = e.getLogcatPresenter() ?: return false
     return logcatPresenter.isSoftWrapEnabled()
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    val logcatPresenter = e.getData(LOGCAT_PRESENTER_ACTION) ?: return
+    val logcatPresenter = e.getLogcatPresenter() ?: return
     logcatPresenter.setSoftWrapEnabled(state)
   }
 

@@ -19,6 +19,8 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
 import com.intellij.openapi.diagnostic.Logger;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -47,6 +49,7 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
   private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
   private final ThreadMXBean myThreadMXBean = ManagementFactory.getThreadMXBean();
   private final Object LOCK = new Object();
+  private final Object DEBUGDATA_LOCK = new Object();
   @GuardedBy("mySampledStacks")
   private final List<ThreadInfo[]> mySampledStacks = new ArrayList<>();
   @GuardedBy("LOCK")
@@ -56,7 +59,19 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
 
   private String myAwtStack = "";
   private String myReport = "";
+  private String debugReport = "";
+
   private DiagnosticReportConfiguration myConfiguration;
+
+  private long collectionStartTimeNs;
+  private long collectionStopTimeNs;
+
+  @GuardedBy("DEBUGDATA_LOCK")
+  private final IntList samplingOffsetsMs = new IntArrayList();
+  @GuardedBy("DEBUGDATA_LOCK")
+  private final IntList samplingTimeMs = new IntArrayList();
+
+  private long timeElapsedBeforeCollectionStartedMs = 0;
 
   @Override
   public void setup(DiagnosticReportConfiguration configuration) {
@@ -65,6 +80,8 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
 
   @Override
   public void startCollection(long timeElapsedSoFarMs) {
+    timeElapsedBeforeCollectionStartedMs = timeElapsedSoFarMs;
+    collectionStartTimeNs = System.nanoTime();
     DiagnosticReportConfiguration configuration = myConfiguration;
     synchronized (LOCK) {
       myFutureSampling = scheduler.scheduleWithFixedDelay(
@@ -79,6 +96,7 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
 
   @Override
   public void stopCollection(long totalDurationMs) {
+    collectionStopTimeNs = System.nanoTime();
     stop();
     prepareReport(totalDurationMs);
   }
@@ -92,6 +110,9 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
   public void generateReport(BiConsumer<String, String> saveReportCallback) {
     saveReportCallback.accept("hotPathStackTrace", getAWTStack());
     saveReportCallback.accept("profileDiagnostics", getReport());
+    if (!debugReport.isEmpty()) {
+      saveReportCallback.accept("freezeReportDebugInfo", debugReport);
+    }
   }
 
   private void stop() {
@@ -108,6 +129,7 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
   }
 
   private void sampleThreads() {
+    long sampleThreadsStart = System.nanoTime();
     try {
       final ThreadInfo[] allThreads = myThreadMXBean.dumpAllThreads(false, false);
       synchronized (mySampledStacks) {
@@ -115,6 +137,11 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
       }
     }
     catch (Exception ignored) {
+    }
+    long sampleThreadsEnd = System.nanoTime();
+    synchronized (DEBUGDATA_LOCK) {
+      samplingOffsetsMs.add((int)TimeUnit.NANOSECONDS.toMillis(sampleThreadsStart - collectionStartTimeNs));
+      samplingTimeMs.add((int)TimeUnit.NANOSECONDS.toMillis(sampleThreadsEnd - sampleThreadsStart));
     }
   }
 
@@ -126,8 +153,10 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
     final TruncatingStringBuilder sb = new TruncatingStringBuilder(MAX_REPORT_LENGTH_BYTES, "\n...report truncated...");
     final Map<Long, ThreadCallTree> threadMap = new HashMap<>();
     long intervalMs = myConfiguration.getIntervalMs();
+    long sampleCount;
     synchronized (mySampledStacks) {
-      LOG.info("Collected " + mySampledStacks.size() + " samples");
+      sampleCount = mySampledStacks.size();
+      LOG.info("Collected " + sampleCount + " samples");
       for (ThreadInfo[] sampledThreads : mySampledStacks) {
         for (ThreadInfo ti : sampledThreads) {
           ThreadCallTree callTree = threadMap.get(ti.getThreadId());
@@ -161,6 +190,25 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
     }
 
     myReport = sb.toString();
+
+    // Setup debug data
+    long captureTimeMs = totalFreezeDurationMs - timeElapsedBeforeCollectionStartedMs;
+    long timeInAwtThreadMs = awtThread != null ? awtThread.myRootFrame.myTimeSpent : 0;
+
+    // Add debug data for freezes with at least 5 seconds of capture time and missing at least half of samples fromh that period
+    if (captureTimeMs >= 5_000 && timeInAwtThreadMs < captureTimeMs/2) {
+      StringBuilder debugSb = new StringBuilder();
+      debugSb.append("timeElapsedBeforeCollectionStartedMs=" + timeElapsedBeforeCollectionStartedMs +"\n");
+      debugSb.append("collectionTimeMs=" + TimeUnit.NANOSECONDS.toMillis(collectionStopTimeNs - collectionStartTimeNs) +"\n");
+      synchronized (DEBUGDATA_LOCK) {
+        debugSb.append("sampleCount=" + sampleCount + "\n");
+
+        // No more than first 1000 entries
+        debugSb.append("samplingOffsetsMs=" + samplingOffsetsMs.intStream().limit(1000) + "\n");
+        debugSb.append("samplingTimeMs=" + samplingOffsetsMs.intStream().limit(1000) + "\n");
+      }
+      debugReport = debugSb.toString();
+    }
   }
 
   @NotNull

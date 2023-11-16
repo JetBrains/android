@@ -40,20 +40,20 @@ import org.junit.rules.RuleChain
 
 private const val CONSTRAINT_LAYOUT_ID = "constraint"
 
-@RunsInEdt
 class AllAttributesInspectorBuilderTest {
 
-  @JvmField @Rule
-  val projectRule = AndroidProjectRule.withSdk()
-
-  @JvmField @Rule
-  val edtRule = EdtRule()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   @Test
   fun testAllAttributes() {
     addManifest(projectRule.fixture)
     Dependencies.add(projectRule.fixture, CONSTRAINT_LAYOUT_ID)
-    val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW, parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName())
+    val util =
+      InspectorTestUtil(
+        projectRule,
+        SdkConstants.TEXT_VIEW,
+        parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName()
+      )
     util.loadProperties()
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
@@ -72,7 +72,8 @@ class AllAttributesInspectorBuilderTest {
         SdkConstants.ATTR_TEXT_COLOR,
         SdkConstants.ATTR_TEXT_SIZE,
         SdkConstants.ATTR_VISIBILITY
-      ).inOrder()
+      )
+      .inOrder()
 
     // Layout Margin is a group:
     val margin = items.find { it.name == SdkConstants.ATTR_LAYOUT_MARGIN } as PTableGroupItem
@@ -85,7 +86,8 @@ class AllAttributesInspectorBuilderTest {
         SdkConstants.ATTR_LAYOUT_MARGIN_END,
         SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
         SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
-      ).inOrder()
+      )
+      .inOrder()
 
     // Padding is a group:
     val padding = items.find { it.name == SdkConstants.ATTR_PADDING } as PTableGroupItem
@@ -98,7 +100,8 @@ class AllAttributesInspectorBuilderTest {
         SdkConstants.ATTR_PADDING_END,
         SdkConstants.ATTR_PADDING_RIGHT,
         SdkConstants.ATTR_PADDING_BOTTOM
-      ).inOrder()
+      )
+      .inOrder()
 
     // Constraints is a group:
     val constraints = items.find { it.name == CONSTRAINT_GROUP_NAME } as PTableGroupItem
@@ -182,7 +185,8 @@ class AllAttributesInspectorBuilderTest {
         SdkConstants.ATTR_MAX_WIDTH,
         SdkConstants.ATTR_MIN_HEIGHT,
         SdkConstants.ATTR_MIN_WIDTH
-      ).inOrder()
+      )
+      .inOrder()
   }
 }
 
@@ -190,8 +194,7 @@ class AllAttributesInspectorBuilderTest {
 class AllAttributesInspectorBuilderVisibilityTest {
   private val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   @Before
   fun before() {
@@ -200,7 +203,12 @@ class AllAttributesInspectorBuilderVisibilityTest {
 
   @Test
   fun testVisible() {
-    val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW, parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName())
+    val util =
+      InspectorTestUtil(
+        projectRule,
+        SdkConstants.TEXT_VIEW,
+        parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName()
+      )
     util.addProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
     val builder = createBuilder(util.model)
     InspectorSection.ALL.visible = true
@@ -211,7 +219,12 @@ class AllAttributesInspectorBuilderVisibilityTest {
 
   @Test
   fun testHidden() {
-    val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW, parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName())
+    val util =
+      InspectorTestUtil(
+        projectRule,
+        SdkConstants.TEXT_VIEW,
+        parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName()
+      )
     util.addProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
     val builder = createBuilder(util.model)
     InspectorSection.ALL.visible = false

@@ -35,9 +35,7 @@ const val DEFAULT_SUPPORT_LINES = true
 const val KEY_RECOMPOSITIONS = "live.layout.inspector.tree.recompositions"
 const val DEFAULT_RECOMPOSITIONS = false
 
-/**
- * Miscellaneous tree settings.
- */
+/** Miscellaneous tree settings. */
 interface TreeSettings {
 
   var hideSystemNodes: Boolean
@@ -46,17 +44,15 @@ interface TreeSettings {
   var supportLines: Boolean
   var showRecompositions: Boolean
 
-  fun isInComponentTree(node: ViewNode): Boolean =
-    !(hideSystemNodes && node.isSystemNode)
+  fun isInComponentTree(node: ViewNode): Boolean = !(hideSystemNodes && node.isSystemNode)
 }
 
-/**
- * [TreeSettings] with persistence.
- */
+/** [TreeSettings] with persistence. */
 class InspectorTreeSettings(private val activeClient: () -> InspectorClient) : TreeSettings {
   override var hideSystemNodes: Boolean
-    get() = hasCapability(Capability.SUPPORTS_SYSTEM_NODES) &&
-            get(KEY_HIDE_SYSTEM_NODES, DEFAULT_HIDE_SYSTEM_NODES)
+    get() =
+      hasCapability(Capability.SUPPORTS_SYSTEM_NODES) &&
+        get(KEY_HIDE_SYSTEM_NODES, DEFAULT_HIDE_SYSTEM_NODES)
     set(value) = set(KEY_HIDE_SYSTEM_NODES, value, DEFAULT_HIDE_SYSTEM_NODES)
 
   override var composeAsCallstack: Boolean
@@ -70,9 +66,10 @@ class InspectorTreeSettings(private val activeClient: () -> InspectorClient) : T
     set(value) = set(KEY_SUPPORT_LINES, value, DEFAULT_SUPPORT_LINES)
 
   override var showRecompositions: Boolean
-    get() = hasCapability(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) &&
-            get(KEY_RECOMPOSITIONS, DEFAULT_RECOMPOSITIONS) &&
-            StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get()
+    get() =
+      hasCapability(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) &&
+        get(KEY_RECOMPOSITIONS, DEFAULT_RECOMPOSITIONS) &&
+        StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get()
     set(value) = set(KEY_RECOMPOSITIONS, value, DEFAULT_RECOMPOSITIONS)
 
   @Suppress("SameParameterValue")
@@ -92,11 +89,12 @@ class InspectorTreeSettings(private val activeClient: () -> InspectorClient) : T
 }
 
 /**
- * [TreeSettings] for [com.intellij.openapi.fileEditor.FileEditor]s, where persistence is handled by the
- * [com.intellij.openapi.fileEditor.FileEditorState] mechanism.
+ * [TreeSettings] for [com.intellij.openapi.fileEditor.FileEditor]s, where persistence is handled by
+ * the [com.intellij.openapi.fileEditor.FileEditorState] mechanism.
  */
 class EditorTreeSettings(capabilities: Set<Capability>) : TreeSettings {
-  override var hideSystemNodes: Boolean = DEFAULT_HIDE_SYSTEM_NODES && capabilities.contains(Capability.SUPPORTS_SYSTEM_NODES)
+  override var hideSystemNodes: Boolean =
+    DEFAULT_HIDE_SYSTEM_NODES && capabilities.contains(Capability.SUPPORTS_SYSTEM_NODES)
   override var composeAsCallstack: Boolean = DEFAULT_COMPOSE_AS_CALLSTACK
   override var highlightSemantics: Boolean = DEFAULT_HIGHLIGHT_SEMANTICS
   override var supportLines: Boolean = DEFAULT_SUPPORT_LINES

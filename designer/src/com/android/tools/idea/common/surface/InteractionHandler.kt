@@ -30,7 +30,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities
 import com.android.tools.idea.uibuilder.model.NlDropEvent
-import com.android.tools.idea.uibuilder.surface.DragDropInteraction
+import com.android.tools.idea.uibuilder.surface.interaction.DragDropInteraction
 import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -48,107 +48,124 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 /**
- * Handles the interaction events of [DesignSurface]. The events are dispatched from [GuiInputHandler].
+ * Handles the interaction events of [DesignSurface]. The events are dispatched from
+ * [GuiInputHandler].
  */
 interface InteractionHandler {
 
   /**
-   * Called when [GuiInputHandler] has a single click event. ([mouseX], [mouseY]) is the clicked point, and [modifiersEx] is the pressed
-   * modifiers when mouse is pressed.
+   * Called when [GuiInputHandler] has a single click event. ([mouseX], [mouseY]) is the clicked
+   * point, and [modifiersEx] is the pressed modifiers when mouse is pressed.
    */
-  fun createInteractionOnPressed(@SwingCoordinate mouseX: Int,
-                                 @SwingCoordinate mouseY: Int,
-                                 @JdkConstants.InputEventMask modifiersEx: Int): Interaction?
+  fun createInteractionOnPressed(
+    @SwingCoordinate mouseX: Int,
+    @SwingCoordinate mouseY: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ): Interaction?
 
   /**
-   * Called when [GuiInputHandler] has the dragging event and there is no interactive [Interaction]. ([mouseX], [mouseY]) is the position
-   * and [modifiersEx] is the pressed modifiers when dragging starts.
+   * Called when [GuiInputHandler] has the dragging event and there is no interactive [Interaction].
+   * ([mouseX], [mouseY]) is the position and [modifiersEx] is the pressed modifiers when dragging
+   * starts.
    */
-  fun createInteractionOnDrag(@SwingCoordinate mouseX: Int,
-                              @SwingCoordinate mouseY: Int,
-                              @JdkConstants.InputEventMask modifiersEx: Int): Interaction?
+  fun createInteractionOnDrag(
+    @SwingCoordinate mouseX: Int,
+    @SwingCoordinate mouseY: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ): Interaction?
 
   /**
-   * Called when user dragging the [java.awt.Component] into [DesignSurface]. For example, dragging a widget from Palette or ComponentTree
-   * into [DesignSurface]
+   * Called when user dragging the [java.awt.Component] into [DesignSurface]. For example, dragging
+   * a widget from Palette or ComponentTree into [DesignSurface]
    */
   fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction?
 
   /**
-   * Called when [GuiInputHandler] has the mouse wheel scrolling event and there is no active [Interaction].
+   * Called when [GuiInputHandler] has the mouse wheel scrolling event and there is no active
+   * [Interaction].
    */
   fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction?
 
-  /**
-   * Called by [GuiInputHandler] when mouse is released without any active [Interaction].
-   */
-  fun mouseReleaseWhenNoInteraction(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int)
+  /** Called by [GuiInputHandler] when mouse is released without any active [Interaction]. */
+  fun mouseReleaseWhenNoInteraction(
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  )
 
   /**
-   * Called by [GuiInputHandler] when left mouse is clicked without shift and control (cmd on mac). ([x], [y]) is the clicked point of
-   * mouse, and [modifiersEx] is the pressed modifiers when clicked.
+   * Called by [GuiInputHandler] when left mouse is clicked without shift and control (cmd on mac).
+   * ([x], [y]) is the clicked point of mouse, and [modifiersEx] is the pressed modifiers when
+   * clicked.
    *
-   * This event happens when mouse is pressed and released at the same position without any dragging.
+   * This event happens when mouse is pressed and released at the same position without any
+   * dragging.
    */
-  fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int)
+  fun singleClick(
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  )
 
   /**
-   * Called by [GuiInputHandler] when left mouse is double clicked (even the shift or control (cmd on mac) is pressed). ([x], [y]) is the
-   * clicked point of mouse, and [modifiersEx] is the pressed modifiers when clicking.
+   * Called by [GuiInputHandler] when left mouse is double clicked (even the shift or control (cmd
+   * on mac) is pressed). ([x], [y]) is the clicked point of mouse, and [modifiersEx] is the pressed
+   * modifiers when clicking.
    *
-   * This event happens when mouse is pressed and released at the same position without any dragging, before this event is triggered the
-   * [singleClick] will be triggered first.
+   * This event happens when mouse is pressed and released at the same position without any
+   * dragging, before this event is triggered the [singleClick] will be triggered first.
    */
-  fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int)
+  fun doubleClick(
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  )
 
-
-  /**
-   * Called by [GuiInputHandler] when a zooming event happens.
-   */
+  /** Called by [GuiInputHandler] when a zooming event happens. */
   fun zoom(type: ZoomType, mouseX: Int, mouseY: Int)
 
   /**
-   * Called when [GuiInputHandler] has no active [Interaction] but mouse is moved. ([mouseX], [mouseY]) is the mouse position , and
-   * [modifiersEx] is the pressed modifiers when mouse moves.
+   * Called when [GuiInputHandler] has no active [Interaction] but mouse is moved. ([mouseX],
+   * [mouseY]) is the mouse position , and [modifiersEx] is the pressed modifiers when mouse moves.
    */
-  fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
-                             @SwingCoordinate mouseY: Int,
-                             @JdkConstants.InputEventMask modifiersEx: Int)
+  fun hoverWhenNoInteraction(
+    @SwingCoordinate mouseX: Int,
+    @SwingCoordinate mouseY: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  )
 
   /**
-   * Called by [GuiInputHandler] when mouse doesn't move for [GuiInputHandler.HOVER_DELAY_MS] milliseconds. This function does not
-   * repeat even the mouse is still not moving.
+   * Called by [GuiInputHandler] when mouse doesn't move for [GuiInputHandler.HOVER_DELAY_MS]
+   * milliseconds. This function does not repeat even the mouse is still not moving.
    */
   fun stayHovering(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int)
 
   /**
-   * Called by [GuiInputHandler] when the popup context menu event is triggered (e.g. right click on a component). Note that the event
-   * may be triggered by different mouse events in different platforms. For example, on Mac and Linux, this event is triggered when
-   * **pressing** right mouse button on [DesignSurface]. On Windows, this event is triggered when **releasing** right mouse button.
+   * Called by [GuiInputHandler] when the popup context menu event is triggered (e.g. right click on
+   * a component). Note that the event may be triggered by different mouse events in different
+   * platforms. For example, on Mac and Linux, this event is triggered when **pressing** right mouse
+   * button on [DesignSurface]. On Windows, this event is triggered when **releasing** right mouse
+   * button.
    */
   fun popupMenuTrigger(mouseEvent: MouseEvent)
 
-  /**
-   * Get Cursor by [GuiInputHandler] when there is no active [Interaction].
-   */
-  fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
-                                 @SwingCoordinate mouseY: Int,
-                                 @JdkConstants.InputEventMask modifiersEx: Int): Cursor?
+  /** Get Cursor by [GuiInputHandler] when there is no active [Interaction]. */
+  fun getCursorWhenNoInteraction(
+    @SwingCoordinate mouseX: Int,
+    @SwingCoordinate mouseY: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ): Cursor?
 
   /**
-   * Called by [GuiInputHandler] when a key is pressed without any active [Interaction]. Return an [Interaction] if pressing the given
-   * key should start it, or null otherwise.
+   * Called by [GuiInputHandler] when a key is pressed without any active [Interaction]. Return an
+   * [Interaction] if pressing the given key should start it, or null otherwise.
    */
   fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction?
 
-  /**
-   * Called by [GuiInputHandler] when a key is released without any active [Interaction].
-   */
+  /** Called by [GuiInputHandler] when a key is released without any active [Interaction]. */
   fun keyReleasedWithoutInteraction(keyEvent: KeyEvent)
 
-  /**
-   * Called by [GuiInputHandler] when the mouse exits the [DesignSurface]
-   */
+  /** Called by [GuiInputHandler] when the mouse exits the [DesignSurface] */
   fun mouseExited()
 }
 
@@ -167,22 +184,25 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     }
 
     val model = sceneView.sceneManager.model
-    val item = DnDTransferItem.getTransferItem(event.getTransferable(), true /* allow placeholders */)
+    val item =
+      DnDTransferItem.getTransferItem(event.getTransferable(), true /* allow placeholders */)
     if (item == null) {
       event.reject()
       return null
     }
-    val dragType = if (event.dropAction == DnDConstants.ACTION_COPY) DragType.COPY else DragType.MOVE
-    val insertType = model.determineInsertType(dragType, item, true /* preview */)
+    val dragType =
+      if (event.dropAction == DnDConstants.ACTION_COPY) DragType.COPY else DragType.MOVE
+    val insertType =
+      model.determineInsertType(dragType, item, true /* preview */, true /* generate ids */)
 
     val dragged: List<NlComponent>
     if (StudioFlags.NELE_DRAG_PLACEHOLDER.get() && !item.isFromPalette) {
-      // When dragging from ComponentTree, it should reuse the existing NlComponents rather than creating the new ones.
+      // When dragging from ComponentTree, it should reuse the existing NlComponents rather than
+      // creating the new ones.
       // This impacts some Handlers, using StudioFlag to protect for now.
       // Most of Handlers should be removed once this flag is removed.
       dragged = ArrayList<NlComponent>(surface.selectionModel.selection)
-    }
-    else {
+    } else {
       if (item.isFromPalette) {
         // remove selection when dragging from Palette.
         surface.selectionModel.clear()
@@ -199,16 +219,21 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     interaction.setType(dragType)
     interaction.setTransferItem(item)
     // This determines the icon presented to the user while dragging.
-    // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
+    // If we are dragging a component from the palette then use the icon for a copy, otherwise show
+    // the icon
     // that reflects the users choice i.e. controlled by the modifier key.
     event.accept(insertType)
     return interaction
   }
 
-  override fun mouseReleaseWhenNoInteraction(@SwingCoordinate x: Int,
-                                             @SwingCoordinate y: Int,
-                                             @JdkConstants.InputEventMask modifiersEx: Int) {
-    val allowToggle = modifiersEx and (InputEvent.SHIFT_MASK or Toolkit.getDefaultToolkit().menuShortcutKeyMask) != 0
+  override fun mouseReleaseWhenNoInteraction(
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ) {
+    val allowToggle =
+      modifiersEx and (InputEvent.SHIFT_MASK or Toolkit.getDefaultToolkit().menuShortcutKeyMask) !=
+        0
     surface.getSceneViewAtOrPrimary(x, y)?.selectComponentAt(x, y, modifiersEx, allowToggle, false)
   }
 
@@ -216,17 +241,23 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     surface.zoom(type, mouseX, mouseY)
   }
 
-  override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
-                                      @SwingCoordinate mouseY: Int,
-                                      @JdkConstants.InputEventMask modifiersEx: Int) {
+  override fun hoverWhenNoInteraction(
+    @SwingCoordinate mouseX: Int,
+    @SwingCoordinate mouseY: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ) {
     val sceneView = surface.getSceneViewAtOrPrimary(mouseX, mouseY)
     if (sceneView != null) {
       val context = sceneView.context
       context.setMouseLocation(mouseX, mouseY)
-      sceneView.scene.mouseHover(context, getAndroidXDip(sceneView, mouseX), getAndroidYDip(sceneView, mouseY), modifiersEx)
+      sceneView.scene.mouseHover(
+        context,
+        getAndroidXDip(sceneView, mouseX),
+        getAndroidYDip(sceneView, mouseY),
+        modifiersEx
+      )
       cursorWhenNoInteraction = sceneView.scene.mouseCursor
-    }
-    else {
+    } else {
       cursorWhenNoInteraction = null
     }
 
@@ -245,7 +276,8 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     if (sceneView != null) {
       val component = sceneView.selectComponentAt(x, y, modifiersEx, false, true)
       val actions = surface.actionManager.getPopupMenuActions(component)
-      // TODO (b/151315668): extract the hardcoded value "LayoutEditor". Be aware this value is used by [SetZoomAction#update].
+      // TODO (b/151315668): extract the hardcoded value "LayoutEditor". Be aware this value is used
+      // by [SetZoomAction#update].
       surface.showPopup(mouseEvent, actions, "LayoutEditor")
     }
   }
@@ -254,11 +286,17 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     val x = mouseWheelEvent.x
     val y = mouseWheelEvent.y
     val sceneView = surface.getSceneViewAtOrPrimary(x, y) ?: return null
-    val component = Coordinates.findComponent(sceneView, x, y) ?: return null // There is no component consuming the scroll
+    val component =
+      Coordinates.findComponent(sceneView, x, y)
+        ?: return null // There is no component consuming the scroll
     return ScrollInteraction.createScrollInteraction(sceneView, component)
   }
 
-  override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
+  override fun singleClick(
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ) {
     val selectedEditor = FileEditorManager.getInstance(surface.project).selectedEditor
     if (selectedEditor is DesignToolsSplitEditor) {
       val splitEditor = selectedEditor as DesignToolsSplitEditor?
@@ -273,7 +311,11 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     }
   }
 
-  override fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
+  override fun doubleClick(
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ) {
     val sceneView = surface.getSceneViewAtOrPrimary(x, y) ?: return
 
     // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
@@ -282,13 +324,19 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
       // Notify that the user is interested in a component.
       // A properties manager may move the focus to the most important attribute of the component.
       // Such as the text attribute of a TextView
-      surface.notifyComponentActivate(component, Coordinates.getAndroidX(sceneView, x), Coordinates.getAndroidY(sceneView, y))
+      surface.notifyComponentActivate(
+        component,
+        Coordinates.getAndroidX(sceneView, x),
+        Coordinates.getAndroidY(sceneView, y)
+      )
     }
   }
 
-  override fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
-                                          @SwingCoordinate mouseY: Int,
-                                          @JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
+  override fun getCursorWhenNoInteraction(
+    @SwingCoordinate mouseX: Int,
+    @SwingCoordinate mouseY: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ): Cursor? {
     return cursorWhenNoInteraction
   }
 
@@ -299,7 +347,9 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     }
 
     // The deletion only applies without modifier keys.
-    if (keyEvent.isAltDown || keyEvent.isMetaDown || keyEvent.isShiftDown || keyEvent.isControlDown) {
+    if (
+      keyEvent.isAltDown || keyEvent.isMetaDown || keyEvent.isShiftDown || keyEvent.isControlDown
+    ) {
       return null
     }
 
@@ -312,9 +362,13 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
         val modelComponentsMap = selection.groupBy { it.model }
 
         // Use WriteCommandAction to wrap deletions so this operation only has one undo stack.
-        WriteCommandAction.runWriteCommandAction(surface.project, "Delete Components", null, {
-          modelComponentsMap.forEach { (model, nlComponents) -> model.delete(nlComponents) }
-        }, *modelComponentsMap.keys.map { it.file }.toTypedArray())
+        WriteCommandAction.runWriteCommandAction(
+          surface.project,
+          "Delete Components",
+          null,
+          { modelComponentsMap.forEach { (model, nlComponents) -> model.delete(nlComponents) } },
+          *modelComponentsMap.keys.map { it.file }.toTypedArray()
+        )
       }
     }
     return null
@@ -324,10 +378,12 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
 
   override fun mouseExited() {
     // Call onHover on each SceneView, with coordinates that are sure to be outside.
-    surface.sceneManagers.map { it.sceneView }.forEach {
-      it.scene.mouseHover(it.context, Int.MIN_VALUE, Int.MIN_VALUE, 0)
-      it.onHover(Int.MIN_VALUE, Int.MIN_VALUE)
-    }
+    surface.sceneManagers
+      .map { it.sceneView }
+      .forEach {
+        it.scene.mouseHover(it.context, Int.MIN_VALUE, Int.MIN_VALUE, 0)
+        it.onHover(Int.MIN_VALUE, Int.MIN_VALUE)
+      }
   }
 }
 
@@ -335,15 +391,19 @@ fun navigateToComponent(component: NlComponent, needsFocusEditor: Boolean) {
   component.navigatable?.navigate(needsFocusEditor)
 }
 
-/**
- * [GuiInputHandler] that ignores all interactions.
- */
-object NopInteractionHandler: InteractionHandler {
-  override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
-  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
+/** [GuiInputHandler] that ignores all interactions. */
+object NopInteractionHandler : InteractionHandler {
+  override fun createInteractionOnPressed(
+    mouseX: Int,
+    mouseY: Int,
+    modifiersEx: Int
+  ): Interaction? = null
+  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =
+    null
 
-  override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction?  = null
-  override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction?  = null
+  override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction? = null
+  override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? =
+    null
   override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifiersEx: Int) {}
   override fun singleClick(x: Int, y: Int, modifiersEx: Int) {}
   override fun doubleClick(x: Int, y: Int, modifiersEx: Int) {}
@@ -352,24 +412,29 @@ object NopInteractionHandler: InteractionHandler {
   override fun stayHovering(mouseX: Int, mouseY: Int) {}
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {}
-  override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? = null
+  override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? =
+    null
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? = null
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) {}
   override fun mouseExited() {}
 }
 
 /**
- * An [InteractionHandler] that allows delegating the operations to another [InteractionHandler]. The [delegate] can be switched at runtime
- * and the switch is thread-safe.
+ * An [InteractionHandler] that allows delegating the operations to another [InteractionHandler].
+ * The [delegate] can be switched at runtime and the switch is thread-safe.
  */
-class DelegateInteractionHandler(initialDelegate: InteractionHandler = NopInteractionHandler): InteractionHandler {
+class DelegateInteractionHandler(initialDelegate: InteractionHandler = NopInteractionHandler) :
+  InteractionHandler {
   private val delegateLock = ReentrantReadWriteLock()
   var delegate: InteractionHandler = initialDelegate
     get() = delegateLock.read { field }
-    set(value) = delegateLock.write { field = value}
+    set(value) = delegateLock.write { field = value }
 
-  override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =
-    delegate.createInteractionOnPressed(mouseX, mouseY, modifiersEx)
+  override fun createInteractionOnPressed(
+    mouseX: Int,
+    mouseY: Int,
+    modifiersEx: Int
+  ): Interaction? = delegate.createInteractionOnPressed(mouseX, mouseY, modifiersEx)
 
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =
     delegate.createInteractionOnDrag(mouseX, mouseY, modifiersEx)
@@ -380,14 +445,12 @@ class DelegateInteractionHandler(initialDelegate: InteractionHandler = NopIntera
   override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? =
     delegate.createInteractionOnMouseWheelMoved(mouseWheelEvent)
 
-  override fun zoom(type: ZoomType, mouseX: Int, mouseY: Int) =
-    delegate.zoom(type, mouseX, mouseY)
+  override fun zoom(type: ZoomType, mouseX: Int, mouseY: Int) = delegate.zoom(type, mouseX, mouseY)
 
   override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifiersEx: Int) =
     delegate.mouseReleaseWhenNoInteraction(x, y, modifiersEx)
 
-  override fun stayHovering(mouseX: Int, mouseY: Int) =
-    delegate.stayHovering(mouseX, mouseY)
+  override fun stayHovering(mouseX: Int, mouseY: Int) = delegate.stayHovering(mouseX, mouseY)
 
   override fun singleClick(x: Int, y: Int, modifiersEx: Int) =
     delegate.singleClick(x, y, modifiersEx)
@@ -398,8 +461,7 @@ class DelegateInteractionHandler(initialDelegate: InteractionHandler = NopIntera
   override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) =
     delegate.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx)
 
-  override fun popupMenuTrigger(mouseEvent: MouseEvent) =
-    delegate.popupMenuTrigger(mouseEvent)
+  override fun popupMenuTrigger(mouseEvent: MouseEvent) = delegate.popupMenuTrigger(mouseEvent)
 
   override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? =
     delegate.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx)
@@ -410,6 +472,5 @@ class DelegateInteractionHandler(initialDelegate: InteractionHandler = NopIntera
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) =
     delegate.keyReleasedWithoutInteraction(keyEvent)
 
-  override fun mouseExited() =
-    delegate.mouseExited()
+  override fun mouseExited() = delegate.mouseExited()
 }

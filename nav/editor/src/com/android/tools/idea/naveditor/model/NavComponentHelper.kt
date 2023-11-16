@@ -84,7 +84,6 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.get
 import java.io.File
 import java.util.function.Consumer
 import javax.swing.Icon
-import kotlin.streams.toList
 
 private const val ADD_NESTED_COMMAND_NAME = "Add to Nested Graph"
 private const val ADD_NESTED_GROUP_ID = "ADD_NESTED_GROUP_ID"

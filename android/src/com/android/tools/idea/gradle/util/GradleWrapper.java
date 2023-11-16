@@ -18,17 +18,15 @@ package com.android.tools.idea.gradle.util;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByURL;
-import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
-import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.wizard.template.TemplateData;
 import com.google.common.base.Strings;
 import com.google.common.io.Resources;
@@ -212,33 +210,19 @@ public final class GradleWrapper {
    * @throws IOException if something goes wrong when saving the file.
    */
   public boolean updateDistributionUrl(@NotNull GradleVersion gradleVersion) throws IOException {
-    Properties properties = getProperties();
     String distributionUrl = getDistributionUrl(gradleVersion, true);
-    String property = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
-    if (property != null && (property.equals(distributionUrl) || property.equals(getDistributionUrl(gradleVersion, true)))) {
+    String property = getDistributionUrl();
+    if (property != null && property.equals(distributionUrl)) {
       return false;
     }
+    Properties properties = getProperties();
     properties.setProperty(DISTRIBUTION_URL_PROPERTY, distributionUrl);
     saveProperties(properties, myPropertiesFilePath, myProject);
     return true;
   }
 
   public static GradleVersion getGradleVersionToUse() {
-    String agpVersion = StudioFlags.AGP_VERSION_TO_USE.get();
-    if (agpVersion.isEmpty()) {
-      return GradleVersion.version(GRADLE_LATEST_VERSION);
-    }
-
-     try {
-      AgpVersion parsedVersion = AgpVersion.parse(agpVersion);
-      CompatibleGradleVersion gradleVersion = CompatibleGradleVersion.Companion.getCompatibleGradleVersion(parsedVersion);
-      return gradleVersion.getVersion();
-    } catch (IllegalArgumentException e) {
-       Logger.getInstance(GradleWrapper.class)
-         .warn("Unable to parse StudioFlags.AGP_VERSION_TO_USE: " + agpVersion
-               + ". Choosing GRADLE_LATEST_VERSION: " + GRADLE_LATEST_VERSION + "instead.");
-      return GradleVersion.version(GRADLE_LATEST_VERSION);
-    }
+    return CompatibleGradleVersion.Companion.getCompatibleGradleVersion(AgpVersions.getNewProject()).getVersion();
   }
 
   /**
@@ -286,7 +270,7 @@ public final class GradleWrapper {
 
   @Nullable
   public String getGradleVersion() throws IOException {
-    String url = getProperties().getProperty(DISTRIBUTION_URL_PROPERTY);
+    String url = getDistributionUrl();
     if (url != null) {
       Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
       if (m.matches()) {
@@ -294,11 +278,6 @@ public final class GradleWrapper {
       }
     }
     return null;
-  }
-
-  @Nullable
-  public String getDistributionSha256Sum() throws IOException {
-    return getProperties().getProperty(DISTRIBUTION_SHA_256_SUM);
   }
 
   @Nullable

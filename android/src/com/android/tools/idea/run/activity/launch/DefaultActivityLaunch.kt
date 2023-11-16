@@ -16,61 +16,35 @@
 package com.android.tools.idea.run.activity.launch
 
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.IShellOutputReceiver
-import com.android.tools.deployer.model.App
-import com.android.tools.deployer.model.component.AppComponent
-import com.android.tools.deployer.model.component.ComponentType
+import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ValidationError
-import com.android.tools.idea.run.activity.ActivityLocator
+import com.android.tools.idea.run.activity.ActivityLocator.ActivityLocatorException
 import com.android.tools.idea.run.activity.DefaultApkActivityLocator
-import com.android.tools.idea.run.activity.StartActivityFlagsProvider
-import com.android.tools.idea.run.configuration.AndroidBackgroundTaskReceiver
-import com.android.tools.idea.run.editor.ProfilerState
-import com.android.tools.idea.run.tasks.AppLaunchTask
-import com.android.tools.idea.run.tasks.DefaultActivityLaunchTask
 import com.google.common.collect.ImmutableList
-import com.intellij.execution.ui.ConsoleView
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.JComponent
 
-class DefaultActivityLaunch : ActivityLaunchOption<DefaultActivityLaunch.State>() {
-  class State : ActivityLaunchOptionState() {
-    override fun getLaunchTask(
-      applicationId: String,
-      facet: AndroidFacet,
-      startActivityFlagsProvider: StartActivityFlagsProvider,
-      profilerState: ProfilerState,
-      apkProvider: ApkProvider
-    ): AppLaunchTask {
-      return DefaultActivityLaunchTask(applicationId, getActivityLocatorForLaunch(apkProvider, applicationId), startActivityFlagsProvider)
-    }
+class DefaultActivityLaunch : LaunchOption<DefaultActivityLaunch.State>() {
 
-    override fun launch(device: IDevice,
-                        app: App,
-                        apkProvider: ApkProvider,
-                        isDebug: Boolean,
-                        extraFlags: String,
-                        console: ConsoleView) {
-      ProgressManager.checkCanceled()
-      val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-      val activityQualifiedName = getActivityLocatorForLaunch(apkProvider, app.appId).getQualifiedActivityName(device)
-      val receiver: IShellOutputReceiver = AndroidBackgroundTaskReceiver(console)
-      app.activateComponent(ComponentType.ACTIVITY, activityQualifiedName, extraFlags, mode, receiver)
-    }
+  class State : ActivityLaunchOptionState() {
 
     override fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
       return ImmutableList.of()
     }
 
-    companion object {
-      private fun getActivityLocatorForLaunch(apkProvider: ApkProvider, applicationId: String): ActivityLocator {
-        return DefaultApkActivityLocator(apkProvider, applicationId)
+   override fun getQualifiedActivityName(device: IDevice, apkProvider: ApkProvider, appId: String): String {
+      return try {
+        DefaultApkActivityLocator(apkProvider, appId).getQualifiedActivityName(device)
+      }
+      catch (e: ActivityLocatorException) {
+        throw AndroidExecutionException(UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY, e.message)
       }
     }
+
+    override val id = "DEFAULT_ACTIVITY"
   }
 
   override fun getId(): String {

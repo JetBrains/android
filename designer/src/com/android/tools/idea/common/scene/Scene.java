@@ -29,6 +29,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -42,16 +43,16 @@ import com.android.tools.idea.common.scene.target.MultiComponentTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.StudioRenderService;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.RenderTask;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -399,7 +400,7 @@ public class Scene implements SelectionListener, Disposable {
    * @return true if we need to repaint the screen
    */
   public void buildDisplayList(@NotNull DisplayList displayList, long time, SceneView sceneView) {
-    buildDisplayList(displayList, time, SceneContext.get(sceneView));
+    buildDisplayList(displayList, time, sceneView.getContext());
   }
 
   /**
@@ -477,6 +478,8 @@ public class Scene implements SelectionListener, Disposable {
         nlComponents.addAll(selection);
       }
       for (SceneComponent sceneComponent : components) {
+        if (sceneComponent == null) continue;
+
         NlComponent nlComponent = sceneComponent.getNlComponent();
         if ((isShiftDown() || isCtrlMetaDown()) && nlComponents.contains(nlComponent)) {
           // if shift is pressed and the component is already selected, remove it from the selection
@@ -1001,14 +1004,15 @@ public class Scene implements SelectionListener, Disposable {
     SecondarySelector secondarySelector = getSecondarySelector(transform, x, y);
 
     boolean same = sameSelection();
-    if (same && myHitListener.getTopHitComponent() != closestComponent
+    SceneComponent topHitComponent = myHitListener.getTopHitComponent();
+    if (same && topHitComponent != closestComponent
         && isWithinThreshold(myPressedMouseX, x, transform)
         && isWithinThreshold(myPressedMouseY, y, transform)) {
       // if the hit target ended up selecting the same component -- but
       // we have a /different/ top component, we should select it instead.
       // Let's only do that though if there was no drag action.
       myNewSelectedComponentsOnRelease.clear();
-      myNewSelectedComponentsOnRelease.add(myHitListener.getTopHitComponent());
+      myNewSelectedComponentsOnRelease.add(topHitComponent);
       myHitTarget = null;
       same = sameSelection();
     }
@@ -1204,7 +1208,7 @@ public class Scene implements SelectionListener, Disposable {
     AndroidFacet facet = model.getFacet();
 
     return taskBuilder(renderService, facet, model.getConfiguration())
-      .withPsiFile(xmlFile)
+      .withPsiFile(new PsiXmlFile(xmlFile))
       .build()
       .thenCompose(task -> {
         if (task == null) {
@@ -1253,7 +1257,7 @@ public class Scene implements SelectionListener, Disposable {
       return;
     }
     NlComponent nlComponent = component.getNlComponent();
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(nlComponent);
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(nlComponent, () -> {});
     if (handler != null) {
       builder.addAll(handler.getPlaceholders(component, draggedComponents));
     }

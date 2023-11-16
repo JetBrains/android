@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
-import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
+import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileChooser.FileChooserFactory
@@ -29,55 +29,58 @@ import java.io.IOException
 import javax.imageio.ImageIO
 
 /**
- * Lets the user choose an image to overlay on top of the captured view to compare the app's visual against design mocks.
+ * Lets the user choose an image to overlay on top of the captured view to compare the app's visual
+ * against design mocks.
  */
-object ToggleOverlayAction : AnAction(StudioIcons.LayoutInspector.LOAD_OVERLAY) {
+class ToggleOverlayAction(private val renderModelProvider: () -> RenderModel) :
+  AnAction(StudioIcons.LayoutInspector.LOAD_OVERLAY) {
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    val model = e.getData(DEVICE_VIEW_MODEL_KEY) ?: return
-    if (model.overlay != null) {
+    val renderModel = renderModelProvider()
+    if (renderModel.overlay != null) {
       e.presentation.icon = StudioIcons.LayoutInspector.CLEAR_OVERLAY
       e.presentation.text = "Clear Overlay"
-    }
-    else {
+    } else {
       e.presentation.icon = StudioIcons.LayoutInspector.LOAD_OVERLAY
       e.presentation.text = "Load Overlay"
     }
-    e.presentation.isEnabled = model.isActive
+    e.presentation.isEnabled = renderModel.isActive
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val model = e.getData(DEVICE_VIEW_MODEL_KEY) ?: return
-    if (model.overlay != null) {
-      model.overlay = null
-    }
-    else {
+    val renderModel = renderModelProvider()
+    if (renderModel.overlay != null) {
+      renderModel.overlay = null
+    } else {
       loadOverlay(e)
     }
   }
 
   private fun loadOverlay(e: AnActionEvent) {
-    val model = e.getData(DEVICE_VIEW_MODEL_KEY) ?: return
     // choose image
     val descriptor = FileTypeDescriptor("Choose Overlay", "svg", "png", "jpg")
-    val fileChooserDialog = FileChooserFactory.getInstance().createFileChooser(descriptor, null, null)
-    val toSelect = LocalFileSystem.getInstance().refreshAndFindFileByPath(e.project?.basePath ?: "/")
+    val fileChooserDialog =
+      FileChooserFactory.getInstance().createFileChooser(descriptor, null, null)
+    val toSelect =
+      LocalFileSystem.getInstance().refreshAndFindFileByPath(e.project?.basePath ?: "/")
     val files = fileChooserDialog.choose(null, toSelect!!)
     if (files.isEmpty()) {
       return
     }
     assert(files.size == 1)
 
-    model.overlay = loadImageFile(files[0])
+    renderModelProvider().overlay = loadImageFile(files[0])
   }
 
   private fun loadImageFile(file: VirtualFile): Image? {
     return try {
       ImageIO.read(file.inputStream)
-    }
-    catch (e: IOException) {
-      Messages.showErrorDialog("Failed to read image from \"" + file.name + "\" Error: " + e.message, "Error")
+    } catch (e: IOException) {
+      Messages.showErrorDialog(
+        "Failed to read image from \"" + file.name + "\" Error: " + e.message,
+        "Error"
+      )
       return null
     }
   }

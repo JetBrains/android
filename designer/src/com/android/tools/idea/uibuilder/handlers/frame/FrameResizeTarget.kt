@@ -24,11 +24,20 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget
 
 open class FrameResizeTarget(type: Type) : ResizeWithSnapBaseTarget(type) {
 
-  override fun updateAttributes(attributes: NlAttributesHolder, @AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
+  override fun updateAttributes(
+    attributes: NlAttributesHolder,
+    @AndroidDpCoordinate x: Int,
+    @AndroidDpCoordinate y: Int
+  ) {
     when (myType) {
-      Type.LEFT, Type.RIGHT -> updateWidth(attributes, getNewWidth(x))
-      Type.TOP, Type.BOTTOM -> updateHeight(attributes, getNewHeight(y))
-      Type.LEFT_TOP, Type.LEFT_BOTTOM, Type.RIGHT_TOP, Type.RIGHT_BOTTOM -> {
+      Type.LEFT,
+      Type.RIGHT -> updateWidth(attributes, getNewWidth(x))
+      Type.TOP,
+      Type.BOTTOM -> updateHeight(attributes, getNewHeight(y))
+      Type.LEFT_TOP,
+      Type.LEFT_BOTTOM,
+      Type.RIGHT_TOP,
+      Type.RIGHT_BOTTOM -> {
         updateWidth(attributes, getNewWidth(x))
         updateHeight(attributes, getNewHeight(y))
       }
@@ -36,8 +45,8 @@ open class FrameResizeTarget(type: Type) : ResizeWithSnapBaseTarget(type) {
   }
 
   private fun updateWidth(attributes: NlAttributesHolder, width: String) =
-      attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, width)
+    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, width)
 
   private fun updateHeight(attributes: NlAttributesHolder, height: String) =
-      attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, height)
+    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, height)
 }

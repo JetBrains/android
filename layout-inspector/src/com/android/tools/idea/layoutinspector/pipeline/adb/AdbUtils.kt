@@ -46,13 +46,14 @@ fun AndroidDebugBridge.findClient(process: ProcessDescriptor): Client? {
 }
 
 /**
- * Attempts to execute the target [command], returning the output of the command or throwing
- * an exception otherwise
+ * Attempts to execute the target [command], returning the output of the command or throwing an
+ * exception otherwise
  */
 @Slow
-fun AndroidDebugBridge.executeShellCommand(device: DeviceDescriptor,
-                                           command: String,
-                                           timeoutSecs: Long = ADB_TIMEOUT_SECONDS,
+fun AndroidDebugBridge.executeShellCommand(
+  device: DeviceDescriptor,
+  command: String,
+  timeoutSecs: Long = ADB_TIMEOUT_SECONDS,
 ): String {
   val latch = CountDownLatch(1)
   val receiver = startShellCommand(device, command, timeoutSecs, latch)
@@ -64,10 +65,11 @@ fun AndroidDebugBridge.executeShellCommand(device: DeviceDescriptor,
  * Attempts to start running a target [command], returning a [CollectingOutputReceiver] so the
  * caller can have more control over when to cancel it or fetch the results.
  */
-fun AndroidDebugBridge.startShellCommand(device: DeviceDescriptor,
-                                         command: String,
-                                         timeoutSecs: Long = ADB_NEVER_TIMEOUT,
-                                         latch: CountDownLatch = CountDownLatch(1)
+fun AndroidDebugBridge.startShellCommand(
+  device: DeviceDescriptor,
+  command: String,
+  timeoutSecs: Long = ADB_NEVER_TIMEOUT,
+  latch: CountDownLatch = CountDownLatch(1)
 ): CollectingOutputReceiver {
   if (findDevice(device) == null) {
     println("Device: ${device.serial} is not found in monitor task list")
@@ -76,12 +78,17 @@ fun AndroidDebugBridge.startShellCommand(device: DeviceDescriptor,
     val receiver = CollectingOutputReceiver(latch)
     adbDevice.executeShellCommand(command, receiver, timeoutSecs, TimeUnit.SECONDS)
     receiver
-  } ?: throw IllegalArgumentException("Could not execute ADB command [$command]. Device (${device.model}) is disconnected.")
+  }
+    ?: throw IllegalArgumentException(
+      "Could not execute ADB command [$command]. Device (${device.model}) is disconnected."
+    )
 }
 
 object AdbUtils {
   fun getAdbFuture(project: Project): ListenableFuture<AndroidDebugBridge?> {
-    return AdbFileProvider.fromProject(project).get()?.let { AdbService.getInstance()?.getDebugBridge(it) }
-           ?: Futures.immediateFuture(null)
+    return AdbFileProvider.fromProject(project).get()?.let {
+      AdbService.getInstance()?.getDebugBridge(it)
+    }
+      ?: Futures.immediateFuture(null)
   }
 }

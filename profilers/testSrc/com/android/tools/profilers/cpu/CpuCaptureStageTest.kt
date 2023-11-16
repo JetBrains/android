@@ -94,7 +94,7 @@ class CpuCaptureStageTest {
   fun parsingSuccessTriggersAspect() {
     val aspect = AspectObserver()
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       CpuProfilerTestUtils.getTraceFile("basic.trace"), SESSION_ID)
+                                       CpuProfilerTestUtils.getTraceFile("art_non_streaming.trace"), SESSION_ID)
     var stateHit = false
     stage.aspect.addDependency(aspect).onChange(CpuCaptureStage.Aspect.STATE) { stateHit = true }
     profilers.stage = stage
@@ -118,14 +118,14 @@ class CpuCaptureStageTest {
   @Test
   fun configurationNameIsSet() {
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       CpuProfilerTestUtils.getTraceFile("basic.trace"), SESSION_ID)
+                                       CpuProfilerTestUtils.getTraceFile("art_non_streaming.trace"), SESSION_ID)
     assertThat(stage.captureHandler.configurationText).isEqualTo(ProfilersTestData.DEFAULT_CONFIG.name)
   }
 
   @Test
   fun trackGroupModelsAreSet() {
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       CpuProfilerTestUtils.getTraceFile("basic.trace"), SESSION_ID)
+                                       CpuProfilerTestUtils.getTraceFile("art_non_streaming.trace"), SESSION_ID)
     profilers.stage = stage
 
     assertThat(stage.trackGroupModels.size).isEqualTo(1)
@@ -208,8 +208,8 @@ class CpuCaptureStageTest {
   @Test
   fun trackGroupModelsAreSetForPerfettoWithPower() {
     services.enableJankDetectionUi(false)
-    // Enable power rail and battery counter tracks in min-max and zero-based display mode respectively.
-    services.setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode.MINMAX)
+    // Enable power rail and battery counter tracks by using a non-HIDE flag value.
+    services.setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode.CUMULATIVE)
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage_with_power.trace"), SESSION_ID)
     profilers.stage = stage
@@ -244,8 +244,8 @@ class CpuCaptureStageTest {
     assertThat(threadsTrackGroup.size).isEqualTo(105)
 
     val powerRailTrackGroup = stage.trackGroupModels[4]
-    assertThat(powerRailTrackGroup.title).isEqualTo("Power Rails")
-    assertThat(powerRailTrackGroup.size).isEqualTo(13)
+    assertThat(powerRailTrackGroup.title).isEqualTo("Power Rails (Cumulative)")
+    assertThat(powerRailTrackGroup.size).isEqualTo(7)
 
     val batteryDrainTrackGroup = stage.trackGroupModels[5]
     assertThat(batteryDrainTrackGroup.title).isEqualTo("Battery")
@@ -283,7 +283,7 @@ class CpuCaptureStageTest {
   @Test
   fun timelineSetsCaptureRange() {
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       CpuProfilerTestUtils.getTraceFile("basic.trace"), SESSION_ID)
+                                       CpuProfilerTestUtils.getTraceFile("art_non_streaming.trace"), SESSION_ID)
     profilers.stage = stage
     assertThat(stage.captureTimeline.dataRange.length.toLong()).isEqualTo(303)
     assertThat(stage.minimapModel.captureRange.length.toLong()).isEqualTo(303)
@@ -293,7 +293,7 @@ class CpuCaptureStageTest {
   @Test
   fun minimapRangeSelectionUpdatesTrackGroups() {
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       CpuProfilerTestUtils.getTraceFile("basic.trace"), SESSION_ID)
+                                       CpuProfilerTestUtils.getTraceFile("art_non_streaming.trace"), SESSION_ID)
     profilers.stage = stage
     assertThat(stage.trackGroupModels[0][0].dataModel.javaClass).isAssignableTo(CpuThreadTrackModel::class.java)
     val threadModelRange = (stage.trackGroupModels[0][0].dataModel as CpuThreadTrackModel).callChartModel.range
@@ -307,7 +307,7 @@ class CpuCaptureStageTest {
   @Test
   fun fullTraceAnalysisAddedByDefault() {
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       CpuProfilerTestUtils.getTraceFile("basic.trace"), SESSION_ID)
+                                       CpuProfilerTestUtils.getTraceFile("art_non_streaming.trace"), SESSION_ID)
     profilers.stage = stage
     assertThat(stage.pinnedAnalysisModels.size).isEqualTo(1)
     assertThat(stage.pinnedAnalysisModels[0].javaClass).isEqualTo(CpuFullTraceAnalysisModel::class.java)
@@ -368,7 +368,7 @@ class CpuCaptureStageTest {
   @Test
   fun validateThreadSelectTabsAreDisplayedOnNewCapture() {
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       CpuProfilerTestUtils.getTraceFile("basic.trace"), SESSION_ID)
+                                       CpuProfilerTestUtils.getTraceFile("art_non_streaming.trace"), SESSION_ID)
     profilers.stage = stage
     assertThat(stage.pinnedAnalysisModels.size).isEqualTo(1)
     assertThat(stage.pinnedAnalysisModels[0].javaClass).isEqualTo(CpuFullTraceAnalysisModel::class.java)

@@ -25,11 +25,11 @@ import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
+import com.android.tools.idea.welcome.install.Aehd
 import com.android.tools.idea.welcome.install.AndroidSdk
 import com.android.tools.idea.welcome.install.AndroidVirtualDevice
 import com.android.tools.idea.welcome.install.ComponentCategory
 import com.android.tools.idea.welcome.install.ComponentTreeNode
-import com.android.tools.idea.welcome.install.Aehd
 import com.android.tools.idea.welcome.install.Haxm
 import com.android.tools.idea.welcome.install.InstallationIntention
 import com.android.tools.idea.welcome.install.Platform
@@ -52,6 +52,7 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
     if (sdkLocation.path.isEmpty()) InstallationType.CUSTOM else InstallationType.STANDARD
   )
   val customInstall: Boolean get() = installationType.get() == InstallationType.CUSTOM
+  val jdkLocation = EmbeddedDistributionPaths.getInstance().embeddedJdkPath
   val sdkExists = if (sdkLocation.isDirectory) {
     val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath())
     val progress = StudioLoggerProgressIndicator(javaClass)

@@ -15,33 +15,10 @@
  */
 package com.android.tools.idea.lang.agsl
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.lexer.Lexer
 import com.intellij.testFramework.LexerTestCase
 
 class AgslLexerTest : LexerTestCase() {
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.AGSL_LANGUAGE_SUPPORT.override(true)
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.AGSL_LANGUAGE_SUPPORT.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
-
-  fun test_NOT_lexingWithAgslOff() {
-    StudioFlags.AGSL_LANGUAGE_SUPPORT.override(false)
-    doTest(
-      "struct 123 1.0 abc",
-      "empty token ('struct 123 1.0 abc')"
-    )
-  }
-
   fun testLiterals() {
     doTest(
       "a _ _ab AB_C D123 A1B",

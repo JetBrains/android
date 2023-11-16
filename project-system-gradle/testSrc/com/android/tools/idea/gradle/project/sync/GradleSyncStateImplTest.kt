@@ -15,31 +15,28 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.testutils.MockitoKt.mockStatic
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.replaceService
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.Test
-import org.mockito.MockedStatic
-import org.mockito.Mockito.withSettings
-import org.mockito.Mockito.CALLS_REAL_METHODS
+import org.mockito.Mockito
 
 class GradleSyncStateImplTest : AndroidGradleTestCase() {
-
-  private lateinit var mockIdeSdks: MockedStatic<IdeSdks>
 
   private val notifications = mutableListOf<Notification>()
 
   override fun setUp() {
     super.setUp()
-    mockIdeSdks = mockStatic(withSettings().defaultAnswer(CALLS_REAL_METHODS))
     project.messageBus.connect(testRootDisposable).subscribe(Notifications.TOPIC, object : Notifications {
       override fun notify(notification: Notification) {
         notifications.add(notification)
@@ -47,20 +44,12 @@ class GradleSyncStateImplTest : AndroidGradleTestCase() {
     })
   }
 
-  override fun tearDown() {
-    try {
-      mockIdeSdks.close()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
-
   @Test
   fun `test Given undefined jdkFromJavaHomePath When gradle synchronized Then MultipleGradleDaemons warning is displayed`() {
     val jdkFromJavaHomePath: String? = null
-    mockIdeSdks.whenever<String> { IdeSdks.getJdkFromJavaHome() }.thenReturn(jdkFromJavaHomePath)
-
+    val mockIdeSdks = Mockito.spy(IdeSdks.getInstance())
+    whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
+    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, testRootDisposable)
     loadSimpleApplication()
 
     notifications
@@ -74,7 +63,9 @@ class GradleSyncStateImplTest : AndroidGradleTestCase() {
   @Test
   fun `test Given different jdkFromJavaHomePath and jdkPath When gradle synchronized Then MultipleGradleDaemons warning is displayed`() {
     val jdkFromJavaHomePath = "/test/jdk/path"
-    mockIdeSdks.whenever<String> { IdeSdks.getJdkFromJavaHome() }.thenReturn(jdkFromJavaHomePath)
+    val mockIdeSdks = Mockito.spy(IdeSdks.getInstance())
+    whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
+    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, testRootDisposable)
 
     loadSimpleApplication()
 
@@ -89,7 +80,9 @@ class GradleSyncStateImplTest : AndroidGradleTestCase() {
   @Test
   fun `test Given same jdkFromJavaHomePath and jdkPath When gradle synchronized Then MultipleGradleDaemons warning isn't displayed`() {
     val jdkFromJavaHomePath = GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty())
-    mockIdeSdks.whenever<String> { IdeSdks.getJdkFromJavaHome() }.thenReturn(jdkFromJavaHomePath)
+    val mockIdeSdks = Mockito.spy(IdeSdks.getInstance())
+    whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
+    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, testRootDisposable)
 
     loadSimpleApplication()
 
@@ -109,6 +102,7 @@ class GradleSyncStateImplTest : AndroidGradleTestCase() {
       )
     )
     append("<br>", OpenUrlHyperlink(AndroidBundle.message("project.sync.warning.multiple.gradle.daemons.url"), "More info...").toHtml())
+    append("<br>", SelectJdkFromFileSystemHyperlink.create(project, project.basePath)?.toHtml())
     append("<br>", DoNotShowJdkHomeWarningAgainHyperlink().toHtml())
   }.toString()
 }

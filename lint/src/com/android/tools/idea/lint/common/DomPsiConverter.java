@@ -25,6 +25,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -297,6 +298,7 @@ public class DomPsiConverter {
 
     @Override
     void add(@NotNull DomNode node) {
+      throw new UnsupportedOperationException("The shared EMPTY instance of DomNodeList isn't supposed to be modified.");
     }
   };
 
@@ -649,11 +651,6 @@ public class DomPsiConverter {
     }
 
     @Override
-    public String getTextContent() throws DOMException {
-      return myElement.getText();
-    }
-
-    @Override
     public void setTextContent(String s) throws DOMException {
       throw new UnsupportedOperationException(); // Read-only bridge
     }
@@ -825,6 +822,11 @@ public class DomPsiConverter {
       if (s.equals(PsiFile.class.getName())) {
         return myFile;
       }
+      return null;
+    }
+
+    @Override
+    public String getTextContent() throws DOMException {
       return null;
     }
 
@@ -1025,6 +1027,15 @@ public class DomPsiConverter {
     private final XmlTag myTag;
     @Nullable private NamedNodeMap myAttributes;
 
+    private static class NodeWithIndex {
+      public Node node;
+      public int nextNodeIndex;
+
+      public NodeWithIndex(Node node) {
+        this.node = node;
+      }
+    }
+
     private DomElement(@NotNull Document owner, @NotNull DomNode parent, @NotNull XmlTag tag) {
       super(owner, parent, tag);
       myTag = tag;
@@ -1071,6 +1082,27 @@ public class DomPsiConverter {
         }
         return myAttributes;
       });
+    }
+
+    @Override
+    public String getTextContent() throws DOMException {
+      // Common case: just one child text node; potentially, no need to allocate.
+      PsiElement child = myElement.getFirstChild();
+      if (child instanceof XmlText && child.getNextSibling() == null) {
+        XmlText textChild = (XmlText) child;
+        return textChild.getValue();
+      }
+
+      // Otherwise: concatenate child XmlText nodes.
+      StringBuilder buffer = new StringBuilder();
+      myElement.acceptChildren(new XmlRecursiveElementVisitor() {
+        @Override
+        public void visitXmlText(@NotNull XmlText text) {
+          buffer.append(text.getValue());
+        }
+      });
+
+      return buffer.toString();
     }
 
     // From org.w3c.dom.Element:
@@ -1140,15 +1172,28 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public NodeList getElementsByTagName(@NotNull String s) {
-      NodeList childNodes = getChildNodes();
-      if (childNodes == EMPTY) {
+      if (getChildNodes() == EMPTY) {
         return EMPTY;
       }
+
+      // Depth-first pre-order traversal.
       DomNodeList matches = new DomNodeList();
-      for (int i = 0, n = childNodes.getLength(); i < n; i++) {
-        Node node = childNodes.item(i);
-        if (s.equals(node.getNodeName())) {
-          matches.add((DomNode)node);
+      List<NodeWithIndex> stack = new ArrayList<>();
+      stack.add(new NodeWithIndex(this));
+
+      while (true) {
+        NodeWithIndex top = stack.get(stack.size() - 1);
+        if (top.nextNodeIndex < top.node.getChildNodes().getLength()) {
+          Node next = top.node.getChildNodes().item(top.nextNodeIndex++);
+          if (s.equals(next.getNodeName())) {
+            matches.add((DomNode)next);
+          }
+          stack.add(new NodeWithIndex(next));
+        } else {
+          stack.remove(stack.size() - 1);
+          if (stack.isEmpty()) {
+            break;
+          }
         }
       }
 
@@ -1240,12 +1285,24 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getNodeValue() throws DOMException {
+      // myText::getText may return, for example, "some text and <![CDATA[more text]]>",
+      // Using myText::getValue, we get just the text: "some text and more text".
+      // Both of these are, in a sense, wrong; the real problem is that CDATA is not
+      // currently supported as a node by DomPsiConverter. We continue to use myText::getText
+      // because TypoDetector uses the result to get an offset into the XML file.
       return ApplicationManager.getApplication().runReadAction((Computable<String>)myText::getText);
     }
 
     @Override
     public short getNodeType() {
       return Node.TEXT_NODE;
+    }
+
+    @Override
+    public String getTextContent() throws DOMException {
+      // This should just call getNodeValue(), but we can work around the fact that there are no CDATA nodes
+      // by instead calling getValue, which will just get the text.
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myText::getValue);
     }
 
     // From org.w3c.dom.Text:
@@ -1352,6 +1409,11 @@ public class DomPsiConverter {
     @Override
     public short getNodeType() {
       return Node.ATTRIBUTE_NODE;
+    }
+
+    @Override
+    public String getTextContent() throws DOMException {
+      return "";
     }
 
     // From org.w3c.dom.Attr:

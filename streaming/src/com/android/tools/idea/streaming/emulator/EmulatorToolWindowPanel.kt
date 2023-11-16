@@ -19,23 +19,25 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.ExtendedControlsStatus
-import com.android.tools.adtui.ZOOMABLE_KEY
+import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
-import com.android.tools.idea.streaming.AbstractDisplayPanel
-import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
-import com.android.tools.idea.streaming.DeviceId
 import com.android.tools.idea.streaming.EmulatorSettings
-import com.android.tools.idea.streaming.NUMBER_OF_DISPLAYS_KEY
-import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
-import com.android.tools.idea.streaming.RunningDevicePanel
-import com.android.tools.idea.streaming.STREAMING_SECONDARY_TOOLBAR_ID
+import com.android.tools.idea.streaming.core.AbstractDisplayPanel
+import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.NUMBER_OF_DISPLAYS_KEY
+import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
+import com.android.tools.idea.streaming.core.RunningDevicePanel
+import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
+import com.android.tools.idea.streaming.core.htmlColored
+import com.android.tools.idea.streaming.core.icon
+import com.android.tools.idea.streaming.core.installFileDropHandler
+import com.android.tools.idea.streaming.core.sizeWithoutInsets
+import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.streaming.emulator.actions.findManageSnapshotDialog
 import com.android.tools.idea.streaming.emulator.actions.showExtendedControls
 import com.android.tools.idea.streaming.emulator.actions.showManageSnapshotsDialog
-import com.android.tools.idea.streaming.installFileDropHandler
-import com.android.tools.idea.streaming.sizeWithoutInsets
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.utils.HashCodes
 import com.google.wireless.android.sdk.stats.DeviceInfo
@@ -43,12 +45,14 @@ import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.JBColor
 import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.util.xmlb.annotations.Property
 import icons.StudioIcons
@@ -60,10 +64,10 @@ import java.awt.KeyboardFocusManager
 import java.beans.PropertyChangeListener
 import java.nio.file.Path
 import java.util.function.IntFunction
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
 private val LOG get() = Logger.getInstance(EmulatorToolWindowPanel::class.java)
 
 /**
@@ -80,7 +84,8 @@ internal class EmulatorToolWindowPanel(
   private var clipboardSynchronizer: EmulatorClipboardSynchronizer? = null
   private var contentDisposable: Disposable? = null
 
-  private var primaryEmulatorView: EmulatorView? = null
+  override var primaryDisplayView: EmulatorView? = null
+
   private val multiDisplayStateStorage = MultiDisplayStateStorage.getInstance(project)
   private val multiDisplayStateUpdater = Runnable {
     multiDisplayStateStorage.setMultiDisplayState(emulatorId.avdFolder, displayConfigurator.getMultiDisplayState())
@@ -106,16 +111,23 @@ internal class EmulatorToolWindowPanel(
   private val emulatorId
     get() = emulator.emulatorId
 
-  override val title
+  override val title: String
     get() = emulatorId.avdName
 
-  override val icon
-    get() = ICON
+  override val description: String
+    get() = "${emulatorId.avdName} ${"(${emulatorId.serialNumber})".htmlColored(JBColor.GRAY)}"
 
-  override val isClosable = true
+  override val icon: Icon
+    get() {
+      val avd = AvdManagerConnection.getDefaultAvdManagerConnection().findAvd(emulatorId.avdId)
+      val icon = avd?.icon ?: StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+      return ExecutionUtil.getLiveIndicator(icon)
+    }
+
+  override val isClosable: Boolean = true
 
   override val preferredFocusableComponent: JComponent
-    get() = primaryEmulatorView ?: this
+    get() = primaryDisplayView ?: this
 
   override var zoomToolbarVisible = false
     set(value) {
@@ -132,7 +144,7 @@ internal class EmulatorToolWindowPanel(
   var lastUiState: EmulatorUiState? = null
 
   override fun setDeviceFrameVisible(visible: Boolean) {
-    primaryEmulatorView?.deviceFrameVisible = visible
+    primaryDisplayView?.deviceFrameVisible = visible
   }
 
   override fun getDeviceInfo(): DeviceInfo =
@@ -165,7 +177,7 @@ internal class EmulatorToolWindowPanel(
         EmulatorDisplayPanel(disposable, emulator, PRIMARY_DISPLAY_ID, null, zoomToolbarVisible, deviceFrameVisible)
     displayPanels[primaryDisplayPanel.displayId] = primaryDisplayPanel
     val emulatorView = primaryDisplayPanel.displayView
-    primaryEmulatorView = emulatorView
+    primaryDisplayView = emulatorView
     mainToolbar.targetComponent = emulatorView
     secondaryToolbar.targetComponent = emulatorView
     emulatorView.addPropertyChangeListener(DISPLAY_MODE_PROPERTY) {
@@ -175,6 +187,13 @@ internal class EmulatorToolWindowPanel(
     installFileDropHandler(this, id.serialNumber, emulatorView, project)
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
     emulatorView.addDisplayConfigurationListener(displayConfigurator)
+    emulatorView.addPostureListener(object: PostureListener {
+      override fun postureChanged(posture: PostureDescriptor) {
+        EventQueue.invokeLater {
+          mainToolbar.updateActionsImmediately()
+        }
+      }
+    })
     emulator.addConnectionStateListener(this)
 
     val multiDisplayState = multiDisplayStateStorage.getMultiDisplayState(emulatorId.avdFolder)
@@ -210,6 +229,8 @@ internal class EmulatorToolWindowPanel(
         showExtendedControls(emulator, project)
       }
     }
+
+    restoreActiveNotifications(uiState)
   }
 
   /**
@@ -222,11 +243,13 @@ internal class EmulatorToolWindowPanel(
     multiDisplayStateStorage.removeUpdater(multiDisplayStateUpdater)
 
     val uiState = EmulatorUiState()
+    saveActiveNotifications(uiState)
+
     for (panel in displayPanels.values) {
       uiState.zoomScrollState[panel.displayId] = panel.zoomScrollState
     }
 
-    val manageSnapshotsDialog = primaryEmulatorView?.let { findManageSnapshotDialog(it) }
+    val manageSnapshotsDialog = primaryDisplayView?.let { findManageSnapshotDialog(it) }
     uiState.manageSnapshotsDialogShown = manageSnapshotsDialog != null
     manageSnapshotsDialog?.close(DialogWrapper.CLOSE_EXIT_CODE)
 
@@ -247,7 +270,7 @@ internal class EmulatorToolWindowPanel(
 
     centerPanel.removeAll()
     displayPanels.clear()
-    primaryEmulatorView = null
+    primaryDisplayView = null
     mainToolbar.targetComponent = this
     secondaryToolbar.targetComponent = this
     clipboardSynchronizer = null
@@ -258,7 +281,7 @@ internal class EmulatorToolWindowPanel(
   override fun getData(dataId: String): Any? {
     return when (dataId) {
       EMULATOR_CONTROLLER_KEY.name -> emulator
-      EMULATOR_VIEW_KEY.name, DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryEmulatorView
+      EMULATOR_VIEW_KEY.name -> primaryDisplayView
       NUMBER_OF_DISPLAYS_KEY.name -> displayPanels.size
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> getScreenRecorderParameters()
       else -> super.getData(dataId)
@@ -279,8 +302,13 @@ internal class EmulatorToolWindowPanel(
     var displayDescriptors = emptyList<DisplayDescriptor>()
 
     @AnyThread
-    override fun displayConfigurationChanged() {
-      refreshDisplayConfiguration()
+    override fun displayConfigurationChanged(displayConfigs: List<DisplayConfiguration>?) {
+      if (displayConfigs == null) {
+        refreshDisplayConfiguration()
+      }
+      else {
+        displayConfigurationReceived(displayConfigs)
+      }
     }
 
     @AnyThread
@@ -296,7 +324,7 @@ internal class EmulatorToolWindowPanel(
     }
 
     private fun displayConfigurationReceived(displayConfigs: List<DisplayConfiguration>) {
-      val primaryDisplayView = primaryEmulatorView ?: return
+      val primaryDisplayView = primaryDisplayView ?: return
       val newDisplays = getDisplayDescriptors(primaryDisplayView, displayConfigs)
       if (newDisplays.size == 1 && displayDescriptors.size <= 1 || newDisplays == displayDescriptors) {
         return
@@ -412,7 +440,7 @@ internal class EmulatorToolWindowPanel(
     }
   }
 
-  class EmulatorUiState : UiState {
+  class EmulatorUiState : UiState() {
     var manageSnapshotsDialogShown = false
     var extendedControlsShown = false
     var multiDisplayState: MultiDisplayState? = null
@@ -446,6 +474,7 @@ internal class EmulatorToolWindowPanel(
     }
   }
 
+  @Service(Service.Level.PROJECT)
   @State(name = "EmulatorDisplays", storages = [Storage("emulatorDisplays.xml")])
   class MultiDisplayStateStorage : PersistentStateComponent<MultiDisplayStateStorage> {
 

@@ -7,16 +7,19 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module-library" exported="">
       <library name="compose-desktop-animation" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.compose.animation:animation-desktop:1.3.1" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.compose.animation:animation-core-desktop:1.3.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-desktop/1.3.1/animation-desktop-1.3.1.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1.3.1/animation-core-desktop-1.3.1.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1.3.1/animation-core-desktop-1.3.1-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="">
@@ -24,11 +27,11 @@
         <properties include-transitive-deps="false" maven-id="org.jetbrains.compose.material:material-desktop:1.3.1" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/material/material-desktop/1.3.1/material-desktop-1.3.1.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/material/material-icons-core-desktop/1.3.1/material-icons-core-desktop-1.3.1.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/material/material-ripple-desktop/1.3.1/material-ripple-desktop-1.3.1.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/material/material-desktop/1.3.1/material-desktop-1.3.1-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="">
@@ -36,21 +39,23 @@
         <properties include-transitive-deps="false" maven-id="org.jetbrains.compose.runtime:runtime-desktop:1.3.1" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1.3.1/runtime-desktop-1.3.1.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.3.1/runtime-saveable-desktop-1.3.1.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1.3.1/runtime-desktop-1.3.1-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="">
       <library name="compose-desktop-foundation" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.compose.foundation:foundation-desktop:1.3.1" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.compose.foundation:foundation-layout-desktop:1.3.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-desktop/1.3.1/foundation-desktop-1.3.1.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1.3.1/foundation-layout-desktop-1.3.1.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1.3.1/foundation-layout-desktop-1.3.1-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="">
@@ -58,14 +63,11 @@
         <properties include-transitive-deps="false" maven-id="org.jetbrains.compose.ui:ui-desktop:1.3.1" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1.3.1/ui-desktop-1.3.1.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1.3.1/ui-geometry-desktop-1.3.1.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1.3.1/ui-graphics-desktop-1.3.1.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1.3.1/ui-text-desktop-1.3.1.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1.3.1/ui-unit-desktop-1.3.1.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1.3.1/ui-util-desktop-1.3.1.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1.3.1/ui-desktop-1.3.1-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="">
@@ -78,6 +80,5 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="kotlin-stdlib" level="project" />
   </component>
 </module>

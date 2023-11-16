@@ -18,20 +18,22 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
+import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
-private const val BOTTOM_APP_BAR_CLASS_NAME = "com.google.android.material.bottomappbar.BottomAppBar"
-private const val NAVIGATION_RAIL_URL = "https://d.android.com/r/studio-ui/designer/material/navigation-rail"
-private const val NAVIGATION_DRAWER_URL = "https://d.android.com/r/studio-ui/designer/material/navigation-drawer"
-private const val TOP_APP_BAR_URL = "https://d.android.com/r/studio-ui/designer/material/top-app-bar"
+private const val BOTTOM_APP_BAR_CLASS_NAME =
+  "com.google.android.material.bottomappbar.BottomAppBar"
+private const val NAVIGATION_RAIL_URL =
+  "https://d.android.com/r/studio-ui/designer/material/navigation-rail"
+private const val NAVIGATION_DRAWER_URL =
+  "https://d.android.com/r/studio-ui/designer/material/navigation-drawer"
+private const val TOP_APP_BAR_URL =
+  "https://d.android.com/r/studio-ui/designer/material/top-app-bar"
 
-/**
- * [VisualLintAnalyzer] for issues where a BottomAppBar is used on non-compact screens.
- */
+/** [VisualLintAnalyzer] for issues where a BottomAppBar is used on non-compact screens. */
 object BottomAppBarAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BOTTOM_APP_BAR
@@ -39,7 +41,10 @@ object BottomAppBarAnalyzer : VisualLintAnalyzer() {
   override val backgroundEnabled: Boolean
     get() = BottomAppBarAnalyzerInspection.bottomAppBarBackground
 
-  override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
+  override fun findIssues(
+    renderResult: RenderResult,
+    model: NlModel
+  ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val configuration = model.configuration
     val orientation = configuration.deviceState?.orientation ?: return issues
@@ -73,10 +78,17 @@ object BottomAppBarAnalyzer : VisualLintAnalyzer() {
         .addLink("top app bar", TOP_APP_BAR_URL)
         .add(" for breakpoints over 600dp.")
     }
-    return VisualLintIssueContent(view,"Bottom app bars are only recommended for compact screens", content)
+    return VisualLintIssueContent(
+      view,
+      "Bottom app bars are only recommended for compact screens",
+      content
+    )
   }
 }
 
-object BottomAppBarAnalyzerInspection: VisualLintInspection(VisualLintErrorType.BOTTOM_APP_BAR, "bottomAppBarBackground") {
-  var bottomAppBarBackground = true
+class BottomAppBarAnalyzerInspection :
+  VisualLintInspection(VisualLintErrorType.BOTTOM_APP_BAR, "bottomAppBarBackground") {
+  companion object {
+    var bottomAppBarBackground = true
+  }
 }

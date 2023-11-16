@@ -17,9 +17,13 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogLibraries;
+import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogPlugins;
+import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogVersions;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.model.catalog.GradleVersionCatalogLibrariesImpl;
+import com.android.tools.idea.gradle.dsl.model.catalog.GradleVersionCatalogPluginsImpl;
+import com.android.tools.idea.gradle.dsl.model.catalog.GradleVersionCatalogVersionsImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
@@ -59,6 +63,20 @@ public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implement
   public GradleVersionCatalogLibraries libraryDeclarations(){
     GradleDslExpressionMap librariesDslElement = ensureMap("libraries");
     return new GradleVersionCatalogLibrariesImpl(librariesDslElement);
+  }
+
+  @NotNull
+  @Override
+  public GradleVersionCatalogVersions versionDeclarations() {
+    GradleDslExpressionMap versionsDslElement = ensureMap("versions");
+    return new GradleVersionCatalogVersionsImpl(versionsDslElement);
+  }
+
+  @NotNull
+  @Override
+  public GradleVersionCatalogPlugins pluginDeclarations() {
+    GradleDslExpressionMap pluginsDslElement = ensureMap("plugins");
+    return new GradleVersionCatalogPluginsImpl(pluginsDslElement);
   }
 
   @NotNull

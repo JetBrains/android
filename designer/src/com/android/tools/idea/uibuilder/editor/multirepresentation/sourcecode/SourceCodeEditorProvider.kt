@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
 import com.android.tools.idea.editors.sourcecode.isSourceFileType
-import com.android.tools.idea.flags.StudioFlags.NELE_SOURCE_CODE_EDITOR
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MULTI_PREVIEW_STATE_TAG
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreviewFileEditorState
@@ -45,43 +44,46 @@ import org.jdom.Element
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
-
-private const val EP_NAME = "com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.sourceCodePreviewRepresentationProvider"
+private const val EP_NAME =
+  "com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.sourceCodePreviewRepresentationProvider"
 private val PROVIDERS_EP = ExtensionPointName.create<PreviewRepresentationProvider>(EP_NAME)
 private const val EDITOR_STATE_TAG = "editor-state"
 private const val SELECTED_LAYOUT_ATTRIBUTE = "selected-layout"
 
-/**
- * [FileEditorState] that contains the state of both the editor and the preview sides.
- */
+/** [FileEditorState] that contains the state of both the editor and the preview sides. */
 data class SourceCodeEditorWithMultiRepresentationPreviewState(
   val parentState: FileEditorState = FileEditorState.INSTANCE,
   val editorState: FileEditorState = FileEditorState.INSTANCE,
-  val previewState: MultiRepresentationPreviewFileEditorState = MultiRepresentationPreviewFileEditorState.INSTANCE,
-  val selectedLayout: TextEditorWithPreview.Layout? = null) : FileEditorState {
+  val previewState: MultiRepresentationPreviewFileEditorState =
+    MultiRepresentationPreviewFileEditorState.INSTANCE,
+  val selectedLayout: TextEditorWithPreview.Layout? = null
+) : FileEditorState {
   override fun canBeMergedWith(otherState: FileEditorState, level: FileEditorStateLevel): Boolean =
     otherState is SourceCodeEditorWithMultiRepresentationPreviewState &&
-    otherState.editorState.canBeMergedWith(editorState, level) &&
-    otherState.previewState.canBeMergedWith(previewState, level) &&
-    otherState.parentState.canBeMergedWith(parentState, level) &&
-    otherState.selectedLayout == selectedLayout
+      otherState.editorState.canBeMergedWith(editorState, level) &&
+      otherState.previewState.canBeMergedWith(previewState, level) &&
+      otherState.parentState.canBeMergedWith(parentState, level) &&
+      otherState.selectedLayout == selectedLayout
 }
 
 /**
- * [FileEditorProvider] intended to be used with all source code files universally and therefore accepts all source code files. Creates
- * [SourceCodeEditorWithMultiRepresentationPreview] as a corresponding [FileEditor].
+ * [FileEditorProvider] intended to be used with all source code files universally and therefore
+ * accepts all source code files. Creates [SourceCodeEditorWithMultiRepresentationPreview] as a
+ * corresponding [FileEditor].
  */
-class SourceCodeEditorProvider private constructor(private val providers: Collection<PreviewRepresentationProvider>) : FileEditorProvider, QuickDefinitionProvider, DumbAware {
+class SourceCodeEditorProvider
+private constructor(private val providers: Collection<PreviewRepresentationProvider>) :
+  FileEditorProvider, QuickDefinitionProvider, DumbAware {
   constructor() : this(PROVIDERS_EP.extensions.toList())
 
   private val log = Logger.getInstance(SourceCodeEditorProvider::class.java)
 
   override fun accept(project: Project, file: VirtualFile): Boolean {
     val projectFacetManager = ProjectFacetManager.getInstance(project)
-    return NELE_SOURCE_CODE_EDITOR.get()
-           && !LightEdit.owns(project)
-           && file.isSourceFileType()
-           && (projectFacetManager.hasFacets(AndroidFacet.ID) || projectFacetManager.hasFacets(GradleFacet.getFacetTypeId()))
+    return !LightEdit.owns(project) &&
+      file.isSourceFileType() &&
+      (projectFacetManager.hasFacets(AndroidFacet.ID) ||
+        projectFacetManager.hasFacets(GradleFacet.getFacetTypeId()))
   }
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
@@ -94,7 +96,11 @@ class SourceCodeEditorProvider private constructor(private val providers: Collec
     val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
     val multiRepresentationPreview = SourceCodePreview(psiFile, textEditor.editor, providers)
 
-    return SourceCodeEditorWithMultiRepresentationPreview(project, textEditor, multiRepresentationPreview)
+    return SourceCodeEditorWithMultiRepresentationPreview(
+      project,
+      textEditor,
+      multiRepresentationPreview
+    )
   }
 
   override fun getEditorTypeId() = "android-source-code"
@@ -122,7 +128,11 @@ class SourceCodeEditorProvider private constructor(private val providers: Collec
     }
   }
 
-  override fun readState(sourceElement: Element, project: Project, file: VirtualFile): FileEditorState {
+  override fun readState(
+    sourceElement: Element,
+    project: Project,
+    file: VirtualFile
+  ): FileEditorState {
     if (accept(project, file)) {
       var editorState: TextEditorState? = null
       var multiPreviewState: MultiRepresentationPreviewFileEditorState? = null
@@ -140,7 +150,8 @@ class SourceCodeEditorProvider private constructor(private val providers: Collec
             editorState = TextEditorProvider().readState(it, project, file) as? TextEditorState
           }
           MULTI_PREVIEW_STATE_TAG -> {
-            multiPreviewState = XmlSerializer.deserialize(it, MultiRepresentationPreviewFileEditorState::class.java)
+            multiPreviewState =
+              XmlSerializer.deserialize(it, MultiRepresentationPreviewFileEditorState::class.java)
           }
           else -> log.warn("Unexpected tag deserializing state ${it.name}")
         }
@@ -151,7 +162,8 @@ class SourceCodeEditorProvider private constructor(private val providers: Collec
         return SourceCodeEditorWithMultiRepresentationPreviewState(
           editorState = editorState ?: FileEditorState.INSTANCE,
           previewState = multiPreviewState ?: MultiRepresentationPreviewFileEditorState.INSTANCE,
-          selectedLayout = selectedLayout)
+          selectedLayout = selectedLayout
+        )
       }
     }
 
@@ -160,6 +172,7 @@ class SourceCodeEditorProvider private constructor(private val providers: Collec
 
   companion object {
     @TestOnly
-    fun forTesting(providers: List<PreviewRepresentationProvider>) = SourceCodeEditorProvider(providers)
+    fun forTesting(providers: List<PreviewRepresentationProvider>) =
+      SourceCodeEditorProvider(providers)
   }
 }

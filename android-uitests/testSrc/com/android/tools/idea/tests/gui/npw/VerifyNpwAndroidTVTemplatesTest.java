@@ -44,8 +44,8 @@ import org.junit.runner.RunWith;
 public class VerifyNpwAndroidTVTemplatesTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
-  private List<String> expectedTemplates = List.of("No Activity", "Android TV Blank Views Activity");
-  private String defaultActivity = "Android TV Blank Views Activity";
+  private List<String> expectedTemplates = List.of("No Activity", "Android TV Blank Views Activity", "Empty Activity");
+  private String defaultActivity = "Empty Activity";
 
   private List<String> failedBuildTemplates = new ArrayList<String>();
   private List<String> dependencyMissingTemplates = new ArrayList<String>();
@@ -82,13 +82,27 @@ public class VerifyNpwAndroidTVTemplatesTest {
     GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
     guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful()).isTrue();
-
+    assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(300)).isBuildSuccessful()).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
   }
 
   @Test
   public void  testNoActivityTemplate() {
     boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectTVTab, expectedTemplates.get(0));
     assertThat(buildProjectStatus).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
+  }
+
+  @Test
+  public void  testBlankViewsTemplate() {
+    boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectTVTab, expectedTemplates.get(1));
+    assertThat(buildProjectStatus).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
   }
 }

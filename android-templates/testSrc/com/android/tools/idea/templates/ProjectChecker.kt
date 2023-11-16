@@ -90,7 +90,7 @@ data class ProjectChecker(
 
   private fun Project.verify(projectRule: AndroidGradleProjectRule, language: Language) {
     val projectDir = getBaseDirPath(this)
-    verifyLanguageFiles(projectDir, language)
+    verifyLanguageFiles(projectDir.toPath(), language)
     if (basePath?.contains("Folder") != true) { // running Gradle for new folders doesn't make much sense and takes long time
       injectBuildOutputDumpingBuildViewManager(projectRule.project, projectRule.project)
       projectRule.invokeTasks("compileDebugSources").apply { // "assembleDebug" is too slow
@@ -165,7 +165,7 @@ data class ProjectChecker(
   private fun writeDefaultTomlFile(project: Project, executor: DefaultRecipeExecutor) {
     WriteCommandAction.writeCommandAction(project).run<IOException> {
       executor.copy(
-        File(FileUtils.join("fileTemplates", "internal", "Version Catalog File.versions.toml.ft")),
+        File(FileUtils.join("fileTemplates", "internal", "Version_Catalog_File.versions.toml.ft")),
         File(project.basePath, FileUtils.join("gradle", SdkConstants.FN_VERSION_CATALOG)))
       executor.applyChanges()
     }

@@ -19,11 +19,11 @@ import com.android.annotations.NonNull;
 import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.lint.checks.ManifestDetector;
+import com.android.tools.lint.checks.GradleDetector;
 
 public class AndroidLintOldTargetApiInspection extends AndroidLintInspectionBase {
   public AndroidLintOldTargetApiInspection() {
-    super(AndroidLintBundle.message("android.lint.inspections.old.target.api"), ManifestDetector.TARGET_NEWER);
+    super(AndroidLintBundle.message("android.lint.inspections.old.target.api"), GradleDetector.TARGET_NEWER);
   }
 
   @NonNull

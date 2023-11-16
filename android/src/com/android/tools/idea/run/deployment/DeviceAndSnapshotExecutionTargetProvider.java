@@ -15,19 +15,41 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.project.Project;
+import com.intellij.serviceContainer.NonInjectable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.android.util.AndroidUtils;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetProvider {
+  @NotNull
+  private final Supplier<DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
+
+  @NotNull
+  private final Function<Project, AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
+
+  @SuppressWarnings("unused")
+  private DeviceAndSnapshotExecutionTargetProvider() {
+    this(DeviceAndSnapshotComboBoxAction::getInstance, AsyncDevicesGetter::getInstance);
+  }
+
+  @NonInjectable
+  @VisibleForTesting
+  DeviceAndSnapshotExecutionTargetProvider(@NotNull Supplier<DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance,
+                                           @NotNull Function<Project, AsyncDevicesGetter> asyncDevicesGetterGetInstance) {
+    myDeviceAndSnapshotComboBoxActionGetInstance = deviceAndSnapshotComboBoxActionGetInstance;
+    myAsyncDevicesGetterGetInstance = asyncDevicesGetterGetInstance;
+  }
+
   @NotNull
   @Override
   public List<ExecutionTarget> getTargets(@NotNull Project project, @NotNull RunConfiguration configuration) {
@@ -35,7 +57,7 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
       return Collections.singletonList(DefaultExecutionTarget.INSTANCE);
     }
 
-    var targets = DeviceAndSnapshotComboBoxAction.getInstance().getSelectedTargets(project).orElseGet(Set::of);
-    return List.of(new DeviceAndSnapshotComboBoxExecutionTarget(targets, AsyncDevicesGetter.getInstance(project)));
+    var targets = myDeviceAndSnapshotComboBoxActionGetInstance.get().getSelectedTargets(project).orElseGet(Set::of);
+    return List.of(new DeviceAndSnapshotComboBoxExecutionTarget(targets, myAsyncDevicesGetterGetInstance.apply(project)));
   }
 }

@@ -29,11 +29,15 @@ import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.util.SlowOperations
 import com.intellij.util.text.nullize
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.core.deleteElementAndCleanParent
-import org.jetbrains.kotlin.js.descriptorUtils.nameIfStandardType
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
@@ -62,24 +66,34 @@ private const val WRITE_COMMAND = "Psi Parameter Modification"
 internal open class PsiCallParameterPropertyItem(
   protected val project: Project,
   protected val model: PsiCallPropertiesModel,
-  private val resolvedCall: ResolvedCall<*>,
-  private val descriptor: ValueParameterDescriptor,
-  private var argumentExpression: KtExpression?,
+  private val addNewArgumentToResolvedCall: (KtValueArgument, KtPsiFactory) -> KtValueArgument?,
+  private val parameterName: Name,
+  private val parameterTypeNameIfStandard: Name?,
+  protected var argumentExpression: KtExpression?,
   override val defaultValue: String?,
   validation: EditingValidation = { EDITOR_NO_ERROR }
 ) : PsiPropertyItem {
 
   override var name: String
-    get() = descriptor.name.identifier
+    get() = parameterName.identifier
     // We do not support editing property names.
     set(_) {}
 
   override val editingSupport: EditingSupport = PsiEditingSupport(validation)
 
+  @OptIn(KtAllowAnalysisOnEdt::class)
   override var value: String?
     get() =
       SlowOperations.allowSlowOperations(
-        ThrowableComputable { argumentExpression?.tryEvaluateConstantAsText() }
+        ThrowableComputable {
+          if (isK2Plugin()) {
+            allowAnalysisOnEdt {
+              argumentExpression?.let { analyze(it) { it.tryEvaluateConstantAsText(this) } }
+            }
+          } else {
+            argumentExpression?.tryEvaluateConstantAsText()
+          }
+        }
       )
     set(value) {
       val newValue = value?.trim()?.nullize()
@@ -107,10 +121,10 @@ internal open class PsiCallParameterPropertyItem(
       deleteParameter()
     } else {
       val parameterString =
-        if (!writeAsIs && descriptor.type.nameIfStandardType == Name.identifier("String")) {
-          "${descriptor.name.asString()} = \"$newValue\""
+        if (!writeAsIs && parameterTypeNameIfStandard == Name.identifier("String")) {
+          "${parameterName.asString()} = \"$newValue\""
         } else {
-          "${descriptor.name.asString()} = $newValue"
+          "${parameterName.asString()} = $newValue"
         }
       writeParameter(parameterString)
     }
@@ -130,10 +144,9 @@ internal open class PsiCallParameterPropertyItem(
       newValueArgument =
         currentArgumentExpression.parent.replace(newValueArgument) as KtValueArgument
     } else {
-      if (resolvedCall.call.valueArgumentList == null) {
-        resolvedCall.call.callElement.add(model.psiFactory.createCallArguments("()"))
+      addNewArgumentToResolvedCall(newValueArgument, model.psiFactory)?.let {
+        newValueArgument = it
       }
-      newValueArgument = resolvedCall.call.valueArgumentList!!.addArgument(newValueArgument)
     }
     argumentExpression = newValueArgument.getArgumentExpression()
     argumentExpression?.parent?.let { CodeStyleManager.getInstance(it.project).reformat(it) }

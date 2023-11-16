@@ -29,12 +29,13 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 
-
-/**
- * Layout Inspector specific logic that runs when the user presses "Run" or "Debug"
- */
+/** Layout Inspector specific logic that runs when the user presses "Run" or "Debug" */
 class LayoutInspectorExecutionListener : ExecutionListener {
-  override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
+  override fun processStarted(
+    executorId: String,
+    env: ExecutionEnvironment,
+    handler: ProcessHandler
+  ) {
     val project = env.project
     val configuration = env.runProfile as? AndroidRunConfiguration ?: return
 
@@ -42,7 +43,11 @@ class LayoutInspectorExecutionListener : ExecutionListener {
       return
     }
 
-    val appId = configuration.appId ?: throw RuntimeException("No packageName for started AndroidRunConfiguration configuration")
+    val appId =
+      configuration.appId
+        ?: throw RuntimeException(
+          "No packageName for started AndroidRunConfiguration configuration"
+        )
 
     val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
     // Devices should be already ready as they were used for launching.
@@ -55,42 +60,52 @@ class LayoutInspectorExecutionListener : ExecutionListener {
     }
   }
 
-
-  private fun enableDebugViewAttributes(project: Project, handler: ProcessHandler, packageName: String, device: IDevice) {
-    val descriptor = object : DeviceDescriptor {
-      override val manufacturer: String = "" // unused
-      override val model: String = device.model
-      override val serial: String = device.serialNumber
-      override val isEmulator: Boolean = device.isEmulator
-      override val apiLevel: Int = device.version.apiLevel
-      override val version: String = "" // unused
-      override val codename: String = "" // unused
-    }
-    val process = object : ProcessDescriptor {
-      override val device: DeviceDescriptor = descriptor
-      override val abiCpuArch: String = ""
-      override val name: String = packageName
-      override val packageName: String = packageName
-      override val isRunning: Boolean = true
-      override val pid: Int = 0
-      override val streamId: Long = 0L
-    }
+  private fun enableDebugViewAttributes(
+    project: Project,
+    handler: ProcessHandler,
+    packageName: String,
+    device: IDevice
+  ) {
+    val descriptor =
+      object : DeviceDescriptor {
+        override val manufacturer: String = "" // unused
+        override val model: String = device.model
+        override val serial: String = device.serialNumber
+        override val isEmulator: Boolean = device.isEmulator
+        override val apiLevel: Int = device.version.apiLevel
+        override val version: String = "" // unused
+        override val codename: String = "" // unused
+      }
+    val process =
+      object : ProcessDescriptor {
+        override val device: DeviceDescriptor = descriptor
+        override val abiCpuArch: String = ""
+        override val name: String = packageName
+        override val packageName: String = packageName
+        override val isRunning: Boolean = true
+        override val pid: Int = 0
+        override val streamId: Long = 0L
+      }
     val debugViewAttributes = DebugViewAttributes.getInstance()
 
     if (debugViewAttributes.set(project, process)) {
-      handler.addProcessListener(object : ProcessAdapter() {
-        override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
-          if (!debugViewAttributes.usePerDeviceSettings()) {
-            debugViewAttributes.clear(project, process)
+      handler.addProcessListener(
+        object : ProcessAdapter() {
+          override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+            if (!debugViewAttributes.usePerDeviceSettings()) {
+              debugViewAttributes.clear(project, process)
+            }
           }
         }
-      })
+      )
     }
   }
 
   private val IDevice.model
-    get() = when {
-              isEmulator -> avdName.takeIf { !it.isNullOrBlank() }
-              else -> getProperty(IDevice.PROP_DEVICE_MODEL)?.let { StringUtil.capitalizeWords(it, true) }
-            } ?: "Unknown"
+    get() =
+      when {
+        isEmulator -> avdName.takeIf { !it.isNullOrBlank() }
+        else -> getProperty(IDevice.PROP_DEVICE_MODEL)?.let { StringUtil.capitalizeWords(it, true) }
+      }
+        ?: "Unknown"
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.events.actions
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CancellableTimeoutException
@@ -110,8 +109,7 @@ class ActionDispatcher(
 
   private fun doDispatch(ctx: ActionContext): CancellationToken {
     val (action, currentState, lastGoodState) = ctx
-    val connection =
-      currentState.connections.selected?.connection ?: return CancellationToken.noop(Action.NONE)
+    val connection = currentState.connections.selected ?: return CancellationToken.noop(Action.NONE)
 
     return when (action) {
       is Action.Multiple ->
@@ -184,7 +182,6 @@ class ActionDispatcher(
             result,
             state.mode == ConnectionMode.ONLINE &&
               state.permission == Permission.FULL &&
-              StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get() &&
               queue.size > 0
           )
         )
@@ -259,7 +256,7 @@ class ActionDispatcher(
     state: AppInsightsState,
     action: Action.FetchDetails
   ): CancellationToken {
-    val issueRequest = state.toIssueRequest() ?: return CancellationToken.noop(Action.NONE)
+    val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
     return scope
       .launch {
         if (state.mode == ConnectionMode.OFFLINE) {
@@ -285,7 +282,7 @@ class ActionDispatcher(
     reason: FetchSource,
     action: Action.Single
   ): CancellationToken {
-    val issueRequest = state.toIssueRequest() ?: return CancellationToken.noop(Action.NONE)
+    val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
     val connectionMode = if (reason == FetchSource.REFRESH) ConnectionMode.ONLINE else state.mode
     return scope
       .launch {

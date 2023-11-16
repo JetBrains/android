@@ -41,10 +41,10 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.model.ensureLiveId
+import com.android.tools.idea.uibuilder.model.getViewGroupHandler
+import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.isGroup
-import com.android.tools.idea.uibuilder.model.viewGroupHandler
-import com.android.tools.idea.uibuilder.model.viewHandler
 import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.structure.BackNavigationComponent
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
@@ -88,32 +88,29 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.tree.TreeCellRenderer
 
-/**
- * The delay used to minimize updates
- */
+/** The delay used to minimize updates */
 private const val UPDATE_DELAY_MILLISECONDS = 250
 
-/**
- * When dragging an item do not display a drag image
- */
+/** When dragging an item do not display a drag image */
 private val EMPTY_IMAGE = ImageUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB)
 
-/**
- * [ToolWindowDefinition] for the Nele component tree using the ComponentTreeBuilder.
- */
+/** [ToolWindowDefinition] for the Nele component tree using the ComponentTreeBuilder. */
 class NlComponentTreeDefinition(
   project: Project,
   side: Side,
   split: Split,
   autoHide: AutoHide,
   isPassThroughQueue: Boolean = false
-) : ToolWindowDefinition<DesignSurface<*>>(
-  "Component Tree",
-  StudioIcons.Shell.ToolWindows.COMPONENT_TREE,
-  "COMPONENT_TREE", side, split,
-  autoHide,
-  { disposable -> ComponentTreePanel(project, isPassThroughQueue, disposable) }
-)
+) :
+  ToolWindowDefinition<DesignSurface<*>>(
+    "Component Tree",
+    StudioIcons.Shell.ToolWindows.COMPONENT_TREE,
+    "COMPONENT_TREE",
+    side,
+    split,
+    autoHide,
+    { disposable -> ComponentTreePanel(project, isPassThroughQueue, disposable) }
+  )
 
 /**
  * A panel holding the component tree.
@@ -138,23 +135,32 @@ private class ComponentTreePanel(
   private val selectionIsUpdating = AtomicBoolean(false)
   private var wasDisposed = false
   private val updateQueue =
-    MergingUpdateQueue("android.layout.structure-pane", UPDATE_DELAY_MILLISECONDS, true, null, this, null, SWING_THREAD)
+    MergingUpdateQueue(
+      "android.layout.structure-pane",
+      UPDATE_DELAY_MILLISECONDS,
+      true,
+      null,
+      this,
+      null,
+      SWING_THREAD
+    )
 
   init {
-    componentTree = ComponentTreeBuilder()
-      .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
-      .withNodeType(NlComponentNodeType())
-      .withNodeType(NlComponentReferenceNodeType())
-      .withAutoScroll()
-      .withDataProvider { dataId -> getData(dataId) }
-      .withDnD(::mergeItems, deleteOriginOfInternalMove = false)
-      .withBadgeSupport(IssueBadgeColumn())
-      .withBadgeSupport(VisibilityBadgeColumn { updateBadges() })
-      .withDoubleClick { activateComponent(it) }
-      .withContextMenu { item, _, x, y -> showContextMenu(item, x, y) }
-      .withMultipleSelection()
-      .withExpandAllOnRootChange()
-      .build()
+    componentTree =
+      ComponentTreeBuilder()
+        .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
+        .withNodeType(NlComponentNodeType { repaint() })
+        .withNodeType(NlComponentReferenceNodeType())
+        .withAutoScroll()
+        .withDataProvider { dataId -> getData(dataId) }
+        .withDnD(::mergeItems, deleteOriginOfInternalMove = false)
+        .withBadgeSupport(IssueBadgeColumn())
+        .withBadgeSupport(VisibilityBadgeColumn { updateBadges() })
+        .withDoubleClick { activateComponent(it) }
+        .withContextMenu { item, _, x, y -> showContextMenu(item, x, y) }
+        .withMultipleSelection()
+        .withExpandAllOnRootChange()
+        .build()
     componentTree.selectionModel.addSelectionListener {
       selectionIsUpdating.setWhile { setSurfaceSelection(it) }
     }
@@ -163,21 +169,22 @@ private class ComponentTreePanel(
         componentTree.selectionModel.currentSelection = selection
       }
     }
-    modelChangeListener = object : ModelListener {
-      override fun modelChanged(model: NlModel) {
-        update()
-      }
+    modelChangeListener =
+      object : ModelListener {
+        override fun modelChanged(model: NlModel) {
+          update()
+        }
 
-      override fun modelDerivedDataChanged(model: NlModel) {
-        update()
-      }
+        override fun modelDerivedDataChanged(model: NlModel) {
+          update()
+        }
 
-      private fun update() {
-        updateQueue.queue(
-          Update.create("updateComponentStructure") { fireHierarchyChanged(model) }
-        )
+        private fun update() {
+          updateQueue.queue(
+            Update.create("updateComponentStructure") { fireHierarchyChanged(model) }
+          )
+        }
       }
-    }
     add(backNavigation, BorderLayout.NORTH)
     add(componentTree.component, BorderLayout.CENTER)
     Disposer.register(parentDisposable, this)
@@ -196,6 +203,7 @@ private class ComponentTreePanel(
     surface?.selectionModel?.removeListener(modelSelectionListener)
     surface = context as? NlDesignSurface
     surface?.selectionModel?.addListener(modelSelectionListener)
+    surface?.actionManager?.registerActionsShortcuts(focusedComponent)
     backNavigation.designSurface = surface
     model?.removeListener(modelChangeListener)
     model = surface?.model
@@ -217,17 +225,22 @@ private class ComponentTreePanel(
     componentTree.model.treeRoot = model?.components?.firstOrNull()
   }
 
-  private fun activateComponent(component: Any) = when (component) {
-    is NlComponent -> component.viewHandler?.onActivateInComponentTree(component)
-    is NlComponentReference -> findComponent(component.id, model)?.let { surface?.selectionModel?.setSelection(listOf(it)) }
-    else -> error("unexpected node type: ${component.javaClass.name}")
-  }
+  private fun activateComponent(component: Any) =
+    when (component) {
+      is NlComponent -> component.getViewHandler {}?.onActivateInComponentTree(component)
+      is NlComponentReference ->
+        findComponent(component.id, model)?.let {
+          surface?.selectionModel?.setSelection(listOf(it))
+        }
+      else -> error("unexpected node type: ${component.javaClass.name}")
+    }
 
-  private fun showContextMenu(component: Any, x: Int, y: Int) = when (component) {
-    is NlComponent -> showContextMenuForComponent(component, x, y)
-    is NlComponentReference -> showContextMenuForReference(x, y)
-    else -> error("unexpected node type: ${component.javaClass.name}")
-  }
+  private fun showContextMenu(component: Any, x: Int, y: Int) =
+    when (component) {
+      is NlComponent -> showContextMenuForComponent(component, x, y)
+      is NlComponentReference -> showContextMenuForReference(x, y)
+      else -> error("unexpected node type: ${component.javaClass.name}")
+    }
 
   private fun showContextMenuForComponent(component: NlComponent, x: Int, y: Int) {
     surface?.actionManager?.getPopupMenuActions(component)?.let {
@@ -237,10 +250,13 @@ private class ComponentTreePanel(
 
   private fun showContextMenuForReference(x: Int, y: Int) {
     // Offer an delete action of the selected component references:
-    ActionManager.getInstance().createActionPopupMenu(
-      ActionPlaces.EDITOR_POPUP,
-      DefaultActionGroup(ActionManager.getInstance().getAction(IdeActions.ACTION_DELETE))
-    ).component.show(componentTree.focusComponent, x, y)
+    ActionManager.getInstance()
+      .createActionPopupMenu(
+        ActionPlaces.EDITOR_POPUP,
+        DefaultActionGroup(ActionManager.getInstance().getAction(IdeActions.ACTION_DELETE))
+      )
+      .component
+      .show(componentTree.focusComponent, x, y)
   }
 
   private fun updateBadges() {
@@ -254,14 +270,14 @@ private class ComponentTreePanel(
   }
 
   /**
-   * A mechanism for avoiding infinite recursion while updating the selection between the tree and the selection model of the surface.
+   * A mechanism for avoiding infinite recursion while updating the selection between the tree and
+   * the selection model of the surface.
    */
   private fun AtomicBoolean.setWhile(operation: () -> Unit) {
     set(true)
     try {
       operation()
-    }
-    finally {
+    } finally {
       set(false)
     }
   }
@@ -269,18 +285,20 @@ private class ComponentTreePanel(
   /**
    * A [NlComponentReference] delete provider used when only references are selected in the tree.
    */
-  private val referenceDeleteProvider = object : DeleteProvider {
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+  private val referenceDeleteProvider =
+    object : DeleteProvider {
+      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-    override fun canDeleteElement(dataContext: DataContext): Boolean = true
+      override fun canDeleteElement(dataContext: DataContext): Boolean = true
 
-    override fun deleteElement(dataContext: DataContext) {
-      val references  = componentTree.selectionModel.currentSelection.filterIsInstance(NlComponentReference::class.java)
-      references.forEach {
-        it.parent.viewGroupHandler?.removeReference(it.parent, it.id)
+      override fun deleteElement(dataContext: DataContext) {
+        val references =
+          componentTree.selectionModel.currentSelection.filterIsInstance(
+            NlComponentReference::class.java
+          )
+        references.forEach { it.parent.getViewGroupHandler {}?.removeReference(it.parent, it.id) }
       }
     }
-  }
 
   /**
    * Provide a `DELETE_ELEMENT_PROVIDER` when only [NlComponentReference]s are selected.
@@ -288,7 +306,8 @@ private class ComponentTreePanel(
    * Otherwise simply delegate to whatever the surface is offering.
    */
   private fun getData(dataId: String): Any? {
-    val referencesOnly  = componentTree.selectionModel.currentSelection.all { it is NlComponentReference }
+    val referencesOnly =
+      componentTree.selectionModel.currentSelection.all { it is NlComponentReference }
     if (referencesOnly && PlatformDataKeys.DELETE_ELEMENT_PROVIDER.`is`(dataId)) {
       // Provide a way to delete a reference from a helper
       return referenceDeleteProvider
@@ -296,36 +315,44 @@ private class ComponentTreePanel(
     return surface?.getData(dataId)
   }
 
-  /**
-   * The [NodeType] used for [NlComponent]s in the [NlModel] of the design surface.
-   */
-  private inner class NlComponentNodeType : ViewNodeType<NlComponent>() {
+  /** The [NodeType] used for [NlComponent]s in the [NlModel] of the design surface. */
+  private inner class NlComponentNodeType(private val update: Runnable) :
+    ViewNodeType<NlComponent>() {
     override val clazz: Class<NlComponent> = NlComponent::class.java
 
     override fun idOf(node: NlComponent): String? = stripIdPrefix(node.id).ifEmpty { null }
 
-    override fun tagNameOf(node: NlComponent): String = node.viewHandler?.getTitle(node)?.nullize() ?: node.tagName
+    override fun tagNameOf(node: NlComponent): String =
+      node.getViewHandler(update)?.getTitle(node)?.nullize() ?: node.tagName
 
-    override fun textValueOf(node: NlComponent): String? = node.viewHandler?.getTitleAttributes(node)
+    override fun textValueOf(node: NlComponent): String? =
+      node.getViewHandler(update)?.getTitleAttributes(node)
 
-    override fun iconOf(node: NlComponent): Icon = node.viewHandler?.getIcon(node) ?: loadBuiltinIcon(getSimpleTagName(node))
+    override fun iconOf(node: NlComponent): Icon =
+      node.getViewHandler(update)?.getIcon(node) ?: loadBuiltinIcon(getSimpleTagName(node))
 
     override fun parentOf(node: NlComponent): NlComponent? = node.parent
 
-    override fun childrenOf(node: NlComponent): List<*> = node.viewGroupHandler?.getComponentTreeChildren(node) ?: node.children
+    override fun childrenOf(node: NlComponent): List<*> =
+      node.getViewGroupHandler(update)?.getComponentTreeChildren(node) ?: node.children
 
-    override fun toSearchString(node: NlComponent): String = "${idOf(node)} - ${tagNameOf(node)} - ${textValueOf(node)}"
+    override fun toSearchString(node: NlComponent): String =
+      "${idOf(node)} - ${tagNameOf(node)} - ${textValueOf(node)}"
 
     /** Display items with a strikeout if the effective visibility is [Visibility.GONE] */
     override fun isEnabled(node: NlComponent): Boolean =
       getVisibilityFromParents(node) != Visibility.GONE
 
-    /** Display items with a weaker font color if the effective visibility is [Visibility.GONE] or [Visibility.INVISIBLE] */
-    override fun isDeEmphasized(node: NlComponent): Boolean = when(getVisibilityFromParents(node)) {
-      Visibility.GONE,
-      Visibility.INVISIBLE -> true
-      else -> false
-    }
+    /**
+     * Display items with a weaker font color if the effective visibility is [Visibility.GONE] or
+     * [Visibility.INVISIBLE]
+     */
+    override fun isDeEmphasized(node: NlComponent): Boolean =
+      when (getVisibilityFromParents(node)) {
+        Visibility.GONE,
+        Visibility.INVISIBLE -> true
+        else -> false
+      }
 
     override fun canInsert(node: NlComponent, data: Transferable): Boolean {
       val model = model ?: return false
@@ -339,24 +366,36 @@ private class ComponentTreePanel(
       }
       // Allow:
       // - components to be dragged into a group component
-      // - references or components to be dragged into a reference holder component (components will be saved as references)
-      return (components.isNotEmpty() && node.isGroup() && model.canAddComponents(components, node, null)) ||
-             node.viewGroupHandler?.holdsReferences() == true
+      // - references or components to be dragged into a reference holder component (components will
+      // be saved as references)
+      return (components.isNotEmpty() &&
+        node.isGroup() &&
+        model.canAddComponents(components, node, null)) ||
+        node.getViewGroupHandler {}?.holdsReferences() == true
     }
 
-    override fun insert(node: NlComponent, data: Transferable, before: Any?, isMove: Boolean, draggedFromTree: List<Any>): Boolean {
+    override fun insert(
+      node: NlComponent,
+      data: Transferable,
+      before: Any?,
+      isMove: Boolean,
+      draggedFromTree: List<Any>
+    ): Boolean {
       val model = model ?: return false
       if (!data.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) return false
       val item = DnDTransferItem.getTransferItem(data, true) ?: return false
-      val insertType = if (isMove && draggedFromTree.isNotEmpty()) InsertType.MOVE else InsertType.COPY
+      val insertType =
+        if (isMove && draggedFromTree.isNotEmpty()) InsertType.MOVE else InsertType.COPY
       val components =
         if (insertType == InsertType.MOVE) draggedFromTree.filterIsInstance<NlComponent>()
         else model.createComponents(item, insertType)
       val refs = item.references
       when {
-        node.isGroup() && refs.isEmpty() && model.canAddComponents(components, node, before as? NlComponent) ->
+        node.isGroup() &&
+          refs.isEmpty() &&
+          model.canAddComponents(components, node, before as? NlComponent) ->
           model.addComponents(components, node, before as? NlComponent, insertType, null)
-        node.viewGroupHandler?.holdsReferences() == true ->
+        node.getViewGroupHandler {}?.holdsReferences() == true ->
           updateReferences(node, components, refs, before as? NlComponentReference, insertType)
         else -> return false
       }
@@ -374,7 +413,7 @@ private class ComponentTreePanel(
     ) {
       // First add the reference to the constraint helpers reference list:
       val ids = references + components.map { it.ensureLiveId() }
-      node.viewGroupHandler?.addReferences(node, ids, before?.id)
+      node.getViewGroupHandler {}?.addReferences(node, ids, before?.id)
 
       // Then add/move the referenced component to the corresponding constraint layout:
       val layout = node.parent ?: return
@@ -394,15 +433,16 @@ private class ComponentTreePanel(
 
     override fun createDragImage(node: NlComponent): Image = EMPTY_IMAGE
 
-    private fun getSimpleTagName(node: NlComponent): String =
-      node.tagName.substringAfterLast('.')
+    private fun getSimpleTagName(node: NlComponent): String = node.tagName.substringAfterLast('.')
 
     private fun loadBuiltinIcon(simpleTagName: String): Icon =
-      AndroidDomElementDescriptorProvider.getIconForViewTag(simpleTagName) ?: StudioIcons.LayoutEditor.Palette.VIEW
+      AndroidDomElementDescriptorProvider.getIconForViewTag(simpleTagName)
+        ?: StudioIcons.LayoutEditor.Palette.VIEW
   }
 
   /**
-   * A [NodeType] for [NlComponentReference]s from [NlComponent]s in the [NlModel] of the design surface.
+   * A [NodeType] for [NlComponentReference]s from [NlComponent]s in the [NlModel] of the design
+   * surface.
    */
   private inner class NlComponentReferenceNodeType : NodeType<NlComponentReference> {
     override val clazz: Class<NlComponentReference> = NlComponentReference::class.java
@@ -414,7 +454,9 @@ private class ComponentTreePanel(
     override fun toSearchString(node: NlComponentReference): String = node.id
 
     override fun createTransferable(node: NlComponentReference): Transferable =
-      ItemTransferable(DnDTransferItem(model?.id ?: 0, ImmutableList.of(), ImmutableList.of(node.id)))
+      ItemTransferable(
+        DnDTransferItem(model?.id ?: 0, ImmutableList.of(), ImmutableList.of(node.id))
+      )
 
     private val label = JBLabel()
     private val renderer = TreeCellRenderer { _, value, selected, _, _, _, hasFocus ->
@@ -428,16 +470,17 @@ private class ComponentTreePanel(
     override fun createRenderer(): TreeCellRenderer = renderer
   }
 
-  /**
-   * A BadgeItem for displaying issue icons in the 2nd column of the component TreeTable.
-   */
+  /** A BadgeItem for displaying issue icons in the 2nd column of the component TreeTable. */
   private inner class IssueBadgeColumn : IconColumn("Issues") {
 
-    override fun getIcon(item: Any): Icon? = issueOf(item)?.let { IssueModel.getIssueIcon(it.severity, false) }
+    override fun getIcon(item: Any): Icon? =
+      issueOf(item)?.let { IssueModel.getIssueIcon(it.severity, false) }
 
     override fun getTooltipText(item: Any): String {
       val issue = issueOf(item) ?: return ""
-      return "<html>" + HtmlEscapers.htmlEscaper().escape(issue.summary) + "<br>Click the badge for detail.</html>"
+      return "<html>" +
+        HtmlEscapers.htmlEscaper().escape(issue.summary) +
+        "<br>Click the badge for detail.</html>"
     }
 
     override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {

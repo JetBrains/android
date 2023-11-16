@@ -16,7 +16,7 @@
 package com.android.tools.profilers
 
 import com.android.tools.adtui.model.AspectModel
-import com.google.common.annotations.VisibleForTesting
+import org.assertj.core.util.VisibleForTesting
 import java.util.Collections
 import javax.swing.DefaultComboBoxModel
 import javax.swing.ListModel

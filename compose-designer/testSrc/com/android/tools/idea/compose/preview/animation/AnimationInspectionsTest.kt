@@ -31,25 +31,25 @@ import org.junit.Rule
 import org.junit.Test
 
 private const val UPDATE_TRANSITION_LABEL_NOT_SET_MESSAGE =
-  "The label parameter should be set so this transition can be better inspected in the Animation Preview."
+  "The label parameter should be set so this transition can be better inspected in the Animation Preview"
 
 private const val ANIMATED_CONTENT_LABEL_NOT_SET_MESSAGE =
-  "The label parameter should be set so this AnimatedContent can be better inspected in the Animation Preview."
+  "The label parameter should be set so this AnimatedContent can be better inspected in the Animation Preview"
 
 private const val REMEMBER_INFINITE_TRANSITION_LABEL_NOT_SET_MESSAGE =
-  "The label parameter should be set so this rememberInfiniteTransition can be better inspected in the Animation Preview."
+  "The label parameter should be set so this rememberInfiniteTransition can be better inspected in the Animation Preview"
 
 private const val INFINITE_TRANSITION__PROPERTY_LABEL_NOT_SET_MESSAGE =
-  "The label parameter should be set so this infinite transition property can be better inspected in the Animation Preview."
+  "The label parameter should be set so this infinite transition property can be better inspected in the Animation Preview"
 
 private const val ANIMATE_AS_STATE_LABEL_NOT_SET_MESSAGE =
-  "The label parameter should be set so this animate*AsState can be better inspected in the Animation Preview."
+  "The label parameter should be set so this animate*AsState can be better inspected in the Animation Preview"
 
 private const val CROSSFADE_LABEL_NOT_SET_MESSAGE =
-  "The label parameter should be set so this Crossfade can be better inspected in the Animation Preview."
+  "The label parameter should be set so this Crossfade can be better inspected in the Animation Preview"
 
 private const val TRANSITION_PROPERTY_LABEL_NOT_SET_MESSAGE =
-  "The label parameter should be set so this transition property can be better inspected in the Animation Preview."
+  "The label parameter should be set so this transition property can be better inspected in the Animation Preview"
 
 class AnimationInspectionsTest {
 
@@ -106,6 +106,9 @@ class AnimationInspectionsTest {
       // language=kotlin
       """
       package androidx.compose.animation
+
+      import androidx.compose.animation.core.InfiniteTransition
+      import androidx.compose.animation.core.Transition
 
       fun Transition.animateColor(transitionSpec: () -> Unit, label: String = "ColorAnimation") {}
       fun InfiniteTransition.animateColor(initialValue: Any, targetValue: Any, label: String = "ColorAnimation") {}

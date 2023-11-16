@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.ide.common.gradle.Component
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.LibraryReference
@@ -77,6 +78,7 @@ class InternedModelsTest {
     val libRoot = "/tmp/libs/lib"
     val unnamed = IdeJavaLibraryImpl(
       artifactAddress = "com.example:lib:1.0",
+      component = Component.parse("com.example:lib:1.0"),
       name = "",
       artifact = File("$libRoot/artifactFile"),
       srcJar = null,
@@ -94,6 +96,7 @@ class InternedModelsTest {
     val libRoot = "/tmp/libs/lib"
     val unnamed = IdeJavaLibraryImpl(
       artifactAddress = "com.example:lib:1.0",
+      component = Component.parse("com.example:lib:1.0"),
       name = "",
       artifact = File("$libRoot/artifactFile"),
       srcJar = null,
@@ -178,7 +181,7 @@ class InternedModelsTest {
     val unnamed = let {
       val libRoot = "$BUILD_ROOT/app/libs"
       val artifact = "$libRoot/artifactFile"
-      ideAndroidLibrary(libRoot, "${ModelCache.LOCAL_AARS}:$artifact", artifact)
+      ideAndroidLibrary(libRoot, "${ModelCache.LOCAL_AARS}:$artifact", artifact, component = null)
     }
 
     val named = internedModels.getOrCreate(unnamed).lookup()
@@ -190,9 +193,11 @@ class InternedModelsTest {
   private fun ideAndroidLibrary(
     libRoot: String,
     address: String,
-    artifact: String
+    artifact: String,
+    component: Component? = Component.parse(address)
   ) = IdeAndroidLibraryImpl.create(
     artifactAddress = address,
+    component = component,
     name = "",
     folder = File(libRoot),
     manifest = "$libRoot/AndroidManifest.xml",

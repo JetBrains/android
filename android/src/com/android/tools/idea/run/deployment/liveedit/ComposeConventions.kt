@@ -54,11 +54,11 @@ fun calcStateParamCount(realValueParamsCount : Int, numDefaults : Int = 0) : Int
     totalSyntheticParamCount += 1
   } else {
     val totalParams = realValueParamsCount
-    totalSyntheticParamCount += ceil(totalParams.toDouble() / SLOTS_PER_INT.toDouble()).toInt()
+    totalSyntheticParamCount += Math.ceil(totalParams.toDouble() / SLOTS_PER_INT.toDouble()).toInt()
   }
 
   if (realValueParamsCount != 0 && numDefaults != 0) {
-    totalSyntheticParamCount += ceil(realValueParamsCount.toDouble() / BITS_PER_INT.toDouble()).toInt()
+    totalSyntheticParamCount += Math.ceil(realValueParamsCount.toDouble() / BITS_PER_INT.toDouble()).toInt()
   }
   return totalSyntheticParamCount
 }

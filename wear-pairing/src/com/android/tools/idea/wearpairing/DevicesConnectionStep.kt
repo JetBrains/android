@@ -655,7 +655,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       firstStepLabel = message("wear.assistant.device.connection.pairing.auto.step"),
       buttonLabel = buttonLabel,
       buttonListener = {
-        check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
+        runningJob?.cancel()
         runningJob = coroutineScope.launch(Dispatchers.IO) {
           showPairing(phoneWearPair, phoneDevice, wearDevice)
         }
@@ -665,7 +665,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       scanningLabel = scanningLabel,
       scanningLink = scanningLink,
       scanningListener = {
-        check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
+        runningJob?.cancel()
         runningJob = coroutineScope.launch(Dispatchers.IO) {
           showUiPairingAppInstructions(phoneWearPair, phoneDevice, wearDevice)
         }

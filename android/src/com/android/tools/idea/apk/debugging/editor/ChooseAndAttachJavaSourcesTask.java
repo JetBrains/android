@@ -23,11 +23,11 @@ import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.crea
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.ApkFacetConfiguration;
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.apk.debugging.ExternalSourceFolders;
-import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.util.FileOrFolderChooser;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;

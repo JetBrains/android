@@ -413,7 +413,7 @@ public class Palette {
         }
       }
       else {
-        myHandler = manager.getHandlerOrDefault(myTagName);
+        myHandler = manager.getHandlerOrDefault(myTagName, () -> {});
       }
     }
 

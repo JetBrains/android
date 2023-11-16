@@ -29,20 +29,22 @@ import com.android.utils.NullLogger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 
 
-internal fun createApp(device: IDevice, appId: String, servicesName: List<String>, activitiesName: List<String>): App {
+fun createApp(
+  device: IDevice, appId: String, servicesName: List<String> = emptyList(), activitiesName: List<String> = emptyList()
+): App {
   val services = servicesName.map { createManifestServiceInfo(it, appId) }
   val activities = activitiesName.map { createManifestActivityInfo(it, appId) }
   val apk = Apk.Builder().setServices(services).setActivities(activities).build()
   return App(appId, listOf(apk), device, NullLogger())
 }
 
-private fun createManifestServiceInfo(serviceName: String,
-                                      appId: String,
-                                      attrs: Map<String, String> = emptyMap()): ManifestServiceInfo {
+private fun createManifestServiceInfo(
+  serviceName: String, appId: String, attrs: Map<String, String> = emptyMap()
+): ManifestServiceInfo {
   val node = XmlNode()
   node.attributes()["name"] = serviceName
   for ((attr, value) in attrs) {
@@ -51,9 +53,9 @@ private fun createManifestServiceInfo(serviceName: String,
   return ManifestServiceInfo(node, appId)
 }
 
-private fun createManifestActivityInfo(activityName: String,
-                                       appId: String,
-                                       attrs: Map<String, String> = emptyMap()): ManifestActivityInfo {
+private fun createManifestActivityInfo(
+  activityName: String, appId: String, attrs: Map<String, String> = emptyMap()
+): ManifestActivityInfo {
   val node = XmlNode()
   node.attributes()["name"] = activityName
   for ((attr, value) in attrs) {
@@ -63,7 +65,7 @@ private fun createManifestActivityInfo(activityName: String,
 }
 
 
-internal class TestApplicationInstaller : ApplicationDeployer {
+class TestApplicationInstaller : ApplicationDeployer {
 
   private var appIdToApp: HashMap<String, App>
 
@@ -78,46 +80,43 @@ internal class TestApplicationInstaller : ApplicationDeployer {
     return Deployer.Result(false, false, false, appIdToApp[appId]!!)
   }
 
-  override fun applyChangesDeploy(device: IDevice,
-                                  app: ApkInfo,
-                                  deployOptions: DeployOptions,
-                                  indicator: ProgressIndicator): Deployer.Result {
+  override fun applyChangesDeploy(
+    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator
+  ): Deployer.Result {
     TODO("Not yet implemented")
   }
 
-  override fun applyCodeChangesDeploy(device: IDevice,
-                                      app: ApkInfo,
-                                      deployOptions: DeployOptions,
-                                      indicator: ProgressIndicator): Deployer.Result {
+  override fun applyCodeChangesDeploy(
+    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator
+  ): Deployer.Result {
     TODO("Not yet implemented")
   }
 }
 
-internal fun JavaCodeInsightTestFixture.addWearDependenciesToProject() {
-  // Simulates that 'com.google.android.support:wearable:xxx' was added to `build.gradle`
+fun CodeInsightTestFixture.addWearDependenciesToProject() { // Simulates that 'com.google.android.support:wearable:xxx' was added to `build.gradle`
   addFileToProject(
-    "src/android/support/wearable/watchface/WatchFaceService.kt",
-    """
+    "src/android/support/wearable/watchface/WatchFaceService.kt", """
       package android.support.wearable.watchface
 
       open class WatchFaceService
-      """.trimIndent())
+      """.trimIndent()
+  )
 
   addFileToProject(
-    "src/androidx/wear/tiles/TileService.kt",
-    """
+    "src/androidx/wear/tiles/TileService.kt", """
       package androidx.wear.tiles
 
       open class TileService
-      """.trimIndent())
+      """.trimIndent()
+  )
 
   addFileToProject(
-    "src/androidx/wear/watchface/complications/datasource/ComplicationDataSourceService.kt",
-    """
+    "src/androidx/wear/watchface/complications/datasource/ComplicationDataSourceService.kt", """
       package androidx.wear.watchface.complications.datasource
 
       open class ComplicationDataSourceService
-      """.trimIndent())
+      """.trimIndent()
+  )
 }
 
-internal fun PsiFile.findElementByText(text: String): PsiElement = findDescendantOfType { it.node.text == text }!!
+fun PsiFile.findElementByText(text: String): PsiElement = findDescendantOfType { it.node.text == text }!!

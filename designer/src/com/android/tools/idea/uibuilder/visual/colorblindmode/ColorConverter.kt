@@ -19,18 +19,11 @@ import com.intellij.openapi.Disposable
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 import java.util.function.Function
-import kotlin.math.ceil
-import kotlin.math.floor
 import kotlin.math.pow
 
-/**
- * All the numbers, math and explanation on how things work is documented in:
- * go/cbm_simulator
- */
+/** All the numbers, math and explanation on how things work is documented in: go/cbm_simulator */
 
-/**
- * Color blind simulator.
- */
+/** Color blind simulator. */
 class ColorConverter(val mode: ColorBlindMode) : Disposable {
 
   companion object {
@@ -39,8 +32,8 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
   private var cbmCLut: ColorLut? = null
 
   /**
-   * Pre condition : BufferedImage must be [BufferedImage.TYPE_INT_ARGB].
-   * Returns true if color conversion was successful. False otherwise
+   * Pre condition : BufferedImage must be [BufferedImage.TYPE_INT_ARGB]. Returns true if color
+   * conversion was successful. False otherwise
    */
   fun convert(startImage: BufferedImage, postImage: BufferedImage): Boolean {
     if (cbmCLut == null || removeGammaCLut == null) {
@@ -48,7 +41,10 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
       cbmCLut = buildColorLut(DIM, mode, removeGammaCLut!!)
     }
 
-    if (startImage.type != BufferedImage.TYPE_INT_ARGB || postImage.type != BufferedImage.TYPE_INT_ARGB) {
+    if (
+      startImage.type != BufferedImage.TYPE_INT_ARGB ||
+        postImage.type != BufferedImage.TYPE_INT_ARGB
+    ) {
       println("Error:: BufferedImage not supported for color blind mode.")
       return false
     }
@@ -65,6 +61,7 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
 
   /**
    * Corrects alpha value assuming background is white
+   *
    * @param color int containing rgb color (e.g. 0xFFFFFF)
    * @param alpha value from [1,255]
    */
@@ -72,9 +69,11 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
     val a = a(color).toDouble() / 255.0
     val whiteBg = (1 - a) * 255
 
-    return combine(a * r(color).toDouble() + whiteBg,
-                   a * g(color).toDouble() + whiteBg,
-                   a * b(color).toDouble() + whiteBg)
+    return combine(
+      a * r(color).toDouble() + whiteBg,
+      a * g(color).toDouble() + whiteBg,
+      a * b(color).toDouble() + whiteBg
+    )
   }
 
   override fun dispose() {
@@ -88,8 +87,8 @@ class ColorLut(val lut: IntArray, val dim: Int) {
   private val dimdim = dim * dim
 
   /**
-   * Given current index, it looks for the next appropriate RED index.
-   * If [index] contains the highest RED, it returns [index]
+   * Given current index, it looks for the next appropriate RED index. If [index] contains the
+   * highest RED, it returns [index]
    */
   fun nextRed(index: Int): Int {
     if ((index + 1) % dim == 0) {
@@ -137,19 +136,19 @@ class ColorLut(val lut: IntArray, val dim: Int) {
 
     // 2) x - INDEX, y - COLOR. Interpolate from x to y.
     val rx: Double = red * (dim - 1) / 255.0
-    val rx0: Int = floor(rx).toInt()
+    val rx0: Int = Math.floor(rx).toInt()
 
     val gx: Double = green * (dim - 1) / 255.0
-    val gx0: Int = floor(gx).toInt()
+    val gx0: Int = Math.floor(gx).toInt()
 
     val bx: Double = blue * (dim - 1) / 255.0
-    val bx0: Int = floor(bx).toInt()
+    val bx0: Int = Math.floor(bx).toInt()
 
     val x0 = rx0 + gx0 * dim + bx0 * dimdim
 
-    val rx1 = ceil(rx).toInt()
-    val gx1 = ceil(gx).toInt()
-    val bx1 = ceil(bx).toInt()
+    val rx1 = Math.ceil(rx).toInt()
+    val gx1 = Math.ceil(gx).toInt()
+    val bx1 = Math.ceil(bx).toInt()
 
     val ry0 = r(lut[x0])
     val ry1 = r(lut[nextRed(x0)])
@@ -160,12 +159,9 @@ class ColorLut(val lut: IntArray, val dim: Int) {
     val by0 = b(lut[x0])
     val by1 = b(lut[nextBlue(x0)])
 
-    val ry = if (rx0 == rx1) ry0 else
-      interpolate(rx, rx0.toDouble(), rx1.toDouble(), ry0, ry1)
-    val gy = if (gx0 == gx1) gy0 else
-      interpolate(gx, gx0.toDouble(), gx1.toDouble(), gy0, gy1)
-    val by = if (bx0 == bx1) by0 else
-      interpolate(bx, bx0.toDouble(), bx1.toDouble(), by0, by1)
+    val ry = if (rx0 == rx1) ry0 else interpolate(rx, rx0.toDouble(), rx1.toDouble(), ry0, ry1)
+    val gy = if (gx0 == gx1) gy0 else interpolate(gx, gx0.toDouble(), gx1.toDouble(), gy0, gy1)
+    val by = if (bx0 == bx1) by0 else interpolate(bx, bx0.toDouble(), bx1.toDouble(), by0, by1)
 
     return ry shl 16 or (gy shl 8) or by
   }
@@ -174,17 +170,16 @@ class ColorLut(val lut: IntArray, val dim: Int) {
     val builder = StringBuilder()
     for (i in lut.indices) {
       val color = lut[i]
-      if ((i+1) % dim == 0) {
+      if ((i + 1) % dim == 0) {
         builder.append("${r(color)}, ${g(color)}, ${b(color)} \n")
       } else {
         builder.append("${r(color)}, ${g(color)}, ${b(color)} \t\t")
       }
 
-      if( (i + 1) % (dim * dim) == 0) {
+      if ((i + 1) % (dim * dim) == 0) {
         builder.append("=========================\n")
       }
     }
     return builder.toString()
   }
 }
-

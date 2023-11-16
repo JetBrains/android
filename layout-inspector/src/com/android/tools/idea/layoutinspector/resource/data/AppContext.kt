@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.layoutinspector.resource.data
 
+import java.awt.Dimension
+
 /**
  * Misc. context about the current running app.
+ *
+ * @param mainDisplayOrientation The orientation of the device main display in degrees.
  */
 class AppContext(
   val theme: Resource = Resource(),
-  val screenWidth: Int,
-  val screenHeight: Int
+  val screenSize: Dimension? = null,
+  val mainDisplayOrientation: Int,
+  val isRunningInMainDisplay: Boolean
 )

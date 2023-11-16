@@ -5,6 +5,8 @@ iml_module(
     name = "intellij.android.app-quality-insights.play-vitals.model",
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.play-vitals.model.iml"],
+    test_class = "com.android.tools.idea.vitals.PlayVitalsModelTestSuite",
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -14,6 +16,15 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
+        "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils[module, test]",
     ],
 )
 

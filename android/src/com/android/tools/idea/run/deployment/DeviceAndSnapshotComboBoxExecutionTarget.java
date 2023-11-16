@@ -17,23 +17,23 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.configuration.AndroidWearConfiguration;
+import com.android.tools.idea.execution.common.DeployableToDevice;
+import com.android.tools.idea.run.DeploymentApplicationService;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import icons.StudioIcons;
-import java.awt.EventQueue;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The combo box generates these {@link ExecutionTarget ExecutionTargets.} ExecutionTargets determine the state of the run, debug, and stop
@@ -43,23 +43,36 @@ public final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecu
   private final @NotNull Collection<Key> myKeys;
   private final @NotNull AsyncDevicesGetter myDevicesGetter;
 
+  @NotNull
+  private final Supplier<DeploymentApplicationService> myDeploymentApplicationServiceGetInstance;
+
   public DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Collection<Target> targets, @NotNull AsyncDevicesGetter devicesGetter) {
+    this(targets, devicesGetter, DeploymentApplicationService::getInstance);
+  }
+
+  @VisibleForTesting
+  DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Collection<Target> targets,
+                                           @NotNull AsyncDevicesGetter devicesGetter,
+                                           @NotNull Supplier<DeploymentApplicationService> deploymentApplicationServiceGetInstance) {
     myKeys = targets.stream()
       .map(Target::getDeviceKey)
       .collect(Collectors.toSet());
 
     myDevicesGetter = devicesGetter;
+    myDeploymentApplicationServiceGetInstance = deploymentApplicationServiceGetInstance;
   }
 
   @Override
   public @NotNull ListenableFuture<Boolean> isApplicationRunningAsync(@NotNull String appPackage) {
-    var futures = deviceStream()
-      .map(device -> device.isRunningAsync(appPackage))
-      .collect(Collectors.toList());
+    return Futures.submit(() -> isApplicationRunning(appPackage), AppExecutorUtil.getAppExecutorService());
+  }
 
-    // noinspection UnstableApiUsage, SpellCheckingInspection
-    return Futures.transform(Futures.successfulAsList(futures), runnings -> runnings.contains(true),
-                             AppExecutorUtil.getAppExecutorService());
+  private boolean isApplicationRunning(@NotNull String appPackage) {
+    var service = myDeploymentApplicationServiceGetInstance.get();
+
+    return getRunningDevices().stream()
+      .map(device -> service.findClient(device, appPackage))
+      .anyMatch(clients -> !clients.isEmpty());
   }
 
   @Override
@@ -67,35 +80,12 @@ public final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecu
     return (int)deviceStream().count();
   }
 
-  @Override
-  public @NotNull ListenableFuture<Collection<IDevice>> getRunningDevicesAsync() {
-    var futures = deviceStream()
-      .filter(Device::isConnected)
-      .map(Device::getDdmlibDeviceAsync)
-      .collect(Collectors.toList());
-
-    @SuppressWarnings("UnstableApiUsage")
-    var future = Futures.successfulAsList(futures);
-
-    // The EDT and Action Updater (Common) threads call into this. Ideally we'd use the respective executors here instead of the direct
-    // executor. But we don't have access to the Action Updater (Common) executor.
-
-    // noinspection UnstableApiUsage
-    return Futures.transform(future, DeviceAndSnapshotComboBoxExecutionTarget::filterNonNull, MoreExecutors.directExecutor());
-  }
-
   @NotNull
   @Override
   public Collection<IDevice> getRunningDevices() {
-    if (Thread.currentThread().getName().equals("Action Updater (Common)") || EventQueue.isDispatchThread()) {
-      Loggers.errorConditionally(DeviceAndSnapshotComboBoxExecutionTarget.class,
-                                 "Blocking Future::get calls on an Action Updater (Common) thread or the EDT http://b/259746412, " +
-                                 "http://b/259746444, http://b/259746749, http://b/259747002, http://b/259747870, and http://b/259747965");
-    }
-
     return deviceStream()
-      .filter(Device::isConnected)
-      .map(Device::getDdmlibDeviceAsync)
+      .filter(Device::connected)
+      .map(Device::ddmlibDeviceAsync)
       .map(Futures::getUnchecked)
       .collect(Collectors.toList());
   }
@@ -105,7 +95,7 @@ public final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecu
   }
 
   private @NotNull Stream<Device> filteredStream(@NotNull Collection<Device> devices) {
-    return devices.stream().filter(device -> myKeys.contains(device.getKey()));
+    return devices.stream().filter(device -> myKeys.contains(device.key()));
   }
 
   @NotNull
@@ -124,7 +114,7 @@ public final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecu
 
     return switch (devices.size()) {
       case 0 -> "No Devices";
-      case 1 -> devices.get(0).getName();
+      case 1 -> devices.get(0).name();
       default -> "Multiple Devices";
     };
   }
@@ -135,7 +125,7 @@ public final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecu
     var devices = deviceStream().toList();
 
     if (devices.size() == 1) {
-      return devices.get(0).getIcon();
+      return devices.get(0).icon();
     }
 
     return StudioIcons.DeviceExplorer.MULTIPLE_DEVICES;
@@ -143,19 +133,22 @@ public final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecu
 
   @Override
   public boolean canRun(@NotNull RunConfiguration configuration) {
-    Boolean deploysToLocalDevice = false;
-    // This allows BlazeCommandRunConfiguration to run as its DEPLOY_TO_LOCAL_DEVICE is set by BlazeAndroidBinaryRunConfigurationHandler
-    if (configuration instanceof UserDataHolderBase) {
-      deploysToLocalDevice = ((UserDataHolderBase)configuration).getUserData(DeviceAndSnapshotComboBoxAction.DEPLOYS_TO_LOCAL_DEVICE);
-    }
-    return configuration instanceof AndroidRunConfigurationBase ||
-           configuration instanceof AndroidWearConfiguration ||
-           (deploysToLocalDevice != null && deploysToLocalDevice);
+    return DeployableToDevice.deploysToLocalDevice(configuration);
   }
 
-  private static @NotNull Collection<IDevice> filterNonNull(@NotNull Collection<IDevice> devices) {
-    return devices.stream()
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
+  @Override
+  public boolean equals(@Nullable Object object) {
+    if (!(object instanceof DeviceAndSnapshotComboBoxExecutionTarget target)) {
+      return false;
+    }
+
+    return myKeys.equals(target.myKeys) &&
+           myDevicesGetter.equals(target.myDevicesGetter) &&
+           myDeploymentApplicationServiceGetInstance.equals(target.myDeploymentApplicationServiceGetInstance);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myKeys, myDevicesGetter, myDeploymentApplicationServiceGetInstance);
   }
 }

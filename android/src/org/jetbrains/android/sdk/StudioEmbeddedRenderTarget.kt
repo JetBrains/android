@@ -26,6 +26,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.download.AndroidLayoutlibDownloader
 import java.io.File
 
@@ -71,7 +72,7 @@ class StudioEmbeddedRenderTarget {
       }
 
       val notFoundPaths = mutableListOf<String>()
-      val root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(path))
+      val root = VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL).findFileByPath(FileUtil.toSystemIndependentName(path))
       if (root != null) {
         val rootFile = VfsUtilCore.virtualToIoFile(root)
         if (rootFile.exists() && rootFile.isDirectory) {

@@ -74,7 +74,7 @@ class ScopedStateStore(
   /**
    * @return a all keys from all scopes that were set in this store.
    */
-  private val allKeys: Set<Key<*>>
+  val allKeys: Set<Key<*>>
     get() = if (parent == null) {
       state.keys.toSet()
     }

@@ -21,14 +21,15 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.ActivitiesAndAliases;
 import com.android.tools.idea.model.AndroidManifestIndex;
 import com.intellij.execution.JavaExecutionUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
-import com.intellij.util.Function;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -97,18 +98,9 @@ public class SpecificActivityLocator extends ActivityLocator {
 
     ActivitiesAndAliases activityWrappers = queryActivitiesFromManifestIndex(myFacet);
 
-    validateHelper(activityClass, specifiedActivityClass, activityWrappers::findActivityByName, activityWrappers::findAliasByName);
-
-  }
-
-  private void validateHelper(@NotNull PsiClass activityClass,
-                              @Nullable PsiClass specifiedActivityClass,
-                              Function<String, DefaultActivityLocator.ActivityWrapper> getActivity,
-                              Function<String, DefaultActivityLocator.ActivityWrapper> getAlias)
-    throws ActivityLocatorException {
     DefaultActivityLocator.ActivityWrapper specifiedActivity;
     if (specifiedActivityClass == null || !specifiedActivityClass.isInheritor(activityClass, true)) {
-      specifiedActivity = getAlias.fun(myActivityName);
+      specifiedActivity = activityWrappers.findAliasByName(myActivityName);
       if (specifiedActivity == null) {
         throw new ActivityLocatorException(AndroidBundle.message("not.activity.subclass.error", myActivityName));
       }
@@ -116,7 +108,7 @@ public class SpecificActivityLocator extends ActivityLocator {
     else {
       // check whether activity is declared in the manifest
       String qualifiedActivityName = ActivityLocatorUtils.getQualifiedActivityName(specifiedActivityClass);
-      specifiedActivity = getActivity.fun(qualifiedActivityName);
+      specifiedActivity = activityWrappers.findActivityByName(qualifiedActivityName);
       if (specifiedActivity == null) {
         throw new ActivityLocatorException(AndroidBundle.message("activity.not.declared.in.manifest", specifiedActivityClass.getName()));
       }
@@ -134,7 +126,9 @@ public class SpecificActivityLocator extends ActivityLocator {
     if (manifest == null) {
       return false;
     }
-    final String aPackage = manifest.getPackage().getStringValue();
+    final String aPackage = ApplicationManager.getApplication().runReadAction(
+      (Computable<String>)() -> manifest.getPackage().getStringValue()
+    );
     return aPackage != null && aPackage.contains("${");
   }
 }

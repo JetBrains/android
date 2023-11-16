@@ -24,14 +24,13 @@ import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.project.AndroidNotification
-import com.android.tools.idea.projectsystem.requiresAndroidModel
+import com.intellij.ide.impl.isTrusted
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
-import com.intellij.project.isDirectoryBased
 import com.intellij.ui.AppUIUtil
 import com.intellij.util.ui.UIUtil
 
@@ -40,7 +39,13 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
    * This method should not be called within a [DumbModeTask], the platform will take care of ensuring that
    * sync is not run at the same time as indexing.
    */
+  @Suppress("UnstableApiUsage")
   override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
+    if (!project.isTrusted()) {
+      LOG.debug("Skip ${project.name} import, because project is not trusted", Throwable())
+      listener?.syncSkipped(project)
+      return
+    }
     if (GradleSyncState.getInstance(project).isSyncInProgress) {
       listener?.syncSkipped(project)
       return

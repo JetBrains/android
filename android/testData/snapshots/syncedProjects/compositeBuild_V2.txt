@@ -4,7 +4,7 @@ PROJECT                       : project
     MODULE                        : TestCompositeLib1
         ExternalModuleGroup           : com.test.composite1
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : TestCompositeLib1
+        LinkedProjectId               : :includedLib1
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -33,7 +33,7 @@ PROJECT                       : project
             androidTest                   : TestCompositeLib1.app.androidTest
         ExternalModuleGroup           : com.test.composite1
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : TestCompositeLib1:app
+        LinkedProjectId               : :includedLib1:app
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -111,7 +111,7 @@ PROJECT                       : project
             unitTest                      : TestCompositeLib1.app.unitTest
             androidTest                   : TestCompositeLib1.app.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : TestCompositeLib1:app:androidTest
+        LinkedProjectId               : :includedLib1:app:androidTest
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -146,11 +146,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -164,16 +163,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -347,7 +345,7 @@ PROJECT                       : project
             unitTest                      : TestCompositeLib1.app.unitTest
             androidTest                   : TestCompositeLib1.app.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : TestCompositeLib1:app:main
+        LinkedProjectId               : :includedLib1:app:main
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -380,11 +378,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -398,16 +395,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -537,7 +533,7 @@ PROJECT                       : project
             unitTest                      : TestCompositeLib1.app.unitTest
             androidTest                   : TestCompositeLib1.app.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : TestCompositeLib1:app:unitTest
+        LinkedProjectId               : :includedLib1:app:unitTest
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -570,11 +566,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -588,16 +583,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -768,7 +762,7 @@ PROJECT                       : project
             androidTest                   : TestCompositeLib1.lib.androidTest
         ExternalModuleGroup           : com.test.composite1
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : TestCompositeLib1:lib
+        LinkedProjectId               : :includedLib1:lib
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -838,7 +832,7 @@ PROJECT                       : project
             unitTest                      : TestCompositeLib1.lib.unitTest
             androidTest                   : TestCompositeLib1.lib.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : TestCompositeLib1:lib:androidTest
+        LinkedProjectId               : :includedLib1:lib:androidTest
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -873,11 +867,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -891,16 +884,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1058,7 +1050,7 @@ PROJECT                       : project
             unitTest                      : TestCompositeLib1.lib.unitTest
             androidTest                   : TestCompositeLib1.lib.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : TestCompositeLib1:lib:main
+        LinkedProjectId               : :includedLib1:lib:main
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1091,11 +1083,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1109,16 +1100,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1236,7 +1226,7 @@ PROJECT                       : project
             unitTest                      : TestCompositeLib1.lib.unitTest
             androidTest                   : TestCompositeLib1.lib.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : TestCompositeLib1:lib:unitTest
+        LinkedProjectId               : :includedLib1:lib:unitTest
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1269,11 +1259,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1287,16 +1276,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1446,7 +1434,7 @@ PROJECT                       : project
     MODULE                        : TestCompositeLib3
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : TestCompositeLib3
+        LinkedProjectId               : :TestCompositeLib3
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1475,7 +1463,7 @@ PROJECT                       : project
             androidTest                   : TestCompositeLib3.app.androidTest
         ExternalModuleGroup           : TestCompositeLib3
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : TestCompositeLib3:app
+        LinkedProjectId               : :TestCompositeLib3:app
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1553,7 +1541,7 @@ PROJECT                       : project
             unitTest                      : TestCompositeLib3.app.unitTest
             androidTest                   : TestCompositeLib3.app.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : TestCompositeLib3:app:androidTest
+        LinkedProjectId               : :TestCompositeLib3:app:androidTest
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1588,11 +1576,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1606,16 +1593,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1785,7 +1771,7 @@ PROJECT                       : project
             unitTest                      : TestCompositeLib3.app.unitTest
             androidTest                   : TestCompositeLib3.app.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : TestCompositeLib3:app:main
+        LinkedProjectId               : :TestCompositeLib3:app:main
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1818,11 +1804,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1836,16 +1821,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1973,7 +1957,7 @@ PROJECT                       : project
             unitTest                      : TestCompositeLib3.app.unitTest
             androidTest                   : TestCompositeLib3.app.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : TestCompositeLib3:app:unitTest
+        LinkedProjectId               : :TestCompositeLib3:app:unitTest
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2006,11 +1990,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -2024,16 +2007,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -2200,7 +2182,7 @@ PROJECT                       : project
             androidTest                   : TestCompositeLib3.lib.androidTest
         ExternalModuleGroup           : com.test.composite3
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : TestCompositeLib3:lib
+        LinkedProjectId               : :TestCompositeLib3:lib
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2270,7 +2252,7 @@ PROJECT                       : project
             unitTest                      : TestCompositeLib3.lib.unitTest
             androidTest                   : TestCompositeLib3.lib.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : TestCompositeLib3:lib:androidTest
+        LinkedProjectId               : :TestCompositeLib3:lib:androidTest
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2429,7 +2411,7 @@ PROJECT                       : project
             unitTest                      : TestCompositeLib3.lib.unitTest
             androidTest                   : TestCompositeLib3.lib.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : TestCompositeLib3:lib:main
+        LinkedProjectId               : :TestCompositeLib3:lib:main
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2553,7 +2535,7 @@ PROJECT                       : project
             unitTest                      : TestCompositeLib3.lib.unitTest
             androidTest                   : TestCompositeLib3.lib.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : TestCompositeLib3:lib:unitTest
+        LinkedProjectId               : :TestCompositeLib3:lib:unitTest
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2702,7 +2684,7 @@ PROJECT                       : project
     MODULE                        : com.test.compositeNest3.compositeNest
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : TestCompositeLib3-compositeNest
+        LinkedProjectId               : :TestCompositeLib3:TestCompositeLibNested_3
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2717,32 +2699,32 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:testClasses
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:testClasses
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava
     MODULE                        : com.test.compositeNest3.compositeNest.main
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : TestCompositeLib3-compositeNest:main
+        LinkedProjectId               : :TestCompositeLib3:TestCompositeLibNested_3:main
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2762,26 +2744,26 @@ PROJECT                       : project
             -                             : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:testClasses
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:testClasses
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava
     MODULE                        : com.test.compositeNest3.compositeNest.test
         ExternalModuleGroup           : com.test.compositeNest3
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : TestCompositeLib3-compositeNest:test
+        LinkedProjectId               : :TestCompositeLib3:TestCompositeLibNested_3:test
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3/TestCompositeLibNested_3
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2801,25 +2783,25 @@ PROJECT                       : project
         ORDER_ENTRY                   : com.test.compositeNest3.compositeNest.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:testClasses
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:testClasses
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
+                REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_3:assemble
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_3:compileJava
+                ASSEMBLE                      : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble
+                REBUILD                       : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean
+                COMPILE_JAVA                  : <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava
     MODULE                        : composite2
         ExternalModuleGroup           : com.test.composite2
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : composite2
+        LinkedProjectId               : :TestCompositeLib2
         LinkedProjectPath             : <PROJECT>/TestCompositeLib2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2834,7 +2816,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib2
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib2/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib2/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib2/build [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -2859,7 +2841,7 @@ PROJECT                       : project
         ExternalModuleGroup           : com.test.composite2
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : composite2:main
+        LinkedProjectId               : :TestCompositeLib2:main
         LinkedProjectPath             : <PROJECT>/TestCompositeLib2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2898,7 +2880,7 @@ PROJECT                       : project
         ExternalModuleGroup           : com.test.composite2
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : composite2:test
+        LinkedProjectId               : :TestCompositeLib2:test
         LinkedProjectPath             : <PROJECT>/TestCompositeLib2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2936,7 +2918,7 @@ PROJECT                       : project
     MODULE                        : composite4
         ExternalModuleGroup           : com.test.composite4
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : composite4
+        LinkedProjectId               : :TestCompositeLib4
         LinkedProjectPath             : <PROJECT>/TestCompositeLib4
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2951,7 +2933,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib4
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib4/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib4/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib4/build [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -2976,7 +2958,7 @@ PROJECT                       : project
         ExternalModuleGroup           : com.test.composite4
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : composite4:main
+        LinkedProjectId               : :TestCompositeLib4:main
         LinkedProjectPath             : <PROJECT>/TestCompositeLib4
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -3015,7 +2997,7 @@ PROJECT                       : project
         ExternalModuleGroup           : com.test.composite4
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : composite4:test
+        LinkedProjectId               : :TestCompositeLib4:test
         LinkedProjectPath             : <PROJECT>/TestCompositeLib4
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -3053,7 +3035,7 @@ PROJECT                       : project
     MODULE                        : compositeNest
         ExternalModuleGroup           : com.test.compositeNest1
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : TestCompositeLib1-compositeNest
+        LinkedProjectId               : :includedLib1:TestCompositeLibNested_1
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -3068,32 +3050,32 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
             EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/.gradle
-            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:testClasses
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses
+                ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
+                REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava
+                ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble
+                REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:testClasses
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses
+                ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
+                REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava
+                ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble
+                REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava
     MODULE                        : compositeNest.main
         ExternalModuleGroup           : com.test.compositeNest1
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : TestCompositeLib1-compositeNest:main
+        LinkedProjectId               : :includedLib1:TestCompositeLibNested_1:main
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -3112,26 +3094,26 @@ PROJECT                       : project
             -                             : file://<PROJECT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:testClasses
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses
+                ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
+                REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava
+                ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble
+                REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:testClasses
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses
+                ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
+                REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava
+                ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble
+                REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava
     MODULE                        : compositeNest.test
         ExternalModuleGroup           : com.test.compositeNest1
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : TestCompositeLib1-compositeNest:test
+        LinkedProjectId               : :includedLib1:TestCompositeLibNested_1:test
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1/TestCompositeLibNested_1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -3151,21 +3133,21 @@ PROJECT                       : project
         ORDER_ENTRY                   : compositeNest.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:testClasses
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses
+                ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
+                REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
             TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava
+                ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble
+                REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava
             TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:testClasses
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses
+                ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
+                REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses
             TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : <PROJECT>::TestCompositeLibNested_1:assemble
-                REBUILD                       : <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean
-                COMPILE_JAVA                  : <PROJECT>::TestCompositeLibNested_1:compileJava
+                ASSEMBLE                      : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble
+                REBUILD                       : <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean
+                COMPILE_JAVA                  : <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava
     MODULE                        : project
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
@@ -3311,11 +3293,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -3329,16 +3310,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -3545,11 +3525,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -3563,16 +3542,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -3735,11 +3713,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -3753,16 +3730,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -4038,11 +4014,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -4056,16 +4031,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -4250,11 +4224,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -4268,16 +4241,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -4425,11 +4397,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -4443,16 +4414,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -4722,32 +4692,32 @@ PROJECT                       : project
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses, <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:app:clean, <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:lib:clean, <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses, <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses, <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:clean, <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:assembleDebugUnitTest, <PROJECT>::includedLib1:lib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib2:testClasses, <PROJECT>::TestCompositeLib3:app:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:compileDebugSources, <PROJECT>::TestCompositeLib3:app:compileDebugUnitTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources, <PROJECT>::TestCompositeLib3:lib:compileDebugUnitTestSources, <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses, <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses, <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::includedLib1:app:compileDebugAndroidTestSources, <PROJECT>::includedLib1:app:compileDebugSources, <PROJECT>::includedLib1:app:compileDebugUnitTestSources, <PROJECT>::includedLib1:lib:compileDebugAndroidTestSources, <PROJECT>::includedLib1:lib:compileDebugSources, <PROJECT>::includedLib1:lib:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
+            REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses, <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:app:clean, <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:lib:clean, <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:clean, <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:assembleDebugUnitTest, <PROJECT>::includedLib1:lib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib2:testClasses, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses, <PROJECT>::TestCompositeLib3:app:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:compileDebugSources, <PROJECT>::TestCompositeLib3:app:compileDebugUnitTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources, <PROJECT>::TestCompositeLib3:lib:compileDebugUnitTestSources, <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses, <PROJECT>::includedLib1:app:compileDebugAndroidTestSources, <PROJECT>::includedLib1:app:compileDebugSources, <PROJECT>::includedLib1:app:compileDebugUnitTestSources, <PROJECT>::includedLib1:lib:compileDebugAndroidTestSources, <PROJECT>::includedLib1:lib:compileDebugSources, <PROJECT>::includedLib1:lib:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug, <PROJECT>::app:bundleDebug, <PROJECT>::includedLib1:app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug, <PROJECT>::includedLib1:app:extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:clean, <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:clean, <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:clean, <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib3:app:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:compileDebugSources, <PROJECT>::TestCompositeLib3:lib:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources, <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::includedLib1:app:compileDebugAndroidTestSources, <PROJECT>::includedLib1:app:compileDebugSources, <PROJECT>::includedLib1:lib:compileDebugAndroidTestSources, <PROJECT>::includedLib1:lib:compileDebugSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources
+            REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:app:clean, <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugAndroidTest, <PROJECT>::TestCompositeLib3:lib:clean, <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugAndroidTest, <PROJECT>::includedLib1:app:clean, <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugAndroidTest, <PROJECT>::includedLib1:lib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:app:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:compileDebugSources, <PROJECT>::TestCompositeLib3:lib:compileDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources, <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava, <PROJECT>::includedLib1:app:compileDebugAndroidTestSources, <PROJECT>::includedLib1:app:compileDebugSources, <PROJECT>::includedLib1:lib:compileDebugAndroidTestSources, <PROJECT>::includedLib1:lib:compileDebugSources, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources
             SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:generateDebugAndroidTestSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:generateDebugAndroidTestSources, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:generateDebugAndroidTestSources, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug, <PROJECT>::app:bundleDebug, <PROJECT>::includedLib1:app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug, <PROJECT>::includedLib1:app:extractApksForDebug
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses, <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:app:clean, <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:lib:clean, <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses, <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_1:testClasses, <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLibNested_3:testClasses, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:clean, <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugUnitTest, <PROJECT>::includedLib1:lib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib2:testClasses, <PROJECT>::TestCompositeLib3:app:compileDebugUnitTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugUnitTestSources, <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses, <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_1:testClasses, <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLibNested_3:testClasses, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::includedLib1:app:compileDebugUnitTestSources, <PROJECT>::includedLib1:lib:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugUnitTestSources
+            REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib2:testClasses, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses, <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:app:clean, <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:assembleDebugUnitTest, <PROJECT>::TestCompositeLib3:lib:clean, <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLib4:testClasses, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebugUnitTest, <PROJECT>::includedLib1:app:clean, <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:assembleDebugUnitTest, <PROJECT>::includedLib1:lib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib2:testClasses, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:testClasses, <PROJECT>::TestCompositeLib3:app:compileDebugUnitTestSources, <PROJECT>::TestCompositeLib3:lib:compileDebugUnitTestSources, <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLib4:testClasses, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava, <PROJECT>::includedLib1:TestCompositeLibNested_1:testClasses, <PROJECT>::includedLib1:app:compileDebugUnitTestSources, <PROJECT>::includedLib1:lib:compileDebugUnitTestSources, <PROJECT>::lib:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:createMockableJar, <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:createMockableJar, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:createMockableJar, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:createMockableJar, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug, <PROJECT>::app:bundleDebug, <PROJECT>::includedLib1:app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug, <PROJECT>::includedLib1:app:extractApksForDebug
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:generateDebugSources
             ASSEMBLE                      : <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::app:assembleDebug, <PROJECT>::includedLib1:app:assembleDebug
-            REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:clean, <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:clean, <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::TestCompositeLibNested_1:assemble, <PROJECT>::TestCompositeLibNested_1:clean, <PROJECT>::TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLibNested_3:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:clean, <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
-            COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib3:app:compileDebugSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources, <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::TestCompositeLibNested_1:compileJava, <PROJECT>::TestCompositeLibNested_3:compileJava, <PROJECT>::app:compileDebugSources, <PROJECT>::includedLib1:app:compileDebugSources, <PROJECT>::includedLib1:lib:compileDebugSources, <PROJECT>::lib:compileDebugSources
+            REBUILD                       : <PROJECT>::TestCompositeLib2:assemble, <PROJECT>::TestCompositeLib2:clean, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:assemble, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:clean, <PROJECT>::TestCompositeLib3:app:assembleDebug, <PROJECT>::TestCompositeLib3:app:clean, <PROJECT>::TestCompositeLib3:lib:assembleDebug, <PROJECT>::TestCompositeLib3:lib:clean, <PROJECT>::TestCompositeLib4:assemble, <PROJECT>::TestCompositeLib4:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::includedLib1:TestCompositeLibNested_1:assemble, <PROJECT>::includedLib1:TestCompositeLibNested_1:clean, <PROJECT>::includedLib1:app:assembleDebug, <PROJECT>::includedLib1:app:clean, <PROJECT>::includedLib1:lib:assembleDebug, <PROJECT>::includedLib1:lib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
+            COMPILE_JAVA                  : <PROJECT>::TestCompositeLib2:compileJava, <PROJECT>::TestCompositeLib3:TestCompositeLibNested_3:compileJava, <PROJECT>::TestCompositeLib3:app:compileDebugSources, <PROJECT>::TestCompositeLib3:lib:compileDebugSources, <PROJECT>::TestCompositeLib4:compileJava, <PROJECT>::app:compileDebugSources, <PROJECT>::includedLib1:TestCompositeLibNested_1:compileJava, <PROJECT>::includedLib1:app:compileDebugSources, <PROJECT>::includedLib1:lib:compileDebugSources, <PROJECT>::lib:compileDebugSources
             SOURCE_GEN                    : <PROJECT>::TestCompositeLib3:app:generateDebugSources, <PROJECT>::TestCompositeLib3:lib:generateDebugSources, <PROJECT>::app:generateDebugSources, <PROJECT>::includedLib1:app:generateDebugSources, <PROJECT>::includedLib1:lib:generateDebugSources, <PROJECT>::lib:generateDebugSources
             BUNDLE                        : <PROJECT>::TestCompositeLib3:app:bundleDebug, <PROJECT>::app:bundleDebug, <PROJECT>::includedLib1:app:bundleDebug
             APK_FROM_BUNDLE               : <PROJECT>::TestCompositeLib3:app:extractApksForDebug, <PROJECT>::app:extractApksForDebug, <PROJECT>::includedLib1:app:extractApksForDebug

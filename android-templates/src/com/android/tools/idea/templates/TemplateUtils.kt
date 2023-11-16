@@ -16,8 +16,8 @@
 package com.android.tools.idea.templates
 
 import com.android.annotations.concurrency.UiThread
-import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleCoordinate.parseCoordinateString
+import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.gradle.RichVersion
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.utils.usLocaleCapitalize
 import com.google.common.base.Charsets
@@ -205,20 +205,29 @@ object TemplateUtils {
 }
 
 /**
- * Attempts to resolve dynamic versions (e.g. "2.+") to specific versions from the repository.
+ * Attempts to resolve dynamic versions (e.g. "2.+") to specific versions from the repository, returning a
+ * Dependency object with the version replaced with a concrete (required) version, if found, or the minimum
+ * revision, if provided.  If no version is found or provided, the given identifier is returned as a
+ * Dependency.  If a version is found and the minimum is provided, the found version is used if it is accepted
+ * by the minimum.
  *
  * @param minRev the minimum revision to accept
- * @see RepositoryUrlManager.resolveDynamicCoordinate
+ * @see RepositoryUrlManager.resolveDependency
  */
-fun resolveDependency(repo: RepositoryUrlManager, dependency: String, minRev: String? = null): GradleCoordinate {
-  val coordinate = parseCoordinateString(dependency) ?: throw InvalidParameterException("Invalid dependency: $dependency")
+fun resolveDependency(repo: RepositoryUrlManager, dependencyIdentifier: String, minRev: String? = null): Dependency {
+  val dependency = Dependency.parse(dependencyIdentifier)
+  val group = dependency.group
+  val version = dependency.version
+  if (group == null || version == null) throw InvalidParameterException("Invalid dependency: $dependency")
 
-  val minCoordinate = if (minRev == null) coordinate else GradleCoordinate(coordinate.groupId, coordinate.artifactId, minRev)
-
-  // If we cannot resolve the dependency on the repo, return the at least the min requested
-  val resolved = repo.resolveDynamicCoordinate(coordinate, null, null) ?: return minCoordinate
-
-  return maxOf(resolved, minCoordinate, GradleCoordinate.COMPARE_PLUS_LOWER)
+  val resolvedVersion = repo.resolveDependency(dependency, null, null)?.version
+  val minRichVersion = minRev?.let { RichVersion.parse(it) }
+  return when {
+    resolvedVersion == null -> minRichVersion?.let { dependency.copy(version = minRichVersion) } ?: dependency
+    minRichVersion == null -> dependency.copy(version = RichVersion.require(resolvedVersion))
+    minRichVersion.accepts(resolvedVersion) -> dependency.copy(version = RichVersion.require(resolvedVersion))
+    else -> dependency.copy(version = minRichVersion)
+  }
 }
 
 fun getAppNameForTheme(appName: String): String {

@@ -32,62 +32,47 @@ import javax.swing.ListCellRenderer
 /**
  * Representation of values for the builtin [EnumSupport].
  *
- * This interface supports groups and separators in a popup.
- * Headers and separators will implement [CommonElementSelectability] which
- * enables certain lists to skip the selection of these elements.
+ * This interface supports groups and separators in a popup. Headers and separators will implement
+ * [CommonElementSelectability] which enables certain lists to skip the selection of these elements.
  *
  * Example:
  *
- *    Android
- *       option1
- *       option2
- *    AppCompat
- *       option1
- *       option2
- *    ----------
- *       option3
+ * Android option1 option2 AppCompat option1 option2
+ * ----------
+ * option3
  */
 interface EnumValue {
-  /**
-   * The actual value to read/write to a [PropertyItem].
-   */
+  /** The actual value to read/write to a [PropertyItem]. */
   val value: String?
     get() = null
 
   /**
    * The value to display in a ComboBox popup control.
    *
-   * This value may be identical to [value] or may be a
-   * user-friendly representation of it.
+   * This value may be identical to [value] or may be a user-friendly representation of it.
    */
   val display: String
     get() = value ?: "none"
 
-  /**
-   * If true, indent this value in the ComboBox popup.
-   */
+  /** If true, indent this value in the ComboBox popup. */
   val indented: Boolean
     get() = false
 
   /**
    * Specifies the operation done when this value is selected.
    *
-   * The default operation simply updates the value on the property.
-   * This method could be overridden to do something different like as
-   * opening a dialog.
+   * The default operation simply updates the value on the property. This method could be overridden
+   * to do something different like as opening a dialog.
    *
-   * A return value of true means the value of the [EnumValue] was
-   * assigned. A return value of false means the property was updated
-   * with other means e.g. from a dialog or an action.
+   * A return value of true means the value of the [EnumValue] was assigned. A return value of false
+   * means the property was updated with other means e.g. from a dialog or an action.
    */
   fun select(property: PropertyItem): Boolean {
     property.value = value
     return true
   }
 
-  /**
-   * Convenience method for creating a variant [EnumValue] with indentation.
-   */
+  /** Convenience method for creating a variant [EnumValue] with indentation. */
   fun withIndentation(): EnumValue = this
 
   /** Default implementations of [EnumValue]s */
@@ -95,7 +80,8 @@ interface EnumValue {
     fun item(value: String): EnumValue = ItemEnumValue(value)
     fun item(value: String, display: String): EnumValue = ItemWithDisplayEnumValue(value, display)
     fun indented(value: String): EnumValue = IndentedItemEnumValue(value)
-    fun indented(value: String, display: String): EnumValue = IndentedItemWithDisplayEnumValue(value, display)
+    fun indented(value: String, display: String): EnumValue =
+      IndentedItemWithDisplayEnumValue(value, display)
     fun action(action: AnAction): BaseActionEnumValue = AnActionEnumValue(action)
     fun header(header: String): EnumValue = HeaderEnumValue(header)
     fun header(header: String, icon: Icon?): EnumValue = HeaderEnumValue(header, icon)
@@ -103,19 +89,18 @@ interface EnumValue {
     val DEFAULT_RENDERER: ListCellRenderer<EnumValue> = EnumValueListCellRenderer()
     val EMPTY: EnumValue = ItemEnumValue(null)
     val SEPARATOR: EnumValue = object : EnumValue, CommonElementSelectability {}
-    val LOADING: EnumValue = object : EnumValue, CommonElementSelectability { override val display = "Loading..." }
+    val LOADING: EnumValue =
+      object : EnumValue, CommonElementSelectability {
+        override val display = "Loading..."
+      }
     val PROPERTY_ITEM_KEY: DataKey<PropertyItem> = DataKey.create("PROPERTY_ITEM_KEY")
   }
 }
 
-/**
- * Representation of an enum value an action value.
- */
+/** Representation of an enum value an action value. */
 interface ActionEnumValue : EnumValue {
 
-  /**
-   * The action represented with this enum value.
-   */
+  /** The action represented with this enum value. */
   val action: AnAction
 }
 
@@ -124,4 +109,5 @@ interface ActionEnumValue : EnumValue {
  *
  * This element is not selectable.
  */
-class HeaderEnumValue(val header: String, val headerIcon: Icon? = null) : EnumValue, CommonElementSelectability
+class HeaderEnumValue(val header: String, val headerIcon: Icon? = null) :
+  EnumValue, CommonElementSelectability

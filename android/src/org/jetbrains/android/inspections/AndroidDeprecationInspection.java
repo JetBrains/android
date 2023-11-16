@@ -115,12 +115,15 @@ public class AndroidDeprecationInspection extends AbstractBaseJavaLocalInspectio
   }
 
   @Override
-  public @NotNull OptPane getOptionsPane() {
+  @NotNull
+  public OptPane getOptionsPane() {
     return pane(
-      checkbox("Ignore inside deprecated members", "IGNORE_INSIDE_DEPRECATED"),
-      checkbox("Ignore inside non-static imports", "IGNORE_IMPORT_STATEMENTS"),
-      checkbox("<html>Ignore overrides of deprecated abstract methods from non-deprecated supers</html>", "IGNORE_ABSTRACT_DEPRECATED_OVERRIDES"),
-      checkbox("Ignore members of deprecated classes", IGNORE_METHODS_OF_DEPRECATED_NAME));
+      checkbox("IGNORE_INSIDE_DEPRECATED", "Ignore inside deprecated members"),
+      checkbox("IGNORE_IMPORT_STATEMENTS", "Ignore inside non-static imports"),
+      checkbox(
+          "IGNORE_ABSTRACT_DEPRECATED_OVERRIDES",
+          "<html>Ignore overrides of deprecated abstract methods from non-deprecated supers</html>"),
+      checkbox(IGNORE_METHODS_OF_DEPRECATED_NAME, "Ignore members of deprecated classes"));
   }
 
   private static class DeprecationElementVisitor extends JavaElementVisitor {

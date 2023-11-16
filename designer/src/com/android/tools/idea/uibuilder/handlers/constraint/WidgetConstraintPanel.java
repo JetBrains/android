@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities.registerAttributeHelp;
 import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_BOTTOM;
 import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_LEFT;
 import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_RIGHT;
@@ -149,6 +150,10 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     myCustomPanel.add(this, BorderLayout.NORTH);
     myCustomPanel.add(myConstraintSection, BorderLayout.CENTER);
     myCustomPanel.add(new MySeparator(), BorderLayout.SOUTH);
+
+    registerAttributeHelp(mVerticalSlider, myWidgetModel::getVerticalBiasAttribute);
+    registerAttributeHelp(mHorizontalSlider, myWidgetModel::getHorizontalBiasAttribute);
+
     myInitialized = true;
   }
 

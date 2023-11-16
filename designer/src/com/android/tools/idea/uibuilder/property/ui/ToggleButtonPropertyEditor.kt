@@ -32,37 +32,52 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * Button with icon that is either pressed (on) or unchanged (off).
- */
-class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) : JPanel(BorderLayout()), DataProvider {
+/** Button with icon that is either pressed (on) or unchanged (off). */
+class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) :
+  JPanel(BorderLayout()), DataProvider {
 
   init {
     val action = ButtonAction(model)
     val presentation = action.templatePresentation.clone()
-    val button = ActionButton(action, presentation, ActionPlaces.UNKNOWN, NAVBAR_MINIMUM_BUTTON_SIZE)
+    val button =
+      ActionButton(action, presentation, ActionPlaces.UNKNOWN, NAVBAR_MINIMUM_BUTTON_SIZE)
     add(button, BorderLayout.CENTER)
     button.isFocusable = true
     isFocusable = false
-    HelpSupportBinding.registerHelpKeyActions(this, { model.property }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    HelpSupportBinding.registerHelpKeyActions(
+      this,
+      { model.property },
+      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+    )
     button.addFocusListener(EditorFocusListener(this, model))
 
-    model.addListener(ValueChangedListener {
-      // This will update the selected state of the ActionButton:
-      val context = DataManager.getInstance().getDataContext(button)
-      val event = AnActionEvent(null, context, ActionPlaces.UNKNOWN, presentation, ActionManager.getInstance(), 0)
-      ActionUtil.performDumbAwareUpdate(action, event, false)
-      if (model.focusRequest && !isFocusOwner) {
-        button.requestFocusInWindow()
+    model.addListener(
+      ValueChangedListener {
+        // This will update the selected state of the ActionButton:
+        val context = DataManager.getInstance().getDataContext(button)
+        val event =
+          AnActionEvent(
+            null,
+            context,
+            ActionPlaces.UNKNOWN,
+            presentation,
+            ActionManager.getInstance(),
+            0
+          )
+        ActionUtil.performDumbAwareUpdate(action, event, false)
+        if (model.focusRequest && !isFocusOwner) {
+          button.requestFocusInWindow()
+        }
       }
-    })
+    )
   }
 
   override fun getData(dataId: String): Any? {
     return model.getData(dataId)
   }
 
-  private class ButtonAction(private val model: ToggleButtonPropertyEditorModel) : ToggleActionButton(model.description, model.icon) {
+  private class ButtonAction(private val model: ToggleButtonPropertyEditorModel) :
+    ToggleActionButton(model.description, model.icon) {
     override fun isSelected(event: AnActionEvent): Boolean {
       return model.selected
     }

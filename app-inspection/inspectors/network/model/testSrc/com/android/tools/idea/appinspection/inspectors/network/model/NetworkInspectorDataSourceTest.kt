@@ -18,15 +18,12 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.google.common.truth.Truth.assertThat
-import java.util.concurrent.Executors
-import kotlin.test.fail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -34,6 +31,8 @@ import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.Event
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
 import studio.network.inspection.NetworkInspectorProtocol.SpeedEvent
+import java.util.concurrent.Executors
+import kotlin.test.fail
 
 class NetworkInspectorDataSourceTest {
   private val executor = Executors.newSingleThreadExecutor()
@@ -289,7 +288,7 @@ class NetworkInspectorDataSourceTest {
 
   @Test
   fun cleanUpChannelOnDispose() =
-    runBlocking {
+    runBlocking<Unit> {
       val testMessenger =
         TestMessenger(scope, flow { throw ArithmeticException("Something went wrong!") })
       val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)

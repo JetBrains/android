@@ -17,17 +17,19 @@ package com.android.tools.idea.run.configuration
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.deployer.model.component.Complication
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.editors.AndroidComplicationConfigurationEditor
 import com.android.tools.idea.run.configuration.execution.AndroidComplicationConfigurationExecutor
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.ComplicationLaunchOptions
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.configurations.RuntimeConfigurationError
+import com.intellij.execution.configurations.RuntimeConfigurationWarning
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -69,6 +71,7 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
     super.checkConfiguration()
     // super.checkConfiguration() has already checked that module and componentName are not null.
     val rawTypes = getComplicationTypesFromManifest(module!!, componentLaunchOptions.componentName!!)
+      ?: throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.manifest.not.available"))
     if (componentLaunchOptions.chosenSlots.isEmpty()) {
       throw RuntimeConfigurationError(AndroidBundle.message("provider.slots.empty.error"))
     }
@@ -84,7 +87,9 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
                            deviceFutures: DeviceFutures,
                            appRunSettings: AppRunSettings,
                            applicationIdProvider: ApplicationIdProvider,
-                           apkProvider: ApkProvider): AndroidConfigurationExecutor {
-    return AndroidComplicationConfigurationExecutor(environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider)
+                           apkProvider: ApkProvider,
+                           deployer: ApplicationDeployer
+  ): AndroidConfigurationExecutor {
+    return AndroidComplicationConfigurationExecutor(environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider, deployer)
   }
 }

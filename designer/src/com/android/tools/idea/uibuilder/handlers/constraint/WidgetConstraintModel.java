@@ -55,17 +55,18 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchorConstants;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.module.AndroidModuleInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ModalityUiUtil;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import javax.swing.Timer;
 import javax.swing.event.ChangeListener;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -256,6 +257,10 @@ public class WidgetConstraintModel implements SelectionListener {
     }
   };
 
+  private static final ConstraintAttribute HORIZONTAL_BIAS_CONSTRAINT = new ConstraintAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS);
+  private static final ConstraintAttribute VERTICAL_BIAS_CONSTRAINT = new ConstraintAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS);
+
+
   public static final int CONNECTION_LEFT = 0;
   public static final int CONNECTION_RIGHT = 1;
   public static final int CONNECTION_TOP = 2;
@@ -413,6 +418,20 @@ public class WidgetConstraintModel implements SelectionListener {
         }
       }
     }
+  }
+
+  /**
+   * Get the margin attribute we want to surface help for.
+   *
+   * @param type One of {@link #CONNECTION_LEFT}, {@link #CONNECTION_RIGHT},
+   *                    {@link #CONNECTION_TOP}, {@link #CONNECTION_BOTTOM}, {@link #CONNECTION_BASELINE}
+   * @return the associated attribute.
+   */
+  @NotNull
+  public ConstraintAttribute getMarginAttribute(int type) {
+    boolean rtl = myComponent != null && ConstraintUtilities.isInRTL(myComponent);
+    String[][] marginsAttr = rtl ? ourMarginString_rtl : ourMarginString_ltr;
+    return new ConstraintAttribute(ANDROID_URI, marginsAttr[type][marginsAttr[type].length - 1]);
   }
 
   /**
@@ -577,6 +596,11 @@ public class WidgetConstraintModel implements SelectionListener {
     }
   }
 
+  @NotNull
+  public ConstraintAttribute getHorizontalBiasAttribute() {
+    return HORIZONTAL_BIAS_CONSTRAINT;
+  }
+
   public void setVerticalBias(int biasPercent) {
     if (myComponent == null || myIsInCallback) {
       return;
@@ -590,6 +614,11 @@ public class WidgetConstraintModel implements SelectionListener {
     else {
       setSherpaAttribute(ATTR_LAYOUT_VERTICAL_BIAS, biasString);
     }
+  }
+
+  @NotNull
+  public ConstraintAttribute getVerticalBiasAttribute() {
+    return VERTICAL_BIAS_CONSTRAINT;
   }
 
   /**
@@ -688,7 +717,7 @@ public class WidgetConstraintModel implements SelectionListener {
       setAttribute(ANDROID_URI, attribute, marginString);
     }
     else {
-      String marginY = String.format(VALUE_N_DP, currentValueInInt);
+      String marginY = String.format(Locale.US, VALUE_N_DP, currentValueInInt);
       setAttribute(ANDROID_URI, attribute, marginY);
     }
   }

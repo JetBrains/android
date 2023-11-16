@@ -94,8 +94,12 @@ public class AndroidPsiDirectoryNode extends PsiDirectoryNode {
   public Comparable getSortKey() {
     VirtualFile virtualFile = getValue() != null ? getValue().getVirtualFile() : null;
     String path = virtualFile != null ? virtualFile.getPath() : "";
-    String sourceProviderName = mySourceSetName == null ? "" : mySourceSetName;
-    return getQualifiedNameSortKey() + "-" + (SdkConstants.FD_MAIN.equals(sourceProviderName) ? "" : sourceProviderName) + "-" + path;
+    return getQualifiedNameSortKey() + "-" + getSourceProviderSortKeyPart(mySourceSetName) + "-" + path;
+  }
+
+  public static String getSourceProviderSortKeyPart(@Nullable String sourceSetName) {
+    String sourceProviderName = sourceSetName == null ? "" : sourceSetName;
+    return SdkConstants.FD_MAIN.equals(sourceProviderName) ? "" : sourceProviderName;
   }
 
   @Override

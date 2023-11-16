@@ -27,22 +27,21 @@ import org.jetbrains.annotations.VisibleForTesting
 /**
  * Return the namespace used for the specified [section].
  *
- * Where the View inspector make use real namespaces, the strings used for the namespace qualifier for Compose
- * does not mean anything. It is only used to avoid name clashes in the PropertyTable.
+ * Where the View inspector make use real namespaces, the strings used for the namespace qualifier
+ * for Compose does not mean anything. It is only used to avoid name clashes in the PropertyTable.
  */
 @VisibleForTesting
-fun parameterNamespaceOf(section: PropertySection) = when (section) {
-  PropertySection.PARAMETERS -> "parameter"
-  PropertySection.MERGED -> "merged"
-  PropertySection.UNMERGED -> "unmerged"
-  PropertySection.DIMENSION -> "internal"
-  PropertySection.RECOMPOSITIONS -> "internal"
-  else -> ""
-}
+fun parameterNamespaceOf(section: PropertySection) =
+  when (section) {
+    PropertySection.PARAMETERS -> "parameter"
+    PropertySection.MERGED -> "merged"
+    PropertySection.UNMERGED -> "unmerged"
+    PropertySection.DIMENSION -> "internal"
+    PropertySection.RECOMPOSITIONS -> "internal"
+    else -> ""
+  }
 
-/**
- * A compose parameter for display in the attributes panel.
- */
+/** A compose parameter for display in the attributes panel. */
 open class ParameterItem(
   name: String,
   type: PropertyType,
@@ -52,15 +51,23 @@ open class ParameterItem(
   lookup: ViewNodeAndResourceLookup,
   val rootId: Long,
   var index: Int
-) : InspectorPropertyItem(parameterNamespaceOf(section), name, type, value, section, null, viewId, lookup) {
+) :
+  InspectorPropertyItem(
+    parameterNamespaceOf(section),
+    name,
+    type,
+    value,
+    section,
+    null,
+    viewId,
+    lookup
+  ) {
 
   open fun clone(): ParameterItem =
     ParameterItem(name, type, value, section, viewId, lookup, rootId, index)
 }
 
-/**
- * A composite parameter.
- */
+/** A composite parameter. */
 class ParameterGroupItem(
   name: String,
   type: PropertyType,
@@ -75,9 +82,19 @@ class ParameterGroupItem(
 ) : ParameterItem(name, type, value, section, viewId, lookup, rootId, index), PTableGroupItem {
 
   override fun clone(): ParameterGroupItem =
-    ParameterGroupItem(name, type, value, section, viewId, lookup, rootId, index, reference, mutableListOf()).apply {
-      addClonedChildrenFrom(this@ParameterGroupItem.children)
-    }
+    ParameterGroupItem(
+        name,
+        type,
+        value,
+        section,
+        viewId,
+        lookup,
+        rootId,
+        index,
+        reference,
+        mutableListOf()
+      )
+      .apply { addClonedChildrenFrom(this@ParameterGroupItem.children) }
 
   private fun addClonedChildrenFrom(items: List<ParameterItem>) {
     items.mapTo(children) { it.clone() }
@@ -86,22 +103,23 @@ class ParameterGroupItem(
     }
   }
 
-  /**
-   * Return the last index into children that is not a ShowMoreElementsItem
-   */
-  private val lastRealChildElementIndex: Int
+  /** Return the last index into children that is not a ShowMoreElementsItem */
+  val lastRealChildElementIndex: Int
     get() = children.lastIndex - (if (children.lastOrNull() is ShowMoreElementsItem) 1 else 0)
 
   /**
-   * Return the index from the composite value on the device of the last child in children that is not a ShowMoreElementsItem
+   * Return the index from the composite value on the device of the last child in children that is
+   * not a ShowMoreElementsItem
    *
-   * This value may be identical to [lastRealChildElementIndex] unless some of the sibling values were skipped in the agent.
+   * This value may be identical to [lastRealChildElementIndex] unless some of the sibling values
+   * were skipped in the agent.
    */
   val lastRealChildReferenceIndex: Int
     get() = children.getOrNull(lastRealChildElementIndex)?.index ?: -1
 
   /**
-   * Return the index of the children list where [ParameterItem.index] is the same as [referenceIndex]
+   * Return the index of the children list where [ParameterItem.index] is the same as
+   * [referenceIndex]
    *
    * The [referenceIndex] value will usually come from one of [ParameterReference.indices].
    */
@@ -140,7 +158,9 @@ class ParameterGroupItem(
       return null
     }
     val sizeBeforeAdding = children.size
-    addClonedChildrenFrom(replacement.children.subList(elementIndex, replacement.lastRealChildElementIndex + 1))
+    addClonedChildrenFrom(
+      replacement.children.subList(elementIndex, replacement.lastRealChildElementIndex + 1)
+    )
     val added = children.subList(sizeBeforeAdding, children.size).toList()
     if (reference != null) {
       children.add(showMoreItem)
@@ -152,9 +172,7 @@ class ParameterGroupItem(
   }
 }
 
-/**
- * A reference to another composite parameter.
- */
+/** A reference to another composite parameter. */
 class ParameterReference(
   val nodeId: Long,
   val anchorHash: Int,
@@ -163,19 +181,18 @@ class ParameterReference(
   val indices: IntArray
 )
 
-/**
- * The parameter kind a [ParameterReference] points to.
- */
+/** The parameter kind a [ParameterReference] points to. */
 enum class ParameterKind {
   Unknown,
   Normal,
   MergedSemantics,
   UnmergedSemantics;
 
-  fun convert(): LayoutInspectorComposeProtocol.ParameterReference.Kind = when (this) {
-    Normal -> LayoutInspectorComposeProtocol.ParameterReference.Kind.NORMAL
-    MergedSemantics -> LayoutInspectorComposeProtocol.ParameterReference.Kind.MERGED_SEMANTICS
-    UnmergedSemantics -> LayoutInspectorComposeProtocol.ParameterReference.Kind.UNMERGED_SEMANTICS
-    else -> LayoutInspectorComposeProtocol.ParameterReference.Kind.UNSPECIFIED
-  }
+  fun convert(): LayoutInspectorComposeProtocol.ParameterReference.Kind =
+    when (this) {
+      Normal -> LayoutInspectorComposeProtocol.ParameterReference.Kind.NORMAL
+      MergedSemantics -> LayoutInspectorComposeProtocol.ParameterReference.Kind.MERGED_SEMANTICS
+      UnmergedSemantics -> LayoutInspectorComposeProtocol.ParameterReference.Kind.UNMERGED_SEMANTICS
+      else -> LayoutInspectorComposeProtocol.ParameterReference.Kind.UNSPECIFIED
+    }
 }

@@ -27,79 +27,93 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Paramet
 import java.awt.Color
 
 class ComposeParametersData(
-  /**
-   * The parameters associated with a composable as a list.
-   */
-  private val parameterList: List<ParameterItem>,
+  /** The parameters associated with a composable as a list. */
+  val parameterList: List<ParameterItem>,
 
-  /**
-   * The merged semantic information associated with a composable as a list.
-   */
-  private val mergedSemantics: List<ParameterItem>,
+  /** The merged semantic information associated with a composable as a list. */
+  val mergedSemantics: List<ParameterItem>,
 
-  /**
-   * The unmerged semantic information associated with a composable as a list.
-   */
-  private val unmergedSemantics: List<ParameterItem>,
+  /** The unmerged semantic information associated with a composable as a list. */
+  val unmergedSemantics: List<ParameterItem>,
 
-  /**
-   * The parameters and semantic information associated with a composable as a properties table.
-   */
+  /** The parameters and semantic information associated with a composable as a properties table. */
   val parameters: PropertiesTable<InspectorPropertyItem>
 ) {
 
   /**
-   * Return the parameters of the specified [kind] in the node cached by this [ComposeParametersData].
+   * Return the parameters of the specified [kind] in the node cached by this
+   * [ComposeParametersData].
    */
-  fun parametersOfKind(kind: ParameterKind): List<ParameterItem> = when(kind) {
-    ParameterKind.Normal -> parameterList
-    ParameterKind.MergedSemantics -> mergedSemantics
-    ParameterKind.UnmergedSemantics -> unmergedSemantics
-    else -> emptyList()
-  }
+  fun parametersOfKind(kind: ParameterKind): List<ParameterItem> =
+    when (kind) {
+      ParameterKind.Normal -> parameterList
+      ParameterKind.MergedSemantics -> mergedSemantics
+      ParameterKind.UnmergedSemantics -> unmergedSemantics
+      else -> emptyList()
+    }
 }
 
-/**
- * Bridge between incoming proto data and classes expected by the Studio properties framework.
- */
+/** Bridge between incoming proto data and classes expected by the Studio properties framework. */
 class ComposeParametersDataGenerator(
   private val stringTable: StringTableImpl,
-  private val lookup: ViewNodeAndResourceLookup) {
+  private val lookup: ViewNodeAndResourceLookup
+) {
 
   fun generate(rootId: Long, parameterGroup: ParameterGroup): ComposeParametersData {
-    val parameterList = parameterGroup.parameterList.map {
-      it.toParameterItem(rootId, parameterGroup.composableId, PropertySection.PARAMETERS)
-    }
+    val parameterList =
+      parameterGroup.parameterList.map {
+        it.toParameterItem(rootId, parameterGroup.composableId, PropertySection.PARAMETERS)
+      }
 
-    val mergedSemantics = parameterGroup.mergedSemanticsList.map {
+    val mergedSemantics =
+      parameterGroup.mergedSemanticsList.map {
         it.toParameterItem(rootId, parameterGroup.composableId, PropertySection.MERGED)
       }
 
-    val unmergedSemantics = parameterGroup.unmergedSemanticsList.map {
+    val unmergedSemantics =
+      parameterGroup.unmergedSemanticsList.map {
         it.toParameterItem(rootId, parameterGroup.composableId, PropertySection.UNMERGED)
       }
 
-    val all = parameterList.asSequence() + mergedSemantics.asSequence() + unmergedSemantics.asSequence()
-    return ComposeParametersData(parameterList, mergedSemantics, unmergedSemantics, toPropertiesTable(all))
+    val all =
+      parameterList.asSequence() + mergedSemantics.asSequence() + unmergedSemantics.asSequence()
+    return ComposeParametersData(
+      parameterList,
+      mergedSemantics,
+      unmergedSemantics,
+      toPropertiesTable(all)
+    )
   }
 
-  fun generate(rootId: Long, composableId: Long, kind: ParameterKind, parameter: Parameter): ParameterGroupItem? =
+  fun generate(
+    rootId: Long,
+    composableId: Long,
+    kind: ParameterKind,
+    parameter: Parameter
+  ): ParameterGroupItem? =
     parameter.toParameterItem(rootId, composableId, kind.toPropertySection()) as? ParameterGroupItem
 
-  private fun ParameterKind.toPropertySection(): PropertySection = when(this) {
-    ParameterKind.Normal -> PropertySection.PARAMETERS
-    ParameterKind.MergedSemantics -> PropertySection.MERGED
-    ParameterKind.UnmergedSemantics -> PropertySection.UNMERGED
-    else -> PropertySection.DEFAULT
-  }
+  private fun ParameterKind.toPropertySection(): PropertySection =
+    when (this) {
+      ParameterKind.Normal -> PropertySection.PARAMETERS
+      ParameterKind.MergedSemantics -> PropertySection.MERGED
+      ParameterKind.UnmergedSemantics -> PropertySection.UNMERGED
+      else -> PropertySection.DEFAULT
+    }
 
-  private fun toPropertiesTable(parameters: Sequence<ParameterItem>): PropertiesTable<InspectorPropertyItem> {
+  private fun toPropertiesTable(
+    parameters: Sequence<ParameterItem>
+  ): PropertiesTable<InspectorPropertyItem> {
     val propertyTable = HashBasedTable.create<String, String, InspectorPropertyItem>()
     parameters.forEach { propertyTable.put(it.namespace, it.name, it) }
     return PropertiesTable.create(propertyTable)
   }
 
-  private fun Parameter.toParameterItem(rootId: Long, composableId: Long, section: PropertySection): ParameterItem {
+  private fun Parameter.toParameterItem(
+    rootId: Long,
+    composableId: Long,
+    section: PropertySection
+  ): ParameterItem {
     val name = stringTable[name]
     if (type == Parameter.Type.LAMBDA || type == Parameter.Type.FUNCTION_REFERENCE) {
       return LambdaParameterItem(
@@ -111,28 +125,29 @@ class ComposeParametersDataGenerator(
         packageName = stringTable[lambdaValue.packageName],
         fileName = stringTable[lambdaValue.fileName],
         lambdaName = stringTable[lambdaValue.lambdaName],
-        functionName = stringTable [lambdaValue.functionName],
+        functionName = stringTable[lambdaValue.functionName],
         startLineNumber = lambdaValue.startLineNumber,
         endLineNumber = lambdaValue.endLineNumber,
         lookup = lookup
       )
     }
 
-    val value: Any = when (type) {
-      Parameter.Type.ITERABLE,
-      Parameter.Type.STRING -> stringTable[int32Value]
-      Parameter.Type.BOOLEAN -> (int32Value == 1)
-      Parameter.Type.INT32 -> int32Value
-      Parameter.Type.INT64 -> int64Value
-      Parameter.Type.DOUBLE -> doubleValue
-      Parameter.Type.FLOAT,
-      Parameter.Type.DIMENSION_DP,
-      Parameter.Type.DIMENSION_SP,
-      Parameter.Type.DIMENSION_EM -> floatValue
-      //Parameter.Type.RESOURCE -> TODO: Support converting resource type
-      Parameter.Type.COLOR -> colorToString(Color(int32Value))
-      else -> ""
-    }
+    val value: Any =
+      when (type) {
+        Parameter.Type.ITERABLE,
+        Parameter.Type.STRING -> stringTable[int32Value]
+        Parameter.Type.BOOLEAN -> (int32Value == 1)
+        Parameter.Type.INT32 -> int32Value
+        Parameter.Type.INT64 -> int64Value
+        Parameter.Type.DOUBLE -> doubleValue
+        Parameter.Type.FLOAT,
+        Parameter.Type.DIMENSION_DP,
+        Parameter.Type.DIMENSION_SP,
+        Parameter.Type.DIMENSION_EM -> floatValue
+        // Parameter.Type.RESOURCE -> TODO: Support converting resource type
+        Parameter.Type.COLOR -> colorToString(Color(int32Value))
+        else -> ""
+      }
     val type = type.convert()
     val reference = reference.convert()
 
@@ -147,19 +162,20 @@ class ComposeParametersDataGenerator(
         rootId,
         index
       )
-    }
-    else {
-      val group = ParameterGroupItem(
-        name,
-        type,
-        value.toString(),
-        section,
-        composableId,
-        lookup,
-        rootId,
-        index,
-        reference,
-        elementsList.mapTo(mutableListOf()) { it.toParameterItem(rootId, composableId, section) })
+    } else {
+      val group =
+        ParameterGroupItem(
+          name,
+          type,
+          value.toString(),
+          section,
+          composableId,
+          lookup,
+          rootId,
+          index,
+          reference,
+          elementsList.mapTo(mutableListOf()) { it.toParameterItem(rootId, composableId, section) }
+        )
       if (type == PropertyType.ITERABLE && reference != null && group.children.isNotEmpty()) {
         group.children.add(ShowMoreElementsItem(group))
       }

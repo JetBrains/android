@@ -1,7 +1,27 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT> (IdeBuildImpl)
-        buildName                     : :
-    gradleSupportsDirectTaskInvocation      : true
+MODULE                        : project
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : project
+    LinkedProjectPath             : <ROOT>
+    RootProjectPath               : <ROOT>
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/build/classes/production/project [-]
+        compilerTestOutputPath        : file://<ROOT>/build/classes/test/project [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/.idea/modules/project.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>
+        EXCLUDE_FOLDER                : file://<ROOT>/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : <ROOT>::library@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
@@ -22,11 +42,15 @@ LIBRARY_TABLE
         variant                       : debug
 MODULE                        : project
     externalProject               : project (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : project
         qName                         : project
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : project
@@ -141,6 +165,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             library                       : :library (DefaultExternalProject)
+                path                          : :library [-]
+                identityPath                  : :library [-]
                 name                          : library
                 qName                         : :library
                 group                         : project
@@ -251,6 +277,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             library-remote                : :library-remote (DefaultExternalProject)
+                path                          : :library-remote [-]
+                identityPath                  : :library-remote [-]
                 name                          : library-remote
                 qName                         : :library-remote
                 group                         : com.example.google
@@ -363,6 +391,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             lint                          : :lint (DefaultExternalProject)
+                path                          : :lint [-]
+                identityPath                  : :lint [-]
                 name                          : lint
                 qName                         : :lint
                 group                         : project
@@ -502,6 +532,8 @@ MODULE                        : project
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
             lintpublish                   : :lintpublish (DefaultExternalProject)
+                path                          : :lintpublish [-]
+                identityPath                  : :lintpublish [-]
                 name                          : lintpublish
                 qName                         : :lintpublish
                 group                         : project
@@ -608,6 +640,8 @@ MODULE                        : project
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
             lintpublish-remote            : :lintpublish-remote (DefaultExternalProject)
+                path                          : :lintpublish-remote [-]
+                identityPath                  : :lintpublish-remote [-]
                 name                          : lintpublish-remote
                 qName                         : :lintpublish-remote
                 group                         : project
@@ -721,7 +755,7 @@ MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -739,7 +773,6 @@ MODULE                        : project.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 8.0.0-beta04
     ProjectType                   : PROJECT_TYPE_APP
@@ -784,6 +817,7 @@ MODULE                        : project.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.app
         testApplicationId             : com.example.app.test
@@ -1028,6 +1062,7 @@ MODULE                        : project.app
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -1054,7 +1089,7 @@ MODULE                        : project.library
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :library
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/library/build.gradle
         buildFilePath                 : <ROOT>/library/build.gradle
         rootFolderPath                : <ROOT>
@@ -1072,7 +1107,6 @@ MODULE                        : project.library
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :library
     ModelVersion                  : 8.0.0-beta04
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -1117,6 +1151,7 @@ MODULE                        : project.library
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.library.test
     - basicVariant:               : release
@@ -1336,6 +1371,7 @@ MODULE                        : project.library
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -1356,7 +1392,7 @@ MODULE                        : project.library-remote
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :library-remote
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/library-remote/build.gradle
         buildFilePath                 : <ROOT>/library-remote/build.gradle
         rootFolderPath                : <ROOT>
@@ -1374,7 +1410,6 @@ MODULE                        : project.library-remote
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :library-remote
     ModelVersion                  : 8.0.0-beta04
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -1419,6 +1454,7 @@ MODULE                        : project.library-remote
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.library.test
     - basicVariant:               : release
@@ -1638,6 +1674,7 @@ MODULE                        : project.library-remote
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -1663,7 +1700,7 @@ MODULE                        : project.library.unitTest
 MODULE                        : project.lint
     GradleModuleModel
         gradlePath                    : :lint
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/lint/build.gradle
         buildFilePath                 : <ROOT>/lint/build.gradle
         rootFolderPath                : <ROOT>
@@ -1675,7 +1712,7 @@ MODULE                        : project.lint.test
 MODULE                        : project.lintpublish
     GradleModuleModel
         gradlePath                    : :lintpublish
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/lintpublish/build.gradle
         buildFilePath                 : <ROOT>/lintpublish/build.gradle
         rootFolderPath                : <ROOT>
@@ -1685,7 +1722,7 @@ MODULE                        : project.lintpublish
 MODULE                        : project.lintpublish-remote
     GradleModuleModel
         gradlePath                    : :lintpublish-remote
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/lintpublish-remote/build.gradle
         buildFilePath                 : <ROOT>/lintpublish-remote/build.gradle
         rootFolderPath                : <ROOT>

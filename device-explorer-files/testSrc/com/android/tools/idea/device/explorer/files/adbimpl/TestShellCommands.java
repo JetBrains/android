@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.device.explorer.files.adbimpl;
 
-import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public class TestShellCommands {
   @NotNull private final Map<String, TestShellCommandResult> myCommands = new HashMap<>();

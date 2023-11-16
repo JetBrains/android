@@ -48,9 +48,6 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.RunsInEdt
-import java.awt.Component
-import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -59,6 +56,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol
+import java.awt.Component
+import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
 
 private const val FAKE_TRACE = "com.google.downloadUrlToStream(ImageFetcher.java:274)"
 private const val FAKE_RESPONSE_HEADERS =

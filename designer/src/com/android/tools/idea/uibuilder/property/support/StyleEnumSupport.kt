@@ -18,11 +18,11 @@ package com.android.tools.idea.uibuilder.property.support
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.resources.ResourceUrl
-import com.android.tools.property.panel.api.EnumSupport
-import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumValue
 import com.intellij.openapi.util.text.StringUtil
 
 const val PROJECT_HEADER = "Project"
@@ -34,11 +34,9 @@ const val OTHER_HEADER = "Other"
 /**
  * [EnumSupport] for the "style" attribute.
  *
- * We will find a base style for the current XML tag, and from that
- * find all transitive derived styles. The styles are organized in
- * a tree with the following headings:
- *    "Project", "Library", "AppCompat", "Android"
- * where "Project" are the user defined styles.
+ * We will find a base style for the current XML tag, and from that find all transitive derived
+ * styles. The styles are organized in a tree with the following headings: "Project", "Library",
+ * "AppCompat", "Android" where "Project" are the user defined styles.
  */
 open class StyleEnumSupport(val property: NlPropertyItem) : CachedEnumSupport {
   protected val facet = property.model.facet
@@ -66,9 +64,7 @@ open class StyleEnumSupport(val property: NlPropertyItem) : CachedEnumSupport {
 
   protected open fun displayName(style: StyleResourceValue) = style.name
 
-  /**
-   * Convert the sorted list of styles into a sorted list of [EnumValue]s with group headers.
-   */
+  /** Convert the sorted list of styles into a sorted list of [EnumValue]s with group headers. */
   protected fun convertStyles(styles: List<StyleResourceValue>): List<EnumValue> {
     val resourceManager = StudioResourceRepositoryManager.getInstance(facet)
     val currentNamespace = resourceManager.namespace
@@ -76,17 +72,20 @@ open class StyleEnumSupport(val property: NlPropertyItem) : CachedEnumSupport {
     var prev: StyleResourceValue? = null
     val result = mutableListOf<EnumValue>()
     for (style in styles) {
-      val xmlValue = style.asReference().getRelativeResourceUrl(currentNamespace, namespaceResolver).toString()
+      val xmlValue =
+        style.asReference().getRelativeResourceUrl(currentNamespace, namespaceResolver).toString()
       val value = EnumValue.indented(xmlValue, displayName(style))
-      if (prev != null && style.namespace == prev.namespace && style.libraryName == prev.libraryName) {
+      if (
+        prev != null && style.namespace == prev.namespace && style.libraryName == prev.libraryName
+      ) {
         result.add(value)
-      }
-      else {
-        val header = when(style.namespace) {
-          ResourceNamespace.ANDROID -> ANDROID_HEADER
-          ResourceNamespace.TODO() -> determineHeaderFromLibraryName(style.libraryName)
-          else -> StringUtil.getShortName(style.namespace.packageName ?: OTHER_HEADER, '.')
-        }
+      } else {
+        val header =
+          when (style.namespace) {
+            ResourceNamespace.ANDROID -> ANDROID_HEADER
+            ResourceNamespace.TODO() -> determineHeaderFromLibraryName(style.libraryName)
+            else -> StringUtil.getShortName(style.namespace.packageName ?: OTHER_HEADER, '.')
+          }
         result.add(EnumValue.header(header))
         result.add(value)
       }
@@ -104,13 +103,16 @@ open class StyleEnumSupport(val property: NlPropertyItem) : CachedEnumSupport {
 
   private fun getWidgetBaseStyles(tagName: String): List<StyleResourceValue> {
     val manager = ViewHandlerManager.get(facet)
-    val handler = manager.getHandler(tagName) ?: return emptyList()
+    val handler = manager.getHandler(tagName) {} ?: return emptyList()
     val possibleNames = handler.getBaseStyles(tagName)
     val prefixMap = handler.prefixToNamespaceMap
     return possibleNames.mapNotNull { resolve(it, prefixMap) }
   }
 
-  private fun resolve(qualifiedStyleName: String, prefixMap: Map<String, String>): StyleResourceValue? {
+  private fun resolve(
+    qualifiedStyleName: String,
+    prefixMap: Map<String, String>
+  ): StyleResourceValue? {
     if (resolver == null) {
       return null
     }

@@ -27,19 +27,18 @@ import org.jetbrains.uast.toUElementOfType
 import org.jetbrains.uast.tryResolve
 
 /**
- * Base structure for the information that is relevant during a graph traversal, for each
- * visited node of the [AnnotationsGraph].
+ * Base structure for the information that is relevant during a graph traversal, for each visited
+ * node of the [AnnotationsGraph].
  *
- * This should be used to keep track of different contextual information that [ResultFactory]
- * will need to create the corresponding results.
+ * This should be used to keep track of different contextual information that [ResultFactory] will
+ * need to create the corresponding results.
  *
- * Given that the NodeInfo instance will live in the context of a graph traversal, then each
- * of its edges could impact on its relevant information. And when traversing a graph, there
- * are 3 possible moments where and edge could have different meanings:
- * 1- When an edge is traversed forward (see [onBeforeChildTraversal]).
- * 2- When an edge is traversed backward (see [onAfterChildTraversal]).
- * 3- When an edge is not traversed as a consequence of leading to an already visited node
- *  (see [onSkippedChildTraversal]).
+ * Given that the NodeInfo instance will live in the context of a graph traversal, then each of its
+ * edges could impact on its relevant information. And when traversing a graph, there are 3 possible
+ * moments where and edge could have different meanings: 1- When an edge is traversed forward (see
+ * [onBeforeChildTraversal]). 2- When an edge is traversed backward (see [onAfterChildTraversal]).
+ * 3- When an edge is not traversed as a consequence of leading to an already visited node (see
+ * [onSkippedChildTraversal]).
  */
 interface NodeInfo<S> {
   val parent: NodeInfo<S>?
@@ -47,92 +46,99 @@ interface NodeInfo<S> {
   val subtreeInfo: S?
 
   /**
-   * Method called during [AnnotationsGraph.traverse], immediately after traversing the edge
-   * `this` -> [child], for every traversed edge.
-   * At this point [subtreeInfo] is usually not set, and this method's main purpose is to provide
-   * some contextual information from `this` to [child].
-   * This could be use, for example, to count the number of specific child annotations already
-   * visited (e.g. @Preview).
+   * Method called during [AnnotationsGraph.traverse], immediately after traversing the edge `this`
+   * -> [child], for every traversed edge. At this point [subtreeInfo] is usually not set, and this
+   * method's main purpose is to provide some contextual information from `this` to [child]. This
+   * could be used, for example, to count the number of specific child annotations already visited
+   * (e.g. @Preview).
    */
   fun onBeforeChildTraversal(child: NodeInfo<S>)
 
   /**
    * Method called during [AnnotationsGraph.traverse], for every traversed edge `this` -> [child],
-   * after the whole subtree rooted at [child] was already traversed.
-   * At this point, the [child]'s [subtreeInfo] should be already set, and this method's main
-   * purpose is to provide some contextual information from the [child]'s subtree to `this`.
-   * This could be use, for example, for metrics collection (e.g. to accumulate the total number
-   * of direct and indirect @Preview found under this annotation)
+   * after the whole subtree rooted at [child] was already traversed. At this point, the [child]'s
+   * [subtreeInfo] should be already set, and this method's main purpose is to provide some
+   * contextual information from the [child]'s subtree to `this`. This could be used, for example,
+   * for metrics collection (e.g. to accumulate the total number of direct and indirect @Preview
+   * found under this annotation)
    */
   fun onAfterChildTraversal(child: NodeInfo<S>)
 
   /**
-   * Method called during [AnnotationsGraph.traverse], for every not traversed edge `this` -> [child],
-   * where the [child] has already been visited earlier during the graph traversal.
-   * At this point, the [child]'s [subtreeInfo] should be already set, and this method's could be
-   * useful in some cases to provide some contextual information from the [child]'s subtree to `this`.
-   * This could be use, for example, to detect cycles.
+   * Method called during [AnnotationsGraph.traverse], for every not traversed edge `this` ->
+   * [child], where the [child] has already been visited earlier during the graph traversal. At this
+   * point, the [child]'s [subtreeInfo] should be already set, and this method's could be useful in
+   * some cases to provide some contextual information from the [child]'s subtree to `this`. This
+   * could be used, for example, to detect cycles.
    */
   fun onSkippedChildTraversal(child: NodeInfo<S>)
 }
 
 /**
- * Factory used by the [AnnotationsGraph] to produce relevant information about the nodes
- * visited during a graph traversal.
+ * Factory used by the [AnnotationsGraph] to produce relevant information about the nodes visited
+ * during a graph traversal.
  */
 interface NodeInfoFactory<S> {
   fun create(parent: NodeInfo<S>?, curElement: UElement): NodeInfo<S>
 }
 
-/**
- * Factory used by the [AnnotationsGraph] to produce the output sequence for a graph traversal.
- */
+/** Factory used by the [AnnotationsGraph] to produce the output sequence for a graph traversal. */
 interface ResultFactory<S, T> {
   fun create(node: NodeInfo<S>): Sequence<T>
 }
 
 /**
- * The annotations graph of a project is the graph formed by every [UElement] as node, and
- * such that each annotation of a given element is considered as a directed edge from the
- * annotated element to the annotation class of which the given annotation is instance.
+ * The annotations graph of a project is the graph formed by every [UElement] as node, and such that
+ * each annotation of a given element is considered as a directed edge from the annotated element to
+ * the annotation class of which the given annotation is instance.
  *
- * Then this could be used to traverse the annotations graph and gather some useful
- * information from it.
+ * Then this could be used to traverse the annotations graph and gather some useful information from
+ * it.
  *
- * @param nodeInfoFactory: used to create a [NodeInfo] for each [UElement] visited during
- *  a traversal, in pre-order.
- * @param resultFactory: used to create a sequence of [T] for each [NodeInfo] visited during
- *  a traversal, in post-order.
+ * @param nodeInfoFactory: used to create a [NodeInfo] for each [UElement] visited during a
+ *   traversal, in pre-order.
+ * @param resultFactory: used to create a sequence of [T] for each [NodeInfo] visited during a
+ *   traversal, in post-order.
  *
  * For more information see [traverse], [NodeInfo], [NodeInfoFactory] and [ResultFactory].
  */
-class AnnotationsGraph<S, T>(private val nodeInfoFactory: NodeInfoFactory<S>,
-                             private val resultFactory: ResultFactory<S, T>) {
+class AnnotationsGraph<S, T>(
+  private val nodeInfoFactory: NodeInfoFactory<S>,
+  private val resultFactory: ResultFactory<S, T>
+) {
   /**
    * DFS to traverse the annotations graph using the given [sourceElements] as starting points.
+   *
    * @param annotationFilter: function used to decide which edges of the graph to use during the
-   *  traversal. It should return true for the edges ([UElement] --annotated_with--> [UAnnotation])
-   *  that should be traversed.
-   * @param isLeafAnnotation: function used to identify "leaf" annotations during the traversal.
-   *  It should return true for the [UAnnotation]s that are considered "leaf" annotations. Such
-   *  annotations could be visited multiple times, but the DFS won't traverse through them.
+   *   traversal. It should return true for the edges ([UElement] --annotated_with--> [UAnnotation])
+   *   that should be traversed.
+   * @param isLeafAnnotation: function used to identify "leaf" annotations during the traversal. It
+   *   should return true for the [UAnnotation]s that are considered "leaf" annotations. Such
+   *   annotations could be visited multiple times, but the DFS won't traverse through them.
    */
-  fun traverse(sourceElements: List<UElement>,
-               annotationFilter: (UElement, UAnnotation) -> Boolean = { _, _ -> true },
-               isLeafAnnotation: (UAnnotation) -> Boolean = { false }): Sequence<T> {
+  fun traverse(
+    sourceElements: List<UElement>,
+    annotationFilter: (UElement, UAnnotation) -> Boolean = { _, _ -> true },
+    isLeafAnnotation: (UAnnotation) -> Boolean = { false }
+  ): Sequence<T> {
     val visitedAnnotationClasses: MutableMap<String, NodeInfo<S>> = mutableMapOf()
 
     return sequence {
-      yield(sourceElements.asSequence().flatMap {
-        it.traverse(visitedAnnotationClasses, annotationFilter, isLeafAnnotation, parent = null)
-      })
-    }.flatten()
+        yield(
+          sourceElements.asSequence().flatMap {
+            it.traverse(visitedAnnotationClasses, annotationFilter, isLeafAnnotation, parent = null)
+          }
+        )
+      }
+      .flatten()
   }
 
-  private fun UElement.traverse(visitedAnnotationClasses: MutableMap<String, NodeInfo<S>>,
-                                annotationFilter: (UElement, UAnnotation) -> Boolean,
-                                isLeafAnnotation: (UAnnotation) -> Boolean,
-                                parent: NodeInfo<S>?): Sequence<T> {
+  private fun UElement.traverse(
+    visitedAnnotationClasses: MutableMap<String, NodeInfo<S>>,
+    annotationFilter: (UElement, UAnnotation) -> Boolean,
+    isLeafAnnotation: (UAnnotation) -> Boolean,
+    parent: NodeInfo<S>?
+  ): Sequence<T> {
     val curNode = nodeInfoFactory.create(parent, this)
     parent?.onBeforeChildTraversal(curNode)
     // If `this` is an annotation, then mark it as visited by adding its fqcn to the map.
@@ -146,23 +152,33 @@ class AnnotationsGraph<S, T>(private val nodeInfoFactory: NodeInfoFactory<S>,
     val result: Sequence<T>
     if ((this is UAnnotation) && isLeafAnnotation(this)) {
       result = resultFactory.create(curNode).also { parent?.onAfterChildTraversal(curNode) }
-    }
-    else {
+    } else {
       val annotations = this.getUAnnotations()
-      result = sequence {
-        yield(annotations.asSequence().filter { annotationFilter(this@traverse, it) }.flatMap {
-          if ((isLeafAnnotation(it) || !visitedAnnotationClasses.containsKey(it.fqcn))) {
-            it.traverse(visitedAnnotationClasses, annotationFilter, isLeafAnnotation, curNode)
-          }
-          else {
-            emptySequence<T>().also { _ ->
-              curNode.onSkippedChildTraversal(visitedAnnotationClasses[it.fqcn]!!)
-            }
-          }
-        })
+      result =
+        sequence {
+            yield(
+              annotations
+                .asSequence()
+                .filter { annotationFilter(this@traverse, it) }
+                .flatMap {
+                  if ((isLeafAnnotation(it) || !visitedAnnotationClasses.containsKey(it.fqcn))) {
+                    it.traverse(
+                      visitedAnnotationClasses,
+                      annotationFilter,
+                      isLeafAnnotation,
+                      curNode
+                    )
+                  } else {
+                    emptySequence<T>().also { _ ->
+                      curNode.onSkippedChildTraversal(visitedAnnotationClasses[it.fqcn]!!)
+                    }
+                  }
+                }
+            )
 
-        yield(resultFactory.create(curNode).also { parent?.onAfterChildTraversal(curNode) })
-      }.flatten()
+            yield(resultFactory.create(curNode).also { parent?.onAfterChildTraversal(curNode) })
+          }
+          .flatten()
     }
 
     return result
@@ -173,26 +189,33 @@ class AnnotationsGraph<S, T>(private val nodeInfoFactory: NodeInfoFactory<S>,
 }
 
 /**
- * Helper function to try getting the annotations that this UElement is annotated with.
- * It works correctly when this element is a [UMethod] or a [UAnnotation], but it is
- * not guaranteed that it will work with other types of elements.
+ * Helper function to try getting the annotations that this UElement is annotated with. It works
+ * correctly when this element is a [UMethod] or a [UAnnotation], but it is not guaranteed that it
+ * will work with other types of elements.
  */
 fun UElement.getUAnnotations() = runReadAction {
-  val annotations = (this as? UMethod)?.uAnnotations
-  ?: (this.tryResolve() as? PsiModifierListOwner)?.annotations?.mapNotNull { it.toUElementOfType() as? UAnnotation }
-  ?: emptyList()
+  val annotations =
+    (this as? UMethod)?.uAnnotations
+      ?: (this.tryResolve() as? PsiModifierListOwner)?.annotations?.mapNotNull {
+        it.toUElementOfType() as? UAnnotation
+      }
+        ?: emptyList()
   annotations.flatMap { annotation ->
     annotation.extractFromContainer().ifEmpty { listOf(annotation) }
   }
 }
 
 /**
- * MultiPreviews imported from a library will put repeated annotations of a given class (e.g. Previews)
- * inside a container (more info at https://kotlinlang.org/docs/annotations.html#repeatable-annotations).
- * This method extracts all annotations of a given container to have a list of individual annotations.
+ * MultiPreviews imported from a library will put repeated annotations of a given class (e.g.
+ * Previews) inside a container (more info at
+ * https://kotlinlang.org/docs/annotations.html#repeatable-annotations). This method extracts all
+ * annotations of a given container to have a list of individual annotations.
  *
  * When the annotation is not a container it returns an empty list.
  */
 private fun UAnnotation.extractFromContainer() = runReadAction {
-  findDeclaredAttributeValue(null)?.sourcePsi?.children?.mapNotNull { it.toUElement() as? UAnnotation } ?: emptyList()
+  findDeclaredAttributeValue(null)?.sourcePsi?.children?.mapNotNull {
+    it.toUElement() as? UAnnotation
+  }
+    ?: emptyList()
 }

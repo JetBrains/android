@@ -20,10 +20,8 @@ import java.util.function.Function
 import kotlin.math.abs
 import kotlin.math.pow
 
-/**
- * Tests interpolation with the uniform [ColorLut]
- */
-class ColorLutTest: TestCase() {
+/** Tests interpolation with the uniform [ColorLut] */
+class ColorLutTest : TestCase() {
 
   private val uniform = buildUniformColorLut(DIM)
   private val removeGammaCLut: DoubleArray = buildGammaCLut(Function { (it / 255.0).pow(GAMMA) })
@@ -37,42 +35,43 @@ class ColorLutTest: TestCase() {
       val color1 = uniform1.lut[i]
       val color2 = uniform2.lut[i]
 
-      assertTrue("Red comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
-                 abs(r(color1) - r(color2)) <= threshhold)
-      assertTrue("Green comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
-                            abs(g(color1) - g(color2)) <= threshhold)
-      assertTrue("Blue comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
-                 abs(b(color1) - b(color2)) <= threshhold)
+      assertTrue(
+        "Red comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
+        Math.abs(r(color1) - r(color2)) <= threshhold
+      )
+      assertTrue(
+        "Green comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
+        Math.abs(g(color1) - g(color2)) <= threshhold
+      )
+      assertTrue(
+        "Blue comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
+        Math.abs(b(color1) - b(color2)) <= threshhold
+      )
     }
   }
 
   /**
-   * Interpolate the 16 x 16 x 16 Color Lookup Table
-   * and look for the next red.
+   * Interpolate the 16 x 16 x 16 Color Lookup Table and look for the next red.
    *
-   * It should be within the range of 1. It should almost always return 1 higher
-   * for red.
+   * It should be within the range of 1. It should almost always return 1 higher for red.
    */
   fun testNextRed() {
-    for (index in 0 .. 255) {
+    for (index in 0..255) {
       val next = uniform.nextRed(index)
       assertTrue("@$index, $next", next - index <= 1)
     }
   }
 
-  /**
-   * As our 3D table is layed out in uniform, we expect each next index
-   * to increase by 16.
-   */
+  /** As our 3D table is layed out in uniform, we expect each next index to increase by 16. */
   fun testNextGreen() {
-    for (index in 0 .. 255) {
+    for (index in 0..255) {
       val next = uniform.nextGreen(index)
       assertTrue("@$index, $next", next - index == DIM || next - index == 0)
     }
   }
 
   fun testNextBlue() {
-    for (index in 0 .. 255) {
+    for (index in 0..255) {
       val next = uniform.nextBlue(index)
       assertTrue("@$index, $next", next - index == DIM * DIM || next - index == 0)
     }
@@ -82,9 +81,9 @@ class ColorLutTest: TestCase() {
     for (color in 0 until 0xFFFFFF) {
       val out = uniform.interpolate(color)
 
-      assertTrue("Red input : $color, output : $out", abs(r(color) - r(out)) <= 1)
-      assertTrue("Green input : $color, output : $out", abs(g(color) - g(out)) <= 1)
-      assertTrue("Blue input : $color, output : $out", abs(b(color) - b(out)) <= 1)
+      assertTrue("Red input : $color, output : $out", Math.abs(r(color) - r(out)) <= 1)
+      assertTrue("Green input : $color, output : $out", Math.abs(g(color) - g(out)) <= 1)
+      assertTrue("Blue input : $color, output : $out", Math.abs(b(color) - b(out)) <= 1)
     }
   }
 

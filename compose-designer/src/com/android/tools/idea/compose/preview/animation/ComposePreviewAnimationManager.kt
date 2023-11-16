@@ -20,14 +20,12 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.Preview
-import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
-import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -76,14 +74,16 @@ object ComposePreviewAnimationManager {
     onNewInspectorOpen: () -> Unit
   ): AnimationPreview {
     newInspectorOpenedCallback = onNewInspectorOpen
-    AnimationToolingUsageTracker.getInstance(surface)
-      .logEvent(
-        AnimationToolingEvent(
-          ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.OPEN_ANIMATION_INSPECTOR
-        )
-      )
     return invokeAndWaitIfNeeded {
-      val animationInspectorPanel = AnimationPreview(surface, psiFilePointer)
+      val animationInspectorPanel =
+        AnimationPreview(
+          surface,
+          AnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
+          { surface.sceneManager },
+          surface,
+          psiFilePointer,
+        )
+      animationInspectorPanel.tracker.openAnimationInspector()
       Disposer.register(parent, animationInspectorPanel)
       currentInspector = animationInspectorPanel
       animationInspectorPanel
@@ -93,12 +93,7 @@ object ComposePreviewAnimationManager {
   fun closeCurrentInspector() {
     currentInspector?.let {
       Disposer.dispose(it)
-      AnimationToolingUsageTracker.getInstance(it.surface)
-        .logEvent(
-          AnimationToolingEvent(
-            ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CLOSE_ANIMATION_INSPECTOR
-          )
-        )
+      it.tracker.closeAnimationInspector()
     }
     currentInspector = null
     newInspectorOpenedCallback = null

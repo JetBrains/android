@@ -17,10 +17,10 @@ package com.android.tools.idea.tests.gui.androidtest
 
 import com.android.tools.idea.bleak.IgnoreList
 import com.android.tools.idea.bleak.IgnoreListEntry
+import com.android.tools.idea.bleak.StudioBleakOptions
 import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.bleak.runWithBleak
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.UiTestBleakOptions
 import com.intellij.execution.TestStateStorage
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
 import com.intellij.execution.testframework.sm.runner.history.actions.AbstractImportTestsAction
@@ -48,14 +48,12 @@ class ImportTestHistoryTest {
   fun importTestHistoryDoesNotLeakMemoryAfterDisposed() {
     val ideFrameFixture = guiTest.importSimpleApplication()
     createTestHistoryXmlFileInProject(ideFrameFixture.project)
-    val bleakOptions = UiTestBleakOptions.defaultsWithAdditionalIgnoreList(
+    val bleakOptions = StudioBleakOptions.defaultsWithAdditionalIgnoreList(
       IgnoreList(listOf(
-        IgnoreListEntry { it.leaktrace.signatureAt(2) == "java.awt.KeyboardFocusManager#focusedWindow" },
-        IgnoreListEntry { it.leaktrace.signatureAt(-1) == "com.intellij.util.SmartList" },
-        // AndroidStudioUsageTracker sends report in bulk. BuilderInfo can be accumulated until the tracker flushes them.
-        IgnoreListEntry { it.leaktrace.signatureAt(-1) == "[Lcom.android.tools.idea.diagnostics.report.BuilderInfo;" },
+        IgnoreListEntry { it.leaktrace.referenceMatches(2, "java.awt.KeyboardFocusManager", "focusedWindow") },
+        IgnoreListEntry { it.leaktrace.element(-1)?.className ==  "com.intellij.util.SmartList" },
         // Number of monitor thread can be increased after new AVD is discovered.
-        IgnoreListEntry { it.leaktrace.signatureAt(3) == "com.android.ddmlib.internal.MonitorThread#group" },
+        IgnoreListEntry { it.leaktrace.referenceMatches(3, "com.android.ddmlib.internal.MonitorThread", "group") },
       ))
     )
     runWithBleak(bleakOptions) {

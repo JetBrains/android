@@ -16,11 +16,10 @@
 package com.android.tools.idea.npw.importing;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDefaultPath;
-import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleProjectPath;
+import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleIdentityPath;
 
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.android.tools.idea.util.FormatUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -163,10 +162,9 @@ public final class ModuleListModel {
       return false;
     }
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      // TODO(b/149203281): Fix support for composite builds.
-      GradleProjectPath moduleGradlePath = getGradleProjectPath(module);
+      String moduleGradlePath = getGradleIdentityPath(module);
 
-      if (moduleGradlePath != null && gradlePath.equals(moduleGradlePath.getPath())) {
+      if (gradlePath.equals(moduleGradlePath)) {
         return true;
       }
     }

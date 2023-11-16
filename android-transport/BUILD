@@ -34,5 +34,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:transport-proto",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/analytics[module]",
     ],
 )

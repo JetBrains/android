@@ -16,11 +16,13 @@
 
 #include "controller.h"
 
+#include <android/keycodes.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 #include <cassert>
 
+#include "accessors/device_state_manager.h"
 #include "accessors/input_manager.h"
 #include "accessors/key_event.h"
 #include "accessors/motion_event.h"
@@ -82,6 +84,10 @@ void SetReceiveTimeoutMillis(int timeout_millis, int socket_fd) {
   setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 }
 
+bool ContainsMultipleDeviceStates(const string& states_text) {
+  return states_text.find("DeviceState{") != states_text.rfind("DeviceState{");
+}
+
 }  // namespace
 
 Controller::Controller(int socket_fd)
@@ -93,7 +99,8 @@ Controller::Controller(int socket_fd)
       key_character_map_(),
       clipboard_listener_(this),
       max_synced_clipboard_length_(0),
-      clipboard_changed_() {
+      clipboard_changed_(),
+      device_state_listener_(this) {
   assert(socket_fd > 0);
   char channel_marker = 'C';
   write(socket_fd_, &channel_marker, sizeof(channel_marker));  // Control channel marker.
@@ -106,6 +113,9 @@ Controller::~Controller() {
 }
 
 void Controller::Shutdown() {
+  if (device_supports_multiple_states_) {
+    DeviceStateManager::RemoveDeviceStateListener(&device_state_listener_);
+  }
   input_stream_.Close();
   output_stream_.Close();
   close(socket_fd_);
@@ -131,6 +141,30 @@ void Controller::Initialize() {
   if ((Agent::flags() & START_VIDEO_STREAM) != 0) {
     WakeUpDevice();
   }
+
+  string states_text = DeviceStateManager::GetSupportedStates();
+  Log::D("Controller::Initialize: states_text=%s", states_text.c_str());
+  if (ContainsMultipleDeviceStates(states_text)) {
+    device_supports_multiple_states_ = true;
+    SupportedDeviceStatesNotification supported_device_states_notification(std::move(states_text));
+    try {
+      supported_device_states_notification.Serialize(output_stream_);
+      output_stream_.Flush();
+    } catch (EndOfFile& e) {
+      // The socket has been closed - ignore.
+    }
+    DeviceStateManager::AddDeviceStateListener(&device_state_listener_);
+    int32_t device_state = DeviceStateManager::GetDeviceState(jni_);
+    Log::D("Controller::Initialize: device_state=%d", device_state);
+    {
+      scoped_lock lock(device_state_mutex_);
+      if (!device_state_changed_) {
+        device_state_ = device_state;
+        device_state_changed_ = true;
+      }
+    }
+  }
+
   Agent::InitializeSessionEnvironment();
 }
 
@@ -144,7 +178,18 @@ void Controller::Run() {
         if (clipboard_changed_.exchange(false)) {
           ProcessClipboardChange();
         }
-        // Set a receive timeout to check for clipboard changes frequently.
+      }
+
+      if (device_supports_multiple_states_) {
+        int32_t device_state = TakeChangedDeviceState();
+        if (device_state >= 0) {
+          Log::D("Controller::Run: device_state=%d", device_state);
+          SendDeviceStateNotification(device_state);
+        }
+      }
+
+      if (max_synced_clipboard_length_ != 0 || device_supports_multiple_states_) {
+        // Set a receive timeout to check for clipboard and device state changes frequently.
         SetReceiveTimeoutMillis(SOCKET_RECEIVE_TIMEOUT_MILLIS, socket_fd_);
       }
 
@@ -161,11 +206,14 @@ void Controller::Run() {
   } catch (EndOfFile& e) {
     Log::D("Controller::Run: End of command stream");
   } catch (IoException& e) {
-    Log::Fatal("%s", e.GetMessage().c_str());
+    Log::Fatal(SOCKET_IO_ERROR, "%s", e.GetMessage().c_str());
   }
 }
 
 void Controller::ProcessMessage(const ControlMessage& message) {
+  if (message.type() != MotionEventMessage::TYPE) { // Exclude
+    Log::D("Controller::ProcessMessage %d", message.type());
+  }
   switch (message.type()) {
     case MotionEventMessage::TYPE:
       ProcessMotionEvent((const MotionEventMessage&) message);
@@ -203,6 +251,10 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       StopClipboardSync();
       break;
 
+    case RequestDeviceStateMessage::TYPE:
+      RequestDeviceState((const RequestDeviceStateMessage&) message);
+      break;
+
     default:
       Log::E("Unexpected message type %d", message.type());
       break;
@@ -210,16 +262,15 @@ void Controller::ProcessMessage(const ControlMessage& message) {
 }
 
 void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
+  int32_t action = message.action();
+  Log::V("Controller::ProcessMotionEvent action:%d", action);
   int64_t now = UptimeMillis();
   MotionEvent event(jni_);
   event.display_id = message.display_id();
-  int32_t action = message.action();
   event.action = action;
+  event.button_state = message.button_state();
   event.event_time_millis = now;
-  if (action == AMOTION_EVENT_ACTION_SCROLL) {
-    event.down_time_millis = now;
-  }
-  else {
+  if (action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_SCROLL) {
     if (action == AMOTION_EVENT_ACTION_DOWN) {
       motion_event_start_time_ = now;
     }
@@ -231,6 +282,16 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     if (action == AMOTION_EVENT_ACTION_UP) {
       motion_event_start_time_ = 0;
     }
+  }
+  if (action == AMOTION_EVENT_ACTION_HOVER_MOVE || message.action_button() != 0 || message.button_state() != 0) {
+    // AINPUT_SOURCE_MOUSE
+    // - when action_button() is non-zero, as the Android framework has special handling for mouse in performButtonActionOnTouchDown(),
+    //   which opens the context menu on right click.
+    // - when message.button_state() is non-zero, otherwise drag operations initiated by touch down with AINPUT_SOURCE_MOUSE will not
+    //   receiver mouse move events.
+    event.source = AINPUT_SOURCE_MOUSE;
+  } else {
+    event.source = AINPUT_SOURCE_STYLUS | AINPUT_SOURCE_TOUCHSCREEN;
   }
 
   DisplayInfo display_info = Agent::GetDisplayInfo();
@@ -257,26 +318,44 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   // InputManager doesn't allow ACTION_DOWN and ACTION_UP events with multiple pointers.
   // They have to be converted to a sequence of pointer-specific events.
   if (action == AMOTION_EVENT_ACTION_DOWN) {
-    for (int i = 1; event.pointer_count = i, i < message.pointers().size(); i++) {
+    if (message.action_button()) {
       InputManager::InjectInputEvent(jni_, event.ToJava(), InputEventInjectionSync::NONE);
-      event.action = AMOTION_EVENT_ACTION_POINTER_DOWN | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+      event.action = AMOTION_EVENT_ACTION_BUTTON_PRESS;
+      event.action_button = message.action_button();
+    } else {
+      for (int i = 1; event.pointer_count = i, i < message.pointers().size(); i++) {
+        InputManager::InjectInputEvent(jni_, event.ToJava(), InputEventInjectionSync::NONE);
+        event.action = AMOTION_EVENT_ACTION_POINTER_DOWN | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+      }
     }
   }
   else if (action == AMOTION_EVENT_ACTION_UP) {
-    for (int i = event.pointer_count; --i > 1;) {
-      event.action = AMOTION_EVENT_ACTION_POINTER_UP | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
-      pointer_helper_->SetPointerPressure(pointer_coordinates_.GetElement(jni_, i), 0);
+    if (message.action_button()) {
+      event.action = AMOTION_EVENT_ACTION_BUTTON_RELEASE;
+      event.action_button = message.action_button();
       InputManager::InjectInputEvent(jni_, event.ToJava(), InputEventInjectionSync::NONE);
-      event.pointer_count = i;
+      event.action = AMOTION_EVENT_ACTION_UP;
+      event.action_button = 0;
+    } else {
+      for (int i = event.pointer_count; --i > 1;) {
+        event.action = AMOTION_EVENT_ACTION_POINTER_UP | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+        pointer_helper_->SetPointerPressure(pointer_coordinates_.GetElement(jni_, i), 0);
+        InputManager::InjectInputEvent(jni_, event.ToJava(), InputEventInjectionSync::NONE);
+        event.pointer_count = i;
+      }
+      event.action = AMOTION_EVENT_ACTION_UP;
     }
-    event.action = AMOTION_EVENT_ACTION_UP;
   }
   Agent::RecordTouchEvent();
   InputManager::InjectInputEvent(jni_, event.ToJava(), InputEventInjectionSync::NONE);
 
   if (event.action == AMOTION_EVENT_ACTION_UP) {
     // This event may have started an app. Update the app-level display orientation.
-    Agent::SetVideoOrientation(-1);
+    Agent::SetVideoOrientation(DisplayStreamer::CURRENT_VIDEO_ORIENTATION);
+
+    if (!display_info.IsOn()) {
+      ProcessKeyboardEvent(KeyEventMessage(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_WAKEUP, 0));  // Wakeup the display.
+    }
   }
 }
 
@@ -325,11 +404,12 @@ void Controller::ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& 
 }
 
 void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message) {
-  if (message.width() <= 0 || message.height() <= 0) {
-    Log::E("An attempt to set an invalid video resolution: %dx%d", message.width(), message.height());
+  const Size& size = message.size();
+  if (size.width <= 0 || size.height <= 0) {
+    Log::E("An attempt to set an invalid video resolution: %dx%d", size.width, size.height);
     return;
   }
-  Agent::SetMaxVideoResolution(Size(message.width(), message.height()));
+  Agent::SetMaxVideoResolution(size);
 }
 
 void Controller::StopVideoStream() {
@@ -366,13 +446,10 @@ void Controller::StopClipboardSync() {
 void Controller::ProcessClipboardChange() {
   Log::D("Controller::ProcessClipboardChange");
   ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni_);
-  Log::V("%s:%d", __FILE__, __LINE__);
   string text = clipboard_manager->GetText();
-  Log::V("%s:%d", __FILE__, __LINE__);
   if (text.empty() || text == last_clipboard_text_) {
     return;
   }
-  Log::V("%s:%d", __FILE__, __LINE__);
   int max_length = max_synced_clipboard_length_;
   if (text.size() > max_length * UTF8_MAX_BYTES_PER_CHARACTER || Utf8CharacterCount(text) > max_length) {
     return;
@@ -380,19 +457,54 @@ void Controller::ProcessClipboardChange() {
   last_clipboard_text_ = text;
 
   ClipboardChangedNotification message(std::move(text));
-  Log::V("%s:%d", __FILE__, __LINE__);
-  try {
-    message.Serialize(output_stream_);
-    output_stream_.Flush();
-  } catch (EndOfFile& e) {
-    // The socket has been closed - ignore.
+  message.Serialize(output_stream_);
+  output_stream_.Flush();
+}
+
+void Controller::RequestDeviceState(const RequestDeviceStateMessage& message) {
+  DeviceStateManager::RequestState(jni_, message.state(), 0);
+}
+
+int32_t Controller::TakeChangedDeviceState() {
+  scoped_lock lock(device_state_mutex_);
+  if (device_state_changed_) {
+    device_state_changed_ = false;
+    Log::D("Controller::TakeChangedDeviceState: device_state_=%d", device_state_);
+    return device_state_;
   }
-  Log::V("%s:%d", __FILE__, __LINE__);
+  return -1;
+}
+
+void Controller::SendDeviceStateNotification(int32_t device_state) {
+  Log::D("Controller::SendDeviceStateNotification(%d)", device_state);
+  DeviceStateNotification notification(device_state);
+  notification.Serialize(output_stream_);
+  output_stream_.Flush();
 }
 
 void Controller::OnPrimaryClipChanged() {
   Log::D("Controller::OnPrimaryClipChanged");
   clipboard_changed_ = true;
+}
+
+void Controller::OnDeviceStateChanged(int32_t device_state) {
+  Log::D("Controller::OnDeviceStateChanged(%d)", device_state);
+  bool changed = false;
+  {
+    scoped_lock lock(device_state_mutex_);
+    if (device_state_ != device_state) {
+      changed = true;
+      device_state_ = device_state;
+      device_state_changed_ = true;
+    }
+  }
+  if (changed) {
+    Agent::SetVideoOrientation(DisplayStreamer::CURRENT_DISPLAY_ORIENTATION);
+  }
+}
+
+void Controller::WakeUpDevice() {
+  ProcessKeyboardEvent(Jvm::GetJni(), KeyEventMessage(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_WAKEUP, 0));
 }
 
 Controller::ClipboardListener::~ClipboardListener() = default;
@@ -401,8 +513,10 @@ void Controller::ClipboardListener::OnPrimaryClipChanged() {
   controller_->OnPrimaryClipChanged();
 }
 
-void Controller::WakeUpDevice() {
-  ProcessKeyboardEvent(Jvm::GetJni(), KeyEventMessage(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_WAKEUP, 0));
+Controller::DeviceStateListener::~DeviceStateListener() = default;
+
+void Controller::DeviceStateListener::OnDeviceStateChanged(int32_t device_state) {
+  controller_->OnDeviceStateChanged(device_state);
 }
 
 }  // namespace screensharing

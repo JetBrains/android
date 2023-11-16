@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/.idea/libraries:google-dexlib2",
+        "//tools/adt/idea/analytics[module]",
     ],
 )
 

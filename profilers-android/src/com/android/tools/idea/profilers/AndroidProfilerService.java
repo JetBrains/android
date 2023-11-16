@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.profilers;
 
+import static com.android.tools.analytics.UsageTrackerUtils.deviceToDeviceInfo;
+
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
@@ -25,7 +27,6 @@ import com.android.tools.idea.profilers.commands.LegacyCpuTraceCommandHandler;
 import com.android.tools.idea.profilers.eventpreprocessor.EnergyUsagePreprocessor;
 import com.android.tools.idea.profilers.eventpreprocessor.SimpleperfPipelinePreprocessor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.transport.FailedToStartServerException;
 import com.android.tools.idea.transport.TransportDeviceManager;
 import com.android.tools.idea.transport.TransportProxy;
@@ -118,7 +119,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
       proxy.registerEventPreprocessor(new EnergyUsagePreprocessor(TransportService.getInstance().getLogService()));
     }
     SimpleperfPipelinePreprocessor traceProcessor =
-      new SimpleperfPipelinePreprocessor(new SimpleperfSampleReporter(AndroidStudioUsageTracker.deviceToDeviceInfo(device)));
+      new SimpleperfPipelinePreprocessor(new SimpleperfSampleReporter(deviceToDeviceInfo(device)));
     proxy.registerEventPreprocessor(traceProcessor);
     proxy.registerDataPreprocessor(traceProcessor);
   }
@@ -134,7 +135,8 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
       .setCpu(
         Transport.DaemonConfig.CpuConfig.newBuilder()
           .setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC)
-          .setUsePerfetto(true));
+          .setUsePerfetto(true)
+          .setUseTracebox(StudioFlags.PROFILER_TRACEBOX.get()));
   }
 
   @Override

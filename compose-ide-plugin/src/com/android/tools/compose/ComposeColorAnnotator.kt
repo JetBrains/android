@@ -54,6 +54,8 @@ import java.awt.MouseInfo
 import java.util.Locale
 import javax.swing.Icon
 
+private const val ICON_SIZE = 8
+
 /**
  * [Annotator] to place color gutter icons for compose color declarations.
  * It does this by looking at the parameters of the Color() method and so does not work is the parameters are references.
@@ -106,7 +108,6 @@ class ComposeColorAnnotator : Annotator {
  * TODO(lukeegan): Implement for ComposeColorConstructor.FLOAT_X4_COLORSPACE Color parameter
  */
 data class ColorIconRenderer(val element: UCallExpression, val color: Color) : GutterIconRenderer() {
-  private val ICON_SIZE = 8
 
   override fun getIcon(): Icon {
     return ColorIcon(ICON_SIZE, color)
@@ -117,8 +118,8 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) : G
     val setColorTask: (Color) -> Unit = getSetColorTask() ?: return null
 
     val pickerListener = ColorPickerListener { color, _ ->
-      ApplicationManager.getApplication().invokeLater(Runnable {
-        WriteCommandAction.runWriteCommandAction(project, "Change Color", null, Runnable { setColorTask.invoke(color) })
+      ApplicationManager.getApplication().invokeLater({
+        WriteCommandAction.runWriteCommandAction(project, "Change Color", null, { setColorTask.invoke(color) })
       }, project.disposed)
     }
     return object : AnAction() {
@@ -166,7 +167,7 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) : G
         val valueArgumentList = ktCallExpression.valueArgumentList
         if (valueArgumentList != null) {
           val needsArgumentName = valueArgumentList.arguments.any { it.getArgumentName() != null }
-          val hexString = color.rgb.toHexString()
+          val hexString = "0x${String.format("%08X", color.rgb)}"
           val argumentText = if (needsArgumentName) "(color = $hexString)" else "($hexString)"
           valueArgumentList.replace(KtPsiFactory(ktCallExpression.project).createCallArguments(argumentText))
         }
@@ -192,10 +193,10 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) : G
         val valueArgumentList = ktCallExpression.valueArgumentList
         if (valueArgumentList != null) {
           val needsArgumentName = valueArgumentList.arguments.any { it.getArgumentName() != null }
-          val red = (color.red / 255f).toRoundString(3)
-          val green = (color.green / 255f).toRoundString(3)
-          val blue = (color.blue / 255f).toRoundString(3)
-          val alpha = (color.alpha / 255f).toRoundString(3)
+          val red = (color.red / 255f).toRoundString()
+          val green = (color.green / 255f).toRoundString()
+          val blue = (color.blue / 255f).toRoundString()
+          val alpha = (color.alpha / 255f).toRoundString()
 
           val argumentText =
             if (needsArgumentName) "(red = ${red}f, green = ${green}f, blue = ${blue}f, alpha = ${alpha}f)"
@@ -215,7 +216,6 @@ private const val ARG_NAME_RED = "red"
 private const val ARG_NAME_GREEN = "green"
 private const val ARG_NAME_BLUE = "blue"
 private const val ARG_NAME_ALPHA = "alpha"
-private const val ARG_NAME_COLOR_SPACE = "colorSpace"
 
 private val ARGS_RGB = listOf(ARG_NAME_RED, ARG_NAME_GREEN, ARG_NAME_BLUE)
 private val ARGS_RGBA = listOf(ARG_NAME_RED, ARG_NAME_GREEN, ARG_NAME_BLUE, ARG_NAME_ALPHA)
@@ -251,18 +251,6 @@ private fun getColorFloatX3(arguments: List<KtValueArgument>): Color? {
 
 private fun getColorFloatX4(arguments: List<KtValueArgument>): Color? {
   val rgbaValues = getNamedValues<Float>(ARGS_RGBA, arguments) ?: return null
-  return floatColorMapToColor(rgbaValues)
-}
-
-private fun getColorFloatX4ColorSpace(arguments: List<KtValueArgument>): Color? {
-  // Filter the ColorSpace argument first.
-  val argumentsWithoutColorSpace = arguments.filterNot { it.getArgumentName()?.asName?.asString() == ARG_NAME_COLOR_SPACE }.let {
-    // If the color space is not a named argument, it must be at the end.
-    if (it.size == arguments.size) arguments.subList(0, 4) else it
-  }
-
-  val rgbaValues = getNamedValues<Float>(ARGS_RGBA, argumentsWithoutColorSpace) ?: return null
-  // TODO: adjust the color by the given ColorSpace.
   return floatColorMapToColor(rgbaValues)
 }
 
@@ -316,7 +304,7 @@ private inline fun <reified T> KtExpression.evaluateToConstantOrNull(): T? {
   }
 }
 
-private fun Int.toHexString(): String = "0x${(Integer.toHexString(this)).toUpperCase(Locale.getDefault())}"
+private fun Int.toHexString(): String = "0x${(Integer.toHexString(this)).uppercase(Locale.getDefault())}"
 
 // Note: toFloat() then toString() is for removing the tail zero(s).
 private fun Float.toRoundString(decimals: Int = 3): String = "%.${decimals}f".format(this).toFloat().toString()

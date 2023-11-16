@@ -20,8 +20,8 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
 import com.android.resources.ScreenOrientation
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.res.getResourceVariations
 import com.android.tools.idea.ui.designer.EditorDesignSurface
@@ -39,7 +39,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.intentions.OverrideResourceAction
 
 private fun generateLayoutAndQualifierTitle(file: VirtualFile?): String {
-  val fileName = file?.name ?: return  "Switch Layout Qualifier"
+  val fileName = file?.name ?: return "Switch Layout Qualifier"
   val folderName = file.parent?.name ?: return fileName
   if (folderName == SdkConstants.FD_RES_LAYOUT) {
     return fileName
@@ -49,17 +49,21 @@ private fun generateLayoutAndQualifierTitle(file: VirtualFile?): String {
 }
 
 /**
- * The dropdown menu for changing layout qualifier.
- * Note that this action is also registered to action system in designer.xml.
+ * The dropdown menu for changing layout qualifier. Note that this action is also registered to
+ * action system in designer.xml.
  */
-class LayoutQualifierDropdownMenu(file: VirtualFile?)
-  : DropDownAction(generateLayoutAndQualifierTitle(file), "Action to switch and create qualifiers for layout files", null) {
+class LayoutQualifierDropdownMenu(file: VirtualFile?) :
+  DropDownAction(
+    generateLayoutAndQualifierTitle(file),
+    "Action to switch and create qualifiers for layout files",
+    null
+  ) {
 
   /**
-   * The default constructor is used by register point of action system through reflection. See designer.xml file.
+   * The default constructor is used by register point of action system through reflection. See
+   * designer.xml file.
    */
-  @Suppress("unused")
-  private constructor(): this(null)
+  @Suppress("unused") private constructor() : this(null)
 
   private val displayText = generateLayoutAndQualifierTitle(file)
 
@@ -70,11 +74,13 @@ class LayoutQualifierDropdownMenu(file: VirtualFile?)
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    val screenViewProvider = (e.dataContext.getData(DESIGN_SURFACE) as NlDesignSurface?)?.screenViewProvider
+    val screenViewProvider =
+      (e.dataContext.getData(DESIGN_SURFACE) as NlDesignSurface?)?.screenViewProvider
     // Only enable when using layout editor
-    e.presentation.isEnabled = screenViewProvider == NlScreenViewProvider.RENDER ||
-                               screenViewProvider == NlScreenViewProvider.BLUEPRINT ||
-                               screenViewProvider == NlScreenViewProvider.DEFAULT_SCREEN_MODE
+    e.presentation.isEnabled =
+      screenViewProvider == NlScreenViewProvider.RENDER ||
+        screenViewProvider == NlScreenViewProvider.BLUEPRINT ||
+        screenViewProvider == NlScreenViewProvider.DEFAULT_SCREEN_MODE
     e.presentation.setText(displayText, false)
   }
 
@@ -133,25 +139,24 @@ class LayoutQualifierDropdownMenu(file: VirtualFile?)
           add(CreateVariationAction(surface, "Create Tablet Qualifier", "layout-sw600dp"))
         }
         add(CreateVariationAction(surface, "Add Resource Qualifier", null))
-      }
-      else {
+      } else {
         add(CreateVariationAction(surface, "Create Alternative...", null))
       }
     }
   }
 }
 
-
-class SwitchToVariationAction(private val title: String,
-                              private val myProject: Project,
-                              private val myFile: VirtualFile,
-                              private val selected: Boolean) : AnAction(title, null, null), Toggleable {
+class SwitchToVariationAction(
+  private val title: String,
+  private val myProject: Project,
+  private val myFile: VirtualFile,
+  private val selected: Boolean
+) : AnAction(title, null, null), Toggleable {
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.setText(title, false)
-    e.presentation.isEnabled = !selected
     Toggleable.setSelected(e.presentation, selected)
   }
 
@@ -161,9 +166,11 @@ class SwitchToVariationAction(private val title: String,
   }
 }
 
-class CreateVariationAction(private val mySurface: EditorDesignSurface,
-                            title: String,
-                            private val myNewFolder: String?) : AnAction(title, null, null) {
+class CreateVariationAction(
+  private val mySurface: EditorDesignSurface,
+  title: String,
+  private val myNewFolder: String?
+) : AnAction(title, null, null) {
   override fun actionPerformed(e: AnActionEvent) {
     OverrideResourceAction.forkResourceFile(mySurface, myNewFolder, true)
   }

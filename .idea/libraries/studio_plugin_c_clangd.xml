@@ -1,11 +1,11 @@
 <component name="libraryTable">
   <library name="studio-plugin-c-clangd">
     <CLASSES>
-      <root url="jar://$IDEA-e2145889fae88c3ad1b90efcf0690da06bbd44bf$/plugins/c-clangd/lib/c-clangd.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/c-clangd/lib/c-clangd.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/android-studio-sources.zip!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/android-studio-sources.zip!/" />
     </SOURCES>
   </library>
 </component>

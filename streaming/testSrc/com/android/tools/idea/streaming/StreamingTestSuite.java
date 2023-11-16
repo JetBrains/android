@@ -17,16 +17,19 @@ package com.android.tools.idea.streaming;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.adtui.swing.IconLoaderRule;
+import com.android.tools.idea.adb.AdbService;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses(StreamingTestSuite.class)  // A suite may not contain itself.
 public class StreamingTestSuite extends IdeaTestSuiteBase {
 
   static {
     // Since icons are cached and not reloaded for each test, loading of realistic icons
     // has to be enabled before the first test in the suite that may trigger icon loading.
     IconLoaderRule.enableIconLoading();
+
+    // Disable production AdbService to prevent it from interfering with AndroidDebugBridge (b/281701515).
+    AdbService.disabled = true;
   }
 }

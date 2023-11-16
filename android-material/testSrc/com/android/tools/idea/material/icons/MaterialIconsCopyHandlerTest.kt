@@ -18,9 +18,11 @@ package com.android.tools.idea.material.icons
 import com.android.ide.common.vectordrawable.VdIcon
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.utils.SdkUtils
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
@@ -29,29 +31,31 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 private const val INCOMPLETE_METADATA =
-  ")]}'\n" +
-  "{\n" +
-  "  \"host\": \"\",\n" +
-  "  \"asset_url_pattern\": \"\",\n" +
-  "  \"families\": [\n" +
-  "    \"Style 1\",\n" +
-  "    \"Style 2\"\n" +
-  "  ],\n" +
-  "  \"icons\": [\n" +
-  "    {\n" +
-  "      \"name\": \"my_icon_1\",\n" +
-  "      \"version\": 1,\n" +
-  "      \"unsupported_families\": [],\n" +
-  "      \"categories\": [\n" +
-  "        \"category1\",\n" +
-  "        \"category2\"\n" +
-  "      ],\n" +
-  "      \"tags\": []\n" +
-  "    }\n" +
-  "  ]\n" +
-  "}"
+  """)]}'
+{
+  "host": "",
+  "asset_url_pattern": "",
+  "families": [
+    "Style 1",
+    "Style 2"
+  ],
+  "icons": [
+    {
+      "name": "my_icon_1",
+      "version": 1,
+      "unsupported_families": [],
+      "categories": [
+        "category1",
+        "category2"
+      ],
+      "tags": []
+    }
+  ]
+}"""
 
 class MaterialIconsCopyHandlerTest {
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var testDirectory: File
 
@@ -143,11 +147,11 @@ private fun createMaterialMetadataIconArray(): Array<MaterialMetadataIcon> = arr
 )
 
 private fun createMaterialVdIcons(dir: File): MaterialVdIcons {
-  val stylesToSortedIcons: Map<String, Array<VdIcon>> = mapOf(
+  val stylesToSortedIcons = mapOf<String, Array<VdIcon>>(
     Pair("Style 1", arrayOf(createVdIcon(dir, "my_icon_1"), createVdIcon(dir, "my_icon_2"))),
     Pair("Style 2", arrayOf(createVdIcon(dir, "my_icon_1"), createVdIcon(dir, "my_icon_2")))
   )
-  val stylesCategoriesToIcons: Map<String, HashMap<String, Array<VdIcon>>> = mapOf(
+  val stylesCategoriesToIcons = mapOf<String, HashMap<String, Array<VdIcon>>>(
     // No need to properly populate.
     Pair("Style 1", HashMap()),
     Pair("Style 2", HashMap())

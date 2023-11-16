@@ -19,11 +19,13 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.deviceToDeviceInfo
 import com.android.tools.deployer.AdbClient.InstallResult
 import com.android.tools.deployer.ApkInstaller
 import com.android.tools.deployer.InstallStatus
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeTestOptions
+import com.android.tools.idea.protobuf.Timestamp
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.idea.stats.findTestLibrariesVersions
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
@@ -33,7 +35,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.utp.TaskOutputProcessorListener
-import com.android.tools.idea.protobuf.Timestamp
 import com.google.testing.platform.proto.api.core.TestCaseProto
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestStatusProto
@@ -85,7 +86,7 @@ class GradleTestResultAdapter(
   private val myStudioEventBuilder = AndroidStudioEvent.newBuilder().apply {
     category = AndroidStudioEvent.EventCategory.TESTS
     kind = AndroidStudioEvent.EventKind.TEST_RUN
-    deviceInfo = AndroidStudioUsageTracker.deviceToDeviceInfo(iDevice)
+    deviceInfo = deviceToDeviceInfo(iDevice)
     productDetails = AndroidStudioUsageTracker.productDetails
   }
 

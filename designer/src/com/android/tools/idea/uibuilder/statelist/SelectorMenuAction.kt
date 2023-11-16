@@ -45,7 +45,7 @@ import javax.swing.JPanel
 private const val PICKER_WIDTH_PX = 300
 private const val STATE_ITEM_HEIGHT_PX = 35
 
-class SelectorMenuAction: AnAction("State Selector", null, StudioIcons.LayoutEditor.Menu.SWITCH) {
+class SelectorMenuAction : AnAction("State Selector", null, StudioIcons.LayoutEditor.Menu.SWITCH) {
 
   override fun displayTextInToolbar(): Boolean = true
 
@@ -59,11 +59,14 @@ class SelectorMenuAction: AnAction("State Selector", null, StudioIcons.LayoutEdi
     }
 
     when (val toolbar = e.getData(ANIMATION_TOOLBAR)) {
-      null -> e.presentation.isEnabledAndVisible = true // This happens when previewing <selector> file
+      null ->
+        e.presentation.isEnabledAndVisible = true // This happens when previewing <selector> file
       is AnimatedSelectorToolbar -> {
         e.presentation.isVisible = true
         e.presentation.isEnabled = !toolbar.isTransitionSelected()
-        e.presentation.description = if (toolbar.isTransitionSelected()) "Cannot select the state when previewing a transition" else null
+        e.presentation.description =
+          if (toolbar.isTransitionSelected()) "Cannot select the state when previewing a transition"
+          else null
       }
       else -> e.presentation.isEnabledAndVisible = false
     }
@@ -74,28 +77,30 @@ class SelectorMenuAction: AnAction("State Selector", null, StudioIcons.LayoutEdi
     val button = e.inputEvent!!.component
 
     // Setup callback to reset the animated selector toolbar when state is changed.
-    val toolbar = DataManager.getDataProvider(surface)?.let { ANIMATION_TOOLBAR.getData(it) } as? AnimatedSelectorToolbar
+    val toolbar =
+      DataManager.getDataProvider(surface)?.let { ANIMATION_TOOLBAR.getData(it) }
+        as? AnimatedSelectorToolbar
     val callback: () -> Unit = { toolbar?.setNoTransition() }
 
     val menu = StateListMenu(surface, callback)
-    val popup = JBPopupFactory.getInstance().createComponentPopupBuilder(menu, null)
-      .setBorderColor(JBColor.border())
-      .setShowBorder(false)
-      .setCancelOnClickOutside(true)
-      .setCancelOnWindowDeactivation(true)
-      .createPopup()
+    val popup =
+      JBPopupFactory.getInstance()
+        .createComponentPopupBuilder(menu, null)
+        .setBorderColor(JBColor.border())
+        .setShowBorder(false)
+        .setCancelOnClickOutside(true)
+        .setCancelOnWindowDeactivation(true)
+        .createPopup()
     popup.content.background = secondaryPanelBackground
     popup.show(RelativePoint(button, Point(0, button.height)))
   }
 }
 
-class StateListMenu(designSurface: DesignSurface<*>, callback: () -> Unit): JComponent() {
+class StateListMenu(designSurface: DesignSurface<*>, callback: () -> Unit) : JComponent() {
   init {
     val height = State.values().size * STATE_ITEM_HEIGHT_PX
 
-    layout = BoxLayout(this, BoxLayout.Y_AXIS).apply {
-      background = secondaryPanelBackground
-    }
+    layout = BoxLayout(this, BoxLayout.Y_AXIS).apply { background = secondaryPanelBackground }
     border = JBUI.Borders.empty(5, 14, 5, 14)
     preferredSize = JBUI.size(PICKER_WIDTH_PX, height)
     background = secondaryPanelBackground
@@ -106,21 +111,28 @@ class StateListMenu(designSurface: DesignSurface<*>, callback: () -> Unit): JCom
   }
 }
 
-private fun createStateItem(designSurface: DesignSurface<*>, state: State, callback: () -> Unit): JPanel {
-  val stateItemPanel = JPanel(GridBagLayout()).apply {
-    preferredSize = JBUI.size(PICKER_WIDTH_PX, STATE_ITEM_HEIGHT_PX)
-    border = JBUI.Borders.empty(0, 2, 2, 2)
-    background = secondaryPanelBackground
-  }
+private fun createStateItem(
+  designSurface: DesignSurface<*>,
+  state: State,
+  callback: () -> Unit
+): JPanel {
+  val stateItemPanel =
+    JPanel(GridBagLayout()).apply {
+      preferredSize = JBUI.size(PICKER_WIDTH_PX, STATE_ITEM_HEIGHT_PX)
+      border = JBUI.Borders.empty(0, 2, 2, 2)
+      background = secondaryPanelBackground
+    }
 
-  val trueButton = JBRadioButton("True").apply {
-    background = secondaryPanelBackground
-    border = JBUI.Borders.empty(0, 10, 0, 10)
-  }
-  val falseButton = JBRadioButton("False").apply {
-    background = secondaryPanelBackground
-    border = JBUI.Borders.empty(0, 10, 0, 10)
-  }
+  val trueButton =
+    JBRadioButton("True").apply {
+      background = secondaryPanelBackground
+      border = JBUI.Borders.empty(0, 10, 0, 10)
+    }
+  val falseButton =
+    JBRadioButton("False").apply {
+      background = secondaryPanelBackground
+      border = JBUI.Borders.empty(0, 10, 0, 10)
+    }
   val buttonGroup = ButtonGroup()
   buttonGroup.add(trueButton)
   buttonGroup.add(falseButton)
@@ -136,29 +148,27 @@ private fun createStateItem(designSurface: DesignSurface<*>, state: State, callb
   if (isSelected(designSurface, state)) {
     trueButton.isSelected = true
     falseButton.isSelected = false
-  }
-  else {
+  } else {
     trueButton.isSelected = false
     falseButton.isSelected = true
   }
 
   val label = JLabel(state.text)
 
-  val constraints = GridBagConstraints().apply {
-    fill = GridBagConstraints.HORIZONTAL
-    gridx = 0
-    gridy = 0
-    weightx = 1.0 // Make the state text fill all extra space.
-  }
+  val constraints =
+    GridBagConstraints().apply {
+      fill = GridBagConstraints.HORIZONTAL
+      gridx = 0
+      gridy = 0
+      weightx = 1.0 // Make the state text fill all extra space.
+    }
   stateItemPanel.add(label, constraints)
   constraints.run {
     gridx = 1
     weightx = 0.0 // No extra space for true and false button.
   }
   stateItemPanel.add(trueButton, constraints)
-  constraints.run {
-    gridx = 2
-  }
+  constraints.run { gridx = 2 }
   stateItemPanel.add(falseButton, constraints)
   return stateItemPanel
 }
@@ -183,13 +193,16 @@ private fun setState(surface: DesignSurface<*>, state: State, enabled: Boolean) 
   // image.setImageState(states, true) didn't work as expected. So I'm doing it this way.
   if (enabled) {
     if (!Ints.contains(states, stateValue)) {
-      sceneManager.executeInRenderSessionAsync { image.setImageState(ArrayUtil.append(states, stateValue), false) }
+      sceneManager
+        .executeInRenderSessionAsync {
+          image.setImageState(ArrayUtil.append(states, stateValue), false)
+        }
         .whenComplete { _, _ -> sceneManager.requestRenderAsync() }
     }
-  }
-  else if (Ints.contains(states, stateValue)) {
+  } else if (Ints.contains(states, stateValue)) {
     val i = Ints.indexOf(states, stateValue)
-    sceneManager.executeInRenderSessionAsync { image.setImageState(ArrayUtil.remove(states, i), false) }
+    sceneManager
+      .executeInRenderSessionAsync { image.setImageState(ArrayUtil.remove(states, i), false) }
       .whenComplete { _, _ -> sceneManager.requestRenderAsync() }
   }
 }

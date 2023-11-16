@@ -22,12 +22,20 @@ import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SnappingInfo
 import java.awt.Point
+import java.util.Locale
 
 class AbsolutePlaceholder(host: SceneComponent) : Placeholder(host) {
 
   override val dominate = false
 
-  override val region = Region(host.drawX, host.drawY, host.drawX + host.drawWidth, host.drawY + host.drawHeight, host.depth)
+  override val region =
+    Region(
+      host.drawX,
+      host.drawY,
+      host.drawX + host.drawWidth,
+      host.drawY + host.drawHeight,
+      host.depth
+    )
 
   override fun snap(info: SnappingInfo, retPoint: Point): Boolean {
     if (region.contains(info.centerX, info.centerY)) {
@@ -39,8 +47,10 @@ class AbsolutePlaceholder(host: SceneComponent) : Placeholder(host) {
   }
 
   override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) {
-    val positionX = String.format(SdkConstants.VALUE_N_DP, sceneComponent.drawX - host.drawX)
-    val positionY = String.format(SdkConstants.VALUE_N_DP, sceneComponent.drawY - host.drawY)
+    val positionX =
+      String.format(Locale.US, SdkConstants.VALUE_N_DP, sceneComponent.drawX - host.drawX)
+    val positionY =
+      String.format(Locale.US, SdkConstants.VALUE_N_DP, sceneComponent.drawY - host.drawY)
     attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_X, positionX)
     attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_Y, positionY)
   }

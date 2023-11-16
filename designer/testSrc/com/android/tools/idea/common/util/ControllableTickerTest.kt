@@ -26,7 +26,8 @@ import java.util.concurrent.TimeUnit
 private const val TICKER_STEP_MILLIS = 100L
 
 /**
- * This is a workaround to fix the fact that [VirtualTimeScheduler] is blocking thread on [awaitTermination]
+ * This is a workaround to fix the fact that [VirtualTimeScheduler] is blocking thread on
+ * [awaitTermination]
  */
 private class VirtualTimeSchedulerNonBlocking : VirtualTimeScheduler() {
   override fun isTerminated() = true
@@ -37,19 +38,25 @@ class ControllableTickerTest {
   private lateinit var executorProvider: () -> ScheduledExecutorService
   private var currentExecutor: VirtualTimeScheduler? = null
 
-    @Before
+  @Before
   fun setUp() {
     executorProvider = { VirtualTimeSchedulerNonBlocking().apply { currentExecutor = this } }
   }
 
   @Test
   fun testTickerPeriod() {
-    val tickCounter = object {
-      var counter: Int = 0
-    }
+    val tickCounter =
+      object {
+        var counter: Int = 0
+      }
     val counterIncrementer: () -> Unit = { tickCounter.counter++ }
 
-    val ticker = ControllableTicker(counterIncrementer, Duration.ofMillis(TICKER_STEP_MILLIS), executorProvider)
+    val ticker =
+      ControllableTicker(
+        counterIncrementer,
+        Duration.ofMillis(TICKER_STEP_MILLIS),
+        executorProvider
+      )
 
     ticker.start()
 

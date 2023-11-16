@@ -42,7 +42,7 @@ private val log: Logger get() = logger<ProjectTemplateDataBuilder>()
 class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var androidXSupport: Boolean? = null
   var agpVersion: AgpVersion? = null
-  private var sdkDir: File? = null
+  var sdkDir: File? = null
   var language: Language? = null
   var kotlinVersion: String? = null
   var buildToolsVersion: Revision? = null
@@ -94,7 +94,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
 
   fun build() = ProjectTemplateData(
     androidXSupport!!,
-    agpVersion!!.toString(),
+    agpVersion!!,
     sdkDir,
     Language.valueOf(language!!.toString()),
     kotlinVersion!!,

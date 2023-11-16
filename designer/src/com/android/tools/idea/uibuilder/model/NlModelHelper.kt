@@ -21,10 +21,10 @@ import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.openapi.util.text.StringUtil
@@ -39,9 +39,14 @@ const val CUSTOM_DENSITY_ID: String = "Custom Density"
 
 // TODO: When appropriate move this static methods to appropriate file.
 @JvmOverloads
-fun updateConfigurationScreenSize(configuration: Configuration, @AndroidCoordinate xDimension: Int, @AndroidCoordinate yDimension: Int,
-                                  original: Device? = configuration.cachedDevice) {
-  val deviceBuilder = if (original != null) Device.Builder(original) else return // doesn't copy tag id
+fun updateConfigurationScreenSize(
+  configuration: Configuration,
+  @AndroidCoordinate xDimension: Int,
+  @AndroidCoordinate yDimension: Int,
+  original: Device? = configuration.cachedDevice
+) {
+  val deviceBuilder =
+    if (original != null) Device.Builder(original) else return // doesn't copy tag id
   deviceBuilder.setTagId(original.tagId)
 
   deviceBuilder.setName("Custom")
@@ -66,16 +71,17 @@ fun updateConfigurationScreenSize(configuration: Configuration, @AndroidCoordina
     screen.chin = device.defaultHardware.screen.chin
   }
 
-  //Change the orientation of the device depending on the shape of the canvas
+  // Change the orientation of the device depending on the shape of the canvas
   val newState: State? =
-    if (xDimension > yDimension) device.allStates.singleOrNull { it.orientation == ScreenOrientation.LANDSCAPE }
+    if (xDimension > yDimension)
+      device.allStates.singleOrNull { it.orientation == ScreenOrientation.LANDSCAPE }
     else device.allStates.singleOrNull { it.orientation == ScreenOrientation.PORTRAIT }
   configuration.setEffectiveDevice(device, newState)
 }
 
 /**
- * Changes the configuration to use a custom device with the provided density. This is done only if the configuration's cached device is not
- * null, since the custom device is created from it.
+ * Changes the configuration to use a custom device with the provided density. This is done only if
+ * the configuration's cached device is not null, since the custom device is created from it.
  */
 fun NlModel.overrideConfigurationDensity(density: Density) {
   val original = configuration.cachedDevice ?: return
@@ -84,21 +90,22 @@ fun NlModel.overrideConfigurationDensity(density: Density) {
   deviceBuilder.setName("Custom")
   deviceBuilder.setId(CUSTOM_DENSITY_ID)
   val device = deviceBuilder.build()
-  device.allStates
-      .map { it.hardware.screen }
-      .forEach { it.pixelDensity = density }
+  device.allStates.map { it.hardware.screen }.forEach { it.pixelDensity = density }
 
   configuration.setEffectiveDevice(device, device.defaultState)
 }
 
-@Deprecated(message = "Use NlModel.module.dependsOnAppCompat()",
-            replaceWith = ReplaceWith("com.android.tools.idea.util.dependsOnAppCompat()") )
+@Deprecated(
+  message = "Use NlModel.module.dependsOnAppCompat()",
+  replaceWith = ReplaceWith("com.android.tools.idea.util.dependsOnAppCompat()")
+)
 fun NlModel.moduleDependsOnAppCompat(): Boolean {
   return module.dependsOnAppCompat()
 }
 
 fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {
-  var activityClassName: String? = configuration.activity ?: // The activity is not specified in the XML file.
+  var activityClassName: String? =
+    configuration.activity ?: // The activity is not specified in the XML file.
       // We cannot know if the activity is derived from AppCompatActivity.
       // Assume we are since this is how the default activities are created.
       return true
@@ -108,7 +115,9 @@ fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {
   }
   val facade = JavaPsiFacade.getInstance(project)
   var activityClass = facade.findClass(activityClassName, module.moduleScope)
-  while (activityClass != null && !CLASS_APP_COMPAT_ACTIVITY.isEquals(activityClass.qualifiedName)) {
+  while (
+    activityClass != null && !CLASS_APP_COMPAT_ACTIVITY.isEquals(activityClass.qualifiedName)
+  ) {
     activityClass = activityClass.superClass
   }
   return activityClass != null

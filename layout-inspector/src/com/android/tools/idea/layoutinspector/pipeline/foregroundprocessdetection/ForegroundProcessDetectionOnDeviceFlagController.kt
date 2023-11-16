@@ -27,27 +27,36 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
 
-/**
- * Listener used to set the feature flag to true or false in the Transport Daemon.
- */
-class ForegroundProcessDetectionOnDeviceFlagController : TransportDeviceManager.TransportDeviceManagerListener, ProjectManagerListener {
+/** Listener used to set the feature flag to true or false in the Transport Daemon. */
+class ForegroundProcessDetectionOnDeviceFlagController :
+  TransportDeviceManager.TransportDeviceManagerListener, ProjectManagerListener {
 
   override fun projectOpened(project: Project) {
-    ApplicationManager.getApplication().messageBus.connect().subscribe(TransportDeviceManager.TOPIC, this)
+    ApplicationManager.getApplication()
+      .messageBus
+      .connect()
+      .subscribe(TransportDeviceManager.TOPIC, this)
   }
 
-  override fun onPreTransportDaemonStart(device: Common.Device) { }
-  override fun onTransportDaemonException(device: Common.Device, exception: Exception) { }
-  override fun onTransportProxyCreationFail(device: Common.Device, exception: Exception) { }
-  override fun onStartTransportDaemonServerFail(device: Common.Device, exception: FailedToStartServerException) { }
+  override fun onPreTransportDaemonStart(device: Common.Device) {}
+  override fun onTransportDaemonException(device: Common.Device, exception: Exception) {}
+  override fun onTransportProxyCreationFail(device: Common.Device, exception: Exception) {}
+  override fun onStartTransportDaemonServerFail(
+    device: Common.Device,
+    exception: FailedToStartServerException
+  ) {}
 
-  override fun customizeProxyService(proxy: TransportProxy) { }
-  override fun customizeAgentConfig(configBuilder: Agent.AgentConfig.Builder, runConfig: AndroidRunConfigurationBase?) { }
+  override fun customizeProxyService(proxy: TransportProxy) {}
+  override fun customizeAgentConfig(
+    configBuilder: Agent.AgentConfig.Builder,
+    runConfig: AndroidRunConfigurationBase?
+  ) {}
 
   override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) {
-    configBuilder
-      .setLayoutInspectorConfig(
-        configBuilder.layoutInspectorConfigBuilder.setAutoconnectEnabled(LayoutInspectorSettings.getInstance().autoConnectEnabled)
+    configBuilder.setLayoutInspectorConfig(
+      configBuilder.layoutInspectorConfigBuilder.setAutoconnectEnabled(
+        LayoutInspectorSettings.getInstance().autoConnectEnabled
       )
+    )
   }
 }

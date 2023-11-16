@@ -17,12 +17,18 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.common.canvasTooltipBackground
 import com.intellij.ui.ColorUtil
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
 
 object InspectorColors {
+
+  @Suppress("UnstableApiUsage")
+  private val isNewUI
+    get() = ExperimentalUI.isNewUI()
 
   /** Color of the line. */
   val LINE_COLOR = ColorUtil.withAlpha(JBColor(0xa6bcc9, 0x8da9ba), 0.7)
@@ -52,20 +58,27 @@ object InspectorColors {
       JBColor(0x4070bf, 0x335a99),
       JBColor(0xc6c54e, 0xadac38),
       JBColor(0xcb53a3, 0xb8388e),
-      JBColor(0x3d8eff, 0x1477ff)
+      JBColor(0x3d8eff, 0x1477ff),
     )
 
   /** List of semi-transparent colors for graphs. */
   val GRAPH_COLORS_WITH_ALPHA = GRAPH_COLORS.map { ColorUtil.withAlpha(it, 0.7) }
 
   /** Background color for the timeline. */
-  val TIMELINE_BACKGROUND_COLOR = JBColor(Gray._245, JBColor.background())
+  val TIMELINE_BACKGROUND_COLOR =
+    if (isNewUI) JBColor.PanelBackground else JBColor(Gray._245, JBColor.background())
 
   /** Background color for the timeline for frozen elements. */
-  val TIMELINE_FROZEN_BACKGROUND_COLOR = JBColor(Gray._234, Gray._58)
+  val TIMELINE_FROZEN_BACKGROUND_COLOR =
+    if (isNewUI) JBUI.CurrentTheme.ActionButton.pressedBackground()
+    else JBColor(Gray._234, Gray._58)
 
   /** Color of the ticks for the timeline. */
-  val TIMELINE_TICK_COLOR = JBColor(Gray._223, Gray._50)
+  val TIMELINE_TICK_COLOR = if (isNewUI) JBColor.border() else JBColor(Gray._223, Gray._50)
+
+  /** Color of the ticks for the timeline. */
+  val TIMELINE_FROZEN_TICK_COLOR =
+    if (isNewUI) JBColor.background() else JBColor(Gray._223, Gray._50)
 
   /** Color of the horizontal ticks for the timeline. */
   val TIMELINE_HORIZONTAL_TICK_COLOR = JBColor.border()
@@ -73,7 +86,9 @@ object InspectorColors {
   /** Color of the vertical line showing the freeze position. */
   val FREEZE_LINE_COLOR = JBColor(Gray._176, Gray._176)
 
-  val BOXED_LABEL_BACKGROUND = JBColor(Gray._225, UIUtil.getToolTipActionBackground())
+  val BOXED_LABEL_BACKGROUND =
+    if (isNewUI) UIUtil.getToolTipActionBackground()
+    else JBColor(Gray._225, UIUtil.getToolTipActionBackground())
 
   val BOXED_LABEL_OUTLINE = Gray._194
 

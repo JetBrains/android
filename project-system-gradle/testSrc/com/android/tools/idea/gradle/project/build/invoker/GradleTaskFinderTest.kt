@@ -313,6 +313,26 @@ class GradleTaskFinderTest : PlatformTestCase() {
     assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
   }
 
+  fun testFindTasksRebuildForMultipleModules() {
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), javaModule(":lib"), javaModule(":lib2"), androidModule(":app"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.REBUILD, TestCompileType.ALL)
+    assertThat(tasksPerProject.forTest()).containsExactly(
+      projectDir, listOf(
+        ":lib:clean",
+        ":lib2:clean",
+        ":app:clean",
+        ":lib:assemble",
+        ":lib:testClasses",
+        ":lib2:assemble",
+        ":lib2:testClasses",
+        ":app:assembleDebug",
+        ":app:assembleDebugUnitTest",
+        ":app:assembleDebugAndroidTest"
+      )
+    )
+    assertThat(getNotification(prefix = "Unable to find Gradle tasks")).isNull()
+  }
+
   private fun getNotification(prefix: String) =
     NotificationsManager.getNotificationsManager()
       .getNotificationsOfType(Notification::class.java, project)

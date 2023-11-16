@@ -64,5 +64,9 @@ enum class BuildAnalyzerBrowserLinks(
   NON_TRANSITIVE_R_CLASS(
     "https://d.android.com/r/tools/build-attribution/non-transitive-r-classes",
     BuildAttributionUiEvent.OutgoingLinkTarget.NON_TRANSITIVE_R_CLASS
+  ),
+  WINDOWS_DEFENDER(
+    "https://d.android.com/r/tools/build-attribution/antivirus-check-learn-more",
+    BuildAttributionUiEvent.OutgoingLinkTarget.WINDOWS_DEFENDER_INSTRUCTIONS
   )
 }
