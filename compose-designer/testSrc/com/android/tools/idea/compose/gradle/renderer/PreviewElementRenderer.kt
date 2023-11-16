@@ -54,6 +54,7 @@ fun createRenderTaskFuture(
     useLayoutScanner = useLayoutScanner,
     classesToPreload = classesToPreload,
     customViewInfoParser = customViewInfoParser,
+    showDecorations = previewElement.displaySettings.showDecoration,
     configure = previewElement::applyTo
   )
 

@@ -42,6 +42,7 @@ fun createRenderTaskFuture(
   useLayoutScanner: Boolean = false,
   classesToPreload: Collection<String> = emptyList(),
   customViewInfoParser: ((Any) -> List<ViewInfo>)? = null,
+  showDecorations: Boolean = false,
   configure: (Configuration) -> Unit = {},
 ): CompletableFuture<RenderTask> {
   val project = facet.module.project
@@ -60,7 +61,6 @@ fun createRenderTaskFuture(
     StudioRenderService.getInstance(project)
       .taskBuilder(facet, configuration)
       .withPsiFile(PsiXmlFile(xmlFile))
-      .disableDecorations()
       .apply {
         if (privateClassLoader) {
           usePrivateClassLoader()
@@ -68,8 +68,11 @@ fun createRenderTaskFuture(
         if (classesToPreload.isNotEmpty()) {
           preloadClasses(classesToPreload)
         }
+        if (!showDecorations) {
+          disableDecorations()
+          withRenderingMode(SessionParams.RenderingMode.SHRINK)
+        }
       }
-      .withRenderingMode(SessionParams.RenderingMode.SHRINK)
       .withLayoutScanner(useLayoutScanner)
       // Compose Preview has its own out-of-date reporting mechanism
       .doNotReportOutOfDateUserClasses()
