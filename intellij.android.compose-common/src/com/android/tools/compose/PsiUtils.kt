@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtClassInitializer
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
@@ -182,7 +183,13 @@ tailrec fun KtElement.expectedComposableAnnotationHolder(): KtModifierListOwner?
 }
 
 private fun KtElement.possibleComposableScope(): KtExpression? =
-  parentOfTypes(KtNamedFunction::class, KtPropertyAccessor::class, KtLambdaExpression::class)
+  parentOfTypes(
+      KtNamedFunction::class,
+      KtPropertyAccessor::class,
+      KtLambdaExpression::class,
+      KtClassInitializer::class
+    )
+    ?.takeIf { it !is KtClassInitializer }
 
 private fun KtModifierListOwner.hasComposableAnnotation(): Boolean =
   if (isK2Plugin()) {

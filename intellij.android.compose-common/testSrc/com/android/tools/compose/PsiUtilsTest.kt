@@ -381,6 +381,33 @@ class PsiUtilsTest {
   }
 
   @Test
+  fun composableScope_classInitializer() {
+    fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun foo() {
+        class MyClass {
+          init {
+            val a = 35
+          }
+        }
+      }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.getEnclosing("35")
+      val scope = element.composableScope()
+      assertThat(scope).isNull() // Neither init nor MyClass is a valid scope
+    }
+  }
+
+  @Test
   fun expectedComposableAnnotationHolder_variable() {
     fixture.loadNewFile(
       "src/com/example/Test.kt",
@@ -555,6 +582,29 @@ class PsiUtilsTest {
         set(newValue) {
           field = newValue + 35
         }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.getEnclosing("35")
+      val scope = element.expectedComposableAnnotationHolder()
+      assertThat(scope).isNull()
+    }
+  }
+
+  @Test
+  fun expectedComposableAnnotationHolder_classInitializer() {
+    fixture.loadNewFile(
+      "src/com/example/MyClass.kt",
+      // language=kotlin
+      """
+      package com.example
+      class MyClass {
+        init {
+          val a = 35
+        }
+      }
       """
         .trimIndent()
     )
