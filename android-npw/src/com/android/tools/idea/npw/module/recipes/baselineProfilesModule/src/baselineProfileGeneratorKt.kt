@@ -38,10 +38,10 @@ import org.junit.runner.RunWith
  * Refer to the [baseline profile documentation](https://d.android.com/topic/performance/baselineprofiles)
  * for more information.
  *
- * You can run the generator with the Generate Baseline Profile run configuration,
- * or directly with `generateBaselineProfile` Gradle task:
+ * You can run the generator with the "Generate Baseline Profile" run configuration in Android Studio or
+ * the equivalent `generateBaselineProfile` gradle task:
  * ```
- * ./gradlew :$targetModuleName:$pluginTaskName -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
+ * ./gradlew :$targetModuleName:$pluginTaskName
  * ```
  * The run configuration runs the Gradle task and applies filtering to run only the generators.
  *
@@ -50,7 +50,8 @@ import org.junit.runner.RunWith
  *
  * After you run the generator, you can verify the improvements running the [StartupBenchmarks] benchmark.
  *
- * When using this class to generate a baseline profile, only API 33+ or rooted API 26+ are supported.
+ * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are supported.
+ * The minimum required version of androidx.benchmark to generate a baseline profile is 1.2.0.
  **/
 @RunWith(AndroidJUnit4::class)
 @LargeTest

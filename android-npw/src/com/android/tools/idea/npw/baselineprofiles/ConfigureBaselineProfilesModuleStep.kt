@@ -41,7 +41,6 @@ import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.run.configuration.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBCheckBox
@@ -88,6 +87,7 @@ class ConfigureBaselineProfilesModuleStep(
     validateAgpVersion()
     validateTargetModule()
     validatePackageName()
+    validateAndroidXBenchmarkDependencyVersion()
 
     bindings.bind(model.useGmd, SelectedProperty(useGmdCheck))
   }
@@ -239,6 +239,37 @@ class ConfigureBaselineProfilesModuleStep(
       model.targetModule
     )
 
+  private fun validateAndroidXBenchmarkDependencyVersion() =
+    validatorPanel.registerValidator(
+      model.targetModule,
+      createValidator {
+        if (model.project.getSyncManager().isSyncNeeded()) {
+          return@createValidator Validator.Result.fromNullableMessage(
+            AndroidBundle.message("android.wizard.validate.module.sync.needed.baseline.profiles")
+          )
+        }
+        if (it.isEmpty) {
+          return@createValidator Validator.Result.fromNullableMessage(
+            AndroidBundle.message("android.wizard.validate.module.not.present.baseline.profiles")
+          )
+        }
+        val module = it.get()
+        GradleAndroidModel.get(module) ?: return@createValidator Validator.Result.fromNullableMessage(
+          AndroidBundle.message("android.wizard.validate.module.invalid.application.baseline.profiles")
+        )
+
+        if (getBenchmarkLibrariesInTestModulesLessThanMinVersion(module.project).isNotEmpty()) {
+          return@createValidator Validator.Result(
+            Validator.Severity.WARNING,
+            AndroidBundle.message("android.wizard.module.help.baselineprofiles.minversionrequired")
+          )
+        } else {
+          return@createValidator Validator.Result.OK
+        }
+      },
+      model.targetModule
+    )
+
   override fun createMainPanel(): JPanel = panel {
     row {
       comment("<strong>" + AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.description") + "</strong>")
@@ -273,14 +304,6 @@ class ConfigureBaselineProfilesModuleStep(
       topGap(TopGap.SMALL)
       cell(useGmdCheck)
       rowComment(AndroidBundle.message("android.wizard.module.help.baselineprofiles.usegmd.description"))
-    }
-
-    // Get the benchmark libraries with version less than min
-    if (getBenchmarkLibrariesInTestModulesLessThanMinVersion(model.project).isNotEmpty()) {
-      row {
-        topGap(TopGap.SMALL)
-        comment(AndroidBundle.message("android.wizard.module.help.baselineprofiles.minversionrequired"))
-      }
     }
   }
 
