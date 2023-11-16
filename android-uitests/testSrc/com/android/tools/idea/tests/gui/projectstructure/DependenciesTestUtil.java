@@ -67,7 +67,10 @@ public class DependenciesTestUtil {
   }
 
   protected static void createJavaModule(@NotNull IdeFrameFixture ideFrame) {
-    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
+    ideFrame.requestFocusIfLost();
+    ideFrame.robot().waitForIdle();
+    ideFrame.invokeMenuPath("File", "New", "New Module\u2026");
+    NewModuleWizardFixture.find(ideFrame)
       .clickNextToPureLibrary()
       .wizard()
       .clickFinishAndWaitForSyncToFinish();
@@ -87,7 +90,8 @@ public class DependenciesTestUtil {
 
     // Accessing both Library1 and Library2 classes in app module, and verify.
     ideFrame.getEditor().open("app/src/main/java/android/com/app/MainActivity.java")
-      .moveBetween("import android.os.Bundle;", "")
+      .moveBetween("", "import android")
+      .enterText("\n")
       .enterText("\nimport android.com." + module1 + "." + CLASS_NAME_1 + ";" +
                  "\nimport android.com." + modeule2 + "." + CLASS_NAME_2 + ";")
       //.moveBetween("", "setContentView(R.layout.activity_main);")
@@ -147,7 +151,10 @@ public class DependenciesTestUtil {
 
   protected static void createAndroidLibrary(@NotNull IdeFrameFixture ideFrame,
                                              @NotNull String moduleName) {
-    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
+    ideFrame.requestFocusIfLost();
+    ideFrame.robot().waitForIdle();
+    ideFrame.invokeMenuPath("File", "New", "New Module\u2026");
+    NewModuleWizardFixture.find(ideFrame)
       .clickNextToAndroidLibrary()
       .enterModuleName(moduleName)
       .wizard()
