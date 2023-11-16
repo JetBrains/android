@@ -27,7 +27,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.Animator
-import java.awt.Dimension
+import com.intellij.util.ui.JBUI
 import java.awt.Graphics2D
 
 private const val ANIMATION_TIME_MILLIS = 350
@@ -61,20 +61,19 @@ class UiCheckWarningLayer(screenView: ScreenView, shouldDisplay: () -> Boolean) 
 
   override fun paint(gc: Graphics2D) {
     if (isAnimating) {
+      val borderPainter =
+        BorderPainter(
+          JBUI.scale(borderWidth),
+          borderColor,
+          transparentBorderColor,
+          useHighQuality = false
+        )
       componentsToHighlight.forEach {
         val swingX = Coordinates.getSwingX(screenView, it.x)
         val swingY = Coordinates.getSwingY(screenView, it.y)
         val swingWidth = Coordinates.getSwingDimension(screenView, it.w)
         val swingHeight = Coordinates.getSwingDimension(screenView, it.h)
-        BorderPainter.paint(
-          gc,
-          swingX,
-          swingY,
-          Dimension(swingWidth, swingHeight),
-          borderWidth,
-          borderColor,
-          transparentBorderColor
-        )
+        borderPainter.paint(gc, swingX, swingY, swingWidth, swingHeight)
       }
     } else {
       gc.color = borderColor
@@ -102,6 +101,7 @@ class UiCheckWarningLayer(screenView: ScreenView, shouldDisplay: () -> Boolean) 
 
     override fun paintCycleEnd() {
       isAnimating = false
+      screenView.surface.repaint()
     }
 
     override fun reset() {
