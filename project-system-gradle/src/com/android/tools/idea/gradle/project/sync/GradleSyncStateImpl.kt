@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarn
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
+import com.android.tools.idea.gradle.project.sync.jdk.JdkAnalyticsTracker.reportGradleJdkConfiguration
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
@@ -213,6 +214,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     // TODO (b/306638551): temporarily here, to be refactored
     SyncFailureUsageReporter.getInstance().onSyncStart(rootProjectPath)
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED, rootProjectPath)
+    reportGradleJdkConfiguration(project, rootProjectPath)
     project.getService(SyncAnalyzerManager::class.java)?.onSyncStarted(externalSystemTaskId)
     syncPublisher { syncStarted(project, rootProjectPath) }
     return true
