@@ -27,18 +27,22 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
+import com.intellij.ui.components.BrowserLink
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.SwingHelper
-import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.util.AndroidBundle
 import java.awt.Desktop
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.BorderFactory
+import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JEditorPane
+import javax.swing.JLabel
+import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 import javax.swing.event.HyperlinkEvent
 
@@ -55,6 +59,7 @@ class AndroidSdkCompatibilityDialog(
     } else {
       AndroidBundle.message("project.upgrade.studio.notification.title")
     }
+    isResizable = false
     setCancelButtonText(CommonBundle.getCloseButtonText())
     init()
   }
@@ -66,36 +71,53 @@ class AndroidSdkCompatibilityDialog(
           "project.upgrade.studio.notification.body.different.channel.recommendation",
           ApplicationInfo.getInstance().fullVersion,
           potentialFallbackVersion.buildDisplayName
-        ) + getAffectedModules(modulesViolatingSupportRules)
+        )
       } else {
         AndroidBundle.message(
           "project.upgrade.studio.notification.body.no.recommendation",
           ApplicationInfo.getInstance().fullVersion,
-        ) + getAffectedModules(modulesViolatingSupportRules)
+        )
       }
     } else {
       AndroidBundle.message(
         "project.upgrade.studio.notification.body.same.channel.recommendation",
         ApplicationInfo.getInstance().fullVersion,
         recommendedVersion.buildDisplayName
-      ) + getAffectedModules(modulesViolatingSupportRules)
+      )
+    }
+
+    val documentationLinkLine = JPanel(HorizontalLayout(0)).apply {
+      val (preLink, link) = Pair("For more details, please refer to the ", "Android Studio documentation")
+      val browserLink = BrowserLink(link, ANDROID_STUDIO_DOC_LINK)
+      add(JLabel(preLink), HorizontalLayout.LEFT)
+      add(browserLink, HorizontalLayout.LEFT)
+    }
+
+    val panel: JPanel = JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+      add(htmlTextLabelWithFixedLines(dialogContent, "main-content"))
+      add(JLabel(" ")) // Add an empty line spacing
+      add(documentationLinkLine)
+      add(JLabel(" ")) // Add an empty line spacing
+      add(htmlTextLabelWithFixedLines(getAffectedModules(modulesViolatingSupportRules), "affected-modules"))
     }
 
     return JBUI.Panels.simplePanel(10, 10).apply {
       addToCenter(ScrollPaneFactory.createScrollPane(
-        htmlTextLabelWithFixedLines(dialogContent),
+        JBUI.Panels.simplePanel(10, 10).addToTop(panel),
         ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
         ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
       ).apply {
         border = BorderFactory.createEmptyBorder()
       })
-      preferredSize = JBDimension(400, 300)
-      minimumSize = JBDimension(400, 300)
+      preferredSize = JBDimension(500, 300)
+      minimumSize = JBDimension(500, 300)
     }
   }
 
-  fun htmlTextLabelWithFixedLines(htmlBodyContent: String): JEditorPane =
+  fun htmlTextLabelWithFixedLines(htmlBodyContent: String, panelName: String): JEditorPane =
     SwingHelper.createHtmlViewer(false, null, JBColor.background(), null).apply {
+      name = panelName
       border = JBUI.Borders.empty()
       isEditable = false
       SwingHelper.setHtml(this, htmlBodyContent, null)
@@ -161,5 +183,6 @@ class AndroidSdkCompatibilityDialog(
 
   companion object {
     const val DO_NOT_ASK_FOR_PROJECT_BUTTON_TEXT = "Don't ask for this project"
+    const val ANDROID_STUDIO_DOC_LINK = "https://developer.android.com/studio/releases#api-level-support"
   }
 }

@@ -68,16 +68,18 @@ class AndroidSdkCompatibilityDialogTest {
       assertThat(it.title).isEqualTo("Android Studio upgrade suggested")
       val rootPane = it.rootPane
       val ui = FakeUi(rootPane)
-      val message = ui.getComponent<JEditorPane>().normalizedText
-      assertThat(message).contains("Your project is configured with a compile SDK version that is not supported by this version of Android Studio")
-      assertThat(message).contains("You can upgrade to Android Studio Canary X or higher to have better IDE support for this project")
-      assertThat(message).contains(".myapp")
-      assertThat(message).contains("(compileSdk=1000)")
+      val messageComponents = ui.findAllComponents<JEditorPane>()
+      val mainContent = messageComponents.find { c -> c.name == "main-content" }!!.normalizedText
+      assertThat(mainContent).contains("Your project is configured with a compile SDK version that is not supported by this version of Android Studio")
+      assertThat(mainContent).contains("You can upgrade to Android Studio Canary X or higher to have better IDE support for this project")
+      val affectedModules = messageComponents.find { c -> c.name == "affected-modules" }!!.normalizedText
+      assertThat(affectedModules).contains(".myapp")
+      assertThat(affectedModules).contains("(compileSdk=1000)")
 
       val buttons = ui.findAllComponents(JButton::class.java)
-      assertThat(buttons).hasSize(2)
+      assertThat(buttons).hasSize(3)
       assertThat(buttons.map { btn -> btn.text }).containsAllOf(
-        "Close",  "Don't ask for this project"
+        "Close",  "Don't ask for this project", "Android Studio documentation"
       )
       buttons.find { btn -> btn.text == "Close" }!!.doClick()
     }
@@ -117,17 +119,20 @@ class AndroidSdkCompatibilityDialogTest {
       assertThat(it.title).isEqualTo("Android Studio upgrade suggested")
       val rootPane = it.rootPane
       val ui = FakeUi(rootPane)
-      val message = ui.getComponent<JEditorPane>().normalizedText
-      assertThat(message).contains("We recommend installing Android Studio Canary Z")
-      assertThat(message).contains(".myapp1")
-      assertThat(message).contains(".mylib1")
-      assertThat(message).contains("(compileSdk=1000)")
-      assertThat(message).contains("(and 1 more)")
+      val messageComponents = ui.findAllComponents<JEditorPane>()
+      val mainContent = messageComponents.find { c -> c.name == "main-content" }!!.normalizedText
+      assertThat(mainContent).isNotNull()
+      assertThat(mainContent).contains("We recommend installing Android Studio Canary Z")
+      val affectedModules = messageComponents.find { c -> c.name == "affected-modules" }!!.normalizedText
+      assertThat(affectedModules).contains(".myapp1")
+      assertThat(affectedModules).contains(".mylib1")
+      assertThat(affectedModules).contains("(compileSdk=1000)")
+      assertThat(affectedModules).contains("(and 1 more)")
 
       val buttons = ui.findAllComponents(JButton::class.java)
-      assertThat(buttons).hasSize(2)
+      assertThat(buttons).hasSize(3)
       assertThat(buttons.map { btn -> btn.text }).containsAllOf(
-        "Close", "Don't ask for this project"
+        "Close", "Don't ask for this project", "Android Studio documentation"
       )
       buttons.find { btn -> btn.text == "Don't ask for this project" }!!.doClick()
     }
@@ -150,13 +155,14 @@ class AndroidSdkCompatibilityDialogTest {
       assertThat(it.title).isEqualTo("Android Studio does not support the specified Android API level")
       val rootPane = it.rootPane
       val ui = FakeUi(rootPane)
-      val message = ui.getComponent<JEditorPane>().normalizedText
-      assertThat(message).contains("Currently, there is no version of Android Studio that supports this compile SDK. You may experience issues while working on this project")
+      val messageComponents = ui.findAllComponents<JEditorPane>()
+      val mainContent = messageComponents.find { c -> c.name == "main-content" }!!.normalizedText
+      assertThat(mainContent).contains("Currently, there is no version of Android Studio that supports this compile SDK. You may experience issues while working on this project")
 
       val buttons = ui.findAllComponents(JButton::class.java)
-      assertThat(buttons).hasSize(2)
+      assertThat(buttons).hasSize(3)
       assertThat(buttons.map { btn -> btn.text }).containsAllOf(
-        "Close", "Don't ask for this project"
+        "Close", "Don't ask for this project", "Android Studio documentation"
       )
       buttons.find { btn -> btn.text == "Close" }!!.doClick()
     }
