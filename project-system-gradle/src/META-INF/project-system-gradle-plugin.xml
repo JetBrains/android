@@ -29,6 +29,9 @@
     <androidConfigurationExecutorProvider
         implementation="com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestRunConfigurationExecutorProvider"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.testartifacts.instrumented">
+    <testRunConfigurationOptions implementation="com.android.tools.idea.run.configuration.AndroidBaselineProfileTestOptions"/>
+  </extensions>
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceInterface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider"
                         serviceImplementation="com.android.tools.idea.projectsystem.gradle.GradleModelSource"/>

@@ -3,7 +3,6 @@ package com.android.tools.idea.run.configuration
 import ai.grazie.utils.capitalize
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
-import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.projectsystem.gradle.getGradlePluginVersion
@@ -12,9 +11,13 @@ import com.android.tools.idea.run.AndroidRunConfigurationFactoryBase
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.ValidationError
+import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.isJavaTestClassIdentifier
+import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.isKtTestClassIdentifier
 import com.android.tools.idea.run.editor.DeployTargetProvider
+import com.android.tools.idea.testartifacts.instrumented.TestRunConfigurationOptions
 import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.Executor
+import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.ConfigurationTypeUtil
@@ -84,6 +87,19 @@ class AndroidBaselineProfileRunConfigurationType : ConfigurationType {
 
   override fun getHelpTopic(): String {
     return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/rundebugconfig.html"
+  }
+}
+
+class AndroidBaselineProfileTestOptions : TestRunConfigurationOptions() {
+  val param = "-e androidx.benchmark.enabledRules baselineprofile,macrobenchmark,microbenchmark"
+
+  override fun getExtraOptions(context: ConfigurationContext): List<String> {
+    return if (checkContext(context)) listOf(param) else emptyList()
+  }
+
+  private fun checkContext(context: ConfigurationContext): Boolean {
+    val element = context.location?.psiElement ?: return false
+    return isKtTestClassIdentifier(element) || isJavaTestClassIdentifier(element)
   }
 }
 

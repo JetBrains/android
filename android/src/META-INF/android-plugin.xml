@@ -734,6 +734,9 @@
     <extensionPoint qualifiedName="com.android.tools.idea.actions.annotations.inferAnnotationsToken"
                     interface="com.android.tools.idea.actions.annotations.InferAnnotationsToken"
                     area="IDEA_PROJECT"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.instrumented.testRunConfigurationOptions"
+                    interface="com.android.tools.idea.testartifacts.instrumented.TestRunConfigurationOptions"
+                    dynamic="true"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.project">

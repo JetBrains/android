@@ -23,6 +23,8 @@ import com.android.tools.idea.projectsystem.androidProjectType
 import com.android.tools.idea.projectsystem.containsFile
 import com.android.tools.idea.projectsystem.isContainedBy
 import com.android.tools.idea.run.AndroidRunConfigurationType
+import com.android.tools.idea.run.editor.AndroidTestExtraParam.Companion.parseFromString
+import com.android.tools.idea.run.editor.merge
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.Location
@@ -35,6 +37,7 @@ import com.intellij.execution.junit.JavaRunConfigurationProducerBase
 import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase
 import com.intellij.execution.junit2.PsiMemberParameterizedLocation
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VirtualFile
@@ -52,6 +55,10 @@ import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigur
  * A [com.intellij.execution.actions.RunConfigurationProducer] implementation for [AndroidTestRunConfiguration].
  */
 class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<AndroidTestRunConfiguration>() {
+  companion object {
+    val OPTIONS_EP: ExtensionPointName<TestRunConfigurationOptions> =
+      ExtensionPointName.create("com.android.tools.idea.testartifacts.instrumented.testRunConfigurationOptions")
+  }
 
   override fun setupConfigurationFromContext(configuration: AndroidTestRunConfiguration,
                                              context: ConfigurationContext,
@@ -66,6 +73,8 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
     if (!setupConfigurationModule(context, configuration)) {
       return false
     }
+
+    configuration.EXTRA_OPTIONS = getOptions(configuration.EXTRA_OPTIONS, context)
 
     return true
   }
@@ -91,6 +100,9 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
       return false
     }
     if (configuration.TESTING_TYPE != expectedConfig.TESTING_TYPE) {
+      return false
+    }
+    if (!configuration.EXTRA_OPTIONS.contains(getOptions("", context))) {
       return false
     }
 
@@ -120,6 +132,23 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
   }
 
   override fun getConfigurationFactory(): ConfigurationFactory = AndroidTestRunConfigurationType.getInstance().factory
+
+  private fun getOptions(existingOptions: String, context: ConfigurationContext): String {
+    val extraOptions = OPTIONS_EP.extensionList
+      .asSequence()
+      .flatMap { it.getExtraOptions(context).asSequence() }
+      .map { parseFromString(it) }
+      .flatten()
+    return parseFromString(existingOptions)
+      .merge(extraOptions)
+      .asSequence()
+      .map { "-e " + it.NAME + " " + it.VALUE }
+      .joinToString(" ")
+  }
+}
+
+abstract class TestRunConfigurationOptions {
+  abstract fun getExtraOptions(context: ConfigurationContext): List<String>
 }
 
 /**
