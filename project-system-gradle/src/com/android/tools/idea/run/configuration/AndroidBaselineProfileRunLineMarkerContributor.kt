@@ -151,17 +151,15 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
       }
 
       // Find a class member that has a BaselineProfileRule applied.
-      for (member : PsiMember in classMembers.filter { it is PsiField }) {
+      for (member : PsiMember in classMembers.filterIsInstance<PsiField>()) {
         // Only evaluate direct field member of the top level class
-        if (PsiTreeUtil.getDepth(member, topLevelClass) == 1) {
-          PsiTreeUtil.findChildrenOfType(member, PsiAnnotation::class.java).forEach {
-            if (it.resolveAnnotationType()?.qualifiedName == FQ_NAME_ORG_JUNIT_RULE) {
-              return PsiTreeUtil.findChildOfType(member, PsiNewExpression::class.java)
-                ?.type
-                .resolve()
-                ?.qualifiedName == FQ_NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE
-            }
-          }
+        if (PsiTreeUtil.getDepth(member, topLevelClass) == 1 &&
+            PsiTreeUtil.findChildrenOfType(member, PsiAnnotation::class.java).any {
+              it.resolveAnnotationType()?.qualifiedName == FQ_NAME_ORG_JUNIT_RULE &&
+              PsiTreeUtil.findChildOfType(member, PsiNewExpression::class.java)?.type.resolve()?.qualifiedName ==
+              FQ_NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE
+            }) {
+              return true
         }
       }
       return false

@@ -56,6 +56,7 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
       import androidx.test.ext.junit.runners.AndroidJUnit4;
       import org.junit.Rule;
       import org.junit.Test;
+      import org.junit.rules.TemporaryFolder;
       import org.junit.runner.RunWith;
 
     """.trimIndent()
@@ -155,7 +156,7 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
 
   @Test
   @RunsInEdt
-  fun `when Kotlin outer class has BaselineProfileRule, inner class methods should not show contributor`() {
+  fun `when Java outer class has BaselineProfileRule, inner class methods should not show contributor`() {
     val sourceFile = addJavaBaselineProfileGeneratorToProject("""
         $JAVA_SRC_FILE_HEADER
         public class BaselineProfileGenerator {
@@ -175,6 +176,25 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
 
     // Inner class
     assertContributorInfoNull(sourceFile.classIdentifierNamed("SomeInnerClass"))
+  }
+
+  @Test
+  @RunsInEdt
+  fun `when Java class has a rule before BaselineProfileRule, it should still show contributor`() {
+    val sourceFile = addJavaBaselineProfileGeneratorToProject("""
+        $JAVA_SRC_FILE_HEADER
+        public class BaselineProfileGenerator {
+
+          @Rule
+          public TemporaryFolder folder = new TemporaryFolder();
+
+          @Rule
+          public BaselineProfileRule rule = new BaselineProfileRule();
+        }
+      """.trimIndent())
+
+    // Outer class
+    assertContributorInfo(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
   }
 
   private fun assertContributorInfo(psiElement: PsiElement) {
