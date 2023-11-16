@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
@@ -71,6 +72,7 @@ public class NlDesignSurfacePositionableContentLayoutManager extends Positionabl
     return myLayoutManager.equals(manager);
   }
 
+  @UiThread
   @Override
   public void setLayoutManager(@NotNull SurfaceLayoutManager manager, @NotNull DesignSurface.SceneViewAlignment sceneViewAlignment) {
     myLayoutManager = manager;
@@ -78,7 +80,6 @@ public class NlDesignSurfacePositionableContentLayoutManager extends Positionabl
     myDesignSurface.setScrollPosition(0, 0);
     myDesignSurface.revalidateScrollArea();
   }
-
 
   @NotNull
   @Override

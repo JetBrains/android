@@ -52,6 +52,7 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
     assertEquals(0, position.y)
   }
 
+  @Test
   fun testMeasurePosition() {
     val mockedSurface = mock<NlDesignSurface>()
     whenever(mockedSurface.setSceneViewAlignment(any())).then {} // Do nothing

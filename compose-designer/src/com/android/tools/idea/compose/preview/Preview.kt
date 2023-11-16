@@ -1509,13 +1509,6 @@ class ComposePreviewRepresentation(
       }
     }
     surface.background = mode.backgroundColor
-    withContext(uiThread) {
-      val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
-      layoutManager.setLayoutManager(
-        mode.layoutOption.layoutManager,
-        mode.layoutOption.sceneViewAlignment
-      )
-    }
   }
 
   /** Performs cleanup for [mode] when leaving this mode to go to a mode of a different class. */

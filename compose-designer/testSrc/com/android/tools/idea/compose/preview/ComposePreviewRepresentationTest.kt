@@ -253,6 +253,7 @@ class ComposePreviewRepresentationTest {
 
       // Start UI Check mode
       run {
+        preview.waitForAnyPendingRefresh()
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
         preview.setMode(PreviewMode.UiCheck(uiCheckElement))
@@ -260,11 +261,11 @@ class ComposePreviewRepresentationTest {
       }
 
       assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
-      assertEquals(
-        GRID_LAYOUT_MANAGER_OPTIONS.layoutManager,
-        (mainSurface.sceneViewLayoutManager as? NlDesignSurfacePositionableContentLayoutManager)
-          ?.layoutManager
-      )
+      delayUntilCondition(250) {
+        GRID_LAYOUT_MANAGER_OPTIONS.layoutManager ==
+          (mainSurface.sceneViewLayoutManager as? NlDesignSurfacePositionableContentLayoutManager)
+            ?.layoutManager
+      }
 
       assertTrue(preview.atfChecksEnabled)
       assertThat(preview.availableGroupsFlow.value.map { it.displayName })
@@ -346,6 +347,7 @@ class ComposePreviewRepresentationTest {
       }
 
       run {
+        preview.waitForAnyPendingRefresh()
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
         // Stop UI Check mode
@@ -354,11 +356,11 @@ class ComposePreviewRepresentationTest {
       }
 
       assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
-      assertEquals(
-        LIST_LAYOUT_MANAGER_OPTION.layoutManager,
-        (mainSurface.sceneViewLayoutManager as? NlDesignSurfacePositionableContentLayoutManager)
-          ?.layoutManager
-      )
+      delayUntilCondition(250) {
+        LIST_LAYOUT_MANAGER_OPTION.layoutManager ==
+          (mainSurface.sceneViewLayoutManager as? NlDesignSurfacePositionableContentLayoutManager)
+            ?.layoutManager
+      }
 
       // Check that the surface scale is reset to its original value
       assertEquals(originalScale, mainSurface.scale, 0.001)
@@ -458,29 +460,33 @@ class ComposePreviewRepresentationTest {
       )
 
       run {
+        preview.waitForAnyPendingRefresh()
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
         // Stop UI Check mode
         preview.setMode(PreviewMode.Default(GRID_LAYOUT_MANAGER_OPTIONS))
-        delayUntilCondition(250) { refresh }
-        assertEquals(
-          GRID_LAYOUT_MANAGER_OPTIONS.layoutManager,
-          (mainSurface.sceneViewLayoutManager as? NlDesignSurfacePositionableContentLayoutManager)
-            ?.layoutManager
-        )
+        delayUntilCondition(250) {
+          refresh &&
+            GRID_LAYOUT_MANAGER_OPTIONS.layoutManager ==
+              (mainSurface.sceneViewLayoutManager
+                  as? NlDesignSurfacePositionableContentLayoutManager)
+                ?.layoutManager
+        }
       }
 
       // Restart UI Check mode on the same preview
       run {
+        preview.waitForAnyPendingRefresh()
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
         preview.setMode(PreviewMode.UiCheck(uiCheckElement))
-        delayUntilCondition(250) { refresh }
-        assertEquals(
-          GRID_LAYOUT_MANAGER_OPTIONS.layoutManager,
-          (mainSurface.sceneViewLayoutManager as? NlDesignSurfacePositionableContentLayoutManager)
-            ?.layoutManager
-        )
+        delayUntilCondition(250) {
+          refresh &&
+            GRID_LAYOUT_MANAGER_OPTIONS.layoutManager ==
+              (mainSurface.sceneViewLayoutManager
+                  as? NlDesignSurfacePositionableContentLayoutManager)
+                ?.layoutManager
+        }
       }
 
       // Check that the UI Check tab is being reused
@@ -534,16 +540,18 @@ class ComposePreviewRepresentationTest {
       }
 
       run {
+        preview.waitForAnyPendingRefresh()
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
         // Stop UI Check mode
         preview.setMode(PreviewMode.Default())
-        delayUntilCondition(250) { refresh }
-        assertEquals(
-          LIST_LAYOUT_MANAGER_OPTION.layoutManager,
-          (mainSurface.sceneViewLayoutManager as? NlDesignSurfacePositionableContentLayoutManager)
-            ?.layoutManager
-        )
+        delayUntilCondition(250) {
+          refresh &&
+            LIST_LAYOUT_MANAGER_OPTION.layoutManager ==
+              (mainSurface.sceneViewLayoutManager
+                  as? NlDesignSurfacePositionableContentLayoutManager)
+                ?.layoutManager
+        }
       }
 
       preview.onDeactivate()
@@ -600,6 +608,7 @@ class ComposePreviewRepresentationTest {
 
       // Start UI Check mode
       run {
+        preview.waitForAnyPendingRefresh()
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
         preview.setMode(PreviewMode.UiCheck(uiCheckElement))
@@ -707,6 +716,7 @@ class ComposePreviewRepresentationTest {
 
       // Stop UI Check mode
       run {
+        preview.waitForAnyPendingRefresh()
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
         preview.setMode(PreviewMode.Default())
@@ -831,6 +841,7 @@ class ComposePreviewRepresentationTest {
 
       // Stop UI Check mode
       run {
+        preview.waitForAnyPendingRefresh()
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
         preview.setMode(PreviewMode.Default())
@@ -839,6 +850,7 @@ class ComposePreviewRepresentationTest {
 
       // Restart UI Check mode on the same preview
       run {
+        preview.waitForAnyPendingRefresh()
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
         preview.setMode(PreviewMode.UiCheck(uiCheckElement))
@@ -851,6 +863,7 @@ class ComposePreviewRepresentationTest {
       assertNotNull(tab)
 
       run {
+        preview.waitForAnyPendingRefresh()
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
         preview.setMode(PreviewMode.Default())

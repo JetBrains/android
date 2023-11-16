@@ -61,6 +61,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
@@ -141,11 +142,14 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
       if (isEssentialsModeSelected != ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) {
         isEssentialsModeSelected = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
         if (isEssentialsModeSelected) {
-          (e.getData(DESIGN_SURFACE)?.sceneViewLayoutManager as? LayoutManagerSwitcher)
-            ?.setLayoutManager(
+          val layoutSwitcher =
+            (e.getData(DESIGN_SURFACE)?.sceneViewLayoutManager as? LayoutManagerSwitcher)
+          ApplicationManager.getApplication().invokeLater {
+            layoutSwitcher?.setLayoutManager(
               PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager,
               PREVIEW_LAYOUT_GALLERY_OPTION.sceneViewAlignment
             )
+          }
         }
       }
     }
