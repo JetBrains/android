@@ -16,7 +16,6 @@
 
 #include "display_streamer.h"
 
-#include <linux/uio.h>
 #include <sys/system_properties.h>
 #include <sys/uio.h>
 #include <unistd.h>
@@ -28,6 +27,7 @@
 
 #include "accessors/surface_control.h"
 #include "agent.h"
+#include "codec_output_buffer.h"
 #include "jvm.h"
 #include "log.h"
 #include "string_printf.h"
@@ -52,56 +52,6 @@ constexpr char const* AMEDIAFORMAT_KEY_COLOR_STANDARD = "color-standard";  // In
 constexpr int COLOR_STANDARD_BT601_NTSC = 4;  // See android.media.MediaFormat.COLOR_STANDARD_BT601_NTSC.
 constexpr double SQRT_2 = 1.41421356237;
 constexpr double SQRT_10 = 3.16227766017;
-
-struct CodecOutputBuffer {
-  explicit CodecOutputBuffer(AMediaCodec* codec, int32_t display_id)
-      : index(-1),
-        codec(codec),
-        display_id(display_id),
-        info(),
-        buffer(),
-        size() {
-  }
-
-  ~CodecOutputBuffer() {
-    if (index >= 0) {
-      AMediaCodec_releaseOutputBuffer(codec, static_cast<size_t>(index), false);
-    }
-  }
-
-  [[nodiscard]] bool Deque(int64_t timeout_us) {
-    index = AMediaCodec_dequeueOutputBuffer(codec, &info, timeout_us);
-    if (index < 0) {
-      Log::W("Display %d: AMediaCodec_dequeueOutputBuffer returned %ld", display_id, static_cast<long>(index));
-      return false;
-    }
-    if (Log::IsEnabled(Log::Level::VERBOSE)) {
-      Log::V("Display %d: CodecOutputBuffer::Deque: index:%ld offset:%d size:%d flags:0x%x, presentationTimeUs:%" PRId64,
-             display_id, static_cast<long>(index), info.offset, info.size, info.flags, info.presentationTimeUs);
-    }
-    buffer = AMediaCodec_getOutputBuffer(codec, static_cast<size_t>(index), &size);
-    if (buffer == nullptr) {
-      Log::W("Display %d: AMediaCodec_getOutputBuffer(codec, %ld, &size) returned null", display_id, static_cast<long>(index));
-      return false;
-    }
-    return true;
-  }
-
-  [[nodiscard]] bool IsEndOfStream() const {
-    return (info.flags & AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM) != 0;
-  }
-
-  [[nodiscard]] bool IsConfig() const {
-    return (info.flags & AMEDIACODEC_BUFFER_FLAG_CODEC_CONFIG) != 0;
-  }
-
-  ssize_t index;
-  AMediaCodec* codec;
-  int32_t display_id;
-  AMediaCodecBufferInfo info;
-  uint8_t* buffer;
-  size_t size;
-};
 
 // Rounds the given number to the closest on logarithmic scale value of the for n * 10^k,
 // where n is one of 1, 2 or 5 and k is integer number.
@@ -358,7 +308,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
   bool continue_streaming = true;
   bool first_frame_after_start = true;
   while (continue_streaming && IsCodecRunning()) {
-    CodecOutputBuffer codec_buffer(codec, display_id_);
+    CodecOutputBuffer codec_buffer(codec, StringPrintf("Display %d", display_id_));
     if (!codec_buffer.Deque(-1)) {
       if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS && !ReduceBitRate()) {
         ExitCode exitCode = bit_rate_ <= MIN_BIT_RATE ? WEAK_VIDEO_ENCODER : REPEATED_VIDEO_ENCODER_ERRORS;
@@ -375,7 +325,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
     }
     // Skip an AV1-specific data packet that is not a part of AV1 bitstream.
     // See https://aomediacodec.github.io/av1-spec/#obu-header-semantics.
-    if (codec_info_->mime_type == "video/av01" && (*codec_buffer.buffer & 0x80) != 0) {
+    if (codec_info_->mime_type == "video/av01" && (*codec_buffer.buffer() & 0x80) != 0) {
       continue;
     }
 
@@ -390,22 +340,22 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
     }
     int64_t delta = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count() - Agent::GetLastTouchEventTime();
     if (delta < 1000) {
-      Log::D("Display %d: video packet of %d bytes at %" PRIi64 " ms since last touch event", display_id_, codec_buffer.info.size, delta);
+      Log::D("Display %d: video packet of %d bytes at %" PRIi64 " ms since last touch event", display_id_, codec_buffer.size(), delta);
     }
     packet_header->origination_timestamp_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
     if (codec_buffer.IsConfig()) {
       packet_header->presentation_timestamp_us = 0;
     } else {
       if (presentation_timestamp_offset_ == 0) {
-        presentation_timestamp_offset_ = codec_buffer.info.presentationTimeUs - 1;
+        presentation_timestamp_offset_ = codec_buffer.presentation_time_us() - 1;
       }
-      packet_header->presentation_timestamp_us = codec_buffer.info.presentationTimeUs - presentation_timestamp_offset_;
+      packet_header->presentation_timestamp_us = codec_buffer.presentation_time_us() - presentation_timestamp_offset_;
     }
-    packet_header->packet_size = codec_buffer.info.size;
+    packet_header->packet_size = codec_buffer.size();
     if (Log::IsEnabled(Log::Level::VERBOSE)) {
       Log::V("Display %d: writing video packet %s", display_id_, packet_header->ToDebugString().c_str());
     }
-    iovec buffers[] = { { packet_header, VideoPacketHeader::SIZE }, { codec_buffer.buffer, static_cast<size_t>(codec_buffer.info.size) } };
+    iovec buffers[] = { { packet_header, VideoPacketHeader::SIZE }, { codec_buffer.buffer(), static_cast<size_t>(codec_buffer.size()) } };
     if (writev(socket_fd_, buffers, 2) != buffers[0].iov_len + buffers[1].iov_len) {
       if (errno != EBADF && errno != EPIPE) {
         Log::Fatal(SOCKET_IO_ERROR, "Error writing to video socket - %s", strerror(errno));
