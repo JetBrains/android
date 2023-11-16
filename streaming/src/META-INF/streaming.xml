@@ -24,6 +24,7 @@
                              bundle="messages.StreamingBundle"
                              key="android.configurable.DeviceMirroringConfigurable.displayName"/>
 
+    <customizableActionGroupProvider implementation="com.android.tools.idea.streaming.device.actions.DeviceCustomizableActionGroupProvider"/>
     <customizableActionGroupProvider implementation="com.android.tools.idea.streaming.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
 
     <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
