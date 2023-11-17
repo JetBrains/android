@@ -302,7 +302,12 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
     sceneManager.render()
   }
 
-  onRenderCompleted()
+  if (elementsToSceneManagers.isNotEmpty()) {
+    // Only trigger the render completed callback if we rendered at least one preview. Otherwise,
+    // we might end up triggering unwanted behaviors (e.g. zooming incorrectly) when refresh happens
+    // with 0 preview, e.g. when the panel is initializing.
+    onRenderCompleted()
+  }
   debugLogger?.logRenderComplete(this)
   log.info("Render completed")
   return elementsToSceneManagers.map { it.first }
