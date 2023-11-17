@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.completions
 
 import com.android.SdkConstants
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.completions.ElementType.ARRAY_TABLE
 import com.android.tools.idea.gradle.completions.ElementType.BLOCK
 import com.android.tools.idea.gradle.completions.ElementType.BOOLEAN
@@ -41,6 +40,7 @@ import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.PlatformPatterns.psiFile
 import com.intellij.patterns.StandardPatterns
@@ -105,7 +105,7 @@ private class NamedNode(val name: String) {
 
 class DeclarativeCompletionContributor : CompletionContributor() {
   init {
-    if (StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get()) {
+    if (Registry.`is`("android.gradle.declarative.plugin.studio.support")) {
       extend(CompletionType.BASIC,
              INSIDE_TABLE_HEADER,
              object : CompletionProvider<CompletionParameters>() {

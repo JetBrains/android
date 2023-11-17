@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
@@ -24,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VfsUtilCore
 import org.junit.After
 import org.junit.Assume.assumeTrue
@@ -40,18 +40,18 @@ class GradleDeclarativeBuildModelTest : GradleFileModelTestCase() {
   @Before
   override fun before() {
     assumeTrue(isDeclarative)
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true)
+    Registry.get("android.gradle.declarative.plugin.studio.support").setValue(true)
     super.before()
   }
 
   @After
   fun clearFlags() {
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride()
+    Registry.get("android.gradle.declarative.plugin.studio.support").setValue(false)
   }
 
   @Test
   fun flagTest(){
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride()
+    Registry.get("android.gradle.declarative.plugin.studio.support").setValue(false)
     writeToSettingsFile(subModuleSettingsText)
     writeToSubModuleBuildFile("""
       [[plugins]]
