@@ -183,6 +183,8 @@ sealed class Action {
    * Note: this method "flattens" actions, i.e. there are not going to be any nested [Multiple]s.
    */
   infix fun and(other: Action): Action {
+    if (this == NONE) return other
+    if (other == NONE) return this
     val notCancelled = maybeCancel(other) ?: return other
     return when (notCancelled) {
       is Multiple ->

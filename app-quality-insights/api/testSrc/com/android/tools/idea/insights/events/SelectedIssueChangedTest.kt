@@ -17,12 +17,15 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CONNECTION1
+import com.android.tools.idea.insights.DynamicEventGallery
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TEST_FILTERS
+import com.android.tools.idea.insights.TEST_KEY
 import com.android.tools.idea.insights.Timed
+import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.common.truth.Truth.assertThat
@@ -40,16 +43,16 @@ class SelectedIssueChangedTest {
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now()))
       )
 
-    val transition = SelectedIssueChanged(ISSUE2).transition(currentState, TestAppInsightsTracker)
+    val transition =
+      SelectedIssueChanged(ISSUE2).transition(currentState, TestAppInsightsTracker, TEST_KEY)
 
     with(transition) {
       assertThat((transition.newState.issues as LoadingState.Ready).value.value)
         .isEqualTo(Selection(ISSUE2, listOf(ISSUE1, ISSUE2)))
-      assertThat(transition.newState.currentIssueVariants)
-        .isInstanceOf(LoadingState.Loading::class.java)
-      assertThat(transition.newState.currentIssueDetails)
-        .isInstanceOf(LoadingState.Loading::class.java)
-      assertThat(transition.newState.currentNotes).isInstanceOf(LoadingState.Loading::class.java)
+      assertThat(transition.newState.currentIssueVariants).isEqualTo(LoadingState.Loading)
+      assertThat(transition.newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
+      assertThat(transition.newState.currentNotes).isEqualTo(LoadingState.Loading)
+      assertThat(transition.newState.currentEvents).isEqualTo(LoadingState.Loading)
 
       assertThat((action as Action.Multiple).actions)
         .containsExactly(
@@ -70,8 +73,34 @@ class SelectedIssueChangedTest {
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now()))
       )
 
-    val transition = SelectedIssueChanged(ISSUE1).transition(currentState, TestAppInsightsTracker)
+    val transition =
+      SelectedIssueChanged(ISSUE1).transition(currentState, TestAppInsightsTracker, TEST_KEY)
 
     assertThat(transition).isEqualTo(StateTransition(currentState, Action.NONE))
+  }
+
+  @Test
+  fun `selecting an issue in Vitals causes event to immediately update, and does not include notes and variants actions`() {
+    val currentState =
+      AppInsightsState(
+        Selection(CONNECTION1, listOf(CONNECTION1)),
+        TEST_FILTERS,
+        LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now()))
+      )
+
+    val transition =
+      SelectedIssueChanged(ISSUE2).transition(currentState, TestAppInsightsTracker, VITALS_KEY)
+
+    with(transition) {
+      assertThat((transition.newState.issues as LoadingState.Ready).value.value)
+        .isEqualTo(Selection(ISSUE2, listOf(ISSUE1, ISSUE2)))
+      assertThat(transition.newState.currentIssueVariants).isEqualTo(LoadingState.Loading)
+      assertThat(transition.newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
+      assertThat(transition.newState.currentNotes).isEqualTo(LoadingState.Loading)
+      assertThat(transition.newState.currentEvents)
+        .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")))
+
+      assertThat(action).isEqualTo(Action.FetchDetails(ISSUE2.id))
+    }
   }
 }

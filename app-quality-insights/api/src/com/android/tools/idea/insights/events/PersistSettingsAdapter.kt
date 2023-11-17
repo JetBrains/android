@@ -31,9 +31,10 @@ data class PersistSettingsAdapter(
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
-    val transition = delegate.transition(state, tracker)
+    val transition = delegate.transition(state, tracker, key)
     if (
       state.filters != transition.newState.filters ||
         state.connections.selected != transition.newState.connections.selected

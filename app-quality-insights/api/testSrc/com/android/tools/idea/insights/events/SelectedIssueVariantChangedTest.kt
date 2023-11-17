@@ -24,6 +24,7 @@ import com.android.tools.idea.insights.ISSUE_VARIANT2
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TEST_FILTERS
+import com.android.tools.idea.insights.TEST_KEY
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
@@ -44,7 +45,8 @@ class SelectedIssueVariantChangedTest {
       )
 
     val transition =
-      SelectedIssueVariantChanged(ISSUE_VARIANT2).transition(currentState, TestAppInsightsTracker)
+      SelectedIssueVariantChanged(ISSUE_VARIANT2)
+        .transition(currentState, TestAppInsightsTracker, TEST_KEY)
 
     with(transition) {
       assertThat(transition.newState.currentIssueVariants)
@@ -73,7 +75,7 @@ class SelectedIssueVariantChangedTest {
       )
 
     val transition =
-      SelectedIssueVariantChanged(null).transition(currentState, TestAppInsightsTracker)
+      SelectedIssueVariantChanged(null).transition(currentState, TestAppInsightsTracker, TEST_KEY)
 
     with(transition) {
       assertThat(transition.newState.currentIssueVariants)
@@ -99,7 +101,8 @@ class SelectedIssueVariantChangedTest {
       )
 
     val transition =
-      SelectedIssueVariantChanged(ISSUE_VARIANT).transition(currentState, TestAppInsightsTracker)
+      SelectedIssueVariantChanged(ISSUE_VARIANT)
+        .transition(currentState, TestAppInsightsTracker, TEST_KEY)
 
     with(transition) {
       assertThat(transition.newState).isEqualTo(currentState)

@@ -138,4 +138,10 @@ class ActionsTest {
   fun `Composite action isNoop is false`() {
     assertThat((Refresh and CloseIssue(ID1)).isNoop).isFalse()
   }
+
+  @Test
+  fun `composing with a Action_NONE returns the other`() {
+    assertThat(Action.NONE and Refresh).isEqualTo(Refresh)
+    assertThat(Refresh and Action.NONE).isEqualTo(Refresh)
+  }
 }

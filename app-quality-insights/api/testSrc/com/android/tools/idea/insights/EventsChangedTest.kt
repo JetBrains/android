@@ -32,7 +32,7 @@ class EventsChangedTest {
         LoadingState.Loading
       )
     val event = EventsChanged(LoadingState.Ready(EventPage(listOf(Event("event1")), "")))
-    val transition = event.transition(currentState, TestAppInsightsTracker)
+    val transition = event.transition(currentState, TestAppInsightsTracker, TEST_KEY)
     assertThat(transition.newState.currentEvents)
       .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(Event("event1")), 0, "")))
     assertThat(transition.action).isEqualTo(Action.NONE)
@@ -49,7 +49,7 @@ class EventsChangedTest {
         currentEvents = LoadingState.Ready(DynamicEventGallery(listOf(Event("event1")), 0, ""))
       )
     val event = EventsChanged(LoadingState.Ready(EventPage(listOf(Event("event2")), "")))
-    val transition = event.transition(currentState, TestAppInsightsTracker)
+    val transition = event.transition(currentState, TestAppInsightsTracker, TEST_KEY)
     assertThat(transition.newState.currentEvents)
       .isEqualTo(
         LoadingState.Ready(DynamicEventGallery(listOf(Event("event1"), Event("event2")), 1, ""))

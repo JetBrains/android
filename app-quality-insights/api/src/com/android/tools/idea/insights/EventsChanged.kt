@@ -24,7 +24,8 @@ import com.intellij.openapi.diagnostic.Logger
 class EventsChanged(private val eventPage: LoadingState.Done<EventPage>) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
     if (eventPage is LoadingState.Failure) {
       Logger.getInstance(this::class.java).warn("Failed to load events: $eventPage")

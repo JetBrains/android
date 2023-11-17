@@ -32,9 +32,7 @@ import com.intellij.execution.filters.ExceptionFilters
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.testFramework.LoggedErrorProcessor
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue
-import java.util.EnumSet
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -68,30 +66,28 @@ class StackTraceConsoleTest {
     Disposer.register(controllerRule.disposable, stackTraceConsole)
   }
 
-  private val editor
-    get() = stackTraceConsole.consoleView.editor
-
   @Test
-  fun `stack trace is printed when issue selection is updated`() {
-    executeWithErrorProcessor {
-      runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
-        controllerRule.consumeInitialState(
-          fetchState,
-          eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), ""))
-        )
-        WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
-        stackTraceConsole.consoleView.waitAllRequests()
+  fun `when issue is selected, correct stack trace is printed`() = executeWithErrorProcessor {
+    runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
+      controllerRule.consumeInitialState(
+        fetchState,
+        eventsState = LoadingState.Ready(EventPage(listOf(ISSUE2.sampleEvent), ""))
+      )
+      WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
+      stackTraceConsole.consoleView.waitAllRequests()
 
-        assertThat(editor.document.text.trim())
-          .isEqualTo(
-            """
-             retrofit2.HttpException: HTTP 401 
-                 dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
-                 dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
+      assertThat(stackTraceConsole.consoleView.editor.document.text.trim())
+        .isEqualTo(
           """
-              .trimIndent()
-          )
-      }
+            javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found 
+                com.android.org.conscrypt.SSLUtils.toSSLHandshakeException(SSLUtils.java:362)
+                com.android.org.conscrypt.ConscryptEngine.convertException(ConscryptEngine.java:1134)
+            Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found 
+                com.android.org.conscrypt.TrustManagerImpl.verifyChain(TrustManagerImpl.java:677)
+                okhttp3.internal.connection.RealConnection.connectTls(RealConnection.java:320)
+          """
+            .trimIndent()
+        )
     }
   }
 
@@ -148,24 +144,5 @@ class StackTraceConsoleTest {
         }
       }
     }
-  }
-
-  private fun executeWithErrorProcessor(job: () -> Unit) {
-    var error: String? = null
-    val errorProcessor =
-      object : LoggedErrorProcessor() {
-        override fun processError(
-          category: String,
-          message: String,
-          details: Array<out String>,
-          t: Throwable?,
-        ): Set<Action> {
-          error = message
-          return EnumSet.allOf(Action::class.java)
-        }
-      }
-
-    LoggedErrorProcessor.executeWith<Throwable>(errorProcessor, job)
-    assertThat(error).isNull()
   }
 }

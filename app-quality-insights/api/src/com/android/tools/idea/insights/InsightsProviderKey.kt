@@ -18,6 +18,9 @@ package com.android.tools.idea.insights
 val VITALS_KEY = InsightsProviderKey("Android Vitals")
 val CRASHLYTICS_KEY = InsightsProviderKey("Firebase Crashlytics")
 
+// Use Crashlytics in testing because it exposes more functionality.
+val TEST_KEY = CRASHLYTICS_KEY
+
 /** Represents the identifier of the source of the issue data, e.g. Crashlytics, Play Vitals etc. */
 data class InsightsProviderKey(val displayName: String) : Comparable<InsightsProviderKey> {
   override fun compareTo(other: InsightsProviderKey): Int {

@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.events
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Device
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.OperatingSystemInfo
@@ -40,7 +41,8 @@ data class IssuesChanged(
 ) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
     if (issues is LoadingState.Failure) {
       return StateTransition(
@@ -122,27 +124,18 @@ data class IssuesChanged(
               } else state.filters.operatingSystems
           ),
         currentIssueVariants =
-          if (issues is LoadingState.Ready && newSelectedIssue != null) LoadingState.Loading
-          else LoadingState.Ready(null),
+          if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
         currentIssueDetails =
-          if (issues is LoadingState.Ready && newSelectedIssue != null) LoadingState.Loading
-          else LoadingState.Ready(null),
+          if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
         currentEvents =
-          if (issues is LoadingState.Ready && newSelectedIssue != null) LoadingState.Loading
+          if (newSelectedIssue != null) transitionEventForKey(key, newSelectedIssue.sampleEvent)
           else LoadingState.Ready(null),
         currentNotes =
-          if (issues is LoadingState.Ready && newSelectedIssue != null) LoadingState.Loading
-          else LoadingState.Ready(null),
+          if (newSelectedIssue != null) LoadingState.Loading else LoadingState.Ready(null),
         permission = (issues as? LoadingState.Ready)?.value?.permission ?: state.permission
       ),
       action =
-        if (issues is LoadingState.Ready && newSelectedIssue != null)
-          newSelectedIssue.id.let {
-            Action.FetchIssueVariants(it) and
-              Action.FetchDetails(it) and
-              Action.FetchNotes(it) and
-              Action.ListEvents(it, null, null)
-          }
+        if (newSelectedIssue != null) actionsForSelectedIssue(key, newSelectedIssue.id)
         else Action.NONE
     )
   }

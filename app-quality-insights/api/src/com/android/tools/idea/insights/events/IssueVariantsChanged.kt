@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
@@ -23,7 +24,11 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
 
 data class IssueVariantsChanged(val variants: LoadingState.Done<List<IssueVariant>>) : ChangeEvent {
-  override fun transition(state: AppInsightsState, tracker: AppInsightsTracker) =
+  override fun transition(
+    state: AppInsightsState,
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
+  ) =
     StateTransition(
       state.copy(
         currentIssueVariants =

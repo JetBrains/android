@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,25 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.DetailedIssueStats
+import com.android.tools.idea.insights.DynamicEventGallery
+import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.events.actions.Action
 
-/** Issue details changed. */
-data class IssueDetailsChanged(
-  val issueId: IssueId,
-  val stats: LoadingState.Done<DetailedIssueStats?>
-) : ChangeEvent {
-  override fun transition(
-    state: AppInsightsState,
-    tracker: AppInsightsTracker,
-    key: InsightsProviderKey
-  ): StateTransition<Action> = StateTransition(state.copy(currentIssueDetails = stats), Action.NONE)
+fun transitionEventForKey(key: InsightsProviderKey, event: Event) =
+  if (key == VITALS_KEY) {
+    LoadingState.Ready(DynamicEventGallery(listOf(event), 0, ""))
+  } else {
+    LoadingState.Loading
+  }
 
-  override fun toString(): String = "IssueDetailsChange(issueId=$issueId)"
-}
+fun actionsForSelectedIssue(key: InsightsProviderKey, id: IssueId) =
+  Action.FetchDetails(id) and
+    if (key == VITALS_KEY) {
+      Action.NONE
+    } else {
+      Action.FetchIssueVariants(id) and Action.FetchNotes(id) and Action.ListEvents(id, null, null)
+    }
