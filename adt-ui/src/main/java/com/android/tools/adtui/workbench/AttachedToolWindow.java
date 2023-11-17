@@ -370,8 +370,10 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     if (includeSearchField) {
       mySearchField = new MySearchField(TOOL_WINDOW_PROPERTY_PREFIX + myWorkBench.getName() + ".TEXT_SEARCH_HISTORY");
 
-      // Override the preferred height of the search field in order to align all tool window headers
-      mySearchField.setPreferredSize(new Dimension(mySearchField.getPreferredSize().width, titlePanel.getPreferredSize().height));
+      if (!NewUI.isEnabled() && (myDefinition.showGearAction() || myDefinition.showHideAction())) {
+        // Override the preferred height of the search field in order to align with the toolbar in the center panel:
+        mySearchField.setPreferredSize(new Dimension(mySearchField.getPreferredSize().width, titlePanel.getPreferredSize().height));
+      }
       titlePanel.add(mySearchField, SEARCH_HEADER);
     }
     layout.show(titlePanel, LABEL_HEADER);
