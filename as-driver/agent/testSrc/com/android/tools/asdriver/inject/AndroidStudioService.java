@@ -63,6 +63,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -75,6 +76,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.Nullable;
@@ -375,36 +377,62 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     ASDriver.AnalyzeFileResponse.Builder builder = ASDriver.AnalyzeFileResponse.newBuilder();
     builder.setStatus(ASDriver.AnalyzeFileResponse.Status.ERROR);
     String fileNameOnly = request.getFile();
+    Project project = getSingleProject();
+
+    AtomicReference<Document> document = new AtomicReference<>();
+    AtomicReference<File> filePath = new AtomicReference<>();
     ApplicationManager.getApplication().invokeAndWait(() -> {
+      File localFilePath;
       try {
-        Project project = getSingleProject();
-        File filePath = Path.of(project.getBasePath(), fileNameOnly).toFile().getCanonicalFile();
-        VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(filePath);
-        if (virtualFile == null) {
-          System.err.println("File does not exist on filesystem with path: " + filePath);
-          return;
-        }
+        localFilePath = Path.of(project.getBasePath(), fileNameOnly).toFile().getCanonicalFile();
+      } catch (IOException e) {
+        System.err.println(e.toString());
+        return;
+      }
 
-        FileEditorManager manager = FileEditorManager.getInstance(project);
-        Editor editor = manager.openTextEditor(new OpenFileDescriptor(project, virtualFile), true);
-        if (editor == null) {
-          System.err.println("Could not open an editor with file: " + filePath);
-          return;
-        }
-        Document document = editor.getDocument();
+      filePath.set(localFilePath);
+      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(localFilePath);
+      if (virtualFile == null) {
+        System.err.println("File does not exist on filesystem with path: " + localFilePath);
+        return;
+      }
 
-        System.out.println("Creating a TrafficLightRenderer to determine analysis issues of " + filePath);
-        Collection<HighlightInfo> highlightInfoList = analyzeViaTrafficLightRenderer(project, document);
+      FileEditorManager manager = FileEditorManager.getInstance(project);
+      Editor editor = manager.openTextEditor(new OpenFileDescriptor(project, virtualFile), true);
+      if (editor == null) {
+        System.err.println("Could not open an editor with file: " + localFilePath);
+        return;
+      }
+      document.set(editor.getDocument());
+    });
+
+    // TODO(b/312735732): Requiring smart mode might be able to be removed if `waitForIndex` can ensure all indexing has completed.
+    CountDownLatch latch = new CountDownLatch(1);
+    DumbService.getInstance(project).runWhenSmart(() -> {
+      try {
+        System.out.println("Creating a TrafficLightRenderer to determine analysis issues of " + filePath.get());
+        Collection<HighlightInfo> highlightInfoList = analyzeViaTrafficLightRenderer(project, document.get());
 
         System.out.printf("Found %d analysis result(s)%n", highlightInfoList.size());
-        processHighlightInfo(builder, document, highlightInfoList);
+        processHighlightInfo(builder, document.get(), highlightInfoList);
 
         builder.setStatus(ASDriver.AnalyzeFileResponse.Status.OK);
       }
       catch (Exception e) {
+        builder.setStatus(ASDriver.AnalyzeFileResponse.Status.ERROR);
         e.printStackTrace();
       }
+      finally {
+        latch.countDown();
+      }
     });
+
+    try {
+      latch.await();
+    }
+    catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
 
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
