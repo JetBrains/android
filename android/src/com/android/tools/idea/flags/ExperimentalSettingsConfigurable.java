@@ -22,7 +22,6 @@ import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.crea
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
-import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -47,7 +46,6 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSlider;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,11 +53,9 @@ import org.jetbrains.annotations.TestOnly;
 
 public class ExperimentalSettingsConfigurable extends CompositeConfigurable<UnnamedConfigurable> implements SearchableConfigurable {
   @NotNull private final GradleExperimentalSettings mySettings;
-  @NotNull private final RenderSettings myRenderSettings;
 
   private JPanel myPanel;
   private JCheckBox myUseMultiVariantExtraArtifacts;
-  private JSlider myLayoutEditorQualitySlider;
   private JCheckBox myConfigureAllGradleTasks;
   private JCheckBox myTraceGradleSyncCheckBox;
   private JComboBox<TraceProfileItem> myTraceProfileComboBox;
@@ -80,32 +76,22 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Unna
 
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project, boolean studio) {
-    this(project, GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project), studio);
+    this(project, GradleExperimentalSettings.getInstance(), studio);
   }
 
   @VisibleForTesting
   ExperimentalSettingsConfigurable(@NotNull Project project,
                                    @NotNull GradleExperimentalSettings settings,
-                                   @NotNull RenderSettings renderSettings,
                                    boolean studio) {
     myConfigurableMap = new TreeMap<>();
     myProject = project;
     forAndroidStudio = studio;
     mySettings = settings;
-    myRenderSettings = renderSettings;
 
     myEnableParallelSync.setVisible(StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get());
     myDeriveRuntimeClasspathsForLibraries.setVisible(StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get());
     myEnableDeviceApiOptimization.setVisible(StudioFlags.API_OPTIMIZATION_ENABLE.get());
 
-    Hashtable<Integer, JComponent> qualityLabels = new Hashtable<>();
-    qualityLabels.put(20, new JLabel("Fastest"));
-    qualityLabels.put(100, new JLabel("Slowest"));
-    myLayoutEditorQualitySlider.setMinimum(20);
-    myLayoutEditorQualitySlider.setLabelTable(qualityLabels);
-    myLayoutEditorQualitySlider.setPaintLabels(true);
-    myLayoutEditorQualitySlider.setPaintTicks(true);
-    myLayoutEditorQualitySlider.setMajorTickSpacing(20);
     myPreviewPickerCheckBox.setVisible(StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get());
     myPreviewPickerLabel.setVisible(StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get());
     initTraceComponents();
@@ -172,14 +158,9 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Unna
            !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation()) ||
            mySettings.ENABLE_PARALLEL_SYNC != isParallelSyncEnabled() ||
            mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimizationEnabled() ||
-           (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
            mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries() ||
            super.isModified();
-  }
-
-  private int getQualitySetting() {
-    return myLayoutEditorQualitySlider.getValue();
   }
 
   @Override
@@ -190,7 +171,6 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Unna
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = isGradleApiOptimizationEnabled();
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = isDeriveRuntimeClasspathsForLibraries();
 
-    myRenderSettings.setQuality(getQualitySetting() / 100f);
     ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
     applyTraceSettings();
     super.apply();
@@ -354,7 +334,6 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Unna
   public void reset() {
     myUseMultiVariantExtraArtifacts.setSelected(mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS);
     myConfigureAllGradleTasks.setSelected(!mySettings.SKIP_GRADLE_TASKS_LIST);
-    myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
     myTraceGradleSyncCheckBox.setSelected(mySettings.TRACE_GRADLE_SYNC);
     myTraceProfileComboBox.setSelectedItem(mySettings.TRACE_PROFILE_SELECTION);
     myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);

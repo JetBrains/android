@@ -1585,8 +1585,6 @@
     <option name="the" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="tools" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="with" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
-    <option name="quality" hit="Quality Setting" />
-    <option name="setting" hit="Quality Setting" />
     <option name="location" hit="Specified location" />
     <option name="specified" hit="Specified location" />
     <option name="gradle" hit="Trace Gradle import with profile:" />
@@ -1594,6 +1592,10 @@
     <option name="profile" hit="Trace Gradle import with profile:" />
     <option name="trace" hit="Trace Gradle import with profile:" />
     <option name="with" hit="Trace Gradle import with profile:" />
+  </configurable>
+  <configurable id="experimental" configurable_name="Experimental">
+    <option name="quality" hit="Quality Setting" />
+    <option name="setting" hit="Quality Setting" />
   </configurable>
   <configurable id="gradle.compiler" configurable_name="Gradle-Android Compiler">
     <option name="" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
