@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import javax.swing.JComponent
 
@@ -34,12 +33,20 @@ internal abstract class DataComponentFactory(protected val data: ConnectionData)
   }
 
   /**
-   * Creates a component which displays the current [HttpData]'s headers as a list of key/value
-   * pairs.
+   * Creates a component which displays the current [ConnectionData]'s headers as a list of
+   * key/value pairs.
    */
   fun createHeaderComponent(type: ConnectionType): JComponent {
     return createStyledMapComponent(getHeaders(type))
   }
+
+  /**
+   * Creates a component which displays the current [ConnectionData]'s trailers as a list of
+   * key/value pairs.
+   *
+   * Returns `null` if there are no trailers
+   */
+  open fun createTrailersComponent(): JComponent? = null
 
   abstract fun createDataViewer(type: ConnectionType, formatted: Boolean): DataViewer
 

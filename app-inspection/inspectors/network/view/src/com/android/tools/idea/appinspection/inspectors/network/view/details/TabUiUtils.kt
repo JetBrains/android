@@ -58,6 +58,7 @@ val PAGE_VGAP = scale(28)
 val SECTION_VGAP = scale(10)
 
 const val SECTION_TITLE_HEADERS = "Headers"
+const val SECTION_TITLE_TRAILERS = "Trailers"
 
 const val REGEX_TEXT = "Regex"
 

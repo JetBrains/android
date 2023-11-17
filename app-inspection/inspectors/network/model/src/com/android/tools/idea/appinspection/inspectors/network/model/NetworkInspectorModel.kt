@@ -24,8 +24,7 @@ import com.android.tools.adtui.model.TooltipModel
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.GRPC_DATA
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.HTTP_DATA
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.CONNECTION
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModelImpl
@@ -53,8 +52,7 @@ class NetworkInspectorModel(
 ) : AspectModel<NetworkInspectorAspect>() {
 
   enum class DetailContent {
-    HTTP_DATA,
-    GRPC_DATA,
+    CONNECTION,
     RULE,
     EMPTY
   }
@@ -135,7 +133,7 @@ class NetworkInspectorModel(
       return false
     }
     selectedConnection = data
-    if (data == null && (detailContent == HTTP_DATA || detailContent == GRPC_DATA)) {
+    if (data == null && detailContent == CONNECTION) {
       detailContent = DetailContent.EMPTY
     }
     aspect.changed(NetworkInspectorAspect.SELECTED_CONNECTION)

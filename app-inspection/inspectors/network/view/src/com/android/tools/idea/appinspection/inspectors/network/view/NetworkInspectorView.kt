@@ -47,13 +47,9 @@ import com.android.tools.adtui.stdui.TimelineScrollbar
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.GRPC_DATA
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.HTTP_DATA
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorServices
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkTrafficTooltipModel
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.GrpcData
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.SelectionRangeDataListener
 import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionsView
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
@@ -186,11 +182,8 @@ internal class NetworkInspectorView(
             // details panel.
             if (selectedComponent == rulesView.component) {
               model.detailContent =
-                when (model.selectedConnection) {
-                  is HttpData -> HTTP_DATA
-                  is GrpcData -> GRPC_DATA
-                  else -> NetworkInspectorModel.DetailContent.EMPTY
-                }
+                if (model.selectedConnection == null) NetworkInspectorModel.DetailContent.EMPTY
+                else NetworkInspectorModel.DetailContent.CONNECTION
             }
           rulesView.component ->
             if (

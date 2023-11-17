@@ -22,8 +22,8 @@ import javax.swing.JTabbedPane
 import kotlin.LazyThreadSafetyMode.NONE
 
 /**
- * Base class for all tabs shown in the [HttpDataDetailsView]. To use, construct subclass instances
- * and add their title, icon, and component content to a target [JTabbedPane] using
+ * Base class for all tabs shown in the [ConnectionDataDetailsView]. To use, construct subclass
+ * instances and add their title, icon, and component content to a target [JTabbedPane] using
  * [JTabbedPane.addTab]
  */
 internal abstract class TabContent {

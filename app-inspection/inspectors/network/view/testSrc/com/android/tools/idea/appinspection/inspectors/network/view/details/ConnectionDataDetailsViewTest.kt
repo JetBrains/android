@@ -99,7 +99,7 @@ private fun <C : Component> firstDescendantWithType(root: Component, type: Class
   return TreeWalker(root).descendants().filterIsInstance(type).first()
 }
 
-private fun <T : TabContent?> HttpDataDetailsView.findTab(tabClass: Class<T>): T? {
+private fun <T : TabContent?> ConnectionDataDetailsView.findTab(tabClass: Class<T>): T? {
   return tabs.filterIsInstance(tabClass).firstOrNull()
 }
 
@@ -108,7 +108,7 @@ private fun <C : Component> allDescendantsWithType(root: Component, type: Class<
 }
 
 @RunsInEdt
-class HttpDataDetailsViewTest {
+class ConnectionDataDetailsViewTest {
 
   private class TestNetworkInspectorClient : NetworkInspectorClient {
     override suspend fun getStartTimeStampNs() = 0L
@@ -126,7 +126,7 @@ class HttpDataDetailsViewTest {
   private lateinit var services: TestNetworkInspectorServices
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
-  private lateinit var detailsView: HttpDataDetailsView
+  private lateinit var detailsView: ConnectionDataDetailsView
   private val timer: FakeTimer = FakeTimer()
   private lateinit var scope: CoroutineScope
   private lateinit var disposable: Disposable
@@ -176,7 +176,7 @@ class HttpDataDetailsViewTest {
         disposable
       )
     parentPanel.add(inspectorView.component)
-    detailsView = inspectorView.detailsPanel.httpDataDetailsView
+    detailsView = inspectorView.detailsPanel.connectionDataDetailsView
   }
 
   @After
@@ -193,7 +193,7 @@ class HttpDataDetailsViewTest {
         )
       )
       .isNull()
-    detailsView.setHttpData(DEFAULT_DATA)
+    detailsView.setConnectionData(DEFAULT_DATA)
     assertThat(
         HttpDataComponentFactory.findPayloadViewer(
           detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody()
@@ -205,7 +205,7 @@ class HttpDataDetailsViewTest {
   @Test
   fun viewerForRequestPayloadIsAbsentWhenRequestPayloadIsNull() {
     val data = DEFAULT_DATA.copy(requestPayload = ByteString.EMPTY)
-    detailsView.setHttpData(data)
+    detailsView.setConnectionData(data)
     assertThat(
         HttpDataComponentFactory.findPayloadViewer(
           detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody()
@@ -221,7 +221,7 @@ class HttpDataDetailsViewTest {
         1,
         requestHeaders = listOf(header("Content-Type", "application/x-www-form-urlencoded"))
       )
-    detailsView.setHttpData(data)
+    detailsView.setConnectionData(data)
     val payloadBody = detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody()!!
     assertThat(TreeWalker(payloadBody).descendants().any { c -> c.name == "View Parsed" }).isTrue()
     assertThat(TreeWalker(payloadBody).descendants().any { c -> c.name == "View Source" }).isTrue()
@@ -238,7 +238,7 @@ class HttpDataDetailsViewTest {
             header("Content-Type", "application/x-www-form-urlencoded"),
           )
       )
-    detailsView.setHttpData(data)
+    detailsView.setConnectionData(data)
     val payloadBody = detailsView.findTab(ResponseTabContent::class.java)!!.findPayloadBody()!!
     assertThat(TreeWalker(payloadBody).descendants().any { c -> c.name == "View Parsed" }).isTrue()
     assertThat(TreeWalker(payloadBody).descendants().any { c -> c.name == "View Source" }).isTrue()
@@ -249,7 +249,7 @@ class HttpDataDetailsViewTest {
     val data = DEFAULT_DATA
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findResponsePayloadViewer())
       .isNull()
-    detailsView.setHttpData(data)
+    detailsView.setConnectionData(data)
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findResponsePayloadViewer())
       .isNotNull()
   }
@@ -259,21 +259,21 @@ class HttpDataDetailsViewTest {
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findContentTypeValue())
       .isNull()
     val data = DEFAULT_DATA
-    detailsView.setHttpData(data)
+    detailsView.setConnectionData(data)
     val value = detailsView.findTab(OverviewTabContent::class.java)!!.findContentTypeValue()!!
     assertThat(value.text).isEqualTo("111")
   }
 
   @Test
   fun contentTypeIsAbsentWhenDataHasNoContentTypeValue() {
-    detailsView.setHttpData(DEFAULT_DATA.copy(responseHeaders = emptyMap()))
+    detailsView.setConnectionData(DEFAULT_DATA.copy(responseHeaders = emptyMap()))
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findContentTypeValue())
       .isNull()
   }
 
   @Test
   fun initiatingThreadFieldIsPresent() {
-    detailsView.setHttpData(DEFAULT_DATA)
+    detailsView.setConnectionData(DEFAULT_DATA)
     assertThat(DEFAULT_DATA.threads).hasSize(1)
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findInitiatingThreadValue())
       .isNotNull()
@@ -285,7 +285,7 @@ class HttpDataDetailsViewTest {
   fun otherThreadsFieldIsPresent() {
     val data = DEFAULT_DATA.copy(threads = FAKE_THREAD_LIST + listOf(JavaThread(2, "thread2")))
     assertThat(data.threads).hasSize(2)
-    detailsView.setHttpData(data)
+    detailsView.setConnectionData(data)
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findOtherThreadsValue())
       .isNotNull()
   }
@@ -293,7 +293,7 @@ class HttpDataDetailsViewTest {
   @Test
   fun urlHasProperValueFromData() {
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findUrlValue()).isNull()
-    detailsView.setHttpData(DEFAULT_DATA)
+    detailsView.setConnectionData(DEFAULT_DATA)
     val value = detailsView.findTab(OverviewTabContent::class.java)!!.findUrlValue()!!
     assertThat(value.text).isEqualTo("dumbUrl")
   }
@@ -302,7 +302,7 @@ class HttpDataDetailsViewTest {
   fun sizeHasProperValueFromData() {
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findSizeValue()).isNull()
     val data = DEFAULT_DATA.copy(responsePayload = ByteString.copyFromUtf8("Response payload"))
-    detailsView.setHttpData(data)
+    detailsView.setConnectionData(data)
     val value = detailsView.findTab(OverviewTabContent::class.java)!!.findSizeValue()!!
     assertThat(value.text).isEqualTo("${data.responsePayload.size()} B")
   }
@@ -310,14 +310,14 @@ class HttpDataDetailsViewTest {
   @Test
   fun timingFieldIsPresent() {
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findTimingBar()).isNull()
-    detailsView.setHttpData(DEFAULT_DATA)
+    detailsView.setConnectionData(DEFAULT_DATA)
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findTimingBar()).isNotNull()
   }
 
   @Test
   fun headerSectionIsSorted() {
     val data: HttpData = DEFAULT_DATA.copy(requestHeaders = TEST_HEADERS)
-    detailsView.setHttpData(data)
+    detailsView.setConnectionData(data)
     val tabContent = detailsView.findTab(RequestTabContent::class.java)!!
     val labels =
       allDescendantsWithType(tabContent.component, NoWrapBoldLabel::class.java).map { it.text }
@@ -370,7 +370,7 @@ class HttpDataDetailsViewTest {
     }
     assertThat(stackFramesChangedCount[0]).isEqualTo(0)
     assertThat(stackTraceView.model.codeLocations).hasSize(0)
-    detailsView.setHttpData(DEFAULT_DATA)
+    detailsView.setConnectionData(DEFAULT_DATA)
     assertThat(stackFramesChangedCount[0]).isEqualTo(1)
     assertThat(stackTraceView.model.codeLocations).hasSize(1)
     assertThat(stackTraceView.model.codeLocations[0].className).isEqualTo("com.google")
@@ -472,7 +472,7 @@ class HttpDataDetailsViewTest {
         endTimeUs,
         url = "unusedUrl"
       )
-    detailsView.setHttpData(data)
+    detailsView.setConnectionData(data)
     val legendComponent = firstDescendantWithType(detailsView, LegendComponent::class.java)
     val legends: List<Legend> = legendComponent.model.legends
     assertThat(legends[0].value).isEqualTo(sentLegend)

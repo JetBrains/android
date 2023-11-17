@@ -20,11 +20,9 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.stdui.CloseButton
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.GRPC_DATA
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.HTTP_DATA
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.CONNECTION
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.google.common.annotations.VisibleForTesting
@@ -32,7 +30,6 @@ import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.CardLayout
-import javax.swing.JLabel
 import javax.swing.JPanel
 
 /** View to display detailed information of an interception rule or connection. */
@@ -41,7 +38,7 @@ internal class NetworkInspectorDetailsPanel(
   usageTracker: NetworkInspectorTracker
 ) : JPanel(BorderLayout()) {
 
-  @VisibleForTesting val httpDataDetailsView: HttpDataDetailsView
+  @VisibleForTesting val connectionDataDetailsView: ConnectionDataDetailsView
 
   val ruleDetailsView: RuleDetailsView
 
@@ -59,10 +56,9 @@ internal class NetworkInspectorDetailsPanel(
     val rootPanel = JPanel(TabularLayout("*,Fit-", "Fit-,*"))
 
     cardLayoutView = JPanel(cardLayout)
-    httpDataDetailsView = HttpDataDetailsView(inspectorView, usageTracker)
+    connectionDataDetailsView = ConnectionDataDetailsView(inspectorView, usageTracker)
     ruleDetailsView = RuleDetailsView(usageTracker)
-    cardLayoutView.add(httpDataDetailsView, HTTP_DATA.name)
-    cardLayoutView.add(JLabel("Not Implemented Yet"), GRPC_DATA.name)
+    cardLayoutView.add(connectionDataDetailsView, CONNECTION.name)
     cardLayoutView.add(ruleDetailsView, NetworkInspectorModel.DetailContent.RULE.name)
     val model = inspectorView.model
     model.aspect.addDependency(aspectObserver).onChange(NetworkInspectorAspect.DETAILS) {
@@ -95,7 +91,7 @@ internal class NetworkInspectorDetailsPanel(
   /** Updates the view to show given [data]. */
   private fun setConnectionData(data: ConnectionData) {
     background = JBColor.background()
-    if (data is HttpData) httpDataDetailsView.setHttpData(data)
+    connectionDataDetailsView.setConnectionData(data)
   }
 
   /** Updates the view to show given [rule]. */

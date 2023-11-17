@@ -23,6 +23,7 @@ import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.adtui.table.ConfigColumnTableAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorViewState
 import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn.TIMELINE
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
@@ -80,15 +81,14 @@ class ConnectionsView(
         override fun mouseClicked(e: MouseEvent) {
           val row = connectionsTable.rowAtPoint(e.point)
           if (row != -1) {
-            model.detailContent = tableModel.getConnectionDataDetailContent(row)
+            model.detailContent = DetailContent.CONNECTION
           }
         }
       }
     )
     connectionsTable.registerEnterKeyAction {
       if (connectionsTable.selectedRow != -1) {
-        model.detailContent =
-          tableModel.getConnectionDataDetailContent(connectionsTable.selectedRow)
+        model.detailContent = DetailContent.CONNECTION
       }
     }
     connectionsTable.selectionModel.addListSelectionListener { e: ListSelectionEvent ->

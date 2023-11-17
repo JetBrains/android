@@ -17,12 +17,14 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.GrpcData
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
 import org.jetbrains.annotations.VisibleForTesting
 
-internal class HttpDataDetailsView(
+internal class ConnectionDataDetailsView(
   private val inspectorView: NetworkInspectorView,
   private val usageTracker: NetworkInspectorTracker
 ) : CommonTabbedPane() {
@@ -56,8 +58,13 @@ internal class HttpDataDetailsView(
   }
 
   /** Updates the view to show given data. */
-  fun setHttpData(data: HttpData) {
-    val httpDataComponentFactory = HttpDataComponentFactory(data, inspectorView.componentsProvider)
-    tabs.forEach { it.populateFor(data, httpDataComponentFactory) }
+  fun setConnectionData(data: ConnectionData) {
+    val dataComponentFactory =
+      when (data) {
+        is HttpData -> HttpDataComponentFactory(data, inspectorView.componentsProvider)
+        is GrpcData -> GrpcDataComponentFactory(data)
+        else -> throw IllegalArgumentException("Unsupported data type: ${data::class.java.name}")
+      }
+    tabs.forEach { it.populateFor(data, dataComponentFactory) }
   }
 }
