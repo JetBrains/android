@@ -1471,7 +1471,8 @@ class AppInspectionInspectorClientWithFailingClientTest {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private var throwOnState: AttachErrorState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
-  private var exceptionToThrow: Exception = RuntimeException("expected")
+  private var exceptionToThrow: Exception =
+    ConnectionFailedException("expected", AttachErrorCode.CONNECT_TIMEOUT)
   private val getMonitor: (AbstractInspectorClient) -> InspectorClientLaunchMonitor = { client ->
     spy(
         InspectorClientLaunchMonitor(
@@ -1526,7 +1527,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     val notifications = inspectorRule.notificationModel.notifications
     assertThat(notifications).hasSize(1)
-    assertThat(notifications[0].message).isEqualTo("An unknown error happened.")
+    assertThat(notifications[0].message).isEqualTo("expected")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
     val usages =
       usageTrackerRule.testTracker.usages.filter {
@@ -1551,7 +1552,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     val notifications = inspectorRule.notificationModel.notifications
     assertThat(notifications).hasSize(1)
-    assertThat(notifications[0].message).isEqualTo("An unknown error happened.")
+    assertThat(notifications[0].message).isEqualTo("expected")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
     val usages =
       usageTrackerRule.testTracker.usages.filter {
@@ -1687,7 +1688,8 @@ private fun runWithFlagState(desiredFlagState: Boolean, task: () -> Unit) {
 
 private val failingApiServices =
   object : AppInspectionApiServices {
-    var exception: Throwable = RuntimeException()
+    var exception: Throwable =
+      ConnectionFailedException("expected", AttachErrorCode.CONNECT_TIMEOUT)
 
     override val processDiscovery
       get() = throw RuntimeException()

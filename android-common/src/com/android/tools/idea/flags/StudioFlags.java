@@ -826,6 +826,11 @@ public final class StudioFlags {
     "When this flag is enabled, LayoutInspector be integrated in the Running Devices tool window, instead of in its own tool window.",
     true);
 
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_THROW_UNEXPECTED_ERROR = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.throw.unexpected.error", "Throw exception when encountering an unexpected error",
+    "When this flag is enabled, LayoutInspector will throw an exception when an unexpected error is being logged to the metrics.",
+    StudioPathManager.isRunningFromSources());
+
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.ignore.framework.recompositions", "Ignore recompositions in compose framework",
     "When this flag is enabled, LayoutInspector will disregard all recomposition counts for framework composables, " +
