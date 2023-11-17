@@ -38,7 +38,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     super.setUp();
     initMocks(this);
     mySettings.TRACE_PROFILE_LOCATION = "";
-    myConfigurable = new ExperimentalSettingsConfigurable(mySettings, new RenderSettings(), true);
+    myConfigurable = new ExperimentalSettingsConfigurable(getProject(), mySettings, new RenderSettings(), true);
   }
 
   public void testIsModified() {

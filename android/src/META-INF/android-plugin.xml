@@ -736,6 +736,8 @@
     <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.instrumented.testRunConfigurationOptions"
                     interface="com.android.tools.idea.testartifacts.instrumented.TestRunConfigurationOptions"
                     dynamic="true"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.flags.experimentalSettingsContributor"
+                    interface="com.android.tools.idea.flags.ExperimentalSettingsContributor"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.project">

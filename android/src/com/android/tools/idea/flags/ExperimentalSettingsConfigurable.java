@@ -27,15 +27,21 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil;
-import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.CompositeConfigurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
+import com.intellij.openapi.options.UnnamedConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.TitledSeparator;
 import java.io.File;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -47,7 +53,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-public class ExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
+public class ExperimentalSettingsConfigurable extends CompositeConfigurable<UnnamedConfigurable> implements SearchableConfigurable {
   @NotNull private final GradleExperimentalSettings mySettings;
   @NotNull private final RenderSettings myRenderSettings;
 
@@ -65,18 +71,25 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
   private JCheckBox myEnableDeviceApiOptimization;
   private JCheckBox myDeriveRuntimeClasspathsForLibraries;
+  private JPanel myExtensionPanel;
+
+  private final Project myProject;
+  private final SortedMap<String, UnnamedConfigurable> myConfigurableMap;
 
   private final boolean forAndroidStudio;
 
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project, boolean studio) {
-    this(GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project), studio);
+    this(project, GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project), studio);
   }
 
   @VisibleForTesting
-  ExperimentalSettingsConfigurable(@NotNull GradleExperimentalSettings settings,
+  ExperimentalSettingsConfigurable(@NotNull Project project,
+                                   @NotNull GradleExperimentalSettings settings,
                                    @NotNull RenderSettings renderSettings,
                                    boolean studio) {
+    myConfigurableMap = new TreeMap<>();
+    myProject = project;
     forAndroidStudio = studio;
     mySettings = settings;
     myRenderSettings = renderSettings;
@@ -122,6 +135,17 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   }
 
   @Override
+  @NotNull
+  public List<UnnamedConfigurable> createConfigurables() {
+    for (ExperimentalSettingsContributor contributor : ExperimentalSettingsContributor.EP_NAME.getExtensions()) {
+      UnnamedConfigurable configurable = contributor.createConfigurable(myProject);
+      String name = contributor.getName();
+      myConfigurableMap.put(name, configurable);
+    }
+    return myConfigurableMap.values().stream().toList();
+  }
+
+  @Override
   @Nullable
   public String getHelpTopic() {
     return null;
@@ -130,6 +154,11 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @Override
   @NotNull
   public JComponent createComponent() {
+    myExtensionPanel.setLayout(new BoxLayout(myExtensionPanel, BoxLayout.PAGE_AXIS));
+    myConfigurableMap.forEach((name, configurable) -> {
+      myExtensionPanel.add(new TitledSeparator(name));
+      myExtensionPanel.add(configurable.createComponent());
+    });
     return myPanel;
   }
 
@@ -145,7 +174,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimizationEnabled() ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
-           mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries();
+           mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries() ||
+           super.isModified();
   }
 
   private int getQualitySetting() {
@@ -161,9 +191,9 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = isDeriveRuntimeClasspathsForLibraries();
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
-
-    applyTraceSettings();
     ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
+    applyTraceSettings();
+    super.apply();
   }
 
   @VisibleForTesting
@@ -333,6 +363,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myDeriveRuntimeClasspathsForLibraries.setSelected(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
     updateTraceComponents();
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
+    super.reset();
   }
 
   public enum TraceProfileItem {
