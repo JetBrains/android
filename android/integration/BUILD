@@ -279,7 +279,7 @@ maven_repository(
     name = "createproject_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:androidx.activity.activity-compose_1.7.0",
+        "@maven//:androidx.activity.activity-compose_1.8.0",
         "@maven//:androidx.annotation.annotation-jvm_1.6.0",
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.6.1",

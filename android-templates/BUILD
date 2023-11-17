@@ -105,7 +105,8 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:androidx.activity.activity-compose_1.7.2",
+        "@maven//:androidx.activity.activity-compose_1.7.2",  # Needed for TemplateDiffTest#testNewComposeWearActivity
+        "@maven//:androidx.activity.activity-compose_1.8.0",
         "@maven//:androidx.activity.activity-ktx_1.6.0",  # Still needed from navigation-fragment-ktx:2.5.3
         "@maven//:androidx.activity.activity-ktx_1.7.0",
         "@maven//:androidx.activity.activity-ktx_1.8.0",
