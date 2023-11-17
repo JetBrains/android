@@ -209,8 +209,11 @@ private fun KtModifierListOwner.hasComposableAnnotation(): Boolean =
     }
   }
 
-private fun KtValueArgument.toFunction(): KtFunction? =
-  parentOfType<KtCallExpression>()?.calleeExpression?.mainReference?.resolve() as? KtFunction
+private fun KtValueArgument.toFunction(): KtFunction? {
+  val callee = parentOfType<KtCallExpression>()?.calleeExpression?.mainReference?.resolve()
+  if (callee is KtFunction) return callee
+  return (callee as? KtProperty)?.initializer as? KtFunction
+}
 
 private fun KtFunction.getParameterForArgument(argument: KtValueArgument): KtParameter? {
   // If it's a lambda argument, it's always the last one.

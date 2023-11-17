@@ -257,6 +257,42 @@ class PsiUtilsTest {
   }
 
   @Test
+  fun composableScope_lambdaArgument_anonymousFunction() {
+    fixture.loadNewFile(
+      "Test.kt",
+      // language=kotlin
+      """
+      import androidx.compose.runtime.Composable
+      val repeat = fun (times: Int, action: @Composable (Int) -> Unit) {
+        for (index in 0 until times) {
+          action(index)
+        }
+      }
+      @Composable
+      fun Greeting() {
+        repeat(2) { val a = 35 }
+      }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.getEnclosing("35")
+      val scope = element.composableScope()
+      assertThat(scope).isNotNull()
+      val function: KtLambdaExpression = fixture.getEnclosing("35")
+      assertThat(scope).isEqualTo(function)
+    }
+
+    fixture.removeComposableAnnotation("|@Composable| (Int)")
+
+    runReadAction {
+      val element: KtElement = fixture.getEnclosing("35")
+      assertThat(element.composableScope()).isNull()
+    }
+  }
+
+  @Test
   fun composableScope_inlineLambdaArgument() {
     fixture.loadNewFile(
       "Test.kt",
@@ -580,12 +616,41 @@ class PsiUtilsTest {
   }
 
   @Test
-  fun expectedComposableAnnotationHolder_lambda() {
+  fun expectedComposableAnnotationHolder_lambdaParameterType() {
     fixture.loadNewFile(
       "Test.kt",
       // language=kotlin
       """
       fun repeat(times: Int, action: (Int) -> Unit) {
+        for (index in 0 until times) {
+          action(index)
+        }
+      }
+      fun Greeting() {
+        repeat(2) {
+          val a = 35
+        }
+      }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val element: KtElement = fixture.getEnclosing("35")
+      val scope = element.expectedComposableAnnotationHolder()
+      assertThat(scope).isNotNull()
+      val function: KtTypeReference = fixture.getEnclosing("(Int) -> Unit")
+      assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun expectedComposableAnnotationHolder_lambdaParameterType_anonymousFunction() {
+    fixture.loadNewFile(
+      "Test.kt",
+      // language=kotlin
+      """
+      val repeat = fun(times: Int, action: (Int) -> Unit) {
         for (index in 0 until times) {
           action(index)
         }
