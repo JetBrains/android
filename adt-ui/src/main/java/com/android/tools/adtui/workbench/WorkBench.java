@@ -53,6 +53,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
@@ -177,6 +178,10 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
     }
     myDetachedToolWindowManager.updateToolWindowsForWorkBench(this);
+    if (mySplitter.getInnerComponent() == null) {
+      // Remove the borders from one of the side panels if there is no center component:
+      Objects.requireNonNull(mySplitter.getFirstComponent()).setBorder(JBUI.Borders.empty());
+    }
   }
 
   @NotNull
