@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
@@ -29,7 +30,6 @@ import com.android.tools.idea.projectsystem.containsFile
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getManifestFiles
-import com.android.tools.res.LocalResourceRepository
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.findResourceFieldsForFileResource
 import com.android.tools.idea.res.findResourceFieldsForValueResource
@@ -305,7 +305,7 @@ class AndroidModularizeHandler : RefactoringActionHandler {
 
     private inner class XmlResourceReferenceVisitor(private val myFacet: AndroidFacet,
                                                     private val mySource: PsiElement) : XmlRecursiveElementWalkingVisitor() {
-      private val myResourceRepository: LocalResourceRepository = StudioResourceRepositoryManager.getModuleResources(myFacet)
+      private val myResourceRepository: ResourceRepository = StudioResourceRepositoryManager.getModuleResources(myFacet)
 
       override fun visitXmlAttributeValue(element: XmlAttributeValue) = processPotentialReference(element.value)
 
@@ -339,7 +339,7 @@ class AndroidModularizeHandler : RefactoringActionHandler {
 
     private inner class JavaReferenceVisitor(private val myFacet: AndroidFacet,
                                              private val mySource: PsiElement) : JavaRecursiveElementWalkingVisitor() {
-      private val myResourceRepository: LocalResourceRepository = StudioResourceRepositoryManager.getModuleResources(myFacet)
+      private val myResourceRepository: ResourceRepository = StudioResourceRepositoryManager.getModuleResources(myFacet)
 
       override fun visitReferenceExpression(expression: PsiReferenceExpression) {
         expression.resolve()?.let { element -> commonVisitReferenceExpression(expression, element, mySource, myResourceRepository) }
@@ -353,7 +353,7 @@ class AndroidModularizeHandler : RefactoringActionHandler {
 
     private inner class KotlinReferenceVisitor(private val myFacet: AndroidFacet,
                                                private val mySource: PsiElement) : KotlinRecursiveElementWalkingVisitor() {
-      private val myResourceRepository: LocalResourceRepository = StudioResourceRepositoryManager.getModuleResources(myFacet)
+      private val myResourceRepository: ResourceRepository = StudioResourceRepositoryManager.getModuleResources(myFacet)
 
       override fun visitReferenceExpression(expression: KtReferenceExpression) {
         expression.references.forEach {
@@ -369,7 +369,7 @@ class AndroidModularizeHandler : RefactoringActionHandler {
     private fun commonVisitReferenceExpression(reference: PsiElement,
                                                element: PsiElement,
                                                mySource: PsiElement,
-                                               myResourceRepository: LocalResourceRepository
+                                               myResourceRepository: ResourceRepository
     ) {
       if (element is PsiField || element is KtProperty) {
         if (isAppResource(element)) {

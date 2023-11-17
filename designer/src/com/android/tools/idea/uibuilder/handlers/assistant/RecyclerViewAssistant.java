@@ -27,13 +27,13 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.FileResourceNameValidator;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.HorizontalSpinner;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.assistant.AssistantPopupPanel;
 import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory.Context;
@@ -258,7 +258,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
 
   @NotNull
   private static String getTemplateName(@NotNull AndroidFacet facet, @NotNull String templateRootName) {
-    LocalResourceRepository LocalResourceRepository = StudioResourceRepositoryManager.getAppResources(facet);
+    ResourceRepository localResourceRepository = StudioResourceRepositoryManager.getAppResources(facet);
     String resourceNameRoot = FileResourceNameValidator.getValidResourceFileName(templateRootName);
 
     String resourceName;
@@ -267,7 +267,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
       resourceName = resourceNameRoot + (index < 1 ? "" : "_" + index);
       index++;
     }
-    while (!LocalResourceRepository.getResources(ResourceNamespace.TODO(), ResourceType.LAYOUT, resourceName).isEmpty());
+    while (!localResourceRepository.getResources(ResourceNamespace.TODO(), ResourceType.LAYOUT, resourceName).isEmpty());
     return resourceName;
   }
 

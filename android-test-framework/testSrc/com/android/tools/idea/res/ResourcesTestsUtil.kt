@@ -20,6 +20,7 @@ package com.android.tools.idea.res
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
 import com.android.resources.getTestAarRepositoryFromExplodedAar
 import com.android.tools.idea.testing.Facets
@@ -177,13 +178,13 @@ fun addBinaryAarDependency(module: Module) {
   )
 }
 
-fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: String): ResourceItem {
+fun getSingleItem(repository: ResourceRepository, type: ResourceType, key: String): ResourceItem {
   val list = repository.getResources(ResourceNamespace.RES_AUTO, type, key)
   assertThat(list).hasSize(1)
   return list[0]
 }
 
-fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: String, filter: Predicate<ResourceItem>): ResourceItem {
+fun getSingleItem(repository: ResourceRepository, type: ResourceType, key: String, filter: Predicate<ResourceItem>): ResourceItem {
   val list = repository.getResources(ResourceNamespace.RES_AUTO, type, key)
   var found: ResourceItem? = null
   for (item in list) {

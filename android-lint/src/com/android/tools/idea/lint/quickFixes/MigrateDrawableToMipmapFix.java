@@ -21,6 +21,7 @@ import static com.android.SdkConstants.FD_RES_VALUES;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -28,7 +29,6 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.collect.Sets;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -81,7 +81,7 @@ public class MigrateDrawableToMipmapFix extends DefaultLintQuickFix {
     final Set<PsiElement> references = Sets.newHashSet();
 
     GlobalSearchScope useScope = GlobalSearchScope.projectScope(project);
-    LocalResourceRepository projectResources = StudioResourceRepositoryManager.getProjectResources(facet);
+    ResourceRepository projectResources = StudioResourceRepositoryManager.getProjectResources(facet);
     List<ResourceItem> resourceItems = projectResources.getResources(ResourceNamespace.TODO(), myUrl.type, myUrl.name);
     for (ResourceItem item : resourceItems) {
       PsiFile file = IdeResourcesUtil.getItemPsiFile(project, item);

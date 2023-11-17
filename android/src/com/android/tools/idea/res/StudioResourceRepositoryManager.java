@@ -29,6 +29,7 @@ import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.res.CacheableResourceRepository;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.res.ResourceNamespacing;
@@ -826,7 +827,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
         myLocalesAndLanguages = CachedValuesManager.getManager(getProject()).createCachedValue(
           () -> {
             // Get locales from modules, but not libraries.
-            LocalResourceRepository projectResources = getProjectResources(myFacet);
+            CacheableResourceRepository projectResources = getProjectResources(myFacet);
             SortedSet<LocaleQualifier> localeQualifiers = ResourceRepositoryUtil.getLocales(projectResources);
             ImmutableList.Builder<Locale> localesBuilder = ImmutableList.builderWithExpectedSize(localeQualifiers.size());
             ImmutableSortedSet.Builder<String> languagesBuilder = ImmutableSortedSet.naturalOrder();

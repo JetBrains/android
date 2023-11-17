@@ -139,11 +139,11 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertTrue(items.isEmpty());
 
     for (AndroidFacet facet : libraries) {
-      LocalResourceRepository moduleRepository = StudioResourceRepositoryManager.getModuleResources(facet);
+      ResourceRepository moduleRepository = StudioResourceRepositoryManager.getModuleResources(facet);
       assertNotNull(moduleRepository);
-      LocalResourceRepository moduleSetRepository = StudioResourceRepositoryManager.getProjectResources(facet);
+      ResourceRepository moduleSetRepository = StudioResourceRepositoryManager.getProjectResources(facet);
       assertNotNull(moduleSetRepository);
-      LocalResourceRepository librarySetRepository = StudioResourceRepositoryManager.getAppResources(facet);
+      ResourceRepository librarySetRepository = StudioResourceRepositoryManager.getAppResources(facet);
       assertNotNull(librarySetRepository);
     }
     StudioResourceRepositoryManager.getModuleResources(myFacet);
@@ -316,8 +316,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(sharedLibValues);
     assertNotNull(lib2Values);
 
-    LocalResourceRepository lib1Resources = StudioResourceRepositoryManager.getAppResources(lib1Facet);
-    LocalResourceRepository lib2Resources = StudioResourceRepositoryManager.getAppResources(lib2Facet);
+    ResourceRepository lib1Resources = StudioResourceRepositoryManager.getAppResources(lib1Facet);
+    ResourceRepository lib2Resources = StudioResourceRepositoryManager.getAppResources(lib2Facet);
     assertNotNull(lib1Resources);
     assertNotNull(lib2Resources);
     assertNotSame(lib1Resources, lib2Resources);

@@ -23,6 +23,7 @@ import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
@@ -39,7 +40,6 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.util.ListenerCollection;
@@ -787,7 +787,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
    */
   @NotNull
   public Set<String> getIds() {
-    LocalResourceRepository resources = StudioResourceRepositoryManager.getAppResources(getFacet());
+    ResourceRepository resources = StudioResourceRepositoryManager.getAppResources(getFacet());
     Set<String> ids = new HashSet<>(resources.getResources(ResourceNamespace.TODO(), ResourceType.ID).keySet());
     Set<String> pendingIds = getPendingIds();
     if (!pendingIds.isEmpty()) {

@@ -305,7 +305,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertThat(items.get(0).getResourceValue().getValue()).isEqualTo("This string came from an AARv2");
   }
 
-  private static void checkCrossNamespaceReference(LocalResourceRepository repo,
+  private static void checkCrossNamespaceReference(ResourceRepository repo,
                                                    ResourceReference toCheck,
                                                    ResourceReference expected,
                                                    boolean shouldExist) {
@@ -353,7 +353,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
   }
 
   @NotNull
-  private static ResourceValue getOnlyValue(LocalResourceRepository repository,
+  private static ResourceValue getOnlyValue(ResourceRepository repository,
                                             ResourceNamespace namespace,
                                             ResourceType resourceType,
                                             String name) {

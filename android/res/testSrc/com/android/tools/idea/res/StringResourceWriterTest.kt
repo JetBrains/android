@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
@@ -26,7 +27,6 @@ import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.editors.strings.model.StringResourceKey
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.res.LocalResourceRepository
 import com.google.common.truth.Truth.assertThat
 import com.intellij.BundleBase
 import com.intellij.ide.IdeBundle
@@ -79,7 +79,7 @@ class StringResourceWriterTest {
     get() = projectRule.project
 
   private lateinit var resourceDirectory: VirtualFile
-  private lateinit var localResourceRepository: LocalResourceRepository
+  private lateinit var localResourceRepository: ResourceRepository
   private lateinit var facet: AndroidFacet
 
   private val stringResourceWriter = StringResourceWriter.INSTANCE

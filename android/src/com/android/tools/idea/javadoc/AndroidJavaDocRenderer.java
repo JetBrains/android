@@ -64,7 +64,6 @@ import com.android.tools.idea.rendering.ShowFixFactory;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
@@ -237,7 +236,7 @@ public class AndroidJavaDocRenderer {
   private static abstract class ResourceValueRenderer implements ResourceItemResolver.ResourceProvider {
     protected final Module myModule;
     protected final Configuration myConfiguration;
-    protected LocalResourceRepository myAppResources;
+    protected ResourceRepository myAppResources;
     protected ResourceResolver myResourceResolver;
     protected boolean mySmall;
 
@@ -307,7 +306,7 @@ public class AndroidJavaDocRenderer {
 
       List<ItemInfo> results = new ArrayList<>();
 
-      LocalResourceRepository resources = getAppResources();
+      ResourceRepository resources = getAppResources();
 
       List<AndroidFacet> dependencies =  AndroidDependenciesCache.getAllAndroidDependencies(myModule, true);
       int rank = 0;
@@ -512,7 +511,7 @@ public class AndroidJavaDocRenderer {
 
     @Override
     @Nullable
-    public LocalResourceRepository getAppResources() {
+    public ResourceRepository getAppResources() {
       if (myAppResources == null) {
         myAppResources = StudioResourceRepositoryManager.getAppResources(myModule);
       }

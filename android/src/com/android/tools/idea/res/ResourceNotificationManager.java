@@ -27,7 +27,6 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationListener;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
-import com.android.tools.res.LocalResourceRepository;
 import com.android.utils.DataBindingUtils;
 import com.android.utils.HashCodes;
 import com.google.common.collect.ImmutableSet;
@@ -161,7 +160,7 @@ public class ResourceNotificationManager {
 
   public @NotNull ResourceVersion getCurrentVersion(@NotNull AndroidFacet facet, @Nullable PsiFile file,
                                                     @Nullable Configuration configuration) {
-    LocalResourceRepository repository = StudioResourceRepositoryManager.getAppResources(facet);
+    ModificationTracker repository = StudioResourceRepositoryManager.getAppResources(facet);
     if (file != null) {
       long fileStamp = file.getModificationStamp();
       if (configuration != null) {
@@ -460,7 +459,7 @@ public class ResourceNotificationManager {
     }
 
     private long getAppResourcesModificationCount() {
-      LocalResourceRepository appResources = StudioResourceRepositoryManager.getInstance(myFacet).getCachedAppResources();
+      ModificationTracker appResources = StudioResourceRepositoryManager.getInstance(myFacet).getCachedAppResources();
       return appResources == null ? 0 : appResources.getModificationCount();
     }
 

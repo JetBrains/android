@@ -18,14 +18,14 @@ package com.android.tools.idea.res
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.rendering.api.SampleDataResourceValue
+import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
-import com.android.tools.res.LocalResourceRepository
 
 /**
  * Return all the [SampleDataResourceItem] representing images in all namespaces
  * accessible from this repository
  */
-fun LocalResourceRepository.getSampleDataOfType(type: SampleDataResourceItem.ContentType): Sequence<SampleDataResourceItem> {
+fun ResourceRepository.getSampleDataOfType(type: SampleDataResourceItem.ContentType): Sequence<SampleDataResourceItem> {
   val namespaces = this.namespaces.asSequence()
 
   return namespaces

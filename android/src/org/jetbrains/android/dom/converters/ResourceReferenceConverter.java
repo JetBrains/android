@@ -38,7 +38,6 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceNamespaceContext;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
@@ -352,7 +351,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @NotNull
   public static Set<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
     StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(facet);
-    LocalResourceRepository repository = repositoryManager.getAppResources();
+    ResourceRepository repository = repositoryManager.getAppResources();
     return repository.getResourceTypes(repositoryManager.getNamespace());
   }
 
@@ -418,7 +417,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
     else {
       StudioResourceRepositoryManager repoManager = StudioResourceRepositoryManager.getInstance(facet);
-      LocalResourceRepository appResources = repoManager.getAppResources();
+      ResourceRepository appResources = repoManager.getAppResources();
 
       if (onlyNamespace == ResourceNamespace.ANDROID || (onlyNamespace == null && !StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get())) {
         ResourceRepository frameworkResources = repoManager.getFrameworkResources(ImmutableSet.of());
@@ -465,7 +464,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     String namespacePrefix = resolver.uriToPrefix(namespace.getXmlNamespaceUri());
     List<Module> modules = androidModuleSystem.getDynamicFeatureModules();
     for (Module module : modules) {
-      LocalResourceRepository moduleResources = StudioResourceRepositoryManager.getModuleResources(module);
+      ResourceRepository moduleResources = StudioResourceRepositoryManager.getModuleResources(module);
       if (moduleResources == null) {
         continue;
       }

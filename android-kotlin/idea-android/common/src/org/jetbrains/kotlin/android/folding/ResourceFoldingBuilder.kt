@@ -24,7 +24,6 @@ import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.ide.common.resources.getConfiguredValue
 import com.android.resources.ResourceType
 import com.android.tools.idea.folding.AndroidFoldingSettings
-import com.android.tools.res.LocalResourceRepository
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.lang.ASTNode
 import com.intellij.lang.folding.FoldingBuilderEx
@@ -64,7 +63,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
 
     override fun getPlaceholderText(node: ASTNode): String? {
 
-        tailrec fun UElement.unwrapReferenceAndGetValue(resources: LocalResourceRepository): String? = when (this) {
+        tailrec fun UElement.unwrapReferenceAndGetValue(resources: ResourceRepository): String? = when (this) {
             is UQualifiedReferenceExpression -> selector.unwrapReferenceAndGetValue(resources)
             is UCallExpression -> (valueArguments.firstOrNull() as? UReferenceExpression)?.getAndroidResourceValue(resources, this)
             else -> (this as? UReferenceExpression)?.getAndroidResourceValue(resources)
@@ -138,7 +137,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
         return null
     }
 
-    private fun UReferenceExpression.getAndroidResourceValue(resources: LocalResourceRepository, call: UCallExpression? = null): String? {
+    private fun UReferenceExpression.getAndroidResourceValue(resources: ResourceRepository, call: UCallExpression? = null): String? {
         val resourceType = resolve()?.getAndroidResourceType() ?: return null
         val referenceConfig = FolderConfiguration().apply { localeQualifier = LocaleQualifier("xx") }
         val key = resolvedName ?: return null

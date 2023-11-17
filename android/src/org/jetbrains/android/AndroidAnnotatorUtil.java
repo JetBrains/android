@@ -23,6 +23,7 @@ import static com.android.SdkConstants.DOT_XML;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourcesUtil;
 import com.android.ide.common.resources.configuration.DensityQualifier;
@@ -33,7 +34,6 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.res.FileResourceReader;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
@@ -154,7 +154,7 @@ public class AndroidAnnotatorUtil {
       switch (tagName) {
         case "vector": {
           // Take a look and see if we have a bitmap we can fall back to.
-          LocalResourceRepository resourceRepository = StudioResourceRepositoryManager.getAppResources(facet);
+          ResourceRepository resourceRepository = StudioResourceRepositoryManager.getAppResources(facet);
           List<ResourceItem> items =
             resourceRepository.getResources(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
           for (ResourceItem item : items) {
