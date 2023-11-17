@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.view.details.HttpDataComponentFactory.ConnectionType.RESPONSE
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
+import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.RESPONSE
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 import javax.swing.JPanel
 
 /** Tab which shows a response's headers and payload. */
-class ResponseTabContent : TabContent() {
+internal class ResponseTabContent : TabContent() {
   private lateinit var panel: JPanel
   override val title: String
     get() = "Response"
@@ -36,21 +36,18 @@ class ResponseTabContent : TabContent() {
     return createVerticalScrollPane(panel)
   }
 
-  override fun populateFor(data: HttpData?, httpDataComponentFactory: HttpDataComponentFactory) {
+  override fun populateFor(data: ConnectionData?, dataComponentFactory: DataComponentFactory) {
     panel.removeAll()
     if (data == null) {
       return
     }
-    val headersComponent = httpDataComponentFactory.createHeaderComponent(RESPONSE)
+    val headersComponent = dataComponentFactory.createHeaderComponent(RESPONSE)
     panel.add(createHideablePanel(SECTION_TITLE_HEADERS, headersComponent, null))
-    panel.add(httpDataComponentFactory.createBodyComponent(RESPONSE))
+    panel.add(dataComponentFactory.createBodyComponent(RESPONSE))
   }
 
   @VisibleForTesting
   fun findPayloadBody(): JComponent? {
-    return findComponentWithUniqueName(
-      panel,
-      HttpDataComponentFactory.ConnectionType.RESPONSE.bodyComponentId
-    )
+    return findComponentWithUniqueName(panel, RESPONSE.bodyComponentId)
   }
 }

@@ -176,7 +176,7 @@ class HttpDataDetailsViewTest {
         disposable
       )
     parentPanel.add(inspectorView.component)
-    detailsView = inspectorView.detailsPanel.myHttpDataDetailsView
+    detailsView = inspectorView.detailsPanel.httpDataDetailsView
   }
 
   @After
@@ -301,9 +301,10 @@ class HttpDataDetailsViewTest {
   @Test
   fun sizeHasProperValueFromData() {
     assertThat(detailsView.findTab(OverviewTabContent::class.java)!!.findSizeValue()).isNull()
-    detailsView.setHttpData(DEFAULT_DATA)
+    val data = DEFAULT_DATA.copy(responsePayload = ByteString.copyFromUtf8("Response payload"))
+    detailsView.setHttpData(data)
     val value = detailsView.findTab(OverviewTabContent::class.java)!!.findSizeValue()!!
-    assertThat(value.text).isEqualTo("222 B")
+    assertThat(value.text).isEqualTo("${data.responsePayload.size()} B")
   }
 
   @Test

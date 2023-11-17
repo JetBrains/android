@@ -36,12 +36,12 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 
 /** View to display detailed information of an interception rule or connection. */
-class NetworkInspectorDetailsPanel(
+internal class NetworkInspectorDetailsPanel(
   inspectorView: NetworkInspectorView,
   usageTracker: NetworkInspectorTracker
 ) : JPanel(BorderLayout()) {
 
-  @VisibleForTesting val myHttpDataDetailsView: HttpDataDetailsView
+  @VisibleForTesting val httpDataDetailsView: HttpDataDetailsView
 
   val ruleDetailsView: RuleDetailsView
 
@@ -59,9 +59,9 @@ class NetworkInspectorDetailsPanel(
     val rootPanel = JPanel(TabularLayout("*,Fit-", "Fit-,*"))
 
     cardLayoutView = JPanel(cardLayout)
-    myHttpDataDetailsView = HttpDataDetailsView(inspectorView, usageTracker)
+    httpDataDetailsView = HttpDataDetailsView(inspectorView, usageTracker)
     ruleDetailsView = RuleDetailsView(usageTracker)
-    cardLayoutView.add(myHttpDataDetailsView, HTTP_DATA.name)
+    cardLayoutView.add(httpDataDetailsView, HTTP_DATA.name)
     cardLayoutView.add(JLabel("Not Implemented Yet"), GRPC_DATA.name)
     cardLayoutView.add(ruleDetailsView, NetworkInspectorModel.DetailContent.RULE.name)
     val model = inspectorView.model
@@ -95,7 +95,7 @@ class NetworkInspectorDetailsPanel(
   /** Updates the view to show given [data]. */
   private fun setConnectionData(data: ConnectionData) {
     background = JBColor.background()
-    if (data is HttpData) myHttpDataDetailsView.setHttpData(data)
+    if (data is HttpData) httpDataDetailsView.setHttpData(data)
   }
 
   /** Updates the view to show given [rule]. */

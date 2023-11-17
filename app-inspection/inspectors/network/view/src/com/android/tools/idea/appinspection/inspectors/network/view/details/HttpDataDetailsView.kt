@@ -22,7 +22,7 @@ import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspe
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
 import org.jetbrains.annotations.VisibleForTesting
 
-class HttpDataDetailsView(
+internal class HttpDataDetailsView(
   private val inspectorView: NetworkInspectorView,
   private val usageTracker: NetworkInspectorTracker
 ) : CommonTabbedPane() {

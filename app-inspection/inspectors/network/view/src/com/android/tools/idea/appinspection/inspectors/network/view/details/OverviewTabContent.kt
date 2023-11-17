@@ -21,9 +21,10 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.legend.FixedLegend
 import com.android.tools.adtui.model.legend.LegendComponentModel
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionsStateChart
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkState
+import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType
 import com.android.tools.inspectors.common.ui.dataviewer.ImageDataViewer
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.BrowserUtil
@@ -58,7 +59,7 @@ import javax.swing.SwingConstants
  *
  * This tab will be the first one shown to the user when they first select a request.
  */
-class OverviewTabContent : TabContent() {
+internal class OverviewTabContent : TabContent() {
   private lateinit var contentPanel: JPanel
   override val title = "Overview"
 
@@ -85,16 +86,12 @@ class OverviewTabContent : TabContent() {
     return overviewScroll
   }
 
-  override fun populateFor(data: HttpData?, httpDataComponentFactory: HttpDataComponentFactory) {
+  override fun populateFor(data: ConnectionData?, dataComponentFactory: DataComponentFactory) {
     contentPanel.removeAll()
     if (data == null) {
       return
     }
-    val payloadViewer =
-      httpDataComponentFactory.createDataViewer(
-        HttpDataComponentFactory.ConnectionType.RESPONSE,
-        false
-      )
+    val payloadViewer = dataComponentFactory.createDataViewer(ConnectionType.RESPONSE, false)
     val responsePayloadComponent: JComponent = payloadViewer.component
     responsePayloadComponent.name = ID_RESPONSE_PAYLOAD_VIEWER
     contentPanel.add(responsePayloadComponent, TabularLayout.Constraint(0, 0))
@@ -204,19 +201,19 @@ class OverviewTabContent : TabContent() {
     private const val ID_OTHER_THREADS = "OTHER_THREADS"
     private const val ID_RESPONSE_PAYLOAD_VIEWER = "RESPONSE_PAYLOAD_VIEWER"
 
-    private fun createFields(httpData: HttpData, image: BufferedImage?): JComponent {
+    private fun createFields(data: ConnectionData, image: BufferedImage?): JComponent {
       val myFieldsPanel = JPanel(TabularLayout("Fit-,40px,*").setVGap(SECTION_VGAP))
 
       var row = 0
       myFieldsPanel.add(NoWrapBoldLabel("Request"), TabularLayout.Constraint(row, 0))
-      myFieldsPanel.add(JLabel(httpData.name), TabularLayout.Constraint(row, 2))
+      myFieldsPanel.add(JLabel(data.name), TabularLayout.Constraint(row, 2))
       row++
       myFieldsPanel.add(NoWrapBoldLabel("Method"), TabularLayout.Constraint(row, 0))
-      myFieldsPanel.add(JLabel(httpData.method), TabularLayout.Constraint(row, 2))
+      myFieldsPanel.add(JLabel(data.method), TabularLayout.Constraint(row, 2))
 
       row++
       myFieldsPanel.add(NoWrapBoldLabel("Status"), TabularLayout.Constraint(row, 0))
-      val statusCode = JLabel(java.lang.String.valueOf(httpData.responseCode))
+      val statusCode = JLabel(data.status)
       myFieldsPanel.add(statusCode, TabularLayout.Constraint(row, 2))
 
       if (image != null) {
@@ -226,16 +223,16 @@ class OverviewTabContent : TabContent() {
         myFieldsPanel.add(dimension, TabularLayout.Constraint(row, 2))
       }
 
-      val responseContentType = httpData.getResponseContentType()
-      if (!responseContentType.isEmpty) {
+      val responseType = data.responseType
+      if (responseType.isNotEmpty()) {
         row++
-        myFieldsPanel.add(NoWrapBoldLabel("Content type"), TabularLayout.Constraint(row, 0))
-        val contentTypeLabel = JLabel(responseContentType.mimeType)
+        myFieldsPanel.add(NoWrapBoldLabel("Response type"), TabularLayout.Constraint(row, 0))
+        val contentTypeLabel = JLabel(responseType)
         contentTypeLabel.name = ID_CONTENT_TYPE
         myFieldsPanel.add(contentTypeLabel, TabularLayout.Constraint(row, 2))
       }
 
-      val contentLength = httpData.getResponseContentLength()
+      val contentLength = data.responsePayload.size()
       if (contentLength != -1) {
         try {
           row++
@@ -248,16 +245,16 @@ class OverviewTabContent : TabContent() {
 
       row++
       myFieldsPanel.add(NoWrapBoldLabel("Initiating thread"), TabularLayout.Constraint(row, 0))
-      val initiatingThreadLabel = JLabel(httpData.threads[0].name)
+      val initiatingThreadLabel = JLabel(data.threads[0].name)
       initiatingThreadLabel.name = ID_INITIATING_THREAD
       myFieldsPanel.add(initiatingThreadLabel, TabularLayout.Constraint(row, 2))
-      if (httpData.threads.size > 1) {
+      if (data.threads.size > 1) {
         val otherThreadsBuilder = StringBuilder()
-        for (i in 1 until httpData.threads.size) {
+        for (i in 1 until data.threads.size) {
           if (otherThreadsBuilder.isNotEmpty()) {
             otherThreadsBuilder.append(", ")
           }
-          otherThreadsBuilder.append(httpData.threads[i].name)
+          otherThreadsBuilder.append(data.threads[i].name)
         }
         row++
         myFieldsPanel.add(NoWrapBoldLabel("Other threads"), TabularLayout.Constraint(row, 0))
@@ -270,7 +267,7 @@ class OverviewTabContent : TabContent() {
       val urlLabel = NoWrapBoldLabel("URL")
       urlLabel.verticalAlignment = SwingConstants.TOP
       myFieldsPanel.add(urlLabel, TabularLayout.Constraint(row, 0))
-      val hyperlink = WrappedHyperlink(httpData.url)
+      val hyperlink = WrappedHyperlink(data.url)
       hyperlink.name = ID_URL
       myFieldsPanel.add(hyperlink, TabularLayout.Constraint(row, 2))
 
@@ -286,33 +283,33 @@ class OverviewTabContent : TabContent() {
       val timingLabel = NoWrapBoldLabel("Timing")
       timingLabel.verticalAlignment = SwingConstants.TOP
       myFieldsPanel.add(timingLabel, TabularLayout.Constraint(row, 0))
-      val timingBar: JComponent = createTimingBar(httpData)
+      val timingBar: JComponent = createTimingBar(data)
       timingBar.name = ID_TIMING
       myFieldsPanel.add(timingBar, TabularLayout.Constraint(row, 2))
       return myFieldsPanel
     }
 
-    private fun createTimingBar(httpData: HttpData): JComponent {
+    private fun createTimingBar(data: ConnectionData): JComponent {
       val panel = JPanel()
       panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
       val range =
         Range(
-          httpData.requestStartTimeUs.toDouble(),
-          (if (httpData.connectionEndTimeUs > 0) httpData.connectionEndTimeUs
-            else httpData.requestStartTimeUs + 1)
+          data.requestStartTimeUs.toDouble(),
+          (if (data.connectionEndTimeUs > 0) data.connectionEndTimeUs
+            else data.requestStartTimeUs + 1)
             .toDouble()
         )
-      val connectionsChart = ConnectionsStateChart(httpData, range)
+      val connectionsChart = ConnectionsStateChart(data, range)
       connectionsChart.component.minimumSize = Dimension(0, JBUI.scale(28))
       connectionsChart.setHeightGap(0f)
       panel.add(connectionsChart.component)
       var sentTime: Long = -1
       var receivedTime: Long = -1
-      if (httpData.responseStartTimeUs > 0) {
-        sentTime = httpData.responseStartTimeUs - httpData.requestStartTimeUs
-        receivedTime = httpData.responseCompleteTimeUs - httpData.responseStartTimeUs
-      } else if (httpData.connectionEndTimeUs > 0) {
-        sentTime = httpData.connectionEndTimeUs - httpData.requestStartTimeUs
+      if (data.responseStartTimeUs > 0) {
+        sentTime = data.responseStartTimeUs - data.requestStartTimeUs
+        receivedTime = data.responseCompleteTimeUs - data.responseStartTimeUs
+      } else if (data.connectionEndTimeUs > 0) {
+        sentTime = data.connectionEndTimeUs - data.requestStartTimeUs
         receivedTime = 0
       }
       val sentLegend = FixedLegend("Sent", TIME_FORMATTER.apply(sentTime))

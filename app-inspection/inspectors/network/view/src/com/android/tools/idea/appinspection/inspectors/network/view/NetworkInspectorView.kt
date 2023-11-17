@@ -108,7 +108,7 @@ private const val CARD_CONNECTIONS = "Connections"
 private const val CARD_INFO = "Info"
 
 /** The main view of network inspector. */
-class NetworkInspectorView(
+internal class NetworkInspectorView(
   project: Project,
   val model: NetworkInspectorModel,
   val componentsProvider: UiComponentsProvider,

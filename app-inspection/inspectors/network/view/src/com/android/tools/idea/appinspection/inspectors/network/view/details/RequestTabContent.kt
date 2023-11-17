@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
-import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.view.details.HttpDataComponentFactory.ConnectionType.REQUEST
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
+import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.REQUEST
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
@@ -27,7 +27,7 @@ import javax.swing.JPanel
 private const val HEADERS_TITLE = "Application Headers"
 
 /** Tab which shows a request's headers and payload. */
-class RequestTabContent : TabContent() {
+internal class RequestTabContent : TabContent() {
   private lateinit var contentPanel: JPanel
   override val title = "Request"
 
@@ -37,21 +37,18 @@ class RequestTabContent : TabContent() {
     return createVerticalScrollPane(contentPanel)
   }
 
-  override fun populateFor(data: HttpData?, httpDataComponentFactory: HttpDataComponentFactory) {
+  override fun populateFor(data: ConnectionData?, dataComponentFactory: DataComponentFactory) {
     contentPanel.removeAll()
     if (data == null) {
       return
     }
-    val headersComponent = httpDataComponentFactory.createHeaderComponent(REQUEST)
+    val headersComponent = dataComponentFactory.createHeaderComponent(REQUEST)
     contentPanel.add(createHideablePanel(HEADERS_TITLE, headersComponent, null))
-    contentPanel.add(httpDataComponentFactory.createBodyComponent(REQUEST))
+    contentPanel.add(dataComponentFactory.createBodyComponent(REQUEST))
   }
 
   @VisibleForTesting
   fun findPayloadBody(): JComponent? {
-    return findComponentWithUniqueName(
-      contentPanel,
-      HttpDataComponentFactory.ConnectionType.REQUEST.bodyComponentId
-    )
+    return findComponentWithUniqueName(contentPanel, REQUEST.bodyComponentId)
   }
 }
