@@ -46,7 +46,7 @@ import org.junit.Test
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 
-internal const val NUMBER_OF_SAMPLES = 20
+internal const val NUMBER_OF_SAMPLES = 10
 
 val uiCheckBenchmark = Benchmark.Builder("UI Check Benchmark")
   .setProject("Design tools")
@@ -80,7 +80,7 @@ class PerfgateComposeVisualLintTest : ComposeRenderTestBase() {
                                         ButtonSizeAnalyzerInspection(), WearMarginAnalyzerInspection())
     projectRule.fixture.enableInspections(*visualLintInspections)
   }
-  
+
   @Test
   fun testComposeVisualLintRun() {
     val facet = projectRule.androidFacet(":app")

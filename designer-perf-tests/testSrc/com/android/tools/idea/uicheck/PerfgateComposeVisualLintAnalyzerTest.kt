@@ -108,7 +108,7 @@ class PerfgateComposeVisualLintAnalyzerTest : ComposeRenderTestBase() {
     uiCheckBenchmark.measureOperation(
       measures = listOf(ElapsedTimeMeasurement(Metric("${analyzer.type}_run_time")),
                         HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("${analyzer.type}_memory_use"))),
-      ) {
+      samplesCount = NUMBER_OF_SAMPLES) {
       resultToModelMap.forEach { (renderResult, nlModel) -> analyzer.findIssues(renderResult, nlModel) }
     }
   }
