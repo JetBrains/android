@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 iml_module(
@@ -61,8 +62,6 @@ iml_module(
         "//tools/adt/idea/android/gradle:libandroid-core-proto[test]",
     ],
 )
-
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(
