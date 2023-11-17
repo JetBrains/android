@@ -269,7 +269,7 @@ class VisualizationForm(
     toolbarComponent.border = BorderFactory.createEmptyBorder(0, 6, 0, 0)
     toolbarPanel.add(toolbarComponent, BorderLayout.CENTER)
     val lintGroup = DefaultActionGroup()
-    lintGroup.add(IssuePanelToggleAction(surface))
+    lintGroup.add(IssuePanelToggleAction())
     val lintToolbar =
       ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, lintGroup, true)
     lintToolbar.setTargetComponent(surface)

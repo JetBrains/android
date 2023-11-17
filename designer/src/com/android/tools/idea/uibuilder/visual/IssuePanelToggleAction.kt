@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.IssuePanelService
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.analytics.trackLayoutValidationToggleIssuePanel
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -26,11 +26,12 @@ import icons.StudioIcons
 
 private const val BUTTON_TEXT = "Toggle visibility of issue panel"
 
-class IssuePanelToggleAction(val surface: NlDesignSurface) :
+class IssuePanelToggleAction :
   ToggleAction(BUTTON_TEXT, BUTTON_TEXT, StudioIcons.Common.WARNING_INLINE) {
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    return IssuePanelService.getInstance(surface.project).isIssuePanelVisible()
+    val project = e.project ?: return false
+    return IssuePanelService.getInstance(project).isIssuePanelVisible()
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
@@ -38,7 +39,7 @@ class IssuePanelToggleAction(val surface: NlDesignSurface) :
     issuePanelService.setSharedIssuePanelVisibility(state) {
       issuePanelService.focusIssuePanelIfVisible()
       // Track as Layout Validation Too event.
-      trackLayoutValidationToggleIssuePanel(surface, state)
+      e.getData(DESIGN_SURFACE)?.let { trackLayoutValidationToggleIssuePanel(it, state) }
     }
   }
 
