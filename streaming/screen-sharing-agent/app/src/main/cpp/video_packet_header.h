@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <inttypes.h>
-
 #include <cstdint>
 #include <string>
 
@@ -45,7 +43,7 @@ struct VideoPacketHeader {
   // Bit rate reduced compared to the previous frame or, for the very first flame, to the initial value.
   static constexpr int FLAG_BIT_RATE_REDUCED = 0x02;
 
-  static size_t SIZE;  // Similar to sizeof(VideoPacketHeader) but without training alignment.
+  static size_t SIZE;  // Similar to sizeof(VideoPacketHeader) but without trailing alignment.
 };
 
 }  // namespace screensharing

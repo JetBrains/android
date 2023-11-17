@@ -16,7 +16,6 @@
 
 #include "display_streamer.h"
 
-#include <sys/system_properties.h>
 #include <sys/uio.h>
 #include <unistd.h>
 

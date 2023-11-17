@@ -16,8 +16,7 @@
 
 #include "video_packet_header.h"
 
-#include <unistd.h>
-#include <sys/socket.h>
+#include <inttypes.h>
 
 #include "string_printf.h"
 
