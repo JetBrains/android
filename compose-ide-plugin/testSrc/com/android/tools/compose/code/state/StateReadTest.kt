@@ -366,6 +366,37 @@ class StateReadTest {
   }
 
   @Test
+  fun create_anonymousFunctionScope() {
+    val psiFile =
+      fixture.addFileToProject(
+        "com/example/Foo.kt",
+        // language=kotlin
+        """
+        package com.example
+        fun foo() {
+          val a = fun() {
+            val b = "It's me again"
+          }
+        }
+        """
+          .trimIndent()
+      )
+
+    val anonymousFunction = psiFile.getEnclosing<KtNamedFunction>("It's me again")
+    // Make sure we didn't get back the bigger function
+    val namedFunction = psiFile.getEnclosing<KtNamedFunction>("foo")
+    assertThat(anonymousFunction).isNotEqualTo(namedFunction)
+    val a = psiFile.getEnclosing<KtExpression>("val b")
+    val stateRead = StateRead.create(a, anonymousFunction)
+    assertThat(stateRead).isNotNull()
+    checkNotNull(stateRead)
+    assertThat(stateRead.stateVar).isEqualTo(a)
+    assertThat(stateRead.scope).isEqualTo(anonymousFunction.bodyExpression)
+    assertThat(stateRead.scopeName)
+      .isEqualTo(ComposeBundle.message("state.read.recompose.target.enclosing.anonymous.function"))
+  }
+
+  @Test
   fun create_unnamedScope() {
     val psiFile =
       fixture.addFileToProject(

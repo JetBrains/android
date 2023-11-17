@@ -39,6 +39,7 @@ import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.types.KotlinType
@@ -66,6 +67,9 @@ internal data class StateRead(
             ComposeBundle.message("state.read.recompose.target.enclosing.lambda")
           is KtPropertyAccessor ->
             if (scope.isGetter) "${scope.property.name}.get()" else return null
+          is KtNamedFunction ->
+            scope.name
+              ?: ComposeBundle.message("state.read.recompose.target.enclosing.anonymous.function")
           else -> scope.name ?: return null
         }
       val bodyScope = (scope as? KtDeclarationWithBody)?.bodyExpression ?: scope
