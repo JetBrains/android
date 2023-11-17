@@ -19,7 +19,6 @@ import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.Trac
 import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.SPECIFIED_LOCATION;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileDescriptor;
 
-import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -36,7 +35,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.TitledSeparator;
 import java.io.File;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -44,7 +42,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -60,9 +57,6 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Unna
   private JCheckBox myTraceGradleSyncCheckBox;
   private JComboBox<TraceProfileItem> myTraceProfileComboBox;
   private TextFieldWithBrowseButton myTraceProfilePathField;
-  private JCheckBox myPreviewPickerCheckBox;
-  private JLabel myPreviewPickerLabel;
-
   private JCheckBox myEnableParallelSync;
 
   private JCheckBox myEnableDeviceApiOptimization;
@@ -92,8 +86,6 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Unna
     myDeriveRuntimeClasspathsForLibraries.setVisible(StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get());
     myEnableDeviceApiOptimization.setVisible(StudioFlags.API_OPTIMIZATION_ENABLE.get());
 
-    myPreviewPickerCheckBox.setVisible(StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get());
-    myPreviewPickerLabel.setVisible(StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get());
     initTraceComponents();
     reset();
   }
@@ -124,9 +116,11 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Unna
   @NotNull
   public List<UnnamedConfigurable> createConfigurables() {
     for (ExperimentalSettingsContributor contributor : ExperimentalSettingsContributor.EP_NAME.getExtensions()) {
-      UnnamedConfigurable configurable = contributor.createConfigurable(myProject);
-      String name = contributor.getName();
-      myConfigurableMap.put(name, configurable);
+      if (contributor.shouldCreateConfigurable(myProject)) {
+        UnnamedConfigurable configurable = contributor.createConfigurable(myProject);
+        String name = contributor.getName();
+        myConfigurableMap.put(name, configurable);
+      }
     }
     return myConfigurableMap.values().stream().toList();
   }
@@ -158,7 +152,6 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Unna
            !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation()) ||
            mySettings.ENABLE_PARALLEL_SYNC != isParallelSyncEnabled() ||
            mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimizationEnabled() ||
-           myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
            mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries() ||
            super.isModified();
   }
@@ -171,7 +164,6 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Unna
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = isGradleApiOptimizationEnabled();
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = isDeriveRuntimeClasspathsForLibraries();
 
-    ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
     applyTraceSettings();
     super.apply();
   }
@@ -341,7 +333,6 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Unna
     myEnableDeviceApiOptimization.setSelected(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     myDeriveRuntimeClasspathsForLibraries.setSelected(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
     updateTraceComponents();
-    myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
     super.reset();
   }
 

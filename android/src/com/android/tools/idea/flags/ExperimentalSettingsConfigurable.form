@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.flags.ExperimentalSettingsConfigurable">
-  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="14" column-count="8" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="11" column-count="8" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="722" height="542"/>
@@ -76,36 +76,9 @@
           <text value="Enable parallel Gradle Sync"/>
         </properties>
       </component>
-      <component id="d66ea" class="com.intellij.ui.TitledSeparator">
-        <constraints>
-          <grid row="9" column="0" row-span="1" col-span="8" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Jetpack Compose"/>
-        </properties>
-      </component>
-      <component id="7c5c3" class="javax.swing.JCheckBox" binding="myPreviewPickerCheckBox">
-        <constraints>
-          <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
-            <preferred-size width="180" height="25"/>
-          </grid>
-        </constraints>
-        <properties>
-          <text value="Enable @Preview picker"/>
-        </properties>
-      </component>
-      <component id="8d2db" class="javax.swing.JLabel" binding="myPreviewPickerLabel">
-        <constraints>
-          <grid row="11" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="2" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <enabled value="false"/>
-          <text value="Popup with editing tools for @Preview annotation from the Editor gutter"/>
-        </properties>
-      </component>
       <vspacer id="dea89">
         <constraints>
-          <grid row="13" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
       <component id="ec988" class="javax.swing.JCheckBox" binding="myEnableDeviceApiOptimization">
@@ -126,7 +99,7 @@
       </component>
       <grid id="4b88f" binding="myExtensionPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints>
-          <grid row="12" column="0" row-span="1" col-span="8" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="9" column="0" row-span="1" col-span="8" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
         <border type="none"/>

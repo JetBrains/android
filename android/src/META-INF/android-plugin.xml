@@ -742,6 +742,7 @@
 
   <extensions defaultExtensionNs="com.android.tools.idea.flags">
     <experimentalSettingsContributor implementation="com.android.tools.idea.flags.RenderExperimentalSettingsContributor"/>
+    <experimentalSettingsContributor implementation="com.android.tools.idea.flags.ComposeExperimentalSettingsContributor"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.project">
     <projectsystem implementation="com.android.tools.idea.project.DefaultProjectSystem"/>

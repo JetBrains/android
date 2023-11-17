@@ -15,19 +15,12 @@
  */
 package com.android.tools.idea.flags
 
-import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.options.UnnamedConfigurable
 import com.intellij.openapi.project.Project
 
-interface ExperimentalSettingsContributor {
-  fun getName(): String
+class ComposeExperimentalSettingsContributor : ExperimentalSettingsContributor {
+  override fun getName() = "Jetpack Compose"
 
-  fun shouldCreateConfigurable(project: Project): Boolean
+  override fun shouldCreateConfigurable(project: Project) = StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get()
 
-  fun createConfigurable(project: Project): UnnamedConfigurable
-
-  companion object {
-    @JvmField
-    val EP_NAME = ExtensionPointName<ExperimentalSettingsContributor>("com.android.tools.idea.flags.experimentalSettingsContributor");
-  }
+  override fun createConfigurable(project: Project) = ComposeExperimentalSettingsConfigurable()
 }

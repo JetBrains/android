@@ -20,5 +20,7 @@ import com.intellij.openapi.project.Project
 class RenderExperimentalSettingsContributor : ExperimentalSettingsContributor {
   override fun getName() = "Layout Editor"
 
+  override fun shouldCreateConfigurable(project: Project) = true
+
   override fun createConfigurable(project: Project) = RenderExperimentalSettingsConfigurable(project)
 }
