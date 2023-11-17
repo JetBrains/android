@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.completion
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth
 import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.AndroidTestCase
 import org.junit.After
@@ -30,13 +30,13 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
   @Before
   public override fun setUp() {
     super.setUp()
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true)
+    Registry.get("android.gradle.declarative.plugin.studio.support").setValue(true)
   }
 
   @After
   public override fun tearDown() {
     try {
-      StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride()
+      Registry.get("android.gradle.declarative.plugin.studio.support").setValue(false)
     }
     catch (e: Throwable) {
       addSuppressedException(e)
