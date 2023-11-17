@@ -24,11 +24,9 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.ex.CustomComponentAction
-import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ui.configuration.actions.IconWithTextAction
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.text.StringUtil
@@ -46,7 +44,6 @@ import java.awt.Insets
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Icon
-import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.border.Border
 
@@ -121,7 +118,7 @@ open class IssueNotificationAction(
   private val createStatusInfo: (Project, DataContext) -> ComposeStatus?,
   private val createInformationPopup: (Project, DataContext) -> InformationPopup?,
   private val popupAlarm: Alarm = Alarm()
-) : AnAction(), CustomComponentAction, Disposable {
+) : IconWithTextAction(), Disposable {
 
   /**
    * The currently opened popup.
@@ -182,12 +179,6 @@ open class IssueNotificationAction(
 
   open fun shouldHide(status: ComposeStatus, dataContext: DataContext) : Boolean {
     return status.icon == null && StringUtil.isEmpty(status.title)
-  }
-
-  override fun createCustomComponent(presentation: Presentation, place: String): JComponent = IssueNotificationActionButton(this, presentation, place)
-
-  override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
-    (component as ActionButtonWithText).update()
   }
 
   override fun displayTextInToolbar(): Boolean = true
