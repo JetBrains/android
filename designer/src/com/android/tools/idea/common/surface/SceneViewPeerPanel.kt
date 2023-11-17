@@ -34,6 +34,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.accessibility.ScreenReader
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Insets
@@ -252,9 +253,10 @@ class SceneViewPeerPanel(
         }
       if (sceneViewToolbar != null) {
         add(sceneViewToolbar, BorderLayout.LINE_END)
-        // Initialize the toolbar as invisible. Its visibility will be controlled by hovering the
-        // sceneViewTopPanel.
-        sceneViewToolbar.isVisible = false
+        // Initialize the toolbar as invisible if ScreenReader is not active. In this case, its
+        // visibility will be controlled by hovering the sceneViewTopPanel. When the screen reader
+        // is active, the toolbar is always visible, so it can be focusable.
+        sceneViewToolbar.isVisible = ScreenReader.isActive()
       }
       // The space of name label is sacrificed when there is no enough width to display the toolbar.
       // When it happens, the label will be trimmed and show the ellipsis at its tail.
@@ -351,7 +353,10 @@ class SceneViewPeerPanel(
         }
 
         private fun hideToolbar() {
-          sceneViewToolbar?.let { toolbar -> toolbar.isVisible = false }
+          sceneViewToolbar?.let { toolbar ->
+            // Only hide the toolbar if the screen reader is not active
+            toolbar.isVisible = ScreenReader.isActive()
+          }
         }
       }
 
