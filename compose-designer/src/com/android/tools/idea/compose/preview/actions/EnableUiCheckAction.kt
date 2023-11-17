@@ -45,7 +45,8 @@ class EnableUiCheckAction :
       HardwareConfigHelper.isWear(e.getData(SCENE_VIEW)?.sceneManager?.model?.configuration?.device)
     e.presentation.isVisible = isUiCheckModeEnabled
     e.presentation.isEnabled = isUiCheckModeEnabled && !isEssentialsModeEnabled && !isWearPreview
-    e.presentation.text = if (isEssentialsModeEnabled) null else message("action.uicheck.title")
+    e.presentation.text =
+      if (isEssentialsModeEnabled || isWearPreview) null else message("action.uicheck.title")
     e.presentation.description =
       if (isEssentialsModeEnabled) message("action.uicheck.essentials.mode.description")
       else if (isWearPreview) message("action.uicheck.wear.description")
