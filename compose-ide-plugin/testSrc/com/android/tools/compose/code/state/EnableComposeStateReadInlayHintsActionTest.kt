@@ -54,7 +54,7 @@ class EnableComposeStateReadInlayHintsActionTest {
   @Test
   fun getText() {
     assertThat(EnableComposeStateReadInlayHintsAction.text)
-      .isEqualTo(ComposeBundle.message("compose.state.read.inlay.provider.enable"))
+      .isEqualTo(ComposeBundle.message("state.read.inlay.provider.enable"))
   }
 
   @Test

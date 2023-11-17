@@ -33,9 +33,9 @@ internal object EnableComposeStateReadInlayHintsAction :
 private class ComposeStateReadInlayHintsAction(private val enable: Boolean) : IntentionAction {
   private val msgText =
     if (enable) {
-      ComposeBundle.message("compose.state.read.inlay.provider.enable")
+      ComposeBundle.message("state.read.inlay.provider.enable")
     } else {
-      ComposeBundle.message("compose.state.read.inlay.provider.disable")
+      ComposeBundle.message("state.read.inlay.provider.disable")
     }
 
   override fun getFamilyName(): String = getText()
