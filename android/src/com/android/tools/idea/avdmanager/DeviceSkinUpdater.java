@@ -23,68 +23,29 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.FileUtils;
 import com.android.utils.PathUtils;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.io.MoreFiles;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
-import java.awt.image.RenderedImage;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.imageio.ImageIO;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DeviceSkinUpdater {
-  @VisibleForTesting
-  static class Converter {
-    @VisibleForTesting
-    boolean convert(@NotNull Path webPImage, @NotNull Path pngImage) throws IOException {
-      RenderedImage image;
-
-      try (InputStream in = new BufferedInputStream(Files.newInputStream(webPImage))) {
-        image = ImageIO.read(in);
-      }
-
-      if (image == null) {
-        return false;
-      }
-
-      try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(pngImage))) {
-        ImageIO.write(image, "PNG", out);
-        return true;
-      }
-    }
-  }
-
   private final @NotNull Path myStudioSkins;
   private final @NotNull Path mySdkSkins;
-  private final boolean myEmulatorSupportsWebP;
-
-  private final @NotNull Converter myConverter;
 
   @VisibleForTesting
   DeviceSkinUpdater(@NotNull Path studioSkins,
-                    @NotNull Path sdkSkins,
-                    boolean emulatorSupportsWebP,
-                    @NotNull Converter converter) {
+                    @NotNull Path sdkSkins) {
     myStudioSkins = studioSkins;
     mySdkSkins = sdkSkins;
-    myEmulatorSupportsWebP = emulatorSupportsWebP;
-
-    myConverter = converter;
   }
 
   /**
@@ -113,16 +74,15 @@ public final class DeviceSkinUpdater {
     return updateSkins(device,
                        imageSkins,
                        studioSkins == null ? null : device.resolve(studioSkins.getPath()),
-                       sdk.getLocation() == null ? null : sdk.getLocation().resolve("skins"),
-                       AvdWizardUtils.emulatorSupportsWebp(sdk));
+                       sdk.getLocation() == null ? null : sdk.getLocation().resolve("skins")
+    );
   }
 
   @VisibleForTesting
   static @NotNull Path updateSkins(@NotNull Path device,
                                    @NotNull Collection<Path> imageSkins,
                                    @Nullable Path studioSkins,
-                                   @Nullable Path sdkSkins,
-                                   boolean emulatorSupportsWebP) {
+                                   @Nullable Path sdkSkins) {
     if (device.toString().isEmpty() || device.isAbsolute() || device.equals(SkinUtils.noSkin(device.getFileSystem()))) {
       return device;
     }
@@ -147,7 +107,7 @@ public final class DeviceSkinUpdater {
       return studioSkins.resolve(device);
     }
 
-    return new DeviceSkinUpdater(studioSkins, sdkSkins, emulatorSupportsWebP, new Converter()).updateSkinsImpl(device);
+    return new DeviceSkinUpdater(studioSkins, sdkSkins).updateSkinsImpl(device);
   }
 
   @VisibleForTesting
@@ -164,14 +124,7 @@ public final class DeviceSkinUpdater {
       }
 
       Files.createDirectories(sdkDeviceSkins);
-
-      if (myEmulatorSupportsWebP) {
-        copyStudioDeviceSkins(studioDeviceSkins, sdkDeviceSkins);
-      }
-      else {
-        convertAndCopyStudioDeviceSkins(studioDeviceSkins, sdkDeviceSkins);
-      }
-
+      copyStudioDeviceSkins(studioDeviceSkins, sdkDeviceSkins);
       return sdkDeviceSkins;
     }
     catch (IOException exception) {
@@ -229,54 +182,6 @@ public final class DeviceSkinUpdater {
     for (Path path : list(studioDeviceSkins)) {
       copy(path, sdkDeviceSkins.resolve(path.getFileName()));
     }
-  }
-
-  private void convertAndCopyStudioDeviceSkins(@NotNull Path studioDeviceSkins, @NotNull Path sdkDeviceSkins) throws IOException {
-    Collection<Path> paths = list(studioDeviceSkins);
-    Path layout = null;
-
-    int size = paths.size();
-    List<String> namesToReplace = new ArrayList<>(size);
-    List<String> namesToReplaceThemWith = new ArrayList<>(size);
-
-    for (Path path : paths) {
-      String name = path.getFileName().toString();
-
-      if (name.equals(SdkConstants.FN_SKIN_LAYOUT)) {
-        layout = path;
-        continue;
-      }
-
-      if (name.endsWith(SdkConstants.DOT_WEBP)) {
-        @SuppressWarnings("UnstableApiUsage")
-        Path pngImage = sdkDeviceSkins.resolve(MoreFiles.getNameWithoutExtension(path.getFileName()) + SdkConstants.DOT_PNG);
-
-        if (myConverter.convert(path, pngImage)) {
-          namesToReplace.add(name);
-          namesToReplaceThemWith.add(pngImage.getFileName().toString());
-
-          continue;
-        }
-      }
-
-      copy(path, sdkDeviceSkins.resolve(name));
-    }
-
-    if (layout == null) {
-      return;
-    }
-
-    replaceAll(layout, namesToReplace, namesToReplaceThemWith, sdkDeviceSkins.resolve(layout.getFileName()));
-  }
-
-  private static void replaceAll(@NotNull Path source,
-                                 @NotNull List<String> stringsToReplace,
-                                 @NotNull List<String> stringsToReplaceThemWith,
-                                 @NotNull Path target) throws IOException {
-    var sourceString = Files.readString(source);
-    var targetString = StringUtil.replace(sourceString, stringsToReplace, stringsToReplaceThemWith);
-
-    Files.writeString(target, targetString);
   }
 
   @VisibleForTesting
