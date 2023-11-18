@@ -76,6 +76,7 @@ import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.interpolate
 import com.android.tools.idea.streaming.core.normalizedRotation
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
+import com.android.utils.FileUtils.copyDirectory
 import com.google.common.base.Predicates.alwaysTrue
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.concurrency.ConcurrentCollectionFactory
@@ -98,16 +99,11 @@ import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.CopyOption
-import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.CREATE_NEW
-import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingDeque
@@ -998,7 +994,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val avdName = avdId.replace('_', ' ')
       val skinName = "nexus_10"
       val skinFolder = getSkinFolder(skinName)
-      copyDir(skinFolder, Files.createDirectories(sdkFolder.resolve("skins")).resolve(skinName))
+      copyDirectory(skinFolder, sdkFolder.resolve("skins").resolve(skinName), false)
       val systemImage = "system-images/android-$api/google_apis_playstore/x86_64/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
@@ -1583,26 +1579,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     @JvmStatic
-    private fun copyDir(from: Path, to: Path) {
-      val options = arrayOf<CopyOption>(StandardCopyOption.COPY_ATTRIBUTES)
-      Files.walkFileTree(from, object : SimpleFileVisitor<Path>() {
-        override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
-          if (dir !== from || !Files.exists(to)) {
-            val copy = to.resolve(from.relativize(dir).toString())
-            Files.createDirectory(copy)
-          }
-          return FileVisitResult.CONTINUE
-        }
-
-        override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-          val copy = to.resolve(from.relativize(file).toString())
-          Files.copy(file, copy, *options)
-          return FileVisitResult.CONTINUE
-        }
-      })
-    }
-
-    @JvmStatic
     fun getSkinFolder(skinName: String): Path = getRootSkinFolder().resolve(skinName)
 
     @JvmStatic
@@ -1612,8 +1588,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     fun grpcServerName(port: Int) = "FakeEmulator@${port}"
 
     @JvmStatic
-    fun getSdkFolder(avdRootFolder: Path): Path =
-        avdRootFolder.resolve("Sdk")
+    fun getSdkFolder(avdRootFolder: Path): Path = avdRootFolder.resolve("Sdk")
 
     /**
      * Waits for the next queued item while dispatching UI events. Returns the next item and removes
