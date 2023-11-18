@@ -21,7 +21,7 @@ import com.android.tools.idea.res.ModuleRClass.SourceSet.MAIN
 import com.android.tools.idea.res.ModuleRClass.SourceSet.TEST
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.NON_TRANSITIVE
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.TRANSITIVE
-import com.android.tools.res.LocalResourceRepository
+import com.android.tools.res.CacheableResourceRepository
 import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.psi.PsiManager
 import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.BACKING_CLASS
@@ -93,7 +93,7 @@ class ModuleRClass(
       return StudioResourceRepositoryManager.getInstance(facet)
     }
 
-    override fun getResourceRepository(): LocalResourceRepository {
+    override fun getResourceRepository(): CacheableResourceRepository {
       val repoManager = StudioResourceRepositoryManager.getInstance(facet)
       return when (sourceSet) {
         MAIN -> when (transitivity) {
