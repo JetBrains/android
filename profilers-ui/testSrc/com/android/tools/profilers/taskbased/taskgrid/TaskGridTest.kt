@@ -15,10 +15,12 @@
  */
 package com.android.tools.profilers.com.android.tools.profilers.taskbased.taskgrid
 
+import androidx.compose.ui.test.assertAll
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -29,8 +31,10 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionArtifactUtils
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.com.android.tools.profilers.JewelThemedComposableWrapper
 import com.android.tools.profilers.event.FakeEventService
@@ -91,28 +95,60 @@ class TaskGridTest {
 
   @Ignore("b/309566948")
   @Test
-  fun `visual test, light theme`() {
+  fun `visual test, light theme, process-selection based`() {
     singleWindowApplication(
-      title = "Testing TaskGrid in Light Theme",
+      title = "Testing TaskGrid in Dark Theme",
     ) {
       JewelThemedComposableWrapper(isDark = false) {
         TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
-                     Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
-                     myProfilers.taskHandlers)
+                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
+                 myProfilers.taskHandlers)
       }
     }
   }
 
   @Ignore("b/309566948")
   @Test
-  fun `visual test, dark theme`() {
+  fun `visual test, light theme, recording-selection based`() {
+    singleWindowApplication(
+      title = "Testing TaskGrid in Dark Theme",
+    ) {
+      JewelThemedComposableWrapper(isDark = false) {
+        val heapDumpArtifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers,
+                                                                               Common.Session.newBuilder().setSessionId(1L).build(), 0L, 1L)
+        val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, heapDumpArtifact.session, heapDumpArtifact.session.sessionId,
+                                                                 listOf(heapDumpArtifact))
+        TaskGrid(taskGridModel, sessionItem, myProfilers.taskHandlers)
+      }
+    }
+  }
+
+  @Ignore("b/309566948")
+  @Test
+  fun `visual test, dark theme, process-selection based`() {
     singleWindowApplication(
       title = "Testing TaskGrid in Dark Theme",
     ) {
       JewelThemedComposableWrapper(isDark = true) {
         TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
-                     Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
-                     myProfilers.taskHandlers)
+                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
+                 myProfilers.taskHandlers)
+      }
+    }
+  }
+
+  @Ignore("b/309566948")
+  @Test
+  fun `visual test, dark theme, recording-selection based`() {
+    singleWindowApplication(
+      title = "Testing TaskGrid in Dark Theme",
+    ) {
+      JewelThemedComposableWrapper(isDark = true) {
+        val heapDumpArtifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers,
+                                                                               Common.Session.newBuilder().setSessionId(1L).build(), 0L, 1L)
+        val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, heapDumpArtifact.session, heapDumpArtifact.session.sessionId,
+                                                                 listOf(heapDumpArtifact))
+        TaskGrid(taskGridModel, sessionItem, myProfilers.taskHandlers)
       }
     }
   }
@@ -123,8 +159,8 @@ class TaskGridTest {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = false) {
         TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
-                     Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
-                     myProfilers.taskHandlers)
+                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
+                 myProfilers.taskHandlers)
       }
     }
 
@@ -145,8 +181,8 @@ class TaskGridTest {
       JewelThemedComposableWrapper(isDark = false) {
         // Set feature level to 28, which will enable all tasks except Native Allocations.
         TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(28).build(),
-                     Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
-                     myProfilers.taskHandlers)
+                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
+                 myProfilers.taskHandlers)
       }
     }
 
@@ -168,8 +204,8 @@ class TaskGridTest {
       JewelThemedComposableWrapper(isDark = false) {
         // Set exposure level of process to profileable so only profileable-compatible tasks are enabled.
         TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
-                     Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE).build(),
-                     myProfilers.taskHandlers)
+                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE).build(),
+                 myProfilers.taskHandlers)
       }
     }
 
@@ -191,8 +227,8 @@ class TaskGridTest {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = false) {
         TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
-                     Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
-                     myProfilers.taskHandlers)
+                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
+                 myProfilers.taskHandlers)
       }
     }
 
@@ -202,5 +238,43 @@ class TaskGridTest {
     composeTestRule.onNodeWithText("System Trace").performClick()
 
     assertThat(taskGridModel.selectedTaskType.value).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
+  }
+
+  @Test
+  fun `only supported tasks show up on recording selection (single supported task)`() {
+    composeTestRule.setContent {
+      JewelThemedComposableWrapper(isDark = false) {
+        val heapDumpArtifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers,
+                                                                               Common.Session.newBuilder().setSessionId(1L).build(), 0L, 1L)
+        val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, heapDumpArtifact.session, heapDumpArtifact.session.sessionId,
+                                                                 listOf(heapDumpArtifact))
+        TaskGrid(taskGridModel, sessionItem, myProfilers.taskHandlers)
+      }
+    }
+
+    // Heap dump recording only has one supported task (Heap Dump task).
+    composeTestRule.onAllNodesWithTag("TaskGridItem").assertCountEquals(1)
+    // If a task is displayed post-recording selection, then it must be enabled.
+    composeTestRule.onAllNodesWithTag("TaskGridItem").assertAll(isEnabled())
+  }
+
+  @Test
+  fun `only supported tasks show up on recording selection (multiple supported tasks)`() {
+    composeTestRule.setContent {
+      JewelThemedComposableWrapper(isDark = false) {
+        val javaKotlinMethodArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(
+          myProfilers, Common.Session.newBuilder().setSessionId(1L).build(), 1L, 1L,
+          Trace.TraceConfiguration.newBuilder().setArtOptions(Trace.ArtOptions.getDefaultInstance()).build())
+        val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, javaKotlinMethodArtifact.session,
+                                                                 javaKotlinMethodArtifact.session.sessionId,
+                                                                 listOf(javaKotlinMethodArtifact))
+        TaskGrid(taskGridModel, sessionItem, myProfilers.taskHandlers)
+      }
+    }
+
+    // Java/Kotlin ART-based recording has two supported tasks (Java/Kotlin Method Sample and Java/Kotlin Method Trace tasks).
+    composeTestRule.onAllNodesWithTag("TaskGridItem").assertCountEquals(2)
+    // If a task is displayed post-recording selection, then it must be enabled.
+    composeTestRule.onAllNodesWithTag("TaskGridItem").assertAll(isEnabled())
   }
 }
