@@ -30,6 +30,7 @@ import com.android.ddmlib.AdbInitOptions;
 import com.android.ddmlib.AdbVersion;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.DdmPreferences;
+import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IDeviceUsageTracker;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.TimeoutRemainder;
@@ -81,7 +82,10 @@ import org.jetbrains.annotations.TestOnly;
  * {@link AndroidDebugBridge.IDebugBridgeChangeListener} to ensure that they get updates to the status of the bridge.
  */
 @Service
-public final class AdbService implements Disposable, AdbOptionsService.AdbOptionsListener, AndroidDebugBridge.IDebugBridgeChangeListener {
+public final class AdbService implements Disposable,
+                                         AdbOptionsService.AdbOptionsListener,
+                                         AndroidDebugBridge.IDebugBridgeChangeListener,
+                                         AndroidDebugBridge.IDeviceChangeListener {
   @TestOnly
   public static boolean disabled = false;
 
@@ -146,6 +150,38 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
 
   @Override
   public void bridgeChanged(@Nullable AndroidDebugBridge bridge) {
+  }
+
+  @Override
+  public void deviceConnected(@NotNull IDevice device) {
+    if (device.isOnline()) {
+      logDeviceOnline(device);
+    }
+  }
+
+  @Override
+  public void deviceDisconnected(@NotNull IDevice device) {
+    logDeviceOffline(device);
+  }
+
+  @Override
+  public void deviceChanged(@NotNull IDevice device, int changeMask) {
+    if ((changeMask & IDevice.CHANGE_STATE) != 0) {
+      if (device.isOnline()) {
+        logDeviceOnline(device);
+      }
+      else {
+        logDeviceOffline(device);
+      }
+    }
+  }
+
+  private void logDeviceOnline(@NotNull IDevice device) {
+    LOG.info(String.format("Device [%s] has come online", device.getSerialNumber()));
+  }
+
+  private void logDeviceOffline(@NotNull IDevice device) {
+    LOG.info(String.format("Device [%s] is offline", device.getSerialNumber()));
   }
 
   @Override
@@ -298,6 +334,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
   public void dispose() {
     LOG.info("Disposing AdbService");
     AndroidDebugBridge.removeDebugBridgeChangeListener(this);
+    AndroidDebugBridge.removeDeviceChangeListener(this);
     AdbOptionsService.getInstance().removeListener(this);
     try {
       mySequentialExecutor.submit(() -> {
@@ -349,6 +386,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
 
     AdbOptionsService.getInstance().addListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
+    AndroidDebugBridge.addDeviceChangeListener(this);
 
     // TODO Also connect to adblib
     AndroidDebugBridge.setJdwpTracerFactory(() -> new StudioDDMLibJdwpTracer(StudioFlags.JDWP_TRACER.get()) {});
