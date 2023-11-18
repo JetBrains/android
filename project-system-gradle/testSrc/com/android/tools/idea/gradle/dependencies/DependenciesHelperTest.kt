@@ -19,15 +19,20 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PLUGINS_DSL
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG
 import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.getTextForFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.util.io.FileUtil
+import org.apache.commons.lang.StringUtils.countMatches
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.io.File
 
 @RunWith(JUnit4::class)
 class DependenciesHelperTest: AndroidGradleTestCase() {
@@ -107,9 +112,10 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   fun testAddToBuildScriptWithExceptions() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
            { _, moduleModel, helper ->
-             helper.addClasspathDependency("com.example.libs:lib2:1.0",
-                                           listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
-                                           ExactDependencyMatcher("com.example.libs:lib2:1.0"),
+             helper.addClasspathDependency(
+               "com.example.libs:lib2:1.0",
+               listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
+               ExactDependencyMatcher("com.example.libs:lib2:1.0"),
              )
            },
            {
@@ -181,7 +187,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            { projectBuildModel, moduleModel, helper ->
              val projectModel = projectBuildModel.projectBuildModel
              assertThat(projectModel).isNotNull()
-             helper.addPlugin("com.example.foo", "10.0", false, IdPluginMatcher("pluginId"), projectModel!!, moduleModel)
+             helper.addPlugin("com.example.foo", "10.0", false, IdPluginMatcher("com.example.foo"), projectModel!!, moduleModel)
            },
            {
              val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
@@ -202,7 +208,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            { projectBuildModel, moduleModel, helper ->
              val projectModel = projectBuildModel.projectBuildModel
              assertThat(projectModel).isNotNull()
-             helper.addPlugin("com.example.foo", "10.0", false, IdPluginMatcher("pluginId"), projectModel!!, moduleModel)
+             helper.addPlugin("com.example.foo", "10.0", false, IdPluginMatcher("com.example.foo"), projectModel!!, moduleModel)
            },
            {
              val projectBuildContent = project.getTextForFile("build.gradle")
@@ -213,10 +219,84 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            })
   }
 
+  @Test
+  fun testSimpleAddPluginWithExistingPlugin() {
+    val env = BuildEnvironment.getInstance()
+    val version = env.gradlePluginVersion
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           {
+             FileUtil.appendToFile(
+               File(project.basePath, "gradle/libs.versions.toml"),
+               "\n[plugins]\nexample = \"com.android.application:${version}\"\n"
+             )
+           },
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             helper.addPlugin("com.android.application",
+                              version,
+                              false,
+                              IdPluginMatcher("com.android.application"),
+                              projectModel!!,
+                              moduleModel)
+           },
+           {
+             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(catalogContent).doesNotContain("agp = \"${version}\"") // no version
+             assertThat(catalogContent).doesNotContain("androidApplication = { id = \"com.android.application\"")
+
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             assertThat(projectBuildContent).doesNotContain("alias(libs.plugins.androidApplication)") // no new alias
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(buildFileContent).doesNotContain("alias(libs.plugins.androidApplication)")
+           })
+  }
+
+  @Test
+  fun testSimpleAddPluginNoCatalogWithExistingPlugin() {
+    val env = BuildEnvironment.getInstance()
+    val version = env.gradlePluginVersion
+    doTest(SIMPLE_APPLICATION_PLUGINS_DSL,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             helper.addPlugin("com.android.application",
+                              version,
+                              false,
+                              IdPluginMatcher("com.android.application"),
+                              projectModel!!,
+                              moduleModel)
+           },
+           {
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             // once test is imported it updates agp version and adds updates as comments on the bottom of file
+             // this comment affects simple counter with countMatches
+             val regex = "\\R\\s*id 'com.android.application' version '${version}' apply false".toRegex()
+             assertThat(regex.findAll(projectBuildContent).toList().size).isEqualTo(1)
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+
+             assertThat(countMatches(buildFileContent,"id 'com.android.application'")).isEqualTo(1)
+           })
+  }
+
   private fun doTest(projectPath: String,
                      change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesHelper) -> Unit,
                      assert: () -> Unit) {
-    loadProject(projectPath)
+    doTest(projectPath, {}, change, assert)
+  }
+
+  private fun doTest(projectPath: String,
+                     updateFiles: () -> Unit,
+                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesHelper) -> Unit,
+                     assert: () -> Unit) {
+    prepareProjectForImport(projectPath)
+    updateFiles()
+    importProject()
+    prepareProjectForTest(project, null)
+    myFixture.allowTreeAccessForAllFiles()
+
     val projectBuildModel = ProjectBuildModel.get(project)
     val moduleModel: GradleBuildModel? = projectBuildModel.getModuleBuildModel(project.findModule("app"))
     assertThat(moduleModel).isNotNull()

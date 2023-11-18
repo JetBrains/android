@@ -87,7 +87,7 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
                 matcher: PluginMatcher,
                 pluginsModel: PluginsModel,
                 buildModel: GradleBuildModel) {
-    val alreadyHasPlugin = pluginsModel.plugins().any { it.name().toString() == pluginId }
+    val alreadyHasPlugin = pluginsModel.hasPlugin(pluginId)
     when (calculateAddDependencyPolicy(projectModel)) {
       AddDependencyPolicy.VERSION_CATALOG -> getOrAddPluginToCatalog(pluginId, version, matcher)?.let { alias ->
         val reference = ReferenceTo(getCatalogModel().plugins().findProperty(alias))
@@ -100,8 +100,6 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
 
       AddDependencyPolicy.BUILD_FILE -> {
         if (!alreadyHasPlugin) pluginsModel.applyPlugin(pluginId, version, apply)
-        buildModel.applyPlugin(pluginId)
-
         addPlugin(pluginId, buildModel)
       }
     }
@@ -116,7 +114,7 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
     }
   }
 
-  private fun GradleBuildModel.hasPlugin(pluginId:String):Boolean{
+  private fun PluginsModel.hasPlugin(pluginId:String):Boolean{
     fun defaultPluginName(name: String) = when (name) {
       "kotlin-android" -> "org.jetbrains.kotlin.android"
       "kotlin" -> "org.jetbrains.kotlin.jvm"
