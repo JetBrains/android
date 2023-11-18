@@ -29,7 +29,6 @@ public class EmulatorAfterStudioTest {
   @Rule
   public AndroidSystem system = AndroidSystem.standard();
 
-  @Ignore("b/308634409")
   @Test
   public void recognizeNewEmulatorTest() throws Exception {
     AndroidProject project = new AndroidProject("tools/adt/idea/android/integration/testData/minapp");
@@ -41,7 +40,7 @@ public class EmulatorAfterStudioTest {
       emulator.waitForBoot();
       adb.waitForDevice(emulator);
       system.getInstallation().getIdeaLog()
-        .waitForMatchingLine(String.format(".*Adding emulator-%s", emulator.getPortString()), 300, TimeUnit.SECONDS);
+        .waitForMatchingLine(String.format(".*Device \\[emulator-%s\\] has come online", emulator.getPortString()), 300, TimeUnit.SECONDS);
     }
   }
 }
