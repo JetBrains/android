@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static org.junit.Assert.assertEquals;
+import static com.android.testutils.file.InMemoryFileSystems.createInMemoryFileSystemAndFolder;
+import static com.android.testutils.truth.PathSubject.assertThat;
+import static com.android.tools.idea.avdmanager.DeviceSkinUpdater.areAllFilesUpToDate;
+import static com.google.common.truth.Truth.assertThat;
 
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
-import java.io.IOException;
-import java.nio.file.FileSystem;
+import com.android.testutils.TestUtils;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.util.Collections;
@@ -30,282 +31,249 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+@SuppressWarnings("RedundantThrows")
 @RunWith(JUnit4.class)
 public final class DeviceSkinUpdaterTest {
-  private final FileSystem myFileSystem = Jimfs.newFileSystem(Configuration.unix());
-
-  private final Path myStudioSkins =
-    myFileSystem.getPath("/home/juancnuno/Development/studio-master-dev/tools/idea/../adt/idea/artwork/resources/device-art-resources");
-
-  private final Path mySdkSkins = myFileSystem.getPath("/home/juancnuno/Android/Sdk/skins");
+  private final Path myStudioSkins = TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/artwork/resources/device-art-resources");
+  private final Path myHomeDir = createInMemoryFileSystemAndFolder("home/janedoe");
+  private final Path mySdkSkins = myHomeDir.resolve("Android/Sdk/skins");
 
   @Test
-  public void updateSkinsDeviceToStringIsEmpty() {
+  public void updateSkinDeviceToStringIsEmpty() {
     // Arrange
-    Path device = myFileSystem.getPath("");
+    String skinName = "";
 
     // Act
-    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.emptyList(), null, null);
+    Path deviceSkin = DeviceSkinUpdater.updateSkin(skinName, Collections.emptyList(), null, null);
 
     // Assert
-    assertEquals(device, deviceSkins);
+    assertThat(deviceSkin).isEqualTo(Paths.get(skinName));
   }
 
   @Test
-  public void updateSkinsDeviceIsAbsolute() {
+  public void updateSkinDeviceIsAbsolute() {
     // Arrange
-    Path device = myFileSystem.getPath("/home/juancnuno/Android/Sdk/platforms/android-32/skins/HVGA");
+    String skinName = myHomeDir.resolve("Android/Sdk/platforms/android-32/skins/HVGA").toString();
 
     // Act
-    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.emptyList(), null, null);
+    Path deviceSkin = DeviceSkinUpdater.updateSkin(skinName, Collections.emptyList(), null, null);
 
     // Assert
-    assertEquals(device, deviceSkins);
+    assertThat(deviceSkin).isEqualTo(Paths.get(skinName));
   }
 
   @Test
-  public void updateSkinsDeviceEqualsNoSkin() {
+  public void updateSkinDeviceEqualsNoSkin() {
     // Arrange
-    var device = SkinUtils.noSkin(myFileSystem);
+    var skinName = "_no_skin";
 
     // Act
-    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.emptyList(), null, null);
+    Path deviceSkin = DeviceSkinUpdater.updateSkin(skinName, Collections.emptyList(), null, null);
 
     // Assert
-    assertEquals(device, deviceSkins);
+    assertThat(deviceSkin).isEqualTo(Paths.get(skinName));
   }
 
   @Test
-  public void updateSkinsImageSkinIsPresent() {
+  public void updateSkinImageSkinIsPresent() {
     // Arrange
-    Path device = myFileSystem.getPath("AndroidWearRound480x480");
+    String skinName = "AndroidWearRound480x480";
 
-    Path imageSkins =
-      myFileSystem.getPath("/home/juancnuno/Android/Sdk/system-images/android-28/android-wear/x86/skins/AndroidWearRound480x480");
+    Path imageSkin = myHomeDir.resolve("Android/Sdk/system-images/android-28/android-wear/x86/skins/AndroidWearRound480x480");
 
     // Act
-    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.singletonList(imageSkins), null, null);
+    Path deviceSkin = DeviceSkinUpdater.updateSkin(skinName, Collections.singletonList(imageSkin), null, null);
 
     // Assert
-    assertEquals(imageSkins, deviceSkins);
+    assertThat(deviceSkin).isEqualTo(imageSkin);
   }
 
   @Test
-  public void updateSkinsStudioSkinsIsNullAndSdkSkinsIsNull() {
+  public void updateSkinStudioSkinIsNullAndSdkSkinIsNull() {
     // Arrange
-    Path device = myFileSystem.getPath("pixel_4");
+    String skinName = "pixel_4";
 
     // Act
-    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.emptyList(), null, null);
+    Path deviceSkin = DeviceSkinUpdater.updateSkin(skinName, Collections.emptyList(), null, null);
 
     // Assert
-    assertEquals(device, deviceSkins);
+    assertThat(deviceSkin).isEqualTo(Paths.get(skinName));
   }
 
   @Test
-  public void updateSkinsStudioSkinsIsNull() {
+  public void updateSkinStudioSkinIsNull() {
     // Arrange
-    Path device = myFileSystem.getPath("pixel_4");
+    String skinName = "pixel_4";
 
     // Act
-    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.emptyList(), null, mySdkSkins);
+    Path deviceSkin = DeviceSkinUpdater.updateSkin(skinName, Collections.emptyList(), null, mySdkSkins);
 
     // Assert
-    assertEquals(mySdkSkins.resolve(device), deviceSkins);
+    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skinName));
   }
 
   @Test
-  public void updateSkinsSdkSkinsIsNull() {
+  public void updateSkinSdkSkinIsNull() {
     // Arrange
-    Path device = myFileSystem.getPath("pixel_4");
+    String skinName = "pixel_4";
 
     // Act
-    Object deviceSkins = DeviceSkinUpdater.updateSkins(device, Collections.emptyList(), myStudioSkins, null);
+    Path deviceSkin = DeviceSkinUpdater.updateSkin(skinName, Collections.emptyList(), myStudioSkins, null);
 
     // Assert
-    assertEquals(myStudioSkins.resolve(device), deviceSkins);
+    assertThat(deviceSkin).isEqualTo(myStudioSkins.resolve(skinName));
   }
 
   @Test
-  public void updateSkinsImplSdkDeviceSkinsAreUpToDate() throws IOException {
+  public void updateSkinImpl() throws Exception {
     // Arrange
-    Path device = myFileSystem.getPath("pixel_4");
-    Path sdkDeviceSkins = mySdkSkins.resolve(device);
-    Files.createDirectories(sdkDeviceSkins);
+    String skinName = "pixel_fold";
 
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins);
 
     // Act
-    Object deviceSkins = updater.updateSkinsImpl(device);
+    Path deviceSkin = updater.updateSkinImpl(skinName);
 
     // Assert
-    assertEquals(sdkDeviceSkins, deviceSkins);
+    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skinName));
+    assertThat(areAllFilesUpToDate(deviceSkin, myStudioSkins.resolve(skinName))).isTrue();
+    assertThat(deviceSkin.resolve("default/layout")).exists();
+    assertThat(deviceSkin.resolve("closed/layout")).exists();
   }
 
   @Test
-  public void updateSkinsImpl() throws IOException {
+  public void updateSkinImplFilesListThrowsNoSuchFileException() {
     // Arrange
-    Path device = myFileSystem.getPath("pixel_4");
-    Files.createDirectories(myStudioSkins.resolve(device));
+    String skinName = "pixel_4";
 
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins);
 
     // Act
-    Object deviceSkins = updater.updateSkinsImpl(device);
+    Path deviceSkin = updater.updateSkinImpl(skinName);
 
     // Assert
-    assertEquals(mySdkSkins.resolve(device), deviceSkins);
+    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skinName));
+    assertThat(areAllFilesUpToDate(deviceSkin, myStudioSkins.resolve(skinName))).isTrue();
+    assertThat(deviceSkin.resolve("layout")).exists();
   }
 
   @Test
-  public void updateSkinsImplFilesListThrowsNoSuchFileException() {
+  public void updateSkinImplDeviceEqualsWearSmallRound() {
     // Arrange
-    Path device = myFileSystem.getPath("pixel_4");
+    String skinName = "WearSmallRound";
 
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins);
 
     // Act
-    Object deviceSkins = updater.updateSkinsImpl(device);
+    Path deviceSkin = updater.updateSkinImpl(skinName);
 
     // Assert
-    assertEquals(myStudioSkins.resolve(device), deviceSkins);
+    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skinName));
+    assertThat(areAllFilesUpToDate(deviceSkin, myStudioSkins.resolve("wearos_small_round"))).isTrue();
+    assertThat(deviceSkin.resolve("layout")).exists();
   }
 
   @Test
-  public void updateSkinsImplDeviceEqualsWearSmallRound() {
+  public void updateSkinImplDeviceEqualsWearLargeRound() {
     // Arrange
-    Path device = myFileSystem.getPath("WearSmallRound");
+    String skinName = "WearLargeRound";
 
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins);
 
     // Act
-    Object deviceSkins = updater.updateSkinsImpl(device);
+    Path deviceSkin = updater.updateSkinImpl(skinName);
 
     // Assert
-    assertEquals(myStudioSkins.resolve("wearos_small_round"), deviceSkins);
+    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skinName));
+    assertThat(areAllFilesUpToDate(deviceSkin, myStudioSkins.resolve("wearos_large_round"))).isTrue();
+    assertThat(deviceSkin.resolve("layout")).exists();
   }
 
   @Test
-  public void updateSkinsImplDeviceEqualsWearLargeRound() {
+  public void updateSkinImplDeviceEqualsAndroidWearSquare() {
     // Arrange
-    Path device = myFileSystem.getPath("WearLargeRound");
+    String skinName = "WearSquare";
 
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins);
 
     // Act
-    Object deviceSkins = updater.updateSkinsImpl(device);
+    Path deviceSkin = updater.updateSkinImpl(skinName);
 
     // Assert
-    assertEquals(myStudioSkins.resolve("wearos_large_round"), deviceSkins);
+    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skinName));
+    assertThat(areAllFilesUpToDate(deviceSkin, myStudioSkins.resolve("wearos_square"))).isTrue();
+    assertThat(deviceSkin.resolve("layout")).exists();
   }
 
   @Test
-  public void updateSkinsImplDeviceEqualsAndroidWearSquare() {
+  public void updateSkinImplSdkLayoutDoesntExist() throws Exception {
     // Arrange
-    Path device = myFileSystem.getPath("WearSquare");
+    String skinName = "pixel_4";
+    Path sdkDeviceSkin = mySdkSkins.resolve(skinName);
+    Files.createDirectories(sdkDeviceSkin);
 
     DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins);
 
     // Act
-    Object deviceSkins = updater.updateSkinsImpl(device);
+    Path deviceSkin = updater.updateSkinImpl(skinName);
 
     // Assert
-    assertEquals(myStudioSkins.resolve("wearos_square"), deviceSkins);
+    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skinName));
   }
 
   @Test
-  public void updateSkinsImplSdkLayoutDoesntExist() throws IOException {
+  public void updateSkinImplStudioLayoutLastModifiedTimeIsBeforeSdkLayoutLastModifiedTime() throws Exception {
     // Arrange
-    Path device = myFileSystem.getPath("pixel_4");
-    Path sdkDeviceSkins = mySdkSkins.resolve(device);
-    Files.createDirectories(sdkDeviceSkins);
+    String skinName = "pixel_4";
+    Path sdkDeviceSkin = mySdkSkins.resolve(skinName);
+    Files.createDirectories(sdkDeviceSkin);
 
-    Path studioDeviceSkins = myStudioSkins.resolve(device);
-    Files.createDirectories(studioDeviceSkins);
-    Files.createFile(studioDeviceSkins.resolve("layout"));
+    Path studioSkin = myHomeDir.resolve("android-studio/plugins/android/resources/device-art-resources");
+    Path studioDeviceSkin = studioSkin.resolve(skinName);
+    Files.createDirectories(studioDeviceSkin);
 
-    DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins);
-
-    // Act
-    Object deviceSkins = updater.updateSkinsImpl(device);
-
-    // Assert
-    assertEquals(sdkDeviceSkins, deviceSkins);
-  }
-
-  @Test
-  public void updateSkinsImplStudioLayoutLastModifiedTimeIsBeforeSdkLayoutLastModifiedTime() throws IOException {
-    // Arrange
-    Path device = myFileSystem.getPath("pixel_4");
-    Path sdkDeviceSkins = mySdkSkins.resolve(device);
-    Files.createDirectories(sdkDeviceSkins);
-
-    Path studioDeviceSkins = myStudioSkins.resolve(device);
-    Files.createDirectories(studioDeviceSkins);
-
-    Path studioLayout = studioDeviceSkins.resolve("layout");
+    Path studioLayout = studioDeviceSkin.resolve("layout");
     Files.createFile(studioLayout);
     Files.setLastModifiedTime(studioLayout, FileTime.from(Instant.parse("2020-08-26T20:39:22.922Z")));
 
-    Path sdkLayout = sdkDeviceSkins.resolve("layout");
+    Path sdkLayout = sdkDeviceSkin.resolve("layout");
     Files.createFile(sdkLayout);
     Files.setLastModifiedTime(sdkLayout, FileTime.from(Instant.parse("2020-08-26T20:39:22.923Z")));
 
-    DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins);
+    DeviceSkinUpdater updater = new DeviceSkinUpdater(studioSkin, mySdkSkins);
 
     // Act
-    Object deviceSkins = updater.updateSkinsImpl(device);
+    Path deviceSkin = updater.updateSkinImpl(skinName);
 
     // Assert
-    assertEquals(sdkDeviceSkins, deviceSkins);
+    assertThat(deviceSkin).isEqualTo(sdkDeviceSkin);
   }
 
   @Test
-  public void updateSkinsImplStudioLayoutLastModifiedTimeIsAfterSdkLayoutLastModifiedTime() throws IOException {
+  public void updateSkinImplStudioLayoutLastModifiedTimeIsAfterSdkLayoutLastModifiedTime() throws Exception {
     // Arrange
-    Path device = myFileSystem.getPath("pixel_4");
-    Path sdkDeviceSkins = mySdkSkins.resolve(device);
-    Files.createDirectories(sdkDeviceSkins);
+    String skinName = "pixel_4";
+    Path sdkDeviceSkin = mySdkSkins.resolve(skinName);
+    Files.createDirectories(sdkDeviceSkin);
 
-    Path studioDeviceSkins = myStudioSkins.resolve(device);
-    Files.createDirectories(studioDeviceSkins);
+    Path studioSkin = myHomeDir.resolve("android-studio/plugins/android/resources/device-art-resources");
+    Path studioDeviceSkin = studioSkin.resolve(skinName);
+    Files.createDirectories(studioDeviceSkin);
 
-    Path studioLayout = studioDeviceSkins.resolve("layout");
+    Path studioLayout = studioDeviceSkin.resolve("layout");
     Files.createFile(studioLayout);
     Files.setLastModifiedTime(studioLayout, FileTime.from(Instant.parse("2020-08-26T20:39:22.924Z")));
 
-    Path sdkLayout = sdkDeviceSkins.resolve("layout");
+    Path sdkLayout = sdkDeviceSkin.resolve("layout");
     Files.createFile(sdkLayout);
     Files.setLastModifiedTime(sdkLayout, FileTime.from(Instant.parse("2020-08-26T20:39:22.923Z")));
 
-    DeviceSkinUpdater updater = new DeviceSkinUpdater(myStudioSkins, mySdkSkins);
+    DeviceSkinUpdater updater = new DeviceSkinUpdater(studioSkin, mySdkSkins);
 
     // Act
-    Object deviceSkins = updater.updateSkinsImpl(device);
+    Path deviceSkin = updater.updateSkinImpl(skinName);
 
     // Assert
-    assertEquals(sdkDeviceSkins, deviceSkins);
-  }
-
-  @Test
-  public void copyTargetExists() throws IOException {
-    // Arrange
-    Path device = myFileSystem.getPath("pixel_4");
-    Path layout = device.resolve("layout");
-    Path source = myStudioSkins.resolve(layout);
-
-    Files.createDirectories(myStudioSkins.resolve(device));
-    Files.createFile(source);
-
-    Path target = mySdkSkins.resolve(layout);
-
-    Files.createDirectories(mySdkSkins.resolve(device));
-    Files.createFile(target);
-
-    // Act
-    DeviceSkinUpdater.copy(source, target);
-
-    // Assert
-    // Files::copy throws a FileAlreadyExistsException without the Files.exists(target) guard
+    assertThat(deviceSkin).isEqualTo(sdkDeviceSkin);
   }
 }

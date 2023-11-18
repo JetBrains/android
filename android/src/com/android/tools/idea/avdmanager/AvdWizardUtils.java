@@ -222,7 +222,7 @@ public class AvdWizardUtils {
   @Slow
   public static @Nullable File pathToUpdatedSkins(@Nullable Path device,
                                                   @Nullable SystemImageDescription image) {
-    return device == null ? null : DeviceSkinUpdater.updateSkins(device, image).toFile();
+    return device == null ? null : DeviceSkinUpdater.updateSkin(device, image).toFile();
   }
 
   static boolean emulatorSupportsWebp(@NotNull AndroidSdkHandler sdkHandler) {

@@ -77,13 +77,13 @@ public final class DeviceSkinUpdaterService {
   @AnyThread
   public @NotNull ListenableFuture<Path> updateSkins(@NotNull Path device,
                                                      @Nullable @SuppressWarnings("SameParameterValue") SystemImageDescription image) {
-    return myExecutorService.submit(() -> DeviceSkinUpdater.updateSkins(device, image));
+    return myExecutorService.submit(() -> DeviceSkinUpdater.updateSkin(device, image));
   }
 
   @AnyThread
   @NotNull
   ListenableFuture<Collection<Path>> updateSkinsIncludingSdkHandlerOnes() {
-    return myExecutorService.submit(() -> updateSkins(DeviceSkinUpdater::updateSkins));
+    return myExecutorService.submit(() -> updateSkins(DeviceSkinUpdater::updateSkin));
   }
 
   @AnyThread
@@ -112,7 +112,7 @@ public final class DeviceSkinUpdaterService {
       .map(Hardware::getSkinFile)
       .filter(Objects::nonNull)
       .map(File::toPath)
-      .map(DeviceSkinUpdater::updateSkins);
+      .map(DeviceSkinUpdater::updateSkin);
   }
 
   @WorkerThread

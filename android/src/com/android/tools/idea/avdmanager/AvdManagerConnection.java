@@ -536,7 +536,7 @@ public class AvdManagerConnection {
 
     String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
     if (skinPath != null) {
-      DeviceSkinUpdater.updateSkins(mySdkHandler.toCompatiblePath(skinPath), null);
+      DeviceSkinUpdater.updateSkin(mySdkHandler.toCompatiblePath(skinPath), null);
     }
 
     // noinspection ConstantConditions, UnstableApiUsage

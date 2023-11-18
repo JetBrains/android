@@ -43,7 +43,7 @@ final class Collector {
 
   /**
    * Injected behavior that differs between the virtual device creation/editing and hardware profile creation flows. The skins are run
-   * through {@link DeviceSkinUpdater#updateSkins(Path)} in the first case and {@link Path#getFileName} in the second.
+   * through {@link DeviceSkinUpdater#updateSkin(Path)} in the first case and {@link Path#getFileName} in the second.
    */
   @NotNull
   private final UnaryOperator<Path> myMap;

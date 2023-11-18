@@ -259,7 +259,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private ArrayList<SnapshotListItem> mySnapshotList;
 
   public ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model) {
-    this(project, model, new SkinComboBox(project, DeviceSkinUpdater::updateSkins));
+    this(project, model, new SkinComboBox(project, DeviceSkinUpdater::updateSkin));
   }
 
   @VisibleForTesting

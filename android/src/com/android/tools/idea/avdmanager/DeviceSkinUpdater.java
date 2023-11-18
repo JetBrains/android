@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.adtui.device.DeviceArtDescriptor;
@@ -26,14 +25,16 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,8 +43,7 @@ public final class DeviceSkinUpdater {
   private final @NotNull Path mySdkSkins;
 
   @VisibleForTesting
-  DeviceSkinUpdater(@NotNull Path studioSkins,
-                    @NotNull Path sdkSkins) {
+  DeviceSkinUpdater(@NotNull Path studioSkins, @NotNull Path sdkSkins) {
     myStudioSkins = studioSkins;
     mySdkSkins = sdkSkins;
   }
@@ -54,41 +54,43 @@ public final class DeviceSkinUpdater {
    *
    * @return the SDK skins path for the device. Returns device as is if it's empty, absolute, equal to _no_skin, or both the Studio skins
    * path and SDK are not found. Returns the SDK skins path for the device if the Studio skins path is not found. Returns the Studio skins
-   * path for the device (${HOME}/android-studio/plugins/android/resources/device-art-resources/pixel_4) if the SDK is not found or an IOException
-   * is thrown.
+   * path for the device (${HOME}/android-studio/plugins/android/resources/device-art-resources/pixel_4) if the SDK is not found or
+   * an IOException is thrown.
    * @see DeviceSkinUpdaterService
    */
   @Slow
-  @NotNull
-  public static Path updateSkins(@NotNull Path device) {
-    return updateSkins(device, null);
+  public static @NotNull Path updateSkin(@NotNull Path skin) {
+    return updateSkin(skin, null);
   }
 
   @Slow
-  static @NotNull Path updateSkins(@NotNull Path device, @Nullable SystemImageDescription image) {
+  static @NotNull Path updateSkin(@NotNull Path skin, @Nullable SystemImageDescription image) {
+    if (skin.isAbsolute()) {
+      return skin;
+    }
+    String skinName = skin.toString();
+    if (skinName.isEmpty() || skinName.equals("_no_skin")) {
+      return skin;
+    }
+
     Collection<Path> imageSkins = image == null ? Collections.emptyList() : Arrays.asList(image.getSkins());
 
     File studioSkins = DeviceArtDescriptor.getBundledDescriptorsFolder();
     AndroidSdkHandler sdk = AndroidSdks.getInstance().tryToChooseSdkHandler();
 
-    return updateSkins(device,
-                       imageSkins,
-                       studioSkins == null ? null : device.resolve(studioSkins.getPath()),
-                       sdk.getLocation() == null ? null : sdk.getLocation().resolve("skins")
-    );
+    return updateSkin(skinName,
+                      imageSkins,
+                      studioSkins == null ? null : studioSkins.toPath(),
+                      sdk.getLocation() == null ? null : sdk.getLocation().resolve("skins"));
   }
 
   @VisibleForTesting
-  static @NotNull Path updateSkins(@NotNull Path device,
-                                   @NotNull Collection<Path> imageSkins,
-                                   @Nullable Path studioSkins,
-                                   @Nullable Path sdkSkins) {
-    if (device.toString().isEmpty() || device.isAbsolute() || device.equals(SkinUtils.noSkin(device.getFileSystem()))) {
-      return device;
-    }
-
+  static @NotNull Path updateSkin(@NotNull String skinName,
+                                  @NotNull Collection<Path> imageSkins,
+                                  @Nullable Path studioSkins,
+                                  @Nullable Path sdkSkins) {
     Optional<Path> optionalImageSkin = imageSkins.stream()
-      .filter(skin -> skin.endsWith(device))
+      .filter(skin -> skin.endsWith(skinName))
       .findFirst();
 
     if (optionalImageSkin.isPresent()) {
@@ -96,110 +98,98 @@ public final class DeviceSkinUpdater {
     }
 
     if (studioSkins == null && sdkSkins == null) {
-      return device;
+      return Paths.get(skinName);
     }
 
     if (studioSkins == null) {
-      return sdkSkins.resolve(device);
+      return sdkSkins.resolve(skinName);
     }
 
     if (sdkSkins == null) {
-      return studioSkins.resolve(device);
+      return studioSkins.resolve(skinName);
     }
 
-    return new DeviceSkinUpdater(studioSkins, sdkSkins).updateSkinsImpl(device);
+    return new DeviceSkinUpdater(studioSkins, sdkSkins).updateSkinImpl(skinName);
   }
 
   @VisibleForTesting
   @NotNull
-  Path updateSkinsImpl(@NotNull Path device) {
-    assert !device.toString().isEmpty() && !device.isAbsolute() && !device.equals(SkinUtils.noSkin(device.getFileSystem())) : device;
+  Path updateSkinImpl(@NotNull String skinName) {
+    assert !skinName.isEmpty() && !skinName.equals("_no_skin");
 
-    Path sdkDeviceSkins = mySdkSkins.resolve(device);
-    Path studioDeviceSkins = getStudioDeviceSkins(device);
+    Path sdkDeviceSkin = mySdkSkins.resolve(skinName);
+    Path studioDeviceSkin = getStudioDeviceSkin(skinName);
 
     try {
-      if (areSdkDeviceSkinsUpToDate(sdkDeviceSkins, studioDeviceSkins)) {
-        return sdkDeviceSkins;
+      if (areAllFilesUpToDate(sdkDeviceSkin, studioDeviceSkin)) {
+        return sdkDeviceSkin;
       }
 
-      Files.createDirectories(sdkDeviceSkins);
-      copyStudioDeviceSkins(studioDeviceSkins, sdkDeviceSkins);
-      return sdkDeviceSkins;
+      PathUtils.deleteRecursivelyIfExists(sdkDeviceSkin);
+      FileUtils.copyDirectory(studioDeviceSkin, sdkDeviceSkin, false);
+      return sdkDeviceSkin;
     }
     catch (IOException exception) {
       Logger.getInstance(DeviceSkinUpdater.class).warn(exception);
-      return studioDeviceSkins;
+      return studioDeviceSkin;
     }
   }
 
-  private @NotNull Path getStudioDeviceSkins(@NotNull Path device) {
-    if (device.equals(device.getFileSystem().getPath("WearLargeRound"))) {
-      return myStudioSkins.resolve("wearos_large_round");
-    }
-
-    if (device.equals(device.getFileSystem().getPath("WearSmallRound"))) {
-      return myStudioSkins.resolve("wearos_small_round");
-    }
-
-    if (device.equals(device.getFileSystem().getPath("WearSquare"))) {
-      return myStudioSkins.resolve("wearos_square");
-    }
-
-    if (device.equals(device.getFileSystem().getPath("WearRect"))) {
-      return myStudioSkins.resolve("wearos_rect");
-    }
-
-    return myStudioSkins.resolve(device);
+  private @NotNull Path getStudioDeviceSkin(@NotNull String skinName) {
+    return myStudioSkins.resolve(getStudioSkinName(skinName));
   }
 
-  private static boolean areSdkDeviceSkinsUpToDate(@NotNull Path sdkDeviceSkins, @NotNull Path studioDeviceSkins) throws IOException {
-    if (Files.notExists(sdkDeviceSkins)) {
-      return false;
-    }
-
-    Path studioLayout = studioDeviceSkins.resolve(SdkConstants.FN_SKIN_LAYOUT);
-
-    if (Files.notExists(studioLayout)) {
-      return true;
-    }
-
-    Path sdkLayout = sdkDeviceSkins.resolve(SdkConstants.FN_SKIN_LAYOUT);
-
-    if (Files.notExists(sdkLayout)) {
-      return false;
-    }
-
-    if (Files.getLastModifiedTime(studioLayout).compareTo(Files.getLastModifiedTime(sdkLayout)) < 0) {
-      return true;
-    }
-
-    PathUtils.deleteRecursivelyIfExists(sdkDeviceSkins);
-    return false;
+  private @NotNull String getStudioSkinName(@NotNull String skinName) {
+    return switch (skinName) {
+      case "WearLargeRound" -> "wearos_large_round";
+      case "WearSmallRound" -> "wearos_small_round";
+      case "WearSquare" -> "wearos_square";
+      case "WearRect" -> "wearos_rect";
+      default -> skinName;
+    };
   }
 
-  private static void copyStudioDeviceSkins(@NotNull Path studioDeviceSkins, @NotNull Path sdkDeviceSkins) throws IOException {
-    for (Path path : list(studioDeviceSkins)) {
-      copy(path, sdkDeviceSkins.resolve(path.getFileName()));
-    }
-  }
-
+  /**
+   * Checks if all files under the {@code sourceDir} directory have their piers under
+   * the {@code targetDir} directory with timestamps not older than the corresponding source file.
+   */
   @VisibleForTesting
-  static @NotNull Collection<Path> list(@NotNull Path directory) throws IOException {
-    try (Stream<Path> stream = Files.list(directory)) {
-      return stream
-        .sorted()
-        .collect(Collectors.toList());
+  static boolean areAllFilesUpToDate(@NotNull Path targetDir, @NotNull Path sourceDir) {
+    class UpToDateChecker extends SimpleFileVisitor<Path> {
+      boolean targetOlder;
+
+      @Override
+      public FileVisitResult visitFile(Path sourceFile, BasicFileAttributes attrs) throws IOException {
+        if (!sourceFile.getFileName().toString().startsWith(".")) {
+          Path targetFile = targetDir.resolve(sourceDir.relativize(sourceFile).toString());
+          // Convert to milliseconds to compensate for different timestamp precision on different file systems.
+          if (getLastModifiedTimeMillis(targetFile) < getLastModifiedTimeMillis(sourceFile)) {
+            targetOlder = true;
+            return FileVisitResult.TERMINATE;
+          }
+        }
+        return FileVisitResult.CONTINUE;
+      }
+
+      private static long getLastModifiedTimeMillis(@NotNull Path file) throws IOException {
+        return Files.getLastModifiedTime(file).toMillis();
+      }
     }
+
+    UpToDateChecker checker = new UpToDateChecker();
+    try {
+      Files.walkFileTree(sourceDir, checker);
+    }
+    catch (IOException e) {
+      return false;
+    }
+
+    return !checker.targetOlder;
   }
 
   @VisibleForTesting
   static void copy(@NotNull Path source, @NotNull Path target) throws IOException {
     if (!Files.isRegularFile(source)) {
-      return;
-    }
-
-    if (Files.exists(target)) {
       return;
     }
 
