@@ -6,7 +6,6 @@ iml_module(
     name = "intellij.android.databinding",
     srcs = ["src"],
     iml_files = ["intellij.android.databinding.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_resources = ["testData"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

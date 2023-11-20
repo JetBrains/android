@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.observable.ui",
     srcs = ["src"],
     iml_files = ["intellij.android.observable.ui.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_class = "com.android.tools.idea.observable.ui.ObservableUiTestSuite",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

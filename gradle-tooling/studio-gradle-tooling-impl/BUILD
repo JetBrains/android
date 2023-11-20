@@ -6,7 +6,6 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.gradle-tooling.impl.iml"],
     jvm_target = "8",
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     tags = ["no_test_windows"],
     test_srcs = ["testSrc"],

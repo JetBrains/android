@@ -5,7 +5,6 @@ iml_module(
     name = "app-inspection.inspectors.database",
     srcs = ["src"],
     iml_files = ["app-inspection.inspectors.database.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

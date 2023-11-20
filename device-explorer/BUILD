@@ -7,7 +7,6 @@ iml_module(
     name = "intellij.android.device-explorer",
     srcs = ["src"],
     iml_files = ["intellij.android.device-explorer.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

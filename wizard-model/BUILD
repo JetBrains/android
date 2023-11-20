@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.wizard.model",
     srcs = ["src"],
     iml_files = ["intellij.android.wizard.model.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

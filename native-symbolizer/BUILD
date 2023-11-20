@@ -5,7 +5,6 @@ iml_module(
     name = "native-symbolizer",
     srcs = ["src"],
     iml_files = ["native-symbolizer.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

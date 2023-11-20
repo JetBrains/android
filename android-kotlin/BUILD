@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.kotlin.output.parser",
     srcs = ["idea-android/idea-android-output-parser/src"],
     iml_files = ["idea-android/idea-android-output-parser/intellij.android.kotlin.output.parser.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -20,7 +19,6 @@ iml_module(
     name = "intellij.android.kotlin.idea",
     srcs = ["idea-android/src"],
     iml_files = ["idea-android/intellij.android.kotlin.idea.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -101,7 +99,6 @@ iml_module(
     name = "intellij.android.kotlin.extensions",
     srcs = ["android-extensions-idea/src"],
     iml_files = ["android-extensions-idea/intellij.android.kotlin.extensions.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",
     test_data = glob([
         "android-extensions-idea/testData/**",

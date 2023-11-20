@@ -6,7 +6,6 @@ iml_module(
     name = "intellij.android.updater.studio-updater",
     srcs = ["src"],
     iml_files = ["intellij.android.updater.studio-updater.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_srcs = ["testSrc"],
     test_tags = ["manual"],  # Tested via the integration_test target below
     visibility = ["//visibility:public"],

@@ -5,7 +5,6 @@ iml_module(
     name = "app-inspection.ide",
     srcs = ["src"],
     iml_files = ["app-inspection.ide.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     test_resources = ["testData"],
     visibility = ["//visibility:public"],

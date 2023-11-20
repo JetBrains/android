@@ -5,7 +5,6 @@ iml_module(
     name = "connection-assistant",
     srcs = ["src"],
     iml_files = ["connection-assistant.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

@@ -7,7 +7,6 @@ iml_module(
     name = "intellij.android.profilersAndroid",
     srcs = ["src"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_data = [

@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.dagger",
     srcs = ["src"],
     iml_files = ["intellij.android.dagger.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

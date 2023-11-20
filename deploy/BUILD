@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.deploy",
     srcs = ["src"],
     iml_files = ["intellij.android.deploy.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_data = glob(["testData/**"]) + ["//prebuilts/studio/sdk:platform-tools"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

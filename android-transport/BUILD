@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.transport",
     srcs = ["src"],
     iml_files = ["intellij.android.transport.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_class = "com.android.tools.idea.transport.AndroidTransportTestSuite",
     test_srcs = ["testSrc"],
     test_tags = [],
