@@ -31,7 +31,7 @@ import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElementOfType
 
-private const val GLANCE_PREVIEW_ANNOTATION_NAME = "GlancePreview"
+private const val GLANCE_PREVIEW_ANNOTATION_NAME = "Preview"
 private const val GLANCE_PREVIEW_ANNOTATION_FQN =
   "androidx.glance.preview.$GLANCE_PREVIEW_ANNOTATION_NAME"
 

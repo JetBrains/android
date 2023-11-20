@@ -41,12 +41,12 @@ class GlancePreviewElementFinderTest {
   @Before
   fun setUp() {
     fixture.addFileToProjectAndInvalidate(
-      "androidx/glance/preview/GlancePreview.kt",
+      "androidx/glance/preview/Preview.kt",
       // language=kotlin
       """
         package androidx.glance.preview
 
-        annotation class GlancePreview(surface: String)
+        annotation class Preview(surface: String)
         """
         .trimIndent()
     )
@@ -57,16 +57,16 @@ class GlancePreviewElementFinderTest {
         """
         package com.android.test
 
-        import androidx.glance.preview.GlancePreview
+        import androidx.glance.preview.Preview
 
-        @GlancePreview("AppWidget")
+        @Preview("AppWidget")
         fun Foo1() { }
 
-        @GlancePreview("Tile")
+        @Preview("Tile")
         fun Foo2() { }
 
-        @GlancePreview("AppWidget")
-        @GlancePreview("Tile")
+        @Preview("AppWidget")
+        @Preview("Tile")
         fun Foo3() { }
 
         fun Foo4() { }
@@ -81,9 +81,9 @@ class GlancePreviewElementFinderTest {
         """
         package com.android.test
 
-        import androidx.glance.preview.GlancePreview
+        import androidx.glance.preview.Preview
 
-        @GlancePreview("Tile")
+        @Preview("Tile")
         fun Foo21() { }
         """
           .trimIndent()
@@ -96,9 +96,9 @@ class GlancePreviewElementFinderTest {
         """
         package com.android.test
 
-        import androidx.glance.preview.GlancePreview
+        import androidx.glance.preview.Preview
 
-        @GlancePreview("AppWidget")
+        @Preview("AppWidget")
         fun Foo31() { }
         """
           .trimIndent()
@@ -111,7 +111,7 @@ class GlancePreviewElementFinderTest {
         """
         package com.android.test
 
-        import androidx.glance.preview.GlancePreview
+        import androidx.glance.preview.Preview
 
         fun Foo41() { }
         """
