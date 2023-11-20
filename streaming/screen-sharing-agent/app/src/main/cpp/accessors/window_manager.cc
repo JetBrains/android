@@ -38,6 +38,16 @@ void WindowManager::InitializeStatics(Jni jni) {
       if (Agent::feature_level() >= 35) {
         freeze_display_rotation_method_ = window_manager_class_.GetMethod("freezeDisplayRotation", "(IILjava/lang/String;)V");
         thaw_display_rotation_method_ = window_manager_class_.GetMethod("thawDisplayRotation", "(ILjava/lang/String;)V");
+        freeze_display_rotation_method_requires_attribution_tag_ = true;
+      } else if (Agent::feature_level() >= 34) {
+        freeze_display_rotation_method_ = window_manager_class_.FindMethod("freezeDisplayRotation", "(IILjava/lang/String;)V");
+        if (freeze_display_rotation_method_ == nullptr) {
+          freeze_display_rotation_method_ = window_manager_class_.GetMethod("freezeDisplayRotation", "(II)V");
+          thaw_display_rotation_method_ = window_manager_class_.GetMethod("thawDisplayRotation", "(I)V");
+        } else {
+          thaw_display_rotation_method_ = window_manager_class_.GetMethod("thawDisplayRotation", "(ILjava/lang/String;)V");
+          freeze_display_rotation_method_requires_attribution_tag_ = true;
+        }
       } else {
         freeze_display_rotation_method_ = window_manager_class_.GetMethod("freezeDisplayRotation", "(II)V");
         thaw_display_rotation_method_ = window_manager_class_.GetMethod("thawDisplayRotation", "(I)V");
@@ -65,7 +75,7 @@ void WindowManager::InitializeStatics(Jni jni) {
 void WindowManager::FreezeRotation(Jni jni, int32_t display_id, int32_t rotation) {
   Log::D("WindowManager::FreezeRotation(%d, %d)", display_id, rotation);
   InitializeStatics(jni);
-  if (Agent::feature_level() >= 35) {
+  if (freeze_display_rotation_method_requires_attribution_tag_) {
     window_manager_.CallVoidMethod(jni, freeze_display_rotation_method_, display_id, rotation, JString(jni, ATTRIBUTION_TAG).ref());
   } else if (Agent::feature_level() >= 29) {
     window_manager_.CallVoidMethod(jni, freeze_display_rotation_method_, display_id, rotation);
@@ -77,7 +87,7 @@ void WindowManager::FreezeRotation(Jni jni, int32_t display_id, int32_t rotation
 void WindowManager::ThawRotation(Jni jni, int32_t display_id) {
   Log::D("WindowManager::ThawRotation(%d)", display_id);
   InitializeStatics(jni);
-  if (Agent::feature_level() >= 35) {
+  if (freeze_display_rotation_method_requires_attribution_tag_) {
     window_manager_.CallVoidMethod(jni, thaw_display_rotation_method_, display_id, JString(jni, ATTRIBUTION_TAG).ref());
   } else if (Agent::feature_level() >= 29) {
     window_manager_.CallVoidMethod(jni, thaw_display_rotation_method_, display_id);
@@ -150,6 +160,7 @@ WindowManager::DisplayRotationTracker::DisplayRotationTracker() = default;
 JObject WindowManager::window_manager_;
 JClass WindowManager::window_manager_class_;
 jmethodID WindowManager::freeze_display_rotation_method_;
+bool WindowManager::freeze_display_rotation_method_requires_attribution_tag_ = false;
 jmethodID WindowManager::thaw_display_rotation_method_;
 jmethodID WindowManager::is_display_rotation_frozen_method_;
 JClass WindowManager::rotation_watcher_class_;

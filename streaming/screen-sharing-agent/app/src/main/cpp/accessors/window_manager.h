@@ -61,6 +61,7 @@ private:
   static JObject window_manager_;
   static JClass window_manager_class_;
   static jmethodID freeze_display_rotation_method_;
+  static bool freeze_display_rotation_method_requires_attribution_tag_;
   static jmethodID thaw_display_rotation_method_;
   static jmethodID is_display_rotation_frozen_method_;
   static jmethodID watch_rotation_method_;
