@@ -87,21 +87,23 @@ class IntellijProfilerServicesTest {
   @Test
   fun testGetTaskCpuProfilerConfigs() {
     val result = intellijProfilerServices.getTaskCpuProfilerConfigs(8)
-    assertThat(result.size).isEqualTo(4)
+    assertThat(result.size).isEqualTo(5)
     assertThat(result[0].name).isEqualTo("Callstack Sample")
     assertThat(result[1].name).isEqualTo("Java/Kotlin Method Trace")
     assertThat(result[2].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
     assertThat(result[3].name).isEqualTo("Native Allocations")
+    assertThat(result[4].name).isEqualTo("System Trace")
   }
 
   @Test
   fun testGetTaskCpuProfilerConfigsWhenProjectStateChanged() {
     val result = intellijProfilerServices.getTaskCpuProfilerConfigs(9)
-    assertThat(result.size).isEqualTo(4)
+    assertThat(result.size).isEqualTo(5)
     assertThat(result[0].name).isEqualTo("Callstack Sample")
     assertThat(result[1].name).isEqualTo("Java/Kotlin Method Trace")
     assertThat(result[2].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
     assertThat(result[3].name).isEqualTo("Native Allocations")
+    assertThat(result[4].name).isEqualTo("System Trace")
 
     val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
     configsToSave.add(CpuProfilerConfig("HelloTest1", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
@@ -125,11 +127,12 @@ class IntellijProfilerServicesTest {
     Disposer.register(disposableRule.disposable, intellijProfilerServicesNow)
     try {
       val result = intellijProfilerServicesNow.getTaskCpuProfilerConfigs(9)
-      assertThat(result.size).isEqualTo(4)
+      assertThat(result.size).isEqualTo(5)
       assertThat(result[0].name).isEqualTo("Callstack Sample")
       assertThat(result[1].name).isEqualTo("Java/Kotlin Method Trace")
       assertThat(result[2].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
       assertThat(result[3].name).isEqualTo("Native Allocations")
+      assertThat(result[4].name).isEqualTo("System Trace")
 
       // 2048 is default samplingRateBytes value for native memory
       assertEquals(intellijProfilerServicesNow.nativeAllocationsMemorySamplingRate, 2048)

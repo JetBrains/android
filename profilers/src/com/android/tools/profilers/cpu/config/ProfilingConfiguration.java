@@ -167,4 +167,12 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   public int hashCode() {
     return getOptions().hashCode();
   }
+
+  /***
+   * If configuration has attributes that are editable. If it doesn't have any attribute to edit, it will override to be false.
+   */
+  public boolean isEditable() {
+    // Default to true.
+    return true;
+  }
 }

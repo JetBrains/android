@@ -207,7 +207,10 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       if (isTaskBasedUxEnabled) {
         // Restore saved/default configurations
         for (ProfilingConfiguration configuration : myProfilerModel.getTaskProfilingConfigurations()) {
-          myConfigurationsModel.addElement(configuration);
+          // Exclude System Trace config from this list since it doesn't have any updatable attribute
+          if (configuration.isEditable()) {
+            myConfigurationsModel.addElement(configuration);
+          }
         }
       } else {
         // Restore saved configurations
@@ -328,6 +331,13 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       }
 
       if (isTaskBasedUxEnabled) {
+        for (ProfilingConfiguration configuration : myProfilerModel.getTaskProfilingConfigurations()) {
+          // For task based UX, though not displaying the non-editable task config (system trace) in task settings, yet it needs to be
+          // saved. If not, it will be skipped from recording options which shouldn't happen.
+          if (!configuration.isEditable()) {
+            configsToSave.add(CpuProfilerConfigConverter.fromProfilingConfiguration(configuration));
+          }
+        }
         CpuProfilerConfigsState.getInstance(myProject).setTaskConfigs(configsToSave);
       } else {
         CpuProfilerConfigsState.getInstance(myProject).setUserConfigs(configsToSave);

@@ -25,4 +25,6 @@ class PerfettoSystemTraceConfiguration(name: String, private val isTraceboxEnabl
   }
 
   override fun getRequiredDeviceLevel(): Int = if (isTraceboxEnabled) AndroidVersion.VersionCodes.M else AndroidVersion.VersionCodes.P
+
+  override fun isEditable(): Boolean = false
 }
