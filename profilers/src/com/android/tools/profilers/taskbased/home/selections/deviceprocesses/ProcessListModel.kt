@@ -19,12 +19,11 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.SupportLevel
 import com.google.common.annotations.VisibleForTesting
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
+class ProcessListModel(val profilers: StudioProfilers, private val resetTaskSelection: () -> Unit) : AspectObserver() {
   private val _deviceToProcesses = MutableStateFlow(mapOf<Common.Device, List<Common.Process>>())
   val deviceToProcesses = _deviceToProcesses.asStateFlow()
 
@@ -118,10 +117,12 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
   }
 
   fun onDeviceSelection(newDevice: Common.Device) {
+    resetTaskSelection()
     _selectedDevice.value = newDevice
   }
 
   fun onProcessSelection(newProcess: Common.Process) {
+    resetTaskSelection()
     _selectedProcess.value = newProcess
   }
 

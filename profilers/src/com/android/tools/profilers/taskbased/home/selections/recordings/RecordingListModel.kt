@@ -34,7 +34,8 @@ import kotlinx.coroutines.flow.asStateFlow
  * recordings as artifacts. This equivalence has precedence as imported files are converted to SessionItems in the Sessions-Based UX.
  */
 class RecordingListModel(val profilers: StudioProfilers,
-                         private val taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>) : AspectObserver() {
+                         private val taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
+                         private val resetTaskSelection: () -> Unit) : AspectObserver() {
   private val _recordingList = MutableStateFlow(listOf<SessionItem>())
   val recordingList = _recordingList.asStateFlow()
   private val _selectedRecording = MutableStateFlow<SessionItem?>(null)
@@ -46,6 +47,7 @@ class RecordingListModel(val profilers: StudioProfilers,
   }
 
   fun onRecordingSelection(newRecording: SessionItem?) {
+    resetTaskSelection()
     _selectedRecording.value = newRecording
   }
 

@@ -66,4 +66,17 @@ class PastRecordingsTabModelTest {
     pastRecordingsTabModel.recordingListModel.onRecordingSelection(sessionItem)
     Truth.assertThat(pastRecordingsTabModel.selectedRecording).isEqualTo(sessionItem)
   }
+
+  @Test
+  fun `test task type selection resets after recording selection`() {
+    pastRecordingsTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.SYSTEM_TRACE)
+    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
+
+    val session = Common.Session.getDefaultInstance()
+    val systemTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifact(myProfilers, session, 1L, 1L)
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, listOf(systemTraceArtifact))
+    pastRecordingsTabModel.recordingListModel.onRecordingSelection(sessionItem)
+
+    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
+  }
 }

@@ -71,7 +71,7 @@ class ProcessListTest {
       myTimer
     )
     myManager = myProfilers.sessionsManager
-    processListModel = ProcessListModel(myProfilers)
+    processListModel = ProcessListModel(myProfilers) {}
     ideProfilerServices.enableTaskBasedUx(true)
     assertThat(processListModel.deviceToProcesses.value).isEmpty()
     val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)

@@ -30,7 +30,7 @@ import com.google.common.annotations.VisibleForTesting
  */
 class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profilers) {
   @VisibleForTesting
-  val processListModel = ProcessListModel(profilers)
+  val processListModel = ProcessListModel(profilers, taskGridModel::resetTaskSelection)
 
   @VisibleForTesting
   val selectedDevice: Common.Device get() = processListModel.selectedDevice.value

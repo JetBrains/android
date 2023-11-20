@@ -28,7 +28,7 @@ import com.google.common.annotations.VisibleForTesting
  */
 class PastRecordingsTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profilers) {
   @VisibleForTesting
-  val recordingListModel = RecordingListModel(profilers, taskHandlers)
+  val recordingListModel = RecordingListModel(profilers, taskHandlers, taskGridModel::resetTaskSelection)
 
   @VisibleForTesting
   val selectedRecording get() = recordingListModel.selectedRecording.value

@@ -76,4 +76,26 @@ class TaskHomeTabModelTest {
     taskHomeTabModel.processListModel.onProcessSelection(process)
     assertThat(taskHomeTabModel.selectedProcess).isEqualTo(process)
   }
+
+  @Test
+  fun `test task type selection resets after device selection`() {
+    taskHomeTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.SYSTEM_TRACE)
+    assertThat(taskHomeTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
+
+    val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
+    taskHomeTabModel.processListModel.onDeviceSelection(device)
+
+    assertThat(taskHomeTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
+  }
+
+  @Test
+  fun `test task type selection resets after process selection`() {
+    taskHomeTabModel.taskGridModel.onTaskSelection(ProfilerTaskType.SYSTEM_TRACE)
+    assertThat(taskHomeTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
+
+    val process = createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, 0)
+    taskHomeTabModel.processListModel.onProcessSelection(process)
+
+    assertThat(taskHomeTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
+  }
 }
