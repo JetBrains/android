@@ -211,7 +211,6 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
            !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation());
   }
 
-
   private void updateTraceComponents() {
     myTraceProfileComboBox.setEnabled(myTraceGradleSyncCheckBox.isSelected());
     // Enable text field only if trace is enabled, and using profile from local disk.
@@ -230,26 +229,10 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
       return ApplyState.BLOCK;
     }
 
-    // In unit tests, don't compute whether a restart is necessary.
-    final Application app = ApplicationManager.getApplication();
-    if (app.isUnitTestMode()) {
-      return ApplyState.OK;
+    if (isTraceSettingsModified()) {
+      return ApplyState.RESTART;
     }
 
-    if (isTraceSettingsModified()) {
-      // Restart of studio is required to apply the changes, because the jvm args are specified at startup of studio.
-      boolean canRestart = app.isRestartCapable();
-      String okText = canRestart ? "Restart" : "Exit";
-      String message = "A restart of Android Studio is required to apply changes related to tracing.\n\n" +
-                       "Do you want to proceed?";
-      int result = Messages.showOkCancelDialog(message, "Restart", okText, "Cancel", Messages.getQuestionIcon());
-      if (result == Messages.OK) {
-        return ApplyState.RESTART;
-      }
-      else {
-        return ApplyState.BLOCK;
-      }
-    }
     return ApplyState.OK;
   }
 

@@ -21,11 +21,8 @@ import com.android.tools.idea.flags.ExperimentalSettingsContributor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.intellij.ide.BrowserUtil
-import com.intellij.ide.IdeBundle
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
 import java.awt.Component
@@ -44,9 +41,7 @@ const val STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL =
  * Class used to provide a [Configurable] to contribute to Android Studio Experimental Settings
  * panel.
  */
-class LayoutInspectorConfigurableContributor(
-  private val showRestartAndroidStudioDialog: () -> Boolean = { showRestartStudioDialog() }
-) : ExperimentalSettingsContributor {
+class LayoutInspectorConfigurableContributor : ExperimentalSettingsContributor {
 
   override fun getName(): String {
     return LayoutInspectorBundle.message("layout.inspector")
@@ -58,12 +53,11 @@ class LayoutInspectorConfigurableContributor(
   }
 
   override fun createConfigurable(project: Project): ExperimentalConfigurable {
-    return LayoutInspectorConfigurable(showRestartAndroidStudioDialog)
+    return LayoutInspectorConfigurable()
   }
 }
 
-class LayoutInspectorConfigurable(private val showRestartAndroidStudioDialog: () -> Boolean) :
-  ExperimentalConfigurable {
+class LayoutInspectorConfigurable() : ExperimentalConfigurable {
   private val component: JPanel = JPanel()
   private val enableAutoConnectCheckBox =
     JBCheckBox(LayoutInspectorBundle.message("enable.auto.connect"))
@@ -115,15 +109,11 @@ class LayoutInspectorConfigurable(private val showRestartAndroidStudioDialog: ()
   override fun isModified() =
     autoConnectSettingControl.isModified || embeddedLayoutInspectorSettingControl.isModified
 
-  override fun preApplyCallback(): ApplyState {
-    if (isModified()) {
-      return when (showRestartAndroidStudioDialog()) {
-        true -> ApplyState.RESTART
-        false -> ApplyState.BLOCK
-      }
+  override fun preApplyCallback(): ApplyState =
+    when {
+      isModified() -> ApplyState.RESTART // each setting requires a restart
+      else -> ApplyState.OK
     }
-    return ApplyState.OK
-  }
 
   override fun apply() {
     autoConnectSettingControl.apply()
@@ -157,23 +147,4 @@ private class ToggleSettingController(val checkBox: JCheckBox, val setting: Sett
   fun reset() {
     checkBox.isSelected = setting.getValue()
   }
-}
-
-private fun showRestartStudioDialog(): Boolean {
-  val action =
-    if (ApplicationManager.getApplication().isRestartCapable) {
-      IdeBundle.message("ide.restart.action")
-    } else {
-      IdeBundle.message("ide.shutdown.action")
-    }
-  val result =
-    Messages.showYesNoDialog(
-      LayoutInspectorBundle.message("dialog.message.must.be.restarted.for.changes.to.take.effect"),
-      IdeBundle.message("dialog.title.restart.required"),
-      action,
-      IdeBundle.message("ide.notnow.action"),
-      Messages.getQuestionIcon()
-    )
-
-  return result == Messages.YES
 }

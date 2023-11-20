@@ -66,12 +66,7 @@ class LayoutInspectorConfigurableContributorTest {
 
   @Test
   fun testConfigurableSettingAutoConnectInteraction() = withAutoConnect {
-    var restartStudio = true
-    var restartDialogShown = false
-    val contributor = LayoutInspectorConfigurableContributor {
-      restartDialogShown = true
-      restartStudio
-    }
+    val contributor = LayoutInspectorConfigurableContributor()
     val configurable = contributor.createConfigurable(projectRule.project)
     val enableAutoConnectCheckBox = configurable.createComponent()!!.getComponent(0) as JBCheckBox
 
@@ -80,7 +75,6 @@ class LayoutInspectorConfigurableContributorTest {
     assertThat(enableAutoConnect).isTrue()
     assertThat(enableAutoConnectCheckBox.isSelected).isTrue()
     assertThat(configurable.preApplyCallback()).isEqualTo(ApplyState.OK)
-    assertThat(restartDialogShown).isFalse()
 
     // uncheck the checkbox
     enableAutoConnectCheckBox.isSelected = false
@@ -90,7 +84,6 @@ class LayoutInspectorConfigurableContributorTest {
 
     // store setting from swing to configurable
     assertThat(configurable.preApplyCallback()).isEqualTo(ApplyState.RESTART)
-    assertThat(restartDialogShown).isTrue()
     configurable.apply()
     assertThat(configurable.isModified).isFalse()
     assertThat(enableAutoConnectCheckBox.isSelected).isFalse()
@@ -108,18 +101,14 @@ class LayoutInspectorConfigurableContributorTest {
     assertThat(enableAutoConnect).isTrue()
     assertThat(enableAutoConnectCheckBox.isSelected).isTrue()
 
-    restartStudio = false
-    restartDialogShown = false
-
     // uncheck the checkbox
     enableAutoConnectCheckBox.isSelected = false
 
     assertThat(configurable.isModified).isTrue()
     assertThat(enableAutoConnect).isTrue()
 
-    // the settings should block because studio is not restarted
-    assertThat(configurable.preApplyCallback()).isEqualTo(ApplyState.BLOCK)
-    assertThat(restartDialogShown).isTrue()
+    // the changed settings should request a restart
+    assertThat(configurable.preApplyCallback()).isEqualTo(ApplyState.RESTART)
   }
 
   @Test
@@ -127,12 +116,7 @@ class LayoutInspectorConfigurableContributorTest {
     val previous = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
     StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(true)
 
-    var restartStudio = true
-    var restartDialogShown = false
-    val contributor = LayoutInspectorConfigurableContributor {
-      restartDialogShown = true
-      restartStudio
-    }
+    val contributor = LayoutInspectorConfigurableContributor()
     val configurable = contributor.createConfigurable(projectRule.project)
     val enableEmbeddedLiPanel = configurable.createComponent()!!.getComponent(1) as JPanel
     val enableEmbeddedLiCheckBox = enableEmbeddedLiPanel.components.first() as JCheckBox
@@ -146,7 +130,6 @@ class LayoutInspectorConfigurableContributorTest {
     assertThat(enableEmbeddedLayoutInspector).isTrue()
     assertThat(enableEmbeddedLiCheckBox.isSelected).isTrue()
     assertThat(configurable.preApplyCallback()).isEqualTo(ApplyState.OK)
-    assertThat(restartDialogShown).isFalse()
 
     // uncheck the checkbox
     enableEmbeddedLiCheckBox.isSelected = false
@@ -156,7 +139,6 @@ class LayoutInspectorConfigurableContributorTest {
 
     // store setting from swing to configurable
     assertThat(configurable.preApplyCallback()).isEqualTo(ApplyState.RESTART)
-    assertThat(restartDialogShown).isTrue()
     configurable.apply()
     assertThat(configurable.isModified).isFalse()
     assertThat(enableEmbeddedLiCheckBox.isSelected).isFalse()
@@ -174,18 +156,14 @@ class LayoutInspectorConfigurableContributorTest {
     assertThat(enableEmbeddedLayoutInspector).isTrue()
     assertThat(enableEmbeddedLiCheckBox.isSelected).isTrue()
 
-    restartStudio = false
-    restartDialogShown = false
-
     // uncheck the checkbox
     enableEmbeddedLiCheckBox.isSelected = false
 
     assertThat(configurable.isModified).isTrue()
     assertThat(enableEmbeddedLayoutInspector).isTrue()
 
-    // the settings should block because studio is not restarted
-    assertThat(configurable.preApplyCallback()).isEqualTo(ApplyState.BLOCK)
-    assertThat(restartDialogShown).isTrue()
+    // the changed settings should request a restart
+    assertThat(configurable.preApplyCallback()).isEqualTo(ApplyState.RESTART)
 
     StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(previous)
   }
