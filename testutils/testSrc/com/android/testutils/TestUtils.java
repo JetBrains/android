@@ -699,6 +699,24 @@ public class TestUtils {
     return Paths.get(SystemProperties.getJavaHome());
   }
 
+  public static Path getEmbeddedJdk11Path() {
+    if (System.getenv("JDK_11_0") != null) {
+      Path jdkPath = Paths.get(System.getenv("JDK_11_0"));
+      if (Files.isDirectory(jdkPath)) {
+        return jdkPath;
+      }
+      else {
+        Logger.getInstance(TestUtils.class).warn("Ignore env.JDK_11_0 because it is not a directory: " + jdkPath);
+      }
+    }
+
+    Path jdk11Path = findInDownloadedJdks("corretto-11.");
+    if (jdk11Path != null) return jdk11Path;
+
+    assert Runtime.version().feature() == 11 : "To continue we need to know where JDK_11 is. env.JDK_11_0 didn't work.";
+    return Paths.get(SystemProperties.getJavaHome());
+  }
+
   @NonNull
   public static String getLatestAndroidPlatform() {
     return "android-33";
