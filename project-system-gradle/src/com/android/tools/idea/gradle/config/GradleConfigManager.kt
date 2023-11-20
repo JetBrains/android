@@ -51,6 +51,8 @@ object GradleConfigManager {
       add(GradleDefaultJdkPathStore.jdkPath)
       if (IdeInfo.getInstance().isAndroidStudio) {
         add(IdeSdks.getInstance().embeddedJdkPath.toString())
+      } else {
+        IdeSdks.getInstance().jdkPath?.let { add(it.toString()) }
       }
     }.filterNotNull()
   }
