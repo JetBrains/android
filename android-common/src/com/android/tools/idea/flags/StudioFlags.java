@@ -1049,12 +1049,14 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> COMPOSE_STATE_READ_INLAY_HINTS_ENABLED = Flag.create(
+  public static final Flag<Boolean> COMPOSE_STATE_READ_INLAY_HINTS_ENABLED = new BooleanFlag(
     EDITOR, "compose.state.read.inlay.hints.enabled",
     "Enable inlay hints for State reads in @Composable functions",
     "If enabled, calls out reads of variables of type State inside @Composable functions.",
-    false
-  );
+    ChannelDefault.of(false)
+      .withDevOverride(true)
+      .withNightlyOverride(true)
+      .withCanaryOverride(true));
 
   public static final Flag<Boolean> RENDER_DRAWABLES_IN_AUTOCOMPLETE_ENABLED = Flag.create(
     EDITOR, "render.drawables.in.autocomplete.enabled",

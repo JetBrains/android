@@ -5,6 +5,14 @@
     <option name="compose" hit="Calls to @Compose functions" />
     <option name="functions" hit="Calls to @Compose functions" />
     <option name="to" hit="Calls to @Compose functions" />
+    <option name="composable" hit="Highlighted @Composable scopes" />
+    <option name="highlighted" hit="Highlighted @Composable scopes" />
+    <option name="scopes" hit="Highlighted @Composable scopes" />
+    <option name="composable" hit="State Reads in @Composable scopes" />
+    <option name="in" hit="State Reads in @Composable scopes" />
+    <option name="reads" hit="State Reads in @Composable scopes" />
+    <option name="scopes" hit="State Reads in @Composable scopes" />
+    <option name="state" hit="State Reads in @Composable scopes" />
   </configurable>
   <configurable id="debugger.stepping" configurable_name="Stepping">
     <option name="compose" hit="Compose" />
