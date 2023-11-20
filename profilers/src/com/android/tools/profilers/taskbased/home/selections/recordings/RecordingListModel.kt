@@ -56,7 +56,7 @@ class RecordingListModel(val profilers: StudioProfilers,
   val exportableArtifact get() = if (isSelectedRecordingExportable()) selectedRecording.value!!.getChildArtifacts().first() else null
 
   private fun sessionItemsUpdated() {
-    val sessionItems = profilers.sessionsManager.sessionArtifacts.filterIsInstance<SessionItem>()
+    val sessionItems = profilers.sessionsManager.sessionArtifacts.filterIsInstance<SessionItem>().filter { !it.isOngoing }
     val newRecordingList = mutableListOf<SessionItem>()
     newRecordingList.addAll(sessionItems)
     _recordingList.value = newRecordingList

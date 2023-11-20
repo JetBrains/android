@@ -260,10 +260,38 @@ class RecordingListModelTest {
     assertThat(recordingListModel.isSelectedRecordingExportable()).isFalse()
   }
 
-  private fun startAndStopSession(device: Common.Device, process: Common.Process, taskType: Common.ProfilerTaskType) {
-    myManager.beginSession(1, device, process, taskType)
+  @Test
+  fun `ongoing recording does not show up in recording list`() {
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+
+    // Check the recording list to make sure the recordings/SessionItems are empty.
+    var recordingList = recordingListModel.recordingList.value.toList()
+    assertThat(recordingList.isEmpty()).isTrue()
+
+    val sessionTimestamp = 1L
+    myTimer.currentTimeNs = sessionTimestamp
+    // Start a session but do not end it, simulating an ongoing task.
+    startSession(device, process, Common.ProfilerTaskType.SYSTEM_TRACE)
+    val session1 = myManager.selectedSession
+    val heapDumpInfo = Memory.HeapDumpInfo.newBuilder().setStartTime(10L).setEndTime(Long.MAX_VALUE).build()
+    val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(sessionTimestamp, sessionTimestamp, heapDumpInfo)
+    myTransportService.addEventToStream(device.deviceId, heapDumpEvent.setPid(session1.pid).build())
     myManager.update()
+
+    // Because the session/task is still ongoing, it should be filtered out of the recording list.
+    recordingList = recordingListModel.recordingList.value.toList()
+    assertThat(recordingList.size).isEqualTo(0)
+  }
+
+  private fun startAndStopSession(device: Common.Device, process: Common.Process, taskType: Common.ProfilerTaskType) {
+    startSession(device, process, taskType)
     myManager.endCurrentSession()
+    myManager.update()
+  }
+
+  private fun startSession(device: Common.Device, process: Common.Process, taskType: Common.ProfilerTaskType) {
+    myManager.beginSession(1, device, process, taskType)
     myManager.update()
   }
 }
