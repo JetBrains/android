@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
+import com.android.tools.idea.flags.ExperimentalSettingsConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.intellij.facet.ProjectFacetManager
@@ -73,7 +73,7 @@ class ShowLayoutInspectorAction :
         override fun actionPerformed(e: AnActionEvent, notification: Notification) {
           notification.expire()
           ShowSettingsUtil.getInstance()
-            .showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
+            .showSettingsDialog(project, ExperimentalSettingsConfigurable::class.java)
         }
       }
     )

@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.flags.ExperimentalSettingsConfigurable
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
@@ -24,7 +25,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.runningdevices.actions.EMBEDDED_LAYOUT_INSPECTOR_MIN_API
 import com.android.tools.idea.layoutinspector.runningdevices.getRunningDevicesExistingTabsDeviceSerialNumber
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
@@ -204,7 +204,7 @@ private fun showTryEmbeddedLayoutInspectorBanner(
           },
           StatusNotificationAction(LayoutInspectorBundle.message("turn.on")) {
             ShowSettingsUtil.getInstance()
-              .showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
+              .showSettingsDialog(project, ExperimentalSettingsConfigurable::class.java)
           }
         )
     )

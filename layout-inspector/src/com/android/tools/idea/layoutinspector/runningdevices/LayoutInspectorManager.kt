@@ -16,13 +16,13 @@
 package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.flags.ExperimentalSettingsConfigurable
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.AbstractDisplayView
@@ -349,7 +349,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
             },
             StatusNotificationAction(LayoutInspectorBundle.message("opt.out")) {
               ShowSettingsUtil.getInstance()
-                .showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
+                .showSettingsDialog(project, ExperimentalSettingsConfigurable::class.java)
             },
           )
       )
