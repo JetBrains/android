@@ -20,10 +20,10 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.psi.PsiFile
+import com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys.MODULE
 import icons.StudioIcons
 import java.util.UUID
-import org.jetbrains.android.facet.AndroidFacet
 
 private const val MAX_CUSTOM_CONFIGURATION_NUMBER = 12
 private const val ENABLED_TEXT = "Add configuration"
@@ -31,7 +31,7 @@ private const val DISABLED_TEXT =
   "Cannot add more than $MAX_CUSTOM_CONFIGURATION_NUMBER configurations"
 
 /** Action for adding custom set in Validation Tool. */
-class AddCustomConfigurationSetAction(private val onAdd: (String) -> Unit) : AnAction() {
+class AddCustomConfigurationSetAction : AnAction() {
 
   init {
     templatePresentation.text = "Add a New Custom Category"
@@ -56,7 +56,12 @@ class AddCustomConfigurationSetAction(private val onAdd: (String) -> Unit) : AnA
       val createdConfigSet = CustomConfigurationSet(customSetName, emptyList())
       VisualizationUtil.setCustomConfigurationSet(id, createdConfigSet)
       dialog.close()
-      onAdd(id)
+      val newConfigurationSet =
+        ConfigurationSetProvider.getConfigurationSets().firstOrNull { it.id == id }
+      if (newConfigurationSet != null) {
+        e.getData(VisualizationForm.VISUALIZATION_FORM)
+          ?.onSelectedConfigurationSetChanged(newConfigurationSet)
+      }
     }
     val owner = e.inputEvent!!.component
     val location = owner.locationOnScreen
@@ -66,10 +71,8 @@ class AddCustomConfigurationSetAction(private val onAdd: (String) -> Unit) : AnA
   }
 }
 
-class RemoveCustomConfigurationSetAction(
-  val configurationSet: ConfigurationSet,
-  private val onRemove: () -> Unit
-) : AnAction(AllIcons.Actions.GC) {
+class RemoveCustomConfigurationSetAction(private val configurationSet: ConfigurationSet) :
+  AnAction(AllIcons.Actions.GC) {
   init {
     templatePresentation.text = "Delete This Category"
     templatePresentation.description = "Delete the current custom custom category"
@@ -84,7 +87,8 @@ class RemoveCustomConfigurationSetAction(
   override fun actionPerformed(e: AnActionEvent) {
     val idToRemove = configurationSet.id
     VisualizationUtil.setCustomConfigurationSet(idToRemove, null)
-    onRemove()
+    e.getData(VisualizationForm.VISUALIZATION_FORM)
+      ?.onSelectedConfigurationSetChanged(ConfigurationSetProvider.defaultSet)
   }
 }
 
@@ -93,11 +97,8 @@ class RemoveCustomConfigurationSetAction(
  * implementation is showing [CustomConfigurationAttributeCreationPalette] as a popup dialog and add
  * the configuration picked from it.
  */
-class AddCustomConfigurationAction(
-  private val file: PsiFile,
-  private val facet: AndroidFacet,
-  private val provider: CustomModelsProvider
-) : AnAction(StudioIcons.NavEditor.Toolbar.ADD_DESTINATION) {
+class AddCustomConfigurationAction(private val provider: CustomModelsProvider) :
+  AnAction(StudioIcons.NavEditor.Toolbar.ADD_DESTINATION) {
 
   init {
     templatePresentation.text = getDisplayText()
@@ -115,8 +116,10 @@ class AddCustomConfigurationAction(
   override fun actionPerformed(e: AnActionEvent) {
     val dialog = LightCalloutPopup()
 
+    val file = e.getData(VIRTUAL_FILE) ?: return
+    val module = e.getData(MODULE) ?: return
     val content =
-      CustomConfigurationAttributeCreationPalette(file, facet) { attributes ->
+      CustomConfigurationAttributeCreationPalette(file, module) { attributes ->
         provider.addCustomConfigurationAttributes(attributes)
         dialog.close()
       }

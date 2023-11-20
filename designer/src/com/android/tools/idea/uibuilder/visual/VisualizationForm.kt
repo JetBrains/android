@@ -25,6 +25,7 @@ import com.android.tools.adtui.common.border
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.editor.PanZoomListener
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlModel
@@ -42,7 +43,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableConte
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
-import com.android.tools.idea.uibuilder.visual.ConfigurationSetProvider.getConfigurationSets
 import com.android.tools.idea.uibuilder.visual.analytics.trackOpenConfigSet
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
@@ -52,6 +52,8 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ApplicationManager
@@ -78,7 +80,6 @@ import java.awt.event.AdjustmentEvent
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
-import java.util.stream.Collectors
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -182,6 +183,13 @@ class VisualizationForm(
         .setLayoutManager(surfaceLayoutManager)
         .setMaxScale(4.0)
         .setSupportedActions(VISUALIZATION_SUPPORTED_ACTIONS)
+        .setDelegateDataProvider {
+          when {
+            VIRTUAL_FILE.`is`(it) -> myFile
+            VISUALIZATION_FORM.`is`(it) -> this
+            else -> null
+          }
+        }
         .build()
     surface.setSceneViewAlignment(DesignSurface.SceneViewAlignment.LEFT)
     surface.addPanZoomListener(this)
@@ -228,35 +236,14 @@ class VisualizationForm(
     // Add an empty action and disable it permanently for displaying file name.
     group.add(TextLabelAction(fileName))
     group.addSeparator()
-    group.add(DefaultActionGroup(ConfigurationSetMenuAction(this, myCurrentConfigurationSet)))
-    if (virtualFile != null) {
-      PsiManager.getInstance(project).findFile(virtualFile)?.let { psiFile ->
-        AndroidFacet.getInstance(psiFile)?.let { facet ->
-          group.addAll(myCurrentModelsProvider.createActions(psiFile, facet))
-        }
-      }
-    }
+    group.add(ConfigurationSetMenuAction(myCurrentConfigurationSet))
+    group.addAll(myCurrentModelsProvider.createActions())
     val viewOptions = DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE)
     viewOptions.add(ToggleShowDecorationAction())
     viewOptions.isPopup = true
     group.add(viewOptions)
-    group.add(
-      AddCustomConfigurationSetAction { createdConfigSetId: String ->
-        val configurationSets =
-          getConfigurationSets()
-            .stream()
-            .filter { set: ConfigurationSet -> createdConfigSetId == set.id }
-            .collect(Collectors.toList())
-        if (configurationSets.isNotEmpty()) {
-          onSelectedConfigurationSetChanged(configurationSets[0])
-        }
-      }
-    )
-    group.add(
-      RemoveCustomConfigurationSetAction(myCurrentConfigurationSet) {
-        onSelectedConfigurationSetChanged(ConfigurationSetProvider.defaultSet)
-      }
-    )
+    group.add(AddCustomConfigurationSetAction())
+    group.add(RemoveCustomConfigurationSetAction(myCurrentConfigurationSet))
     // Use ActionPlaces.EDITOR_TOOLBAR as place to update the ui when appearance is changed.
     // In IJ's implementation, only the actions in ActionPlaces.EDITOR_TOOLBAR toolbar will be
     // tweaked when ui is changed.
@@ -714,15 +701,19 @@ class VisualizationForm(
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       VisualizationToolSettings.getInstance().globalState.showDecoration = state
+      val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface ?: return
+      val visualizationForm = e.getData(VISUALIZATION_FORM) ?: return
       surface.models
         .mapNotNull { model: NlModel -> surface.getSceneManager(model) }
         .forEach { manager -> manager.setShowDecorations(state) }
       surface.requestRender().thenRun {
-        if (!Disposer.isDisposed(myWorkBench)) {
-          myWorkBench.showContent()
+        if (!Disposer.isDisposed(visualizationForm.myWorkBench)) {
+          visualizationForm.myWorkBench.showContent()
         }
       }
     }
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
   }
 
   private class VisualizationTraversalPolicy(private val mySurface: DesignSurface<*>) :
@@ -750,5 +741,8 @@ class VisualizationForm(
 
     /** vertical gap between different previews */
     @SwingCoordinate private val VERTICAL_SCREEN_DELTA = 48
+
+    @JvmField
+    val VISUALIZATION_FORM = DataKey.create<VisualizationForm>(VisualizationForm::class.java.name)
   }
 }

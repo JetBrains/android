@@ -41,7 +41,7 @@ class ConfigurationSetMenuActionTest : AndroidTestCase() {
   fun testActions() {
     val menuGroups = ConfigurationSetProvider.getGroupedConfigurationSets()
     val firstOption = menuGroups.firstOrNull()?.firstOrNull() ?: return
-    val menuAction = ConfigurationSetMenuAction(form, firstOption)
+    val menuAction = ConfigurationSetMenuAction(firstOption)
     // Call update(AnActionEvent) for updating text of menuAction.
     menuAction.update(
       createTestActionEvent(menuAction, dataContext = Mockito.mock(DataContext::class.java))

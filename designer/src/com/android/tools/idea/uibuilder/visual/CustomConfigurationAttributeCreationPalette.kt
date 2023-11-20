@@ -33,7 +33,8 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.editors.theme.ThemeResolver
-import com.intellij.psi.PsiFile
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
@@ -50,7 +51,6 @@ import javax.swing.JComponent
 import javax.swing.JSeparator
 import javax.swing.border.Border
 import javax.swing.event.DocumentEvent
-import org.jetbrains.android.facet.AndroidFacet
 
 private const val PALETTE_TITLE = "ADD NEW CONFIGURATION"
 
@@ -64,8 +64,8 @@ private const val FIELD_VERTICAL_BORDER = 3
  * created the [createdCallback] is triggered.
  */
 class CustomConfigurationAttributeCreationPalette(
-  private val file: PsiFile,
-  private val facet: AndroidFacet,
+  private val file: VirtualFile,
+  private val module: Module,
   private val createdCallback: (CustomConfigurationAttribute) -> Unit
 ) : AdtPrimaryPanel(BorderLayout()) {
 
@@ -172,7 +172,7 @@ class CustomConfigurationAttributeCreationPalette(
 
     val groupedDevices =
       groupDevices(
-        ConfigurationManager.getOrCreateInstance(facet.module).devices.filter { !it.isDeprecated }
+        ConfigurationManager.getOrCreateInstance(module).devices.filter { !it.isDeprecated }
       )
     val devices =
       groupedDevices
@@ -191,7 +191,7 @@ class CustomConfigurationAttributeCreationPalette(
 
   private fun createApiOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    val apiLevels = ConfigurationManager.getOrCreateInstance(facet.module).targets.reversed()
+    val apiLevels = ConfigurationManager.getOrCreateInstance(module).targets.reversed()
     if (apiLevels.isEmpty()) {
       val noApiLevelLabel = JBLabel("No available API Level")
       panel.add(noApiLevelLabel, BorderLayout.CENTER)
@@ -225,8 +225,7 @@ class CustomConfigurationAttributeCreationPalette(
   private fun createLocaleOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
 
-    val locales =
-      listOf(null) + ConfigurationManager.getOrCreateInstance(facet.module).localesInProject
+    val locales = listOf(null) + ConfigurationManager.getOrCreateInstance(module).localesInProject
     val boxModel =
       MyComboBoxModel(
         locales,
@@ -247,9 +246,7 @@ class CustomConfigurationAttributeCreationPalette(
     val panel = AdtPrimaryPanel(BorderLayout())
 
     val themeResolver =
-      ThemeResolver(
-        ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(file.virtualFile)
-      )
+      ThemeResolver(ConfigurationManager.getOrCreateInstance(module).getConfiguration(file))
     val filter = createFilter(themeResolver, emptySet())
 
     val projectTheme = getProjectThemeNames(themeResolver, filter)

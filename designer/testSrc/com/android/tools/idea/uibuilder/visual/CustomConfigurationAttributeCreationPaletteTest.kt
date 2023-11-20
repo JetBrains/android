@@ -45,7 +45,9 @@ class CustomConfigurationAttributeCreationPaletteTest : LayoutTestCase() {
     val mockedConsumer = Mockito.mock(MyConsumer::class.java)
 
     val palette =
-      CustomConfigurationAttributeCreationPalette(file, myFacet) { mockedConsumer.accept(it.name) }
+      CustomConfigurationAttributeCreationPalette(file.virtualFile, myModule) {
+        mockedConsumer.accept(it.name)
+      }
 
     val addButton =
       (palette.components[2] as JPanel).components.filterIsInstance<JButton>().first {

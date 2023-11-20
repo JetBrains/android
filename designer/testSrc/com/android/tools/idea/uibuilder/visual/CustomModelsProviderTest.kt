@@ -48,7 +48,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val modelsProvider =
       CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
-    val actions = modelsProvider.createActions(file, myFacet).getChildren(null)
+    val actions = modelsProvider.createActions().getChildren(null)
 
     assertSize(1, actions)
     assertTrue(actions[0] is AddCustomConfigurationAction)

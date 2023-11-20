@@ -115,8 +115,8 @@ class CustomModelsProvider(
     configurationSetListener.onCurrentConfigurationSetUpdated()
   }
 
-  override fun createActions(file: PsiFile, facet: AndroidFacet): ActionGroup {
-    val addAction = AddCustomConfigurationAction(file, facet, this)
+  override fun createActions(): ActionGroup {
+    val addAction = AddCustomConfigurationAction(this)
     return DefaultActionGroup(addAction)
   }
 
