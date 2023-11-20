@@ -6,9 +6,7 @@
     <option name="streaming" path="ActionManager" hit="Configure Device Streaming Project" />
     <option name="text" path="ActionManager" hit="text" />
   </configurable>
-  <configurable id="device.streaming" configurable_name="Device Streaming">
-    <option name="device" hit="Device Streaming" />
-    <option name="streaming" hit="Device Streaming" />
+  <configurable id="experimental" configurable_name="Experimental">
     <option name="device" hit="Enable Device Streaming" />
     <option name="enable" hit="Enable Device Streaming" />
     <option name="streaming" hit="Enable Device Streaming" />
