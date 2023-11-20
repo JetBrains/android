@@ -24,6 +24,7 @@ import com.intellij.execution.filters.FileHyperlinkInfo
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.fileEditor.FileNavigator
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.search.GlobalSearchScope
@@ -99,19 +100,19 @@ class SdkSourceRedirectLinkInfoTest {
 
   @Test
   fun navigate_multipleFiles_selectFile1() {
-    val file1 = getNonSdkFile("Foo.java")
-    val file2 = getNonSdkFile("Bar.java")
+    val file1 = getNonSdkFile("Foo.java").virtualFile
+    val file2 = getNonSdkFile("Bar.java").virtualFile
     val info =
       SdkSourceRedirectLinkInfo(
         project,
-        listOf(file1.virtualFile, file2.virtualFile),
-        OpenFileDescriptor(project, file1.virtualFile, 1, 0),
+        listOf(file1, file2),
+        OpenFileDescriptor(project, file1, 1, 0),
         27,
       )
 
     info.navigate(project)
 
-    val popup = popupRule.fakePopupFactory.getPopup<PsiFile>(0)
+    val popup = popupRule.fakePopupFactory.getPopup<VirtualFile>(0)
     assertThat(popup.items).containsExactly(file1, file2).inOrder()
     popup.selectItem(file1)
     assertThat(fakeFileNavigator.navigationRequests)
@@ -122,19 +123,19 @@ class SdkSourceRedirectLinkInfoTest {
 
   @Test
   fun navigate_multipleFiles_selectFile2() {
-    val file1 = getNonSdkFile("Foo.java")
-    val file2 = getNonSdkFile("Bar.java")
+    val file1 = getNonSdkFile("Foo.java").virtualFile
+    val file2 = getNonSdkFile("Bar.java").virtualFile
     val info =
       SdkSourceRedirectLinkInfo(
         project,
-        listOf(file1.virtualFile, file2.virtualFile),
-        OpenFileDescriptor(project, file1.virtualFile, 1, 0),
+        listOf(file1, file2),
+        OpenFileDescriptor(project, file1, 1, 0),
         27
       )
 
     info.navigate(project)
 
-    val popup = popupRule.fakePopupFactory.getPopup<PsiFile>(0)
+    val popup = popupRule.fakePopupFactory.getPopup<VirtualFile>(0)
     assertThat(popup.items).containsExactly(file1, file2).inOrder()
     popup.selectItem(file2)
     assertThat(fakeFileNavigator.navigationRequests)

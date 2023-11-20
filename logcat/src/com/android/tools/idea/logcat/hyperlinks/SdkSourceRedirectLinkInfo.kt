@@ -54,10 +54,16 @@ internal class SdkSourceRedirectLinkInfo(
   }
 
   private fun openFileChooser(
-    files: List<PsiFile>,
+    psiFiles: List<PsiFile>,
     descriptor: OpenFileDescriptor,
     hyperlinkLocationPoint: RelativePoint?
   ) {
+    // `JBPopupFactory.createPopupChooserBuilder()` doesn't want to accept PsiFiles and suggests we
+    // use `PsiTargetNavigator` but that service doesn't seem to support specifying a navigation
+    // offset (line number). So instead, we still use `JBPopupFactory.createPopupChooserBuilder()`
+    // but with the underlying VirtualFile instead.
+    val files = psiFiles.map { it.virtualFile }
+    val map = psiFiles.associateBy { it.virtualFile }
     val frame = WindowManager.getInstance().getFrame(project)
     val width = frame?.size?.width ?: 200
     val popup =
@@ -65,8 +71,8 @@ internal class SdkSourceRedirectLinkInfo(
         .createPopupChooserBuilder(files)
         .setRenderer(GotoFileCellRenderer(width))
         .setTitle(ExecutionBundle.message("popup.title.choose.target.file"))
-        .setItemChosenCallback { file: PsiFile ->
-          openFile(file, descriptor.withFile(file.virtualFile))
+        .setItemChosenCallback { file: VirtualFile ->
+          openFile(map.getValue(file), descriptor.withFile(file))
         }
         .createPopup()
     if (hyperlinkLocationPoint != null) {
