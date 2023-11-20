@@ -18,9 +18,8 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.uibuilder.visual.VisualizationForm.Companion.VISUALIZATION_FORM
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import icons.StudioIcons
+import com.intellij.openapi.actionSystem.ToggleAction
 
 /** The dropdown action used to choose the configuration set in visualization tool. */
 class ConfigurationSetMenuAction(defaultSet: ConfigurationSet) :
@@ -49,22 +48,15 @@ class ConfigurationSetMenuAction(defaultSet: ConfigurationSet) :
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   private inner class SetConfigurationSetAction(private val configurationSet: ConfigurationSet) :
-    AnAction(
-      configurationSet.name,
-      "Set configuration set to ${configurationSet.name}",
-      if (currentConfigurationSet === configurationSet) StudioIcons.Common.CHECKED else null
-    ) {
+    ToggleAction(configurationSet.name, "Set configuration set to ${configurationSet.name}", null) {
 
-    override fun actionPerformed(e: AnActionEvent) {
-      if (configurationSet !== currentConfigurationSet) {
+    override fun isSelected(e: AnActionEvent) = currentConfigurationSet.id === configurationSet.id
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      if (state && configurationSet !== currentConfigurationSet) {
         currentConfigurationSet = configurationSet
         e.getData(VISUALIZATION_FORM)?.onSelectedConfigurationSetChanged(configurationSet)
       }
-    }
-
-    override fun update(e: AnActionEvent) {
-      e.presentation.icon =
-        if (currentConfigurationSet.id === configurationSet.id) StudioIcons.Common.CHECKED else null
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

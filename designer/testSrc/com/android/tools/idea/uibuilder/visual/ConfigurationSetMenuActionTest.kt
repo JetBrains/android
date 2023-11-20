@@ -59,7 +59,13 @@ class ConfigurationSetMenuActionTest : AndroidTestCase() {
         builder.append("    $SEPARATOR_TEXT\n")
       }
       val groupItems = group.filter { it.visible }
-      groupItems.forEach { builder.append("    ${it.name}\n") }
+      groupItems.forEach {
+        if (it == firstOption) {
+          builder.append("    ✔ ${it.name}\n")
+        } else {
+          builder.append("    ${it.name}\n")
+        }
+      }
       isPreviousGroupEmpty = groupItems.isEmpty()
     }
 
