@@ -33,11 +33,15 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.wm.impl.content.BaseLabel
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import javax.swing.BorderFactory
+import javax.swing.Box
+import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 
 const val LAYOUT_INSPECTOR_MAIN_TOOLBAR = "LayoutInspector.MainToolbar"
 const val EMBEDDED_LAYOUT_INSPECTOR_TOOLBAR = "EmbeddedLayoutInspector.Toolbar"
@@ -53,23 +57,37 @@ fun createEmbeddedLayoutInspectorToolbar(
   selectProcessAction: AnAction?,
   extraActions: List<AnAction> = emptyList()
 ): JPanel {
-  val panel = BorderLayoutPanel()
-  val toolbarActions =
+  val actionToolbar =
     createStandaloneLayoutInspectorToolbar(
       targetComponent,
       layoutInspector,
       selectProcessAction,
       extraActions
     )
+  actionToolbar.layoutPolicy = ActionToolbar.AUTO_LAYOUT_POLICY
+  actionToolbar.setReservePlaceAutoPopupIcon(false)
+  actionToolbar.setOrientation(SwingConstants.HORIZONTAL)
 
   val toolTitleLabel = JLabel(LayoutInspectorBundle.message("layout.inspector"))
   toolTitleLabel.name = "LayoutInspectorToolbarTitleLabel"
   toolTitleLabel.border = BorderFactory.createEmptyBorder(0, 12, 0, 0)
   toolTitleLabel.font = BaseLabel.getLabelFont().deriveFont(java.awt.Font.BOLD)
-  panel.addToLeft(toolTitleLabel)
-  panel.addToRight(toolbarActions.component)
-  panel.name = EMBEDDED_LAYOUT_INSPECTOR_TOOLBAR
-  return panel
+
+  val borderLayoutPanel = BorderLayoutPanel()
+  // Add the toolbar to the Border Layout to force it to always show on the far right.
+  borderLayoutPanel.addToRight(actionToolbar.component)
+
+  // Use a BoxLayout instead of a BorderLayout, because with BorderLayout if the tool window is
+  // resize the label can end up overlapping the actions.
+  val boxLayoutPanel = JPanel()
+  boxLayoutPanel.name = EMBEDDED_LAYOUT_INSPECTOR_TOOLBAR
+  boxLayoutPanel.layout = BoxLayout(boxLayoutPanel, BoxLayout.X_AXIS)
+  boxLayoutPanel.add(toolTitleLabel)
+  // Add some spacing between the label and toolbar.
+  boxLayoutPanel.add(Box.createRigidArea(JBUI.size(10, 0)))
+  boxLayoutPanel.add(borderLayoutPanel)
+
+  return boxLayoutPanel
 }
 
 /** * Creates the toolbar used by Stadalone Layout Inspector. */
