@@ -17,10 +17,12 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-test-framework[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
     ],
 )

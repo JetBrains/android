@@ -194,6 +194,8 @@
       </group>
       <reference ref="android.emulator.snapshots"/>
       <reference ref="android.streaming.hardware.input"/>
+      <!-- Placeholder group to maintain ordering of WHS button, button is registered in wear-whs module -->
+      <group id="android.device.wear.whs.placeholder"/>
       <reference ref="android.emulator.extended.controls"/>
     </group>
 
