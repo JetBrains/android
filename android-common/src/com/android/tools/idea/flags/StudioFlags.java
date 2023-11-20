@@ -22,6 +22,7 @@ import com.android.flags.FlagOverrides;
 import com.android.flags.Flags;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
+import com.android.tools.idea.IdeChannel;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
@@ -1342,7 +1343,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> GLANCE_APP_WIDGET_PREVIEW = Flag.create(
     WEAR_SURFACES, "glance.preview.appwidget.enabled", "Enable Glance AppWidget preview",
     "If enabled, a preview for annotated glance app widget composable functions is displayed",
-    true);
+    IdeChannel.getChannel().isLessStableThan(IdeChannel.Channel.BETA));
 
   public static final Flag<Boolean> GLANCE_TILE_PREVIEW = Flag.create(
     WEAR_SURFACES, "glance.preview.tile.enabled", "Enable Glance Tile preview",
