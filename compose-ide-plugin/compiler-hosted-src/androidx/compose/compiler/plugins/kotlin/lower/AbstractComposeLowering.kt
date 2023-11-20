@@ -455,8 +455,7 @@ abstract class AbstractComposeLowering(
         body: IrBlockBodyBuilder.(IrFunction) -> Unit
     ) = irLambdaExpression(this.startOffset, this.endOffset, descriptor, type, body)
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
-    protected fun IrBuilderWithScope.irLambdaExpression(
+    private fun IrBuilderWithScope.irLambdaExpression(
         startOffset: Int,
         endOffset: Int,
         descriptor: FunctionDescriptor,
@@ -603,7 +602,6 @@ abstract class AbstractComposeLowering(
         )
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     protected fun irCall(
         symbol: IrFunctionSymbol,
         origin: IrStatementOrigin? = null,
@@ -628,12 +626,10 @@ abstract class AbstractComposeLowering(
         }
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     protected fun IrType.binaryOperator(name: Name, paramType: IrType): IrFunctionSymbol =
         context.symbols.getBinaryOperator(name, this, paramType)
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
-    protected fun IrType.unaryOperator(name: Name): IrFunctionSymbol =
+    private fun IrType.unaryOperator(name: Name): IrFunctionSymbol =
         context.symbols.getUnaryOperator(name, this)
 
     protected fun irAnd(lhs: IrExpression, rhs: IrExpression): IrCallImpl {
@@ -1037,7 +1033,6 @@ abstract class AbstractComposeLowering(
         )
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     protected fun irLambda(function: IrFunction, type: IrType): IrExpression {
         return irBlock(
             type,
@@ -1259,7 +1254,6 @@ abstract class AbstractComposeLowering(
 
     // Construct a reference to the JVM specific <unsafe-coerce> intrinsic.
     // This code should be kept in sync with the declaration in JvmSymbols.kt.
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private val unsafeCoerceIntrinsic: IrSimpleFunctionSymbol? by lazy {
         if (context.platform.isJvm()) {
             context.irFactory.buildFun {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.compose.code
 
-import androidx.compose.compiler.plugins.kotlin.k1.isComposableInvocation
+import androidx.compose.compiler.plugins.kotlin.isComposableInvocation
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.isComposableInvocation
 import com.android.tools.compose.isComposeEnabled

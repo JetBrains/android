@@ -15,7 +15,7 @@
  */
 package com.android.tools.compose.intentions
 
-import androidx.compose.compiler.plugins.kotlin.k1.ComposeErrors
+import androidx.compose.compiler.plugins.kotlin.ComposeErrors
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.ComposeBundle
 import com.intellij.codeInsight.intention.IntentionAction

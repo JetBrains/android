@@ -1886,7 +1886,6 @@ class ComposableFunctionBodyTransformer(
         return hash
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun functionSourceKey(): Int {
         val fn = currentFunctionScope.function
         if (fn is IrSimpleFunction) {
@@ -1979,7 +1978,6 @@ class ComposableFunctionBodyTransformer(
             irIf(isTraceInProgress, body)
         }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun irTraceEventStart(key: IrExpression, declaration: IrFunction): IrExpression? =
         traceEventStartFunction?.let { traceEventStart ->
             val startOffset = declaration.body!!.startOffset
@@ -2053,7 +2051,6 @@ class ComposableFunctionBodyTransformer(
         return irMethodCall(irCurrentComposer(), endRestartGroupFunction)
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun irCache(
         startOffset: Int,
         endOffset: Int,
@@ -2182,7 +2179,6 @@ class ComposableFunctionBodyTransformer(
         )
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun irCall(
         function: IrFunction,
         startOffset: Int = UNDEFINED_OFFSET,
@@ -2673,7 +2669,6 @@ class ComposableFunctionBodyTransformer(
         }
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitCall(expression: IrCall): IrExpression {
         if (expression.isTransformedComposableCall() || expression.isSyntheticComposableCall()) {
             return visitComposableCall(expression)

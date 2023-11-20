@@ -26,9 +26,9 @@
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <!-- TODO(b/293653361): Move these to plugin.k1.xml and register the K2 versions in plugin.k2.xml -->
-    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposableCallChecker"/>
-    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposableDeclarationChecker"/>
-    <diagnosticSuppressor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposeDiagnosticSuppressor"/>
+    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.ComposableCallChecker"/>
+    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.ComposableDeclarationChecker"/>
+    <diagnosticSuppressor implementation="androidx.compose.compiler.plugins.kotlin.ComposeDiagnosticSuppressor"/>
     <highlighterExtension implementation="com.android.tools.compose.ComposableHighlighterExtension"/>
   </extensions>
 
@@ -165,7 +165,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
-    <typeResolutionInterceptorExtension implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposeTypeResolutionInterceptorExtension"/>
+    <typeResolutionInterceptorExtension implementation="androidx.compose.compiler.plugins.kotlin.ComposeTypeResolutionInterceptorExtension"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">

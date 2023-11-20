@@ -18,7 +18,7 @@ package com.android.tools.compose
 
 import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
 import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
-import androidx.compose.compiler.plugins.kotlin.k1.hasComposableAnnotation
+import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
 import com.android.tools.idea.kotlin.findAnnotation
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.psi.PsiElement
