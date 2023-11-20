@@ -258,10 +258,6 @@
     <option name="dependencies" path="ActionManager" hit="Edit Libraries and Dependencies..." />
     <option name="edit" path="ActionManager" hit="Edit Libraries and Dependencies..." />
     <option name="libraries" path="ActionManager" hit="Edit Libraries and Dependencies..." />
-    <option name="apps" path="ActionManager" hit="Enable Instant Apps Support..." />
-    <option name="enable" path="ActionManager" hit="Enable Instant Apps Support..." />
-    <option name="instant" path="ActionManager" hit="Enable Instant Apps Support..." />
-    <option name="support" path="ActionManager" hit="Enable Instant Apps Support..." />
     <option name="buildconfig" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
     <option name="enable" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
     <option name="for" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
@@ -283,13 +279,6 @@
     <option name="the" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
     <option name="to" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
     <option name="transparent" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
-    <option name="a" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
-    <option name="apps" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
-    <option name="enables" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
-    <option name="for" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
-    <option name="instant" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
-    <option name="module" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
-    <option name="support" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="and" path="ActionManager" hit="End reservation and return device" />
     <option name="device" path="ActionManager" hit="End reservation and return device" />
     <option name="end" path="ActionManager" hit="End reservation and return device" />

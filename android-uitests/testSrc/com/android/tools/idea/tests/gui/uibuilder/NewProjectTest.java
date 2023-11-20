@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
-import static com.android.tools.idea.tests.gui.instantapp.NewInstantAppTest.verifyOnlyExpectedWarnings;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -277,5 +276,24 @@ public class NewProjectTest {
   @NotNull
   private static NewProjectDescriptor newProject(@NotNull String name) {
     return new NewProjectDescriptor(name);
+  }
+
+  // With warnings coming from multiple projects the order of warnings is not deterministic, also there are some warnings that show up only
+  // on local machines. This method allows us to check that the warnings in the actual result are a sub-set of the expected warnings.
+  // This is not a perfect solution, but this state where we have multiple warnings on a new project should only be temporary
+  private static void verifyOnlyExpectedWarnings(@NotNull String actualResults, @NotNull String... acceptedWarnings) {
+    ArrayList<String> actualResultLines = new ArrayList<>();
+
+    outLoop:
+    for (String resultLine : actualResults.split("\n")) {
+      for (String acceptedWarning : acceptedWarnings) {
+        if (resultLine.matches(acceptedWarning)) {
+          continue outLoop;
+        }
+      }
+      actualResultLines.add(resultLine);
+    }
+
+    assertThat(actualResultLines).isEmpty();
   }
 }

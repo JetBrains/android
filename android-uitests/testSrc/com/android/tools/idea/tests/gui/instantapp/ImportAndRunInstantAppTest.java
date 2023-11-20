@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -24,6 +28,7 @@ import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
 import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
@@ -99,5 +104,42 @@ public class ImportAndRunInstantAppTest {
     runWindow.waitForOutput(new PatternTextMatcher(CONNECTED_APP_PATTERN), TimeUnit.MINUTES.toSeconds(5));
 
     runWindow.waitForStopClick();
+  }
+
+  // b/68122671
+  @Test
+  @RunIn(TestGroup.FAST_BAZEL)
+  public void addMapActivityToExistingIappModule() throws Exception {
+   String debugPath = "app/src/debug/res/values/google_maps_api.xml";
+    String releasePath = "app/src/release/res/values/google_maps_api.xml";
+    guiTest.ideFrame()
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Google", "Google Maps Activity")
+      .clickFinishAndWaitForSyncToFinish();
+
+    assertAbout(file()).that(guiTest.getProjectPath(debugPath)).isFile();
+    assertAbout(file()).that(guiTest.getProjectPath(releasePath)).isFile();
+  }
+
+  // b/68478730
+  @Test
+  public void addPrimaryDetailActivityToExistingIappModule() {
+    guiTest.ideFrame()
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Primary/Detail Flow")
+      .clickFinishAndWaitForSyncToFinish();
+
+    String baseStrings = guiTest.getProjectFileText("app/src/main/res/values/strings.xml");
+    assertThat(baseStrings).contains("title_item_detail");
+    assertThat(baseStrings).contains("title_item_list");
+  }
+
+  // b/68684401
+  @Test
+  public void addFullscreenActivityToExistingIappModule() {
+    guiTest.ideFrame()
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Fullscreen Activity")
+      .clickFinishAndWaitForSyncToFinish();
+
+    assertThat(guiTest.getProjectFileText("app/src/main/res/values/strings.xml"))
+      .contains("title_activity_fullscreen");
   }
 }
