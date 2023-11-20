@@ -69,7 +69,7 @@ class ComposeStateReadAnnotatorTest {
     fixture.stubComposableAnnotation()
     fixture.stubComposeRuntime()
     fixture.stubKotlinStdlib()
-    StudioFlags.COMPOSE_STATE_READ_HIGHLIGHTING_ENABLED.override(true)
+    StudioFlags.COMPOSE_STATE_READ_INLAY_HINTS_ENABLED.override(true)
   }
 
   @Test

@@ -87,7 +87,7 @@ class ComposeColorSettingsPage : ColorSettingsPage {
   override fun getAttributeDescriptors() =
     buildList {
         add(COMPOSABLE_CALL_DESCRIPTOR)
-        if (StudioFlags.COMPOSE_STATE_READ_HIGHLIGHTING_ENABLED.get()) {
+        if (StudioFlags.COMPOSE_STATE_READ_INLAY_HINTS_ENABLED.get()) {
           add(STATE_READ_DESCRIPTOR)
           add(STATE_READ_SCOPE_DESCRIPTOR)
         }
@@ -100,7 +100,7 @@ class ComposeColorSettingsPage : ColorSettingsPage {
 
   override fun getDemoText() = buildString {
     append(DEMO_TEXT)
-    if (StudioFlags.COMPOSE_STATE_READ_HIGHLIGHTING_ENABLED.get()) {
+    if (StudioFlags.COMPOSE_STATE_READ_INLAY_HINTS_ENABLED.get()) {
       append("\n\n").append(STATE_READ_DEMO_TEXT)
     }
   }

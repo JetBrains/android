@@ -65,7 +65,7 @@ val COMPOSE_STATE_READ_SCOPE_HIGHLIGHTING_TEXT_ATTRIBUTES_KEY: TextAttributesKey
 class ComposeStateReadInlayHintsProvider : InlayHintsProvider {
   override fun createCollector(file: PsiFile, editor: Editor): InlayHintsCollector? {
     if (file !is KtFile) return null
-    if (!StudioFlags.COMPOSE_STATE_READ_HIGHLIGHTING_ENABLED.get()) return null
+    if (!StudioFlags.COMPOSE_STATE_READ_INLAY_HINTS_ENABLED.get()) return null
     return ComposeStateReadInlayHintsCollector
   }
 

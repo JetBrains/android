@@ -80,7 +80,7 @@ class ComposeStateReadInlayHintsProviderTest {
     fixture.stubComposableAnnotation()
     fixture.stubComposeRuntime()
     fixture.stubKotlinStdlib()
-    StudioFlags.COMPOSE_STATE_READ_HIGHLIGHTING_ENABLED.override(true)
+    StudioFlags.COMPOSE_STATE_READ_INLAY_HINTS_ENABLED.override(true)
   }
 
   @Test
@@ -101,7 +101,7 @@ class ComposeStateReadInlayHintsProviderTest {
 
   @Test
   fun createCollector_flagOff() {
-    StudioFlags.COMPOSE_STATE_READ_HIGHLIGHTING_ENABLED.override(false)
+    StudioFlags.COMPOSE_STATE_READ_INLAY_HINTS_ENABLED.override(false)
 
     val kotlinFile =
       fixture.loadNewFile(

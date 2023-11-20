@@ -44,7 +44,7 @@ val COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
  */
 class ComposeStateReadAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    if (!StudioFlags.COMPOSE_STATE_READ_HIGHLIGHTING_ENABLED.get()) return
+    if (!StudioFlags.COMPOSE_STATE_READ_INLAY_HINTS_ENABLED.get()) return
     if (element !is KtNameReferenceExpression) return
     element.getStateRead()?.let {
       val msg = ComposeBundle.message("state.read.message.titled", it.stateVar.text, it.scopeName)
