@@ -50,8 +50,8 @@ public final class HeapSnapshotStatistics {
 
   // 1.2mb is a Crash file size limit. If the size of the crash report field value exceeds 250kb it will be wrapped into a file. This file
   // should not be more than 1.2mb to be processes by Crash.
-  private static final int MAX_BYTES_FOR_REPORT_ATTACHMENT_FILE = 1228 * 1024;
-  private static final int MAX_BYTES_FOR_HEAP_SUMMARY_FIELD = 250 * 1024;
+  private static final int MAX_BYTES_FOR_REPORT_ATTACHMENT_FILE = 1_200_000;
+  private static final int MAX_BYTES_FOR_HEAP_SUMMARY_FIELD = 250_000;
 
   @NotNull final ClusterObjectsStatistics.ObjectsStatisticsWithPlatformTracking totalStats =
     new ClusterObjectsStatistics.ObjectsStatisticsWithPlatformTracking();
