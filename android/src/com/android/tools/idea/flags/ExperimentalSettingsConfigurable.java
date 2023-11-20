@@ -16,7 +16,6 @@
 package com.android.tools.idea.flags;
 
 import com.android.tools.idea.flags.ExperimentalConfigurable.ApplyState;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.CompositeConfigurable;
 import com.intellij.openapi.options.ConfigurationException;
@@ -28,6 +27,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -95,6 +95,7 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Expe
   public JComponent createComponent() {
     myExtensionPanel.setLayout(new BoxLayout(myExtensionPanel, BoxLayout.PAGE_AXIS));
     myConfigurableMap.forEach((name, configurable) -> {
+      myExtensionPanel.add(new JLabel(" "));
       myExtensionPanel.add(new TitledSeparator(name));
       myExtensionPanel.add(configurable.createComponent());
     });
