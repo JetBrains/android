@@ -53,13 +53,12 @@ object IdeChannel {
    */
   @JvmStatic
   @JvmOverloads
-  fun getChannel(versionProvider: () -> String = {
-    if (ApplicationManager.getApplication() == null || ApplicationInfo.getInstance () == null)
-        "dev"
-      else
-        ApplicationInfo.getInstance().fullVersion
-  }): Channel {
-    val versionName = versionProvider()
+  fun getChannel(versionProvider: (() -> String)? = null): Channel {
+    val versionName = when {
+      versionProvider != null -> versionProvider()
+      ApplicationManager.getApplication() == null || ApplicationInfo.getInstance() == null -> "dev"
+      else -> ApplicationInfo.getInstance().fullVersion
+    }
     return when {
       versionNameContainsChannel(versionName, "dev") -> Channel.DEV
       versionNameContainsChannel(versionName, "nightly") -> Channel.NIGHTLY
