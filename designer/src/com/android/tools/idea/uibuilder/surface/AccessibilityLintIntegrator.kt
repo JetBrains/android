@@ -164,6 +164,12 @@ open class NlAtfIssue(
     private const val LOW_CONTRAST = "LOW_CONTRAST"
   }
 
+  fun isLowContrast(): Boolean {
+    return result.mSourceClass == "TextContrastCheck" ||
+      result.mSourceClass == "ImageContrastCheck" ||
+      result.mCategory == LOW_CONTRAST
+  }
+
   override val summary: String
     get() =
       when (result.mSourceClass) {
