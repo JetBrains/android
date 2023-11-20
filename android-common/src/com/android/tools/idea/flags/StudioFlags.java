@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.flags;
 
+import com.android.flags.BooleanFlag;
 import com.android.flags.Flag;
 import com.android.flags.FlagGroup;
 import com.android.flags.FlagOverrides;
@@ -1704,8 +1705,12 @@ public final class StudioFlags {
     Flag.create(STUDIOBOT, "enabled", "Enable Studio Bot", "Enable Studio Bot Tool Window", true);
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_ENABLED =
-    Flag.create(STUDIOBOT, "inline.code.completion.enabled", "Enable inline code completion",
-                "When enabled, inline code completion suggestions will be shown.", false);
+    new BooleanFlag(STUDIOBOT, "inline.code.completion.enabled", "Enable inline code completion",
+                    "When enabled, inline code completion suggestions will be shown.",
+                    ChannelDefault.of(false)
+                      .withDevOverride(true)
+                      .withNightlyOverride(true)
+                      .withCanaryOverride(true));
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
     Flag.create(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",
