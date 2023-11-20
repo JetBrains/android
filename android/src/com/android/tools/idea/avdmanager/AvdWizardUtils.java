@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.SdkConstants.FD_EMULATOR;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_AVD_ID;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
@@ -28,16 +27,12 @@ import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.repository.Revision;
-import com.android.repository.api.LocalPackage;
-import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder;
@@ -141,8 +136,6 @@ public class AvdWizardUtils {
   /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
   private static final int MAX_RAM_MB = 2048;
 
-  private static final Revision MIN_SNAPSHOT_MANAGEMENT_VERSION = new Revision(27, 2, 5);
-
   /**
    * Get the default amount of ram to use for the given hardware in an AVD. This is typically
    * the same RAM as is used in the hardware, but it is maxed out at {@link #MAX_RAM_MB} since more than that
@@ -222,19 +215,6 @@ public class AvdWizardUtils {
   public static @Nullable File pathToUpdatedSkins(@Nullable Path device,
                                                   @Nullable SystemImageDescription image) {
     return device == null ? null : DeviceSkinUpdater.updateSkin(device, image).toFile();
-  }
-
-  static boolean emulatorSupportsSnapshotManagement(@NotNull AndroidSdkHandler sdkHandler) {
-    return emulatorVersionIsAtLeast(sdkHandler, MIN_SNAPSHOT_MANAGEMENT_VERSION);
-  }
-
-  private static boolean emulatorVersionIsAtLeast(@NotNull AndroidSdkHandler sdkHandler, Revision minRevision) {
-    ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
-    LocalPackage sdkPackage = sdkHandler.getLocalPackage(FD_EMULATOR, log);
-    if (sdkPackage != null) {
-      return sdkPackage.getVersion().compareTo(minRevision) >= 0;
-    }
-    return false;
   }
 
   /**

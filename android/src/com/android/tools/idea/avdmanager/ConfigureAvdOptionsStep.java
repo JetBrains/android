@@ -385,17 +385,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   }
 
   private void refreshSnapshotPullDown() {
-    if (!AvdWizardUtils.emulatorSupportsSnapshotManagement(AndroidSdks.getInstance().tryToChooseSdkHandler())) {
-      // Emulator does not support stand-alone snapshot control
-      if (getModel().useChosenSnapshotBoot().get()) {
-        // The unsupported option is selected. De-select it.
-        getModel().useChosenSnapshotBoot().set(false);
-        getModel().useFastBoot().set(true);
-      }
-      myChosenSnapshotComboBox.setVisible(false);
-      myChooseBootRadioButton.setVisible(false);
-      return;
-    }
     CollectionComboBoxModel<String> snapshotModel = new CollectionComboBoxModel<>();
     // Put up to 3 snapshots onto the pull-down
     mySnapshotList.stream()
