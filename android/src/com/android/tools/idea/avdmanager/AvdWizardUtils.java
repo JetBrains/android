@@ -142,7 +142,6 @@ public class AvdWizardUtils {
   private static final int MAX_RAM_MB = 2048;
 
   private static final Revision MIN_SNAPSHOT_MANAGEMENT_VERSION = new Revision(27, 2, 5);
-  private static final Revision MIN_WEBP_VERSION = new Revision(25, 2, 3);
 
   /**
    * Get the default amount of ram to use for the given hardware in an AVD. This is typically
@@ -225,10 +224,6 @@ public class AvdWizardUtils {
     return device == null ? null : DeviceSkinUpdater.updateSkin(device, image).toFile();
   }
 
-  static boolean emulatorSupportsWebp(@NotNull AndroidSdkHandler sdkHandler) {
-    return emulatorVersionIsAtLeast(sdkHandler, MIN_WEBP_VERSION);
-  }
-
   static boolean emulatorSupportsSnapshotManagement(@NotNull AndroidSdkHandler sdkHandler) {
     return emulatorVersionIsAtLeast(sdkHandler, MIN_SNAPSHOT_MANAGEMENT_VERSION);
   }
@@ -240,14 +235,6 @@ public class AvdWizardUtils {
       return sdkPackage.getVersion().compareTo(minRevision) >= 0;
     }
     return false;
-  }
-
-  /**
-   * Creates a {@link ModelWizardDialog} containing all the steps needed to create a new AVD
-   */
-  public static ModelWizardDialog createAvdWizard(@Nullable Component parent,
-                                                  @Nullable Project project) {
-    return createAvdWizard(parent, project, new AvdOptionsModel(null));
   }
 
   /**

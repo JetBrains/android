@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import static com.android.SdkConstants.FD_EMULATOR;
 import static com.android.tools.idea.avdmanager.AvdWizardUtils.emulatorSupportsSnapshotManagement;
-import static com.android.tools.idea.avdmanager.AvdWizardUtils.emulatorSupportsWebp;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.repository.Revision;
@@ -31,21 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 public class AvdWizardUtilsTest {
-  @Test
-  public void testEmulatorSupportsWebp() {
-    assertThat(emulatorSupportsWebp(createMockSdk("24.0.0", FD_EMULATOR))).isFalse();
-    assertThat(emulatorSupportsWebp(createMockSdk("25.0.0", FD_EMULATOR))).isFalse();
-    assertThat(emulatorSupportsWebp(createMockSdk("25.1.0", FD_EMULATOR))).isFalse();
-    assertThat(emulatorSupportsWebp(createMockSdk("25.1.9", FD_EMULATOR))).isFalse();
-    assertThat(emulatorSupportsWebp(createMockSdk("25.2.0", FD_EMULATOR))).isFalse();
-    assertThat(emulatorSupportsWebp(createMockSdk("25.2.2", FD_EMULATOR))).isFalse();
-    assertThat(emulatorSupportsWebp(createMockSdk("25.2.3", FD_EMULATOR))).isTrue();
-    assertThat(emulatorSupportsWebp(createMockSdk("25.3.0", FD_EMULATOR))).isTrue();
-    assertThat(emulatorSupportsWebp(createMockSdk("26.0.0", FD_EMULATOR))).isTrue();
-
-    assertThat(emulatorSupportsWebp(createMockSdk("25.2.3", "irrelevant"))).isFalse();
-  }
-
   @Test
   public void testEmulatorSupportsSnapshotManagement() {
     assertThat(emulatorSupportsSnapshotManagement(createMockSdk("27.2.4", FD_EMULATOR))).isFalse();
