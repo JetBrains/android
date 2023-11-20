@@ -279,7 +279,6 @@
                          id ="experimental" displayName="Experimental" groupId="root" groupWeight="-999"/>
     <projectConfigurable provider="com.android.tools.idea.flags.PluginExperimentalConfigurableProvider"
                          id ="experimentalPlugin" displayName="Android (Experimental)" groupId="language"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.StudioSettingsController"/>
 
     <applicationService serviceImplementation="com.android.tools.idea.diagnostics.crash.StudioCrashReporter" />
@@ -743,7 +742,6 @@
   <extensions defaultExtensionNs="com.android.tools.idea.flags">
     <experimentalSettingsContributor implementation="com.android.tools.idea.flags.RenderExperimentalSettingsContributor"/>
     <experimentalSettingsContributor implementation="com.android.tools.idea.flags.ComposeExperimentalSettingsContributor"/>
-    <experimentalSettingsContributor implementation="com.android.tools.idea.gradle.project.GradleExperimentalSettingsContributor"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.project">
     <projectsystem implementation="com.android.tools.idea.project.DefaultProjectSystem"/>

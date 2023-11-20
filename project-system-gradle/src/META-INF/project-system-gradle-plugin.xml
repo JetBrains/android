@@ -46,6 +46,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.importing.GradleProjectImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleProjectSettingsFinder"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.project.build.compiler.HideCompilerOptions" />
 
     <projectConfigurable groupId="build" id="gradle.compiler" bundle="messages.AndroidBundle"
@@ -187,6 +188,9 @@
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.actions.annotations">
     <inferAnnotationsToken implementation="com.android.tools.idea.actions.annotations.InferAnnotationsGradleToken"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.flags">
+    <experimentalSettingsContributor implementation="com.android.tools.idea.gradle.project.GradleExperimentalSettingsContributor"/>
   </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
