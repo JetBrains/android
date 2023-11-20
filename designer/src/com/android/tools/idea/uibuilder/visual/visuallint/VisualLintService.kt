@@ -281,6 +281,9 @@ class VisualLintService(val project: Project) : Disposable {
     }
     hasTimedOut.set(!latch.await(visualLintTimeout, TimeUnit.SECONDS))
     issueModel.updateErrorsList(IssueProviderListener.UI_CHECK)
+    LOG.debug(
+      "Visual Lint analysis finished, ${issueModel.issueCount} ${if (issueModel.issueCount > 1) "errors" else "error"} found"
+    )
   }
 
   /**

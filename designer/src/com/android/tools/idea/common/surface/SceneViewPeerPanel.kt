@@ -29,6 +29,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
@@ -256,7 +257,7 @@ class SceneViewPeerPanel(
         // Initialize the toolbar as invisible if ScreenReader is not active. In this case, its
         // visibility will be controlled by hovering the sceneViewTopPanel. When the screen reader
         // is active, the toolbar is always visible, so it can be focusable.
-        sceneViewToolbar.isVisible = ScreenReader.isActive()
+        sceneViewToolbar.isVisible = defaultToolbarVisibility || ScreenReader.isActive()
       }
       // The space of name label is sacrificed when there is no enough width to display the toolbar.
       // When it happens, the label will be trimmed and show the ellipsis at its tail.
@@ -500,5 +501,16 @@ class SceneViewPeerPanel(
     } else {
       sceneView.sceneManager.model.dataContext.getData(dataId)
     }
+  }
+
+  companion object {
+    /** Default initial visibility for the SceneView toolbars */
+    internal var defaultToolbarVisibility = false
+  }
+}
+
+private class ShowSceneViewToolbarAction : AnAction("Show SceneView Toolbars") {
+  override fun actionPerformed(e: AnActionEvent) {
+    SceneViewPeerPanel.defaultToolbarVisibility = true
   }
 }
