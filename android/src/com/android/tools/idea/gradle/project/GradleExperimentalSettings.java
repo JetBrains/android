@@ -16,8 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettingsConfigurable.TraceProfileItem;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;

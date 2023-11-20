@@ -1526,6 +1526,14 @@
     <option name="settings" hit=" Note: These settings are for features that are considered experimental." />
     <option name="that" hit=" Note: These settings are for features that are considered experimental." />
     <option name="these" hit=" Note: These settings are for features that are considered experimental." />
+    <option name="experimental" hit="Experimental" />
+    <option name="gradle" hit="Gradle" />
+    <option name="compose" hit="Jetpack Compose" />
+    <option name="jetpack" hit="Jetpack Compose" />
+    <option name="editor" hit="Layout Editor" />
+    <option name="layout" hit="Layout Editor" />
+  </configurable>
+  <configurable id="experimental" configurable_name="Experimental">
     <option name="all" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
     <option name="can" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
     <option name="configure" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
@@ -1557,12 +1565,6 @@
     <option name="multi-variant" hit="Enable support for multi-variant Javadocs and Sources" />
     <option name="sources" hit="Enable support for multi-variant Javadocs and Sources" />
     <option name="support" hit="Enable support for multi-variant Javadocs and Sources" />
-    <option name="experimental" hit="Experimental" />
-    <option name="gradle" hit="Gradle" />
-    <option name="compose" hit="Jetpack Compose" />
-    <option name="jetpack" hit="Jetpack Compose" />
-    <option name="editor" hit="Layout Editor" />
-    <option name="layout" hit="Layout Editor" />
     <option name="api" hit="Optimize build for target device API level only" />
     <option name="build" hit="Optimize build for target device API level only" />
     <option name="device" hit="Optimize build for target device API level only" />

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.DEFAULT
+import com.android.tools.idea.gradle.project.GradleExperimentalSettingsConfigurable.TraceProfileItem.DEFAULT
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil.createTraceProfileFile
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil.findAgentJar

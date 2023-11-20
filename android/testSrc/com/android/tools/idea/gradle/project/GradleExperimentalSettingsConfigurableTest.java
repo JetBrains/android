@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,32 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.flags;
+package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.DEFAULT;
-import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.SPECIFIED_LOCATION;
+import static com.android.tools.idea.gradle.project.GradleExperimentalSettingsConfigurable.TraceProfileItem.DEFAULT;
+import static com.android.tools.idea.gradle.project.GradleExperimentalSettingsConfigurable.TraceProfileItem.SPECIFIED_LOCATION;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.dsl.model.GradleDslModelExperimentalSettings;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.rendering.RenderSettings;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.testFramework.LightPlatformTestCase;
 import org.mockito.Mock;
 
 /**
- * Tests for {@link ExperimentalSettingsConfigurable}.
+ * Tests for {@link GradleExperimentalSettingsConfigurable}.
  */
-public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase {
+public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTestCase {
   @Mock private GradleExperimentalSettings mySettings;
-  private ExperimentalSettingsConfigurable myConfigurable;
+  private GradleExperimentalSettingsConfigurable myConfigurable;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
     mySettings.TRACE_PROFILE_LOCATION = "";
-    myConfigurable = new ExperimentalSettingsConfigurable(getProject(), mySettings, true);
+    myConfigurable = new GradleExperimentalSettingsConfigurable(mySettings);
   }
 
   public void testIsModified() {
