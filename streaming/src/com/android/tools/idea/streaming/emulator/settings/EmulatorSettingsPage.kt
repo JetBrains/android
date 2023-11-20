@@ -64,17 +64,19 @@ class EmulatorSettingsPage : SearchableConfigurable, Configurable.NoScroll {
                    " setting.")
           .component
     }
-    row {
-      activateOnAppLaunchCheckBox =
-        checkBox("Open the Running Devices tool window when launching an app")
-          .bindSelected(state::activateOnAppLaunch)
-          .component
-    }.topGap(TopGap.SMALL)
-    row {
-      activateOnTestLaunchCheckBox =
-        checkBox("Open the Running Devices tool window when launching a test")
-          .bindSelected(state::activateOnTestLaunch)
-          .component
+    indent {
+      row {
+        activateOnAppLaunchCheckBox =
+          checkBox("Open the Running Devices tool window when launching an app")
+            .bindSelected(state::activateOnAppLaunch)
+            .component
+      }.topGap(TopGap.SMALL)
+      row {
+        activateOnTestLaunchCheckBox =
+          checkBox("Open the Running Devices tool window when launching a test")
+            .bindSelected(state::activateOnTestLaunch)
+            .component
+      }
     }
     row {
       synchronizeClipboardCheckBox =
