@@ -25,7 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import org.jetbrains.annotations.NotNull;
 
-public class RenderExperimentalSettingsConfigurable implements UnnamedConfigurable {
+public class RenderExperimentalSettingsConfigurable implements ExperimentalConfigurable {
   private JPanel myPanel;
   private JSlider myQualitySlider;
 

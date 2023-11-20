@@ -15,19 +15,25 @@
  */
 package com.android.tools.idea.flags
 
-import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.options.UnnamedConfigurable
-import com.intellij.openapi.project.Project
 
-interface ExperimentalSettingsContributor {
-  fun getName(): String
+interface ExperimentalConfigurable : UnnamedConfigurable {
+  /**
+   * return [ApplyState.BLOCK] if the state to be applied is invalid in any way.  If it is, display
+   * UI indications to the user to highlight the problem(s).  Return [ApplyState.RESTART] if the state
+   * is ready to be applied but requires the IDE to restart to take effect, or [ApplyState.OK] otherwise.
+   */
+  fun preApplyCallback(): ApplyState = ApplyState.OK
 
-  fun shouldCreateConfigurable(project: Project): Boolean
+  /**
+   * perform any necessary actions to clean up after applying new settings, not including restarting
+   * the IDE.
+   */
+  fun postApplyCallback() = Unit
 
-  fun createConfigurable(project: Project): ExperimentalConfigurable
-
-  companion object {
-    @JvmField
-    val EP_NAME = ExtensionPointName<ExperimentalSettingsContributor>("com.android.tools.idea.flags.experimentalSettingsContributor");
+  enum class ApplyState {
+    OK,
+    BLOCK,
+    RESTART
   }
 }

@@ -21,7 +21,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
-public class ComposeExperimentalSettingsConfigurable implements UnnamedConfigurable {
+public class ComposeExperimentalSettingsConfigurable implements ExperimentalConfigurable {
   private JPanel myPanel;
   private JCheckBox myPreviewPickerCheckBox;
   private final ComposeExperimentalConfiguration mySettings;
