@@ -19,6 +19,7 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 import icons.StudioIcons
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.swing.Icon
 
 /**
  * This class serves as the model for the list/grid of Profiler tasks a user can select from. Each task is represented via a TaskGridItem
@@ -74,5 +75,18 @@ class TaskGridModel {
 
   companion object {
     const val DISABLED_TASK_ICON = "studio/icons/profiler/sidebar/issue.svg"
+
+    fun getTaskIcon(taskType: ProfilerTaskType): Icon {
+      return when (taskType) {
+        ProfilerTaskType.UNSPECIFIED -> StudioIcons.Profiler.Sidebar.ISSUE
+        ProfilerTaskType.CALLSTACK_SAMPLE -> StudioIcons.Profiler.Sessions.CPU
+        ProfilerTaskType.SYSTEM_TRACE -> StudioIcons.Profiler.Sessions.CPU
+        ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE -> StudioIcons.Profiler.Sessions.CPU
+        ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE -> StudioIcons.Profiler.Sessions.CPU
+        ProfilerTaskType.HEAP_DUMP -> StudioIcons.Profiler.Sessions.HEAP
+        ProfilerTaskType.NATIVE_ALLOCATIONS -> StudioIcons.Profiler.Sessions.ALLOCATIONS
+        ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> StudioIcons.Profiler.Sessions.ALLOCATIONS
+      }
+    }
   }
 }

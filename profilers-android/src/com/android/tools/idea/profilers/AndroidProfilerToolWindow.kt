@@ -30,6 +30,7 @@ import com.android.tools.profilers.Notification
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.taskbased.tasks.TaskGridModel
 import com.android.tools.profilers.tasks.ProfilerTaskTabs
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.TaskArgs
@@ -44,11 +45,13 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.wm.ToolWindow
 import com.intellij.ui.content.Content
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.io.File
 import java.util.function.Supplier
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -132,10 +135,14 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   }
 
   @VisibleForTesting
-  fun createNewTab(component: JComponent, tabName: String, isCloseable: Boolean) {
+  fun createNewTab(component: JComponent, tabName: String, isCloseable: Boolean, icon: Icon? = null) {
     val contentManager = window.getContentManager()
     val content = contentManager.factory.createContent(component, tabName, false).also { content ->
       content.isCloseable = isCloseable
+      icon?.let {
+        content.icon = it
+        content.putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
+      }
     }
     contentManager.addContent(content)
     contentManager.setSelectedContent(content)
@@ -197,12 +204,14 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   fun openTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs?) {
     val taskTab = findTaskTab()
     val taskName = taskHandlers[taskType]?.getTaskName() ?: "Task Not Supported Yet"
+    val taskIcon = TaskGridModel.getTaskIcon(taskType)
     if (taskTab != null) {
       taskTab.displayName = taskName
       window.getContentManager().setSelectedContent(taskTab)
+      window.getContentManager().selectedContent!!.icon = taskIcon
     }
     else {
-      createNewTab(profilersPanel, taskName, true)
+      createNewTab(profilersPanel, taskName, true, taskIcon)
     }
     currentTaskHandler?.exit()
     currentTaskHandler = taskHandlers[taskType]
