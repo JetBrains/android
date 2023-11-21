@@ -19,13 +19,14 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.packageNameHash
 import com.intellij.execution.RunManager
+import com.intellij.execution.configurations.SearchScopeProvidingRunProfile
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiFileSystemItem
 import com.intellij.psi.PsiManager
-import com.intellij.psi.search.ExecutionSearchScopes
 import com.intellij.psi.search.FilenameIndex
+import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.psi.KtFile
 
 /** Service for finding Composable function locations. */
@@ -47,10 +48,23 @@ open class ComposeResolver(val project: Project) {
    */
   @Slow
   protected fun findKotlinFile(fileName: String, packageNameMatcher: (String) -> Boolean): KtFile? {
-    // Attempt to load scope from current configuration, fallback to all scopes if configuration is
-    // null.
     val configuration = RunManager.getInstance(project).selectedConfiguration?.configuration
-    val scope = ExecutionSearchScopes.executionScope(project, configuration)
+    val runScope = (configuration as? SearchScopeProvidingRunProfile)?.searchScope
+    if (runScope != null) {
+      // Attempt to use scope from current configuration, fallback to all scopes if that fails to
+      // find the source file.
+      findKotlinFileInScope(runScope, fileName, packageNameMatcher)?.let {
+        return it
+      }
+    }
+    return findKotlinFileInScope(GlobalSearchScope.allScope(project), fileName, packageNameMatcher)
+  }
+
+  private fun findKotlinFileInScope(
+    scope: GlobalSearchScope,
+    fileName: String,
+    packageNameMatcher: (String) -> Boolean
+  ): KtFile? {
     val files = FilenameIndex.getVirtualFilesByName(fileName, scope)
     val psiManager = PsiManager.getInstance(project)
     val sourceFiles: List<PsiFileSystemItem> =
