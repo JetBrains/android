@@ -20,19 +20,18 @@ import com.android.tools.idea.appinspection.inspectors.network.view.details.Data
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 /** Tab which shows a response's headers and payload. */
 internal class ResponseTabContent : TabContent() {
-  private lateinit var panel: JPanel
+  private val panel =
+    createVerticalPanel(TAB_SECTION_VGAP).apply {
+      border = JBUI.Borders.empty(0, HORIZONTAL_PADDING)
+    }
+
   override val title: String
     get() = "Response"
 
   override fun createComponent(): JComponent {
-    panel =
-      createVerticalPanel(TAB_SECTION_VGAP).apply {
-        border = JBUI.Borders.empty(0, HORIZONTAL_PADDING)
-      }
     return createVerticalScrollPane(panel)
   }
 

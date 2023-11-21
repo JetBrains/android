@@ -20,7 +20,6 @@ import com.android.tools.idea.appinspection.inspectors.network.view.details.Data
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 // Use Application Headers as title because the infrastructure added headers of HttpURLConnection
 // may be missed if users do not set.
@@ -28,11 +27,11 @@ private const val HEADERS_TITLE = "Application Headers"
 
 /** Tab which shows a request's headers and payload. */
 internal class RequestTabContent : TabContent() {
-  private lateinit var contentPanel: JPanel
+  private val contentPanel = createVerticalPanel(TAB_SECTION_VGAP)
+
   override val title = "Request"
 
   override fun createComponent(): JComponent {
-    contentPanel = createVerticalPanel(TAB_SECTION_VGAP)
     contentPanel.border = JBUI.Borders.empty(0, HORIZONTAL_PADDING)
     return createVerticalScrollPane(contentPanel)
   }
