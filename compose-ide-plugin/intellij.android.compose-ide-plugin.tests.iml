@@ -21,7 +21,7 @@
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />>
+    <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.android.android-material" scope="TEST" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
