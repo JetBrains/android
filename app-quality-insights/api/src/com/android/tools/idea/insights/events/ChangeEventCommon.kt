@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.DynamicEventGallery
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.InsightsProviderKey
@@ -24,7 +25,7 @@ import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.events.actions.Action
 
 fun transitionEventForKey(key: InsightsProviderKey, event: Event) =
-  if (key == VITALS_KEY) {
+  if (useIssueSampleEvent(key)) {
     LoadingState.Ready(DynamicEventGallery(listOf(event), 0, ""))
   } else {
     LoadingState.Loading
@@ -35,5 +36,10 @@ fun actionsForSelectedIssue(key: InsightsProviderKey, id: IssueId) =
     if (key == VITALS_KEY) {
       Action.NONE
     } else {
-      Action.FetchIssueVariants(id) and Action.FetchNotes(id) and Action.ListEvents(id, null, null)
+      Action.FetchIssueVariants(id) and
+        Action.FetchNotes(id) and
+        if (useIssueSampleEvent(key)) Action.NONE else Action.ListEvents(id, null, null)
     }
+
+private fun useIssueSampleEvent(key: InsightsProviderKey) =
+  key == VITALS_KEY || !StudioFlags.CRASHLYTICS_J_UI.get()

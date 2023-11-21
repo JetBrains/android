@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt
 import com.android.testutils.time.FakeClock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.AppConnection
@@ -86,6 +87,7 @@ class AppInsightsProjectLevelControllerRule(
   private lateinit var cache: AppInsightsCache
 
   override fun before(description: Description) {
+    StudioFlags.CRASHLYTICS_J_UI.override(true)
     val offlineStatusManager = OfflineStatusManagerImpl()
     scope = AndroidCoroutineScope(disposable, AndroidDispatchers.uiThread)
     clock = FakeClock(NOW)
@@ -124,6 +126,7 @@ class AppInsightsProjectLevelControllerRule(
   override fun after(description: Description) {
     runInEdtAndWait { disposableRule.after() }
     internalState.close()
+    StudioFlags.CRASHLYTICS_J_UI.clearOverride()
   }
 
   suspend fun consumeFetchState(
