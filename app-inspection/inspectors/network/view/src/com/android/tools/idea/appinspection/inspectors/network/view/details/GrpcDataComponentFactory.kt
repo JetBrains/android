@@ -16,6 +16,8 @@
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.GrpcData
+import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.REQUEST
+import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.RESPONSE
 import javax.swing.JComponent
 
 internal class GrpcDataComponentFactory(data: GrpcData) : DataComponentFactory(data) {
@@ -24,7 +26,15 @@ internal class GrpcDataComponentFactory(data: GrpcData) : DataComponentFactory(d
 
   override fun createDataViewer(type: ConnectionType, formatted: Boolean) = null
 
-  override fun createBodyComponent(type: ConnectionType) = null
+  override fun createBodyComponent(type: ConnectionType): JComponent {
+    val bytes =
+      when (type) {
+        REQUEST -> data.requestPayload.toByteArray()
+        RESPONSE -> data.responsePayload.toByteArray()
+      }
+
+    return createHideablePanel("Payload (Raw)", BinaryDataViewer(bytes), null)
+  }
 
   override fun createTrailersComponent(): JComponent? {
     return when {
