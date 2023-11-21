@@ -26,8 +26,8 @@ import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.res.LocalResourceRepository;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -132,7 +132,7 @@ public class DynamicValueResourceRepository extends LocalResourceRepository impl
       ResourceType type = field.getType();
       ListMultimap<String, ResourceItem> map = myResourceTable.get(type);
       if (map == null) {
-        map = ArrayListMultimap.create();
+        map = LinkedListMultimap.create();
         myResourceTable.put(type, map);
       }
       else if (map.containsKey(name)) {
