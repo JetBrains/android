@@ -28,9 +28,9 @@ import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
-import com.intellij.psi.PsiFile;
 import java.awt.Point;
 import java.awt.event.InputEvent;
+import java.util.Objects;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatchers;
@@ -423,21 +423,22 @@ public class ConstraintAnchorTargetTest extends SceneTest {
   }
 
   public void testAttributesInStyle() {
-    PsiFile file = myFixture.addFileToProject("res/values/styles.xml", """
+    SceneComponent component = myScene.getSceneComponent("textview");
+    String attribute = Objects.requireNonNull(component)
+      .getNlComponent()
+      .getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+    assertEquals("parent", attribute);
+  }
+
+  @Override
+  public ModelBuilder createModel() {
+    myFixture.addFileToProject("res/values/styles.xml", """
         <resources>
           <style name="CustomStyle">
               <item name="layout_constraintBottom_toBottomOf">parent</item>
           </style>
         </resources>
       """);
-    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
-    SceneComponent component = myScene.getSceneComponent("textview");
-    String attribute = component.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
-    assertEquals("parent", attribute);
-  }
-
-  @Override
-  public ModelBuilder createModel() {
     return model("model.xml", component(CONSTRAINT_LAYOUT.defaultName())
       .id("@+id/root")
       .withBounds(0, 0, 1000, 1000)
