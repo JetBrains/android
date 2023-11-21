@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Facets
@@ -48,6 +50,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
 
 class SourceCodeEditorProviderTest {
 
@@ -57,14 +60,29 @@ class SourceCodeEditorProviderTest {
 
   lateinit var provider: SourceCodeEditorProvider
 
+  private val ideInfo: IdeInfo = mock(IdeInfo::class.java)
+
   @Before
   fun setUp() {
     provider = SourceCodeEditorProvider()
+    whenever(ideInfo.isAndroidStudio).thenReturn(true)
+    whenever(ideInfo.isGameTools).thenReturn(false)
+    projectRule.replaceService(IdeInfo::class.java, ideInfo)
   }
 
   @Test
-  fun testOffIfNoAndroidModules() {
+  fun testOnIfNoAndroidModulesInAndroidStudio() {
     runWriteActionAndWait { Facets.deleteAndroidFacetIfExists(fixture.module) }
+
+    val file = fixture.addFileToProject("src/Preview.kt", "")
+
+    assertTrue(provider.accept(file.project, file.virtualFile))
+  }
+
+  @Test
+  fun testOffIfNoAndroidModulesInNonAndroidStudio() {
+    runWriteActionAndWait { Facets.deleteAndroidFacetIfExists(fixture.module) }
+    whenever(ideInfo.isAndroidStudio).thenReturn(false)
 
     val file = fixture.addFileToProject("src/Preview.kt", "")
 
