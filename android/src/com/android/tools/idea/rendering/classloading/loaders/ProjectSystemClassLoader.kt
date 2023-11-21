@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering.classloading.loaders
 import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.rendering.classloading.loaders.CachingClassLoaderLoader
 import com.intellij.openapi.module.Module
+import com.intellij.util.SofterReference
 import org.jetbrains.android.uipreview.INTERNAL_PACKAGE
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.ConcurrentHashMap
@@ -32,19 +33,23 @@ private fun String.isSystemPrefix(): Boolean = startsWith("java.") ||
  * A [CachingClassLoaderLoader] that loads the classes from a given IntelliJ [Module].
  * It relies on the given [findClassContent] to find the [ClassContent] mapping to a given FQCN.
  */
-class ProjectSystemClassLoader @JvmOverloads constructor(
+class ProjectSystemClassLoader(
   private val findClassContent: (String) -> ClassContent?
 ) : CachingClassLoaderLoader {
   /**
    * Map that contains the mapping from the class FQCN to the [ClassContent] that contains the `.class` contents and metadata for the file
    * where the class was loaded from.
    */
-  private val classCache = ConcurrentHashMap<String, ClassContent>()
+  private val classCache = ConcurrentHashMap<String, SofterReference<ClassContent>>()
 
   @TestOnly
-  fun getClassCache() = classCache.toMap()
+  fun getClassCache() = classCache
+    .filter { entry -> entry.value.get() != null }
+    .toMap()
 
-  override fun isUpToDate(): Boolean = classCache.values.all { it.isUpToDate() }
+  override fun isUpToDate(): Boolean = classCache.values
+    .mapNotNull { it.get() }
+    .all { it.isUpToDate() }
 
   /**
    * Finds the [ClassContent] for the `.class` associated to the given [fqcn].
@@ -54,11 +59,12 @@ class ProjectSystemClassLoader @JvmOverloads constructor(
     if (fqcn.isSystemPrefix()) {
       return null
     }
-    val cachedContent = classCache[fqcn]
+    val cachedContent = classCache[fqcn]?.get()
 
     if (cachedContent?.isUpToDate() == true) return cachedContent
     val classContent = findClassContent(fqcn)?.also {
-      classCache[fqcn] = it
+      val newRef = SofterReference(it)
+      classCache[fqcn] = newRef
     }
 
     return classContent
@@ -83,6 +89,6 @@ class ProjectSystemClassLoader @JvmOverloads constructor(
    */
   @TestOnly
   fun injectClassFile(fqcn: String, classContent: ClassContent) {
-    classCache[fqcn] = classContent
+    classCache[fqcn] = SofterReference(classContent)
   }
 }
