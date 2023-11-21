@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.com.android.tools.profilers.taskbased.tabs.pastrecordings
+package com.android.tools.profilers.com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
@@ -28,16 +28,13 @@ import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.SessionArtifactUtils
+import com.android.tools.profilers.SessionArtifactUtils.createSessionItemWithSystemTraceArtifact
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.com.android.tools.profilers.JewelThemedComposableWrapper
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel
 import com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist.RecordingList
@@ -47,7 +44,6 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import perfetto.protos.PerfettoConfig
 
 class RecordingListTest {
   private val myTimer = FakeTimer()
@@ -87,7 +83,7 @@ class RecordingListTest {
   @Ignore("b/309566948")
   @Test
   fun `visual test, dark theme`() {
-    recordingListModel.setRecordingList(listOf(createFakeExportableRecording()))
+    recordingListModel.setRecordingList(listOf(createSessionItemWithSystemTraceArtifact("Recording 1", 1L, 1L, myProfilers)))
     singleWindowApplication(
       title = "Testing TaskGridView",
     ) {
@@ -105,7 +101,7 @@ class RecordingListTest {
       }
     }
 
-    recordingListModel.setRecordingList(listOf(createFakeExportableRecording()))
+    recordingListModel.setRecordingList(listOf(createSessionItemWithSystemTraceArtifact("Recording 1", 1L, 1L, myProfilers)))
 
     // Assert both the data model and the UI reflect the past recording entry.
     assertThat(recordingListModel.recordingList.value).hasSize(1)
@@ -120,7 +116,8 @@ class RecordingListTest {
       }
     }
 
-    recordingListModel.setRecordingList(listOf(createFakeExportableRecording()))
+    // System trace artifact is exportable.
+    recordingListModel.setRecordingList(listOf(createSessionItemWithSystemTraceArtifact("Recording 1", 1L, 1L, myProfilers)))
 
     // Assert both the data model and the UI reflect the past recording entry.
     assertThat(recordingListModel.recordingList.value).hasSize(1)
@@ -136,15 +133,5 @@ class RecordingListTest {
 
     // Assert export button is enabled as a selection of an exportable artifact is made.
     composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsEnabled()
-  }
-
-  private fun createFakeExportableRecording(): SessionItem {
-    val sessionId = 1L
-    val traceId = 1L
-    val session = Common.Session.newBuilder().setSessionId(sessionId).build()
-    val systemTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(
-      myProfilers, session, sessionId, traceId,
-      Trace.TraceConfiguration.newBuilder().setPerfettoOptions(PerfettoConfig.TraceConfig.getDefaultInstance()).build())
-    return SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, "Recording 1", listOf(systemTraceArtifact))
   }
 }

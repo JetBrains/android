@@ -106,7 +106,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
 
     if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) {
       // Initialize the two static/un-closable tabs: home and past recordings tabs.
-      homeTab = StudioProfilersHomeTab(profilers, ideProfilerComponents)
+      homeTab = StudioProfilersHomeTab(profilers)
       homePanel = JPanel(BorderLayout())
       homePanel.removeAll()
       homePanel.add(homeTab.view.panel)

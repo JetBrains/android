@@ -26,6 +26,7 @@ import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
+import perfetto.protos.PerfettoConfig
 
 object SessionArtifactUtils {
 
@@ -109,5 +110,13 @@ object SessionArtifactUtils {
     return SessionItem(profilers, initialSession, sessionMetadata).apply {
       setChildArtifacts(childArtifacts)
     }
+  }
+
+  fun createSessionItemWithSystemTraceArtifact(name: String, sessionId: Long, traceId: Long, profilers: StudioProfilers): SessionItem {
+    val session = Common.Session.newBuilder().setSessionId(sessionId).build()
+    val systemTraceArtifact = createCpuCaptureSessionArtifactWithConfig(profilers, session, sessionId, traceId,
+                                                                        TraceConfiguration.newBuilder().setPerfettoOptions(
+                                                                          PerfettoConfig.TraceConfig.getDefaultInstance()).build())
+    return createSessionItem(profilers, session, sessionId, name, listOf(systemTraceArtifact))
   }
 }

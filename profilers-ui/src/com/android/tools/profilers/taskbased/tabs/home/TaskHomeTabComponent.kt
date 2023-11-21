@@ -20,27 +20,44 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.android.tools.profilers.IdeProfilerComponents
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.PROFILER_TOOLWINDOW_DIVIDER_THICKNESS_DP
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.SELECTION_PANEL_MAX_RATIO_FLOAT
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.SELECTION_PANEL_MIN_RATIO_FLOAT
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.tabs.TaskTabComponent
-import org.jetbrains.jewel.ui.component.DefaultButton
-import org.jetbrains.jewel.ui.component.Text
+import com.android.tools.profilers.taskbased.tabs.home.processlist.ProcessList
+import com.android.tools.profilers.taskbased.tabs.taskgridandactionbar.TaskGridAndActionBar
+import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 
 @Composable
-fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) {
-  // TODO(b/277797248): Replace sample Compose UI with real UI content.
+fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel) {
   Column(
     modifier = Modifier.fillMaxWidth().fillMaxHeight(),
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally
   ) {
-    DefaultButton(onClick = {}) {
-      Text("Task-Based UX Profiler Home Tab")
-    }
+    val taskGridModel = taskHomeTabModel.taskGridModel
+    val taskHandlers = taskHomeTabModel.taskHandlers
+    val processListModel = taskHomeTabModel.processListModel
+    val selectedProcess by processListModel.selectedProcess.collectAsState()
+    val selectedDevice by processListModel.selectedDevice.collectAsState()
+
+    HorizontalSplitLayout(
+      minRatio = SELECTION_PANEL_MIN_RATIO_FLOAT,
+      maxRatio = SELECTION_PANEL_MAX_RATIO_FLOAT,
+      dividerThickness = PROFILER_TOOLWINDOW_DIVIDER_THICKNESS_DP,
+      first = {
+        ProcessList(processListModel, it)
+      },
+      second = {
+        TaskGridAndActionBar(taskGridModel, selectedDevice, selectedProcess, taskHandlers, taskHomeTabModel::onEnterTaskButtonClick, it)
+      }
+    )
   }
 }
 
-class TaskHomeTabComponent(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) : TaskTabComponent(
-  { TaskHomeTab(taskHomeTabModel, ideProfilerComponents) })
+class TaskHomeTabComponent(taskHomeTabModel: TaskHomeTabModel) : TaskTabComponent({ TaskHomeTab(taskHomeTabModel) })

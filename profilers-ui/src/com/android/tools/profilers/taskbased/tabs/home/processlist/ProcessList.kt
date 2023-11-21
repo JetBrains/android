@@ -24,8 +24,8 @@ import androidx.compose.ui.Modifier
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 
 @Composable
-fun ProcessList(processListModel: ProcessListModel) {
-  Column(modifier = Modifier.fillMaxSize()) {
+fun ProcessList(processListModel: ProcessListModel, modifier: Modifier = Modifier) {
+  Column(modifier = modifier) {
     val deviceList by processListModel.deviceList.collectAsState()
     val selectedDevice by processListModel.selectedDevice.collectAsState()
     DeviceDropdownAndRestartButtons(deviceList = deviceList, selectedDevice = selectedDevice,

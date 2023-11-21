@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.com.android.tools.profilers.taskbased.tabs.home
+package com.android.tools.profilers.com.android.tools.profilers.taskbased.tabs.home.processlist
 
 
 import androidx.compose.ui.test.assertCountEquals
