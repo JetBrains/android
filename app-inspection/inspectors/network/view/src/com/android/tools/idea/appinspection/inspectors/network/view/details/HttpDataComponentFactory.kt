@@ -305,20 +305,8 @@ internal class HttpDataComponentFactory(
   }
 
   companion object {
-    private const val ID_PAYLOAD_VIEWER = "PAYLOAD_VIEWER"
+    @VisibleForTesting const val ID_PAYLOAD_VIEWER = "PAYLOAD_VIEWER"
     private val PAYLOAD_BORDER: Border = JBUI.Borders.emptyTop(6)
-
-    /**
-     * Search for the payload [DataViewer] inside a component returned by [.createBodyComponent]. If
-     * this returns `null`, that means no payload viewer was created for it, e.g. the http data
-     * instance didn't have a payload and a "No data found" label was returned instead.
-     */
-    @VisibleForTesting
-    fun findPayloadViewer(body: JComponent?): JComponent? {
-      return if (body == null) {
-        null
-      } else findComponentWithUniqueName(body, ID_PAYLOAD_VIEWER)
-    }
 
     /**
      * Creates the raw data view of given payload.

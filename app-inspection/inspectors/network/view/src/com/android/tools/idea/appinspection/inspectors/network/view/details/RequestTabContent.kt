@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.REQUEST
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 
@@ -47,10 +46,5 @@ internal class RequestTabContent : TabContent() {
     if (bodyComponent != null) {
       contentPanel.add(bodyComponent)
     }
-  }
-
-  @VisibleForTesting
-  fun findPayloadBody(): JComponent? {
-    return findComponentWithUniqueName(contentPanel, REQUEST.bodyComponentId)
   }
 }

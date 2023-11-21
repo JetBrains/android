@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.common.borderLight
 import com.android.tools.adtui.ui.HideablePanel
 import com.intellij.icons.AllIcons
@@ -138,22 +137,6 @@ fun createStyledMapComponent(map: Map<String, List<String>>): JComponent {
   }
   mainJPanel.alignmentX = JPanel.LEFT_ALIGNMENT
   return mainJPanel
-}
-
-/**
- * Find a component by its name. If duplicate names are found, this will throw an exception.
- *
- * This utility method is meant to be used indirectly only for test purposes - names can be a
- * convenient way to expose child elements to tests to assert their state.
- *
- * Non-unique names throw an exception to help catch accidental copy/paste errors when initializing
- * names.
- */
-fun findComponentWithUniqueName(root: JComponent, name: String): JComponent? {
-  val matches =
-    TreeWalker(root).descendants().filter { component -> name == component.name }.toList()
-  check(matches.size <= 1) { "More than one component found with the name: $name" }
-  return if (matches.size == 1) matches[0] as JComponent else null
 }
 
 /**

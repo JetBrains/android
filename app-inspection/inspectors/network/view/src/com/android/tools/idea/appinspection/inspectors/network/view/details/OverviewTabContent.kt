@@ -98,41 +98,6 @@ internal class OverviewTabContent : TabContent() {
     updateRowSizing()
   }
 
-  @VisibleForTesting
-  fun findResponsePayloadViewer(): JComponent? {
-    return findComponentWithUniqueName(contentPanel, ID_RESPONSE_PAYLOAD_VIEWER)
-  }
-
-  @VisibleForTesting
-  fun findContentTypeValue(): JLabel? {
-    return findComponentWithUniqueName(contentPanel, ID_RESPONSE_TYPE) as JLabel?
-  }
-
-  @VisibleForTesting
-  fun findSizeValue(): JLabel? {
-    return findComponentWithUniqueName(contentPanel, ID_RESPONSE_SIZE) as JLabel?
-  }
-
-  @VisibleForTesting
-  fun findUrlValue(): JTextArea? {
-    return findComponentWithUniqueName(contentPanel, ID_URL) as JTextArea?
-  }
-
-  @VisibleForTesting
-  fun findTimingBar(): JComponent? {
-    return findComponentWithUniqueName(contentPanel, ID_TIMING)
-  }
-
-  @VisibleForTesting
-  fun findInitiatingThreadValue(): JLabel? {
-    return findComponentWithUniqueName(contentPanel, ID_INITIATING_THREAD) as JLabel?
-  }
-
-  @VisibleForTesting
-  fun findOtherThreadsValue(): JLabel? {
-    return findComponentWithUniqueName(contentPanel, ID_OTHER_THREADS) as JLabel?
-  }
-
   /**
    * This is a hyperlink which will break and wrap when it hits the right border of its container.
    */
@@ -204,15 +169,15 @@ internal class OverviewTabContent : TabContent() {
       LongFunction<String> { time: Long ->
         if (time >= 0) StringUtil.formatDuration(TimeUnit.MICROSECONDS.toMillis(time)) else "*"
       }
-    private const val ID_REQUEST_TYPE = "REQUEST_TYPE"
-    private const val ID_REQUEST_SIZE = "REQUEST_SIZE"
-    private const val ID_RESPONSE_TYPE = "RESPONSE_TYPE"
-    private const val ID_RESPONSE_SIZE = "RESPONSE_SIZE"
-    private const val ID_URL = "URL"
-    private const val ID_TIMING = "TIMING"
-    private const val ID_INITIATING_THREAD = "INITIATING_THREAD"
-    private const val ID_OTHER_THREADS = "OTHER_THREADS"
-    private const val ID_RESPONSE_PAYLOAD_VIEWER = "RESPONSE_PAYLOAD_VIEWER"
+    @VisibleForTesting const val ID_REQUEST_TYPE = "REQUEST_TYPE"
+    @VisibleForTesting const val ID_REQUEST_SIZE = "REQUEST_SIZE"
+    @VisibleForTesting const val ID_RESPONSE_TYPE = "RESPONSE_TYPE"
+    @VisibleForTesting const val ID_RESPONSE_SIZE = "RESPONSE_SIZE"
+    @VisibleForTesting const val ID_URL = "URL"
+    @VisibleForTesting const val ID_TIMING = "TIMING"
+    @VisibleForTesting const val ID_INITIATING_THREAD = "INITIATING_THREAD"
+    @VisibleForTesting const val ID_OTHER_THREADS = "OTHER_THREADS"
+    @VisibleForTesting const val ID_RESPONSE_PAYLOAD_VIEWER = "RESPONSE_PAYLOAD_VIEWER"
 
     private fun createFields(data: ConnectionData, image: BufferedImage?): JComponent {
       val myFieldsPanel = JPanel(TabularLayout("Fit-,40px,*").setVGap(SECTION_VGAP))

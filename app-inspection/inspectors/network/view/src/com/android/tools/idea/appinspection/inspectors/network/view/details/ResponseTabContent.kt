@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.RESPONSE
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 
@@ -50,10 +49,5 @@ internal class ResponseTabContent : TabContent() {
     if (bodyComponent != null) {
       panel.add(bodyComponent)
     }
-  }
-
-  @VisibleForTesting
-  fun findPayloadBody(): JComponent? {
-    return findComponentWithUniqueName(panel, RESPONSE.bodyComponentId)
   }
 }

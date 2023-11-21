@@ -37,11 +37,14 @@ import com.android.tools.idea.appinspection.inspectors.network.model.connections
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.android.tools.idea.appinspection.inspectors.network.view.TestNetworkInspectorUsageTracker
+import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType
+import com.android.tools.idea.appinspection.inspectors.network.view.utils.findComponentWithUniqueName
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
+import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
@@ -50,7 +53,10 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.RunsInEdt
 import java.awt.Component
 import java.util.concurrent.TimeUnit
+import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JTextArea
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -188,16 +194,12 @@ class ConnectionDataDetailsViewTest {
   @Test
   fun viewerForRequestPayloadIsPresentWhenRequestPayloadIsNotNull() {
     assertThat(
-        HttpDataComponentFactory.findPayloadViewer(
-          detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody()
-        )
+        findPayloadViewer(detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody())
       )
       .isNull()
     detailsView.setConnectionData(DEFAULT_DATA)
     assertThat(
-        HttpDataComponentFactory.findPayloadViewer(
-          detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody()
-        )
+        findPayloadViewer(detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody())
       )
       .isNotNull()
   }
@@ -207,9 +209,7 @@ class ConnectionDataDetailsViewTest {
     val data = DEFAULT_DATA.copy(requestPayload = ByteString.EMPTY)
     detailsView.setConnectionData(data)
     assertThat(
-        HttpDataComponentFactory.findPayloadViewer(
-          detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody()
-        )
+        findPayloadViewer(detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody())
       )
       .isNull()
   }
@@ -428,9 +428,7 @@ class ConnectionDataDetailsViewTest {
   @Test
   fun trackConnectionComponentSelections() {
     assertThat(
-        HttpDataComponentFactory.findPayloadViewer(
-          detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody()
-        )
+        findPayloadViewer(detailsView.findTab(RequestTabContent::class.java)!!.findPayloadBody())
       )
       .isNull()
     model.setSelectedConnection(DEFAULT_DATA)
@@ -485,3 +483,50 @@ private fun header(key: String, vararg values: String) =
     .setKey(key)
     .addAllValues(values.asList())
     .build()
+
+/**
+ * Search for the payload [DataViewer] inside a component returned by [.createBodyComponent]. If
+ * this returns `null`, that means no payload viewer was created for it, e.g. the http data instance
+ * didn't have a payload and a "No data found" label was returned instead.
+ */
+private fun findPayloadViewer(body: JComponent?): JComponent? {
+  return if (body == null) {
+    null
+  } else findComponentWithUniqueName(body, HttpDataComponentFactory.ID_PAYLOAD_VIEWER)
+}
+
+private fun OverviewTabContent.findResponsePayloadViewer(): JComponent? {
+  return findComponentWithUniqueName(component, OverviewTabContent.ID_RESPONSE_PAYLOAD_VIEWER)
+}
+
+private fun OverviewTabContent.findContentTypeValue(): JLabel? {
+  return findComponentWithUniqueName(component, OverviewTabContent.ID_RESPONSE_TYPE) as JLabel?
+}
+
+private fun OverviewTabContent.findSizeValue(): JLabel? {
+  return findComponentWithUniqueName(component, OverviewTabContent.ID_RESPONSE_SIZE) as JLabel?
+}
+
+private fun OverviewTabContent.findUrlValue(): JTextArea? {
+  return findComponentWithUniqueName(component, OverviewTabContent.ID_URL) as JTextArea?
+}
+
+private fun OverviewTabContent.findTimingBar(): JComponent? {
+  return findComponentWithUniqueName(component, OverviewTabContent.ID_TIMING)
+}
+
+private fun OverviewTabContent.findInitiatingThreadValue(): JLabel? {
+  return findComponentWithUniqueName(component, OverviewTabContent.ID_INITIATING_THREAD) as JLabel?
+}
+
+private fun OverviewTabContent.findOtherThreadsValue(): JLabel? {
+  return findComponentWithUniqueName(component, OverviewTabContent.ID_OTHER_THREADS) as JLabel?
+}
+
+private fun RequestTabContent.findPayloadBody(): JComponent? {
+  return findComponentWithUniqueName(component, ConnectionType.REQUEST.bodyComponentId)
+}
+
+private fun ResponseTabContent.findPayloadBody(): JComponent? {
+  return findComponentWithUniqueName(component, ConnectionType.RESPONSE.bodyComponentId)
+}
