@@ -59,7 +59,9 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
   companion object {
     private const val FQ_NAME_ORG_JUNIT_RULE = "org.junit.Rule"
     private const val NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE = "androidx/benchmark/macro/junit4/BaselineProfileRule"
+    private const val NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE = "androidx/benchmark/macro/junit4/MacrobenchmarkRule"
     private const val FQ_NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE = "androidx.benchmark.macro.junit4.BaselineProfileRule"
+    private const val FQ_NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE = "androidx.benchmark.macro.junit4.MacrobenchmarkRule"
 
     private val generateAction = ActionManager.getInstance().getAction("AndroidX.BaselineProfile.RunGenerate")
 
@@ -128,7 +130,8 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
             val isBaselineProfileCallExpression = PsiTreeUtil
               .findChildOfType(prop, KtCallExpression::class.java)
               ?.getExpectedType()
-              ?.asStringForDebugging() == NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE
+              ?.asStringForDebugging()
+              ?.let { it == NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || it == NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE } == true
 
             // Check that the parent class node is the same of the method (to ensure both method and rule are in the same class).
             val isInSameClassOfMethod = PsiTreeUtil.getParentOfType(prop, KtClass::class.java) == topLevelClass
@@ -161,10 +164,15 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
         if (PsiTreeUtil.getDepth(member, topLevelClass) == 1 &&
             PsiTreeUtil.findChildrenOfType(member, PsiAnnotation::class.java).any {
               it.resolveAnnotationType()?.qualifiedName == FQ_NAME_ORG_JUNIT_RULE &&
-              PsiTreeUtil.findChildOfType(member, PsiNewExpression::class.java)?.type.resolve()?.qualifiedName ==
-              FQ_NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE
+              PsiTreeUtil.findChildOfType(member, PsiNewExpression::class.java)
+                ?.type
+                .resolve()
+                ?.qualifiedName
+                ?.let { name ->
+                  name == FQ_NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || name == FQ_NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE
+                } == true
             }) {
-              return true
+          return true
         }
       }
       return false
