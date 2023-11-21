@@ -13,56 +13,58 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android;
+package org.jetbrains.android
 
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.google.common.truth.Truth
+import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.VfsUtilCore
+import org.jetbrains.android.AndroidDocumentationProvider.MyDocExternalFilter
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.StringReader
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
-
-import static com.google.common.truth.Truth.assertThat;
-
-public class AndroidDocumentationProviderTest extends AndroidTestCase {
-  private String readTestFile(String path) throws IOException {
-    VirtualFile virtualFile = myFixture.copyFileToProject("javadoc/classes/" + path, path);
-    return VfsUtilCore.loadText(virtualFile);
+class AndroidDocumentationProviderTest : AndroidTestCase() {
+  @Throws(IOException::class)
+  private fun readTestFile(path: String): String {
+    val virtualFile = myFixture.copyFileToProject("javadoc/classes/$path", path)
+    return VfsUtilCore.loadText(virtualFile)
   }
 
-  public void testExternalFilterOldFormat() throws Exception {
+  @Throws(Exception::class)
+  fun testExternalFilterOldFormat() {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
+      return
     }
 
     // Copied from SDK docs v23 rev 1
-    String input = readTestFile("oldPoint.html");
-    String output = readTestFile("oldPointSummary.html");
-    String url = "http://developer.android.com/reference/android/graphics/Point.html";
-    checkFilter(url, input, output);
+    val input = readTestFile("oldPoint.html")
+    val output = readTestFile("oldPointSummary.html")
+    val url = "http://developer.android.com/reference/android/graphics/Point.html"
+    checkFilter(url, input, output)
   }
 
-  public void testExternalFilterNewFormat() throws Exception {
+  @Throws(Exception::class)
+  fun testExternalFilterNewFormat() {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
+      return
     }
 
     // Downloaded July 2016 with curl -o <output> https://developer.android.com/reference/android/graphics/Point.html
-    String input = readTestFile("newPoint.html");
-    String output = readTestFile("newPointSummary.html");
-    String url = "http://developer.android.com/reference/android/graphics/Point.html";
-    checkFilter(url, input, output);
+    val input = readTestFile("newPoint.html")
+    val output = readTestFile("newPointSummary.html")
+    val url = "http://developer.android.com/reference/android/graphics/Point.html"
+    checkFilter(url, input, output)
   }
 
-  public void checkFilter(String url, String input, String expected) throws Exception {
-    AndroidDocumentationProvider.MyDocExternalFilter filter = new AndroidDocumentationProvider.MyDocExternalFilter(getProject());
-    StringBuilder builder = new StringBuilder(1000);
-    BufferedReader reader = new BufferedReader(new StringReader(input));
-    filter.doBuildFromStream(url, reader, builder);
-    assertThat(builder.toString()).isEqualTo(StringUtil.convertLineSeparators(expected));
+  @Throws(Exception::class)
+  fun checkFilter(url: String?, input: String?, expected: String?) {
+    val filter = MyDocExternalFilter(project)
+    val builder = StringBuilder(1000)
+    val reader = BufferedReader(StringReader(input))
+    filter.doBuildFromStream(url!!, reader, builder)
+    Truth.assertThat(builder.toString()).isEqualTo(StringUtil.convertLineSeparators(expected!!))
   }
 }
