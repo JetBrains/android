@@ -30,6 +30,7 @@ class ProfilerExecutionListener : ExecutionListener {
 
   override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
     val info = AndroidSessionInfo.from(handler) ?: return
+    val project = env.project
 
     if (info.devices.size != 1) {
       return
@@ -40,7 +41,7 @@ class ProfilerExecutionListener : ExecutionListener {
     // 2. If the profiler window is closed, we cache the device+module info so the profilers can auto-start if the user opens the window
     // manually at a later time.
     runInEdt {
-      val window = ToolWindowManager.getInstance(env.project).getToolWindow(AndroidProfilerToolWindowFactory.ID) ?: return@runInEdt
+      val window = ToolWindowManager.getInstance(project).getToolWindow(AndroidProfilerToolWindowFactory.ID) ?: return@runInEdt
       window.isShowStripeButton = true
       val deviceName = getDeviceDisplayName(info.devices.first())
       val preferredProcessInfo = PreferredProcessInfo(deviceName, info.applicationId) { true }
@@ -48,7 +49,7 @@ class ProfilerExecutionListener : ExecutionListener {
       // then we shouldn't start profiling the launched app.
       var profileStarted = false
       if (window.isVisible) {
-        val profilerToolWindow = getProfilerToolWindow(env.project)
+        val profilerToolWindow = getProfilerToolWindow(project)
         if (profilerToolWindow != null) {
           profilerToolWindow.profile(preferredProcessInfo)
           profileStarted = true
@@ -56,7 +57,7 @@ class ProfilerExecutionListener : ExecutionListener {
       }
       // Caching the device+process info in case auto-profiling should kick in at a later time.
       if (!profileStarted) {
-        env.project.putUserData(AndroidProfilerToolWindow.LAST_RUN_APP_INFO, preferredProcessInfo)
+        project.putUserData(AndroidProfilerToolWindow.LAST_RUN_APP_INFO, preferredProcessInfo)
       }
     }
 
@@ -64,7 +65,7 @@ class ProfilerExecutionListener : ExecutionListener {
     // to auto-profiling a process that has already been killed.
     handler.addProcessListener(object : ProcessAdapter() {
       override fun processTerminated(event: ProcessEvent) {
-        env.project.putUserData(AndroidProfilerToolWindow.LAST_RUN_APP_INFO, null)
+        project.putUserData(AndroidProfilerToolWindow.LAST_RUN_APP_INFO, null)
       }
     })
   }
