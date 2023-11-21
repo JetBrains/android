@@ -18,6 +18,9 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 import com.android.tools.adtui.LegendComponent
 import com.android.tools.adtui.LegendConfig
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.TabularLayout.SizingRule
+import com.android.tools.adtui.TabularLayout.SizingRule.Type.FIXED
+import com.android.tools.adtui.TabularLayout.SizingRule.Type.PROPORTIONAL
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.legend.FixedLegend
 import com.android.tools.adtui.model.legend.LegendComponentModel
@@ -60,26 +63,18 @@ import javax.swing.SwingConstants
  * This tab will be the first one shown to the user when they first select a request.
  */
 internal class OverviewTabContent : TabContent() {
-  private lateinit var contentPanel: JPanel
+  private val layout = TabularLayout("*").setVGap(PAGE_VGAP)
+  private val contentPanel = JPanel(layout)
+  private val overviewScroll: JBScrollPane = createVerticalScrollPane(contentPanel)
   override val title = "Overview"
 
   override fun createComponent(): JComponent {
-    val layout: TabularLayout = TabularLayout("*").setVGap(PAGE_VGAP)
-    contentPanel = JPanel(layout)
     contentPanel.border = JBUI.Borders.empty(PAGE_VGAP, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)
-    val overviewScroll: JBScrollPane = createVerticalScrollPane(contentPanel)
     overviewScroll.verticalScrollBar.unitIncrement = SCROLL_UNIT
     overviewScroll.addComponentListener(
       object : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent) {
-          layout.setRowSizing(
-            0,
-            TabularLayout.SizingRule(
-              TabularLayout.SizingRule.Type.FIXED,
-              (overviewScroll.viewport.height * 0.4f).toInt()
-            )
-          )
-          layout.layoutContainer(contentPanel)
+          updateRowSizing()
         }
       }
     )
@@ -92,11 +87,15 @@ internal class OverviewTabContent : TabContent() {
       return
     }
     val payloadViewer = dataComponentFactory.createDataViewer(ConnectionType.RESPONSE, false)
-    val responsePayloadComponent: JComponent = payloadViewer.component
-    responsePayloadComponent.name = ID_RESPONSE_PAYLOAD_VIEWER
-    contentPanel.add(responsePayloadComponent, TabularLayout.Constraint(0, 0))
+    val responsePayloadComponent: JComponent? = payloadViewer?.component
+    var row = 0
+    if (responsePayloadComponent != null) {
+      responsePayloadComponent.name = ID_RESPONSE_PAYLOAD_VIEWER
+      contentPanel.add(responsePayloadComponent, TabularLayout.Constraint(row++, 0))
+    }
     val image = if (payloadViewer is ImageDataViewer) payloadViewer.image else null
-    contentPanel.add(createFields(data, image), TabularLayout.Constraint(1, 0))
+    contentPanel.add(createFields(data, image), TabularLayout.Constraint(row, 0))
+    updateRowSizing()
   }
 
   @VisibleForTesting
@@ -106,12 +105,12 @@ internal class OverviewTabContent : TabContent() {
 
   @VisibleForTesting
   fun findContentTypeValue(): JLabel? {
-    return findComponentWithUniqueName(contentPanel, ID_CONTENT_TYPE) as JLabel?
+    return findComponentWithUniqueName(contentPanel, ID_RESPONSE_TYPE) as JLabel?
   }
 
   @VisibleForTesting
   fun findSizeValue(): JLabel? {
-    return findComponentWithUniqueName(contentPanel, ID_SIZE) as JLabel?
+    return findComponentWithUniqueName(contentPanel, ID_RESPONSE_SIZE) as JLabel?
   }
 
   @VisibleForTesting
@@ -188,13 +187,27 @@ internal class OverviewTabContent : TabContent() {
     }
   }
 
+  private fun updateRowSizing() {
+    // If there is a payload component, restrict its height to 40%.
+    val sizingRule =
+      when {
+        contentPanel.components.size > 1 ->
+          SizingRule(FIXED, (overviewScroll.viewport.height * 0.4f).toInt())
+        else -> SizingRule(PROPORTIONAL, 1)
+      }
+    layout.setRowSizing(0, sizingRule)
+    layout.layoutContainer(contentPanel)
+  }
+
   companion object {
     private val TIME_FORMATTER: LongFunction<String> =
       LongFunction<String> { time: Long ->
         if (time >= 0) StringUtil.formatDuration(TimeUnit.MICROSECONDS.toMillis(time)) else "*"
       }
-    private const val ID_CONTENT_TYPE = "CONTENT_TYPE"
-    private const val ID_SIZE = "SIZE"
+    private const val ID_REQUEST_TYPE = "REQUEST_TYPE"
+    private const val ID_REQUEST_SIZE = "REQUEST_SIZE"
+    private const val ID_RESPONSE_TYPE = "RESPONSE_TYPE"
+    private const val ID_RESPONSE_SIZE = "RESPONSE_SIZE"
     private const val ID_URL = "URL"
     private const val ID_TIMING = "TIMING"
     private const val ID_INITIATING_THREAD = "INITIATING_THREAD"
@@ -223,24 +236,40 @@ internal class OverviewTabContent : TabContent() {
         myFieldsPanel.add(dimension, TabularLayout.Constraint(row, 2))
       }
 
+      val requestType = data.requestType
+      if (requestType.isNotEmpty()) {
+        row++
+        myFieldsPanel.add(NoWrapBoldLabel("Request type"), TabularLayout.Constraint(row, 0))
+        val contentTypeLabel = JLabel(requestType)
+        contentTypeLabel.name = ID_REQUEST_TYPE
+        myFieldsPanel.add(contentTypeLabel, TabularLayout.Constraint(row, 2))
+      }
+
+      val requestSize = data.requestPayload.size()
+      if (requestSize > 0) {
+        row++
+        myFieldsPanel.add(NoWrapBoldLabel("Request size"), TabularLayout.Constraint(row, 0))
+        val contentLengthLabel = JLabel(StringUtil.formatFileSize(requestSize.toLong()))
+        contentLengthLabel.name = ID_REQUEST_SIZE
+        myFieldsPanel.add(contentLengthLabel, TabularLayout.Constraint(row, 2))
+      }
+
       val responseType = data.responseType
       if (responseType.isNotEmpty()) {
         row++
         myFieldsPanel.add(NoWrapBoldLabel("Response type"), TabularLayout.Constraint(row, 0))
         val contentTypeLabel = JLabel(responseType)
-        contentTypeLabel.name = ID_CONTENT_TYPE
+        contentTypeLabel.name = ID_RESPONSE_TYPE
         myFieldsPanel.add(contentTypeLabel, TabularLayout.Constraint(row, 2))
       }
 
-      val contentLength = data.responsePayload.size()
-      if (contentLength != -1) {
-        try {
-          row++
-          myFieldsPanel.add(NoWrapBoldLabel("Size"), TabularLayout.Constraint(row, 0))
-          val contentLengthLabel = JLabel(StringUtil.formatFileSize(contentLength.toLong()))
-          contentLengthLabel.name = ID_SIZE
-          myFieldsPanel.add(contentLengthLabel, TabularLayout.Constraint(row, 2))
-        } catch (ignored: NumberFormatException) {}
+      val responseSize = data.responsePayload.size()
+      if (responseSize > 0) {
+        row++
+        myFieldsPanel.add(NoWrapBoldLabel("Response size"), TabularLayout.Constraint(row, 0))
+        val contentLengthLabel = JLabel(StringUtil.formatFileSize(responseSize.toLong()))
+        contentLengthLabel.name = ID_RESPONSE_SIZE
+        myFieldsPanel.add(contentLengthLabel, TabularLayout.Constraint(row, 2))
       }
 
       row++

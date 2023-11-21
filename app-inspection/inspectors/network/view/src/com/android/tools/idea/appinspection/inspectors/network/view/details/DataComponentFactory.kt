@@ -48,7 +48,7 @@ internal abstract class DataComponentFactory(protected val data: ConnectionData)
    */
   open fun createTrailersComponent(): JComponent? = null
 
-  abstract fun createDataViewer(type: ConnectionType, formatted: Boolean): DataViewer
+  abstract fun createDataViewer(type: ConnectionType, formatted: Boolean): DataViewer?
 
   private fun getHeaders(type: ConnectionType) =
     when (type) {
@@ -56,5 +56,5 @@ internal abstract class DataComponentFactory(protected val data: ConnectionData)
       ConnectionType.RESPONSE -> data.responseHeaders
     }
 
-  abstract fun createBodyComponent(type: ConnectionType): JComponent
+  abstract fun createBodyComponent(type: ConnectionType): JComponent?
 }

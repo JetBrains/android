@@ -16,29 +16,20 @@
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.GrpcData
-import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import javax.swing.JComponent
-import javax.swing.JLabel
 
 internal class GrpcDataComponentFactory(data: GrpcData) : DataComponentFactory(data) {
   private val grpcData: GrpcData
     get() = data as GrpcData
 
-  override fun createDataViewer(type: ConnectionType, formatted: Boolean): DataViewer {
-    return object : DataViewer {
-      override fun getComponent(): JComponent {
-        return JLabel("DataViewer not implemented Yet")
-      }
+  override fun createDataViewer(type: ConnectionType, formatted: Boolean) = null
 
-      override fun getStyle(): DataViewer.Style {
-        return DataViewer.Style.RAW
-      }
+  override fun createBodyComponent(type: ConnectionType) = null
+
+  override fun createTrailersComponent(): JComponent? {
+    return when {
+      grpcData.responseTrailers.isEmpty() -> null
+      else -> createStyledMapComponent(grpcData.responseTrailers)
     }
   }
-
-  override fun createBodyComponent(type: ConnectionType): JComponent {
-    return JLabel("Body component not implemented Yet")
-  }
-
-  override fun createTrailersComponent() = createStyledMapComponent(grpcData.responseTrailers)
 }
