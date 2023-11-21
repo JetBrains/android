@@ -386,6 +386,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     referencesExecutor.addTargetFile(targetFile)
   }
 
+  override fun append(source: String, to: File) {
+    val targetFile = getTargetFile(to)
+    val targetText = readTargetText(targetFile) ?: ""
+    val contents = targetText + (if (targetText.endsWith('\n')) "" else "\n") + source
+    writeTargetFile(this, contents, targetFile)
+  }
+
   override fun createDirectory(at: File) {
     io.mkDir(getTargetFile(at))
   }

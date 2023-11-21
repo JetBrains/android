@@ -35,6 +35,10 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     addTargetFile(to)
   }
 
+  override fun append(source: String, to: File) {
+    addTargetFile(to)
+  }
+
   override fun mergeXml(source: String, to: File) {
     addTargetFile(to)
   }
