@@ -34,6 +34,7 @@ import com.android.tools.idea.model.MergedManifestModificationTracker
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryActivitiesFromManifestIndex
 import com.android.tools.idea.model.queryApplicationThemeFromManifestIndex
+import com.android.tools.idea.model.queryIsMainManifestIndexReady
 import com.android.tools.idea.run.activity.DefaultActivityLocator
 import com.android.tools.module.AndroidModuleInfo
 import com.intellij.openapi.module.Module
@@ -55,6 +56,12 @@ private val DEFAULT_THEME_KEY: Key<CachedValue<String>> = Key.create("DefaultThe
 typealias ThemeStyleFilter = (ConfiguredThemeEditorStyle) -> Boolean
 
 /**
+ * [Exception] thrown when the main manifest index is not ready yet. This can happen in cases where the
+ * project has just been created or the indexes have been cleaned.
+ */
+private class MainManifestIndexNotReadyException : Exception()
+
+/**
  *  Try to get application theme from [AndroidManifestIndex]. And it falls back to the merged
  *  manifest snapshot if necessary.
  */
@@ -63,9 +70,16 @@ fun Module.getAppThemeName(): String? {
     val facet = AndroidFacet.getInstance(this)
     if (facet != null) {
       return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
-        SlowOperations.allowSlowOperations(ThrowableComputable { facet.queryApplicationThemeFromManifestIndex() })
+        SlowOperations.allowSlowOperations(ThrowableComputable {
+          if (!facet.queryIsMainManifestIndexReady()) throw MainManifestIndexNotReadyException()
+          facet.queryApplicationThemeFromManifestIndex()
+        })
       })
     }
+  }
+  catch (e: MainManifestIndexNotReadyException) {
+    // In this case, fallback to the merged manifest until the main manifest index is ready
+
   }
   catch (e: IndexNotReadyException) {
     // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.

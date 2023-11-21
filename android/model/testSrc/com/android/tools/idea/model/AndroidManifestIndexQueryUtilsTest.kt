@@ -29,6 +29,8 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Assert
+import org.junit.Test
 import java.util.concurrent.TimeUnit
 
 class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
@@ -49,6 +51,10 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     super.configureAdditionalModules(projectBuilder, modules)
     addModuleWithAndroidFacet(projectBuilder, modules, LIB_MODULE1_WITH_DEPENDENCY, AndroidProjectTypes.PROJECT_TYPE_LIBRARY, true)
     addModuleWithAndroidFacet(projectBuilder, modules, LIB_MODULE2_WITH_DEPENDENCY, AndroidProjectTypes.PROJECT_TYPE_LIBRARY, true)
+  }
+
+  fun testIsMainManifestReady() {
+    Truth.assertThat(myFacet.queryIsMainManifestIndexReady()).isTrue()
   }
 
   fun testQueryMinSdkAndTargetSdk() {
