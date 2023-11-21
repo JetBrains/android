@@ -1,4 +1,5 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0
+// license that can be found in the LICENSE file.
 package org.jetbrains.android
 
 import com.android.SdkConstants
@@ -9,7 +10,7 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer
 import com.android.tools.idea.projectsystem.getAndroidFacets
-import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.create
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.javadoc.JavaDocExternalFilter
 import com.intellij.facet.ProjectFacetManager
@@ -17,7 +18,9 @@ import com.intellij.lang.documentation.DocumentationProvider
 import com.intellij.lang.documentation.ExternalDocumentationProvider
 import com.intellij.lang.java.JavaDocumentationProvider
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
@@ -28,81 +31,100 @@ import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.NonNls
 import java.io.BufferedReader
-import java.io.IOException
 import java.io.Reader
 
 /**
- * Provides documentation for Android R field references eg R.color.colorPrimary in Java and Kotlin files.
+ * Provides documentation for Android R field references eg R.color.colorPrimary in Java and Kotlin
+ * files.
  *
- * Despite the fact that AndroidDocumentationProvider is only registered for Java, since the light classes for resources are as Java
- * classes, the documentation provider works for kotlin files.
+ * Despite the fact that AndroidDocumentationProvider is only registered for Java, since the light
+ * classes for resources are as Java classes, the documentation provider works for kotlin files.
  */
 class AndroidDocumentationProvider : DocumentationProvider, ExternalDocumentationProvider {
   override fun generateDoc(element: PsiElement, originalElement: PsiElement?): String? {
-    if (originalElement == null) {
-      return null
-    }
-    val referencePsiElement = create(element) ?: return null
-    val module = ModuleUtilCore.findModuleForPsiElement(originalElement) ?: return null
-    val resourceReference = referencePsiElement.resourceReference
-    val androidFacet = AndroidFacet.getInstance(originalElement)
-      ?: return AndroidJavaDocRenderer.render(module, null, resourceReference.resourceUrl)
+    if (originalElement == null) return null
 
-    // Creating a basic configuration in case rendering of webp or xml drawables.
+    val resourceReference =
+      ResourceReferencePsiElement.create(element)?.resourceReference ?: return null
+    val module = ModuleUtilCore.findModuleForPsiElement(originalElement) ?: return null
     val configuration =
-      Configuration.create(ConfigurationManager.getOrCreateInstance(androidFacet.module), FolderConfiguration.createDefault())
+      AndroidFacet.getInstance(originalElement)?.let {
+        // Creating a basic configuration in case rendering of webp or xml drawables.
+        Configuration.create(
+          ConfigurationManager.getOrCreateInstance(it.module),
+          FolderConfiguration.createDefault()
+        )
+      }
     return AndroidJavaDocRenderer.render(module, configuration, resourceReference.resourceUrl)
   }
 
-  override fun fetchExternalDocumentation(project: Project, element: PsiElement, docUrls: List<String>, onHover: Boolean): String? {
+  override fun fetchExternalDocumentation(
+    project: Project,
+    element: PsiElement,
+    docUrls: List<String>,
+    onHover: Boolean
+  ): String? {
     // Workaround: When you invoke completion on an android.R.type.name field in a Java class, we
     // never get a chance to provide documentation for it via generateDoc, presumably because the
     // field is recognized by an earlier documentation provider (the generic Java javadoc one?) as
-    // something we have documentation for. We do however get a chance to fetch documentation for it;
-    // that's this call, so in that case we insert our javadoc rendering into the fetched documentation.
-    val doc = ApplicationManager.getApplication().runReadAction(Computable {
-      if (isFrameworkFieldDeclaration(element)) {
-        // We don't have the original module, so just find one of the Android modules in the project.
-        // It's theoretically possible that this will point to a different Android version than the one
-        // module used by the original request.
-        val module = guessAndroidModule(project, element)
-        val field = element as PsiField
-        // because isFrameworkFieldDeclaration returned true
-        val containingClass = field.containingClass!!
-        val type = ResourceType.fromClassName(containingClass.name!!)
-        if (module != null && type != null && field.name != null) {
-          val name = field.name
-          val render = AndroidJavaDocRenderer.render(module, type, name, true)
-          val external = JavaDocumentationProvider.fetchExternalJavadoc(element, docUrls, MyDocExternalFilter(project))
-          return@Computable AndroidJavaDocRenderer.injectExternalDocumentation(render, external)
-        }
-      }
-      null
-    })
-    if (doc != null) return null
-    return if (isMyContext(element, project)) JavaDocumentationProvider.fetchExternalJavadoc(
+    // something we have documentation for. We do however get a chance to fetch documentation for
+    // it; that's this call, so in that case we insert our javadoc rendering into the fetched
+    // documentation.
+    val docInjected = runReadAction { injectExternalDoc(project, element, docUrls) }
+
+    if (docInjected || !isMyContext(element, project)) return null
+    return JavaDocumentationProvider.fetchExternalJavadoc(
       element,
       docUrls,
-      MyDocExternalFilter(project)
-    ) else null
+      AndroidJavaDocExternalFilter(project)
+    )
   }
 
-  override fun hasDocumentationFor(element: PsiElement, originalElement: PsiElement): Boolean {
-    return false
+  @RequiresReadLock
+  private fun injectExternalDoc(
+    project: Project,
+    element: PsiElement,
+    docUrls: List<String>,
+  ): Boolean {
+    val field = element.asDeclaredFrameworkField() ?: return false
+    // We don't have the original module, so just find one of the Android modules in the
+    // project. It's theoretically possible that this will point to a different Android version
+    // than the one module used by the original request.
+    val module = guessAndroidModule(project, element) ?: return false
+    val containingClassName = requireNotNull(field.containingClass).name
+    if (containingClassName == null) {
+      thisLogger()
+        .error(
+          "Got null for name of containing class. Field: %s, containing class: %s",
+          field.toString(),
+          field.containingClass.toString()
+        )
+      return false
+    }
+    val type = ResourceType.fromClassName(containingClassName) ?: return false
+    val name = field.name
+    val render = AndroidJavaDocRenderer.render(module, type, name, true)
+    val external =
+      JavaDocumentationProvider.fetchExternalJavadoc(
+        element,
+        docUrls,
+        AndroidJavaDocExternalFilter(project)
+      )
+    return AndroidJavaDocRenderer.injectExternalDocumentation(render, external) != null
   }
 
-  override fun canPromptToConfigureDocumentation(element: PsiElement): Boolean {
-    return false
-  }
+  override fun hasDocumentationFor(element: PsiElement, originalElement: PsiElement) = false
+
+  override fun canPromptToConfigureDocumentation(element: PsiElement) = false
 
   override fun promptToConfigureDocumentation(element: PsiElement) {}
 
   @VisibleForTesting
-  internal class MyDocExternalFilter(project: Project?) : JavaDocExternalFilter(project) {
-    @Throws(IOException::class)
+  internal class AndroidJavaDocExternalFilter(project: Project?) : JavaDocExternalFilter(project) {
     public override fun doBuildFromStream(url: String, input: Reader, data: StringBuilder) {
       try {
         // Looking up a method, field or constructor? If so we can use the
@@ -111,6 +133,7 @@ class AndroidDocumentationProvider : DocumentationProvider, ExternalDocumentatio
           super.doBuildFromStream(url, input, data)
           return
         }
+
         BufferedReader(input).use { buf ->
           // Pull out the javadoc section.
           // The format has changed over time, so we need to look for different formats.
@@ -135,10 +158,15 @@ class AndroidDocumentationProvider : DocumentationProvider, ExternalDocumentatio
           // Read until we reach the class overview (if present); copy everything until we see the
           // optional marker skipHeader.
           var skip = false
-          while (buf.readLine().also { read = it } != null &&  // Old format: class description follows <h2>Class Overview</h2>
-            !read!!.startsWith("<h2>Class Overview") &&  // New format: class description follows just a <br><hr>. These
-            // are luckily not present in the older docs.
-            read != "<br><hr>") {
+          while (
+            buf.readLine().also { read = it } !=
+              null && // Old format: class description follows <h2>Class Overview</h2>
+              !read!!.startsWith(
+                "<h2>Class Overview"
+              ) && // New format: class description follows just a <br><hr>. These
+              // are luckily not present in the older docs.
+              read != "<br><hr>"
+          ) {
             if (read!!.contains("<table class=")) {
               // Skip all tables until the beginning of the class description
               skip = true
@@ -162,7 +190,11 @@ class AndroidDocumentationProvider : DocumentationProvider, ExternalDocumentatio
           // revisions (N+) it's <h2 class="api-section">
           if (read != null) {
             data.append("<br><div>\n")
-            while (buf.readLine().also { read = it } != null && !read!!.startsWith("<h2>") && !read!!.startsWith("<h2 ")) {
+            while (
+              buf.readLine().also { read = it } != null &&
+                !read!!.startsWith("<h2>") &&
+                !read!!.startsWith("<h2 ")
+            ) {
               data.append(read).append("\n")
             }
             data.append("</div>\n")
@@ -177,42 +209,50 @@ class AndroidDocumentationProvider : DocumentationProvider, ExternalDocumentatio
 
   companion object {
     private val LOG = Logger.getInstance("#org.jetbrains.android.AndroidDocumentationProvider")
+
     private fun guessAndroidModule(project: Project, element: PsiElement): Module? {
       val module = ModuleUtilCore.findModuleForPsiElement(element)
       return module
-        ?: project.getAndroidFacets().stream()
+        ?: project
+          .getAndroidFacets()
+          .stream()
           .map { obj: AndroidFacet -> obj.module }
-          .findFirst().orElse(null)
+          .findFirst()
+          .orElse(null)
     }
 
-    private fun isFrameworkFieldDeclaration(element: PsiElement): Boolean {
-      if (element is PsiField) {
-        val typeClass = element.containingClass
-        if (typeClass != null) {
-          val rClass = typeClass.containingClass
-          return rClass != null && SdkConstants.CLASS_R == AndroidPsiUtils.getQualifiedNameSafely(rClass)
-        }
+    private fun PsiElement.asDeclaredFrameworkField(): PsiField? =
+      (this as? PsiField)?.takeIf {
+        it.containingClass?.containingClass?.let(AndroidPsiUtils::getQualifiedNameSafely) ==
+          SdkConstants.CLASS_R
       }
-      return false
-    }
 
     private fun isMyContext(element: PsiElement, project: Project): Boolean {
       return if (element is PsiClass) {
         ApplicationManager.getApplication()
-          .runReadAction(Computable {
-            val file = element.getContainingFile() ?: return@Computable false
-            val vFile = file.virtualFile ?: return@Computable false
-            val path = FileUtil.toSystemIndependentName(vFile.path)
-            if (StringUtil.toLowerCase(path)
-                .contains("/" + SdkConstants.FN_FRAMEWORK_LIBRARY + "!/")
-            ) {
-              if (!ProjectFacetManager.getInstance(project).getFacets<AndroidFacet>(AndroidFacet.ID).isEmpty()) {
-                val jarFile = JarFileSystem.getInstance().getVirtualFileForJar(vFile)
-                return@Computable jarFile != null && SdkConstants.FN_FRAMEWORK_LIBRARY == jarFile.name
+          .runReadAction(
+            Computable {
+              val file = element.getContainingFile() ?: return@Computable false
+              val vFile = file.virtualFile ?: return@Computable false
+              val path = FileUtil.toSystemIndependentName(vFile.path)
+              if (
+                StringUtil.toLowerCase(path)
+                  .contains("/" + SdkConstants.FN_FRAMEWORK_LIBRARY + "!/")
+              ) {
+                if (
+                  !ProjectFacetManager.getInstance(project)
+                    .getFacets<AndroidFacet>(AndroidFacet.ID)
+                    .isEmpty()
+                ) {
+                  val jarFile = JarFileSystem.getInstance().getVirtualFileForJar(vFile)
+                  return@Computable jarFile != null &&
+                    SdkConstants.FN_FRAMEWORK_LIBRARY == jarFile.name
+                }
               }
+              false
             }
-            false
-          } as Computable<Boolean>)
+              as Computable<Boolean>
+          )
       } else false
     }
   }
