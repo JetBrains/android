@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.filters.ExceptionFilters
 import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.editor.impl.FoldingModelImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue
@@ -61,6 +62,8 @@ class StackTraceConsoleTest {
             ExceptionFilters.getFilters(GlobalSearchScope.allScope(projectRule.project)).onEach {
               consoleView.addMessageFilter(it)
             }
+
+            (consoleView.editor.foldingModel as FoldingModelImpl).isFoldingEnabled = false
           }
       }
     Disposer.register(controllerRule.disposable, stackTraceConsole)

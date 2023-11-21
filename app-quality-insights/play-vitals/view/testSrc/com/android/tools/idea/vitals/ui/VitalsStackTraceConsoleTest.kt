@@ -29,6 +29,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.execution.filters.ExceptionFilters
 import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.editor.impl.FoldingModelImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
 import kotlinx.coroutines.runBlocking
@@ -56,6 +57,8 @@ class VitalsStackTraceConsoleTest {
             ExceptionFilters.getFilters(GlobalSearchScope.allScope(projectRule.project)).onEach {
               consoleView.addMessageFilter(it)
             }
+
+            (consoleView.editor.foldingModel as FoldingModelImpl).isFoldingEnabled = false
           }
       }
     Disposer.register(controllerRule.disposable, stackTraceConsole)
