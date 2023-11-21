@@ -18,6 +18,7 @@ package com.android.tools.idea.run.configuration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.kotlin.getQualifiedName
+import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolve
 import com.intellij.execution.ProgramRunnerUtil
@@ -173,6 +174,8 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
   override fun getInfo(e: PsiElement): Info? {
     // If the studio flag is not enabled, skip entirely.
     if (!StudioFlags.GENERATE_BASELINE_PROFILE_GUTTER_ICON.get()) return null
+
+    if (e.project.getSyncManager().isSyncNeeded()) return null
 
     if (!isKtTestClassIdentifier(e) && !isJavaTestClassIdentifier(e)) {
       return null
