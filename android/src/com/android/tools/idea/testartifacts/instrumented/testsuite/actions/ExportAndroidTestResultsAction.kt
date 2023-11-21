@@ -56,9 +56,9 @@ class ExportAndroidTestResultsAction :
   var runConfiguration: RunConfiguration? = null
   var toolWindowId: String? = null
 
-  @UiThread
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
+  @UiThread
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = e.project != null &&
                                devices?.isEmpty() == false &&
