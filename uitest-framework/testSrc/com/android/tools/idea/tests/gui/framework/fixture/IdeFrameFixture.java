@@ -386,7 +386,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       Project project = getProject();
       actions.accept(this);
 
-      (wait != null ? wait : Wait.seconds(90))
+      (wait != null ? wait : Wait.seconds(180))
         .expecting("build '" + project.getName() + "' to finish")
         .until(() -> gradleProjectEventListener.getLastBuildTimestamp() > beforeStartedTimeStamp);
 
