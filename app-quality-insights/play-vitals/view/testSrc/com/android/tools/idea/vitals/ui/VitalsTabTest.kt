@@ -52,6 +52,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.HyperlinkLabel
+import com.intellij.ui.components.JBTabbedPane
 import icons.StudioIcons
 import java.awt.Dimension
 import javax.swing.JLabel
@@ -215,8 +216,14 @@ class VitalsTabTest {
           .containsExactly("74081e5f")
       }
 
+      // Tabbed pane
+      val tabbedPane = fakeUi.findComponent<JBTabbedPane>()!!
+      assertThat(tabbedPane.tabCount).isEqualTo(1)
+      assertThat(tabbedPane.getTitleAt(0)).isEqualTo("Stack trace")
+      assertThat(tabbedPane.getComponentAt(0)).isInstanceOf(ConsoleViewImpl::class.java)
+
       // Stack trace
-      val consoleView = fakeUi.findComponent<ConsoleViewImpl>()!!
+      val consoleView = tabbedPane.getComponentAt(0) as ConsoleViewImpl
       assertThat(consoleView.text.trim())
         .isEqualTo(
           """

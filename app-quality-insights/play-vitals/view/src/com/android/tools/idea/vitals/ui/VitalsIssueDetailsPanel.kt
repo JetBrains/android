@@ -35,9 +35,11 @@ import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.DETAIL_PANEL_HORIZONTAL_SPACING
 import com.android.tools.idea.insights.ui.DetailsPanelHeader
 import com.android.tools.idea.insights.ui.DetailsPanelHeaderModel
+import com.android.tools.idea.insights.ui.DetailsTabbedPane
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
 import com.android.tools.idea.insights.ui.StackTraceConsole
+import com.android.tools.idea.insights.ui.TabbedPaneDefinition
 import com.android.tools.idea.insights.ui.dateFormatter
 import com.android.tools.idea.insights.ui.prettyRangeString
 import com.android.tools.idea.insights.ui.shortenEventId
@@ -51,7 +53,6 @@ import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
-import com.intellij.ui.TitledSeparator
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
 import icons.StudioIcons
@@ -303,8 +304,14 @@ class VitalsIssueDetailsPanel(
         add(Box.createVerticalStrut(5))
         add(createBodySection())
         add(Box.createVerticalStrut(5))
-        add(TitledSeparator("Stack Trace"))
-        add(stackTraceConsole.consoleView.component)
+        add(
+          DetailsTabbedPane(
+              "VitalsDetails",
+              listOf(TabbedPaneDefinition("Stack trace", stackTraceConsole.consoleView.component)),
+              stackTraceConsole
+            )
+            .component
+        )
         components.forEach { (it as JComponent).alignmentX = LEFT_ALIGNMENT }
       }
     return transparentPanel(BorderLayout()).apply { add(panel, BorderLayout.NORTH) }
