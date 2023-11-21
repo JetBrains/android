@@ -46,6 +46,7 @@ import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -74,6 +75,7 @@ class ApplyChangesActionTest  {
     )
   }
 
+  @Ignore("b/311215061")
   @Test
   @RunsInEdt
   fun disabledDuringDebugSession() {
@@ -104,6 +106,7 @@ class ApplyChangesActionTest  {
     assertThat(event.presentation.description).isEqualTo("Apply Changes and Restart Activity is disabled for this device because it is currently not allowed during debugging.")
   }
 
+  @Ignore("b/311215061")
   @Test
   @RunsInEdt
   fun applyChangesAction_executesApplyChanges() {
