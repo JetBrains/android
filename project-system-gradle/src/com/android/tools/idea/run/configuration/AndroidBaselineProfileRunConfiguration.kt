@@ -6,6 +6,8 @@ import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.projectsystem.gradle.getGradlePluginVersion
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.resolve
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.AndroidRunConfigurationFactoryBase
 import com.android.tools.idea.run.DeviceFutures
@@ -135,7 +137,8 @@ class AndroidBaselineProfileRunConfiguration(project: Project, factory: Configur
     val variantName = if (generateAllVariants) "" else configurationModule.module?.let {
       GradleAndroidModel.get(it)?.selectedVariant?.name?.capitalize() ?: ""
     }
-    return listOf("generate${variantName}BaselineProfile")
+    val taskName = "generate${variantName}BaselineProfile"
+    return listOf(configurationModule.module?.getGradleProjectPath()?.resolve(taskName)?.path ?: taskName)
   }
 
   fun getPath(): String? {
