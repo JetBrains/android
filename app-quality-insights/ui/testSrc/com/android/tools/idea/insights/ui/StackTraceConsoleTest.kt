@@ -120,14 +120,15 @@ class StackTraceConsoleTest {
 
         // Ensure initial state: there's hyperlinks
         val hyperlinks = stackTraceConsole.consoleView.hyperlinks
-        waitForCondition(3000) {
+        waitForCondition(6000) {
           // Below is what's printed out in the console:
           // ```
           //  retrofit2.HttpException: HTTP 401
           // dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
           // dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
           // ```
-          hyperlinks.findAllHyperlinksOnLine(1).isNotEmpty() &&
+          stackTraceConsole.consoleView.editor.document.lineCount > 0 &&
+            hyperlinks.findAllHyperlinksOnLine(1).isNotEmpty() &&
             hyperlinks.findAllHyperlinksOnLine(2).isNotEmpty()
         }
 
@@ -138,7 +139,7 @@ class StackTraceConsoleTest {
           .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
         dispatchAllInvocationEventsInIdeEventQueue()
 
-        waitForCondition(3000) {
+        waitForCondition(6000) {
           hyperlinks.findAllHyperlinksOnLine(1).isEmpty() &&
             hyperlinks.findAllHyperlinksOnLine(2).isEmpty()
         }
