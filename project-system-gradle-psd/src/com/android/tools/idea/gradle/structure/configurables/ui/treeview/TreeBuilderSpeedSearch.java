@@ -33,7 +33,25 @@ import static java.awt.event.KeyEvent.VK_RIGHT;
 import static java.lang.Character.isLetterOrDigit;
 import static javax.swing.SwingUtilities.getAncestorOfClass;
 
-import com.intellij.ide.util.treeView.AbstractTreeUi;
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.ui.UIUtil.getToolTipBackground;
+import static com.intellij.util.ui.UIUtil.getToolTipForeground;
+import static com.intellij.util.ui.UIUtil.isReallyTypedEvent;
+import static java.awt.Font.BOLD;
+import static java.awt.event.KeyEvent.KEY_TYPED;
+import static java.awt.event.KeyEvent.VK_BACK_SPACE;
+import static java.awt.event.KeyEvent.VK_ENTER;
+import static java.awt.event.KeyEvent.VK_ESCAPE;
+import static java.awt.event.KeyEvent.VK_LEFT;
+import static java.awt.event.KeyEvent.VK_PAGE_DOWN;
+import static java.awt.event.KeyEvent.VK_PAGE_UP;
+import static java.awt.event.KeyEvent.VK_RIGHT;
+import static java.lang.Character.isLetterOrDigit;
+import static javax.swing.SwingUtilities.getAncestorOfClass;
+
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.legacy.AbstractTreeUi;
 import com.intellij.ide.util.treeView.TreeVisitor;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.TextRange;

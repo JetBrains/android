@@ -18,7 +18,10 @@ package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
 import static com.intellij.util.ui.tree.TreeUtil.showRowCentered;
 
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
+import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
+import static com.intellij.util.ui.tree.TreeUtil.showRowCentered;
+
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.legacy.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.IndexComparator;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.ui.treeStructure.SimpleNode;
