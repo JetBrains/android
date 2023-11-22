@@ -83,6 +83,7 @@ class ModuleTemplateDataBuilder(
   var baseFeature: BaseFeature? = null
   var apis: ApiTemplateData? = null
   var category: Category? = null
+  var isCompose: Boolean = false
   var isMaterial3: Boolean = false
   var useGenericLocalTests: Boolean = true
   var useGenericInstrumentedTests: Boolean = true
@@ -216,29 +217,33 @@ class ModuleTemplateDataBuilder(
     }
   }
 
-  fun build() = ModuleTemplateData(
-    projectTemplateDataBuilder.build(),
-    srcDir!!,
-    resDir!!,
-    manifestDir!!,
-    testDir ?: srcDir!!.resolve(FD_TEST),
-    unitTestDir ?: srcDir!!.resolve(FD_UNIT_TEST),
-    aidlDir,
-    rootDir!!,
-    isNewModule,
-    name!!,
-    isLibrary!!,
-    packageName!!,
-    formFactor!!,
-    themesData ?: ThemesData(appName = getAppNameForTheme(projectTemplateDataBuilder.applicationName!!)),
-    baseFeature,
-    apis!!,
-    viewBindingSupport = viewBindingSupport,
-    category!!,
-    isMaterial3,
-    useGenericLocalTests = useGenericLocalTests,
-    useGenericInstrumentedTests = useGenericInstrumentedTests
-  )
+  fun build(): ModuleTemplateData {
+    check(category != Category.Compose || isCompose) { "Template in Compose category must have isCompose set" }
+    return ModuleTemplateData(
+      projectTemplateDataBuilder.build(),
+      srcDir!!,
+      resDir!!,
+      manifestDir!!,
+      testDir ?: srcDir!!.resolve(FD_TEST),
+      unitTestDir ?: srcDir!!.resolve(FD_UNIT_TEST),
+      aidlDir,
+      rootDir!!,
+      isNewModule,
+      name!!,
+      isLibrary!!,
+      packageName!!,
+      formFactor!!,
+      themesData ?: ThemesData(appName = getAppNameForTheme(projectTemplateDataBuilder.applicationName!!)),
+      baseFeature,
+      apis!!,
+      viewBindingSupport = viewBindingSupport,
+      category!!,
+      isCompose,
+      isMaterial3,
+      useGenericLocalTests = useGenericLocalTests,
+      useGenericInstrumentedTests = useGenericInstrumentedTests
+    )
+  }
 }
 
 fun getExistingModuleTemplateDataBuilder(module: Module): ModuleTemplateDataBuilder {

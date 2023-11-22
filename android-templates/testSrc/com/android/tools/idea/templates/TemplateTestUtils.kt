@@ -92,6 +92,7 @@ internal fun getDefaultModuleState(
       isLibrary = false
       formFactor = template.formFactor
       category = template.category
+      isCompose = template.constraints.contains(TemplateConstraint.Compose)
       isMaterial3 = template.constraints.contains(TemplateConstraint.Material3)
       themesData = ThemesData("App")
       apis =

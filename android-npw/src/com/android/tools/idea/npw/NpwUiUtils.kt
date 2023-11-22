@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw
 
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.wizard.template.Category
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
@@ -40,10 +39,11 @@ internal fun contextLabel(text: String, contextHelpText: String): JLabel {
 // TODO: parentej needs to be updated to 4.0.0 when released
 internal const val COMPOSE_MIN_AGP_VERSION = "4.0.0-alpha02"
 
-internal fun hasComposeMinAgpVersion(project: Project?, category: Category): Boolean {
-  if (project == null || Category.Compose != category) {
-    return true
-  }
+/**
+ * Checks if the project's AGP version is new enough to support Compose. If we can't determine it,
+ * assume that it is.
+ */
+internal fun hasComposeMinAgpVersion(project: Project): Boolean {
   val androidPluginInfo = AndroidPluginInfo.findFromModel(project) ?: return true
   val agpVersion = androidPluginInfo.pluginVersion ?: return true
   return agpVersion >= COMPOSE_MIN_AGP_VERSION

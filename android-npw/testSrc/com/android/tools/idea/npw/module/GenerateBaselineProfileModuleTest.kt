@@ -206,6 +206,7 @@ class GenerateBaselineProfileModuleTest {
       viewBindingSupport = ViewBindingSupport.NOT_SUPPORTED,
       category = Category.Application,
       isMaterial3 = true,
+      isCompose = false,
       useGenericLocalTests = true,
       useGenericInstrumentedTests = true,
     )

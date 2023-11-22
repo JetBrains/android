@@ -337,7 +337,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   private static boolean hasValidSdkComposeVersion(VersionItem skdItem, @Nullable Template renderTemplate) {
     return renderTemplate == null ||
-           renderTemplate.getCategory() != Category.Compose ||
+           !renderTemplate.getConstraints().contains(TemplateConstraint.Compose) ||
            skdItem.getTargetApiLevel() >= AndroidVersion.VersionCodes.S;
   }
 
