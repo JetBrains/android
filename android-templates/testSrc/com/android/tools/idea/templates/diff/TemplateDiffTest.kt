@@ -94,6 +94,12 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
   @Before
   fun setUp() {
+    // This is to enforce that new or changed dependencies are added to the BUILD file
+    assertNotNull(
+      "TemplateDiffTest golden file generator must be run from Bazel! See go/template-diff-tests",
+      System.getenv("TEST_UNDECLARED_OUTPUTS_DIR")
+    )
+
     assertFalse("Previous validation failed", validationFailed)
 
     println("Current test mode: $testMode")
