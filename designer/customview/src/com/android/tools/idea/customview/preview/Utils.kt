@@ -17,10 +17,10 @@ package com.android.tools.idea.customview.preview
 
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.concurrency.runReadActionWithWritePriority
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.vfs.VirtualFile
@@ -58,9 +58,9 @@ internal suspend fun PsiFile.containsViewSuccessor(): Boolean =
     return@withContext when (this@containsViewSuccessor) {
       is PsiClassOwner ->
         try {
-          val classes = runReadActionWithWritePriority { this@containsViewSuccessor.classes }
+          val classes = readAction { this@containsViewSuccessor.classes }
           // Properly detect inheritance from View in Smart mode
-          runReadActionWithWritePriority {
+          smartReadAction(project) {
             classes.any { aClass -> aClass.isValid && aClass.extendsView() }
           }
         } catch (t: Exception) {

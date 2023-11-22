@@ -59,12 +59,14 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.BiFunction
 import javax.swing.JComponent
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 
 private fun fqcn2name(fcqn: String) = fcqn.substringAfterLast('.')
 
@@ -116,6 +118,8 @@ class CustomViewPreviewRepresentation(
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
   private val persistenceManager = persistenceProvider(project)
   private var stateTracker: CustomViewVisualStateTracker
+  private val _isActive = AtomicBoolean(false)
+  private val _hasPendingRefresh = AtomicBoolean(true)
 
   private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${psiFile.virtualFile!!.path}"
   private val currentStatePropertyName = "${previewId}_SELECTED"
@@ -223,6 +227,14 @@ class CustomViewPreviewRepresentation(
   private val uniqueUpdateModelLauncher =
     UniqueTaskCoroutineLauncher(scope, "CustomViewPreviewRepresentation updateModel")
 
+  @get:TestOnly
+  val hasPendingRefresh: Boolean
+    get() = _hasPendingRefresh.get()
+
+  @get:TestOnly
+  val isActive: Boolean
+    get() = _isActive.get()
+
   init {
     val buildState = buildStateProvider(project)
     val fileState =
@@ -280,7 +292,12 @@ class CustomViewPreviewRepresentation(
             }
 
           stateTracker.setBuildState(CustomViewVisualStateTracker.BuildState.SUCCESSFUL)
-          refresh()
+          if (!_isActive.get()) {
+            LOG.debug("Preview was not active, scheduling refresh for later")
+            _hasPendingRefresh.set(true)
+          } else {
+            refresh()
+          }
         }
 
         override fun buildFailed() {
@@ -306,8 +323,6 @@ class CustomViewPreviewRepresentation(
       },
       this
     )
-
-    refresh()
   }
 
   override val component = workbench
@@ -316,10 +331,12 @@ class CustomViewPreviewRepresentation(
 
   /** Refresh the preview surfaces */
   private fun refresh() {
+    LOG.debug("Refresh")
     if (Bridge.hasNativeCrash()) {
       workbench.handleLayoutlibNativeCrash { refresh() }
       return
     }
+    _hasPendingRefresh.set(false)
     val psiFile =
       AndroidPsiUtils.getPsiFileSafely(psiFilePointer)
         ?: run {
@@ -420,8 +437,13 @@ class CustomViewPreviewRepresentation(
       }
     }
 
+  override fun onActivate() {
+    _isActive.set(true)
+    if (_hasPendingRefresh.getAndSet(false)) refresh()
+  }
+
   override fun onDeactivate() {
-    super.onDeactivate()
+    _isActive.set(false)
 
     // Persist the current dimensions
     surface.models.firstOrNull()?.configuration?.let { configuration ->
