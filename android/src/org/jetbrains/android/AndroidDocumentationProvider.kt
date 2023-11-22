@@ -15,22 +15,43 @@ import com.intellij.facet.ProjectFacetManager
 import com.intellij.lang.documentation.DocumentationProvider
 import com.intellij.lang.documentation.ExternalDocumentationProvider
 import com.intellij.lang.java.JavaDocumentationProvider
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.android.facet.AndroidFacet
+
+private fun guessAndroidModule(project: Project, element: PsiElement) =
+  ModuleUtilCore.findModuleForPsiElement(element)
+    ?: project.getAndroidFacets().firstOrNull()?.module
+
+private fun PsiElement.asDeclaredFrameworkField(): PsiField? =
+  (this as? PsiField)?.takeIf {
+    it.containingClass?.containingClass?.let(AndroidPsiUtils::getQualifiedNameSafely) ==
+      SdkConstants.CLASS_R
+  }
+
+private fun isMyContext(element: PsiElement, project: Project): Boolean {
+  if (element !is PsiClass) return false
+  return runReadAction {
+    val vFile = element.containingFile?.virtualFile ?: return@runReadAction false
+    val path = FileUtil.toSystemIndependentName(vFile.path)
+    return@runReadAction path
+      .lowercase()
+      .contains("/${SdkConstants.FN_FRAMEWORK_LIBRARY}!/") &&
+      ProjectFacetManager.getInstance(project)
+        .getFacets<AndroidFacet>(AndroidFacet.ID)
+        .isNotEmpty() &&
+      JarFileSystem.getInstance().getVirtualFileForJar(vFile)?.name ==
+        SdkConstants.FN_FRAMEWORK_LIBRARY
+  }
+}
 
 /**
  * Provides documentation for Android R field references eg R.color.colorPrimary in Java and Kotlin
@@ -117,53 +138,4 @@ class AndroidDocumentationProvider : DocumentationProvider, ExternalDocumentatio
   override fun canPromptToConfigureDocumentation(element: PsiElement) = false
 
   override fun promptToConfigureDocumentation(element: PsiElement) {}
-
-  companion object {
-    private val LOG = Logger.getInstance("#org.jetbrains.android.AndroidDocumentationProvider")
-
-    private fun guessAndroidModule(project: Project, element: PsiElement): Module? {
-      val module = ModuleUtilCore.findModuleForPsiElement(element)
-      return module
-             ?: project
-               .getAndroidFacets()
-               .stream()
-               .map { obj: AndroidFacet -> obj.module }
-               .findFirst()
-               .orElse(null)
-    }
-
-    private fun PsiElement.asDeclaredFrameworkField(): PsiField? =
-      (this as? PsiField)?.takeIf {
-        it.containingClass?.containingClass?.let(AndroidPsiUtils::getQualifiedNameSafely) ==
-          SdkConstants.CLASS_R
-      }
-
-    private fun isMyContext(element: PsiElement, project: Project): Boolean {
-      return if (element is PsiClass) {
-        ApplicationManager.getApplication()
-          .runReadAction(
-            Computable {
-              val file = element.getContainingFile() ?: return@Computable false
-              val vFile = file.virtualFile ?: return@Computable false
-              val path = FileUtil.toSystemIndependentName(vFile.path)
-              if (
-                StringUtil.toLowerCase(path)
-                  .contains("/" + SdkConstants.FN_FRAMEWORK_LIBRARY + "!/")
-              ) {
-                if (
-                  ProjectFacetManager.getInstance(project)
-                    .getFacets<AndroidFacet>(AndroidFacet.ID).isNotEmpty()
-                ) {
-                  val jarFile = JarFileSystem.getInstance().getVirtualFileForJar(vFile)
-                  return@Computable jarFile != null &&
-                                    SdkConstants.FN_FRAMEWORK_LIBRARY == jarFile.name
-                }
-              }
-              false
-            }
-              as Computable<Boolean>
-          )
-      } else false
-    }
-  }
 }
