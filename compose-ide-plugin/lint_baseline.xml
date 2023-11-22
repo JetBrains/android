@@ -1,37 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  private val fallbackRenderer by lazy { KotlinClassRenderer() }"
-        errorLine2="                                  ~~~~">
-        <location
-            file="src/com/android/tools/compose/debug/render/ComposeStateObjectClassRenderer.kt"
-            line="77"
-            column="35"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  private val prioritizedCollectionRenderers by lazy {"
-        errorLine2="                                                ~~~~">
-        <location
-            file="src/com/android/tools/compose/debug/render/ComposeStateObjectClassRenderer.kt"
-            line="79"
-            column="49"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  private val stateObjectClassRenderer by lazy { ComposeStateObjectClassRenderer(fqcn) }"
-        errorLine2="                                          ~~~~">
-        <location
-            file="src/com/android/tools/compose/debug/render/ComposeStateObjectRendererProviderBase.kt"
-            line="37"
-            column="43"/>
-    </issue>
-
 </issues>

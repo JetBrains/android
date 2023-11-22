@@ -1,15 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.3.0-alpha13" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-alpha13">
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  val agpVersionRefactoringProcessor by lazy { componentRefactoringProcessors.firstNotNullOf { it as? AgpVersionRefactoringProcessor } }"
-        errorLine2="                                        ~~~~">
-        <location
-            file="src/com/android/tools/idea/gradle/project/upgrade/AgpUpgradeRefactoringProcessor.kt"
-            line="267"
-            column="41"/>
-    </issue>
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
 </issues>

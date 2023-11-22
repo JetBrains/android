@@ -13,17 +13,6 @@
     </issue>
 
     <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }"
-        errorLine2="                                 ~~~~">
-        <location
-            file="src/com/android/tools/idea/naveditor/editor/NavActionManager.kt"
-            line="83"
-            column="34"/>
-    </issue>
-
-    <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
         errorLine1="private val FONT_SIZE = JBUI.scale(13)"
@@ -1845,7 +1834,7 @@
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/editor/NavActionManager.kt"
-            line="83"
+            line="81"
             column="41"/>
     </issue>
 

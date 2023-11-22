@@ -8,19 +8,8 @@
         errorLine2="          ^">
         <location
             file="src/com/android/tools/idea/logcat/service/LogcatServiceImpl.kt"
-            line="86"
+            line="102"
             column="11"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  val logLine by lazy { toLine(zoneId) }"
-        errorLine2="                 ~~~~">
-        <location
-            file="src/com/android/tools/idea/logcat/filters/LogcatMessageWrapper.kt"
-            line="47"
-            column="18"/>
     </issue>
 
 </issues>

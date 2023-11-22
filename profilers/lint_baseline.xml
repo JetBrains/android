@@ -244,39 +244,6 @@
     </issue>
 
     <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="      val allActivitySubclasses by lazy {"
-        errorLine2="                                   ~~~~">
-        <location
-            file="src/com/android/tools/profilers/memory/adapters/instancefilters/ActivityFragmentLeakInstanceFilter.kt"
-            line="66"
-            column="36"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="      val allFragmentSubclasses by lazy {"
-        errorLine2="                                   ~~~~">
-        <location
-            file="src/com/android/tools/profilers/memory/adapters/instancefilters/ActivityFragmentLeakInstanceFilter.kt"
-            line="70"
-            column="36"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="    val table by lazy {"
-        errorLine2="                 ~~~~">
-        <location
-            file="src/com/android/tools/profilers/cpu/analysis/AndroidFrameTimelineAnalysisModel.kt"
-            line="37"
-            column="18"/>
-    </issue>
-
-    <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within package private scope"
         errorLine1="    super(profilers.getIdeServices().getPoolExecutor());"

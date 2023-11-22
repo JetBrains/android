@@ -24,149 +24,6 @@
     </issue>
 
     <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="    private val EXECUTOR: ThreadPoolExecutor by lazy {"
-        errorLine2="                                                ~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/analytics/AnimationToolbarAnalyticsManager.kt"
-            line="42"
-            column="49"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="    val xDouble by lazy { left.toDouble() }"
-        errorLine2="                   ~~~~">
-        <location
-            file="src/com/android/tools/idea/common/scene/target/CommonDragTarget.kt"
-            line="302"
-            column="20"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="    val yDouble by lazy { top.toDouble() }"
-        errorLine2="                   ~~~~">
-        <location
-            file="src/com/android/tools/idea/common/scene/target/CommonDragTarget.kt"
-            line="303"
-            column="20"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  val commands: List&lt;DrawCommand> by lazy { buildCommands() }"
-        errorLine2="                                     ~~~~">
-        <location
-            file="src/com/android/tools/idea/common/scene/draw/CompositeDrawCommand.kt"
-            line="27"
-            column="38"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="private val logger: Logger by lazy { Logger.getInstance(&quot;DesignSurfaceHelper&quot;) }"
-        errorLine2="                              ~~~~">
-        <location
-            file="src/com/android/tools/idea/common/surface/DesignSurfaceHelper.kt"
-            line="53"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  private val shortcutSet: ShortcutSet by lazy { createShortcutSet() }"
-        errorLine2="                                          ~~~~">
-        <location
-            file="src/com/android/tools/idea/common/surface/DesignSurfaceShortcut.kt"
-            line="42"
-            column="43"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  private val textSizeEnumSupport: EnumSupport by lazy {"
-        errorLine2="                                                  ~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
-            line="82"
-            column="51"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  private val typefaceEnumSupport: EnumSupport by lazy {"
-        errorLine2="                                                  ~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
-            line="98"
-            column="51"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  private val sizesSupport: EnumSupport by lazy {"
-        errorLine2="                                           ~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
-            line="102"
-            column="44"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  private val actionBarNavModeEnumSupport: EnumSupport by lazy {"
-        errorLine2="                                                          ~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/property/support/NlEnumSupportProvider.kt"
-            line="106"
-            column="59"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  protected val actions: List&lt;SplitEditorAction> by lazy {"
-        errorLine2="                                                    ~~~~">
-        <location
-            file="src/com/android/tools/idea/common/editor/SplitEditor.kt"
-            line="98"
-            column="53"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  private val hash: ByteArray by lazy { hash(myTemplate) }"
-        errorLine2="                                 ~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/assistant/Template.kt"
-            line="64"
-            column="34"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization"
-        errorLine1="  private val toolWindowUpdateQueue: MergingUpdateQueue by lazy {"
-        errorLine2="                                                           ~~~~">
-        <location
-            file="src/com/android/tools/idea/uibuilder/visual/VisualizationToolWindowFactory.kt"
-            line="172"
-            column="60"/>
-    </issue>
-
-    <issue
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
         errorLine1="  @SwingCoordinate public static final int ANCHOR_SIZE = scale(6);"
@@ -591,7 +448,7 @@
         errorLine2="          ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="108"
+            line="107"
             column="11"/>
     </issue>
 
@@ -602,7 +459,7 @@
         errorLine2="          ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="108"
+            line="107"
             column="11"/>
     </issue>
 
@@ -613,7 +470,7 @@
         errorLine2="                ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="111"
+            line="110"
             column="17"/>
     </issue>
 
@@ -624,7 +481,7 @@
         errorLine2="                ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="111"
+            line="110"
             column="17"/>
     </issue>
 
@@ -734,7 +591,7 @@
         errorLine2="                                                           ~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="718"
+            line="747"
             column="60"/>
     </issue>
 
@@ -767,7 +624,7 @@
         errorLine2="                            ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="583"
+            line="574"
             column="29"/>
     </issue>
 
@@ -778,7 +635,7 @@
         errorLine2="                            ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="583"
+            line="574"
             column="29"/>
     </issue>
 
@@ -789,7 +646,7 @@
         errorLine2="            ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
-            line="207"
+            line="208"
             column="13"/>
     </issue>
 
@@ -800,7 +657,7 @@
         errorLine2="            ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationInteractionHandler.kt"
-            line="207"
+            line="208"
             column="13"/>
     </issue>
 
