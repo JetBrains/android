@@ -62,7 +62,7 @@ internal class ConnectionDataDetailsView(
     val dataComponentFactory =
       when (data) {
         is HttpData -> HttpDataComponentFactory(data, inspectorView.componentsProvider)
-        is GrpcData -> GrpcDataComponentFactory(data)
+        is GrpcData -> GrpcDataComponentFactory(inspectorView.project, inspectorView, data)
         else -> throw IllegalArgumentException("Unsupported data type: ${data::class.java.name}")
       }
     tabs.forEach { it.populateFor(data, dataComponentFactory) }

@@ -105,7 +105,7 @@ private const val CARD_INFO = "Info"
 
 /** The main view of network inspector. */
 internal class NetworkInspectorView(
-  project: Project,
+  val project: Project,
   val model: NetworkInspectorModel,
   val componentsProvider: UiComponentsProvider,
   private val parentPane: TooltipLayeredPane,
