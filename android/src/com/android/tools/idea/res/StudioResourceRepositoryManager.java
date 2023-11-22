@@ -609,9 +609,13 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   }
 
   public void resetAllCaches() {
+    // Remove resource folders from the registry before clearing the local resource. This prevents
+    // race conditions where one of the resource sets in this class is requested again before the
+    // registry is cleared, ending up with a stale ResourceFolderRepository.
+    ResourceFolderRegistry.getInstance(getProject()).reset(myFacet);
+
     resetResources();
     ConfigurationManager.getOrCreateInstance(myFacet.getModule()).getResolverCache().reset();
-    ResourceFolderRegistry.getInstance(getProject()).reset();
     AarResourceRepositoryCache.getInstance().clear();
   }
 

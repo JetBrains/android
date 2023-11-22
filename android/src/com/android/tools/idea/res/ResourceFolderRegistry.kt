@@ -100,10 +100,25 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     return cache.getIfPresent(dir)
   }
 
-  fun reset() {
+  fun reset(facet: AndroidFacet) {
     ResourceUpdateTracer.logDirect { "${TraceUtils.getSimpleId(this)}.reset()" }
-    myNamespacedCache.invalidateAll()
-    myNonNamespacedCache.invalidateAll()
+    reset(myNamespacedCache, facet)
+    reset(myNonNamespacedCache, facet)
+  }
+
+  private fun reset(cache: Cache<VirtualFile, ResourceFolderRepository>, facet: AndroidFacet) {
+    val cacheAsMap = cache.asMap()
+    if (cacheAsMap.isEmpty()) {
+      ResourceUpdateTracer.logDirect { TraceUtils.getSimpleId(this) + ".reset: cache is empty" }
+      return
+    }
+
+    val keysToRemove =
+      cacheAsMap.entries.mapNotNull { (virtualFile, repository) ->
+        virtualFile.takeIf { repository.facet == facet }
+      }
+
+    keysToRemove.forEach(cache::invalidate)
   }
 
   private fun removeStaleEntries() {
@@ -139,7 +154,8 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   }
 
   override fun dispose() {
-    reset()
+    myNamespacedCache.invalidateAll()
+    myNonNamespacedCache.invalidateAll()
   }
 
   fun dispatchToRepositories(
