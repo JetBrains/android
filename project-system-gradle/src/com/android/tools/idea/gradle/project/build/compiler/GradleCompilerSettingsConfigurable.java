@@ -125,7 +125,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private void createUIComponents() {
     myParallelBuildDocHyperlinkLabel =
       createHyperlinkLabel("This option is in \"incubation\" and should only be used with ", "decoupled projects", ".",
-                           "http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects");
+                           "https://developer.android.com/r/tools/gradle-multi-project-decoupled-projects");
 
     myCommandLineOptionsDocHyperlinkLabel =
       createHyperlinkLabel("Example: --stacktrace --debug (for more information, please read Gradle's ", "documentation", ".)",
