@@ -76,7 +76,21 @@ public class GradleSpecificInitializer extends ApplicationInitializedListenerJav
   }
 
   /**
-   * Gradle has an issue when the studio path contains ! (http://b.android.com/184588)
+   * The definition of <tt>jar:</tt> scheme URLs uses the sequence <tt>!/</tt> as a separator between the inner URL pointing to a jar
+   * file, and the entry within that jar file.  Unfortunately, that <tt>!/</tt> sequence is legal both in the inner URL, where it would
+   * indicate a directory ending with an exclamation mark, and in the entry, where it would refer to a component of the jar likewise in a
+   * directory ending with an exclamation mark.  Doubly unfortunately, no escaping for such sequences was mandated, so it is impossible to
+   * recover intent from an arbitrary <tt>jar:</tt> url.  So running anything Java-related in any path containing a directory ending in
+   * an exclamation mark will lead to resource errors, e.g. JDK-4523159 (reported in 2001); see {@link java.net.JarURLConnection} for the
+   * <i>de facto</i> interpretation (the first <tt>!/</tt> is treated as the separator).
+   * <p>
+   * As if this were not enough, Gradle itself (in its {@code ClasspathUtil}) does its own parsing of <tt>jar:</tt> scheme URLs, and it
+   * treats (at least as of Gradle 8.0) a bare <tt>!</tt> as a semantically-meaningful separator.  This increases the range of unsafe
+   * directories to those which contain any exclamation marks at any position, not just at the end of any directory component.  Ironically
+   * this does make it easier to identify when we should warn the user about their choice of installation directory.
+   * <p>
+   * Given all this, we will probably never be able to do better than alert the user that they have had the temerity to install Android
+   * Studio into a directory whose path contains an exclamation mark.
    */
   private static void checkInstallPath() {
     if (PathManager.getHomePath().contains("!")) {
