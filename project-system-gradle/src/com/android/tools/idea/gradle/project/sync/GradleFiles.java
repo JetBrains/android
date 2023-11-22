@@ -38,6 +38,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
@@ -125,10 +127,16 @@ public class GradleFiles implements Disposable.Default {
 
     if (myProject.isDefault()) return;
 
+    Application application = ApplicationManager.getApplication();
+    for (FileEditor editor : FileEditorManager.getInstance(project).getSelectedEditors()) {
+      application.runReadAction(() -> maybeAddOrRemovePsiTreeListener(editor.getFile(), fileChangeListener));
+    }
+
     // Add a listener to see when gradle files are being edited.
     myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myFileEditorListener);
   }
 
+  // requires read action because of findFile
   private void maybeAddOrRemovePsiTreeListener(@Nullable VirtualFile file, @NotNull PsiTreeChangeListener fileChangeListener) {
     if (file == null || !file.isValid()) {
       return;
