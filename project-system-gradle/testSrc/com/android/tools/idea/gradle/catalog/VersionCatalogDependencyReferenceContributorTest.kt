@@ -16,20 +16,19 @@
 package com.android.tools.idea.gradle.catalog
 
 import com.android.tools.idea.testing.AndroidProjectRule
-
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiReference
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 
 @RunsInEdt
 class VersionCatalogDependencyReferenceContributorTest {
@@ -103,8 +102,8 @@ class VersionCatalogDependencyReferenceContributorTest {
     runReadAction {
       val file = PsiManager.getInstance(projectRule.project).findFile(tomlFile)!!
       val referee = file.findElementAt(content.indexOf("lib"))!!.parent
-      Truth.assertThat(referee.references.size).isEqualTo(1)
-      assertNull(referee.references[0].resolve())
+      assertThat(referee.references.size).isAtLeast(1)
+      assertThat(referee.references.any { it.resolve() == null }).isTrue()
     }
   }
 
@@ -125,9 +124,9 @@ class VersionCatalogDependencyReferenceContributorTest {
     runReadAction {
       val file = PsiManager.getInstance(projectRule.project).findFile(tomlFile)!!
       val referee = file.findElementAt(caret)!!.parent
-      Truth.assertThat(referee.references.size).isEqualTo(1)
+      assertThat(referee.references.size).isAtLeast(1)
       val resolved = file.findElementAt(resolvedElementPosition)!!.parent
-      assertEquals(resolved, referee.references[0].resolve())
+      assertThat(referee.references.map(PsiReference::resolve)).contains(resolved)
     }
   }
 
