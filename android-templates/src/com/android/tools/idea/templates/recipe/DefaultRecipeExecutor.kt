@@ -229,7 +229,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val component = repositoryUrlManager.resolveDependency(Dependency.parse(pluginCoordinate), null, null)
     val resolvedVersion = component?.version?.toString() ?: minRev ?: revision
 
-    dependenciesHelper.addPlugin(plugin, resolvedVersion, applyFlag, IdPluginMatcher(plugin), pluginsBlockToModify, buildModel)
+    dependenciesHelper.addPlugin(plugin, resolvedVersion, applyFlag, pluginsBlockToModify, buildModel)
   }
 
   override fun addClasspathDependency(mavenCoordinate: String, minRev: String?, forceAdding: Boolean) {

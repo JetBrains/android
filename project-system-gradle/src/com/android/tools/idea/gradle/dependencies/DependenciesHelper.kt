@@ -84,23 +84,23 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
   fun addPlugin(pluginId: String,
                 version: String,
                 apply: Boolean?,
-                matcher: PluginMatcher,
                 pluginsModel: PluginsModel,
-                buildModel: GradleBuildModel) {
-    val alreadyHasPlugin = pluginsModel.hasPlugin(pluginId)
+                buildModel: GradleBuildModel,
+                matcher: PluginMatcher = IdPluginMatcher(pluginId)) {
+    val alreadyHasPlugin = pluginsModel.hasPlugin(matcher)
     when (calculateAddDependencyPolicy(projectModel)) {
       AddDependencyPolicy.VERSION_CATALOG -> getOrAddPluginToCatalog(pluginId, version, matcher)?.let { alias ->
         val reference = ReferenceTo(getCatalogModel().plugins().findProperty(alias))
         if (!alreadyHasPlugin) pluginsModel.applyPlugin(reference, apply)
 
-        if (!buildModel.hasPlugin(pluginId)) {
+        if (!buildModel.hasPlugin(matcher)) {
           buildModel.applyPlugin(reference, null)
         }
       }
 
       AddDependencyPolicy.BUILD_FILE -> {
         if (!alreadyHasPlugin) pluginsModel.applyPlugin(pluginId, version, apply)
-        addPlugin(pluginId, buildModel)
+        addPlugin(pluginId, buildModel, matcher)
       }
     }
   }
@@ -108,20 +108,14 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
   /**
    * Adds plugin without version - it adds plugin declaration directly to build script file.
    */
-  fun addPlugin(pluginId: String, buildModel: GradleBuildModel){
-    if (!buildModel.hasPlugin(pluginId)) {
+  fun addPlugin(pluginId: String, buildModel: GradleBuildModel, matcher: PluginMatcher = IdPluginMatcher(pluginId)) {
+    if (!buildModel.hasPlugin(matcher)) {
       buildModel.applyPlugin(pluginId)
     }
   }
 
-  private fun PluginsModel.hasPlugin(pluginId:String):Boolean{
-    fun defaultPluginName(name: String) = when (name) {
-      "kotlin-android" -> "org.jetbrains.kotlin.android"
-      "kotlin" -> "org.jetbrains.kotlin.jvm"
-      else -> name
-    }
-    val defaultName = defaultPluginName(pluginId)
-    return plugins().any { defaultPluginName(it.name().forceString()) == defaultName }
+  private fun PluginsModel.hasPlugin(matcher: PluginMatcher): Boolean {
+    return plugins().any { matcher.match(it) }
   }
 
   fun addDependency(configuration: String,

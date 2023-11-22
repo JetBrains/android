@@ -187,7 +187,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            { projectBuildModel, moduleModel, helper ->
              val projectModel = projectBuildModel.projectBuildModel
              assertThat(projectModel).isNotNull()
-             helper.addPlugin("com.example.foo", "10.0", false, IdPluginMatcher("com.example.foo"), projectModel!!, moduleModel)
+             helper.addPlugin("com.example.foo", "10.0", false, projectModel!!, moduleModel)
            },
            {
              val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
@@ -208,7 +208,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            { projectBuildModel, moduleModel, helper ->
              val projectModel = projectBuildModel.projectBuildModel
              assertThat(projectModel).isNotNull()
-             helper.addPlugin("com.example.foo", "10.0", false, IdPluginMatcher("com.example.foo"), projectModel!!, moduleModel)
+             helper.addPlugin("com.example.foo", "10.0", false, projectModel!!, moduleModel)
            },
            {
              val projectBuildContent = project.getTextForFile("build.gradle")
@@ -236,9 +236,9 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
              helper.addPlugin("com.android.application",
                               version,
                               false,
-                              IdPluginMatcher("com.android.application"),
                               projectModel!!,
-                              moduleModel)
+                              moduleModel,
+                              IdPluginMatcher("com.android.application"))
            },
            {
              val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
@@ -264,9 +264,9 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
              helper.addPlugin("com.android.application",
                               version,
                               false,
-                              IdPluginMatcher("com.android.application"),
                               projectModel!!,
-                              moduleModel)
+                              moduleModel,
+                              IdPluginMatcher("com.android.application"))
            },
            {
              val projectBuildContent = project.getTextForFile("build.gradle")
