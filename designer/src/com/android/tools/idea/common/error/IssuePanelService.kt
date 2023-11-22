@@ -377,7 +377,10 @@ class IssuePanelService(private val project: Project) {
     val tab = nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.get() ?: return
     val count = tabToPanelMap[tab]?.get()?.issueProvider?.getFilteredIssues()?.distinct()?.size
     // This change the ui text, run it in the UI thread.
-    runInEdt { tab.displayName = createTabName(getSharedIssuePanelTabTitle(), count) }
+    runInEdt {
+      if (project.isDisposed) return@runInEdt
+      tab.displayName = createTabName(getSharedIssuePanelTabTitle(), count)
+    }
   }
 
   /** Get the title of shared issue panel. The returned string doesn't include the issue count. */
