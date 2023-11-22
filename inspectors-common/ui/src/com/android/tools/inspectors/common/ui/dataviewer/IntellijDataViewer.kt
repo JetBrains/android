@@ -18,6 +18,7 @@ package com.android.tools.inspectors.common.ui.dataviewer
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer.Style
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer.Style.PRETTY
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer.Style.RAW
+import com.intellij.codeInsight.folding.CodeFoldingManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -110,6 +111,7 @@ class IntellijDataViewer private constructor(private val component: JComponent, 
 
         val textEditor = PsiAwareTextEditorProvider().createEditor(project, virtualFile) as TextEditor
         configureEditor(textEditor.editor as EditorEx)
+        CodeFoldingManager.getInstance(project).updateFoldRegions(textEditor.editor)
         Disposer.register(parentDisposable, textEditor)
 
         val component = if (showNotification) getComponentWithNotification(textEditor.editor) else textEditor.editor.component
