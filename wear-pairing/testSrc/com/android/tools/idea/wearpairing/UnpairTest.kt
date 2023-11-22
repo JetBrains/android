@@ -23,6 +23,8 @@ import com.android.sdklib.ISystemImage
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.ignore.IgnoreWithCondition
+import com.android.testutils.ignore.OnWindows
 import com.google.common.util.concurrent.Futures
 import com.intellij.testFramework.ApplicationRule
 import kotlinx.coroutines.runBlocking
@@ -110,6 +112,7 @@ class UnpairTest {
       else -> null
     }
 
+  @IgnoreWithCondition(reason = "b/308744730", condition = OnWindows::class)
   @Test
   fun unpairPixelDevice() = runBlocking {
     var clearedCompanion = false
