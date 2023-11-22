@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener
 import com.android.tools.adtui.stdui.ContentType
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
@@ -25,14 +24,10 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
-import java.awt.CardLayout
-import java.awt.Color
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.LayoutManager2
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
 import java.util.Locale
 import java.util.function.Function
 import javax.swing.JComponent
@@ -144,40 +139,10 @@ internal class HttpDataComponentFactory(
     var bodyComponent = rawDataComponent
     var northEastComponent: JComponent? = null
     getPrettyComponent(type)?.let { parsedDataComponent ->
-      val cardLayout = CardLayout()
-      val payloadPanel = JPanel(cardLayout)
-      val cardViewParsed = "View Parsed"
-      val cardViewSource = "View Source"
-      parsedDataComponent.name = cardViewParsed
-      rawDataComponent.name = cardViewSource
-      payloadPanel.add(parsedDataComponent, cardViewParsed)
-      payloadPanel.add(rawDataComponent, cardViewSource)
-      bodyComponent = payloadPanel
-      val toggleLabel = JLabel(cardViewSource)
-      northEastComponent = toggleLabel
-      val toggleHoverColor =
-        AdtUiUtils.overlayColor(toggleLabel.background.rgb, toggleLabel.foreground.rgb, 0.9f)
-      val toggleDefaultColor: Color =
-        AdtUiUtils.overlayColor(toggleLabel.background.rgb, toggleHoverColor.rgb, 0.6f)
-      toggleLabel.foreground = toggleDefaultColor
-      toggleLabel.border = JBUI.Borders.empty(0, 10, 0, 5)
-      toggleLabel.addMouseListener(
-        object : MouseAdapter() {
-          override fun mouseClicked(e: MouseEvent) {
-            toggleLabel.text =
-              if (cardViewSource == toggleLabel.text) cardViewParsed else cardViewSource
-            cardLayout.next(payloadPanel)
-          }
-
-          override fun mouseEntered(e: MouseEvent) {
-            toggleLabel.foreground = toggleHoverColor
-          }
-
-          override fun mouseExited(e: MouseEvent) {
-            toggleLabel.foreground = toggleDefaultColor
-          }
-        }
-      )
+      val switchingPanel =
+        SwitchingPanel(parsedDataComponent, "View Parsed", rawDataComponent, "View Source")
+      bodyComponent = switchingPanel
+      northEastComponent = switchingPanel.switcher
     }
     bodyComponent.name = type.bodyComponentId
     return createHideablePanel(getBodyTitle(type), bodyComponent, northEastComponent)
