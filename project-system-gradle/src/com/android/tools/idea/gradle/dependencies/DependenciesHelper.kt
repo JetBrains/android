@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -46,16 +47,18 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
     configuration: String,
     dependency: String,
     enforced: Boolean,
-    matcher: DependencyMatcher = ExactDependencyMatcher(dependency),
-    parsedModel: GradleBuildModel) {
+    parsedModel: GradleBuildModel,
+    matcher: DependencyMatcher = ExactDependencyMatcher(configuration, dependency)) {
     val buildscriptDependencies = parsedModel.dependencies()
     when (calculateAddDependencyPolicy(projectModel)) {
       AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency, matcher)?.let { alias ->
         val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), buildscriptDependencies)
-        buildscriptDependencies.addPlatformArtifact(configuration, reference, enforced)
+        if(!buildscriptDependencies.hasArtifact(matcher))
+          buildscriptDependencies.addPlatformArtifact(configuration, reference, enforced)
       }
       AddDependencyPolicy.BUILD_FILE -> {
-        buildscriptDependencies.addPlatformArtifact(configuration, dependency, enforced)
+        if(!buildscriptDependencies.hasArtifact(matcher))
+          buildscriptDependencies.addPlatformArtifact(configuration, dependency, enforced)
       }
     }
   }
@@ -63,16 +66,18 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
   @JvmOverloads
   fun addClasspathDependency(dependency: String,
                              excludes: List<ArtifactDependencySpec> = listOf(),
-                             matcher: DependencyMatcher = ExactDependencyMatcher(dependency)) {
+                             matcher: DependencyMatcher = ExactDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, dependency)) {
     val buildModel = projectModel.projectBuildModel ?: return
     val buildscriptDependencies = buildModel.buildscript().dependencies()
     when (calculateAddDependencyPolicy(projectModel)) {
       AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency, matcher)?.let { alias ->
         val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), buildscriptDependencies)
-        buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, reference, excludes)
+        if(!buildscriptDependencies.hasArtifact(matcher))
+          buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, reference, excludes)
       }
       AddDependencyPolicy.BUILD_FILE -> {
-        buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, dependency, excludes)
+        if(!buildscriptDependencies.hasArtifact(matcher))
+          buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, dependency, excludes)
       }
     }
   }
@@ -114,24 +119,29 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
     }
   }
 
-  private fun PluginsModel.hasPlugin(matcher: PluginMatcher): Boolean {
-    return plugins().any { matcher.match(it) }
-  }
+  private fun PluginsModel.hasPlugin(matcher: PluginMatcher): Boolean =
+    plugins().any { matcher.match(it) }
+
+
+  private fun DependenciesModel.hasArtifact(matcher: DependencyMatcher): Boolean =
+    artifacts().any { matcher.match(it) }
 
   fun addDependency(configuration: String,
                     dependency: String,
                     excludes: List<ArtifactDependencySpec>,
-                    matcher: DependencyMatcher,
-                    parsedModel: GradleBuildModel) {
+                    parsedModel: GradleBuildModel,
+                    matcher: DependencyMatcher) {
     when (calculateAddDependencyPolicy(projectModel)) {
       AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency, matcher)?.let { alias ->
         val dependenciesModel = parsedModel.dependencies()
         val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), dependenciesModel)
-        dependenciesModel.addArtifact(configuration, reference, excludes)
+        if(!dependenciesModel.hasArtifact(matcher))
+          dependenciesModel.addArtifact(configuration, reference, excludes)
       }
       AddDependencyPolicy.BUILD_FILE -> {
         val dependenciesModel = parsedModel.dependencies()
-        dependenciesModel.addArtifact(configuration, dependency, excludes);
+        if(!dependenciesModel.hasArtifact(matcher))
+          dependenciesModel.addArtifact(configuration, dependency, excludes);
       }
     }
   }
@@ -148,7 +158,7 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
    * Assuming there is no excludes and algorithm will search exact dependency declaration in catalog if exists.
    */
   fun addDependency(configuration: String, dependency: String, parsedModel: GradleBuildModel) =
-    addDependency(configuration, dependency, listOf(), ExactDependencyMatcher(dependency), parsedModel)
+    addDependency(configuration, dependency, listOf(), parsedModel, ExactDependencyMatcher(configuration, dependency))
 
   private fun getOrAddDependencyToCatalog(dependency: String, matcher: DependencyMatcher): Alias? {
     val catalogModel = getCatalogModel()

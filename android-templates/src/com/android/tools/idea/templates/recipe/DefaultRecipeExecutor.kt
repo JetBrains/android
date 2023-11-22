@@ -26,24 +26,10 @@ import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
-import com.android.tools.idea.gradle.dependencies.IdPluginMatcher
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_API
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.API
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.APK
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.PROVIDED
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.RUNTIME
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_API
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_COMPILE
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -118,42 +104,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       context.moduleRoot != null -> getBuildModel(findGradleBuildFile(context.moduleRoot), project, projectBuildModel)
       else -> null
     }
-  }
-
-  /**
-   * Identifies a configuration that the given maven coordinate is used in, or null if none does.
-   * Returns [OTHER_CONFIGURATION] if it is used in an unknown configuration.
-   */
-  private fun GradleBuildModel.getDependencyConfiguration(mavenCoordinate: String): String? {
-    val configurationsToCheck = listOf(
-        ANDROID_TEST_API,
-        ANDROID_TEST_COMPILE,
-        ANDROID_TEST_IMPLEMENTATION,
-        API,
-        APK,
-        CLASSPATH,
-        COMPILE,
-        IMPLEMENTATION,
-        PROVIDED,
-        RUNTIME,
-        TEST_API,
-        TEST_COMPILE,
-        TEST_IMPLEMENTATION
-    )
-
-    fun checkForConfiguration(configuration: String?): Boolean {
-      val artifacts = dependencies().run { if (configuration == null) artifacts() else artifacts(configuration) }
-
-      val existingArtifacts = artifacts.map {
-        ArtifactDependencySpec.create(it.name().toString(), it.group().toString(), it.version().toString())
-      }
-
-      val artifactToAdd = ArtifactDependencySpec.create(mavenCoordinate)!!
-
-      return existingArtifacts.any { it.equalsIgnoreVersion(artifactToAdd) }
-    }
-
-    return configurationsToCheck.firstOrNull { checkForConfiguration(it) } ?: OTHER_CONFIGURATION.takeIf { checkForConfiguration(null) }
   }
 
   /**
@@ -302,13 +252,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     } else configuration
 
     projectBuildModel?.let {
-      if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null) {
-        DependenciesHelper(it).addDependency(resolvedConfiguration,
-                                             resolvedMavenCoordinate,
-                                             listOf(),
-                                             GroupNameDependencyMatcher(resolvedMavenCoordinate),
-                                             buildModel)
-      }
+      DependenciesHelper(it).addDependency(resolvedConfiguration,
+                                           resolvedMavenCoordinate,
+                                           listOf(),
+                                           buildModel,
+                                           GroupNameDependencyMatcher(resolvedConfiguration, resolvedMavenCoordinate))
     }
   }
 
@@ -325,8 +273,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       DependenciesHelper(it).addPlatformDependency(configuration,
                                                    resolvedMavenCoordinate,
                                                    enforced,
-                                                   GroupNameDependencyMatcher(resolvedMavenCoordinate),
-                                                   buildModel)
+                                                   buildModel,
+                                                   GroupNameDependencyMatcher(configuration, resolvedMavenCoordinate))
     }
   }
 

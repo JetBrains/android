@@ -96,8 +96,8 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
              helper.addDependency("api",
                                   "com.example.libs:lib2:1.0",
                                   listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
-                                  ExactDependencyMatcher("com.example.libs:lib2:1.0"),
-                                  moduleModel)
+                                  moduleModel,
+                                  ExactDependencyMatcher("api", "com.example.libs:lib2:1.0"))
            },
            {
              assertThat(project.getTextForFile("gradle/libs.versions.toml"))
@@ -115,7 +115,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
              helper.addClasspathDependency(
                "com.example.libs:lib2:1.0",
                listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
-               ExactDependencyMatcher("com.example.libs:lib2:1.0"),
+               ExactDependencyMatcher("classpath", "com.example.libs:lib2:1.0"),
              )
            },
            {
@@ -153,8 +153,9 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
              helper.addDependency("implementation",
                                   "junit:junit:999",
                                   listOf(),
-                                  GroupNameDependencyMatcher("junit:junit:999"),
-                                  moduleModel)
+                                  moduleModel,
+                                  GroupNameDependencyMatcher("implementation", "junit:junit:999")
+             )
            },
            {
              assertThat(project.getTextForFile("gradle/libs.versions.toml"))
@@ -171,8 +172,8 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
              helper.addDependency("api",
                                   "com.example.libs:lib2:1.0",
                                   listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
-                                  ExactDependencyMatcher("com.example.libs:lib2:1.0"),
-                                  moduleModel)
+                                  moduleModel,
+                                  ExactDependencyMatcher("api", "com.example.libs:lib2:1.0"))
            },
            {
              val buildFileContent = project.getTextForFile("app/build.gradle")
@@ -250,6 +251,126 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
 
              val buildFileContent = project.getTextForFile("app/build.gradle")
              assertThat(buildFileContent).doesNotContain("alias(libs.plugins.androidApplication)")
+           })
+  }
+
+  @Test
+  fun testAddDuplicatedPlatformDependencyWithCatalog() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             val matcher = GroupNameDependencyMatcher("implementation", "com.google.protobuf:protobuf-bom:3.21.8")
+
+             helper.addPlatformDependency("implementation",
+                                  "com.google.protobuf:protobuf-bom:3.21.8",
+                                  false,
+                                  moduleModel,
+                                  matcher)
+             helper.addPlatformDependency("implementation",
+                                  "com.google.protobuf:protobuf-bom:3.21.8",
+                                  false,
+                                  moduleModel,
+                                  matcher)
+           },
+           {
+             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(countMatches(catalogContent, "= \"3.21.8\"")).isEqualTo(1)
+             assertThat(countMatches(catalogContent,"= { group = \"com.google.protobuf\", name = \"protobuf-bom\"")).isEqualTo(1)
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(countMatches(buildFileContent,"implementation platform(libs.protobuf.bom)")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testAddDuplicatedPlatformDependencyNoCatalog() {
+    doTest(SIMPLE_APPLICATION,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             val dependency = "com.google.protobuf:protobuf-bom:3.21.8"
+             val matcher = GroupNameDependencyMatcher("implementation", dependency)
+
+             helper.addPlatformDependency("implementation", dependency, false, moduleModel, matcher)
+             helper.addPlatformDependency("implementation", dependency, false, moduleModel, matcher)
+           },
+           {
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(countMatches(buildFileContent,"implementation platform('com.google.protobuf:protobuf-bom:3.21.8')")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testAddDuplicatedDependencyWithCatalog() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             val matcher = GroupNameDependencyMatcher("api", "com.example.libs:lib2:1.0")
+
+             helper.addDependency("api", "com.example.libs:lib2:1.0", listOf(), moduleModel, matcher)
+             helper.addDependency("api", "com.example.libs:lib2:1.0", listOf(), moduleModel, matcher)
+           },
+           {
+             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(countMatches(catalogContent, "{ group = \"com.example.libs\", name = \"lib2\", version.ref = \"")).isEqualTo(1)
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(countMatches(buildFileContent,"api libs.lib2")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testAddDuplicatedDependencyNoCatalog() {
+    doTest(SIMPLE_APPLICATION,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             val matcher = GroupNameDependencyMatcher("api", "com.example.libs:lib2:1.0")
+
+             helper.addDependency("api", "com.example.libs:lib2:1.0", listOf(), moduleModel, matcher)
+             helper.addDependency("api", "com.example.libs:lib2:1.0", listOf(), moduleModel, matcher)
+           },
+           {
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(countMatches(buildFileContent,"api 'com.example.libs:lib2:1.0'")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testAddClasspathDuplicatedDependencyWithCatalog() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             val matcher = GroupNameDependencyMatcher("classpath", "com.example.libs:lib2:1.0")
+
+             helper.addClasspathDependency("com.example.libs:lib2:1.0", listOf(), matcher)
+             helper.addClasspathDependency("com.example.libs:lib2:1.0", listOf(), matcher)
+           },
+           {
+             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(countMatches(catalogContent,"{ group = \"com.example.libs\", name = \"lib2\", version.ref = \"")).isEqualTo(1)
+
+             val buildFileContent = project.getTextForFile("build.gradle")
+             assertThat(countMatches(buildFileContent,"classpath libs.lib2")).isEqualTo(1)
+           })
+  }
+
+  @Test
+  fun testAddClasspathDuplicatedDependencyNoCatalog() {
+    doTest(SIMPLE_APPLICATION,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             val matcher = GroupNameDependencyMatcher("classpath", "com.example.libs:lib2:1.0")
+
+             helper.addClasspathDependency("com.example.libs:lib2:1.0", listOf(), matcher)
+             helper.addClasspathDependency("com.example.libs:lib2:1.0", listOf(), matcher)           },
+           {
+             val buildFileContent = project.getTextForFile("build.gradle")
+             assertThat(countMatches(buildFileContent,"classpath 'com.example.libs:lib2:1.0'")).isEqualTo(1)
            })
   }
 
