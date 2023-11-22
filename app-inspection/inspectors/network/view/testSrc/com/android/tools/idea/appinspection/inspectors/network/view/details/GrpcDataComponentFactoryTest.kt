@@ -4,17 +4,31 @@ import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.GrpcData
 import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.REQUEST
 import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.RESPONSE
+import com.android.tools.idea.appinspection.inspectors.network.view.details.GrpcDataComponentFactory.ProtoFileFinder
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.json.JsonFileType
+import com.intellij.mock.MockDocument
+import com.intellij.mock.MockFileDocumentManagerImpl
+import com.intellij.mock.MockFileTypeManager
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.editor.impl.EditorComponentImpl
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.fileTypes.FileTypeManager
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.readText
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import io.ktor.utils.io.core.toByteArray
+import javax.swing.Icon
 import kotlin.test.fail
 import org.junit.Rule
 import org.junit.Test
@@ -28,6 +42,23 @@ private val XML =
 
 private const val JSON = """{"foo": 1}"""
 
+private val PROTO =
+  """
+  # proto-message: Foo
+  foo: 1
+"""
+    .trimIndent()
+
+private val PROTO_FILE =
+  LightVirtualFile(
+    "foo.proto",
+    """
+      message Foo {
+      }
+    """
+      .trimIndent()
+  )
+
 /** Tests for [GrpcDataComponentFactory] */
 @RunsInEdt
 internal class GrpcDataComponentFactoryTest {
@@ -35,7 +66,18 @@ internal class GrpcDataComponentFactoryTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule val rule = RuleChain(projectRule, EdtRule(), disposableRule)
+  @get:Rule
+  val rule =
+    RuleChain(
+      projectRule,
+      ApplicationServiceRule(FileDocumentManager::class.java, FakeFileDocumentManager()),
+      ApplicationServiceRule(
+        FileTypeManager::class.java,
+        MockFileTypeManager(FakeProtoTextFileType)
+      ),
+      EdtRule(),
+      disposableRule
+    )
 
   private val project
     get() = projectRule.project
@@ -49,7 +91,7 @@ internal class GrpcDataComponentFactoryTest {
 
     val component = factory.createBodyComponent(REQUEST)
 
-    val editor = component.findDescendant<EditorComponentImpl> { true }?.editor ?: fail()
+    val editor = component?.findDescendant<EditorComponentImpl> { true }?.editor ?: fail()
     assertThat(editor.virtualFile.fileType).isEqualTo(JsonFileType.INSTANCE)
   }
 
@@ -59,7 +101,7 @@ internal class GrpcDataComponentFactoryTest {
 
     val component = factory.createBodyComponent(RESPONSE)
 
-    val editor = component.findDescendant<EditorComponentImpl> { true }?.editor ?: fail()
+    val editor = component?.findDescendant<EditorComponentImpl> { true }?.editor ?: fail()
     assertThat(editor.virtualFile.fileType).isEqualTo(JsonFileType.INSTANCE)
   }
 
@@ -69,7 +111,7 @@ internal class GrpcDataComponentFactoryTest {
 
     val component = factory.createBodyComponent(REQUEST)
 
-    val editor = component.findDescendant<EditorComponentImpl> { true }?.editor ?: fail()
+    val editor = component?.findDescendant<EditorComponentImpl> { true }?.editor ?: fail()
     assertThat(editor.virtualFile.fileType).isEqualTo(XmlFileType.INSTANCE)
   }
 
@@ -79,8 +121,50 @@ internal class GrpcDataComponentFactoryTest {
 
     val component = factory.createBodyComponent(RESPONSE)
 
-    val editor = component.findDescendant<EditorComponentImpl> { true }?.editor ?: fail()
+    val editor = component?.findDescendant<EditorComponentImpl> { true }?.editor ?: fail()
     assertThat(editor.virtualFile.fileType).isEqualTo(XmlFileType.INSTANCE)
+  }
+
+  @Test
+  fun createBodyComponent_responseIsProto_withoutProtoFile() {
+    val factory = grpcDataComponentFactory(responsePayloadText = PROTO)
+
+    val component = factory.createBodyComponent(RESPONSE)
+
+    val editor = component?.findDescendant<EditorComponentImpl> { true }?.editor ?: fail()
+    assertThat(editor.virtualFile.fileType).isEqualTo(FakeProtoTextFileType)
+    assertThat(editor.document.text)
+      .isEqualTo(
+        """
+          # proto-file: ???
+          # proto-message: Foo
+          foo: 1
+        """
+          .trimIndent()
+      )
+  }
+
+  @Test
+  fun createBodyComponent_responseIsProto_withProtoFile() {
+    val factory =
+      grpcDataComponentFactory(
+        responsePayloadText = PROTO,
+        protoFileFinder = { listOf(PROTO_FILE) }
+      )
+
+    val component = factory.createBodyComponent(RESPONSE)
+
+    val editor = component?.findDescendant<EditorComponentImpl> { true }?.editor ?: fail()
+    assertThat(editor.virtualFile.fileType).isEqualTo(FakeProtoTextFileType)
+    assertThat(editor.document.text)
+      .isEqualTo(
+        """
+          # proto-file: foo.proto
+          # proto-message: Foo
+          foo: 1
+        """
+          .trimIndent()
+      )
   }
 
   @Test
@@ -89,7 +173,7 @@ internal class GrpcDataComponentFactoryTest {
 
     val component = factory.createBodyComponent(REQUEST)
 
-    assertThat(component.findDescendant<BinaryDataViewer> { true }).isNotNull()
+    assertThat(component?.findDescendant<BinaryDataViewer> { true }).isNotNull()
   }
 
   @Test
@@ -98,12 +182,15 @@ internal class GrpcDataComponentFactoryTest {
 
     val component = factory.createBodyComponent(RESPONSE)
 
-    assertThat(component.findDescendant<BinaryDataViewer> { true }).isNotNull()
+    assertThat(component?.findDescendant<BinaryDataViewer> { true }).isNotNull()
   }
 
   private fun grpcDataComponentFactory(
-    requestPayload: String = "",
-    responsePayload: String = "",
+    requestPayloadText: String = "",
+    requestPayload: String = requestPayloadText,
+    responsePayloadText: String = "",
+    responsePayload: String = responsePayloadText,
+    protoFileFinder: ProtoFileFinder = ProtoFileFinder { emptyList() }
   ) =
     GrpcDataComponentFactory(
       project,
@@ -111,7 +198,28 @@ internal class GrpcDataComponentFactoryTest {
       GrpcData.createGrpcData(
         id = 0,
         requestPayload = ByteString.copyFrom(requestPayload.toByteArray()),
+        requestPayloadText = requestPayloadText,
         responsePayload = ByteString.copyFrom(responsePayload.toByteArray()),
-      )
+        responsePayloadText = responsePayloadText
+      ),
+      protoFileFinder = protoFileFinder,
     )
+
+  private class FakeFileDocumentManager : MockFileDocumentManagerImpl(null, { MockDocument() }) {
+    override fun getDocument(file: VirtualFile): Document {
+      return DocumentImpl(file.readText())
+    }
+  }
+
+  private object FakeProtoTextFileType : FileType {
+    override fun getName() = "ProtoText"
+
+    override fun getDescription() = "Proto text"
+
+    override fun getDefaultExtension() = "textproto"
+
+    override fun getIcon(): Icon? = null
+
+    override fun isBinary() = false
+  }
 }

@@ -24,11 +24,20 @@ import com.google.gson.JsonObject
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.json.JsonFileType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.readText
+import com.intellij.psi.search.FilenameIndex
+import com.intellij.psi.search.ProjectScope
+import io.ktor.utils.io.core.toByteArray
 import java.io.StringReader
 import javax.swing.JComponent
 import javax.xml.parsers.DocumentBuilderFactory
+import kotlin.text.RegexOption.MULTILINE
 import org.xml.sax.InputSource
 
 private val GSON = Gson()
@@ -38,24 +47,61 @@ internal class GrpcDataComponentFactory(
   private val project: Project,
   private val parentDisposable: Disposable,
   data: GrpcData,
+  private val protoFileFinder: ProtoFileFinder = ProtoFileFinderImpl(project)
 ) : DataComponentFactory(data) {
   private val grpcData: GrpcData
     get() = data as GrpcData
 
   override fun createDataViewer(type: ConnectionType, formatted: Boolean) = null
 
-  override fun createBodyComponent(type: ConnectionType): JComponent {
+  override fun createBodyComponent(type: ConnectionType): JComponent? {
     val bytes =
       when (type) {
         REQUEST -> data.requestPayload.toByteArray()
         RESPONSE -> data.responsePayload.toByteArray()
       }
 
-    return when (val fileType = bytes.getFileType()) {
-      null -> createHideablePanel("Payload (Raw)", BinaryDataViewer(bytes), null)
-      else -> createPrettyComponent("Payload (${fileType.displayName})", bytes, fileType)
+    val text =
+      when (type) {
+        REQUEST -> data.requestPayloadText
+        RESPONSE -> data.responsePayloadText
+      }
+    val fileType = bytes.getFileType()
+
+    return when {
+      bytes.isEmpty() -> null
+      fileType != null ->
+        createPrettyComponent("Payload (${fileType.displayName})", bytes, fileType)
+      text.isTextProto() -> createTextProtoComponent(text)
+      else -> createHideablePanel("Payload (Raw)", BinaryDataViewer(bytes), null)
     }
   }
+
+  /**
+   * S Creates a component that displays a prototext snippet.
+   *
+   * The prototext snippet is created by the agent using the `toString()` method with a
+   * `proto-message` annotation comment prepended. We make an attempt to locate the `proto` source
+   * file that contains the definition for the message. If found, it is added as a `proto-file`
+   * annotation.
+   */
+  private fun createTextProtoComponent(text: String): JComponent {
+    val protoFiles = protoFileFinder.findProtoFiles()
+    val type = text.substringAfter(": ").substringBefore("\n")
+    val regex = "^message $type \\{$".toRegex(MULTILINE)
+    val protoFile = protoFiles.find { it.readText().contains(regex) }?.name ?: "???"
+    val bytes = "# proto-file: $protoFile\n$text".toByteArray()
+    val fileType = getFileTypeManager().getFileTypeByExtension("textproto")
+    return createPrettyComponent("Payload (Proto)", bytes, fileType)
+  }
+
+  /**
+   * Gets the registered [FileTypeManager]
+   *
+   * The standard [FileTypeManager.getInstance] doesn't work in tests.
+   */
+  private fun getFileTypeManager(): FileTypeManager =
+    ApplicationManager.getApplication().getService(FileTypeManager::class.java)
 
   override fun createTrailersComponent(): JComponent? {
     return when {
@@ -78,6 +124,18 @@ internal class GrpcDataComponentFactory(
         parentDisposable
       )
     return createHideablePanel(title, viewer.component, null)
+  }
+
+  fun interface ProtoFileFinder {
+    fun findProtoFiles(): List<VirtualFile>
+  }
+
+  private class ProtoFileFinderImpl(private val project: Project) : ProtoFileFinder {
+    override fun findProtoFiles(): List<VirtualFile> {
+      val index = ProjectFileIndex.getInstance(project)
+      return FilenameIndex.getAllFilesByExt(project, "proto", ProjectScope.getContentScope(project))
+        .filter { index.isInSource(it) && !index.isInGeneratedSources(it) }
+    }
   }
 }
 
@@ -107,3 +165,5 @@ private fun String.isXml(): Boolean {
     false
   }
 }
+
+private fun String.isTextProto() = startsWith("# proto-message:")
