@@ -80,9 +80,8 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     TransportService.getInstance()
 
     val client = ProfilerClient(TransportService.channelName)
-    profilers = StudioProfilers(client, ideProfilerServices, taskHandlers) { taskType, args ->
-      ProfilerTaskTabs.open(project, taskType, args)
-    }
+    profilers = StudioProfilers(client, ideProfilerServices, taskHandlers,
+                                { taskType, args -> ProfilerTaskTabs.create(project, taskType, args) }, { ProfilerTaskTabs.open(project) })
 
     val navigator = ideProfilerServices.codeNavigator
     // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
@@ -201,7 +200,10 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     }
   }
 
-  fun openTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs?) {
+  /**
+   * Creates and opens a Profiler task tab for a specified task type. If a task tab has been opened beforehand, the existing tab is reused.
+   */
+  fun createTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs?) {
     val taskTab = findTaskTab()
     val taskName = taskHandlers[taskType]?.getTaskName() ?: "Task Not Supported Yet"
     val taskIcon = TaskGridModel.getTaskIcon(taskType)
@@ -217,6 +219,16 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     currentTaskHandler = taskHandlers[taskType]
     currentTaskHandler?.let { taskHandler ->
       val enterSuccessful = taskHandler.enter(taskArgs)
+    }
+  }
+
+  /**
+   * Opens an existing Profiler task tab. There is at most one existing task tab at any time that can be opened.
+   */
+  fun openTaskTab() {
+    val taskTab = findTaskTab()
+    if (taskTab != null) {
+      window.getContentManager().setSelectedContent(taskTab)
     }
   }
 

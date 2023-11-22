@@ -13,26 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.tasks
+package com.android.tools.profilers.taskbased.tasks
 
-import com.android.tools.profilers.tasks.args.TaskArgs
 import com.intellij.util.messages.Topic
 
 /**
- * Listener of events requesting that a Profiler tab for a specific task be open.
+ * Listener of events requesting that a Profiler tab for an existing task be opened.
  */
-fun interface OpenProfilerTaskListener {
+fun interface OpenProfilerTaskTabListener {
 
   /**
-   * Opens a Profiler tab for a specific task.
-   *
-   * @param taskType The [ProfilerTaskType] that should be opened.
-   * @param args A serialized representation of the arguments needed to open the requested task.
+   * Opens an existing Profiler task tab. There is at most one existing task tab at any time that can be opened.
    */
-  fun openProfilerTask(taskType: ProfilerTaskType, args: TaskArgs?)
+  fun openProfilerTaskTab()
 
   companion object {
     @JvmField
-    val TOPIC = Topic("Command to open a Profiler tab for a specific task", OpenProfilerTaskListener::class.java)
+    val TOPIC = Topic("Command to open an existing Profiler task tab", OpenProfilerTaskTabListener::class.java)
   }
 }

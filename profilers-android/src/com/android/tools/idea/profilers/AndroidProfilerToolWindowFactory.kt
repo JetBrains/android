@@ -20,7 +20,8 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.profilers.taskbased.home.OpenHomeTabListener
 import com.android.tools.profilers.taskbased.pastrecordings.OpenPastRecordingsTabListener
-import com.android.tools.profilers.tasks.OpenProfilerTaskListener
+import com.android.tools.profilers.taskbased.tasks.CreateProfilerTaskTabListener
+import com.android.tools.profilers.taskbased.tasks.OpenProfilerTaskTabListener
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -63,16 +64,27 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
           }
         })
 
+      // Listen for events requesting that a task tab be created.
+      project.messageBus.connect(toolWindow.disposable).subscribe(
+        CreateProfilerTaskTabListener.TOPIC, CreateProfilerTaskTabListener { taskType, args ->
+        AndroidCoroutineScope(toolWindow.disposable).launch {
+          withContext(AndroidDispatchers.uiThread) {
+            profilerToolWindow.createTaskTab(taskType, args)
+            toolWindow.activate(null)
+          }
+        }
+      })
+
       // Listen for events requesting that a task tab be opened.
-      project.messageBus.connect(toolWindow.disposable).subscribe(OpenProfilerTaskListener.TOPIC,
-                                                                  OpenProfilerTaskListener { taskType, taskArgs ->
-                                                                    AndroidCoroutineScope(toolWindow.disposable).launch {
-                                                                      withContext(AndroidDispatchers.uiThread) {
-                                                                        profilerToolWindow.openTaskTab(taskType, taskArgs)
-                                                                        toolWindow.activate(null)
-                                                                      }
-                                                                    }
-                                                                  })
+      project.messageBus.connect(toolWindow.disposable).subscribe(
+        OpenProfilerTaskTabListener.TOPIC, OpenProfilerTaskTabListener {
+        AndroidCoroutineScope(toolWindow.disposable).launch {
+          withContext(AndroidDispatchers.uiThread) {
+            profilerToolWindow.openTaskTab()
+            toolWindow.activate(null)
+          }
+        }
+      })
 
       // Listen for events requesting that the home tab be opened.
       project.messageBus.connect(toolWindow.disposable).subscribe(OpenHomeTabListener.TOPIC, OpenHomeTabListener {

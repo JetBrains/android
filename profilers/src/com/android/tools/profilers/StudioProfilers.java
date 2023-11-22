@@ -140,10 +140,17 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private final IdeProfilerServices myIdeServices;
 
   /**
-   * Callback to open the task type, exposing the task  opening functionality of the tool window accessible.
+   * Callback to create and open the profiler's task tab for a specified task type, making the task tab creation functionality of the tool
+   * window accessible.
    */
   @NotNull
-  private final BiConsumer<ProfilerTaskType, TaskArgs> myOpenTaskTab;
+  private final BiConsumer<ProfilerTaskType, TaskArgs> myCreateTaskTab;
+
+  /**
+   * Callback to open the profiler's task tab, making the task tab opening functionality of the tool window accessible.
+   */
+  @NotNull
+  private final Runnable myOpenTaskTab;
 
   /**
    * Processes from devices come from the latest update, and are filtered to include only ALIVE ones and {@code myProcess}.
@@ -216,7 +223,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   @VisibleForTesting
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
-    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {});
+    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {}, () -> {});
   }
 
   /**
@@ -229,15 +236,17 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public StudioProfilers(@NotNull ProfilerClient client,
                          @NotNull IdeProfilerServices ideServices,
                          @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers,
-                         @NotNull BiConsumer<ProfilerTaskType, TaskArgs> openTaskTab) {
-    this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE), taskHandlers, openTaskTab);
+                         @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
+                         @NotNull Runnable openTaskTab) {
+    this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE), taskHandlers, createTaskTab, openTaskTab);
   }
 
   private StudioProfilers(@NotNull ProfilerClient client,
                           @NotNull IdeProfilerServices ideServices,
                           @NotNull StopwatchTimer timer,
                           @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers,
-                          @NotNull BiConsumer<ProfilerTaskType, TaskArgs> openTaskTab) {
+                          @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
+                          @NotNull Runnable openTaskTab) {
     myClient = client;
     myIdeServices = ideServices;
     myStage = createDefaultStage();
@@ -246,6 +255,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myDeviceToStreamIds = new HashMap<>();
     myStreamIdToStreams = new HashMap<>();
     myTaskHandlers = taskHandlers;
+    myCreateTaskTab = createTaskTab;
     myOpenTaskTab = openTaskTab;
     myStage.enter();
 
@@ -714,7 +724,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
       ProfilerTaskType selectedTaskType = mySessionsManager.getSelectedSessionProfilerTaskType();
       Map<Long, SessionItem> sessionIdToSessionItems = mySessionsManager.getSessionIdToSessionItems();
-      ProfilerTaskLauncher.launchProfilerTask(selectedTaskType, getTaskHandlers(), getSession(), sessionIdToSessionItems, myOpenTaskTab);
+      ProfilerTaskLauncher.launchProfilerTask(selectedTaskType, getTaskHandlers(), getSession(), sessionIdToSessionItems, myCreateTaskTab);
     }
   }
 
@@ -1050,6 +1060,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   public static String buildSessionName(@NotNull Common.Device device, @NotNull Common.Process process) {
     return String.format("%s (%s)", process.getName(), buildDeviceName(device));
+  }
+
+  /**
+   * Opens the Profiler task tab (if it already has been created).
+   */
+  public void openTaskTab() {
+    myOpenTaskTab.run();
   }
 
   /**

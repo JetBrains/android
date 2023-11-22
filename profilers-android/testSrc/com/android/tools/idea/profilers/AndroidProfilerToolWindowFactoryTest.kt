@@ -11,6 +11,7 @@ import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.taskbased.home.OpenHomeTabListener
 import com.android.tools.profilers.taskbased.pastrecordings.OpenPastRecordingsTabListener
+import com.android.tools.profilers.taskbased.tasks.OpenProfilerTaskTabListener
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
@@ -177,12 +178,12 @@ class AndroidProfilerToolWindowFactoryTest {
     val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]
     assertThat(profilerToolWindow).isNotNull()
 
-    profilerToolWindow!!.openTaskTab(ProfilerTaskType.SYSTEM_TRACE,
-                                     CpuTaskArgs(CpuCaptureSessionArtifact
+    profilerToolWindow!!.createTaskTab(ProfilerTaskType.SYSTEM_TRACE,
+                                       CpuTaskArgs(CpuCaptureSessionArtifact
                                                  (profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
                                                   Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
 
-    // Opening the task tab with a SYSTEM_TRACE task (a CPU task) should open up a second tab with non-null content, a tab name
+    // Creating the task tab with a SYSTEM_TRACE task (a CPU task) should open up a second tab with non-null content, a tab name
     // of "System Trace" and the current stage should be set to the CpuProfilerStage.
     waitForCondition(5L, TimeUnit.SECONDS) {
       toolWindow.contentManager.contentCount == 2 &&
@@ -210,18 +211,64 @@ class AndroidProfilerToolWindowFactoryTest {
     val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]
     assertThat(profilerToolWindow).isNotNull()
 
-    profilerToolWindow!!.openTaskTab(ProfilerTaskType.NATIVE_ALLOCATIONS,
-                                     NativeAllocationsTaskArgs(HeapProfdSessionArtifact(
-                                     profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
-                                                  Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
+    profilerToolWindow!!.createTaskTab(ProfilerTaskType.NATIVE_ALLOCATIONS,
+                                       NativeAllocationsTaskArgs(HeapProfdSessionArtifact(
+                                         profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
+                                         Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
 
-    // Opening the task tab with a NATIVE_ALLOCATIONS task (a memory task) should open up a second tab with non-null content, a tab name
+    // Creating the task tab with a NATIVE_ALLOCATIONS task (a memory task) should open up a second tab with non-null content, a tab name
     // of "Native Allocations" and the current stage should be set to the MainMemoryProfilerStage.
     waitForCondition(5L, TimeUnit.SECONDS) {
       toolWindow.contentManager.contentCount == 2 &&
       toolWindow.contentManager.selectedContent != null &&
       toolWindow.contentManager.selectedContent!!.displayName == "Native Allocations"
       profilerToolWindow.profilers.stage is MainMemoryProfilerStage
+    }
+  }
+
+  @Test
+  fun `call to selectTaskTab re-selects existing task tab`() {
+    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+    val toolWindowFactory = AndroidProfilerToolWindowFactory()
+    toolWindowFactory.init(toolWindow)
+    toolWindowFactory.createToolWindowContent(project, toolWindow)
+
+    // Wait for the home tab to be auto-selected via the call to openHomeTab() in AndroidProfilerToolWindow.createToolWindowContent.
+    waitForCondition(5L, TimeUnit.SECONDS) {
+      toolWindow.contentManager.selectedContent != null &&
+      toolWindow.contentManager.selectedContent!!.displayName == "Home"
+    }
+
+    val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]
+    assertThat(profilerToolWindow).isNotNull()
+
+    // Create a task tab.
+    profilerToolWindow!!.createTaskTab(ProfilerTaskType.SYSTEM_TRACE,
+                                       CpuTaskArgs(CpuCaptureSessionArtifact
+                                                   (profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
+                                                    Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
+
+    // Make sure new tab is open and is selected.
+    waitForCondition(5L, TimeUnit.SECONDS) {
+      toolWindow.contentManager.contentCount == 3 &&
+      toolWindow.contentManager.selectedContent != null &&
+      toolWindow.contentManager.selectedContent!!.displayName == "System Trace"
+    }
+
+    // Store task tab content to be used to make sure the re-opened task tab is the same as the original task tab.
+    val taskTabContent = toolWindow.contentManager.contents[2]
+
+    // Open the home tab again.
+    profilerToolWindow.openHomeTab()
+    waitForCondition(5L, TimeUnit.SECONDS) {
+      toolWindow.contentManager.selectedContent != null &&
+      toolWindow.contentManager.selectedContent!!.displayName == "Home"
+    }
+
+    // Re-open the task tab explicitly, should find already present task tab and re-select it.
+    project.messageBus.syncPublisher(OpenProfilerTaskTabListener.TOPIC).openProfilerTaskTab()
+    waitForCondition(5L, TimeUnit.SECONDS) {
+      toolWindow.contentManager.contentCount == 3 && toolWindow.contentManager.selectedContent == taskTabContent
     }
   }
 }
