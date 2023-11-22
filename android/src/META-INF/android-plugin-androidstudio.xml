@@ -42,7 +42,7 @@
 
     <statusBarWidgetFactory id="SendFeedbackPanel" implementation="com.android.tools.idea.stats.SendFeedbackWidgetFactory"/>
 
-    <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
+    <errorHandler implementation="com.android.tools.idea.diagnostics.error.AndroidStudioErrorReportSubmitter"/>
     <applicationInitializedListener id="Startup.StartLowMemoryReporter"
                                     implementation="com.android.tools.idea.stats.LowMemoryReporter$OnStartup"/>
     <backgroundPostStartupActivity implementation="com.android.tools.idea.stats.GcPauseWatcher$Initializer" />

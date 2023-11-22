@@ -24,6 +24,7 @@ import com.android.tools.idea.diagnostics.crash.ExceptionDataCollection;
 import com.android.tools.idea.diagnostics.crash.ExceptionRateLimiter;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.diagnostics.crash.UploadFields;
+import com.android.tools.idea.diagnostics.error.AndroidStudioErrorReportSubmitter;
 import com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService;
 import com.android.tools.idea.diagnostics.hprof.action.AnalysisRunnable;
 import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable;
@@ -54,8 +55,8 @@ import com.google.wireless.android.sdk.stats.StudioExceptionDetails;
 import com.google.wireless.android.sdk.stats.StudioPerformanceStats;
 import com.google.wireless.android.sdk.stats.UIActionStats;
 import com.google.wireless.android.sdk.stats.UIActionStats.InvocationKind;
+import com.intellij.ExtensionPoints;
 import com.intellij.concurrency.JobScheduler;
-import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.diagnostic.IdePerformanceListener;
 import com.intellij.diagnostic.LogMessage;
 import com.intellij.diagnostic.MessagePool;
@@ -698,7 +699,7 @@ public final class AndroidStudioSystemHealthMonitor {
 
   private void reportThrowableToCrash(Throwable t) {
     incrementAndSaveExceptionCount(t);
-    ErrorReportSubmitter reporter = IdeErrorsDialog.Companion.getAndroidErrorReporter();
+    ErrorReportSubmitter reporter = ExtensionPoints.ERROR_HANDLER_EP.findExtension(AndroidStudioErrorReportSubmitter.class);
     if (reporter != null) {
       StackTrace stackTrace = ExceptionRegistry.INSTANCE.register(t);
       String signature = ExceptionDataCollection.Companion.calculateSignature(t);
@@ -1194,7 +1195,7 @@ public final class AndroidStudioSystemHealthMonitor {
       return;
     }
 
-    ErrorReportSubmitter reporter = IdeErrorsDialog.Companion.getAndroidErrorReporter();
+    ErrorReportSubmitter reporter = ExtensionPoints.ERROR_HANDLER_EP.findExtension(AndroidStudioErrorReportSubmitter.class);
     if (reporter != null) {
       IdeaLoggingEvent e = new AndroidStudioCrashEvents(descriptions);
       reporter.submit(new IdeaLoggingEvent[]{e}, null, null, info -> {

@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.diagnostics;
 
-import com.android.tools.idea.diagnostics.error.ErrorReporter;
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.idea.diagnostics.error.AndroidStudioErrorReportSubmitter;
+import com.intellij.ExtensionPoints;
 import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.testFramework.PlatformTestCase;
 
 public class AndroidStudioSystemHealthMonitorUtilitiesTest extends PlatformTestCase {
@@ -40,11 +44,16 @@ public class AndroidStudioSystemHealthMonitorUtilitiesTest extends PlatformTestC
     assertEquals("java.lang.String", AndroidStudioSystemHealthMonitor.getActionName(String.class, new Presentation("Foo")));
   }
 
-  public void testAndroidErrorReporter() {
-    // Regression test for b/130834409.
-    assertTrue(
-      "Unexpected type returned from IdeErrorsDialog.getAndroidErrorReporter()",
-      IdeErrorsDialog.Companion.getAndroidErrorReporter() instanceof ErrorReporter);
+  // Regression test for b/130834409.
+  public void testAndroidErrorSubmitter() {
+    // Our error submitter should be registered.
+    assertThat(ExtensionPoints.ERROR_HANDLER_EP.findExtension(AndroidStudioErrorReportSubmitter.class)).isNotNull();
+    // Platform exceptions should be handled by our error submitter.
+    RuntimeException exception = new RuntimeException();
+    assertThat(IdeErrorsDialog.getSubmitter(exception, /*pluginId*/ null)).isInstanceOf(AndroidStudioErrorReportSubmitter.class);
+    // Ditto for plugin exceptions (at least for our own plugins).
+    PluginId androidPlugin = PluginId.getId("org.jetbrains.android");
+    assertThat(IdeErrorsDialog.getSubmitter(exception, androidPlugin)).isInstanceOf(AndroidStudioErrorReportSubmitter.class);
   }
 }
 

@@ -67,8 +67,8 @@ import java.awt.*;
 import java.util.List;
 import java.util.Map;
 
-public class ErrorReporter extends ErrorReportSubmitter {
-  private static final Logger LOG = Logger.getInstance(ErrorReporter.class);
+public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
+  private static final Logger LOG = Logger.getInstance(AndroidStudioErrorReportSubmitter.class);
   private static final String FEEDBACK_TASK_TITLE = "Submitting error report";
   private static final long REPORT_ID_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10);
 
