@@ -15,15 +15,17 @@
  */
 package org.jetbrains.android.actions;
 
-import static org.jetbrains.android.util.AndroidUtils.getApplicationFacets;
-
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -69,10 +71,19 @@ public class GenerateSignedApkAction extends AnAction {
     wizard.show();
   }
 
+  private static boolean hasAtLeastOneApp(@NotNull Project project) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      if (ModuleSystemUtil.androidProjectType(module) == AndroidModuleSystem.Type.TYPE_APP) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    boolean enabled = project != null && !getApplicationFacets(project).isEmpty() &&
+    boolean enabled = project != null && hasAtLeastOneApp(project) &&
                       /* Available for Gradle projects and legacy IDEA Android projects */
                       (ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem ||
                        !ProjectSystemUtil.requiresAndroidModel(project));

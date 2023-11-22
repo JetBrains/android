@@ -89,11 +89,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -366,14 +364,6 @@ public class AndroidUtils extends CommonAndroidUtil {
       }
     }
     return true;
-  }
-
-  @NotNull
-  public static List<AndroidFacet> getApplicationFacets(@NotNull Project project) {
-    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).stream()
-      .filter(facet -> facet.getConfiguration().isAppProject())
-      .sorted(Comparator.comparing(facet -> facet.getModule().getName()))
-      .collect(Collectors.toList());
   }
 
   @NotNull
