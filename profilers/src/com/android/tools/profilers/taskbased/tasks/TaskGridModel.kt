@@ -26,7 +26,6 @@ import javax.swing.Icon
  * which shows the name and icon of the respective task.
  */
 class TaskGridModel {
-  val tasks: List<TaskGridItemModel>
   private val _selectedTaskType = MutableStateFlow(ProfilerTaskType.UNSPECIFIED)
   val selectedTaskType = _selectedTaskType.asStateFlow()
 
@@ -36,57 +35,5 @@ class TaskGridModel {
 
   fun resetTaskSelection() {
     onTaskSelection(ProfilerTaskType.UNSPECIFIED)
-  }
-
-  fun getTaskGridItem(taskType: ProfilerTaskType): TaskGridItemModel? = tasks.firstOrNull { it.type == taskType }
-
-  init {
-    tasks = listOf(
-      TaskGridItemModel(
-        type = ProfilerTaskType.CALLSTACK_SAMPLE,
-        iconPath = "studio/icons/profiler/sessions/cpu.svg",
-      ),
-      TaskGridItemModel(
-        type = ProfilerTaskType.SYSTEM_TRACE,
-        iconPath = "studio/icons/profiler/sessions/cpu.svg",
-      ),
-      TaskGridItemModel(
-        type = ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE,
-        iconPath = "studio/icons/profiler/sessions/cpu.svg",
-      ),
-      TaskGridItemModel(
-        type = ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE,
-        iconPath = "studio/icons/profiler/sessions/cpu.svg",
-      ),
-      TaskGridItemModel(
-        type = ProfilerTaskType.HEAP_DUMP,
-        iconPath = "studio/icons/profiler/sessions/heap.svg",
-      ),
-      TaskGridItemModel(
-        type = ProfilerTaskType.NATIVE_ALLOCATIONS,
-        iconPath = "studio/icons/profiler/sessions/allocations.svg",
-      ),
-      TaskGridItemModel(
-        type = ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
-        iconPath = "studio/icons/profiler/sessions/allocations.svg",
-      ),
-    )
-  }
-
-  companion object {
-    const val DISABLED_TASK_ICON = "studio/icons/profiler/sidebar/issue.svg"
-
-    fun getTaskIcon(taskType: ProfilerTaskType): Icon {
-      return when (taskType) {
-        ProfilerTaskType.UNSPECIFIED -> StudioIcons.Profiler.Sidebar.ISSUE
-        ProfilerTaskType.CALLSTACK_SAMPLE -> StudioIcons.Profiler.Sessions.CPU
-        ProfilerTaskType.SYSTEM_TRACE -> StudioIcons.Profiler.Sessions.CPU
-        ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE -> StudioIcons.Profiler.Sessions.CPU
-        ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE -> StudioIcons.Profiler.Sessions.CPU
-        ProfilerTaskType.HEAP_DUMP -> StudioIcons.Profiler.Sessions.HEAP
-        ProfilerTaskType.NATIVE_ALLOCATIONS -> StudioIcons.Profiler.Sessions.ALLOCATIONS
-        ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> StudioIcons.Profiler.Sessions.ALLOCATIONS
-      }
-    }
   }
 }

@@ -37,7 +37,7 @@ private fun RestartActionDropdownItem(isProfileable: Boolean, buildAndLaunch: (B
       Row(modifier = Modifier.padding(RESTART_ACTION_CONTENT_PADDING_DP), verticalAlignment = Alignment.Bottom,
           horizontalArrangement = Arrangement.spacedBy(5.dp)) {
         val actionTitle = "Restart as ${if (isProfileable) "Profileable" else "Debuggable"}"
-        val (iconPath, iconClass) = if (isProfileable) PROFILEABLE_PROFILER_ICON else DEBUGGABLE_PROFILER_ICON
+        val (iconPath, iconClass, _) = if (isProfileable) PROFILEABLE_PROFILER_ICON else DEBUGGABLE_PROFILER_ICON
         Icon(
           resource = iconPath,
           contentDescription = actionTitle,

@@ -41,10 +41,8 @@ import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TASK_HOVER_BACKGROUND_COLOR
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.ICON_SIZE_PX
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_WIDTH_DP
-import com.android.tools.profilers.taskbased.tasks.TaskGridItemModel
-import com.android.tools.profilers.taskbased.tasks.TaskGridModel
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons
 import com.android.tools.profilers.tasks.ProfilerTaskType
-import icons.StudioIcons
 import main.utils.UnitConversion.toDpWithCurrentDisplayDensity
 import org.jetbrains.jewel.foundation.modifier.onHover
 import org.jetbrains.jewel.ui.component.Icon
@@ -53,14 +51,12 @@ import org.jetbrains.jewel.ui.component.Tooltip
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TaskGridItem(task: TaskGridItemModel,
+fun TaskGridItem(task: ProfilerTaskType,
                  isSelectedTask: Boolean,
                  onTaskSelection: (task: ProfilerTaskType) -> Unit,
                  isTaskEnabled: Boolean) {
   // TODO (b/309506699) Give more description as to why it is not supported (because profileable, api level, etc.)
-  val tooltipMessage =
-    if (isTaskEnabled) "Tooltip for ${task.type.description}"
-    else "${task.type.description} is not supported"
+  val tooltipMessage = if (isTaskEnabled) "Tooltip for ${task.description}" else "${task.description} is not supported"
 
   val taskIconAndDescription: @Composable () -> Unit = {
     TaskIconAndDescriptionWrapper(task = task, isSelectedTask = isSelectedTask, isTaskEnabled = isTaskEnabled,
@@ -70,7 +66,7 @@ fun TaskGridItem(task: TaskGridItemModel,
 }
 
 @Composable
-fun TaskIconAndDescriptionWrapper(task: TaskGridItemModel,
+fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType,
                                   isSelectedTask: Boolean,
                                   isTaskEnabled: Boolean,
                                   onTaskSelection: (task: ProfilerTaskType) -> Unit) {
@@ -95,7 +91,7 @@ fun TaskIconAndDescriptionWrapper(task: TaskGridItemModel,
         selected = isSelectedTask,
         enabled = isTaskEnabled
       ) {
-        onTaskSelection(task.type)
+        onTaskSelection(task)
       }
       .onHover { isHovered = it }
       .testTag("TaskGridItem")
@@ -105,21 +101,21 @@ fun TaskIconAndDescriptionWrapper(task: TaskGridItemModel,
 }
 
 @Composable
-fun TaskIconAndDescription(task: TaskGridItemModel, isTaskEnabled: Boolean, boxScope: BoxScope) {
+fun TaskIconAndDescription(task: ProfilerTaskType, isTaskEnabled: Boolean, boxScope: BoxScope) {
   val iconSizeDp = ICON_SIZE_PX.toDpWithCurrentDisplayDensity()
-  val taskIconPath = if (isTaskEnabled) task.iconPath else TaskGridModel.DISABLED_TASK_ICON
+  val taskIcon = if (isTaskEnabled) TaskBasedUxIcons.getTaskIcon(task) else TaskBasedUxIcons.DISABLED_TASK_ICON
   with(boxScope) {
     Column(
       modifier = Modifier.align(Alignment.Center).padding(20.dp)
     ) {
       Icon(
-        resource = taskIconPath,
-        iconClass = StudioIcons::class.java,
-        contentDescription = task.type.description,
+        resource = taskIcon.path,
+        iconClass = taskIcon.iconClass,
+        contentDescription = task.description,
         modifier = Modifier.size(iconSizeDp).align(Alignment.CenterHorizontally)
       )
       Text(
-        text = task.type.description,
+        text = task.description,
         textAlign = TextAlign.Center,
         modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp)
       )

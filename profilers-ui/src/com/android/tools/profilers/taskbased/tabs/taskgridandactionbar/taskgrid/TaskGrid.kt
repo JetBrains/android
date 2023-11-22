@@ -75,10 +75,10 @@ fun TaskGrid(taskGridModel: TaskGridModel,
       items(taskHandlers.entries.toList()) { (taskType, taskHandler) ->
         val isTaskSupported = taskHandler.supportsDeviceAndProcess(selectedDevice, selectedProcess)
         // If the task is not supported/enabled, render it for the process-based task selection, but display it as disabled.
-        taskGridModel.getTaskGridItem(taskType)?.let {
+        taskType.let {
           TaskGridItem(
             task = it,
-            isSelectedTask = it.type == selectedTask,
+            isSelectedTask = it == selectedTask,
             onTaskSelection = taskGridModel::onTaskSelection,
             isTaskEnabled = isTaskSupported
           )
@@ -96,10 +96,10 @@ fun TaskGrid(taskGridModel: TaskGridModel, selectedRecording: SessionItem?, task
       items(taskHandlers.entries.toList().filter {
         selectedRecording != null && TaskSupportUtils.isTaskSupportedByRecording(it.value, selectedRecording)
       }) { (taskType, _) ->
-        taskGridModel.getTaskGridItem(taskType)?.let {
+        taskType.let {
           TaskGridItem(
             task = it,
-            isSelectedTask = it.type == selectedTask,
+            isSelectedTask = it == selectedTask,
             onTaskSelection = taskGridModel::onTaskSelection,
             // If the task item is being rendered, the task should be enabled in the recording-based task grid.
             isTaskEnabled = true
