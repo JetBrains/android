@@ -356,55 +356,6 @@ suspend fun <T> runWriteActionAndWait(compute: Computable<T>): T = coroutineScop
 class RetriesExceededException(message: String? = null) : Exception(message)
 
 /**
- * Runs the given [callable] in a read action with action priority (see [ProgressIndicatorUtils.runInReadActionWithWriteActionPriority]).
- * The [callable] will be retried [maxRetries] if cancelled because a write action taking priority. This will wait [maxWaitTime] [maxWaitTimeUnit]
- * before throwing a [TimeoutException].
- *
- * [callable] will receive a `checkCancelled` function that must be invoked frequently to ensure the operation can continue. [callable]
- * will throw a [ProcessCanceledException] if the operation is not needed anymore, for example when the timeout has been exceeded.
- */
-@kotlin.jvm.Throws(TimeoutException::class, RetriesExceededException::class)
-suspend fun <T> runReadActionWithWritePriority(
-  maxRetries: Int = 3,
-  maxWaitTime: Long = 10,
-  maxWaitTimeUnit: TimeUnit = TimeUnit.SECONDS,
-  callable: (checkCancelled: ()-> Unit) -> T
-): T {
-  try {
-    return withTimeout(maxWaitTimeUnit.toMillis(maxWaitTime)) {
-      var retries = 0
-      while (retries++ < maxRetries) {
-        val result = AtomicReference<T?>(null)
-        ensureActive()
-        val executed = runInterruptible(workerThread) {
-            ProgressIndicatorUtils.runInReadActionWithWriteActionPriority {
-              if (isActive) result.set(callable {
-                ProgressManager.checkCanceled()
-                ensureActive()
-              })
-            }
-          }
-        if (executed) return@withTimeout result.get()!!
-        /**
-         * If we end up here it means that the [runReadActionWithWritePriority] call was interrupted by some [WriteAction].
-         * Retrying straight away will most probably fail again since that [WriteAction] is still happening.
-         * Thus, we are waiting for the end of the [WriteAction] by blocking on a no-op `ReadAction`. After that read action happens it
-         * is only makes sense to retry again.
-         */
-        readAction { }
-      }
-      throw RetriesExceededException("Could you complete the action after $maxRetries retries.")
-    }
-  }
-  catch (timeout: TimeoutCancellationException) {
-    throw TimeoutException("Deadline $maxWaitTime $maxWaitTimeUnit exceeded.")
-  }
-  catch (_: CancellationException) {
-    throw ProcessCanceledException()
-  }
-}
-
-/**
  * Similar to [AndroidPsiUtils#getPsiFileSafely] but using a suspendable function.
  */
 suspend fun getPsiFileSafely(project: Project, virtualFile: VirtualFile): PsiFile? = readAction {
