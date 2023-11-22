@@ -24,6 +24,7 @@ import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcMessageR
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcMessageSent
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcMetadata
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcPayload
+import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcResponseHeaders
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcStreamCreated
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Closed
@@ -130,7 +131,7 @@ internal fun grpcCallStarted(
         GrpcCallStarted.newBuilder()
           .setService(service)
           .setMethod(method)
-          .addAllHeaders(headers)
+          .addAllRequestHeaders(headers)
           .setTrace(trace)
       )
     }
@@ -159,8 +160,18 @@ internal fun grpcStreamCreated(
 ) =
   grpcEvent(id, timestampNanos) {
       setGrpcStreamCreated(
-        GrpcStreamCreated.newBuilder().setAddress(address).addAllHeaders(headers)
+        GrpcStreamCreated.newBuilder().setAddress(address).addAllRequestHeaders(headers)
       )
+    }
+    .build()
+
+internal fun grpcResponseHeaders(
+  id: Long,
+  timestampNanos: Long,
+  headers: List<GrpcMetadata>,
+) =
+  grpcEvent(id, timestampNanos) {
+      setGrpcResponseHeaders(GrpcResponseHeaders.newBuilder().addAllResponseHeaders(headers))
     }
     .build()
 

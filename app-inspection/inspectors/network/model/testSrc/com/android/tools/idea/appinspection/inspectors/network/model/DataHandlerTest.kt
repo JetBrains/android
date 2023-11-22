@@ -301,7 +301,7 @@ class DataHandlerTest {
         10.secondsInNanos,
         "service",
         "method",
-        listOf(grpcMetadata("request-field", "1")),
+        listOf(grpcMetadata("request-field-1", "1")),
         "trace"
       )
     )
@@ -312,7 +312,7 @@ class DataHandlerTest {
         requestStartTimeUs = 10000000,
         service = "service",
         method = "method",
-        requestHeaders = listOf(grpcMetadata("request-field", "1")),
+        requestHeaders = listOf(grpcMetadata("request-field-1", "1")),
         trace = "trace",
       )
     assertThat(handler.getGrpcDataForRange(range)).containsExactly(expected)
@@ -345,7 +345,7 @@ class DataHandlerTest {
         id,
         13.secondsInNanos,
         "address",
-        listOf(grpcMetadata("response-field", "1"))
+        listOf(grpcMetadata("request-field-2", "2"))
       )
     )
     expected =
@@ -353,7 +353,17 @@ class DataHandlerTest {
         updateTimeUs = 13000000,
         responseStartTimeUs = 13000000,
         address = "address",
-        responseHeaders = mapOf("response-field" to listOf("1"))
+        requestHeaders = mapOf("request-field-1" to listOf("1"), "request-field-2" to listOf("2"))
+      )
+    assertThat(handler.getGrpcDataForRange(range)).containsExactly(expected)
+
+    handler.handleGrpcEvent(
+      grpcResponseHeaders(id, 14.secondsInNanos, listOf(grpcMetadata("response-field", "1")))
+    )
+    expected =
+      expected.copy(
+        updateTimeUs = 14000000,
+        responseHeaders = mapOf("response-field" to listOf("1")),
       )
     assertThat(handler.getGrpcDataForRange(range)).containsExactly(expected)
 

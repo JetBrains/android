@@ -77,7 +77,7 @@ private constructor(
       requestStartTimeUs = timestamp,
       service = event.grpcEvent.grpcCallStarted.service,
       method = event.grpcEvent.grpcCallStarted.method,
-      requestHeaders = event.grpcEvent.grpcCallStarted.headersList.toMap(),
+      requestHeaders = requestHeaders + event.grpcEvent.grpcCallStarted.requestHeadersList.toMap(),
       trace = event.grpcEvent.grpcCallStarted.trace,
     )
   }
@@ -101,7 +101,8 @@ private constructor(
       updateTimeUs = timestamp,
       responseStartTimeUs = timestamp,
       address = event.grpcEvent.grpcStreamCreated.address,
-      responseHeaders = event.grpcEvent.grpcStreamCreated.headersList.toMap(),
+      requestHeaders =
+        requestHeaders + event.grpcEvent.grpcStreamCreated.requestHeadersList.toMap(),
     )
   }
 
@@ -114,6 +115,15 @@ private constructor(
       responsePayload = event.grpcEvent.grpcMessageReceived.payload.bytes,
       responseType = event.grpcEvent.grpcMessageReceived.payload.type,
       responsePayloadText = event.grpcEvent.grpcMessageReceived.payload.text,
+    )
+  }
+
+  internal fun withGrpcResponseHeaders(event: NetworkInspectorProtocol.Event): GrpcData {
+    val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
+    return copy(
+      id = id,
+      updateTimeUs = timestamp,
+      responseHeaders = event.grpcEvent.grpcResponseHeaders.responseHeadersList.toMap()
     )
   }
 

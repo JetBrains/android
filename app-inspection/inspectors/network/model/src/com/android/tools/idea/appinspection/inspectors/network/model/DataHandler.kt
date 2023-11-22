@@ -36,8 +36,10 @@ import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.UnionCase.GR
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.UnionCase.GRPC_CALL_STARTED
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.UnionCase.GRPC_MESSAGE_RECEIVED
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.UnionCase.GRPC_MESSAGE_SENT
+import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.UnionCase.GRPC_RESPONSE_HEADERS
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.UnionCase.GRPC_STREAM_CREATED
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.UnionCase.GRPC_THREAD
+import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.UnionCase.UNION_NOT_SET
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.UnionCase.HTTP_CLOSED
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.UnionCase.HTTP_REQUEST_COMPLETED
@@ -150,10 +152,12 @@ internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
         GRPC_CALL_STARTED -> data.withGrpcCallStarted(event)
         GRPC_MESSAGE_SENT -> data.withGrpcMessageSent(event)
         GRPC_STREAM_CREATED -> data.withGrpcStreamCreated(event)
+        GRPC_RESPONSE_HEADERS -> data.withGrpcResponseHeaders(event)
         GRPC_MESSAGE_RECEIVED -> data.withGrpcMessageReceived(event)
         GRPC_CALL_ENDED -> data.withGrpcCallEnded(event)
         GRPC_THREAD -> data.withGrpcThread(event)
-        else -> {
+        UNION_NOT_SET,
+        null -> {
           logger.warn("Unexpected event: ${grpcEvent.unionCase}")
           return Result(updateTimeline = false)
         }
