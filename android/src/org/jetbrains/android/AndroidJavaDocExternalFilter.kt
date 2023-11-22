@@ -45,25 +45,25 @@ internal class AndroidJavaDocExternalFilter(project: Project?) : JavaDocExternal
         data.append(HTML)
         var read: String?
         do {
-          read = buf.readLine()
+          read = buf.readLine().trimEnd()
         } while (read != null && !read.contains(startSection))
         if (read == null) {
           data.delete(0, data.length)
           return
         }
-        data.append(read).append("\n")
+        if (read.isNotBlank()) data.append(read).append("\n")
 
         // Read until we reach the class overview (if present); copy everything until we see the
         // optional marker skipHeader.
         var skip = false
         while (
-          buf.readLine().also { read = it } !=
-          null && // Old format: class description follows <h2>Class Overview</h2>
-          !read!!.startsWith(
-            "<h2>Class Overview"
-          ) && // New format: class description follows just a <br><hr>. These
-          // are luckily not present in the older docs.
-          read != "<br><hr>"
+          buf.readLine().also { read = it.trimEnd() } !=
+            null && // Old format: class description follows <h2>Class Overview</h2>
+            !read!!.startsWith(
+              "<h2>Class Overview"
+            ) && // New format: class description follows just a <br><hr>. These
+            // are luckily not present in the older docs.
+            read != "<br><hr>"
         ) {
           if (read!!.contains("<table class=")) {
             // Skip all tables until the beginning of the class description
@@ -75,7 +75,7 @@ internal class AndroidJavaDocExternalFilter(project: Project?) : JavaDocExternal
             read = null
             break
           }
-          if (!skip && read!!.isNotEmpty()) {
+          if (!skip && read!!.isNotBlank()) {
             data.append(read).append("\n")
           }
           if (read!!.contains(skipHeader)) {
@@ -89,11 +89,11 @@ internal class AndroidJavaDocExternalFilter(project: Project?) : JavaDocExternal
         if (read != null) {
           data.append("<br><div>\n")
           while (
-            buf.readLine().also { read = it } != null &&
-            !read!!.startsWith("<h2>") &&
-            !read!!.startsWith("<h2 ")
+            buf.readLine().also { read = it.trimEnd() } != null &&
+              !read!!.startsWith("<h2>") &&
+              !read!!.startsWith("<h2 ")
           ) {
-            data.append(read).append("\n")
+            if (read!!.isNotBlank()) data.append(read).append("\n")
           }
           data.append("</div>\n")
         }
