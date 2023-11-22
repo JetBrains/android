@@ -29,13 +29,13 @@ import java.io.FileReader
 const val POINT_URL = "http://developer.android.com/reference/android/graphics/Point.html"
 
 @RunWith(JUnit4::class)
-class AndroidDocumentationProviderTest {
+class AndroidJavaDocExternalFilterTest {
   @get:Rule val projectRule = ProjectRule()
   private val project by lazy { projectRule.project }
-  private val filter by lazy { AndroidDocumentationProvider.AndroidJavaDocExternalFilter(project) }
+  private val filter by lazy { AndroidJavaDocExternalFilter(project) }
 
   @Test
-  fun externalFilter_oldFormat() {
+  fun oldFormat() {
     // Do not run tests on Windows (see b/37120270)
     if (SystemInfo.isWindows) return
 
@@ -49,7 +49,7 @@ class AndroidDocumentationProviderTest {
   }
 
   @Test
-  fun externalFilter_newFormat() {
+  fun newFormat() {
     // Do not run tests on Windows (see b/37120270)
     if (SystemInfo.isWindows) return
 
