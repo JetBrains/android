@@ -224,12 +224,14 @@ public final class GradleApkProvider implements ApkProvider {
                   variant.getMainArtifact().getAbiFilters(),
                   deviceAbis));
               // Add the additional split containing the use-sdk-library manifest element
-              apkFileList.add(new ApkFileUnit(androidModel.getModuleName(), variant.getMainArtifact().getPrivacySandboxSdkInfo().getAdditionalApkSplitFile()));
+              apkFileList.addAll(getSplitApksForPrivacySandbox(androidModel.getModuleName(),
+                                                            variant.getMainArtifact().getPrivacySandboxSdkInfo()
+                                                              .getAdditionalApkSplitFile()));
             } else {
               // Legacy Privacy Sandbox APKs need to be installed together and with
               // the base APK.
               apkFileList.addAll(
-                getApksFromLegacyPrivacySandboxSdks(
+                getSplitApksForPrivacySandbox(
                   androidModel.getModuleName(),
                   variant.getMainArtifact()
                     .getPrivacySandboxSdkInfo()
@@ -453,13 +455,13 @@ public final class GradleApkProvider implements ApkProvider {
   }
 
   @NotNull
-  static List<ApkFileUnit> getApksFromLegacyPrivacySandboxSdks(
+  static List<ApkFileUnit> getSplitApksForPrivacySandbox(
     @NotNull String moduleName,
-    @NotNull File outputListingForLegacyPrivacySandboxFile
+    @NotNull File builtArtifactMetadataFile
   ) {
     List<GenericBuiltArtifacts> builtArtifacts =
       GenericBuiltArtifactsLoader.loadListFromFile(
-        outputListingForLegacyPrivacySandboxFile, new LogWrapper(getLogger()));
+        builtArtifactMetadataFile, new LogWrapper(getLogger()));
 
     List<ApkFileUnit> list = new ArrayList<>();
     for (GenericBuiltArtifacts builtArtifact : builtArtifacts) {
