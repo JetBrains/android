@@ -124,8 +124,8 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
       }
     }
 
-    // TODO(b/156361020): This is relative slow and should be replaces with a better module system based implementation. However, this code
-    //                    is usually invoked on relatively small number of roots of the incoming file-system-change-notification.
+    // This is relative slow and could be replaced with a better module system based implementation. However, this code
+    // is usually invoked on relatively small number of roots of the incoming file-system-change-notification.
     return createSubmoduleNodes().stream().anyMatch(it -> (it instanceof ProjectViewNode) && ((ProjectViewNode<?>)it).contains(file));
   }
 
