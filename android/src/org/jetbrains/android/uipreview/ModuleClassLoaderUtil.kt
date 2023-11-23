@@ -340,14 +340,19 @@ internal class ModuleClassLoaderImpl(module: Module,
    * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader.
    */
   fun isUserCodeUpToDate(module: Module?): Boolean {
-    return if (module == null) true
+    return if (module == null) {
+      true
+    }
     // Cache the result of isUserCodeUpToDateNonCached until any PSI modifications have happened.
-    else CachedValuesManager.getManager(module.project).getCachedValue(this) {
-      CachedValueProvider.Result.create(
-        isUserCodeUpToDateNonCached(),
-        PsiModificationTracker.MODIFICATION_COUNT,
-        ModuleClassLoaderOverlays.getInstance(module)
-      )
+    else {
+      val overlayModificationTracker = ModuleClassLoaderOverlays.getInstance(module).modificationTracker
+      CachedValuesManager.getManager(module.project).getCachedValue(this) {
+        CachedValueProvider.Result.create(
+          isUserCodeUpToDateNonCached(),
+          PsiModificationTracker.MODIFICATION_COUNT,
+          overlayModificationTracker
+        )
+      }
     }
   }
 

@@ -47,13 +47,15 @@ private fun buildClassLoaderForOverlayPath(overlays: List<Path>) = UrlClassLoade
   storages = [(Storage(StoragePathMacros.MODULE_FILE))],
 )
 class ModuleClassLoaderOverlays private constructor(private val maxNumOverlays: Int = 10) :
-  PersistentStateComponent<ModuleClassLoaderOverlays.State>, ModificationTracker, ClassLoaderOverlays {
+  PersistentStateComponent<ModuleClassLoaderOverlays.State>, ClassLoaderOverlays {
 
   @Tag("module-class-overlay-paths")
   class State(@XCollection(propertyElementName = "paths", style = XCollection.Style.v2) val paths: List<String> = listOf())
 
-  private val modificationTracker = SimpleModificationTracker()
+  private val _modificationTracker = SimpleModificationTracker()
   private var overlayClassLoader: DelegatingClassLoader.Loader? = null
+
+  val modificationTracker: ModificationTracker = _modificationTracker
 
   /**
    * A [DelegatingClassLoader.Loader] that finds classes in the current overlay.
@@ -77,13 +79,13 @@ class ModuleClassLoaderOverlays private constructor(private val maxNumOverlays: 
     logger.debug("invalidateOverlayPaths")
     overlayPaths.clear()
     overlayClassLoader = null
-    modificationTracker.incModificationCount()
+    _modificationTracker.incModificationCount()
   }
 
   @Synchronized
   private fun reloadClassLoader() {
     overlayClassLoader = ClassLoaderLoader(buildClassLoaderForOverlayPath(overlayPaths))
-    modificationTracker.incModificationCount()
+    _modificationTracker.incModificationCount()
   }
 
   @Synchronized
@@ -103,10 +105,8 @@ class ModuleClassLoaderOverlays private constructor(private val maxNumOverlays: 
     reloadClassLoader()
   }
 
-  override fun getModificationCount(): Long = modificationTracker.modificationCount
-
   override val modificationStamp: Long
-    get() = modificationCount
+    get() = _modificationTracker.modificationCount
 
   override fun getState(): State = State(paths = synchronized(this) { overlayPaths.map { it.toString() } })
 

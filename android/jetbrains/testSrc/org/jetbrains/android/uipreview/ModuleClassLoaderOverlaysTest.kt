@@ -19,7 +19,6 @@ import com.android.tools.idea.rendering.classloading.loadClassBytes
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.utils.FileUtils.toSystemIndependentPath
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -51,9 +50,9 @@ internal class ModuleClassLoaderOverlaysTest {
     Files.write(classFilePath, loadClassBytes(TestClass::class.java))
     assertNotNull(ModuleClassLoaderOverlays.getInstance(projectRule.module).classLoaderLoader.loadClass(testClassName))
 
-    val modificationCount = ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationCount
+    val modificationCount = ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationTracker.modificationCount
     ModuleClassLoaderOverlays.getInstance(projectRule.module).invalidateOverlayPaths()
-    assertTrue(modificationCount != ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationCount)
+    assertTrue(modificationCount != ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationTracker.modificationCount)
   }
 
   @Test
