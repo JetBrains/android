@@ -406,13 +406,17 @@ public class RenderTask {
 
     myTracker.captureDisposeStackTrace().bind(this);
 
+    CompletableFuture<?>[] currentRunningFutures;
+    synchronized (myRunningFutures) {
+      currentRunningFutures = myRunningFutures.toArray(new CompletableFuture<?>[0]);
+      myRunningFutures.clear();
+    }
+    myLayoutlibCallback.setLogger(IRenderLogger.NULL_LOGGER);
+    RenderSession renderSessionToDispose = myRenderSession;
+    myRenderSession = null;
+
     return ourDisposeService.submit(() -> {
       try {
-        CompletableFuture<?>[] currentRunningFutures;
-        synchronized (myRunningFutures) {
-          currentRunningFutures = myRunningFutures.toArray(new CompletableFuture<?>[0]);
-          myRunningFutures.clear();
-        }
         // Wait for all current running operations to complete
         CompletableFuture.allOf(currentRunningFutures).get(5, TimeUnit.SECONDS);
       }
@@ -420,13 +424,12 @@ public class RenderTask {
         // We do not care about these exceptions since we are disposing the task anyway
         LOG.debug(e);
       }
-      myLayoutlibCallback.setLogger(IRenderLogger.NULL_LOGGER);
-      if (myRenderSession != null) {
+      if (renderSessionToDispose != null) {
         try {
-          disposeRenderSession(myRenderSession)
+          disposeRenderSession(renderSessionToDispose)
             .whenComplete((result, ex) -> clearClassLoader())
+            .orTimeout(2, TimeUnit.SECONDS)
             .join(); // This is running on the dispose thread so wait for the full dispose to happen.
-          myRenderSession = null;
         }
         catch (Exception ignored) {
         }
