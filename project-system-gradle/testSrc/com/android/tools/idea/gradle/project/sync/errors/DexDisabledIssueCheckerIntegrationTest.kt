@@ -29,6 +29,7 @@ import com.intellij.testFramework.replaceService
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker.Companion.getKnownIssuesCheckList
 import org.junit.Test
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.any
 import org.mockito.Mockito.spy
@@ -70,7 +71,7 @@ class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
     assertThat(result.invocations.firstOrNull()?.buildError).isNotNull()
     // and that error generates the expected BuildIssue
     val throwableCaptor = ArgumentCaptor.forClass(Throwable::class.java)
-    verify(spyNotificationManager).createNotification(any(), throwableCaptor.capture(), any(), eq(project), any())
+    verify(spyNotificationManager).createNotification(any(), throwableCaptor.capture(), any(), eq(project), anyString(), any())
     val generatedExceptions = throwableCaptor.allValues
     assertThat(generatedExceptions).hasSize(1)
     assertThat(generatedExceptions[0]).isInstanceOf(BuildIssueException::class.java)
