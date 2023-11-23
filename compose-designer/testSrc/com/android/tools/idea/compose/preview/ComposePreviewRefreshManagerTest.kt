@@ -22,6 +22,7 @@ import com.intellij.testFramework.ProjectRule
 import java.util.concurrent.CountDownLatch
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -152,16 +153,27 @@ class ComposePreviewRefreshManagerTest {
     completable2.await()
     completable3.await()
 
-    // 2nd request should have been skipped because 3rd has same priority and is newer
-    assertEquals(
-      """
+    // Given that enqueueing of refresh requests is asynchronous we cannot know which of
+    // req2 or req3 will be enqueued first, and then skipped by the one enqueued second.
+    // But we know that one of them should be skipped (no logs) and the other executed.
+    assertTrue(
+      listOf(
+          """
       start req1
       finish req1
       start req3
       finish req3
     """
-        .trimIndent(),
-      log.toString().trimIndent()
+            .trimIndent(),
+          """
+      start req1
+      finish req1
+      start req2
+      finish req2
+    """
+            .trimIndent()
+        )
+        .contains(log.toString().trimIndent())
     )
   }
 }
