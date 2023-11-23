@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.resourcemanager
 
-import com.android.tools.idea.project.getLastSyncTimestamp
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild

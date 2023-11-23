@@ -195,7 +195,6 @@
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidFileChangeListener" />
     <postStartupActivity implementation="com.android.tools.idea.res.AndroidFileChangeListener$MyStartupActivity"/>
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
-    <projectService serviceImplementation="com.android.tools.idea.project.SyncTimestamp" />
     <projectService serviceImplementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild" />
     <postStartupActivity implementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild$MyStartupActivity"/>
     <ApplicationLoadListener implementation="com.android.tools.idea.startup.AndroidPluginInitializer"/>
@@ -766,8 +765,6 @@
   </applicationListeners>
 
   <projectListeners>
-    <listener class="com.android.tools.idea.project.SyncTimestampListener"
-              topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
     <listener class="com.android.tools.idea.stats.ProjectSizeUsageTrackerListener"
