@@ -154,6 +154,12 @@ class SingleComposePreviewElementRendererTest {
 
     assertTrue(applyObservers.isNotEmpty())
 
+    val globalWriteObserversField =
+      snapshotKt.getDeclaredField("globalWriteObservers").apply { isAccessible = true }
+    val globalWriteObservers = globalWriteObserversField.get(null) as List<*>
+
+    assertTrue(globalWriteObservers.isNotEmpty())
+
     val uiDispatcher = classLoader.loadClass("androidx.compose.ui.platform.AndroidUiDispatcher")
     val uiDispatcherCompanion =
       classLoader.loadClass("androidx.compose.ui.platform.AndroidUiDispatcher\$Companion")
@@ -177,9 +183,8 @@ class SingleComposePreviewElementRendererTest {
       "animationScale should have been cleared",
       (animationScaleField.get(windowRecomposer) as Map<*, *>).isEmpty()
     )
-
     assertTrue("applyObservers should have been cleared", applyObservers.isEmpty())
-
+    assertTrue("globalWriteObservers should have been cleared", globalWriteObservers.isEmpty())
     assertTrue("toRunTrampolined should have been cleared", toRunTrampolined.isEmpty())
   }
 

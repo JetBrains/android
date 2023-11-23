@@ -67,6 +67,7 @@ private const val COMBINED_CONTEXT_FQN = "${INTERNAL_PACKAGE}kotlin.coroutines.C
 fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Void> {
   var disposeMethod = Optional.empty<Method>()
   val applyObserversRef = AtomicReference<WeakReference<MutableCollection<*>?>?>(null)
+  val globalWriteObserversRef = AtomicReference<WeakReference<MutableCollection<*>?>?>(null)
   val toRunTrampolinedRef = AtomicReference<WeakReference<MutableCollection<*>?>?>(null)
   if (classLoader.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
     try {
@@ -96,7 +97,12 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
       // ignore.
       LOG.debug("Unable to dispose the recompose animationScale", ex)
     }
-    applyObserversRef.set(WeakReference(findApplyObservers(classLoader)))
+    applyObserversRef.set(
+      WeakReference(findSnapshotKtObserversField(classLoader, "applyObservers"))
+    )
+    globalWriteObserversRef.set(
+      WeakReference(findSnapshotKtObserversField(classLoader, "globalWriteObservers"))
+    )
     toRunTrampolinedRef.set(WeakReference(findToRunTrampolined(classLoader)))
   }
 
@@ -114,16 +120,9 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
         }
       )
     }
-    val weakApplyObservers = applyObserversRef.get()
-    if (weakApplyObservers != null) {
-      val applyObservers = weakApplyObservers.get()
-      applyObservers?.clear()
-    }
-    val weakToRunTrampolined = toRunTrampolinedRef.get()
-    if (weakToRunTrampolined != null) {
-      val toRunTrampolined = weakToRunTrampolined.get()
-      toRunTrampolined?.clear()
-    }
+    applyObserversRef.get()?.get()?.clear()
+    globalWriteObserversRef.get()?.get()?.clear()
+    toRunTrampolinedRef.get()?.get()?.clear()
     broadcastManagerInstanceField.get()?.set(null, null)
     this@dispose.dispose()
   }
@@ -176,18 +175,21 @@ private fun findToRunTrampolined(classLoader: ModuleClassLoader): MutableCollect
   return null
 }
 
-private fun findApplyObservers(classLoader: ModuleClassLoader): MutableCollection<*>? {
+private fun findSnapshotKtObserversField(
+  classLoader: ModuleClassLoader,
+  fieldName: String
+): MutableCollection<*>? {
   try {
     val snapshotKt = classLoader.loadClass(SNAPSHOT_KT_FQN)
-    val applyObserversField = snapshotKt.getDeclaredField("applyObservers")
-    applyObserversField.isAccessible = true
-    val applyObservers = applyObserversField[null]
+    val observersField = snapshotKt.getDeclaredField(fieldName)
+    observersField.isAccessible = true
+    val applyObservers = observersField[null]
     if (applyObservers is MutableCollection<*>) {
       return applyObservers
     }
-    LOG.warn("SnapshotsKt.applyObservers found but it is not a List")
+    LOG.warn("SnapshotsKt.$fieldName found but it is not a Collection")
   } catch (ex: ReflectiveOperationException) {
-    LOG.warn("Unable to find SnapshotsKt.applyObservers", ex)
+    LOG.warn("Unable to find SnapshotsKt.$fieldName", ex)
   }
   return null
 }
