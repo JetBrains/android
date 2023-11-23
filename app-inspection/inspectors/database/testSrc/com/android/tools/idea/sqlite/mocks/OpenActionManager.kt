@@ -44,6 +44,18 @@ open class OpenActionManager(private val wrapped: ActionManagerEx) : ActionManag
   override val timerEvents: Flow<Unit>
     get() = emptyFlow()
 
+  override fun getActionBinding(actionId: String) = wrapped.getActionBinding(actionId)
+
+  override fun getBoundActions() = wrapped.getBoundActions()
+
+  override fun bindShortcuts(sourceActionId: String, targetActionId: String) {
+    wrapped.bindShortcuts(sourceActionId, targetActionId)
+  }
+
+  override fun unbindShortcuts(targetActionId: String) {
+    wrapped.unbindShortcuts(targetActionId)
+  }
+
   override fun createActionToolbar(
     place: String,
     group: ActionGroup,
