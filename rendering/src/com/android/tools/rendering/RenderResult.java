@@ -376,7 +376,7 @@ public class RenderResult {
 
   @NotNull
   public Dimension getRootViewDimensions() {
-    return myRootViews.isEmpty() ? myRootViewDimensions : getRootViewDimensionFromSystemViews(myRootViews);
+    return myRootViews.isEmpty() ? myRootViewDimensions : getRootViewDimensionFromSystemViews(mySystemRootViews);
   }
 
   @Override
