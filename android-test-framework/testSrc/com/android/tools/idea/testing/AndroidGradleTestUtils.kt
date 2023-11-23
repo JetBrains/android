@@ -203,8 +203,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
-import org.jetbrains.kotlin.idea.core.script.configuration.ScriptingSupport
-import org.jetbrains.kotlin.idea.core.script.configuration.listener.ScriptChangeListener
 import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
@@ -2179,12 +2177,6 @@ private fun <T> openPreparedProject(
               javaHome = jdkPath
               save()
             }
-          }
-
-          @Suppress("UnstableApiUsage")
-          if (options.disableKtsRelatedIndexing) {
-            ScriptingSupport.EPN.getPoint(project).unregisterExtensions({ _, _ -> false }, false)
-            ScriptChangeListener.LISTENER.getPoint(project).unregisterExtensions({ _, _ -> false }, false)
           }
           project.messageBus.connect(disposable).let {
             options.subscribe(it)
