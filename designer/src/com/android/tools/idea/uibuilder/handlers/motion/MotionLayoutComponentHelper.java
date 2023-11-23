@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
 
 public class MotionLayoutComponentHelper {
@@ -68,7 +69,8 @@ public class MotionLayoutComponentHelper {
   private Object myDesignTool;
   private final NlComponent myMotionLayoutComponent;
   private static boolean mShowPaths = true;
-  private CompletableFuture<Void> myFuture;
+  @NotNull
+  private final CompletableFuture<Void> myFuture;
   private final HashMap<String, float[]> myCachedPath = new HashMap<>();
   private boolean myCachedPositionKeyframe = false;
   private String myCachedState = null;
@@ -103,20 +105,23 @@ public class MotionLayoutComponentHelper {
     component = MotionUtils.getMotionLayoutAncestor(component);
     ViewInfo info = component != null ? NlComponentHelperKt.getViewInfo(component) : null;
     if (info == null) {
+      myFuture = CompletableFuture.completedFuture(null);
       myDesignTool = null;
       myMotionLayoutComponent = null;
       return;
     }
     Object instance = info.getViewObject();
     if (instance == null) {
+      myFuture = CompletableFuture.completedFuture(null);
       myDesignTool = null;
       myMotionLayoutComponent = null;
       return;
     }
+    CompletableFuture<Void> getDesignToolFuture = null;
     try {
       Method accessor = instance.getClass().getMethod("getDesignTool");
       try {
-        myFuture =
+        getDesignToolFuture =
           RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> getDesignInstance(accessor, instance));
       }
       catch (Exception e) {
@@ -126,6 +131,7 @@ public class MotionLayoutComponentHelper {
     catch (NoSuchMethodException e) {
       Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
     }
+    myFuture = getDesignToolFuture != null ? getDesignToolFuture : CompletableFuture.completedFuture(null);
     myMotionLayoutComponent = component;
   }
 
@@ -156,10 +162,6 @@ public class MotionLayoutComponentHelper {
       return;
     }
 
-    if (myFuture == null) {
-      return;
-    }
-
     myFuture.thenRunAsync(() -> {
       if (myDesignTool == null) {
         runnable.run();
@@ -169,13 +171,11 @@ public class MotionLayoutComponentHelper {
 
   private boolean isMyDesignToolNotAvailable() {
     if (myDesignTool == null) {
-      if (myFuture != null) {
-        try {
-          myFuture.get();
-        }
-        catch (InterruptedException | ExecutionException e) {
-          Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
-        }
+      try {
+        myFuture.get(250, TimeUnit.MILLISECONDS);
+      }
+      catch (InterruptedException | ExecutionException | TimeoutException e) {
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
       return myDesignTool == null;
     }
