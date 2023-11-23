@@ -236,12 +236,12 @@ public class MotionUtils {
     if (isInBaseState(motionLayout)) {
       AttributesTransaction transaction = fillTransaction(modification);
       transaction.apply();
-      motionLayout.updateLiveAttributes(component, modification, motionLayout.getState());
+      motionLayout.updateLiveAttributes(modification, motionLayout.getState());
       return;
     }
 
     // let's apply in memory by updating the constraintset directly
-    motionLayout.updateLiveAttributes(component, modification, motionLayout.getState());
+    motionLayout.updateLiveAttributes(modification, motionLayout.getState());
   }
 
   // in this case, we need to apply the memorized attributes by hand -- the internal
