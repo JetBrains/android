@@ -106,7 +106,10 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
         // Make sure the module wasn't disposed while we were waiting for the read lock.
         facet.isDisposed() || module.project.isDisposed -> throw ProcessCanceledException()
         cachedSnapshot != null && snapshotUpToDate(cachedSnapshot) -> cachedSnapshot
-        else -> createMergedManifestSnapshot(facet)
+        else -> {
+          cachedSnapshot?.mergedManifestInfo?.let { Disposer.dispose(it) }
+          createMergedManifestSnapshot(facet)
+        }
       }
     }
   }
