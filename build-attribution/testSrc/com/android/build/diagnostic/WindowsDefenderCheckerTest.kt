@@ -18,6 +18,7 @@ package com.android.build.diagnostic
 import com.android.testutils.AssumeUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
+import com.intellij.diagnostic.WindowsDefenderChecker
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
@@ -38,7 +39,7 @@ class WindowsDefenderCheckerTest {
   @Test
   fun testReturnsImportantPaths() {
     val checker = WindowsDefenderChecker.getInstance()
-    val paths = checker.getImportantPaths(projectRule.project)
+    val paths = checker.getPathsToExclude(projectRule.project)
     println("\n${WindowsDefenderCheckerTest::class.simpleName}: ImportantPaths=$paths")
     Truth.assertThat(paths).isNotEmpty()
   }
