@@ -13,7 +13,6 @@ android {
 // A basic Android application split over a library and a main project.
 //
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     compile project(':lib')
 }
 

@@ -29,10 +29,6 @@ android {
     }
 }
 
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-}
-
 android.applicationVariants.each { variant ->
     variant.outputFile = file("$project.buildDir/${variant.name}.apk")
 }

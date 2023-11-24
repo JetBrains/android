@@ -16,19 +16,16 @@
 
 package org.jetbrains.kotlin.android.configure
 
-import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.toReason
-import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_LANGUAGE_KOTLIN_CONFIGURED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE
@@ -39,13 +36,8 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.projectRoots.JavaSdkVersion
-import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.refactoring.isAndroidx
-import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
 import org.jetbrains.kotlin.idea.configuration.BuildSystemType
@@ -55,12 +47,9 @@ import org.jetbrains.kotlin.idea.framework.ui.ConfigureDialogWithModulesAndVersi
 import org.jetbrains.kotlin.idea.gradle.KotlinIdeaGradleBundle
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.ChangedFiles
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.KotlinWithGradleConfigurator
-import org.jetbrains.kotlin.idea.projectConfiguration.hasJreSpecificRuntime
 import org.jetbrains.kotlin.idea.util.application.executeCommand
-import org.jetbrains.kotlin.idea.util.projectStructure.version
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
-import org.jetbrains.kotlin.utils.PathUtil
 
 class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
@@ -76,6 +65,14 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
     override fun getKotlinPluginExpression(forKotlinDsl: Boolean): String =
       if (forKotlinDsl) "kotlin(\"android\")" else "id 'org.jetbrains.kotlin.android' "
+
+    /**
+     * The KGP versions displayed on the dropdown come from [ConfigureDialogWithModulesAndVersion.VERSIONS_LIST_URL]
+     * response where the latest 20 rows are used. However, this class doesn't handle the case when the stdlib isn't
+     * added by default for versions < 1.4.0 since those will never end up being displayed
+     * https://kotlinlang.org/docs/whatsnew14.html#dependency-on-the-standard-library-added-by-default
+     */
+    override fun getMinimumSupportedVersion() = "1.4.0"
 
     private fun RepositoriesModel.addRepositoryFor(version: String) {
         if (version.contains("SNAPSHOT")) {
@@ -165,7 +162,6 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         val project = module.project
         val projectBuildModel = ProjectBuildModel.get(project)
         val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
-        val sdk = getFirstValidJavaSdkFromModule(module)
 
         if (isTopLevelProjectFile) {
             // We need to handle the following cases:
@@ -207,23 +203,11 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             /*
             We need to
             - apply the plugin (it is known to be missing at this point, otherwise we would not be configuring Kotlin in the first place)
-            - add a dependency on the kotlin stdlib, for kotlin versions less than 1.4 (it is added automatically for versions after that)
             - add an android.kotlinOptions jvmTarget property, if jvmTarget is not null.
 
             Also, if we failed to find repositories in the top-level project, we should add repositories to this build file.
              */
             moduleBuildModel.applyPlugin("org.jetbrains.kotlin.android")
-            if (Version.parse(version) < Version.parse("1.4")) {
-                val stdLibArtifactName = getStdlibArtifactName(sdk, originalVersion)
-                val buildModel = projectBuildModel.projectBuildModel
-                val versionString = when (buildModel?.buildscript()?.ext()?.findProperty("kotlin_version")?.valueType) {
-                      STRING -> if (file.isKtDsl()) "\${extra[\"kotlin_version\"]}" else "\$kotlin_version"
-                      null -> version
-                      else -> version
-                  }
-                val spec = ArtifactDependencySpec.create(stdLibArtifactName, "org.jetbrains.kotlin", versionString)
-                moduleBuildModel.dependencies().addArtifact("implementation", spec)
-            }
             if (jvmTarget != null) {
                 moduleBuildModel.android().kotlinOptions().jvmTarget().setValue(jvmTarget)
             }
@@ -235,18 +219,6 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             changedFiles.add(file)
         }
         return changedFiles
-    }
-
-    override fun getStdlibArtifactName(sdk: Sdk?, version: IdeKotlinVersion): String {
-        if (sdk != null && hasJreSpecificRuntime(version)) {
-            val sdkVersion = sdk.version
-            if (sdkVersion != null && sdkVersion.isAtLeast(JavaSdkVersion.JDK_1_8)) {
-                // Android dex can't convert our kotlin-stdlib-jre8 artifact, so use jre7 instead (KT-16530)
-                return PathUtil.KOTLIN_JAVA_RUNTIME_JDK7_NAME
-            }
-        }
-
-        return super.getStdlibArtifactName(sdk, version)
     }
 
     @JvmSuppressWildcards
@@ -306,15 +278,6 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             val ktxIds = ktxLibrary.split(":")
             getDependencyVersion(module, ids[0], ids[1])?.let { addDependency(moduleBuildModel, ktxIds[0], ktxIds[1], it) }
         }
-    }
-
-    private fun getFirstValidJavaSdkFromModule(module: Module) = listOf(
-      { ModuleRootManager.getInstance(module).sdk },
-      { ProjectRootManager.getInstance(module.project).projectSdk },
-      { IdeSdks.getInstance().jdk }
-    ).firstNotNullOfOrNull {
-        val sdk = it.invoke()
-        if (sdk?.sdkType is AndroidSdkType) null else sdk
     }
 
     override fun changeGeneralFeatureConfiguration(

@@ -15,6 +15,7 @@
  */
 package org.jetbrains.kotlin.android.configure
 
+import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -61,7 +62,7 @@ abstract class ConfigureProjectTest(useAndroidX: Boolean) {
 
   companion object {
     // Note: this default version was chosen arbitrarily based on current test expectations.
-    private const val DEFAULT_VERSION = "1.1.0"
+    private const val DEFAULT_VERSION = KOTLIN_VERSION_FOR_TESTS
     private const val GRADLE_DIR = "idea-android/testData/configuration/android-gradle"
     private const val GSK_DIR = "idea-android/testData/configuration/android-gsk"
   }
