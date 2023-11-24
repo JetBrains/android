@@ -814,7 +814,6 @@ MODULE                        : kotlinMultiPlatform
                     default                       : <empty>
                     implementation                : <empty>
                     - jvmApiElements              : <ROOT>/app/build/libs/app-jvm.jar [-]
-                    - jvmApiElements-published    : <ROOT>/app/build/libs/app-jvm.jar [-]
                     jvmCompilationApi             : <empty>
                     jvmCompilationCompileOnly     : <empty>
                     jvmCompilationImplementation  : <empty>
@@ -831,9 +830,7 @@ MODULE                        : kotlinMultiPlatform
                     jvmMainRuntimeOnly            : <empty>
                     jvmRuntimeClasspath           : <empty>
                     - jvmRuntimeElements          : <ROOT>/app/build/libs/app-jvm.jar [-]
-                    - jvmRuntimeElements-published          : <ROOT>/app/build/libs/app-jvm.jar [-]
                     - jvmSourcesElements          : <ROOT>/app/build/libs/app-jvm-sources.jar [-]
-                    - jvmSourcesElements-published          : <ROOT>/app/build/libs/app-jvm-sources.jar [-]
                     jvmTestApi                    : <empty>
                     jvmTestApiDependenciesMetadata          : <empty>
                     jvmTestCompilationApi         : <empty>
@@ -1125,16 +1122,13 @@ MODULE                        : kotlinMultiPlatform
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
                     debugApiElements              : <empty>
-                    - debugApiElements-published  : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugImplementation           : <empty>
                     debugRuntimeClasspath         : <empty>
                     debugRuntimeElements          : <empty>
-                    - debugRuntimeElements-published        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                     debugRuntimeOnly              : <empty>
                     - debugSourcesElements        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
-                    - debugSourcesElements-published        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
@@ -1151,7 +1145,6 @@ MODULE                        : kotlinMultiPlatform
                     jvmAndAndroidResolvableDependenciesMetadata       : <empty>
                     jvmAndAndroidRuntimeOnly      : <empty>
                     - jvmApiElements              : <ROOT>/module2/build/libs/module2-jvm.jar [-]
-                    - jvmApiElements-published    : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                     jvmCompilationApi             : <empty>
                     jvmCompilationCompileOnly     : <empty>
                     jvmCompilationImplementation  : <empty>
@@ -1168,9 +1161,7 @@ MODULE                        : kotlinMultiPlatform
                     jvmMainRuntimeOnly            : <empty>
                     jvmRuntimeClasspath           : <empty>
                     - jvmRuntimeElements          : <ROOT>/module2/build/libs/module2-jvm.jar [-]
-                    - jvmRuntimeElements-published          : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                     - jvmSourcesElements          : <ROOT>/module2/build/libs/module2-jvm-sources.jar [-]
-                    - jvmSourcesElements-published          : <ROOT>/module2/build/libs/module2-jvm-sources.jar [-]
                     jvmTestApi                    : <empty>
                     jvmTestApiDependenciesMetadata          : <empty>
                     jvmTestCompilationApi         : <empty>
@@ -1226,16 +1217,13 @@ MODULE                        : kotlinMultiPlatform
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiElements            : <empty>
-                    - releaseApiElements-published          : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseImplementation         : <empty>
                     releaseRuntimeClasspath       : <empty>
                     releaseRuntimeElements        : <empty>
-                    - releaseRuntimeElements-published      : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                     releaseRuntimeOnly            : <empty>
                     - releaseSourcesElements      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
-                    - releaseSourcesElements-published      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
@@ -2446,6 +2434,11 @@ MODULE                        : kotlinMultiPlatform.app
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : androidDebug:commonMain
+                    - fragmentRefines             : androidMain:commonMain
+                    - fragments                   : androidDebug
+                    - fragments                   : androidMain
+                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2518,6 +2511,8 @@ MODULE                        : kotlinMultiPlatform.app
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragments                   : androidInstrumentedTestDebug
+                    - fragments                   : androidInstrumentedTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2609,6 +2604,11 @@ MODULE                        : kotlinMultiPlatform.app
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : androidUnitTestDebug:commonTest
+                    - fragmentRefines             : androidUnitTest:commonTest
+                    - fragments                   : androidUnitTestDebug
+                    - fragments                   : androidUnitTest
+                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2674,6 +2674,9 @@ MODULE                        : kotlinMultiPlatform.app
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : jvmMain:commonMain
+                    - fragments                   : jvmMain
+                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2734,6 +2737,9 @@ MODULE                        : kotlinMultiPlatform.app
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : jvmTest:commonTest
+                    - fragments                   : jvmTest
+                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3313,6 +3319,14 @@ MODULE                        : kotlinMultiPlatform.module2
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : androidDebug:commonMain
+                    - fragmentRefines             : androidMain:jvmAndAndroid
+                    - fragmentRefines             : androidMain:commonMain
+                    - fragmentRefines             : jvmAndAndroid:commonMain
+                    - fragments                   : androidDebug
+                    - fragments                   : androidMain
+                    - fragments                   : jvmAndAndroid
+                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3386,6 +3400,8 @@ MODULE                        : kotlinMultiPlatform.module2
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragments                   : androidInstrumentedTestDebug
+                    - fragments                   : androidInstrumentedTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3479,6 +3495,11 @@ MODULE                        : kotlinMultiPlatform.module2
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : androidUnitTestDebug:commonTest
+                    - fragmentRefines             : androidUnitTest:commonTest
+                    - fragments                   : androidUnitTestDebug
+                    - fragments                   : androidUnitTest
+                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3547,6 +3568,12 @@ MODULE                        : kotlinMultiPlatform.module2
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : jvmMain:jvmAndAndroid
+                    - fragmentRefines             : jvmMain:commonMain
+                    - fragmentRefines             : jvmAndAndroid:commonMain
+                    - fragments                   : jvmMain
+                    - fragments                   : jvmAndAndroid
+                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3608,6 +3635,9 @@ MODULE                        : kotlinMultiPlatform.module2
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : jvmTest:commonTest
+                    - fragments                   : jvmTest
+                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar

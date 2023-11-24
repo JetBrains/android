@@ -1069,16 +1069,13 @@
                         debugAnnotationProcessorClasspath       : <empty>
                         debugApi                      : <empty>
                         debugApiElements              : <empty>
-                        - debugApiElements-published  : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
-                        - debugRuntimeElements-published        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
                         debugRuntimeOnly              : <empty>
                         - debugSourcesElements        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
-                        - debugSourcesElements-published        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestCompileClasspath : <empty>
                         debugUnitTestRuntimeClasspath : <empty>
@@ -1109,16 +1106,13 @@
                         releaseAnnotationProcessorClasspath     : <empty>
                         releaseApi                    : <empty>
                         releaseApiElements            : <empty>
-                        - releaseApiElements-published          : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
                         releaseImplementation         : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
-                        - releaseRuntimeElements-published      : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
                         releaseRuntimeOnly            : <empty>
                         - releaseSourcesElements      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
-                        - releaseSourcesElements-published      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
                         releaseUnitTestAnnotationProcessorClasspath       : <empty>
                         releaseUnitTestCompileClasspath         : <empty>
                         releaseUnitTestRuntimeClasspath         : <empty>
@@ -2262,7 +2256,21 @@
             hasSafeArgsKotlin             : false
         kotlinMppGradleModel          : {main=main, test=test} (KotlinMPPGradleModelImpl)
             dependencyMap
-                1                             : DefaultUnresolvedExternalDependency
+                1                             : DefaultExternalLibraryDependency
+                    file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/2.0.0-Beta1/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                10                            : DefaultFileCollectionDependency
+                    - files                       : <ROOT>/jsModule/build/classes/kotlin/main [-]
+                11                            : DefaultFileCollectionDependency
+                    - files                       : <ROOT>/jsModule/build/processedResources/js/main [-]
+                12                            : DefaultUnresolvedExternalDependency
+                    failureMessage                : Could not find org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>.
+Required by:
+    project :jsModule
+                13                            : DefaultUnresolvedExternalDependency
+                    failureMessage                : Could not find org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>.
+Required by:
+    project :jsModule > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                2                             : DefaultUnresolvedExternalDependency
                     failureMessage                : Could not find org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>.
 Searched in the following locations:
   - file:<M2>/org/jetbrains/kotlin/kotlin-dom-api-compat/<KOTLIN_VERSION>/kotlin-dom-api-compat-<KOTLIN_VERSION>.pom
@@ -2271,23 +2279,11 @@ Searched in the following locations:
   - file:<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/org/jetbrains/kotlin/kotlin-dom-api-compat/<KOTLIN_VERSION>/kotlin-dom-api-compat-<KOTLIN_VERSION>.jar
 Required by:
     project :jsModule
-                10                            : DefaultUnresolvedExternalDependency
-                    failureMessage                : Could not find org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>.
-Required by:
-    project :jsModule > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                11                            : DefaultFileCollectionDependency
-                    - files                       : <ROOT>/jsModule/build/classes/kotlin/main [-]
-                12                            : DefaultFileCollectionDependency
-                    - files                       : <ROOT>/jsModule/build/processedResources/js/main [-]
-                13                            : DefaultUnresolvedExternalDependency
+                3                             : DefaultUnresolvedExternalDependency
                     failureMessage                : Could not find org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>.
 Required by:
     project :jsModule
-                14                            : DefaultUnresolvedExternalDependency
-                    failureMessage                : Could not find org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>.
-Required by:
-    project :jsModule > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                2                             : DefaultUnresolvedExternalDependency
+                4                             : DefaultUnresolvedExternalDependency
                     failureMessage                : Could not find org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>.
 Searched in the following locations:
   - file:<M2>/org/jetbrains/kotlin/kotlin-stdlib-js/<KOTLIN_VERSION>/kotlin-stdlib-js-<KOTLIN_VERSION>.pom
@@ -2296,32 +2292,24 @@ Searched in the following locations:
   - file:<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/org/jetbrains/kotlin/kotlin-stdlib-js/<KOTLIN_VERSION>/kotlin-stdlib-js-<KOTLIN_VERSION>.jar
 Required by:
     project :jsModule > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                3                             : DefaultUnresolvedExternalDependency
-                    failureMessage                : Could not find org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>.
-Required by:
-    project :jsModule
-                4                             : DefaultUnresolvedExternalDependency
-                    failureMessage                : Could not find org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>.
-Required by:
-    project :jsModule > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 5                             : DefaultUnresolvedExternalDependency
-                    failureMessage                : Could not find org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>.
+                    failureMessage                : Could not find org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>.
 Required by:
-    project :jsModule > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+    project :jsModule
                 6                             : DefaultUnresolvedExternalDependency
-                    failureMessage                : Could not find org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>.
-Required by:
-    project :jsModule
-                7                             : DefaultUnresolvedExternalDependency
                     failureMessage                : Could not find org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>.
 Required by:
     project :jsModule > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                8                             : DefaultFileCollectionDependency
+                7                             : DefaultFileCollectionDependency
                     - files                       : <ROOT>/jsModule/build/classes/kotlin/main [-]
-                9                             : DefaultUnresolvedExternalDependency
+                8                             : DefaultUnresolvedExternalDependency
                     failureMessage                : Could not find org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>.
 Required by:
     project :jsModule
+                9                             : DefaultUnresolvedExternalDependency
+                    failureMessage                : Could not find org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>.
+Required by:
+    project :jsModule > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             extraFeatures                 : ExtraFeaturesImpl
                 isHMPPEnabled                 : true
             kotlinGradlePluginVersion
@@ -2365,6 +2353,7 @@ Required by:
                             - unknownExtraFlags           : -Xir-produce-klib-dir
                             - unknownExtraFlags           : -Xir-module-name=kotlinMultiPlatform:jsModule
                         explicitApi                   : disable
+                        - fragments                   : main
                         - freeArgs                    : call
                         - freeArgs                    : umd
                         - freeArgs                    : jsModule
@@ -2374,9 +2363,9 @@ Required by:
                         useFirLT                      : true
                     - declaredSourceSets          : main (KotlinSourceSetImpl) (*seen*)
                     - dependencies                : 3
+                    - dependencies                : 4
                     - dependencies                : 5
                     - dependencies                : 6
-                    - dependencies                : 7
                     kotlinTaskProperties          : KotlinTaskPropertiesImpl
                         incremental                   : true
                         pluginVersion                 : <CUT>
@@ -2393,13 +2382,13 @@ Required by:
                             - platforms                   : JS
                         - additionalVisibleSourceSets : main
                         - dependencies                : 3
-                        - dependencies                : 4
+                        - dependencies                : 1
                         isTestComponent               : true
                         languageSettings              : KotlinLanguageSettingsImpl
                             - freeCompilerArgs            : -Xir-only
                             - freeCompilerArgs            : -Xir-per-module-output-name=kotlinMultiPlatform-jsModule-test
                         - regularDependencies         : 3
-                        - regularDependencies         : 4
+                        - regularDependencies         : 1
                         - resourceDirs                : <ROOT>/jsModule/src/test/resources [-]
                         - sourceDirs                  : <ROOT>/jsModule/src/test/kotlin [-]
                         platform                      : JS
@@ -2429,6 +2418,7 @@ Required by:
                             - unknownExtraFlags           : -Xir-produce-klib-dir
                             - unknownExtraFlags           : -Xir-module-name=kotlinMultiPlatform:jsModule_test
                         explicitApi                   : disable
+                        - fragments                   : test
                         - freeArgs                    : call
                         - freeArgs                    : umd
                         - freeArgs                    : jsModule_test
@@ -2437,13 +2427,13 @@ Required by:
                         - freeArgs                    : v5
                         useFirLT                      : true
                     - declaredSourceSets          : test (KotlinSourceSetImpl) (*seen*)
+                    - dependencies                : 7
                     - dependencies                : 8
                     - dependencies                : 9
                     - dependencies                : 10
                     - dependencies                : 11
                     - dependencies                : 12
                     - dependencies                : 13
-                    - dependencies                : 14
                     isTestComponent               : true
                     kotlinTaskProperties          : KotlinTaskPropertiesImpl
                         incremental                   : true
@@ -2457,7 +2447,7 @@ Required by:
                 jar                           : KotlinTargetJarImpl
                     archiveFile                   : <ROOT>/jsModule/build/libs/jsModule.klib [-]
                 platform                      : JS
-                presetName                    : jsIr
+                presetName                    : js
                 - testRunTasks                : KotlinTestRunTaskImpl
                     compilationName               : test
                     taskName                      : browserTest
@@ -2940,6 +2930,11 @@ Required by:
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
                         explicitApi                   : disable
+                        - fragmentRefines             : androidDebug:commonMain
+                        - fragmentRefines             : androidMain:commonMain
+                        - fragments                   : androidDebug
+                        - fragments                   : androidMain
+                        - fragments                   : commonMain
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3011,6 +3006,8 @@ Required by:
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
                         explicitApi                   : disable
+                        - fragments                   : androidInstrumentedTestDebug
+                        - fragments                   : androidInstrumentedTest
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3083,6 +3080,11 @@ Required by:
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
                         explicitApi                   : disable
+                        - fragmentRefines             : androidUnitTestDebug:commonTest
+                        - fragmentRefines             : androidUnitTest:commonTest
+                        - fragments                   : androidUnitTestDebug
+                        - fragments                   : androidUnitTest
+                        - fragments                   : commonTest
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar

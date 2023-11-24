@@ -1006,7 +1006,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     commonTestRuntimeOnly         : <empty>
                     default                       : <empty>
                     - jvmApiElements              : <ROOT>/common/build/libs/common-jvm.jar [-]
-                    - jvmApiElements-published    : <ROOT>/common/build/libs/common-jvm.jar [-]
                     jvmCompilationApi             : <empty>
                     jvmCompilationCompileOnly     : <empty>
                     jvmCompilationImplementation  : <empty>
@@ -1023,9 +1022,7 @@ MODULE                        : NonStandardSourceSetDependencies
                     jvmMainRuntimeOnly            : <empty>
                     jvmRuntimeClasspath           : <empty>
                     - jvmRuntimeElements          : <ROOT>/common/build/libs/common-jvm.jar [-]
-                    - jvmRuntimeElements-published          : <ROOT>/common/build/libs/common-jvm.jar [-]
                     - jvmSourcesElements          : <ROOT>/common/build/libs/common-jvm-sources.jar [-]
-                    - jvmSourcesElements-published          : <ROOT>/common/build/libs/common-jvm-sources.jar [-]
                     jvmTestApi                    : <empty>
                     jvmTestApiDependenciesMetadata          : <empty>
                     jvmTestCompilationApi         : <empty>
@@ -1596,16 +1593,13 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
                     debugApiElements              : <empty>
-                    - debugApiElements-published  : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugImplementation           : <empty>
                     debugRuntimeClasspath         : <empty>
                     debugRuntimeElements          : <empty>
-                    - debugRuntimeElements-published        : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
                     debugRuntimeOnly              : <empty>
                     - debugSourcesElements        : <ROOT>/feature-b/build/libs/feature-b-android-debug-sources.jar [-]
-                    - debugSourcesElements-published        : <ROOT>/feature-b/build/libs/feature-b-android-debug-sources.jar [-]
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
@@ -1636,16 +1630,13 @@ MODULE                        : NonStandardSourceSetDependencies
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiElements            : <empty>
-                    - releaseApiElements-published          : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseImplementation         : <empty>
                     releaseRuntimeClasspath       : <empty>
                     releaseRuntimeElements        : <empty>
-                    - releaseRuntimeElements-published      : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
                     releaseRuntimeOnly            : <empty>
                     - releaseSourcesElements      : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
-                    - releaseSourcesElements-published      : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
@@ -1968,7 +1959,6 @@ MODULE                        : NonStandardSourceSetDependencies
                             default                       : <empty>
                             implementation                : <empty>
                             - jvmApiElements              : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
-                            - jvmApiElements-published    : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                             jvmCompilationApi             : <empty>
                             jvmCompilationCompileOnly     : <empty>
                             jvmCompilationImplementation  : <empty>
@@ -1985,9 +1975,7 @@ MODULE                        : NonStandardSourceSetDependencies
                             jvmMainRuntimeOnly            : <empty>
                             jvmRuntimeClasspath           : <empty>
                             - jvmRuntimeElements          : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
-                            - jvmRuntimeElements-published          : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                             - jvmSourcesElements          : <ROOT>/kmp-java/sample/build/libs/sample-jvm-sources.jar [-]
-                            - jvmSourcesElements-published          : <ROOT>/kmp-java/sample/build/libs/sample-jvm-sources.jar [-]
                             jvmTestApi                    : <empty>
                             jvmTestApiDependenciesMetadata          : <empty>
                             jvmTestCompilationApi         : <empty>
@@ -3280,6 +3268,9 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : jvmMain:commonMain
+                    - fragments                   : jvmMain
+                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3357,6 +3348,9 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : jvmTest:commonTest
+                    - fragments                   : jvmTest
+                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -5001,6 +4995,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : androidDebug:commonMain
+                    - fragmentRefines             : androidMain:commonMain
+                    - fragments                   : androidDebug
+                    - fragments                   : androidMain
+                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -5072,6 +5071,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragments                   : androidInstrumentedTestDebug
+                    - fragments                   : androidInstrumentedTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -5144,6 +5145,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : androidUnitTestDebug:commonTest
+                    - fragmentRefines             : androidUnitTest:commonTest
+                    - fragments                   : androidUnitTestDebug
+                    - fragments                   : androidUnitTest
+                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -5391,6 +5397,9 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : jvmMain:commonMain
+                    - fragments                   : jvmMain
+                    - fragments                   : commonMain
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -5470,6 +5479,9 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
+                    - fragmentRefines             : jvmTest:commonTest
+                    - fragments                   : jvmTest
+                    - fragments                   : commonTest
                     multiPlatform                 : true
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar

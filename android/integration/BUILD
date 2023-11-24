@@ -2,7 +2,7 @@ load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GR
 load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_LATEST")
+load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_FOR_TESTS")
 
 # managed by go/iml_to_build
 iml_module(
@@ -322,7 +322,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.4",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.6.4",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ] + KGP_LATEST,
+    ] + KGP_FOR_TESTS,
 )
 
 maven_repository(
@@ -332,7 +332,7 @@ maven_repository(
         "@maven//:com.android.tools.build.gradle_7.1.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ] + KGP_LATEST,
+    ] + KGP_FOR_TESTS,
 )
 
 iml_studio_test(
@@ -497,7 +497,7 @@ maven_repository(
         "@maven//:com.android.tools.build.gradle_7.1.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ] + KGP_LATEST,
+    ] + KGP_FOR_TESTS,
     visibility = ["//visibility:public"],
 )
 
@@ -587,7 +587,7 @@ maven_repository(
         "@maven//:com.android.tools.build.gradle_7.1.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ] + KGP_LATEST,
+    ] + KGP_FOR_TESTS,
     visibility = ["//visibility:public"],
 )
 
@@ -599,7 +599,7 @@ maven_repository(
         "@maven//:com.android.tools.build.gradle_7.1.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ] + KGP_LATEST,
+    ] + KGP_FOR_TESTS,
     visibility = ["//visibility:public"],
 )
 

@@ -671,7 +671,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
         device = AndroidVersion(24)
       ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") else TODO("b/313864130") },
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.example.rubidumconsumer
          Files:
@@ -688,7 +688,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
         device = AndroidVersion(33, "TiramisuPrivacySandbox", 4, true)
       ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") else TODO("b/313864130") },
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.example.rubidumconsumer
          Files:
@@ -706,7 +706,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         viaBundle = true,
         device = AndroidVersion(33, "TiramisuPrivacySandbox", 4, true)
       ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") else TODO("b/313864130") },
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.example.rubidumconsumer
          Files:
@@ -723,7 +723,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
         device = AndroidVersion(24)
       ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") else TODO("b/313864130") },
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.example.rubidumconsumer
          Files:
@@ -741,7 +741,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
         device = AndroidVersion(33, "TiramisuPrivacySandbox", 4, true)
       ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") else TODO("b/313864130") },
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.example.rubidumconsumer
          Files:
@@ -796,7 +796,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         viaBundle = true,
         device = AndroidVersion(33),
       ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") else TODO("b/313864130") },
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.example.rubidumconsumer
          Files:
@@ -836,7 +836,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
         device = AndroidVersion(34)
       ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") else TODO("b/313864130") },
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.myrbsdk_10000
          Files:
@@ -857,7 +857,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
         device = AndroidVersion(34)
       ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") else TODO("b/313864130") },
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.myrbsdk_10000
          Files:
