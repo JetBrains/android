@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.wrapCompletableDeferredCollection
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PreviewRefreshRequest
 import com.android.tools.idea.preview.RefreshResult
 import com.android.tools.idea.preview.RefreshType
+import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
+import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.android.tools.rendering.RenderService
+import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
@@ -56,6 +60,8 @@ enum class ComposePreviewRefreshType(override val priority: Int) : RefreshType {
 /**
  * A [PreviewRefreshRequest] specific for Compose Preview.
  *
+ * @param surface the surface where the previews are located. Actually used for finding the
+ *   application id when tracking refresh metrics.
  * @param clientId see [PreviewRefreshRequest.clientId]
  * @param delegateRefresh method responsible for performing the refresh
  * @param completableDeferred optional completable that will be completed once the refresh is
@@ -67,12 +73,19 @@ enum class ComposePreviewRefreshType(override val priority: Int) : RefreshType {
  * @param requestId identifier used for testing and logging/debugging.
  */
 class ComposePreviewRefreshRequest(
+  surface: DesignSurface<*>?,
   override val clientId: String,
   private val delegateRefresh: (ComposePreviewRefreshRequest) -> Job,
   private var completableDeferred: CompletableDeferred<Unit>?,
   override val refreshType: ComposePreviewRefreshType,
   val requestId: String = UUID.randomUUID().toString().substring(0, 5),
 ) : PreviewRefreshRequest {
+
+  override val refreshEventBuilder =
+    PreviewRefreshEventBuilder(
+      PreviewRefreshEvent.PreviewType.COMPOSE,
+      PreviewRefreshTracker.getInstance(surface),
+    )
 
   var requestSources: List<Throwable> = listOf(Throwable())
     private set

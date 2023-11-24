@@ -1171,7 +1171,13 @@ class ComposePreviewRepresentation(
     }
 
     refreshManager.requestRefresh(
-      ComposePreviewRefreshRequest(this.hashCode().toString(), ::refresh, completableDeferred, type)
+      ComposePreviewRefreshRequest(
+        surface,
+        this.hashCode().toString(),
+        ::refresh,
+        completableDeferred,
+        type,
+      )
     )
   }
 

@@ -79,6 +79,7 @@ class ComposePreviewRefreshManagerTest {
     val completable2 = CompletableDeferred<Unit>()
     refreshManager.requestRefresh(
       ComposePreviewRefreshRequest(
+        surface = null,
         "test_id",
         ::testRefresh,
         completable1,
@@ -89,6 +90,7 @@ class ComposePreviewRefreshManagerTest {
     startLatch.await()
     refreshManager.requestRefresh(
       ComposePreviewRefreshRequest(
+        surface = null,
         "test_id",
         ::testRefresh,
         completable2,
@@ -120,6 +122,7 @@ class ComposePreviewRefreshManagerTest {
     val completable3 = CompletableDeferred<Unit>()
     refreshManager.requestRefresh(
       ComposePreviewRefreshRequest(
+        surface = null,
         "test_id",
         ::testRefresh,
         completable1,
@@ -131,6 +134,7 @@ class ComposePreviewRefreshManagerTest {
     // Use lower priority for 2 and 3 to ensure that the first request is not cancelled.
     refreshManager.requestRefresh(
       ComposePreviewRefreshRequest(
+        surface = null,
         "test_id",
         ::testRefresh,
         completable2,
@@ -140,6 +144,7 @@ class ComposePreviewRefreshManagerTest {
     )
     refreshManager.requestRefresh(
       ComposePreviewRefreshRequest(
+        surface = null,
         "test_id",
         ::testRefresh,
         completable3,

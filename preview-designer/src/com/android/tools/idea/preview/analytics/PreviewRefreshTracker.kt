@@ -17,13 +17,13 @@ package com.android.tools.idea.preview.analytics
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
 import com.android.tools.idea.common.analytics.setApplicationId
+import com.android.tools.idea.common.surface.DesignSurface
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
-import org.jetbrains.android.facet.AndroidFacet
 
 /** Tracker implementation for the refresh process of a preview tool. */
 interface PreviewRefreshTracker {
@@ -33,7 +33,7 @@ interface PreviewRefreshTracker {
     private val MANAGER =
       DesignerUsageTrackerManager(::PreviewRefreshDefaultTracker, PreviewRefreshNopTracker)
 
-    fun getInstance(facet: AndroidFacet?) = MANAGER.getInstance(facet)
+    fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
   }
 }
 
@@ -58,11 +58,11 @@ private val PreviewRefreshNopTracker =
  */
 private class PreviewRefreshDefaultTracker(
   private val executor: Executor,
-  private val facet: AndroidFacet?,
+  private val surface: DesignSurface<*>?,
   private val studioEventTracker: Consumer<AndroidStudioEvent.Builder>,
 ) : PreviewRefreshTracker {
   override fun logEvent(event: PreviewRefreshEvent): AndroidStudioEvent.Builder {
-    event.createAndroidStudioEvent().setApplicationId(facet).let {
+    event.createAndroidStudioEvent().setApplicationId(surface).let {
       executor.execute { studioEventTracker.accept(it) }
       return it
     }
