@@ -478,6 +478,17 @@ class VisualLintIssueNode(
       override fun canNavigateToSource(): Boolean = project != null
     }
   }
+
+  override fun hashCode() =
+    Objects.hash(parentDescriptor?.element, visualLintIssue.rangeBasedHashCode())
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (this.javaClass != other?.javaClass) return false
+    val that = other as? VisualLintIssueNode ?: return false
+    return that.parentDescriptor?.element == parentDescriptor?.element &&
+      that.visualLintIssue.rangeBasedHashCode() == visualLintIssue.rangeBasedHashCode()
+  }
 }
 
 private class MyOpenFileDescriptor(openFileDescriptor: OpenFileDescriptor) :

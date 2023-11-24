@@ -39,6 +39,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.assertInstanceOf
 import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -240,5 +241,37 @@ class VisualLintIssueNodeTest {
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     assertEquals(0, node.getChildren().size)
     assertEquals(0, navigatable.compareTo(node.getNavigatable() as OpenFileDescriptor))
+  }
+
+  @Test
+  fun testEquality() {
+    val file = rule.fixture.createFile("Compose.kt", "Compose file")
+    val model = mock(NlModel::class.java)
+    val navigatable1 = OpenFileDescriptor(rule.project, file, 100)
+    val navigatable2 = OpenFileDescriptor(rule.project, file, 100)
+    val component1 = NlComponent(model, 651L).apply { setNavigatable(navigatable1) }
+    val component2 = NlComponent(model, 651L).apply { setNavigatable(navigatable2) }
+    val issue1 =
+      VisualLintRenderIssue.builder()
+        .summary("")
+        .severity(HighlightSeverity.WARNING)
+        .contentDescriptionProvider { HtmlBuilder() }
+        .model(model)
+        .components(mutableListOf(component1))
+        .type(VisualLintErrorType.BOUNDS)
+        .build()
+    val issue2 =
+      VisualLintRenderIssue.builder()
+        .summary("")
+        .severity(HighlightSeverity.WARNING)
+        .contentDescriptionProvider { HtmlBuilder() }
+        .model(model)
+        .components(mutableListOf(component2))
+        .type(VisualLintErrorType.BOUNDS)
+        .build()
+    val parentNode = CommonIssueTestParentNode(rule.projectRule.project)
+    val node1 = VisualLintIssueNode(issue1, parentNode)
+    val node2 = VisualLintIssueNode(issue2, parentNode)
+    assertTrue(node1 == node2)
   }
 }
