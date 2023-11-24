@@ -26,7 +26,9 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.preview.PreviewBundle.message
+import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
+import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -112,6 +114,10 @@ fun <T : PreviewElement, M> matchElementsToModels(
  *   [LayoutlibSceneManager].
  * @param refreshFilter a filter to only refresh some of the existing previews. By default, all of
  *   them are refreshed
+ * @param refreshOrder a function that maps scene managers to integers. Then the previews will be
+ *   refreshed in ascending order according to these integers. Also, the order between previews
+ *   mapped to the same integer is not guaranteed.
+ * @param refreshEventBuilder optional [PreviewRefreshEventBuilder] used for collecting metrics
  */
 @Slow
 suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
@@ -120,13 +126,16 @@ suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
   configureLayoutlibSceneManager:
     (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
   refreshFilter: (LayoutlibSceneManager) -> Boolean = { true },
-  refreshOrder: (LayoutlibSceneManager) -> Int = { 0 }
+  refreshOrder: (LayoutlibSceneManager) -> Int = { 0 },
+  refreshEventBuilder: PreviewRefreshEventBuilder? = null
 ) {
   val previewElementsToSceneManagers =
     sceneManagers.filter(refreshFilter).sortedBy(refreshOrder).mapNotNull {
       val previewElement = modelToPreview(it.model) ?: return@mapNotNull null
       previewElement to it
     }
+  refreshEventBuilder?.withPreviewsCount(sceneManagers.size)
+  refreshEventBuilder?.withPreviewsToRefresh(previewElementsToSceneManagers.size)
   previewElementsToSceneManagers.forEachIndexed { index, pair ->
     if (progressIndicator.isCanceled)
       return@refreshExistingPreviewElements // Return early if user cancels the refresh.
@@ -138,8 +147,10 @@ suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
       )
     val (previewElement, sceneManager) = pair
     // When showing decorations, show the full device size
-    configureLayoutlibSceneManager(previewElement.displaySettings, sceneManager)
-      .requestDoubleRender()
+    renderAndTrack(
+      configureLayoutlibSceneManager(previewElement.displaySettings, sceneManager),
+      refreshEventBuilder
+    )
   }
 }
 
@@ -160,6 +171,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
  * @param modelUpdater [NlModel.NlModelUpdaterInterface] to be used for updating the [NlModel]
  * @param configureLayoutlibSceneManager helper called when the method needs to configure a
  *   [LayoutlibSceneManager].
+ * @param refreshEventBuilder optional [PreviewRefreshEventBuilder] used for collecting metrics
  */
 suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   tryReusingModels: Boolean,
@@ -174,7 +186,8 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   modelUpdater: NlModel.NlModelUpdaterInterface,
   navigationHandler: PreviewNavigationHandler,
   configureLayoutlibSceneManager:
-    (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
+    (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
+  refreshEventBuilder: PreviewRefreshEventBuilder? = null
 ): List<T> {
   val debugLogger = if (log.isDebugEnabled) PreviewElementDebugLogger(log) else null
   val facet = AndroidFacet.getInstance(psiFile) ?: return emptyList()
@@ -208,6 +221,9 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
     removeModel(it)
     Disposer.dispose(it)
   }
+
+  refreshEventBuilder?.withPreviewsCount(elementsToReusableModels.size)
+  refreshEventBuilder?.withPreviewsToRefresh(elementsToReusableModels.size)
 
   // Second, reorder the models to reuse and create the new models needed,
   // adding placeholders for all of them, but without rendering anything yet.
@@ -308,11 +324,30 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
     if (progressIndicator.isCanceled) return@forEachIndexed
     progressIndicator.text =
       message("refresh.progress.indicator.rendering.preview", idx + 1, elementsToSceneManagers.size)
-    sceneManager.render { previewsRendered++ }
+    renderAndTrack(sceneManager, refreshEventBuilder) { if (it == null) previewsRendered++ }
   }
   onRenderCompleted(previewsRendered)
 
   debugLogger?.logRenderComplete(this)
   log.info("Render completed")
   return elementsToSceneManagers.map { it.first }
+}
+
+private suspend fun renderAndTrack(
+  sceneManager: LayoutlibSceneManager,
+  refreshEventBuilder: PreviewRefreshEventBuilder? = null,
+  onCompleteCallback: (Throwable?) -> Unit = {}
+) {
+  val inflate = sceneManager.isForceReinflate
+  val quality = sceneManager.quality
+  val startMs = System.currentTimeMillis()
+  sceneManager.render {
+    onCompleteCallback(it)
+    refreshEventBuilder?.addPreviewRenderDetails(
+      sceneManager.renderResult?.isErrorResult() ?: false,
+      inflate,
+      quality,
+      System.currentTimeMillis() - startMs
+    )
+  }
 }

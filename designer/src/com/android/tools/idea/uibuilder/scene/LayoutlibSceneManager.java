@@ -900,6 +900,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     this.quality = quality;
   }
 
+  public float getQuality() { return quality; }
+
   public float getLastRenderQuality() {
     return this.lastRenderQuality;
   }

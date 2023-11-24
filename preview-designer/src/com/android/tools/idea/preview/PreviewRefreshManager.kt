@@ -17,6 +17,8 @@ package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
+import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.openapi.diagnostic.Logger
 import java.util.Collections
 import java.util.PriorityQueue
@@ -32,11 +34,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
-enum class RefreshResult {
-  SUCCESS,
-  CANCELLED,
-  FAILED
-}
+/**
+ * Enum re-used from the metrics package to avoid needing to duplicate code and manually map the
+ * enum values.
+ */
+typealias RefreshResult = PreviewRefreshEvent.RefreshResult
 
 interface RefreshType {
   val priority: Int
@@ -48,6 +50,10 @@ interface RefreshType {
  * See each val/fun documentation for more details.
  */
 interface PreviewRefreshRequest : Comparable<PreviewRefreshRequest> {
+  /** Optional [PreviewRefreshEventBuilder] used for tracking refresh metrics */
+  val refreshEventBuilder: PreviewRefreshEventBuilder?
+    get() = null
+
   /**
    * Identification used for grouping and cancelling requests.
    *
@@ -155,6 +161,7 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
               currentRefreshJob = currentRequest.doRefresh()
               currentRefreshJob!!.join()
             }
+          currentRequest.refreshEventBuilder?.onRefreshStarted()
           runningRequest = currentRequest
           runningJob = lazyWrapperJob
         }
@@ -168,11 +175,12 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
             val result =
               when {
                 it == null && currentRefreshJob?.isCancelled == false -> RefreshResult.SUCCESS
-                it is CancellationException || currentRefreshJob?.isCancelled == true ->
-                  RefreshResult.CANCELLED
+                it is CancellationException -> RefreshResult.AUTOMATICALLY_CANCELLED
+                currentRefreshJob?.isCancelled == true -> RefreshResult.USER_CANCELLED
                 else -> RefreshResult.FAILED
               }
             currentRequest.onRefreshCompleted(result, it)
+            currentRequest.refreshEventBuilder?.onRefreshCompleted(result)
             // Log unexpected failures
             if (result == RefreshResult.FAILED) {
               log.warn("Failed refresh request ($currentRequest)", it)
@@ -230,13 +238,16 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
           // then skip the new one, otherwise skip the old one.
           if (currentPendingRequestOfClient != null && currentPendingRequestOfClient > request) {
             request.onSkip(currentPendingRequestOfClient)
+            request.refreshEventBuilder?.onRequestSkipped()
           } else {
             currentPendingRequestOfClient?.let {
               it.onSkip(request)
+              it.refreshEventBuilder?.onRequestSkipped()
               allPendingRequests.remove(it)
             }
             pendingRequestsPerClient[request.clientId] = request
             allPendingRequests.add(request)
+            request.refreshEventBuilder?.onRequestEnqueued()
           }
           requestsFlow.tryEmit(Unit)
         }

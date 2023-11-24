@@ -91,7 +91,7 @@ class ComposePreviewRefreshRequest(
       if (throwable == null) it.complete(Unit) else it.completeExceptionally(throwable)
     }
 
-    if (result == RefreshResult.CANCELLED) {
+    if (result == RefreshResult.USER_CANCELLED || result == RefreshResult.AUTOMATICALLY_CANCELLED) {
       // Force stop any running and pending renders so that everything is ready
       // for a new refresh that may start right away.
       RenderService.getRenderAsyncActionExecutor()
