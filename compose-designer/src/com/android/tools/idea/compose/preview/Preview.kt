@@ -526,6 +526,10 @@ class ComposePreviewRepresentation(
           .getUnsuppressedIssues()
           .map { it.source }
           .forEach { models.addAll(it.models) }
+        if (models == uiCheckFilterFlow.value.modelsWithErrors) {
+          // No changes in which models have error, so no need to recompute preview visibilities
+          return
+        }
         uiCheckFilterFlow.value.modelsWithErrors = models
         if (isUiCheckFilterEnabled) {
           ApplicationManager.getApplication().invokeLater {
