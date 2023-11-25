@@ -32,7 +32,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -87,12 +86,10 @@ public final class DeviceSkinUpdater {
                                   @NotNull Collection<Path> imageSkins,
                                   @Nullable Path studioSkins,
                                   @Nullable Path sdkSkins) {
-    Optional<Path> optionalImageSkin = imageSkins.stream()
-      .filter(imageSkin -> imageSkin.endsWith(skin))
-      .findFirst();
-
-    if (optionalImageSkin.isPresent()) {
-      return optionalImageSkin.get();
+    for (Path imageSkin : imageSkins) {
+      if (imageSkin.endsWith(skin)) {
+        return imageSkin;
+      }
     }
 
     if (studioSkins == null && sdkSkins == null) {
