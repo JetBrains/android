@@ -21,14 +21,12 @@ import com.android.tools.adtui.device.DeviceArtDescriptor;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.FileUtils;
 import com.android.utils.PathUtils;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
@@ -37,15 +35,15 @@ import java.util.Collections;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public final class DeviceSkinUpdater {
-  private final @NotNull Path myStudioSkins;
-  private final @NotNull Path mySdkSkins;
+  private final @NotNull Path studioSkins;
+  private final @NotNull Path sdkSkins;
 
-  @VisibleForTesting
-  DeviceSkinUpdater(@NotNull Path studioSkins, @NotNull Path sdkSkins) {
-    myStudioSkins = studioSkins;
-    mySdkSkins = sdkSkins;
+  private DeviceSkinUpdater(@NotNull Path studioSkins, @NotNull Path sdkSkins) {
+    this.studioSkins = studioSkins;
+    this.sdkSkins = sdkSkins;
   }
 
   /**
@@ -78,19 +76,19 @@ public final class DeviceSkinUpdater {
     File studioSkins = DeviceArtDescriptor.getBundledDescriptorsFolder();
     AndroidSdkHandler sdk = AndroidSdks.getInstance().tryToChooseSdkHandler();
 
-    return updateSkin(skinName,
+    return updateSkin(skin,
                       imageSkins,
                       studioSkins == null ? null : studioSkins.toPath(),
                       sdk.getLocation() == null ? null : sdk.getLocation().resolve("skins"));
   }
 
   @VisibleForTesting
-  static @NotNull Path updateSkin(@NotNull String skinName,
+  static @NotNull Path updateSkin(@NotNull Path skin,
                                   @NotNull Collection<Path> imageSkins,
                                   @Nullable Path studioSkins,
                                   @Nullable Path sdkSkins) {
     Optional<Path> optionalImageSkin = imageSkins.stream()
-      .filter(skin -> skin.endsWith(skinName))
+      .filter(imageSkin -> imageSkin.endsWith(skin))
       .findFirst();
 
     if (optionalImageSkin.isPresent()) {
@@ -98,27 +96,26 @@ public final class DeviceSkinUpdater {
     }
 
     if (studioSkins == null && sdkSkins == null) {
-      return Paths.get(skinName);
+      return skin;
     }
 
     if (studioSkins == null) {
-      return sdkSkins.resolve(skinName);
+      return sdkSkins.resolve(skin);
     }
 
     if (sdkSkins == null) {
-      return studioSkins.resolve(skinName);
+      return studioSkins.resolve(skin);
     }
 
-    return new DeviceSkinUpdater(studioSkins, sdkSkins).updateSkinImpl(skinName);
+    return new DeviceSkinUpdater(studioSkins, sdkSkins).updateSkinImpl(skin);
   }
 
-  @VisibleForTesting
-  @NotNull
-  Path updateSkinImpl(@NotNull String skinName) {
-    assert !skinName.isEmpty() && !skinName.equals("_no_skin");
+  private @NotNull Path updateSkinImpl(@NotNull Path skin) {
+    assert !skin.toString().isEmpty() && !skin.toString().equals("_no_skin");
 
-    Path sdkDeviceSkin = mySdkSkins.resolve(skinName);
-    Path studioDeviceSkin = getStudioDeviceSkin(skinName);
+    // For historical reasons relative skin paths are resolved relative to SDK itself, not its "skins" directory.
+    Path sdkDeviceSkin = sdkSkins.getParent().resolve(skin);
+    Path studioDeviceSkin = getStudioDeviceSkin(skin.getFileName().toString());
 
     try {
       if (areAllFilesUpToDate(sdkDeviceSkin, studioDeviceSkin)) {
@@ -136,7 +133,7 @@ public final class DeviceSkinUpdater {
   }
 
   private @NotNull Path getStudioDeviceSkin(@NotNull String skinName) {
-    return myStudioSkins.resolve(getStudioSkinName(skinName));
+    return studioSkins.resolve(getStudioSkinName(skinName));
   }
 
   private @NotNull String getStudioSkinName(@NotNull String skinName) {
@@ -185,14 +182,5 @@ public final class DeviceSkinUpdater {
     }
 
     return !checker.targetOlder;
-  }
-
-  @VisibleForTesting
-  static void copy(@NotNull Path source, @NotNull Path target) throws IOException {
-    if (!Files.isRegularFile(source)) {
-      return;
-    }
-
-    FileUtils.copyFile(source, target);
   }
 }

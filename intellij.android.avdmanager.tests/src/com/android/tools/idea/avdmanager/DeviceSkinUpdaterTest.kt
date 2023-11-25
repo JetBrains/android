@@ -37,47 +37,46 @@ class DeviceSkinUpdaterTest {
   @Test
   fun updateSkinDeviceToStringIsEmpty() {
     // Arrange
-    val skinName = ""
+    val skin = Paths.get("")
 
     // Act
-    val deviceSkin = DeviceSkinUpdater.updateSkin(skinName, emptyList(), null, null)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), null, null)
 
     // Assert
-    assertThat(deviceSkin).isEqualTo(Paths.get(skinName))
+    assertThat(deviceSkin).isEqualTo(skin)
   }
 
   @Test
   fun updateSkinDeviceIsAbsolute() {
     // Arrange
-    val skinName = myHomeDir.resolve("Android/Sdk/platforms/android-32/skins/HVGA").toString()
+    val skin = myHomeDir.resolve("Android/Sdk/platforms/android-32/skins/HVGA")
 
     // Act
-    val deviceSkin = DeviceSkinUpdater.updateSkin(skinName, emptyList(), null, null)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), null, null)
 
     // Assert
-    assertThat(deviceSkin).isEqualTo(Paths.get(skinName))
+    assertThat(deviceSkin).isEqualTo(skin)
   }
 
   @Test
   fun updateSkinDeviceEqualsNoSkin() {
     // Arrange
-    val skinName = "_no_skin"
+    val skin = Paths.get("_no_skin")
 
     // Act
-    val deviceSkin = DeviceSkinUpdater.updateSkin(skinName, emptyList(), null, null)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), null, null)
 
     // Assert
-    assertThat(deviceSkin).isEqualTo(Paths.get(skinName))
+    assertThat(deviceSkin).isEqualTo(skin)
   }
 
   @Test
   fun updateSkinImageSkinIsPresent() {
     // Arrange
     val imageSkin = myHomeDir.resolve("Android/Sdk/system-images/android-28/android-wear/x86/skins/AndroidWearRound480x480")
-    val skinName = imageSkin.fileName.toString()
 
     // Act
-    val deviceSkin = DeviceSkinUpdater.updateSkin(skinName, listOf(imageSkin), null, null)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(imageSkin.fileName, listOf(imageSkin), null, null)
 
     // Assert
     assertThat(deviceSkin).isEqualTo(imageSkin)
@@ -86,183 +85,185 @@ class DeviceSkinUpdaterTest {
   @Test
   fun updateSkinStudioSkinIsNullAndSdkSkinIsNull() {
     // Arrange
-    val skinName = "pixel_4"
+    val skin = Paths.get("pixel_4")
 
     // Act
-    val deviceSkin = DeviceSkinUpdater.updateSkin(skinName, emptyList(), null, null)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), null, null)
 
     // Assert
-    assertThat(deviceSkin).isEqualTo(Paths.get(skinName))
+    assertThat(deviceSkin).isEqualTo(skin)
   }
 
   @Test
   fun updateSkinStudioSkinIsNull() {
     // Arrange
-    val skinName = "pixel_4"
+    val skin = mySdkSkins.resolve("pixel_4")
 
     // Act
-    val deviceSkin = DeviceSkinUpdater.updateSkin(skinName, emptyList(), null, mySdkSkins)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), null, mySdkSkins)
 
     // Assert
-    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skinName))
+    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skin))
   }
 
   @Test
   fun updateSkinSdkSkinIsNull() {
     // Arrange
-    val skinName = "pixel_4"
+    val skin = myStudioSkins.resolve("pixel_4")
 
     // Act
-    val deviceSkin = DeviceSkinUpdater.updateSkin(skinName, emptyList(), myStudioSkins, null)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), myStudioSkins, null)
 
     // Assert
-    assertThat(deviceSkin).isEqualTo(myStudioSkins.resolve(skinName))
+    assertThat(deviceSkin).isEqualTo(skin)
   }
 
   @Test
-  fun updateSkinImpl() {
+  fun updateSkinAbsolutePath() {
     // Arrange
-    val skinName = "pixel_fold"
-    val updater = DeviceSkinUpdater(myStudioSkins, mySdkSkins)
+    val skin = mySdkSkins.resolve("pixel_fold")
 
     // Act
-    val deviceSkin = updater.updateSkinImpl(skinName)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), myStudioSkins, mySdkSkins)
 
     // Assert
-    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skinName))
-    assertThat(DeviceSkinUpdater.areAllFilesUpToDate(deviceSkin, myStudioSkins.resolve(skinName))).isTrue()
+    assertThat(deviceSkin).isEqualTo(skin)
+    assertThat(DeviceSkinUpdater.areAllFilesUpToDate(deviceSkin, myStudioSkins.resolve(skin.fileName.toString()))).isTrue()
     assertThat(deviceSkin.resolve("default/layout")).exists()
     assertThat(deviceSkin.resolve("closed/layout")).exists()
   }
 
   @Test
-  fun updateSkinImplFilesListThrowsNoSuchFileException() {
+  fun updateSkinRelativePath() {
     // Arrange
-    val skinName = "pixel_4"
-    val updater = DeviceSkinUpdater(myStudioSkins, mySdkSkins)
+    val skin = mySdkSkins.resolve("pixel_fold")
 
     // Act
-    val deviceSkin = updater.updateSkinImpl(skinName)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(mySdkSkins.parent.relativize(skin), emptyList(), myStudioSkins, mySdkSkins)
 
     // Assert
-    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skinName))
-    assertThat(DeviceSkinUpdater.areAllFilesUpToDate(deviceSkin, myStudioSkins.resolve(skinName))).isTrue()
+    assertThat(deviceSkin).isEqualTo(skin)
+    assertThat(DeviceSkinUpdater.areAllFilesUpToDate(deviceSkin, myStudioSkins.resolve(skin.fileName.toString()))).isTrue()
+    assertThat(deviceSkin.resolve("default/layout")).exists()
+    assertThat(deviceSkin.resolve("closed/layout")).exists()
+  }
+
+  @Test
+  fun updateSkinFilesListThrowsNoSuchFileException() {
+    // Arrange
+    val skin = mySdkSkins.resolve("pixel_4")
+
+    // Act
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), myStudioSkins, mySdkSkins)
+
+    // Assert
+    assertThat(deviceSkin).isEqualTo(skin)
+    assertThat(DeviceSkinUpdater.areAllFilesUpToDate(deviceSkin, myStudioSkins.resolve(skin.fileName.toString()))).isTrue()
     assertThat(deviceSkin.resolve("layout")).exists()
   }
 
   @Test
-  fun updateSkinImplDeviceEqualsWearSmallRound() {
+  fun updateSkinDeviceEqualsWearSmallRound() {
     // Arrange
-    val skinName = "WearSmallRound"
-    val updater = DeviceSkinUpdater(myStudioSkins, mySdkSkins)
+    val skin = mySdkSkins.resolve("WearSmallRound")
 
     // Act
-    val deviceSkin = updater.updateSkinImpl(skinName)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), myStudioSkins, mySdkSkins)
 
     // Assert
-    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skinName))
+    assertThat(deviceSkin).isEqualTo(skin)
     assertThat(DeviceSkinUpdater.areAllFilesUpToDate(deviceSkin, myStudioSkins.resolve("wearos_small_round"))).isTrue()
     assertThat(deviceSkin.resolve("layout")).exists()
   }
 
   @Test
-  fun updateSkinImplDeviceEqualsWearLargeRound() {
+  fun updateSkinDeviceEqualsWearLargeRound() {
     // Arrange
-    val skinName = "WearLargeRound"
-    val updater = DeviceSkinUpdater(myStudioSkins, mySdkSkins)
+    val skin = mySdkSkins.resolve("WearLargeRound")
 
     // Act
-    val deviceSkin = updater.updateSkinImpl(skinName)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), myStudioSkins, mySdkSkins)
 
     // Assert
-    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skinName))
+    assertThat(deviceSkin).isEqualTo(skin)
     assertThat(DeviceSkinUpdater.areAllFilesUpToDate(deviceSkin, myStudioSkins.resolve("wearos_large_round"))).isTrue()
     assertThat(deviceSkin.resolve("layout")).exists()
   }
 
   @Test
-  fun updateSkinImplDeviceEqualsAndroidWearSquare() {
+  fun updateSkinDeviceEqualsAndroidWearSquare() {
     // Arrange
-    val skinName = "WearSquare"
-    val updater = DeviceSkinUpdater(myStudioSkins, mySdkSkins)
+    val skin = mySdkSkins.resolve("WearSquare")
 
     // Act
-    val deviceSkin = updater.updateSkinImpl(skinName)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), myStudioSkins, mySdkSkins)
 
     // Assert
-    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skinName))
+    assertThat(deviceSkin).isEqualTo(skin)
     assertThat(DeviceSkinUpdater.areAllFilesUpToDate(deviceSkin, myStudioSkins.resolve("wearos_square"))).isTrue()
     assertThat(deviceSkin.resolve("layout")).exists()
   }
 
   @Test
-  fun updateSkinImplSdkLayoutDoesntExist() {
+  fun updateSkinSdkLayoutDoesNotExist() {
     // Arrange
-    val skinName = "pixel_4"
-    val sdkDeviceSkin = mySdkSkins.resolve(skinName)
-    Files.createDirectories(sdkDeviceSkin)
-    val updater = DeviceSkinUpdater(myStudioSkins, mySdkSkins)
+    val skin = mySdkSkins.resolve("pixel_4")
+    Files.createDirectories(skin)
 
     // Act
-    val deviceSkin = updater.updateSkinImpl(skinName)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), myStudioSkins, mySdkSkins)
 
     // Assert
-    assertThat(deviceSkin).isEqualTo(mySdkSkins.resolve(skinName))
+    assertThat(deviceSkin).isEqualTo(skin)
   }
 
   @Test
-  fun updateSkinImplStudioLayoutLastModifiedTimeIsBeforeSdkLayoutLastModifiedTime() {
+  fun updateSkinStudioLayoutLastModifiedTimeIsBeforeSdkLayoutLastModifiedTime() {
     // Arrange
-    val skinName = "pixel_4"
-    val sdkDeviceSkin = mySdkSkins.resolve(skinName)
-    Files.createDirectories(sdkDeviceSkin)
+    val skin = mySdkSkins.resolve("pixel_4")
+    Files.createDirectories(skin)
 
     val studioSkin = myHomeDir.resolve("android-studio/plugins/android/resources/device-art-resources")
-    val studioDeviceSkin = studioSkin.resolve(skinName)
+    val studioDeviceSkin = studioSkin.resolve(skin.fileName.toString())
     Files.createDirectories(studioDeviceSkin)
 
     val studioLayout = studioDeviceSkin.resolve("layout")
     Files.createFile(studioLayout)
     Files.setLastModifiedTime(studioLayout, FileTime.from(Instant.parse("2020-08-26T20:39:22.922Z")))
 
-    val sdkLayout = sdkDeviceSkin.resolve("layout")
+    val sdkLayout = skin.resolve("layout")
     Files.createFile(sdkLayout)
     Files.setLastModifiedTime(sdkLayout, FileTime.from(Instant.parse("2020-08-26T20:39:22.923Z")))
 
-    val updater = DeviceSkinUpdater(studioSkin, mySdkSkins)
-
     // Act
-    val deviceSkin = updater.updateSkinImpl(skinName)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), myStudioSkins, mySdkSkins)
 
     // Assert
-    assertThat(deviceSkin).isEqualTo(sdkDeviceSkin)
+    assertThat(deviceSkin).isEqualTo(skin)
   }
 
   @Test
-  fun updateSkinImplStudioLayoutLastModifiedTimeIsAfterSdkLayoutLastModifiedTime() {
+  fun updateSkinStudioLayoutLastModifiedTimeIsAfterSdkLayoutLastModifiedTime() {
     // Arrange
-    val skinName = "pixel_4"
-    val sdkDeviceSkin = mySdkSkins.resolve(skinName)
-    Files.createDirectories(sdkDeviceSkin)
+    val skin = mySdkSkins.resolve("pixel_4")
+    Files.createDirectories(skin)
 
     val studioSkin = myHomeDir.resolve("android-studio/plugins/android/resources/device-art-resources")
-    val studioDeviceSkin = studioSkin.resolve(skinName)
+    val studioDeviceSkin = studioSkin.resolve(skin.fileName.toString())
     Files.createDirectories(studioDeviceSkin)
 
     val studioLayout = studioDeviceSkin.resolve("layout")
     Files.createFile(studioLayout)
     Files.setLastModifiedTime(studioLayout, FileTime.from(Instant.parse("2020-08-26T20:39:22.924Z")))
 
-    val sdkLayout = sdkDeviceSkin.resolve("layout")
+    val sdkLayout = skin.resolve("layout")
     Files.createFile(sdkLayout)
     Files.setLastModifiedTime(sdkLayout, FileTime.from(Instant.parse("2020-08-26T20:39:22.923Z")))
 
-    val updater = DeviceSkinUpdater(studioSkin, mySdkSkins)
-
     // Act
-    val deviceSkin = updater.updateSkinImpl(skinName)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), myStudioSkins, mySdkSkins)
 
     // Assert
-    assertThat(deviceSkin).isEqualTo(sdkDeviceSkin)
+    assertThat(deviceSkin).isEqualTo(skin)
   }
 }
