@@ -500,9 +500,8 @@ class ComposePreviewRepresentation(
         var hasVisiblePreviews = false
         if (newValue) {
           surface.updateSceneViewVisibilities {
-            (it.sceneManager.model in uiCheckFilterFlow.value.modelsWithErrors).also { visible ->
-              hasVisiblePreviews = hasVisiblePreviews || visible
-            }
+            (uiCheckFilterFlow.value.modelsWithErrors?.contains(it.sceneManager.model) == true)
+              .also { visible -> hasVisiblePreviews = hasVisiblePreviews || visible }
           }
         } else {
           hasVisiblePreviews = true
@@ -514,7 +513,18 @@ class ComposePreviewRepresentation(
 
   private val postIssueUpdateListenerForUiCheck =
     object : Runnable {
-      var activated = false
+      private var activated = false
+
+      fun activate() {
+        if (!activated) {
+          activated = true
+          uiCheckFilterFlow.value.modelsWithErrors = null
+        }
+      }
+
+      fun deactivate() {
+        activated = false
+      }
 
       override fun run() {
         if (!activated) {
@@ -604,7 +614,7 @@ class ComposePreviewRepresentation(
     val completableDeferred =
       CompletableDeferred<Unit>().apply {
         invokeOnCompletion {
-          postIssueUpdateListenerForUiCheck.activated = true
+          postIssueUpdateListenerForUiCheck.activate()
           VisualLintUsageTracker.getInstance()
             .trackFirstRunTime(
               System.currentTimeMillis() - startTime,
@@ -637,7 +647,7 @@ class ComposePreviewRepresentation(
 
   private suspend fun onUiCheckPreviewStop() {
     qualityManager.resume()
-    postIssueUpdateListenerForUiCheck.activated = false
+    postIssueUpdateListenerForUiCheck.deactivate()
     uiCheckFilterFlow.value.basePreviewInstance?.let {
       IssuePanelService.getInstance(project)
         .stopUiCheck(it.instanceId, surface, postIssueUpdateListenerForUiCheck)
@@ -1270,6 +1280,8 @@ class ComposePreviewRepresentation(
             refreshProgressIndicator.text =
               message("refresh.progress.indicator.refreshing.all.previews")
             composeWorkBench.updateProgress(message("panel.initializing"))
+            postIssueUpdateListenerForUiCheck.deactivate()
+            emptyUiCheckPanel.isVisible = previewModeManager.mode.value is PreviewMode.UiCheck
             doRefreshSync(
               previewsToRender,
               refreshRequest.refreshType == ComposePreviewRefreshType.QUICK,
@@ -1296,6 +1308,10 @@ class ComposePreviewRepresentation(
       } else {
         if (it != null) invalidate()
         composeWorkBench.onRefreshCompleted()
+      }
+
+      if (previewModeManager.mode.value is PreviewMode.UiCheck) {
+        postIssueUpdateListenerForUiCheck.activate()
       }
 
       launch(uiThread) {

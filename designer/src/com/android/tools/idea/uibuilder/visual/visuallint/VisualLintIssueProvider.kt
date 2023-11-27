@@ -75,10 +75,10 @@ abstract class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProv
     private val componentRefs = components.map { WeakReference(it) }.toMutableList()
 
     val models: Set<NlModel>
-      get() = modelRefs.mapNotNull { it.get() }.toSet()
+      get() = synchronized(modelRefs) { modelRefs.mapNotNull { it.get() }.toSet() }
 
     val components: List<NlComponent>
-      get() = componentRefs.mapNotNull { it.get() }.toList()
+      get() = synchronized(componentRefs) { componentRefs.mapNotNull { it.get() }.toList() }
 
     override val files: Set<VirtualFile>
       get() = models.map { BackedVirtualFile.getOriginFileIfBacked(it.virtualFile) }.toSet()
@@ -86,11 +86,11 @@ abstract class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProv
     override val displayText = ""
 
     fun addComponent(component: NlComponent) {
-      componentRefs.add(WeakReference(component))
+      synchronized(componentRefs) { componentRefs.add(WeakReference(component)) }
     }
 
     fun addModel(model: NlModel) {
-      modelRefs.add(WeakReference(model))
+      synchronized(modelRefs) { modelRefs.add(WeakReference(model)) }
     }
   }
 }
@@ -102,11 +102,11 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
   private var isComponentSuppressed: (NlComponent) -> Boolean = { false }
   private val _components = builder.components!!
   private val allComponents
-    get() = _components.toList()
+    get() = synchronized(_components) { _components.toList() }
 
   /** List of [NlComponent]s that have not been suppressed */
   val components
-    get() = _components.filterNot(isComponentSuppressed).toList()
+    get() = synchronized(_components) { _components.filterNot(isComponentSuppressed).toList() }
 
   val type: VisualLintErrorType = builder.type!!
   override val source = VisualLintIssueProvider.VisualLintIssueSource(models, components)

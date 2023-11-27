@@ -60,7 +60,7 @@ private val lightDarkModes =
  * and generate multiple previews, one per reference device for the user to check.
  */
 sealed class UiCheckModeFilter {
-  var modelsWithErrors: Set<NlModel> = emptySet()
+  var modelsWithErrors: Set<NlModel>? = null
   abstract val basePreviewInstance: ComposePreviewElementInstance?
 
   abstract fun filterPreviewInstances(
