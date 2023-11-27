@@ -56,7 +56,7 @@ class AndroidJavaDocExternalFilterTest {
   private fun getInputFiles(): List<String> {
     val inputDir =
       TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/javadoc/classes/input")
-    return inputDir.listDirectoryEntries().map { p -> p.fileName.toString() }
+    return inputDir.listDirectoryEntries().map { p -> p.fileName.toString() }.filterNot { it == "README" }
   }
 
   private fun String.toOutputFile(): String {

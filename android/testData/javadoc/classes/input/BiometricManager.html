@@ -1,0 +1,2756 @@
+<!doctype html>
+<html 
+      lang="en"
+      dir="ltr">
+  <head>
+    <meta name="google-signin-client-id" content="721724668570-nbkv1cfusk7kk4eni4pjvepaus73b13t.apps.googleusercontent.com">
+    <meta name="google-signin-scope"
+          content="profile email https://www.googleapis.com/auth/developerprofiles https://www.googleapis.com/auth/developerprofiles.award">
+    <meta property="og:site_name" content="Android Developers">
+    <meta property="og:type" content="website"><meta name="theme-color" content="#3ddc84"><meta charset="utf-8">
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+    <link rel="manifest" href="/_pwa/android/manifest.json"
+          crossorigin="use-credentials">
+    <link rel="preconnect" href="//www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="//fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="//fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="//apis.google.com" crossorigin>
+    <link rel="preconnect" href="//www.google-analytics.com" crossorigin><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Google+Sans:400,500,600,700|Google+Sans+Text:400,400italic,500,500italic,600,600italic,700,700italic|Roboto+Mono:400,500,700&display=swap">
+      <link rel="stylesheet"
+            href="//fonts.googleapis.com/css2?family=Material+Icons&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"><link rel="stylesheet" href="https://www.gstatic.com/devrel-devsite/prod/va65162e8ce9aacc75e4d3c0cd6d166fc6ceaaf184fea0ff0eac1d9b62c0480be/android/css/rebrand-app.css">
+      <link rel="shortcut icon" href="https://www.gstatic.com/devrel-devsite/prod/va65162e8ce9aacc75e4d3c0cd6d166fc6ceaaf184fea0ff0eac1d9b62c0480be/android/images/rebrand/favicon.svg">
+    <link rel="apple-touch-icon" href="https://www.gstatic.com/devrel-devsite/prod/va65162e8ce9aacc75e4d3c0cd6d166fc6ceaaf184fea0ff0eac1d9b62c0480be/android/images/rebrand/touchicon-180.png"><link rel="canonical" href="https://developer.android.com/reference/android/hardware/biometrics/BiometricManager"><link rel="search" type="application/opensearchdescription+xml"
+            title="Android Developers" href="https://developer.android.com/s/opensearch.xml">
+      <link rel="alternate" hreflang="en"
+          href="https://developer.android.com/reference/android/hardware/biometrics/BiometricManager" /><link rel="alternate" hreflang="x-default" href="https://developer.android.com/reference/android/hardware/biometrics/BiometricManager" /><title>BiometricManager &nbsp;|&nbsp; Android Developers</title>
+
+<meta property="og:title" content="BiometricManager &nbsp;|&nbsp; Android Developers"><meta property="og:url" content="https://developer.android.com/reference/android/hardware/biometrics/BiometricManager"><meta property="og:image" content="https://developer.android.com/static/images/social/android-developers.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="675"><meta property="og:locale" content="en"><meta name="twitter:card" content="summary_large_image">
+  
+  
+      
+  
+  
+  
+  
+
+
+
+
+    
+      <link rel="stylesheet" href="/extras.css"></head>
+  <body class=""
+        template="page"
+        theme="android-theme"
+        type="reference"
+        
+        
+        
+        layout="docs"
+        
+        
+        
+        
+        display-toc
+        pending>
+    <devsite-progress type="indeterminate" id="app-progress"></devsite-progress>
+  
+    <section class="devsite-wrapper">
+      <section id="gc-wrapper">
+        <main role="main" class="devsite-main-content"
+            
+              has-book-nav
+              has-sidebar
+            >
+          
+          
+          <div class="devsite-sidebar">
+            <div class="devsite-sidebar-content">
+                
+                <devsite-toc class="devsite-nav"
+                            role="navigation"
+                            aria-label="On this page"
+                            depth="2"
+                            scrollbars
+                  ></devsite-toc>
+                <devsite-recommendations-sidebar class="nocontent devsite-nav">
+                </devsite-recommendations-sidebar>
+            </div>
+          </div>
+          
+          <devsite-content>
+            
+              
+
+
+
+
+
+
+
+
+
+
+
+<article class="devsite-article"><style>
+      /* Styles inlined from /assets/css/reference-docs.css */
+:root {
+  --primary-font-family: Google Sans Text, Noto Sans, Noto Sans JP,
+    Noto Sans KR, Noto Naskh Arabic, Noto Sans Thai, Noto Sans Hebrew,
+    Noto Sans Bengali, sans-serif;
+}
+
+/* the "added in" info on all APIs */
+.api-level {
+  float: right;
+  font-size: smaller;
+  margin-top: -40px;
+}
+
+/* the "added in" block at the top of the page */
+#api-info-block .api-level {
+  margin-top: 0;
+}
+
+/* The metadata block displayed at the top of the page and on
+   methods/functions. Used by Dackka */
+#metadata-info-block {
+  font-size: smaller;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+#header-block {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+/* The version metadata block contains "Added in" and "Deprecated in" lines,
+   which should both be right-aligned. Used by Dackka. */
+#version-metadata > div {
+  text-align: end;
+}
+
+/* The block containing a method name and its associated metadata. Used by
+   Dackka */
+.api-name-block {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  /* These margins reflect the margins set for non-Dackka generated refdocs */
+  margin-top: 60px;
+  margin-bottom: 16px;
+}
+
+/* The block next to a method / function name in the details section that
+   displays the platform icons and the metadata block. Used by Dackka */
+.api-name-platform-and-metadata {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+}
+
+/* The platform icons that are displayed next to a method / function name in the
+   details section. Used by Dackka */
+.api-name-platform-icons {
+  display: flex;
+}
+
+/* Zero out the top and bottom margins of the h3 contained in api-name-block;
+   these margins are set in [the parent] .api-name-block div, since that also
+   contains additional information that needs to be aligned with the h3. */
+.api-name-block h3 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+@media screen and (max-width: 1000px) {
+  .api-level {
+    float: none;
+    margin-top: 0;
+  }
+  #api-info-block .api-level {
+    margin-bottom: 20px;
+  }
+}
+
+.api-level a,
+.api-level a:active,
+.api-level a:visited {
+  color: #222;
+}
+
+.api-level a:hover {
+  color: #888;
+}
+
+/* This element is obsolete now that devsite provides TOC */
+#api-info-block .sum-details-links {
+  display: none;
+}
+
+
+/* The table that shows this class's inheritance tree */
+
+.jd-inheritance-table tr,
+.jd-inheritance-table tr td {
+  background-color: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.jd-inheritance-table .jd-inheritance-space {
+  width: 2em;
+}
+
+/* The devsite expandable widget */
+
+.expand-control:not(button):not(.button) {
+  color: inherit;
+  cursor: pointer;
+  padding-left: 24px;
+  position: relative;
+}
+
+.expand-control::before {
+  background: url(/images/styles/disclosure_down.png) no-repeat center center;
+  background-size: 34px 34px;
+  color: transparent;
+  content: '';
+  display: block;
+  height: 20px;
+  left: 0;
+  position: absolute;
+  width: 20px;
+}
+
+.expand-control.exw-expanded::before {
+  background: url(/images/styles/disclosure_up.png) no-repeat center center;
+}
+
+/* Known subclasses list */
+
+.jd-sumtable-subclasses #subclasses-direct,
+.jd-sumtable-subclasses #subclasses-indirect {
+  /* left margin matches width of the toggle image,
+     so this section aligns with the text above */
+  margin: 0 0 0 24px;
+}
+
+.jd-sumtable-subclasses .expand-control.exw-expanded + .showalways {
+  /* Hide the comma list when expanded to show the table */
+  display: none;
+}
+
+.jd-sumtable-subclasses tr,
+.jd-sumtable-subclasses td {
+  background-color: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+#subclasses-direct-summary,
+#subclasses-indirect-summary {
+  padding-left: 24px;
+}
+
+.jd-sumtable-expando td {
+  border: solid 1px #ddd;
+  padding: 4px;
+}
+
+.jd-inherited-apis .exw-expanded-content {
+  /* Force override for some lengthy devsite style selectors */
+  padding-left: 24px !important;
+  margin-top: 12px !important;
+}
+
+
+/* Styles for legacy doclava HTML that uses custom expando.
+ * The list of direct/indirect subclasses does not expand at all,
+ * and the list of inherited members/methods is expanded by default. */
+
+.jd-sumtable-subclasses #subclasses-direct-list,
+.jd-sumtable-subclasses #subclasses-indirect-list {
+  /* Force line-wraps for CSVs with no spaces */
+  word-break: break-word;
+}
+
+:not(devsite-expandable) > #subclasses-direct-summary,
+:not(devsite-expandable) > #subclasses-indirect-summary {
+  display: none !important;
+}
+
+.jd-sumtable #subclasses-direct.jd-expando-trigger,
+.jd-sumtable #subclasses-indirect.jd-expando-trigger{
+  margin: 0;
+}
+
+
+/* Force the broken legacy expandos into something that looks WAI */
+
+.jd-expando-trigger {
+  display: inline-block;
+  height: 0;
+  margin: 0;
+  padding-top: 10px;
+  width: 24px;
+}
+
+.jd-expando-trigger img {
+  /* display: none; */
+  height: inherit;
+}
+
+.jd-expando-trigger ~ div > div {
+  display: block !important; /* Force all inline-hidden divs to appear */
+}
+
+table.responsive td td:first-child,
+table.responsive td tr:last-child td,
+table.responsive td tr:first-child td{
+  padding: 7px 8px 8px;
+}
+
+.data-reference-resources-wrapper {
+  display: none;
+}
+
+#lattrs td:first-child,
+.inhtable td:first-child {
+  white-space: nowrap;
+}
+
+#lattrs td+td,
+.inhtable td+td {
+  white-space: normal;
+}
+
+
+/* Styles to highlight the preview APIs.
+
+   These must be updated with each letter-appropriate preview. */
+
+/* Style headings to gold preview color */
+#jd-content:not(.devsite-future-version) .apilevel-UpsideDownCake:not(.devsite-future-version) h3,
+#jd-content:not(.devsite-future-version) [data-version-added="UpsideDownCake"]:not(.devsite-future-version) h3,
+[data-version-added="UpsideDownCake"] .api-title,
+.apilevel-UpsideDownCake h3 {
+  color: #f5ba15;
+}
+
+/* Style "Added in ___" links to gold preview color */
+#jd-content:not(.devsite-future-version) .apilevel-UpsideDownCake:not(.devsite-future-version) .api-level a,
+body.apilevel-UpsideDownCake #api-info-block .api-level a,
+#jd-content[data-version-added="UpsideDownCake"]:not(.devsite-future-version) .api-level a,
+#api-info-block .api-level a[data-version-added="UpsideDownCake"],
+.api-level a[data-version-added="UpsideDownCake"],
+.apilevel-UpsideDownCake .api-level a {
+  color: #f5ba15 !important;
+  font-size: 14px;
+  font-weight:900;
+}
+
+/* Clear backgrounds for table rows */
+#jd-content:not(.devsite-future-version) tr.apilevel-UpsideDownCake:not(.devsite-future-version),
+#jd-content:not(.devsite-future-version) .apilevel-UpsideDownCake:not(.devsite-future-version) tr,
+table:not(.jd-inheritance-table):not(.jd-sumtable-subclasses) tr.apilevel-UpsideDownCake:not(.devsite-future-version),
+body.apilevel-UpsideDownCake #jd-content table:not(.jd-inheritance-table):not(.jd-sumtable-subclasses) tr,
+#jd-content:not(.devsite-future-version) tr[data-version-added="UpsideDownCake"]:not(.devsite-future-version),
+#jd-content:not(.devsite-future-version) [data-version-added="UpsideDownCake"]:not(.devsite-future-version) tr,
+table:not(.jd-inheritance-table):not(.jd-sumtable-subclasses) tr[data-version-added="UpsideDownCake"]:not(.devsite-future-version),
+#jd-content[data-version-added="UpsideDownCake"] table:not(.jd-inheritance-table):not(.jd-sumtable-subclasses) tr {
+  background: none;
+}
+
+/* Add gold preview background color to table headings and cells */
+#jd-content:not(.devsite-future-version) .apilevel-UpsideDownCake:not(.devsite-future-version) td,
+#jd-content:not(.devsite-future-version) .apilevel-UpsideDownCake:not(.devsite-future-version) th,
+body.apilevel-UpsideDownCake #jd-content:not(.devsite-future-version) table:not(.jd-inheritance-table):not(.jd-sumtable-subclasses) tr:not(.devsite-future-version) td,
+body.apilevel-UpsideDownCake #jd-content:not(.devsite-future-version) th,
+#jd-content:not(.devsite-future-version) [data-version-added="UpsideDownCake"]:not(.devsite-future-version) td,
+#jd-content:not(.devsite-future-version) [data-version-added="UpsideDownCake"]:not(.devsite-future-version) th,
+#jd-content[data-version-added="UpsideDownCake"]:not(.devsite-future-version) table:not(.jd-inheritance-table):not(.jd-sumtable-subclasses) tr:not(.devsite-future-version) td,
+#jd-content[data-version-added="UpsideDownCake"]:not(.devsite-future-version) th {
+  background: rgba(245, 185, 16, .2);
+}
+
+/* Add gold preview background color to additional table cells */
+#jd-content:not(.devsite-future-version) tr.apilevel-UpsideDownCake:not(.devsite-future-version) td,
+table:not(.jd-inheritance-table):not(.jd-sumtable-subclasses) .apilevel-UpsideDownCake:not(.devsite-future-version) td,
+#jd-content:not(.devsite-future-version) tr[data-version-added="UpsideDownCake"]:not(.devsite-future-version) td,
+table:not(.jd-inheritance-table):not(.jd-sumtable-subclasses) [data-version-added="UpsideDownCake"]:not(.devsite-future-version) td {
+  background: rgba(245, 185, 16, .2);
+}
+
+/* End of styles to highlight the preview APIs */
+
+
+/* Misc styles used in the reference */
+
+h1.api-title {
+  margin-bottom: 0;
+}
+
+h2.api-section:not(#summary) {
+  margin-top: 60px;
+  margin-bottom: -20px;
+}
+
+h3.api-name {
+  margin-top: 60px;
+}
+
+.nolist, .nolist ul, .nolist ol {
+  list-style: none;
+  padding-left: 0;
+}
+
+table.inhtable>tbody>tr>td {
+  padding-left: 0;
+}
+
+table.inhtable>tbody>tr>td div:first-of-type {
+  padding-left: 12px;
+}
+
+.api-item {
+  position: relative;
+}
+
+.api-item > .api-name {
+  padding-right: 80px;
+}
+
+.api-item > .kotlin-platform {
+  inset-inline-end: 0;
+  position: absolute;
+  top: 0;
+}
+
+.kotlin-platform {
+  background: #ebf7fe;
+  border-radius: 16px;
+  color: #1769e0;
+  display: inline-block;
+  font: 500 12px / 32px var(--primary-font-family);
+  height: 32px;
+  text-align: center;
+  width: 32px;
+}
+
+      </style>
+  
+  
+  
+  
+
+  <div class="devsite-article-meta nocontent" role="navigation">
+    
+    
+    <ul class="devsite-breadcrumb-list"
+  
+    aria-label="Breadcrumb">
+  
+  <li class="devsite-breadcrumb-item
+             ">
+    
+    
+    
+      
+  <a href="https://developer.android.com/"
+      
+        class="devsite-breadcrumb-link gc-analytics-event"
+      
+        data-category="Site-Wide Custom Events"
+      
+        data-label="Breadcrumbs"
+      
+        data-value="1"
+      
+        track-type="globalNav"
+      
+        track-name="breadcrumb"
+      
+        track-metadata-position="1"
+      
+        track-metadata-eventdetail="Android Developers"
+      
+    >
+    
+        Android Developers
+      
+  </a>
+  
+    
+  </li>
+  
+  <li class="devsite-breadcrumb-item
+             ">
+    
+      
+      <div class="devsite-breadcrumb-guillemet material-icons" aria-hidden="true"></div>
+    
+    
+    
+      
+  <a href="https://developer.android.com/develop"
+      
+        class="devsite-breadcrumb-link gc-analytics-event"
+      
+        data-category="Site-Wide Custom Events"
+      
+        data-label="Breadcrumbs"
+      
+        data-value="2"
+      
+        track-type="globalNav"
+      
+        track-name="breadcrumb"
+      
+        track-metadata-position="2"
+      
+        track-metadata-eventdetail=""
+      
+    >
+    
+        Develop
+      
+  </a>
+  
+    
+  </li>
+  
+  <li class="devsite-breadcrumb-item
+             ">
+    
+      
+      <div class="devsite-breadcrumb-guillemet material-icons" aria-hidden="true"></div>
+    
+    
+    
+      
+  <a href="https://developer.android.com/reference"
+      
+        class="devsite-breadcrumb-link gc-analytics-event"
+      
+        data-category="Site-Wide Custom Events"
+      
+        data-label="Breadcrumbs"
+      
+        data-value="3"
+      
+        track-type="globalNav"
+      
+        track-name="breadcrumb"
+      
+        track-metadata-position="3"
+      
+        track-metadata-eventdetail=""
+      
+    >
+    
+        Reference
+      
+  </a>
+  
+    
+  </li>
+  
+</ul>
+    
+      
+    <devsite-thumb-rating position="header">
+    </devsite-thumb-rating>
+  
+    
+  </div>
+  <devsite-feature-tooltip
+          ack-key="AckCollectionsBookmarkTooltipDismiss"
+          analytics-category="Site-Wide Custom Events"
+          analytics-action-show="Callout Profile displayed"
+          analytics-action-close="Callout Profile dismissed"
+          analytics-label="Create Collection Callout"
+          class="devsite-page-bookmark-tooltip nocontent"
+          dismiss-button="true"
+          id="devsite-collections-dropdown"
+
+          
+          dismiss-button-text="Dismiss"
+
+          
+          close-button-text="Got it">
+
+        
+        <devsite-bookmark></devsite-bookmark>
+
+        <span slot="popout-heading">
+          
+          Stay organized with collections
+        </span>
+        <span slot="popout-contents">
+          
+          Save and categorize content based on your preferences.
+        </span>
+      </devsite-feature-tooltip>
+    
+  
+
+  <devsite-toc class="devsite-nav"
+    depth="2"
+    devsite-toc-embedded
+    >
+  </devsite-toc>
+  
+    
+    <devsite-recommendations-dropdown class="nocontent"></devsite-recommendations-dropdown>
+    
+  
+
+  
+
+
+
+
+
+
+<div class="devsite-article-body clearfix
+  devsite-no-page-title">
+
+  
+    
+
+<div itemscope itemtype="http://developers.google.com/ReferenceObject">
+<!-- This DIV closes at the end of the BODY -->
+  <meta itemprop="name" content="android.hardware.biometrics.BiometricManager" />
+  <meta itemprop="path" content="API level 29" />
+
+
+
+<div id="naMessage"></div>
+
+<div id="api-info-block">
+<div class="api-level">
+  
+    Added in <a href="/guide/topics/manifest/uses-sdk-element#ApiLevels">API level 29</a>
+  
+  
+  
+  
+
+</div>
+
+
+
+  
+   
+  
+  
+  
+  
+
+
+<div class="sum-details-links">
+
+Summary:
+
+  <a href="#nestedclasses">Nested Classes</a>
+  
+
+
+
+
+
+  &#124; <a href="#constants">Constants</a>
+  
+
+
+
+
+
+
+
+  &#124; <a href="#pubmethods">Methods</a>
+  
+
+
+
+  &#124; <a href="#inhmethods">Inherited Methods</a>
+
+
+</div><!-- end sum-details-links -->
+</div><!-- end api-info-block -->
+
+<div id="jd-content" data-version-added="29" >
+
+<!-- ======== START OF CLASS DATA ======== -->
+
+<h1 class="api-title" id="biometricmanager" data-text="BiometricManager">BiometricManager</h1>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div style="font-size:medium; margin-bottom:40px; border-top:1px solid black;"
+     class="nocontent">
+<div style="float:right">
+
+
+
+<a href="/reference/kotlin/android/hardware/biometrics/BiometricManager" title="View this page in Kotlin" >Kotlin</a>
+<span style="color: #ddd; padding: 0em .5em;">|</span><span style="color: black; font-weight:bold">Java</span>
+
+
+</div>
+</div>
+
+
+
+
+<p>
+<code class="api-signature" translate="no" dir="ltr">
+  public
+  
+  
+  
+  class
+  BiometricManager
+</code>
+<br>
+
+
+<code class="api-signature" translate="no" dir="ltr">
+  
+    extends <a href="/reference/java/lang/Object">Object</a>
+  
+  
+  
+</code>
+
+<code class="api-signature" translate="no" dir="ltr">
+  
+  
+  
+</code>
+
+</p><table class="jd-inheritance-table">
+
+
+  <tr>
+    
+    <td colspan="2" class="jd-inheritance-class-cell"><a href="/reference/java/lang/Object">java.lang.Object</a>
+    </td>
+  </tr>
+  
+
+  <tr>
+    
+      <td class="jd-inheritance-space">&nbsp;&nbsp;&nbsp;&#x21b3;</td>
+    
+    <td colspan="1" class="jd-inheritance-class-cell">android.hardware.biometrics.BiometricManager
+    </td>
+  </tr>
+  
+
+</table>
+  
+
+    
+
+<br><hr>
+
+
+  <p>A class that contains biometric utilities. For authentication, see <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricPrompt">BiometricPrompt</a></code>.</p>
+
+
+
+
+
+
+
+
+
+<h2 class="api-section" id="summary" data-text="Summary">Summary</h2>
+
+
+
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<table id="nestedclasses" class="responsive">
+<tr><th colspan="2"><h3 id="nested-classes" data-text="Nested classes">Nested classes</h3></th></tr>
+
+
+  
+    <tr data-version-added="30" >
+      <td class="jd-typecol"><code translate="no" dir="ltr">
+        
+        
+        
+        
+        interface</code></td>
+      <td class="jd-descrcol" width="100%">
+        <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators">BiometricManager.Authenticators</a></code>
+        <p>Types of authenticators, defined at a level of granularity supported by
+ <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager">BiometricManager</a></code> and <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricPrompt">BiometricPrompt</a></code>.&nbsp;
+        
+    
+</p>
+      </td>
+    </tr>
+    
+    
+    <tr data-version-added="31" >
+      <td class="jd-typecol"><code translate="no" dir="ltr">
+        
+        
+        
+        
+        class</code></td>
+      <td class="jd-descrcol" width="100%">
+        <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Strings">BiometricManager.Strings</a></code>
+        <p>Provides localized strings for an application that uses <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricPrompt">BiometricPrompt</a></code> to
+ authenticate the user.&nbsp;
+        
+    
+</p>
+      </td>
+    </tr>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- =========== ENUM CONSTANT SUMMARY =========== -->
+<table id="constants" class="responsive constants">
+<tr><th colspan="2"><h3 id="constants" data-text="Constants">Constants</h3></th></tr>
+
+
+    
+    <tr data-version-added="29" >
+        <td><code translate="no" dir="ltr">int</code></td>
+        <td width="100%">
+          <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_HW_UNAVAILABLE">BIOMETRIC_ERROR_HW_UNAVAILABLE</a></code>
+          <p>The hardware is unavailable.
+          
+    
+</p>
+        </td>
+    </tr>
+    
+    
+    <tr data-version-added="29" >
+        <td><code translate="no" dir="ltr">int</code></td>
+        <td width="100%">
+          <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_NONE_ENROLLED">BIOMETRIC_ERROR_NONE_ENROLLED</a></code>
+          <p>The user does not have any biometrics enrolled.
+          
+    
+</p>
+        </td>
+    </tr>
+    
+    
+    <tr data-version-added="29" >
+        <td><code translate="no" dir="ltr">int</code></td>
+        <td width="100%">
+          <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_NO_HARDWARE">BIOMETRIC_ERROR_NO_HARDWARE</a></code>
+          <p>There is no biometric hardware.
+          
+    
+</p>
+        </td>
+    </tr>
+    
+    
+    <tr data-version-added="30" >
+        <td><code translate="no" dir="ltr">int</code></td>
+        <td width="100%">
+          <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED">BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED</a></code>
+          <p>A security vulnerability has been discovered and the sensor is unavailable until a
+ security update has addressed this issue.
+          
+    
+</p>
+        </td>
+    </tr>
+    
+    
+    <tr data-version-added="29" >
+        <td><code translate="no" dir="ltr">int</code></td>
+        <td width="100%">
+          <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_SUCCESS">BIOMETRIC_SUCCESS</a></code>
+          <p>No error detected.
+          
+    
+</p>
+        </td>
+    </tr>
+    
+    
+
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ========== METHOD SUMMARY =========== -->
+<table id="pubmethods" class="responsive methods">
+<tr><th colspan="2"><h3 id="public-methods" data-text="Public methods">Public methods</h3></th></tr>
+
+
+
+  <tr data-version-added="29" data-version-deprecated="30" >
+  
+  
+    <td><code translate="no" dir="ltr">
+        
+        
+        
+        
+        
+        int</code>
+    </td>
+  
+    <td width="100%">
+      <code translate="no" dir="ltr">
+      <a href="/reference/android/hardware/biometrics/BiometricManager#canAuthenticate()">canAuthenticate</a>()
+      </code>
+      
+        <p><em>
+      This method was deprecated
+      in API level 30.
+    See <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#canAuthenticate(int)">canAuthenticate(int)</a></code>.</em>
+        
+    
+</p>
+      
+    </td>
+  </tr>
+  
+
+  <tr data-version-added="30" >
+  
+  
+    <td><code translate="no" dir="ltr">
+        
+        
+        
+        
+        
+        int</code>
+    </td>
+  
+    <td width="100%">
+      <code translate="no" dir="ltr">
+      <a href="/reference/android/hardware/biometrics/BiometricManager#canAuthenticate(int)">canAuthenticate</a>(int authenticators)
+      </code>
+      
+        <p>Determine if any of the provided authenticators can be used.
+        
+    
+</p>
+      
+    </td>
+  </tr>
+  
+
+  <tr data-version-added="31" >
+  
+  
+    <td><code translate="no" dir="ltr">
+        
+        
+        
+        
+        
+        <a href="/reference/android/hardware/biometrics/BiometricManager.Strings">BiometricManager.Strings</a></code>
+    </td>
+  
+    <td width="100%">
+      <code translate="no" dir="ltr">
+      <a href="/reference/android/hardware/biometrics/BiometricManager#getStrings(int)">getStrings</a>(int authenticators)
+      </code>
+      
+        <p>Produces an instance of the <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Strings">Strings</a></code> class, which provides localized strings for an
+ application, given a set of allowed authenticator types.
+        
+    
+</p>
+      
+    </td>
+  </tr>
+  
+
+
+</table>
+
+
+
+
+
+
+
+<!-- ========== METHOD SUMMARY =========== -->
+<table id="inhmethods" class="responsive methods inhtable">
+<tr><th><h3 id="inherited-methods" data-text="Inherited methods">Inherited methods</h3></th></tr>
+
+
+<tr  >
+<td colspan="2">
+  <div class="expandable jd-inherited-apis">
+    <span class="expand-control">From class
+      <code translate="no" dir="ltr">
+        
+          <a href="/reference/java/lang/Object">java.lang.Object</a>
+        
+      </code>
+    </span>
+    <table class="responsive">
+      
+
+
+  <tr data-version-added="1" >
+  
+  
+    <td><code translate="no" dir="ltr">
+        
+        
+        
+        
+        
+        <a href="/reference/java/lang/Object">Object</a></code>
+    </td>
+  
+    <td width="100%">
+      <code translate="no" dir="ltr">
+      <a href="/reference/java/lang/Object#clone()">clone</a>()
+      </code>
+      
+        <p>Creates and returns a copy of this object.
+        
+    
+</p>
+      
+    </td>
+  </tr>
+  
+
+  <tr data-version-added="1" >
+  
+  
+    <td><code translate="no" dir="ltr">
+        
+        
+        
+        
+        
+        boolean</code>
+    </td>
+  
+    <td width="100%">
+      <code translate="no" dir="ltr">
+      <a href="/reference/java/lang/Object#equals(java.lang.Object)">equals</a>(<a href="/reference/java/lang/Object">Object</a> obj)
+      </code>
+      
+        <p>Indicates whether some other object is "equal to" this one.
+        
+    
+</p>
+      
+    </td>
+  </tr>
+  
+
+  <tr data-version-added="1" >
+  
+  
+    <td><code translate="no" dir="ltr">
+        
+        
+        
+        
+        
+        void</code>
+    </td>
+  
+    <td width="100%">
+      <code translate="no" dir="ltr">
+      <a href="/reference/java/lang/Object#finalize()">finalize</a>()
+      </code>
+      
+        <p>Called by the garbage collector on an object when garbage collection
+ determines that there are no more references to the object.
+        
+    
+</p>
+      
+    </td>
+  </tr>
+  
+
+  <tr data-version-added="1" >
+  
+  
+    <td><code translate="no" dir="ltr">
+        
+        
+        
+        final
+        
+        <a href="/reference/java/lang/Class">Class</a>&lt;?&gt;</code>
+    </td>
+  
+    <td width="100%">
+      <code translate="no" dir="ltr">
+      <a href="/reference/java/lang/Object#getClass()">getClass</a>()
+      </code>
+      
+        <p>Returns the runtime class of this <code translate="no" dir="ltr">Object</code>.
+        
+    
+</p>
+      
+    </td>
+  </tr>
+  
+
+  <tr data-version-added="1" >
+  
+  
+    <td><code translate="no" dir="ltr">
+        
+        
+        
+        
+        
+        int</code>
+    </td>
+  
+    <td width="100%">
+      <code translate="no" dir="ltr">
+      <a href="/reference/java/lang/Object#hashCode()">hashCode</a>()
+      </code>
+      
+        <p>Returns a hash code value for the object.
+        
+    
+</p>
+      
+    </td>
+  </tr>
+  
+
+  <tr data-version-added="1" >
+  
+  
+    <td><code translate="no" dir="ltr">
+        
+        
+        
+        final
+        
+        void</code>
+    </td>
+  
+    <td width="100%">
+      <code translate="no" dir="ltr">
+      <a href="/reference/java/lang/Object#notify()">notify</a>()
+      </code>
+      
+        <p>Wakes up a single thread that is waiting on this object's
+ monitor.
+        
+    
+</p>
+      
+    </td>
+  </tr>
+  
+
+  <tr data-version-added="1" >
+  
+  
+    <td><code translate="no" dir="ltr">
+        
+        
+        
+        final
+        
+        void</code>
+    </td>
+  
+    <td width="100%">
+      <code translate="no" dir="ltr">
+      <a href="/reference/java/lang/Object#notifyAll()">notifyAll</a>()
+      </code>
+      
+        <p>Wakes up all threads that are waiting on this object's monitor.
+        
+    
+</p>
+      
+    </td>
+  </tr>
+  
+
+  <tr data-version-added="1" >
+  
+  
+    <td><code translate="no" dir="ltr">
+        
+        
+        
+        
+        
+        <a href="/reference/java/lang/String">String</a></code>
+    </td>
+  
+    <td width="100%">
+      <code translate="no" dir="ltr">
+      <a href="/reference/java/lang/Object#toString()">toString</a>()
+      </code>
+      
+        <p>Returns a string representation of the object.
+        
+    
+</p>
+      
+    </td>
+  </tr>
+  
+
+  <tr data-version-added="1" >
+  
+  
+    <td><code translate="no" dir="ltr">
+        
+        
+        
+        final
+        
+        void</code>
+    </td>
+  
+    <td width="100%">
+      <code translate="no" dir="ltr">
+      <a href="/reference/java/lang/Object#wait(long,%20int)">wait</a>(long timeoutMillis, int nanos)
+      </code>
+      
+        <p>Causes the current thread to wait until it is awakened, typically
+ by being <em>notified</em> or <em>interrupted</em>, or until a
+ certain amount of real time has elapsed.
+        
+    
+</p>
+      
+    </td>
+  </tr>
+  
+
+  <tr data-version-added="1" >
+  
+  
+    <td><code translate="no" dir="ltr">
+        
+        
+        
+        final
+        
+        void</code>
+    </td>
+  
+    <td width="100%">
+      <code translate="no" dir="ltr">
+      <a href="/reference/java/lang/Object#wait(long)">wait</a>(long timeoutMillis)
+      </code>
+      
+        <p>Causes the current thread to wait until it is awakened, typically
+ by being <em>notified</em> or <em>interrupted</em>, or until a
+ certain amount of real time has elapsed.
+        
+    
+</p>
+      
+    </td>
+  </tr>
+  
+
+  <tr data-version-added="1" >
+  
+  
+    <td><code translate="no" dir="ltr">
+        
+        
+        
+        final
+        
+        void</code>
+    </td>
+  
+    <td width="100%">
+      <code translate="no" dir="ltr">
+      <a href="/reference/java/lang/Object#wait()">wait</a>()
+      </code>
+      
+        <p>Causes the current thread to wait until it is awakened, typically
+ by being <em>notified</em> or <em>interrupted</em>.
+        
+    
+</p>
+      
+    </td>
+  </tr>
+  
+
+
+    </table>
+  </div>
+</td></tr>
+
+
+</table>
+
+
+
+<!-- XML Attributes -->
+
+
+<!-- Enum Values -->
+
+
+<!-- Constants -->
+
+
+<!-- ========= ENUM CONSTANTS DETAIL ======== -->
+<h2 class="api-section" id="constants_1" data-text="Constants">Constants</h2>
+
+
+<div data-version-added="29" >
+    <h3 class="api-name" id="BIOMETRIC_ERROR_HW_UNAVAILABLE" data-text="BIOMETRIC_ERROR_HW_UNAVAILABLE">BIOMETRIC_ERROR_HW_UNAVAILABLE</h3>
+    <div class="api-level">
+      
+    Added in <a href="/guide/topics/manifest/uses-sdk-element#ApiLevels">API level 29</a>
+  
+      
+  
+
+    </div>
+<pre class="api-signature no-pretty-print" translate="no" dir="ltr">
+public static final int BIOMETRIC_ERROR_HW_UNAVAILABLE</pre>
+    
+    
+
+    
+  <p>The hardware is unavailable. Try again later.</p></p>
+
+    
+      <p>Constant Value:
+      
+          1
+          (0x00000001)
+      
+    
+</div>
+
+<div data-version-added="29" >
+    <h3 class="api-name" id="BIOMETRIC_ERROR_NONE_ENROLLED" data-text="BIOMETRIC_ERROR_NONE_ENROLLED">BIOMETRIC_ERROR_NONE_ENROLLED</h3>
+    <div class="api-level">
+      
+    Added in <a href="/guide/topics/manifest/uses-sdk-element#ApiLevels">API level 29</a>
+  
+      
+  
+
+    </div>
+<pre class="api-signature no-pretty-print" translate="no" dir="ltr">
+public static final int BIOMETRIC_ERROR_NONE_ENROLLED</pre>
+    
+    
+
+    
+  <p>The user does not have any biometrics enrolled.</p></p>
+
+    
+      <p>Constant Value:
+      
+          11
+          (0x0000000b)
+      
+    
+</div>
+
+<div data-version-added="29" >
+    <h3 class="api-name" id="BIOMETRIC_ERROR_NO_HARDWARE" data-text="BIOMETRIC_ERROR_NO_HARDWARE">BIOMETRIC_ERROR_NO_HARDWARE</h3>
+    <div class="api-level">
+      
+    Added in <a href="/guide/topics/manifest/uses-sdk-element#ApiLevels">API level 29</a>
+  
+      
+  
+
+    </div>
+<pre class="api-signature no-pretty-print" translate="no" dir="ltr">
+public static final int BIOMETRIC_ERROR_NO_HARDWARE</pre>
+    
+    
+
+    
+  <p>There is no biometric hardware.</p></p>
+
+    
+      <p>Constant Value:
+      
+          12
+          (0x0000000c)
+      
+    
+</div>
+
+<div data-version-added="30" >
+    <h3 class="api-name" id="BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED" data-text="BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED">BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED</h3>
+    <div class="api-level">
+      
+    Added in <a href="/guide/topics/manifest/uses-sdk-element#ApiLevels">API level 30</a>
+  
+      
+  
+
+    </div>
+<pre class="api-signature no-pretty-print" translate="no" dir="ltr">
+public static final int BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED</pre>
+    
+    
+
+    
+  <p>A security vulnerability has been discovered and the sensor is unavailable until a
+ security update has addressed this issue. This error can be received if for example,
+ authentication was requested with <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#BIOMETRIC_STRONG">Authenticators#BIOMETRIC_STRONG</a></code>, but the
+ sensor's strength can currently only meet <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#BIOMETRIC_WEAK">Authenticators#BIOMETRIC_WEAK</a></code>.</p></p>
+
+    
+      <p>Constant Value:
+      
+          15
+          (0x0000000f)
+      
+    
+</div>
+
+<div data-version-added="29" >
+    <h3 class="api-name" id="BIOMETRIC_SUCCESS" data-text="BIOMETRIC_SUCCESS">BIOMETRIC_SUCCESS</h3>
+    <div class="api-level">
+      
+    Added in <a href="/guide/topics/manifest/uses-sdk-element#ApiLevels">API level 29</a>
+  
+      
+  
+
+    </div>
+<pre class="api-signature no-pretty-print" translate="no" dir="ltr">
+public static final int BIOMETRIC_SUCCESS</pre>
+    
+    
+
+    
+  <p>No error detected.</p></p>
+
+    
+      <p>Constant Value:
+      
+          0
+          (0x00000000)
+      
+    
+</div>
+
+
+
+
+<!-- Fields -->
+
+
+<!-- Public ctors -->
+
+
+
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<!-- Protected ctors -->
+
+
+
+<!-- ========= METHOD DETAIL ======== -->
+<!-- Public methdos -->
+
+<h2 class="api-section" id="public-methods_1" data-text="Public methods">Public methods</h2>
+
+
+<div data-version-added="29" data-version-deprecated="30">
+    <h3 class="api-name" id="canAuthenticate()" data-text="canAuthenticate">canAuthenticate</h3>
+    <div class="api-level">
+      <div>
+    Added in <a href="/guide/topics/manifest/uses-sdk-element#ApiLevels">API level 29</a>
+  <br>Deprecated in
+    <a href="/guide/topics/manifest/uses-sdk-element#ApiLevels">API level
+      30</a>
+  </div>
+      
+  
+
+    </div>
+<pre class="api-signature no-pretty-print" translate="no" dir="ltr">
+public int canAuthenticate ()</pre>
+    
+    
+
+    <p>
+  <p class="caution"><strong>
+      This method was deprecated
+      in API level 30.</strong><br/>
+    See <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#canAuthenticate(int)">canAuthenticate(int)</a></code>.
+  </p>
+  <p>Determine if biometrics can be used. In other words, determine if
+ <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricPrompt">BiometricPrompt</a></code> can be expected to be shown (hardware available, templates enrolled,
+ user-enabled). This is the equivalent of <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#canAuthenticate(int)">canAuthenticate(int)</a></code> with
+ <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#BIOMETRIC_WEAK">Authenticators#BIOMETRIC_WEAK</a></code>
+
+ <br>
+ Requires <code translate="no" dir="ltr"><a href="/reference/android/Manifest.permission#USE_BIOMETRIC">Manifest.permission.USE_BIOMETRIC</a></code></p></p>
+    <table class="responsive">
+      <tr><th colspan=2>Returns</th></tr>
+      <tr>
+        <td><code translate="no" dir="ltr">int</code></td>
+        <td width="100%"><code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_NONE_ENROLLED">BIOMETRIC_ERROR_NONE_ENROLLED</a></code> if the user does not have any strong
+     biometrics enrolled, or <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_HW_UNAVAILABLE">BIOMETRIC_ERROR_HW_UNAVAILABLE</a></code> if none are currently
+     supported/enabled. Returns <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_SUCCESS">BIOMETRIC_SUCCESS</a></code> if a strong biometric can currently
+     be used (enrolled and available).
+
+ Value is <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_SUCCESS">BIOMETRIC_SUCCESS</a></code>, <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_HW_UNAVAILABLE">BIOMETRIC_ERROR_HW_UNAVAILABLE</a></code>, <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_NONE_ENROLLED">BIOMETRIC_ERROR_NONE_ENROLLED</a></code>, <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_NO_HARDWARE">BIOMETRIC_ERROR_NO_HARDWARE</a></code>, or <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED">BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED</a></code></p></td>
+      </tr>
+    </table>
+
+</div>
+
+<div data-version-added="30">
+    <h3 class="api-name" id="canAuthenticate(int)" data-text="canAuthenticate">canAuthenticate</h3>
+    <div class="api-level">
+      <div>
+    Added in <a href="/guide/topics/manifest/uses-sdk-element#ApiLevels">API level 30</a>
+  </div>
+      
+  
+
+    </div>
+<pre class="api-signature no-pretty-print" translate="no" dir="ltr">
+public int canAuthenticate (int authenticators)</pre>
+    
+    
+
+    
+  <p>Determine if any of the provided authenticators can be used. In other words, determine if
+ <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricPrompt">BiometricPrompt</a></code> can be expected to be shown (hardware available, templates enrolled,
+ user-enabled).
+
+ For biometric authenticators, determine if the device can currently authenticate with at
+ least the requested strength. For example, invoking this API with
+ <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#BIOMETRIC_WEAK">Authenticators#BIOMETRIC_WEAK</a></code> on a device that currently only has
+ <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#BIOMETRIC_STRONG">Authenticators#BIOMETRIC_STRONG</a></code> enrolled will return <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_SUCCESS">BIOMETRIC_SUCCESS</a></code>.
+
+ Invoking this API with <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#DEVICE_CREDENTIAL">Authenticators#DEVICE_CREDENTIAL</a></code> can be used to determine
+ if the user has a PIN/Pattern/Password set up.
+
+ <br>
+ Requires <code translate="no" dir="ltr"><a href="/reference/android/Manifest.permission#USE_BIOMETRIC">Manifest.permission.USE_BIOMETRIC</a></code></p></p>
+    <table class="responsive">
+    <tr><th colspan=2>Parameters</th></tr>
+      <tr>
+        <td><code translate="no" dir="ltr">authenticators</code></td>
+        <td width="100%">
+          <code translate="no" dir="ltr">int</code>: bit field consisting of constants defined in <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators">Authenticators</a></code>.
+                       If multiple authenticators are queried, a logical OR will be applied.
+                       For example, if <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#DEVICE_CREDENTIAL">Authenticators#DEVICE_CREDENTIAL</a></code> |
+                       <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#BIOMETRIC_STRONG">Authenticators#BIOMETRIC_STRONG</a></code> is queried and only
+                       <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#DEVICE_CREDENTIAL">Authenticators#DEVICE_CREDENTIAL</a></code> is set up, this API will
+                       return <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_SUCCESS">BIOMETRIC_SUCCESS</a></code>
+
+ Value is either <code translate="no" dir="ltr">0</code> or a combination of <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#BIOMETRIC_STRONG">BiometricManager.Authenticators.BIOMETRIC_STRONG</a></code>, <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#BIOMETRIC_WEAK">BiometricManager.Authenticators.BIOMETRIC_WEAK</a></code>, android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_CONVENIENCE, and <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#DEVICE_CREDENTIAL">BiometricManager.Authenticators.DEVICE_CREDENTIAL</a></code></p></td>
+      </tr>
+    </table>
+    <table class="responsive">
+      <tr><th colspan=2>Returns</th></tr>
+      <tr>
+        <td><code translate="no" dir="ltr">int</code></td>
+        <td width="100%"><code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_NONE_ENROLLED">BIOMETRIC_ERROR_NONE_ENROLLED</a></code> if the user does not have any of the
+     requested authenticators enrolled, or <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_HW_UNAVAILABLE">BIOMETRIC_ERROR_HW_UNAVAILABLE</a></code> if none are
+     currently supported/enabled. Returns <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_SUCCESS">BIOMETRIC_SUCCESS</a></code> if one of the requested
+     authenticators can currently be used (enrolled and available).
+ 
+ Value is <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_SUCCESS">BIOMETRIC_SUCCESS</a></code>, <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_HW_UNAVAILABLE">BIOMETRIC_ERROR_HW_UNAVAILABLE</a></code>, <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_NONE_ENROLLED">BIOMETRIC_ERROR_NONE_ENROLLED</a></code>, <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_NO_HARDWARE">BIOMETRIC_ERROR_NO_HARDWARE</a></code>, or <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager#BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED">BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED</a></code></p></td>
+      </tr>
+    </table>
+
+</div>
+
+<div data-version-added="31">
+    <h3 class="api-name" id="getStrings(int)" data-text="getStrings">getStrings</h3>
+    <div class="api-level">
+      <div>
+    Added in <a href="/guide/topics/manifest/uses-sdk-element#ApiLevels">API level 31</a>
+  </div>
+      
+  
+
+    </div>
+<pre class="api-signature no-pretty-print" translate="no" dir="ltr">
+public <a href="/reference/android/hardware/biometrics/BiometricManager.Strings">BiometricManager.Strings</a> getStrings (int authenticators)</pre>
+    
+    
+
+    
+  <p>Produces an instance of the <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Strings">Strings</a></code> class, which provides localized strings for an
+ application, given a set of allowed authenticator types.
+
+ <br>
+ Requires <code translate="no" dir="ltr"><a href="/reference/android/Manifest.permission#USE_BIOMETRIC">Manifest.permission.USE_BIOMETRIC</a></code></p></p>
+    <table class="responsive">
+    <tr><th colspan=2>Parameters</th></tr>
+      <tr>
+        <td><code translate="no" dir="ltr">authenticators</code></td>
+        <td width="100%">
+          <code translate="no" dir="ltr">int</code>: A bit field representing the types of <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators">Authenticators</a></code> that may
+                       be used for authentication.
+ Value is either <code translate="no" dir="ltr">0</code> or a combination of <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#BIOMETRIC_STRONG">BiometricManager.Authenticators.BIOMETRIC_STRONG</a></code>, <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#BIOMETRIC_WEAK">BiometricManager.Authenticators.BIOMETRIC_WEAK</a></code>, android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_CONVENIENCE, and <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Authenticators#DEVICE_CREDENTIAL">BiometricManager.Authenticators.DEVICE_CREDENTIAL</a></code></p></td>
+      </tr>
+    </table>
+    <table class="responsive">
+      <tr><th colspan=2>Returns</th></tr>
+      <tr>
+        <td><code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Strings">BiometricManager.Strings</a></code></td>
+        <td width="100%">A <code translate="no" dir="ltr"><a href="/reference/android/hardware/biometrics/BiometricManager.Strings">Strings</a></code> collection for the given allowed authenticator types.
+ 
+ This value cannot be <code translate="no" dir="ltr">null</code>.</p></td>
+      </tr>
+    </table>
+
+</div>
+
+
+
+
+
+<!-- ========= METHOD DETAIL ======== -->
+
+
+
+<!-- ========= END OF CLASS DATA ========= -->
+
+</div><!-- end jd-content -->
+
+
+</div><!-- end devsite ReferenceObject -->
+
+  
+
+  
+    <devsite-hats-survey class="nocontent"
+      hats-id="onAFgYxTD0kxBYCLVTd0Z41p75CM"
+      listnr-id="5207477"></devsite-hats-survey>
+  
+</div>
+
+  
+
+  
+    
+      <devsite-recommendations display="in-page" hidden yield>
+      </devsite-recommendations>
+    
+    
+      
+    <devsite-thumb-rating position="footer">
+    </devsite-thumb-rating>
+  
+       
+    
+    
+      <devsite-recommendations id="recommendations-link" yield></devsite-recommendations>
+    
+  
+
+  
+  
+</article>
+
+
+<devsite-content-footer class="nocontent">
+  <p>Content and code samples on this page are subject to the licenses described in the <a href="/license">Content License</a>. Java and OpenJDK are trademarks or registered trademarks of Oracle and/or its affiliates.</p>
+  <p>Last updated 2023-02-08 UTC.</p>
+</devsite-content-footer>
+
+
+<devsite-notification
+>
+</devsite-notification>
+
+
+  
+<div class="devsite-content-data">
+  <template class="devsite-thumb-rating-down-categories">
+  [{
+      "type": "thumb-down",
+      "id": "missingTheInformationINeed",
+      "label":"Missing the information I need"
+    },{
+      "type": "thumb-down",
+      "id": "tooComplicatedTooManySteps",
+      "label":"Too complicated / too many steps"
+    },{
+      "type": "thumb-down",
+      "id": "outOfDate",
+      "label":"Out of date"
+    },{
+      "type": "thumb-down",
+      "id": "samplesCodeIssue",
+      "label":"Samples / code issue"
+    },{
+      "type": "thumb-down",
+      "id": "otherDown",
+      "label":"Other"
+    }]
+  </template>
+  <template class="devsite-thumb-rating-up-categories">
+  [{
+      "type": "thumb-up",
+      "id": "easyToUnderstand",
+      "label":"Easy to understand"
+    },{
+      "type": "thumb-up",
+      "id": "solvedMyProblem",
+      "label":"Solved my problem"
+    },{
+      "type": "thumb-up",
+      "id": "otherUp",
+      "label":"Other"
+    }]
+  </template>
+  
+</div>
+            
+          </devsite-content>
+        </main>
+        <devsite-footer-promos class="devsite-footer">
+          
+            
+
+<nav class="devsite-footer-promos nocontent" aria-label="Promotions">
+  <ul class="devsite-footer-promos-list">
+    
+    <li class="devsite-footer-promo">
+      <a href="//x.com/AndroidDev"
+         class="devsite-footer-promo-title gc-analytics-event"
+         data-category="Site-Wide Custom Events"
+       
+       
+         data-label="Footer X Promo"
+       >
+        
+        
+          
+            <img class="devsite-footer-promo-icon"
+                 src="/_static/android/images/logo-x.svg"
+                 loading="lazy"
+                 alt="X">
+          
+        
+        X
+      </a>
+      <div class="devsite-footer-promo-description">Follow @AndroidDev on X</div>
+    </li>
+    
+    <li class="devsite-footer-promo">
+      <a href="//www.youtube.com/user/androiddevelopers"
+         class="devsite-footer-promo-title gc-analytics-event"
+         data-category="Site-Wide Custom Events"
+       
+       
+         data-label="Footer YouTube Promo"
+       >
+        
+        
+          
+            <img class="devsite-footer-promo-icon"
+                 src="//www.gstatic.com/images/icons/material/product/2x/youtube_48dp.png"
+                 loading="lazy"
+                 alt="YouTube">
+          
+        
+        YouTube
+      </a>
+      <div class="devsite-footer-promo-description">Check out Android Developers on YouTube</div>
+    </li>
+    
+    <li class="devsite-footer-promo">
+      <a href="//www.linkedin.com/showcase/androiddev"
+         class="devsite-footer-promo-title gc-analytics-event"
+         data-category="Site-Wide Custom Events"
+       
+       
+         data-label="Footer LinkedIn Promo"
+       >
+        
+        
+          
+            <img class="devsite-footer-promo-icon"
+                 src="/_static/android/images/logo-linkedin.svg"
+                 loading="lazy"
+                 alt="LinkedIn">
+          
+        
+        LinkedIn
+      </a>
+      <div class="devsite-footer-promo-description">Connect with the Android Developers community on LinkedIn</div>
+    </li>
+    
+  </ul>
+</nav>
+
+          
+        </devsite-footer-promos>
+        <devsite-footer-linkboxes class="devsite-footer">
+          
+            
+<nav class="devsite-footer-linkboxes nocontent" aria-label="Footer links">
+  
+  <ul class="devsite-footer-linkboxes-list">
+    
+    <li class="devsite-footer-linkbox ">
+    <h3 class="devsite-footer-linkbox-heading no-link">More Android</h3>
+      <ul class="devsite-footer-linkbox-list">
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="//www.android.com"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 1)"
+            >
+            
+          
+            Android
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="//www.android.com/enterprise/"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 2)"
+            >
+            
+          
+            Android for Enterprise
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="//www.android.com/security-center/"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 3)"
+            >
+            
+          
+            Security
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="//source.android.com"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 4)"
+            >
+            
+          
+            Source
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/news"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 5)"
+            >
+            
+          
+            News
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="//android-developers.googleblog.com/"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 6)"
+            >
+            
+          
+            Blog
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/podcasts"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 7)"
+            >
+            
+              
+              
+            
+          
+            Podcasts
+          
+          </a>
+          
+          
+        </li>
+        
+      </ul>
+    </li>
+    
+    <li class="devsite-footer-linkbox ">
+    <h3 class="devsite-footer-linkbox-heading no-link">Discover</h3>
+      <ul class="devsite-footer-linkbox-list">
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/games"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 1)"
+            >
+            
+          
+            Gaming
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/ml"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 2)"
+            >
+            
+          
+            Machine Learning
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/privacy"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 3)"
+            >
+            
+          
+            Privacy
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/training/connectivity/5g"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 4)"
+            >
+            
+              
+              
+            
+          
+            5G
+          
+          </a>
+          
+          
+        </li>
+        
+      </ul>
+    </li>
+    
+    <li class="devsite-footer-linkbox ">
+    <h3 class="devsite-footer-linkbox-heading no-link">Android Devices</h3>
+      <ul class="devsite-footer-linkbox-list">
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/large-screens"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 1)"
+            >
+            
+          
+            Large screens
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/wear"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 2)"
+            >
+            
+          
+            Wear OS
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/chrome-os"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 3)"
+            >
+            
+          
+            ChromeOS devices
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/cars"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 4)"
+            >
+            
+          
+            Android for cars
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/things"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 5)"
+            >
+            
+          
+            Android Things
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/tv"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 6)"
+            >
+            
+              
+              
+            
+          
+            Android TV
+          
+          </a>
+          
+          
+        </li>
+        
+      </ul>
+    </li>
+    
+    <li class="devsite-footer-linkbox ">
+    <h3 class="devsite-footer-linkbox-heading no-link">Releases</h3>
+      <ul class="devsite-footer-linkbox-list">
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/about/versions/13"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 1)"
+            >
+            
+          
+            Android 13
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/about/versions/12"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 2)"
+            >
+            
+          
+            Android 12
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/about/versions/11"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 3)"
+            >
+            
+          
+            Android 11
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/about/versions/10"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 4)"
+            >
+            
+          
+            Android 10
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/about/versions/pie"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 5)"
+            >
+            
+          
+            Pie
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/about/versions/oreo"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 6)"
+            >
+            
+          
+            Oreo
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/about/versions/nougat"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 7)"
+            >
+            
+              
+              
+            
+          
+            Nougat
+          
+          </a>
+          
+          
+        </li>
+        
+      </ul>
+    </li>
+    
+    <li class="devsite-footer-linkbox ">
+    <h3 class="devsite-footer-linkbox-heading no-link">Documentation and Downloads</h3>
+      <ul class="devsite-footer-linkbox-list">
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/studio/intro"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 1)"
+            >
+            
+          
+            Android Studio guide
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/guide"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 2)"
+            >
+            
+          
+            Developers guides
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/reference"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 3)"
+            >
+            
+          
+            API reference
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/studio"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 4)"
+            >
+            
+          
+            Download Studio
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="/ndk"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 5)"
+            >
+            
+              
+              
+            
+          
+            Android NDK
+          
+          </a>
+          
+          
+        </li>
+        
+      </ul>
+    </li>
+    
+    <li class="devsite-footer-linkbox ">
+    <h3 class="devsite-footer-linkbox-heading no-link">Support</h3>
+      <ul class="devsite-footer-linkbox-list">
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="//issuetracker.google.com/issues/new?component=190923&amp;template=841312"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 1)"
+            >
+            
+          
+            Report platform bug
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="//issuetracker.google.com/issues/new?component=192697"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 2)"
+            >
+            
+          
+            Report documentation bug
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="//support.google.com/googleplay/android-developer"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 3)"
+            >
+            
+          
+            Google Play support
+          
+          </a>
+          
+          
+        </li>
+        
+        <li class="devsite-footer-linkbox-item">
+          
+          <a href="https://g.co/userresearch/androiddeveloperfooter"
+             class="devsite-footer-linkbox-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+            
+             data-label="Footer Link (index 4)"
+            >
+            
+              
+              
+            
+          
+            Join research studies
+          
+          </a>
+          
+          
+        </li>
+        
+      </ul>
+    </li>
+    
+  </ul>
+  
+</nav>
+          
+        </devsite-footer-linkboxes>
+        <devsite-footer-utility class="devsite-footer">
+          
+            
+
+<div class="devsite-footer-utility nocontent">
+  
+  
+  <nav class="devsite-footer-sites" aria-label="Other Google Developers websites">
+    <a href="https://developers.google.com/"
+       class="devsite-footer-sites-logo-link gc-analytics-event"
+       data-category="Site-Wide Custom Events"
+       data-label="Footer Google Developers Link">
+      <picture>
+        <source srcset="https://www.gstatic.com/devrel-devsite/prod/va65162e8ce9aacc75e4d3c0cd6d166fc6ceaaf184fea0ff0eac1d9b62c0480be/android/images/lockup-google-for-developers-dark-theme.svg"
+                media="(prefers-color-scheme: none)"
+                class="devsite-dark-theme"
+                loading="lazy"
+                alt="Google Developers">
+        <img class="devsite-footer-sites-logo"
+             src="https://www.gstatic.com/devrel-devsite/prod/va65162e8ce9aacc75e4d3c0cd6d166fc6ceaaf184fea0ff0eac1d9b62c0480be/android/images/lockup-google-for-developers.svg"
+             loading="lazy"
+             alt="Google Developers">
+      </picture>
+    </a>
+    <ul class="devsite-footer-sites-list">
+      
+      <li class="devsite-footer-sites-item">
+        <a href="//developer.android.com"
+           class="devsite-footer-sites-link
+                  gc-analytics-event"
+           data-category="Site-Wide Custom Events"
+         
+           data-label="Footer Android Link"
+         
+         >
+          Android
+        </a>
+      </li>
+      
+      <li class="devsite-footer-sites-item">
+        <a href="//developer.chrome.com/home"
+           class="devsite-footer-sites-link
+                  gc-analytics-event"
+           data-category="Site-Wide Custom Events"
+         
+           data-label="Footer Chrome Link"
+         
+         >
+          Chrome
+        </a>
+      </li>
+      
+      <li class="devsite-footer-sites-item">
+        <a href="//firebase.google.com"
+           class="devsite-footer-sites-link
+                  gc-analytics-event"
+           data-category="Site-Wide Custom Events"
+         
+           data-label="Footer Firebase Link"
+         
+         >
+          Firebase
+        </a>
+      </li>
+      
+      <li class="devsite-footer-sites-item">
+        <a href="//cloud.google.com"
+           class="devsite-footer-sites-link
+                  gc-analytics-event"
+           data-category="Site-Wide Custom Events"
+         
+           data-label="Footer Google Cloud Platform Link"
+         
+         >
+          Google Cloud Platform
+        </a>
+      </li>
+      
+      <li class="devsite-footer-sites-item">
+        <a href="//developers.google.com/products/"
+           class="devsite-footer-sites-link
+                  gc-analytics-event"
+           data-category="Site-Wide Custom Events"
+         
+           data-label="Footer All products Link"
+         
+         >
+          All products
+        </a>
+      </li>
+      
+    </ul>
+  </nav>
+  
+
+  
+  <nav class="devsite-footer-utility-links" aria-label="Utility links">
+    
+    <ul class="devsite-footer-utility-list">
+      
+      <li class="devsite-footer-utility-item
+                 ">
+        
+        
+        <a class="devsite-footer-utility-link gc-analytics-event"
+           href="//policies.google.com/privacy"
+           data-category="Site-Wide Custom Events"
+           data-label="Footer Privacy link"
+         >
+          Privacy
+        </a>
+        
+      </li>
+      
+      <li class="devsite-footer-utility-item
+                 ">
+        
+        
+        <a class="devsite-footer-utility-link gc-analytics-event"
+           href="/license"
+           data-category="Site-Wide Custom Events"
+           data-label="Footer License link"
+         >
+          License
+        </a>
+        
+      </li>
+      
+      <li class="devsite-footer-utility-item
+                 ">
+        
+        
+        <a class="devsite-footer-utility-link gc-analytics-event"
+           href="/distribute/marketing-tools/brand-guidelines"
+           data-category="Site-Wide Custom Events"
+           data-label="Footer Brand guidelines link"
+         >
+          Brand guidelines
+        </a>
+        
+      </li>
+      
+      <li class="devsite-footer-utility-item
+                 devsite-footer-utility-button">
+        
+        <span class="devsite-footer-utility-description">Get news and tips by email</span>
+        
+        
+        <a class="devsite-footer-utility-link gc-analytics-event"
+           href="/updates"
+           data-category="Site-Wide Custom Events"
+           data-label="Footer Subscribe link"
+         >
+          Subscribe
+        </a>
+        
+      </li>
+      
+    </ul>
+    
+    
+<devsite-language-selector>
+  <ul role="presentation">
+    
+    
+    <li role="presentation">
+      <a role="menuitem" lang="en"
+        >English</a>
+    </li>
+    
+    <li role="presentation">
+      <a role="menuitem" lang="es_419"
+        >Español – América Latina</a>
+    </li>
+    
+    <li role="presentation">
+      <a role="menuitem" lang="id"
+        >Indonesia</a>
+    </li>
+    
+    <li role="presentation">
+      <a role="menuitem" lang="pt_br"
+        >Português – Brasil</a>
+    </li>
+    
+    <li role="presentation">
+      <a role="menuitem" lang="zh_cn"
+        >中文 – 简体</a>
+    </li>
+    
+    <li role="presentation">
+      <a role="menuitem" lang="ja"
+        >日本語</a>
+    </li>
+    
+    <li role="presentation">
+      <a role="menuitem" lang="ko"
+        >한국어</a>
+    </li>
+    
+  </ul>
+</devsite-language-selector>
+
+  </nav>
+</div>
+          
+        </devsite-footer-utility>
+        <devsite-panel></devsite-panel>
+        
+      </section></section>
+    <devsite-sitemask></devsite-sitemask>
+    <devsite-snackbar
+    
+    >
+</devsite-snackbar>
+    <devsite-tooltip ></devsite-tooltip>
+    <devsite-heading-link></devsite-heading-link>
+    <devsite-analytics analytics-iframe>
+      
+        <script type="application/json" analytics>[{&#34;dimensions&#34;: {&#34;dimension11&#34;: false, &#34;dimension5&#34;: &#34;en&#34;, &#34;dimension3&#34;: false, &#34;dimension1&#34;: &#34;Signed out&#34;, &#34;dimension6&#34;: &#34;en&#34;, &#34;dimension4&#34;: &#34;Android Developers&#34;}, &#34;gaid&#34;: &#34;UA-5831155-1&#34;, &#34;metrics&#34;: {&#34;ratings_value&#34;: &#34;metric1&#34;, &#34;ratings_count&#34;: &#34;metric2&#34;}}]</script>
+<script type="application/json" tag-management>{&#34;ga4&#34;: [], &#34;ga4p&#34;: [], &#34;gtm&#34;: [&#34;GTM-KMSWPCJ&#34;], &#34;parameters&#34;: {&#34;internalUser&#34;: &#34;False&#34;, &#34;language&#34;: {&#34;machineTranslated&#34;: &#34;False&#34;, &#34;requested&#34;: &#34;en&#34;, &#34;served&#34;: &#34;en&#34;}, &#34;pageType&#34;: &#34;reference&#34;, &#34;projectName&#34;: &#34;Android Developers&#34;, &#34;signedIn&#34;: &#34;False&#34;, &#34;tenant&#34;: &#34;android&#34;, &#34;recommendations&#34;: {&#34;sourcePage&#34;: &#34;&#34;, &#34;sourceType&#34;: 0, &#34;sourceRank&#34;: 0, &#34;sourceIdenticalDescriptions&#34;: 0, &#34;sourceTitleWords&#34;: 0, &#34;sourceDescriptionWords&#34;: 0, &#34;experiment&#34;: &#34;&#34;}, &#34;experiment&#34;: {&#34;ids&#34;: &#34;&#34;}}, &#34;tags&#34;: [&#34;GTM-KMSWPCJ&#34;]}</script>
+      
+    </devsite-analytics>
+    
+      <devsite-badger></devsite-badger>
+    
+    
+<android-fully-clickable
+    target="
+        .android-case-study .devsite-landing-row-item,
+        .android-grouped-resources .devsite-landing-row-item,
+        .android-illustrated-resources-index .devsite-landing-row-item,
+        .android-illustrated-resources-primary .devsite-landing-row-item,
+        .android-illustrated-resources-secondary .devsite-landing-row-item,
+        .android-illustrated-resources-secondary-small .devsite-landing-row-item,
+        .android-illustrated-resources-tertiary .devsite-landing-row-item,
+        .android-illustrated-resources-tertiary-small .devsite-landing-row-item,
+        .android-promo .devsite-landing-row-item,
+        .android-quick-link,
+        .android-samples .devsite-card-wrapper,
+        .fully-clickable"
+    watch=".android-samples, devsite-content"></android-fully-clickable>
+    <script nonce="XUQ3+mNxx71GSHfYdTaX42Bss5gEpA">
+  
+  (function(d,e,v,s,i,t,E){d['GoogleDevelopersObject']=i;
+    t=e.createElement(v);t.async=1;t.src=s;E=e.getElementsByTagName(v)[0];
+    E.parentNode.insertBefore(t,E);})(window, document, 'script',
+    'https://www.gstatic.com/devrel-devsite/prod/va65162e8ce9aacc75e4d3c0cd6d166fc6ceaaf184fea0ff0eac1d9b62c0480be/android/js/app_loader.js', '[3,"en",null,"/js/devsite_app_module.js","https://www.gstatic.com/devrel-devsite/prod/va65162e8ce9aacc75e4d3c0cd6d166fc6ceaaf184fea0ff0eac1d9b62c0480be","https://www.gstatic.com/devrel-devsite/prod/va65162e8ce9aacc75e4d3c0cd6d166fc6ceaaf184fea0ff0eac1d9b62c0480be/android","https://android-dot-devsite-v2-prod.appspot.com",null,null,["/_pwa/android/manifest.json","https://www.gstatic.com/devrel-devsite/prod/va65162e8ce9aacc75e4d3c0cd6d166fc6ceaaf184fea0ff0eac1d9b62c0480be/images/video-placeholder.svg","https://www.gstatic.com/devrel-devsite/prod/va65162e8ce9aacc75e4d3c0cd6d166fc6ceaaf184fea0ff0eac1d9b62c0480be/android/images/rebrand/favicon.svg","https://www.gstatic.com/devrel-devsite/prod/va65162e8ce9aacc75e4d3c0cd6d166fc6ceaaf184fea0ff0eac1d9b62c0480be/android/images/rebrand/lockup.svg","https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700|Google+Sans+Text:400,400italic,500,500italic,600,600italic,700,700italic|Roboto+Mono:400,500,700&display=swap"],1,null,[1,6,8,12,14,17,21,25,40,50,52,63,70,75,76,80,87,91,92,93,97,98,100,101,102,103,104,105,107,108,109,110,111,112,113,115,116,117,118,120,122,124,125,126,127,129,130,131,132,133,134,135,136,138,140,141,144,147,148,149,150,151,152,154,155,156,157,158,159,161,163,164,165,168,169,170,172,173,179,180,182,183,186,190,191,193,196],"AIzaSyAP-jjEJBzmIyKR4F-3XITp8yM9T1gEEI8","AIzaSyB6xiKGDR5O3Ak2okS4rLkauxGUG7XP0hg","developer.android.com","AIzaSyAQk0fBONSGUqCNznf6Krs82Ap1-NV6J4o","AIzaSyCCxcqdrZ_7QMeLCRY20bh_SXdAYqy70KY",null,null,null,["Cloud__enable_cloud_shell","Profiles__enable_developer_profiles_interests","Profiles__enable_profile_notifications_ui","Search__enable_faceted_search","Badges__enable_hide_badges","Search__enable_page_map","Significatio__enable_experiment_id_caching","Profiles__enable_searchable_interests","Profiles__enable_profile_communities","MiscFeatureFlags__enable_keyword_inheritance","MiscFeatureFlags__enable_firebase_utm","Search__enable_dynamic_content_confidential_banner","Profiles__enable_page_saving","Profiles__enable_profile_collections","Profiles__enable_public_developer_profiles","MiscFeatureFlags__enable_explain_this_code","Search__enable_devsite_serp","Search__enable_acl_suggestions","Profiles__enable_suggested_interests","Badges__enable_delete_badges","Cloud__enable_cloud_dlp_service","AuthorPageInsights__enable_author_page_insights","Badges__enable_drag_and_drop_badges","MiscFeatureFlags__content_publisher_push_queue","Rebranding__enable_rebranding","Experiments__reqs_query_experiments","Cloud__enable_free_trial_server_call","Significatio__enable_by_tenant","MiscFeatureFlags__enable_tls_version_for_gaia_calls","Profiles__enable_inferred_interests","BookNav__enable_book_nav_filtering","Search__enable_suggestions_from_borg","Cloud__enable_cloudx_experiment_ids","SignIn__enable_auto_signin_oauth","Significatio__enable_footprints","Profiles__enable_awarding_url","MiscFeatureFlags__enable_project_variables","MiscFeatureFlags__emergency_css","Localization__enable_locale_redirects","Profiles__require_profile_eligibility_for_signin","ContentExcellence__enable_googler_button","Concierge__enable_pushui","Cloud__enable_cloudx_ping","OpenInReplit__enable_replit","Experiments__enable_experiments","MiscFeatureFlags__developers_footer_dark_image","BookNav__enable_tenant_cache_key","ContentExcellence__enable_verified_date","MiscFeatureFlags__developers_footer_image","Profiles__enable_developer_profiles_callout","Profiles__enable_developer_profiles_dashboard_recommendations","BookNav__enable_collapsible_book_nav","Cloud__enable_cloud_facet_chat","Cloud__enable_cloud_shell_fte_user_flow"],null,null,"AIzaSyBLEMok-5suZ67qRPzx0qUtbnLmyT_kCVE","https://developerscontentserving-pa.googleapis.com","AIzaSyCM4QpTRSqP5qI4Dvjt4OAScIN8sOUlO-k","https://developerscontentsearch-pa.googleapis.com",2]')
+  
+</script>
+    <devsite-a11y-announce></devsite-a11y-announce>
+  </body>
+</html>

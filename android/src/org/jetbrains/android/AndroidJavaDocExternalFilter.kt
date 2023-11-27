@@ -23,6 +23,7 @@ import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.ABORTE
 import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.CONSUMING_CLASS_DATA
 import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.CONSUMING_DESCRIPTION
 import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.MOVING_TO_CLASS_DATA
+import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.MOVING_TO_CODE
 import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.MOVING_TO_DESCRIPTION
 import org.jetbrains.android.AndroidJavaDocExternalFilter.Companion.State.SUCCESS
 import org.jetbrains.annotations.NonNls
@@ -63,23 +64,33 @@ internal class AndroidJavaDocExternalFilter(project: Project?) : JavaDocExternal
 
     private enum class State {
       MOVING_TO_CLASS_DATA,
+      MOVING_TO_CODE,
       CONSUMING_CLASS_DATA,
       MOVING_TO_DESCRIPTION,
       CONSUMING_DESCRIPTION,
       SUCCESS,
-      ABORTED,
+      ABORTED;
+
+      fun toTerminalState() =
+        when (this) {
+          MOVING_TO_CLASS_DATA,
+          MOVING_TO_CODE -> ABORTED
+          else -> SUCCESS
+        }
     }
 
     private fun createStateMachine(sb: StringBuilder) =
       stateMachine(initialState = MOVING_TO_CLASS_DATA) {
-        MOVING_TO_CLASS_DATA.transitionsTo(CONSUMING_CLASS_DATA, ABORTED)
+        MOVING_TO_CLASS_DATA.transitionsTo(MOVING_TO_CODE, ABORTED)
+        MOVING_TO_CODE.transitionsTo(CONSUMING_CLASS_DATA, ABORTED)
         CONSUMING_CLASS_DATA {
-          onEnter { sb.append(HTML) }
+          onEnter { sb.append(HTML).append("\n").append("<code>\n") }
+          onExit { sb.append("</code>\n") }
           transitionsTo(MOVING_TO_DESCRIPTION, CONSUMING_DESCRIPTION, SUCCESS)
         }
-        MOVING_TO_DESCRIPTION.transitionsTo(CONSUMING_DESCRIPTION)
+        MOVING_TO_DESCRIPTION.transitionsTo(CONSUMING_DESCRIPTION, SUCCESS)
         CONSUMING_DESCRIPTION {
-          onEnter { sb.append("<br><div>\n") }
+          onEnter { sb.append("<hr><div>\n") }
           onExit { sb.append("</div>\n") }
           transitionsTo(SUCCESS)
         }
@@ -93,19 +104,15 @@ internal class AndroidJavaDocExternalFilter(project: Project?) : JavaDocExternal
         while (state != ABORTED && state != SUCCESS) {
           val line: String? = buf.readLine()?.trimEnd()
           if (line == null) {
-            state = if (state == MOVING_TO_CLASS_DATA) ABORTED else SUCCESS
+            state = state.toTerminalState()
             continue
           }
           if (line.isBlank()) continue // Blank lines don't change anything
           when (state) {
             SUCCESS,
             ABORTED -> throw RuntimeException("Unreachable") // Compiler not smart enough.
-            MOVING_TO_CLASS_DATA -> {
-              if (line.contains(START_SECTION)) {
-                state = CONSUMING_CLASS_DATA
-                sb.append(line).append("\n")
-              }
-            }
+            MOVING_TO_CLASS_DATA -> if (line.contains(START_SECTION)) state = MOVING_TO_CODE
+            MOVING_TO_CODE -> if (line.trimStart().startsWith("<code")) state = CONSUMING_CLASS_DATA
             CONSUMING_CLASS_DATA ->
               when {
                 line.isClassDescriptionStart() -> state = CONSUMING_DESCRIPTION
