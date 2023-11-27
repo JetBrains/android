@@ -16,6 +16,7 @@
 package com.android.tools.res.apk
 
 import com.android.ide.common.rendering.api.AttrResourceValue
+import com.android.ide.common.rendering.api.PluralsResourceValue
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.StyleResourceValue
@@ -95,5 +96,24 @@ class ApkResourceRepositoryTest {
     assertEquals(1, styleItems.size)
     assertEquals("android:windowClipToOutline", styleItems[0].attrName)
     assertEquals("false", styleItems[0].value)
+  }
+
+  @Test
+  fun testPluralsValues() {
+    val path = TestUtils.resolveWorkspacePath(TEST_DATA_DIR + "apk-with-plurals.ap_")
+    val idManager = ApkResourceIdManager().apply { this.loadApkResources(path.toString()) }
+    val apkRes = ApkResourceRepository(path.toString()) { idManager.findById(it) }
+
+    val pluralsRes = apkRes.getResources(
+      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.PLURALS, "mtrl_badge_content_description")
+    )[0]
+
+
+    val pluralsItem = pluralsRes.resourceValue as PluralsResourceValue
+    assertEquals(2, pluralsItem.pluralsCount)
+    assertEquals("%d new notification", pluralsItem.getValue(0))
+    assertEquals("one", pluralsItem.getQuantity(0))
+    assertEquals("%d new notifications", pluralsItem.getValue(1))
+    assertEquals("other", pluralsItem.getQuantity(1))
   }
 }

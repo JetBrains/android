@@ -17,6 +17,7 @@
 package com.android.tools.res.apk
 
 import com.android.ide.common.rendering.api.AttrResourceValueImpl
+import com.android.ide.common.rendering.api.PluralsResourceValueImpl
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
@@ -30,7 +31,6 @@ import com.android.ide.common.resources.SingleNamespaceResourceRepository
 import com.android.resources.ResourceType
 import com.android.tools.apk.analyzer.BinaryXmlParser
 import com.android.tools.res.CacheableResourceRepository
-import com.android.tools.res.ids.ResourceIdManager
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceValue
@@ -101,6 +101,22 @@ private const val ATTR_MIN = 0x01000001
 private const val ATTR_MAX = 0x01000002
 private val SERVICE_VALS = setOf(ATTR_TYPE, ATTR_MIN, ATTR_MAX)
 
+// Plural support constants defined in frameworks/base/libs/androidfw/include/androidfw/ResourceTypes.h
+private const val ATTR_OTHER = 0x01000004
+private const val ATTR_ZERO = 0x01000005
+private const val ATTR_ONE = 0x01000006
+private const val ATTR_TWO = 0x01000007
+private const val ATTR_FEW = 0x01000008
+private const val ATTR_MANY = 0x01000009
+private val PLURALS_NAMES = mapOf(
+  ATTR_OTHER to "other",
+  ATTR_ZERO to "zero",
+  ATTR_ONE to "one",
+  ATTR_TWO to "two",
+  ATTR_FEW to "few",
+  ATTR_MANY to "many"
+)
+
 private fun TypeChunk.Entry.createResValue(
   resRef: ResourceReference,
   apkPath: String,
@@ -133,6 +149,18 @@ private fun TypeChunk.Entry.createResValue(
         styleValue.addItem(StyleItemResourceValueImpl(resRef.namespace, itemName, itemVal, null))
       }
       styleValue
+    }
+    ResourceType.PLURALS -> {
+      if (this.value() != null) {
+        throw IllegalArgumentException("Unexpected [${this.value()}] value for PLURALS")
+      }
+      val pluralsValue = PluralsResourceValueImpl(resRef, null, null)
+      this.values().forEach { (i, v) ->
+        val itemQuantity = PLURALS_NAMES[i] ?: throw IllegalArgumentException("Unknown quantity $i for plural")
+        val itemVal = formatVal(v, stringPool, resLookUp)
+        pluralsValue.addPlural(itemQuantity, itemVal)
+      }
+      pluralsValue
     }
     else -> {
       val binResVal = this.value() ?: throw IllegalArgumentException("Unexpected null value for ${resRef.resourceType}")
