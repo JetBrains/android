@@ -38,11 +38,11 @@ import org.jetbrains.annotations.VisibleForTesting;
 
 public final class DeviceSkinUpdater {
   private final @NotNull Path studioSkins;
-  private final @NotNull Path sdkSkins;
+  private final @NotNull Path sdkLocation;
 
-  private DeviceSkinUpdater(@NotNull Path studioSkins, @NotNull Path sdkSkins) {
+  private DeviceSkinUpdater(@NotNull Path studioSkins, @NotNull Path sdkLocation) {
     this.studioSkins = studioSkins;
-    this.sdkSkins = sdkSkins;
+    this.sdkLocation = sdkLocation;
   }
 
   /**
@@ -75,43 +75,40 @@ public final class DeviceSkinUpdater {
     File studioSkins = DeviceArtDescriptor.getBundledDescriptorsFolder();
     AndroidSdkHandler sdk = AndroidSdks.getInstance().tryToChooseSdkHandler();
 
-    return updateSkin(skin,
-                      imageSkins,
-                      studioSkins == null ? null : studioSkins.toPath(),
-                      sdk.getLocation() == null ? null : sdk.getLocation().resolve("skins"));
+    return updateSkin(skin, imageSkins, studioSkins == null ? null : studioSkins.toPath(), sdk.getLocation());
   }
 
   @VisibleForTesting
   static @NotNull Path updateSkin(@NotNull Path skin,
                                   @NotNull Collection<Path> imageSkins,
                                   @Nullable Path studioSkins,
-                                  @Nullable Path sdkSkins) {
+                                  @Nullable Path sdkLocation) {
     for (Path imageSkin : imageSkins) {
       if (imageSkin.endsWith(skin)) {
         return imageSkin;
       }
     }
 
-    if (studioSkins == null && sdkSkins == null) {
+    if (studioSkins == null && sdkLocation == null) {
       return skin;
     }
 
     if (studioSkins == null) {
-      return sdkSkins.resolve(skin);
+      return sdkLocation.resolve(skin);
     }
 
-    if (sdkSkins == null) {
-      return studioSkins.resolve(skin);
+    if (sdkLocation == null) {
+      return studioSkins.resolve(getStudioSkinName(skin.getFileName().toString()));
     }
 
-    return new DeviceSkinUpdater(studioSkins, sdkSkins).updateSkinImpl(skin);
+    return new DeviceSkinUpdater(studioSkins, sdkLocation).updateSkinImpl(skin);
   }
 
   private @NotNull Path updateSkinImpl(@NotNull Path skin) {
     assert !skin.toString().isEmpty() && !skin.toString().equals("_no_skin");
 
     // For historical reasons relative skin paths are resolved relative to SDK itself, not its "skins" directory.
-    Path sdkDeviceSkin = sdkSkins.getParent().resolve(skin);
+    Path sdkDeviceSkin = sdkLocation.resolve(skin);
     Path studioDeviceSkin = getStudioDeviceSkin(skin.getFileName().toString());
 
     try {
@@ -133,7 +130,7 @@ public final class DeviceSkinUpdater {
     return studioSkins.resolve(getStudioSkinName(skinName));
   }
 
-  private @NotNull String getStudioSkinName(@NotNull String skinName) {
+  private static @NotNull String getStudioSkinName(@NotNull String skinName) {
     return switch (skinName) {
       case "WearLargeRound" -> "wearos_large_round";
       case "WearSmallRound" -> "wearos_small_round";
