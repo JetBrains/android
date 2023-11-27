@@ -31,12 +31,15 @@ import com.android.tools.idea.concurrency.syntaxErrorFlow
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.build.outOfDateKtFiles
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
+import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.psi.PsiFile
@@ -51,12 +54,14 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.util.module
 
 /**
  * Class responsible for handling all the [StateFlow]s related to Compose Previews, e.g. managing
@@ -320,6 +325,22 @@ internal class ComposePreviewFlowManager {
 
       // Flow handling file changes and syntax error changes.
       launch(workerThread) {
+        val resourceChangedFlow =
+          if (COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE.get()) {
+            readAction { psiFilePointer.element?.module }
+              ?.let { module ->
+                resourceChangedFlow(module, disposable, log, null)
+                  .filter { reasons ->
+                    reasons.contains(ResourceNotificationManager.Reason.EDIT) ||
+                      reasons.contains(ResourceNotificationManager.Reason.IMAGE_RESOURCE_CHANGED)
+                  }
+                  .onEach {
+                    // Invalidate the preview to re-inflate the layouts when resources have
+                    // changed. This ensures the new values are correctly loaded.
+                    invalidate()
+                  }
+              } ?: emptyFlow()
+          } else emptyFlow()
         merge(
             psiFileChangeFlow(project, this@launch)
               // filter only for the file we care about
@@ -338,6 +359,7 @@ internal class ComposePreviewFlowManager {
                 // are more responsive to typing.
                 if (isFastPreviewAvailable(project)) 250L else 1000L
               },
+            resourceChangedFlow,
             syntaxErrorFlow(project, disposable, log, null)
               // Detect when problems disappear
               .filter { it is SyntaxErrorUpdate.Disappeared }

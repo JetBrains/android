@@ -392,7 +392,7 @@ interface CallbackFlowWithDisposableScope<T> : CoroutineScope {
 fun <T> disposableCallbackFlow(debugName: String,
                                logger: Logger? = null,
                                parentDisposable: Disposable? = null,
-                               runnable: CallbackFlowWithDisposableScope<T>.() -> Unit) = callbackFlow {
+                               runnable: suspend CallbackFlowWithDisposableScope<T>.() -> Unit) = callbackFlow {
   logger?.debug("$debugName start")
 
   val disposable = parentDisposable?.let {

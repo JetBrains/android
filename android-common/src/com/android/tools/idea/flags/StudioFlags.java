@@ -1365,6 +1365,11 @@ public final class StudioFlags {
     COMPOSE, "compose.preview.keep.image.on.error", "Keeps the last valid image after a render error",
     "If enabled, when an error happens, the surface will keep the last valid image",
     ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
+
+  public static final Flag<Boolean> COMPOSE_INVALIDATE_ON_RESOURCE_CHANGE = new BooleanFlag(
+    COMPOSE, "compose.preview.invalidate.on.resource.change", "When a resource changes, invalidate the current preview",
+    "Invalidates the preview is there is a resource change",
+    true);
   //endregion
 
   // region Wear surfaces
