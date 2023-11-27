@@ -1427,7 +1427,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NETWORK_INSPECTOR_GRPC = Flag.create(
     NETWORK_INSPECTOR, "grpc", "Track gRPC Connections",
     "Track gRPC Connections",
-    false
+    true
   );
   // endregion
 
