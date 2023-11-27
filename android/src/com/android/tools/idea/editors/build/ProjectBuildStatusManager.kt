@@ -219,7 +219,8 @@ private class ProjectBuildStatusManagerImpl(
 
   private val resourceChangeListener = ResourceChangeListener { reason ->
     LOG.debug("ResourceNotificationManager resourceChange ${reason.joinToString()} ")
-    if (reason.contains(ResourceNotificationManager.Reason.RESOURCE_EDIT)) {
+    if (reason.contains(ResourceNotificationManager.Reason.RESOURCE_EDIT) ||
+        reason.contains(ResourceNotificationManager.Reason.EDIT)) {
       areResourcesOutOfDateFlow.value = true
     }
   }
