@@ -61,6 +61,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
@@ -212,6 +213,11 @@ class ViewLayoutInspectorClient(
           event.specializedCase != Event.SpecializedCase.LAYOUT_EVENT ||
             event.layoutEvent === recentLayouts[event.layoutEvent.rootView.id]
         }
+        .catch {
+          if (it is CancellationException) {
+            handleDisconnect()
+          }
+        }
         .collect { event ->
           when (event.specializedCase) {
             Event.SpecializedCase.ERROR_EVENT -> handleErrorEvent(event.errorEvent)
@@ -290,6 +296,11 @@ class ViewLayoutInspectorClient(
 
   fun disconnect() {
     messenger.scope.cancel()
+  }
+
+  private fun handleDisconnect() {
+    propertiesCache.clear()
+    composeInspector?.parametersCache?.clear()
   }
 
   private fun handleErrorEvent(errorEvent: ErrorEvent) {
