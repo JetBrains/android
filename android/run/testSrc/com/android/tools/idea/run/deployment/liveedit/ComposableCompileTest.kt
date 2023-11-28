@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.run.deployment.liveedit.analysis.compileIr
+import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.diff
+import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompile
+import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
+import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
+import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
+import com.android.tools.idea.run.deployment.liveedit.analysis.initialCache
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
+import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.onlyComposeDebugConstantChanges
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ReadAction
@@ -26,8 +32,8 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.utils.editor.commitToPsi
 import junit.framework.Assert
 import org.jetbrains.kotlin.psi.KtFile
+import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.objectweb.asm.Opcodes
@@ -44,19 +50,17 @@ class ComposableCompileTest {
   @Before
   fun setUp() {
     setUpComposeInProjectFixture(projectRule)
+    disableLiveEdit()
+  }
 
-
-
-    files["HasComposableSingletons.kt"] = projectRule.fixture.configureByText("HasComposableSingletons.kt",
-                                                                              "import androidx.compose.runtime.Composable\n" +
-                                                                              "@Composable fun hasLambdaA(content: @Composable () -> Unit) { }\n" +
-                                                                              "@Composable fun hasLambdaB() { hasLambdaA {} }")
-
+  @After
+  fun tearDown() {
+    enableLiveEdit()
   }
 
   @Test
   fun simpleComposeChange() {
-    val cache = initialCache(mapOf("ComposeSimple.kt" to """
+    val file = projectRule.createKtFile("ComposeSimple.kt", """
       import androidx.compose.runtime.Composable
       @Composable fun composableFun() : String {
         var str = "hi"
@@ -64,9 +68,9 @@ class ComposableCompileTest {
       }
       @Composable fun composableFun2() : String {
         return "hi2"
-      }"""))
-
-    val file = projectRule.fixture.configureByText("ComposeSimple.kt","""
+      }""")
+    val cache = projectRule.initialCache(listOf(file))
+    projectRule.modifyKtFile(file, """
       import androidx.compose.runtime.Composable
       @Composable fun composableFun() : String {
         var str = "hello"
@@ -96,13 +100,14 @@ class ComposableCompileTest {
 
   @Test
   fun simpleComposeNested() {
-    val cache = initialCache(mapOf("ComposeNested.kt" to """
+    val file = projectRule.createKtFile("ComposeNested.kt" , """
       import androidx.compose.runtime.Composable
       @Composable
       fun composableNested(): @Composable (Int) -> Unit {
         return { }
-      }"""))
-    val file = projectRule.fixture.configureByText("ComposeNested.kt", """
+      }""")
+    val cache = projectRule.initialCache(listOf(file))
+    projectRule.modifyKtFile(file, """
       import androidx.compose.runtime.Composable
       @Composable
       fun composableNested(): @Composable (Int) -> Unit {
@@ -114,10 +119,8 @@ class ComposableCompileTest {
   }
 
   @Test
-  @Ignore("b/303114659")
   fun multipleEditsInOneUpdate() {
-    val cache = initialCache(mapOf(
-      "ComposeSimple.kt" to """
+    val simpleFile = projectRule.createKtFile("ComposeSimple.kt", """
         import androidx.compose.runtime.Composable
         @Composable fun composableFun() : String {
           var str = "hi"
@@ -125,16 +128,17 @@ class ComposableCompileTest {
         }
         @Composable fun composableFun2() : String {
           return "hi2"
-        }""",
-      "ComposeNested.kt" to """
+        }""")
+    val nestedFile = projectRule.createKtFile("ComposeNested.kt", """
         import androidx.compose.runtime.Composable
         @Composable
         fun composableNested(): @Composable (Int) -> Unit {
           return { }
-         }"""))
+         }""")
+    val cache = projectRule.initialCache(listOf(simpleFile, nestedFile))
 
     // Testing an edit that has two files and three function modified.
-    val file1 = projectRule.fixture.configureByText("ComposeSimple.kt", """
+    projectRule.modifyKtFile(simpleFile, """
       import androidx.compose.runtime.Composable
       @Composable fun composableFun() : String {
         var str = "hello"
@@ -143,7 +147,7 @@ class ComposableCompileTest {
       @Composable fun composableFun2() : String {
         return "hello"
       }""")
-    val file2 = projectRule.fixture.configureByText("ComposeNested.kt", """
+    projectRule.modifyKtFile(nestedFile, """
       import androidx.compose.runtime.Composable
       @Composable
       fun composableNested(): @Composable (Int) -> Unit {
@@ -151,13 +155,12 @@ class ComposableCompileTest {
         return { val y = 0 }
       }""")
       val output = compile(listOf(
-      LiveEditCompilerInput(file1, file1 as KtFile),
-      LiveEditCompilerInput(file1, file1),
-      LiveEditCompilerInput(file2, file2 as KtFile)), cache)
+      LiveEditCompilerInput(simpleFile, simpleFile),
+      LiveEditCompilerInput(nestedFile, nestedFile as KtFile)), cache)
 
-    Assert.assertEquals(4, output.classes.size)
+    Assert.assertEquals(3, output.classes.size)
     Assert.assertEquals(2, output.classesMap.size)
-    Assert.assertEquals(2, output.supportClassesMap.size)
+    Assert.assertEquals(1, output.supportClassesMap.size)
     Assert.assertTrue(output.classesMap.get("ComposeSimpleKt")!!.isNotEmpty())
     Assert.assertTrue(output.classesMap.get("ComposeNestedKt")!!.isNotEmpty())
 
@@ -170,21 +173,19 @@ class ComposableCompileTest {
 
   @Test
   fun simpleMixed() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("Mixed.kt", """
      import androidx.compose.runtime.Composable
      @Composable fun isComposable() {}
      fun notComposable() {}
-    """, "Mixed.kt")
-    val cache = MutableIrClassCache()
-    cache.update(original)
-
-    val editComposable = projectRule.fixture.configureByText("Mixed.kt", """
+    """)
+    val cache = projectRule.initialCache(listOf(file))
+    projectRule.modifyKtFile(file, """
      import androidx.compose.runtime.Composable
      @Composable fun isComposable() { val x = 0 }
      fun notComposable() {}
     """)
 
-    var output = compile(editComposable, "isComposable", cache)
+    var output = compile(file, "isComposable", cache)
     Assert.assertEquals(-785806172, output.groupIds.first())
     Assert.assertFalse(output.resetState)
 
@@ -202,8 +203,13 @@ class ComposableCompileTest {
 
   @Test
   fun testModuleName() {
-    val output = compile(files["HasComposableSingletons.kt"], "hasLambdaA")
-    val singleton = output.supportClassesMap.get("ComposableSingletons\$HasComposableSingletonsKt");
+    val file = projectRule.createKtFile("HasComposableSingletons.kt", """
+      import androidx.compose.runtime.Composable
+      @Composable fun hasLambdaA(content: @Composable () -> Unit) { }
+      @Composable fun hasLambdaB() { hasLambdaA {} }
+    """)
+    val output = compile(file, "hasLambdaA")
+    val singleton = output.supportClassesMap["ComposableSingletons\$HasComposableSingletonsKt"];
     Assert.assertNotNull(singleton)
     val cl = loadClass(output, "ComposableSingletons\$HasComposableSingletonsKt")
     val getLambda = cl.methods.find { it.name.contains("getLambda") }
@@ -213,7 +219,7 @@ class ComposableCompileTest {
 
   @Test
   fun sendAllThenOnlyChanges() {
-    val file0 = """
+    val file = projectRule.createKtFile("ComposeSimple.kt", """
       import androidx.compose.runtime.Composable
       @Composable fun composableFun() {
         val a = { }
@@ -226,15 +232,15 @@ class ComposableCompileTest {
       }
       @Composable fun composableFun4() {
         val a = { }
-      }"""
+      }""")
 
     val cache = MutableIrClassCache()
-    val apk = projectRule.compileIr(file0, "ComposeSimple.kt").associateBy { it.name }
+    val apk = projectRule.directApiCompileIr(file)
     val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {
       override fun getClass(ktFile: KtFile, className: String) = apk[className]
     })
 
-    val file1 = projectRule.fixture.configureByText("ComposeSimple.kt", """
+    projectRule.modifyKtFile(file, """
       import androidx.compose.runtime.Composable
       @Composable fun composableFun() {
         val a = { "hello "}
@@ -250,7 +256,7 @@ class ComposableCompileTest {
       }""")
 
     // First LE should send all classes, regardless of what has changed.
-    val output = compile(listOf(LiveEditCompilerInput(file1, file1 as KtFile)), compiler)
+    val output = compile(listOf(LiveEditCompilerInput(file, file)), compiler)
     assertEquals(9, output.classes.size)
     assertEquals(1, output.classesMap.size)
     assertEquals(8, output.supportClassesMap.size)
@@ -258,7 +264,7 @@ class ComposableCompileTest {
 
     cache.update(output.irClasses)
 
-    val file2 = projectRule.fixture.configureByText("ComposeSimple.kt", """
+    projectRule.modifyKtFile(file, """
       import androidx.compose.runtime.Composable
       @Composable fun composableFun() {
         val a = { "hello "}
@@ -274,7 +280,7 @@ class ComposableCompileTest {
       }""")
 
     // Subsequent LE operations should resume sending only changed classes.
-    val output2 = compile(listOf(LiveEditCompilerInput(file2, file2 as KtFile)), compiler)
+    val output2 = compile(listOf(LiveEditCompilerInput(file, file as KtFile)), compiler)
     assertEquals(1, output2.classes.size)
     assertEquals(0, output2.classesMap.size)
     assertEquals(1, output2.supportClassesMap.size)
@@ -304,25 +310,25 @@ class ComposableCompileTest {
   fun incrementalAnalysisFunctionBodyTest() {
     val fileName = "Test.kt"
     val className = "TestKt"
-    val file0 = """
+    val file = projectRule.createKtFile(fileName, """
       $modifierCode
       fun foo() {
         Modifier.background(Color.Red).size(100.dp).padding(20.dp)
-      }""".trimIndent()
+      }""".trimIndent())
 
-    val file = projectRule.fixture.configureByText(fileName ,"""
-      $modifierCode
-      fun foo() {
-        Modifier.background(Color.Red).size(100.dp)
-      }""")
-
-    val apk = projectRule.compileIr(file0, fileName).associateBy { it.name }
+    val apk = projectRule.directApiCompileIr(file)
     val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache(), object: ApkClassProvider {
       override fun getClass(ktFile: KtFile, className: String): IrClass? {
         return apk[className]
       }
     })
-    val output = compile(listOf(LiveEditCompilerInput(file, file as KtFile)), compiler)
+    projectRule.modifyKtFile(file, """
+      $modifierCode
+      fun foo() {
+        Modifier.background(Color.Red).size(100.dp)
+      }""")
+
+    val output = compile(listOf(LiveEditCompilerInput(file, file)), compiler)
     Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
     val klass = loadClass(output, className)
     // Before the fix, invalid code will be generated and this will lead to a class
@@ -335,23 +341,22 @@ class ComposableCompileTest {
   fun incrementalAnalysisFunctionExpressionBodyTest() {
     val fileName = "Test.kt"
     val className = "TestKt"
-    val file0 = """
+    val file = projectRule.createKtFile(fileName, """
       $modifierCode
-      fun foo(): Modifier = Modifier.background(Color.Red).size(100.dp).padding(20.dp)
-    """.trimIndent()
+      fun foo(): Modifier = Modifier.background(Color.Red).size(100.dp).padding(20.dp)""")
 
-    val file = projectRule.fixture.configureByText(fileName ,"""
-      $modifierCode
-      fun foo(): Modifier = Modifier.background(Color.Red).size(100.dp)""")
-
-
-    val apk = projectRule.compileIr(file0, fileName).associateBy { it.name }
+    val apk = projectRule.directApiCompileIr(file)
     val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache(), object: ApkClassProvider {
       override fun getClass(ktFile: KtFile, className: String): IrClass? {
         return apk[className]
       }
     })
-    val output = compile(listOf(LiveEditCompilerInput(file, file as KtFile)), compiler)
+
+    projectRule.modifyKtFile(file, """
+      $modifierCode
+      fun foo(): Modifier = Modifier.background(Color.Red).size(100.dp)""")
+
+    val output = compile(listOf(LiveEditCompilerInput(file, file)), compiler)
     Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
     val klass = loadClass(output, className)
     // Before the fix, invalid code will be generated and this will lead to a class
@@ -365,13 +370,14 @@ class ComposableCompileTest {
   fun incrementalAnalysisFunctionBodyWithArgumentsTest() {
     val fileName = "Test.kt"
     val className = "TestKt"
-    val cache = initialCache(mapOf(fileName to """
+    val file = projectRule.createKtFile(fileName, """
       fun bar() = foo(0)
       fun foo(l: Int): Int {
         return 32
-      }"""))
+      }""")
+    val cache = projectRule.initialCache(listOf(file))
 
-    val file = projectRule.fixture.configureByText(fileName ,"""
+    projectRule.modifyKtFile(file,"""
       fun bar() = foo(0)
       fun foo(l: Int): Int {
         return 42
@@ -387,7 +393,7 @@ class ComposableCompileTest {
   fun incrementalAnalysisPropertyGetter() {
     val fileName = "Test.kt"
     val className = "TestKt"
-    val file0 = """
+    val file = projectRule.createKtFile(fileName, """
       $modifierCode
       class A {
         val y: Modifier
@@ -396,9 +402,16 @@ class ComposableCompileTest {
       fun bar(): Int {
         A().y
         return 42
-      }""".trimIndent()
+      }""")
 
-    val file = projectRule.fixture.configureByText(fileName ,"""
+    val apk = projectRule.directApiCompileIr(file)
+    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache(), object: ApkClassProvider {
+      override fun getClass(ktFile: KtFile, className: String): IrClass? {
+        return apk[className]
+      }
+    })
+
+    projectRule.modifyKtFile(file, """
       $modifierCode
       class A {
         val y: Modifier
@@ -409,12 +422,6 @@ class ComposableCompileTest {
         return 42
       }""")
 
-    val apk = projectRule.compileIr(file0, fileName).associateBy { it.name }
-    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache(), object: ApkClassProvider {
-      override fun getClass(ktFile: KtFile, className: String): IrClass? {
-        return apk[className]
-      }
-    })
     val output = compile(listOf(LiveEditCompilerInput(file, file as KtFile)), compiler)
     Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
     val klass = loadClass(output, className)
@@ -468,11 +475,5 @@ class ComposableCompileTest {
 
     assertNotNull(diff(firstClass, secondClass))
     assertTrue(onlyComposeDebugConstantChanges(firstMethod.instructions, secondMethod.instructions))
-  }
-
-  private fun initialCache(files: Map<String, String>): MutableIrClassCache {
-    val cache = MutableIrClassCache()
-    files.map { projectRule.compileIr(it.value, it.key) }.forEach { cache.update(it) }
-    return cache
   }
 }

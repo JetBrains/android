@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit.analysis
 
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -30,25 +31,35 @@ class AnnotationTest {
   @Before
   fun setUp() {
     setUpComposeInProjectFixture(projectRule)
+    disableLiveEdit()
+  }
+
+  @After
+  fun tearDown() {
+    enableLiveEdit()
   }
 
   @Test
   fun testAnnotationWithEnumParams() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       enum class MyEnum { A, B }
       annotation class Q(val param: MyEnum)
       class A {
         @Q(MyEnum.A)
         val field: Int = 0
-      }""", "A.kt", "A")
+      }""")
 
-    val new = projectRule.compileIr("""
+    val original = projectRule.directApiCompileIr(file)["A"]!!
+
+    projectRule.modifyKtFile(file, """
       enum class MyEnum { A, B }
       annotation class Q(val param: MyEnum)
       class A {
         @Q(MyEnum.B)
         val field: Int = 0
-      }""", "A.kt", "A")
+      }""")
+
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
