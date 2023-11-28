@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REMOVE_UNSUPPORTED_MODULES;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.join;
 
@@ -108,7 +108,7 @@ public class SupportedModuleChecker {
         unsupportedModules.forEach(modifiableModule::disposeModule);
         modifiableModule.commit();
       });
-      GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED), null);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_QF_REMOVE_UNSUPPORTED_MODULES), null);
     }
   }
 }
