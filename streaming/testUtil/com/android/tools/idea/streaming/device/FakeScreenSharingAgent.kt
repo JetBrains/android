@@ -182,6 +182,8 @@ class FakeScreenSharingAgent(
         }
       }
     }
+  @Volatile
+  var darkMode = false
 
   private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
   private var startVideoStream = false
@@ -546,6 +548,14 @@ class FakeScreenSharingAgent(
     sendNotificationOrResponse(DisplayConfigurationResponse(message.requestId, displays.withDeviceOrientation(deviceOrientation)))
   }
 
+  private fun sendUiSettingsResponse(message: UiSettingsRequest) {
+    sendNotificationOrResponse(UiSettingsResponse(message.requestId, darkMode))
+  }
+
+  private fun setDarkMode(message: SetDarkModeMessage) {
+    darkMode = message.darkMode
+  }
+
   private fun sendNotificationOrResponse(message: ControlMessage) {
     controller?.sendNotificationOrResponse(message)
   }
@@ -874,6 +884,8 @@ class FakeScreenSharingAgent(
         is StopClipboardSyncMessage -> stopClipboardSync()
         is RequestDeviceStateMessage -> requestDeviceState(message)
         is DisplayConfigurationRequest -> sendDisplayConfigurations(message)
+        is UiSettingsRequest -> sendUiSettingsResponse(message)
+        is SetDarkModeMessage -> setDarkMode(message)
         else -> {}
       }
       commandLog.add(message)

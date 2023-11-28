@@ -32,6 +32,7 @@
 #include "control_messages.h"
 #include "geom.h"
 #include "jvm.h"
+#include "ui_settings.h"
 
 namespace screensharing {
 
@@ -110,6 +111,9 @@ private:
   virtual void OnDisplayChanged(int32_t display_id);
   void SendPendingDisplayEvents();
 
+  void SendUiSettings(const UiSettingsRequest& request);
+  void SetDarkMode(const SetDarkModeMessage& message);
+
   // TODO: Remove the following 4 methods when b/303684492 is fixed.
   void StartDisplayPolling();
   void StopDisplayPolling();
@@ -139,6 +143,8 @@ private:
 
   std::mutex display_events_mutex_;
   std::vector<DisplayEvent> pending_display_events_;  // GUARDED_BY(display_events_mutex_)
+
+  UiSettings ui_settings_;
 
   // TODO: Remove the following 2 fields when b/303684492 is fixed.
   std::map<int32_t, DisplayInfo> current_displays_;

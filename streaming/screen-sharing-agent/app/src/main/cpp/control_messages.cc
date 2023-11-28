@@ -62,6 +62,12 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case DisplayConfigurationRequest::TYPE:
       return unique_ptr<ControlMessage>(DisplayConfigurationRequest::Deserialize(stream));
 
+    case UiSettingsRequest::TYPE:
+      return unique_ptr<ControlMessage>(UiSettingsRequest::Deserialize(stream));
+
+    case SetDarkModeMessage::TYPE:
+      return unique_ptr<ControlMessage>(SetDarkModeMessage::Deserialize(stream));
+
     default:
       Log::Fatal(INVALID_CONTROL_MESSAGE, "Unexpected message type %d", type);
   }
@@ -161,6 +167,16 @@ DisplayConfigurationRequest* DisplayConfigurationRequest::Deserialize(Base128Inp
   return new DisplayConfigurationRequest(request_id);
 }
 
+UiSettingsRequest* UiSettingsRequest::Deserialize(Base128InputStream& stream) {
+  int32_t request_id = stream.ReadInt32();
+  return new UiSettingsRequest(request_id);
+}
+
+SetDarkModeMessage* SetDarkModeMessage::Deserialize(Base128InputStream& stream) {
+  bool dark_mode = stream.ReadBool();
+  return new SetDarkModeMessage(dark_mode);
+}
+
 void ErrorResponse::Serialize(Base128OutputStream& stream) const {
   CorrelatedMessage::Serialize(stream);
   stream.WriteBytes(error_message_);
@@ -201,6 +217,20 @@ void DisplayAddedNotification::Serialize(Base128OutputStream& stream) const {
 void DisplayRemovedNotification::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteInt32(display_id_);
+}
+
+void UiSettingsRequest::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
+}
+
+void UiSettingsResponse::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
+  stream.WriteBool(dark_mode_);
+}
+
+void SetDarkModeMessage::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteInt32(dark_mode_);
 }
 
 }  // namespace screensharing

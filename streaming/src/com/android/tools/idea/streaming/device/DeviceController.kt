@@ -91,11 +91,18 @@ internal class DeviceController(
     }
   }
 
-  @Throws(StatusRuntimeException::class, TimeoutCancellationException::class)
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
   suspend fun getDisplayConfigurations(): List<DisplayDescriptor> {
     val request = DisplayConfigurationRequest(requestIdGenerator)
     return (sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? DisplayConfigurationResponse)?.displays ?:
            throw RuntimeException("Unexpected response")
+  }
+
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
+  suspend fun getUiSettings(): UiSettingsResponse {
+    val request = UiSettingsRequest(requestIdGenerator)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsResponse
+           ?: throw RuntimeException("Unexpected response")
   }
 
   /**

@@ -560,4 +560,75 @@ private:
   DISALLOW_COPY_AND_ASSIGN(DisplayRemovedNotification);
 };
 
+// Queries the current UI settings from the device.
+class UiSettingsRequest : public CorrelatedMessage {
+public:
+  UiSettingsRequest(int32_t request_id)
+      : CorrelatedMessage(TYPE, request_id) {
+  }
+  virtual ~UiSettingsRequest() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 19;
+
+private:
+  friend class ControlMessage;
+
+  static UiSettingsRequest* Deserialize(Base128InputStream& stream);
+
+  DISALLOW_COPY_AND_ASSIGN(UiSettingsRequest);
+};
+
+// The current UI settings read from the device.
+class UiSettingsResponse : public CorrelatedMessage {
+public:
+  UiSettingsResponse(int32_t request_id)
+      : CorrelatedMessage(TYPE, request_id) {
+  }
+  virtual ~UiSettingsResponse() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  void set_dark_mode(bool dark_mode) {
+    dark_mode_ = dark_mode;
+  }
+
+  static constexpr int TYPE = 20;
+
+private:
+  friend class ControlMessage;
+
+  bool dark_mode_;
+
+  DISALLOW_COPY_AND_ASSIGN(UiSettingsResponse);
+};
+
+// Changes the DarkMode setting on the device.
+class SetDarkModeMessage : ControlMessage {
+public:
+  SetDarkModeMessage(bool dark_mode)
+      : ControlMessage(TYPE),
+        dark_mode_(dark_mode) {
+  }
+  virtual ~SetDarkModeMessage() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  bool dark_mode() const {
+    return dark_mode_;
+  }
+
+  static constexpr int TYPE = 21;
+
+private:
+  friend class ControlMessage;
+
+  static SetDarkModeMessage* Deserialize(Base128InputStream& stream);
+
+  bool dark_mode_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetDarkModeMessage);
+};
+
 }  // namespace screensharing

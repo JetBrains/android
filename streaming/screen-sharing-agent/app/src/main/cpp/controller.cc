@@ -126,7 +126,8 @@ Controller::Controller(int socket_fd)
       clipboard_listener_(this),
       max_synced_clipboard_length_(0),
       clipboard_changed_(),
-      device_state_listener_(this) {
+      device_state_listener_(this),
+      ui_settings_() {
   assert(socket_fd > 0);
   char channel_marker = 'C';
   write(socket_fd_, &channel_marker, sizeof(channel_marker));  // Control channel marker.
@@ -236,7 +237,7 @@ void Controller::Run() {
 
 void Controller::ProcessMessage(const ControlMessage& message) {
   if (message.type() != MotionEventMessage::TYPE) { // Exclude
-    Log::D("Controller::ProcessMessage %d", message.type());
+    Log::W("Controller::ProcessMessage %d", message.type());
   }
   switch (message.type()) {
     case MotionEventMessage::TYPE:
@@ -281,6 +282,14 @@ void Controller::ProcessMessage(const ControlMessage& message) {
 
     case DisplayConfigurationRequest::TYPE:
       SendDisplayConfigurations((const DisplayConfigurationRequest&) message);
+      break;
+
+    case UiSettingsRequest::TYPE:
+      SendUiSettings((const UiSettingsRequest&) message);
+      break;
+
+    case SetDarkModeMessage::TYPE:
+      SetDarkMode((const SetDarkModeMessage&) message);
       break;
 
     default:
@@ -546,6 +555,17 @@ void Controller::SendDisplayConfigurations(const DisplayConfigurationRequest& re
   DisplayConfigurationResponse response(request.request_id(), std::move(displays));
   response.Serialize(output_stream_);
   output_stream_.Flush();
+}
+
+void Controller::SendUiSettings(const UiSettingsRequest& message) {
+  UiSettingsResponse response(message.request_id());
+  ui_settings_.Get(&response);
+  response.Serialize(output_stream_);
+  output_stream_.Flush();
+}
+
+void Controller::SetDarkMode(const SetDarkModeMessage& message) {
+  ui_settings_.SetDarkMode(message.dark_mode());
 }
 
 void Controller::OnDisplayAdded(int32_t display_id) {

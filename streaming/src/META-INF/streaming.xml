@@ -159,7 +159,7 @@
               description="Enable transparent forwarding of keyboard and mouse events to the connected device"/>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowExtendedControlsAction"
               icon="AllIcons.Actions.More" text="Extended Controls" description="Show emulator extended controls"/>
-      <action id="android.streaming.ui.settings" class="com.android.tools.idea.streaming.emulator.actions.EmulatorUiSettingsAction"
+      <action id="android.streaming.ui.settings" class="com.android.tools.idea.streaming.actions.StreamingUiSettingsAction"
               icon="StudioIcons.Common.SETTINGS" text="Common Android Settings" description="Shortcuts to common Android settings"/>
     </group>
     <action id="android.streaming.benchmark" class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction"
@@ -210,6 +210,7 @@
       <reference ref="android.device.back.button"/>
       <reference ref="android.device.home.button"/>
       <reference ref="android.device.overview.button"/>
+      <reference ref="android.streaming.ui.settings"/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
       <reference ref="android.streaming.hardware.input"/>
