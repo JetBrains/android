@@ -27,6 +27,7 @@ import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.TimerListener
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.actionSystem.ex.ActionPopupMenuListener
+import com.intellij.openapi.actionSystem.ex.ActionRuntimeRegistrar
 import com.intellij.openapi.actionSystem.ex.AnActionListener
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.util.ActionCallback
@@ -55,6 +56,8 @@ open class OpenActionManager(private val wrapped: ActionManagerEx) : ActionManag
   override fun unbindShortcuts(targetActionId: String) {
     wrapped.unbindShortcuts(targetActionId)
   }
+
+  override fun asActionRuntimeRegistrar(): ActionRuntimeRegistrar = wrapped.asActionRuntimeRegistrar()
 
   override fun createActionToolbar(
     place: String,
