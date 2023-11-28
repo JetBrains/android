@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.builder.model.ProjectSyncIssues
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
@@ -83,7 +82,7 @@ class JavaModule(
   private val kotlinGradleModel: KotlinGradleModel?,
   private val kaptGradleModel: KaptGradleModel?
 ) : GradleModule(gradleProject) {
-  override fun getFetchSyncIssuesAction(): ActionToRun<Unit>?= null
+  override fun getFetchSyncIssuesAction(): ActionToRun<Unit>? = null
 
   override fun prepare(indexedModels: IndexedModels): DeliverableGradleModule {
     return DeliverableJavaModule(gradleProject, projectSyncIssues, exceptions, kotlinGradleModel, kaptGradleModel)
@@ -326,14 +325,18 @@ class NativeVariantsAndroidModule private constructor(
   override fun getFetchSyncIssuesAction(): ActionToRun<Unit> {
     return ActionToRun(
       fun(controller: BuildController) {
-        val syncIssues =
-          controller.findModel(this.findModelRoot, ProjectSyncIssues::class.java)?.syncIssues?.toSyncIssueData()
+        val syncIssues = if (nativeVariants == null) {
+          controller.findModel(this.findModelRoot, ProjectSyncIssuesV2::class.java)?.syncIssues?.toV2SyncIssueData()
+        } else {
+          controller.findModel(this.findModelRoot, ProjectSyncIssuesV1::class.java)?.syncIssues?.toSyncIssueData()
+        }
 
         if (syncIssues != null) {
           this.setSyncIssues(syncIssues)
         }
       },
-      fetchesV1Models = true
+      fetchesV1Models = nativeVariants != null,
+      fetchesV2Models = nativeVariants == null
     )
   }
 
