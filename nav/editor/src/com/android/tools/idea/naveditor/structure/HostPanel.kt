@@ -174,18 +174,15 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
         }
       }
     })
-    surface.model?.facet?.let {
-      val resourceRepository = StudioResourceRepositoryManager.getAppResources(it)
-      surface.model?.addListener(object : ModelListener {
-        override fun modelActivated(model: NlModel) {
-          val modCount = resourceRepository.modificationCount
-          if (resourceVersion < modCount) {
-            resourceVersion = modCount
-            startLoading()
-          }
+    surface.models.first().addListener(object : ModelListener {
+      override fun modelActivated(model: NlModel) {
+        val modCount = StudioResourceRepositoryManager.getAppResources(model.facet).modificationCount
+        if (resourceVersion < modCount) {
+          resourceVersion = modCount
+          startLoading()
         }
-      })
-    }
+      }
+    })
 
     startLoading()
   }
