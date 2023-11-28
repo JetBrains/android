@@ -26,6 +26,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KtCompilerPluginDiagnostic0
 import org.jetbrains.kotlin.diagnostics.Diagnostic
+import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferences
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinDiagnosticFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.diagnosticFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.quickfixes.KotlinQuickFixAction
@@ -73,6 +75,13 @@ private constructor(element: KtModifierListOwner, private val displayText: Strin
 
   override fun invoke(project: Project, editor: Editor?, file: KtFile) {
     element?.addAnnotation(ComposeClassIds.Composable)
+
+    // TODO(311812857): `addAnnotation()` internally calls the reference shortener, but the target
+    //                  element to shorten seems to be wrong. It will be fixed in the upstream.
+    //                  After fixing it, remove the following reference shortener call.
+    if (isK2Plugin()) {
+      (element?.parent as? KtElement)?.let { parent -> shortenReferences(parent) }
+    }
   }
 
   /**
