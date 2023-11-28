@@ -17,6 +17,7 @@ package org.jetbrains.android
 
 import com.android.testutils.TestUtils
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.testFramework.ProjectRule
@@ -25,6 +26,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.FileReader
+import kotlin.io.path.listDirectoryEntries
 
 const val POINT_URL = "http://developer.android.com/reference/android/graphics/Point.html"
 
@@ -35,32 +37,32 @@ class AndroidJavaDocExternalFilterTest {
   private val filter by lazy { AndroidJavaDocExternalFilter(project) }
 
   @Test
-  fun oldFormat() {
+  fun buildFromStream() {
     // Do not run tests on Windows (see b/37120270)
     if (SystemInfo.isWindows) return
+    val inputFiles = getInputFiles()
+    assertThat(inputFiles).isNotEmpty()
 
-    // Copied from SDK docs v23 rev 1
-    val inputReader = fileReader("oldPoint.html")
+    for (inputFile in inputFiles) {
+      val inputReader = fileReader("input/$inputFile")
+      val builtDoc = buildString { filter.doBuildFromStream(POINT_URL, inputReader, this) }
 
-    val builtDoc = buildString { filter.doBuildFromStream(POINT_URL, inputReader, this) }
-
-    val expected = StringUtil.convertLineSeparators(fileReader("oldPointSummary.html").readText())
-    assertThat(builtDoc).isEqualTo(expected)
+      val outputFile = inputFile.toOutputFile()
+      val expected = StringUtil.convertLineSeparators(fileReader("output/$outputFile").readText())
+      assertWithMessage("$inputFile did not match $outputFile").that(builtDoc).isEqualTo(expected)
+    }
   }
 
-  @Test
-  fun newFormat() {
-    // Do not run tests on Windows (see b/37120270)
-    if (SystemInfo.isWindows) return
+  private fun getInputFiles(): List<String> {
+    val inputDir =
+      TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/javadoc/classes/input")
+    return inputDir.listDirectoryEntries().map { p -> p.fileName.toString() }
+  }
 
-    // Downloaded July 2016 with curl -o <output>
-    // https://developer.android.com/reference/android/graphics/Point.html
-    val inputReader = fileReader("newPoint.html")
-
-    val builtDoc = buildString { filter.doBuildFromStream(POINT_URL, inputReader, this) }
-
-    val expected = StringUtil.convertLineSeparators(fileReader("newPointSummary.html").readText())
-    assertThat(builtDoc).isEqualTo(expected)
+  private fun String.toOutputFile(): String {
+    val name = substringBeforeLast('.')
+    val extension = substringAfterLast('.')
+    return "${name}Summary.$extension"
   }
 
   private fun fileReader(path: String): FileReader {
