@@ -191,11 +191,16 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
 
     result.add(getModuleRClasses(androidFacet))
 
-    for (dependency in AndroidDependenciesCache.getAllAndroidDependencies(module, false)) {
+    // Dependencies and libraries are sorted, but the actual order doesn't matter; this is to ensure
+    // stability and prevent bugs like b/313521550.
+    for (dependency in
+      AndroidDependenciesCache.getAllAndroidDependencies(module, false)
+        .sortedBy(AndroidFacet::getName)) {
       result.add(getModuleRClasses(dependency))
     }
 
-    for (aarLibrary in findDependenciesWithResources(module).values) {
+    for (aarLibrary in
+      findDependenciesWithResources(module).values.sortedBy(ExternalAndroidLibrary::libraryName)) {
       result.add(getAarRClasses(aarLibrary))
     }
 
@@ -344,26 +349,39 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
   }
 
   override fun getAllLightRClasses(): Collection<PsiClass> {
+    // The classes are sorted, but the actual order doesn't matter; this is to ensure stability and
+    // prevent bugs like b/313521550.
     val libraryClasses =
-      findAllLibrariesWithResources(project).values.asSequence().map { getAarRClasses(it) }
+      findAllLibrariesWithResources(project)
+        .values
+        .asSequence()
+        .sortedBy(ExternalAndroidLibrary::libraryName)
+        .map { getAarRClasses(it) }
     val moduleClasses =
-      ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).asSequence().map {
-        getModuleRClasses(it)
-      }
+      ProjectFacetManager.getInstance(project)
+        .getFacets(AndroidFacet.ID)
+        .asSequence()
+        .sortedBy(AndroidFacet::getName)
+        .map { getModuleRClasses(it) }
 
     return (libraryClasses + moduleClasses).flatMap { it.all }.filterNotNull().toList()
   }
 
   private fun findAndroidFacetsWithPackageName(packageName: String): Collection<AndroidFacet> {
+    // The facets are sorted, but the actual order doesn't matter; this is to ensure stability and
+    // prevent bugs like b/313521550.
     val projectSystem = project.getProjectSystem()
     val facetsInferredFromPackageName =
-      projectSystem.getAndroidFacetsWithPackageName(project, packageName)
+      projectSystem
+        .getAndroidFacetsWithPackageName(project, packageName)
+        .sortedBy(AndroidFacet::getName)
 
     return if (packageName.endsWith(".test")) {
       val facetsInferredFromTestPackageName =
-        packageName.substringBeforeLast('.').let {
-          projectSystem.getAndroidFacetsWithPackageName(project, it)
-        }
+        packageName
+          .substringBeforeLast('.')
+          .let { projectSystem.getAndroidFacetsWithPackageName(project, it) }
+          .sortedBy(AndroidFacet::getName)
       facetsInferredFromPackageName + facetsInferredFromTestPackageName
     } else {
       facetsInferredFromPackageName
