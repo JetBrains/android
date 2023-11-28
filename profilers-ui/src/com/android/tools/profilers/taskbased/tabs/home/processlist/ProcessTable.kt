@@ -53,8 +53,8 @@ import org.jetbrains.jewel.ui.component.Divider
 
 @Composable
 private fun ProcessListRow(selectedProcess: Common.Process,
-                   onProcessSelection: (Common.Process) -> Unit,
-                   process: Common.Process) {
+                           onProcessSelection: (Common.Process) -> Unit,
+                           process: Common.Process) {
   val processName = process.name
   val pid = process.pid
 
