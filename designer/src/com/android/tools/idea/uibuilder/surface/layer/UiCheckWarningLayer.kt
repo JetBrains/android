@@ -50,6 +50,7 @@ class UiCheckWarningLayer(screenView: ScreenView, shouldDisplay: () -> Boolean) 
     object : IssueListener {
       override fun onIssueSelected(issue: Issue?) {
         animator.reset()
+        borderWidth = BORDER_WIDTH_MAX
         isAnimating = true
         animator.resume()
       }
@@ -102,11 +103,6 @@ class UiCheckWarningLayer(screenView: ScreenView, shouldDisplay: () -> Boolean) 
     override fun paintCycleEnd() {
       isAnimating = false
       screenView.surface.repaint()
-    }
-
-    override fun reset() {
-      super.reset()
-      borderWidth = BORDER_WIDTH_MAX
     }
   }
 }
