@@ -16,8 +16,10 @@
 package com.android.tools.idea.res.psi
 
 import com.android.AndroidProjectTypes
+import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.Density
@@ -27,7 +29,6 @@ import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.ide.common.resources.Locale
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.util.androidFacet
@@ -57,7 +58,7 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
     myFixture.copyFileToProject("dom/resources/icon.png", "res/drawable-hdpi/icon.png")
     myFixture.copyFileToProject("dom/resources/icon.png", "res/drawable-xhdpi/icon.png")
     val file = myFixture.addFileToProject(
-      "p1/p1/ResourceClass.java",
+      "src/p1/p2/ResourceClass.java",
       //language=JAVA
       """
         package p1.p2;
@@ -83,7 +84,7 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
                     android:layout_height="match_parent"/>
       """.trimIndent())
     val file = myFixture.addFileToProject(
-      "p1/p1/ResourceClass.java",
+      "src/p1/p2/ResourceClass.java",
       //language=JAVA
       """
         package p1.p2;
@@ -207,7 +208,9 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
       JavaModuleType.getModuleType(),
       moduleName,
       fixture.tempDirFixture.findOrCreateDir(moduleName))
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "$moduleName/${SdkConstants.FN_ANDROID_MANIFEST_XML}")
     addAndroidFacetAndSdk(dynamicFeatureModule)
+    enableNamespacing(dynamicFeatureModule.androidFacet!!, "p1.p2.dynamic")
     val newModuleSystem = object : AndroidModuleSystem by DefaultModuleSystem(module) {
       override fun getDynamicFeatureModules(): List<Module> = listOf(dynamicFeatureModule)
     }
@@ -248,6 +251,10 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
       getAdditionalModulePath(MODULE_WITHOUT_DEPENDENCY) + "/res/values/colors.xml",
       COLORS_XML
     ).virtualFile
+
+    enableNamespacing("p1.p2")
+    enableNamespacing(getAdditionalModuleByName(MODULE_WITH_DEPENDENCY)!!.androidFacet!!, "p1.p2.module_with_dep")
+    enableNamespacing(getAdditionalModuleByName(MODULE_WITHOUT_DEPENDENCY)!!.androidFacet!!, "p1.p2.module_without_dep")
   }
 
   private val COLORS_XML =
@@ -335,7 +342,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
     myFixture.copyFileToProject("dom/resources/icon.png", "res/drawable-hdpi/icon.png")
     myFixture.copyFileToProject("dom/resources/icon.png", "res/drawable-xhdpi/icon.png")
     val file = myFixture.addFileToProject(
-      "p1/p1/ResourceClass.java",
+      "src/p1/p2/ResourceClass.java",
       //language=JAVA
       """
         package p1.p2;
@@ -370,7 +377,7 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
     myFixture.addFileToProject("res/value-en/strings.xml", stringsContent)
     myFixture.addFileToProject("res/values-hdpi/strings.xml", stringsContent)
     val file = myFixture.addFileToProject(
-      "p1/p1/ResourceClass.java",
+      "src/p1/p2/ResourceClass.java",
       //language=JAVA
       """
         package p1.p2;
