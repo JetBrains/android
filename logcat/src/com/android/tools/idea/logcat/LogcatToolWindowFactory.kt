@@ -32,6 +32,7 @@ import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceInfo
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
@@ -73,7 +74,9 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
         }
       )
 
-    project.getService(ProcessNameMonitor::class.java).start()
+    ApplicationManager.getApplication().executeOnPooledThread {
+      project.getService(ProcessNameMonitor::class.java).start()
+    }
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {

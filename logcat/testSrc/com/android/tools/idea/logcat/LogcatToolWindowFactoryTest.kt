@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.devices.Device
@@ -47,11 +48,12 @@ import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl.MockToolWindow
 import com.intellij.util.io.delete
 import java.nio.file.Files
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.test.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.verify
 
 @RunsInEdt
 class LogcatToolWindowFactoryTest {
@@ -161,10 +163,17 @@ class LogcatToolWindowFactoryTest {
   @Test
   fun startsProcessNameMonitor() {
     val mockProcessNameMonitor = mock<ProcessNameMonitor>()
+    val latch = CountDownLatch(1)
+    var threadName: String? = null
+    whenever(mockProcessNameMonitor.start()).then {
+      threadName = Thread.currentThread().name
+      latch.countDown()
+    }
 
     logcatToolWindowFactory(mockProcessNameMonitor).init(MockToolWindow(project))
 
-    verify(mockProcessNameMonitor).start()
+    latch.await(2, TimeUnit.SECONDS)
+    assertThat(threadName).startsWith("ApplicationImpl pooled thread")
   }
 
   @Test
