@@ -65,7 +65,6 @@ import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidTargetData;
 import com.android.utils.HtmlBuilder;
 import com.android.xml.AndroidManifest;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -98,6 +97,7 @@ import com.intellij.psi.xml.XmlTag;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -139,6 +139,74 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
   private final boolean myHasRequestedCustomViews;
   private final EditorDesignSurface myDesignSurface;
 
+  /**
+   * {@link HyperlinkListener} that does not hold a reference to any of the inputs.
+   * If the inputs are released, then this will ignore the link click and log a warning.
+   */
+  private static class LinkHandler implements HyperlinkListener {
+    private final WeakReference<EditorDesignSurface> myEditorDesignSurfaceReference;
+    private final WeakReference<Module> myModuleReference;
+    private final WeakReference<PsiFile> mySourceFileReference;
+    private final WeakReference<HtmlLinkManager> myLinkManagerReference;
+
+    private LinkHandler(@NotNull HtmlLinkManager linkManager, @Nullable EditorDesignSurface surface, @NotNull Module module, @NotNull PsiFile sourceFile) {
+      myLinkManagerReference = new WeakReference<>(linkManager);
+      myEditorDesignSurfaceReference = new WeakReference<>(surface);
+      myModuleReference = new WeakReference<>(module);
+      mySourceFileReference = new WeakReference<>(sourceFile);
+    }
+
+    @Override
+    public void hyperlinkUpdate(HyperlinkEvent e) {
+      if (e.getEventType() != HyperlinkEvent.EventType.ACTIVATED) return;
+      JEditorPane pane = (JEditorPane)e.getSource();
+      if (e instanceof HTMLFrameHyperlinkEvent) {
+        HTMLFrameHyperlinkEvent evt = (HTMLFrameHyperlinkEvent)e;
+        HTMLDocument doc = (HTMLDocument)pane.getDocument();
+        doc.processHTMLFrameHyperlinkEvent(evt);
+        return;
+      }
+      HtmlLinkManager linkManager = myLinkManagerReference.get();
+      if (linkManager == null) {
+        LOG.warn("HtmlLinkManager has been collected. Click will be ignored");
+        return;
+      }
+      Module module = myModuleReference.get();
+      if (module == null) {
+        LOG.warn("Module has been collected. Click will be ignored");
+        return;
+      }
+      if (module.isDisposed()) {
+        LOG.warn("Module has been disposed. Click will be ignored");
+        return;
+      }
+      PsiFile sourceFile = mySourceFileReference.get();
+      if (sourceFile == null) {
+        LOG.warn("PsiFile has been collected. Click will be ignored");
+        return;
+      }
+
+      linkManager.handleUrl(e.getDescription(), module, sourceFile, true, new HtmlLinkManager.RefreshableSurface() {
+        @Override
+        public void handleRefreshRenderUrl() {
+          EditorDesignSurface surface = myEditorDesignSurfaceReference.get();
+          if (surface != null) {
+            RenderUtils.clearCache(surface.getConfigurations());
+            surface.forceUserRequestedRefresh();
+          }
+        }
+
+        @Override
+        public void requestRender() {
+          EditorDesignSurface surface = myEditorDesignSurfaceReference.get();
+          if (surface != null) {
+            surface.forceUserRequestedRefresh();
+          }
+        }
+      });
+    }
+  }
+
   protected RenderErrorContributorImpl(@Nullable EditorDesignSurface surface, @NotNull RenderResult result) {
     // To get rid of memory leak, get needed RenderResult attributes to avoid referencing RenderResult.
     myModule = result.getModule();
@@ -148,19 +216,11 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     myHasRequestedCustomViews = result.hasRequestedCustomViews();
     myDesignSurface = surface;
     myLinkManager = result.getLogger().getLinkManager();
-    myLinkHandler = e -> {
-      if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-        JEditorPane pane = (JEditorPane)e.getSource();
-        if (e instanceof HTMLFrameHyperlinkEvent) {
-          HTMLFrameHyperlinkEvent evt = (HTMLFrameHyperlinkEvent)e;
-          HTMLDocument doc = (HTMLDocument)pane.getDocument();
-          doc.processHTMLFrameHyperlinkEvent(evt);
-          return;
-        }
-
-        performClick(e.getDescription());
-      }
-    };
+    myLinkHandler = new LinkHandler(
+      result.getLogger().getLinkManager(),
+      surface,
+      result.getModule(),
+      result.getSourceFile());
   }
 
   private static boolean isHiddenFrame(@NotNull StackTraceElement frame) {
@@ -355,26 +415,6 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     }
     ShowExceptionFix showExceptionFix = new ShowExceptionFix(project, throwable);
     builder.addLink("Show Exception", linkManager.createRunnableLink(showExceptionFix));
-  }
-
-  @VisibleForTesting
-  public void performClick(@NotNull String url) {
-    myLinkManager.handleUrl(url, myModule, mySourceFile, true, new HtmlLinkManager.RefreshableSurface() {
-      @Override
-      public void handleRefreshRenderUrl() {
-        if (myDesignSurface != null) {
-          RenderUtils.clearCache(myDesignSurface.getConfigurations());
-          myDesignSurface.forceUserRequestedRefresh();
-        }
-      }
-
-      @Override
-      public void requestRender() {
-        if (myDesignSurface != null) {
-          myDesignSurface.forceUserRequestedRefresh();
-        }
-      }
-    });
   }
 
   private void reportRelevantCompilationErrors(@NotNull RenderLogger logger) {
@@ -1274,10 +1314,6 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     }
 
     return getIssues();
-  }
-
-  protected HtmlLinkManager getLinkManager() {
-    return myLinkManager;
   }
 
   protected Collection<RenderErrorModel.Issue> getIssues() {
