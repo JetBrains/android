@@ -16,11 +16,18 @@
 package com.android.tools.idea.progress
 
 import com.android.tools.environment.CancellationManager
+import com.android.tools.environment.cancellation.ExecutionCancellationException
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 
 /** IntelliJ specific [CancellationManager] that checks for cancellation with [ProgressManager]. */
 class IJCancellationManager : CancellationManager {
   override fun doThrowIfCancelled() {
-    ProgressManager.checkCanceled()
+    try {
+      ProgressManager.checkCanceled()
+    } catch (ex: ProcessCanceledException) {
+      // We are replacing an intellij-specific exception with an intellij independent one.
+      throw ExecutionCancellationException(ex)
+    }
   }
 }
