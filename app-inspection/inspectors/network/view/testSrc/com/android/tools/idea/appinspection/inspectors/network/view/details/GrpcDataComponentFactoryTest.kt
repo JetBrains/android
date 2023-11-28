@@ -19,6 +19,7 @@ import com.intellij.openapi.editor.impl.EditorComponentImpl
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.fileTypes.FileTypeManager
+import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.readText
 import com.intellij.testFramework.DisposableRule
@@ -168,12 +169,40 @@ internal class GrpcDataComponentFactoryTest {
   }
 
   @Test
+  fun createBodyComponent_requestIsProto_switchingPanel() {
+    val factory = grpcDataComponentFactory(requestPayloadText = PROTO)
+
+    val component = factory.createBodyComponent(REQUEST)
+
+    val switchingPanel = component?.findDescendant<SwitchingPanel> { true } ?: fail()
+    assertThat(switchingPanel.getComponent(0).findDescendant<EditorComponentImpl> { true })
+      .isNotNull()
+    assertThat(switchingPanel.getComponent(1)).isInstanceOf(BinaryDataViewer::class.java)
+  }
+
+  @Test
+  fun createBodyComponent_responseIsProto_switchingPanel() {
+    val factory = grpcDataComponentFactory(responsePayloadText = PROTO)
+
+    val component = factory.createBodyComponent(RESPONSE)
+
+    val switchingPanel = component?.findDescendant<SwitchingPanel> { true } ?: fail()
+    assertThat(switchingPanel.getComponent(0).findDescendant<EditorComponentImpl> { true })
+      .isNotNull()
+    assertThat(switchingPanel.getComponent(1)).isInstanceOf(BinaryDataViewer::class.java)
+  }
+
+  @Test
   fun createBodyComponent_unknownRequestFormat() {
     val factory = grpcDataComponentFactory(requestPayload = """unknown""")
 
     val component = factory.createBodyComponent(REQUEST)
 
-    assertThat(component?.findDescendant<BinaryDataViewer> { true }).isNotNull()
+    val switchingPanel = component?.findDescendant<SwitchingPanel> { true } ?: fail()
+    assertThat(switchingPanel.getComponent(0)).isInstanceOf(BinaryDataViewer::class.java)
+    val editor =
+      switchingPanel.getComponent(1).findDescendant<EditorComponentImpl> { true }?.editor ?: fail()
+    assertThat(editor.virtualFile.fileType).isEqualTo(PlainTextFileType.INSTANCE)
   }
 
   @Test
@@ -182,7 +211,11 @@ internal class GrpcDataComponentFactoryTest {
 
     val component = factory.createBodyComponent(RESPONSE)
 
-    assertThat(component?.findDescendant<BinaryDataViewer> { true }).isNotNull()
+    val switchingPanel = component?.findDescendant<SwitchingPanel> { true } ?: fail()
+    assertThat(switchingPanel.getComponent(0)).isInstanceOf(BinaryDataViewer::class.java)
+    val editor =
+      switchingPanel.getComponent(1).findDescendant<EditorComponentImpl> { true }?.editor ?: fail()
+    assertThat(editor.virtualFile.fileType).isEqualTo(PlainTextFileType.INSTANCE)
   }
 
   private fun grpcDataComponentFactory(

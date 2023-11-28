@@ -27,6 +27,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.fileTypes.FileTypeManager
+import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
@@ -71,28 +72,40 @@ internal class GrpcDataComponentFactory(
     return when {
       bytes.isEmpty() -> null
       fileType != null ->
-        createPrettyComponent("Payload (${fileType.displayName})", bytes, fileType)
-      text.isTextProto() -> createTextProtoComponent(text)
-      else -> createHideablePanel("Payload (Raw)", BinaryDataViewer(bytes), null)
+        createHideablePrettyComponent("Payload (${fileType.displayName})", bytes, fileType)
+      text.isTextProto() -> createTextProtoComponent(text, bytes)
+      else -> createRawComponent(text, bytes)
     }
   }
 
   /**
-   * S Creates a component that displays a prototext snippet.
+   * Creates a component that displays a prototext payload.
    *
    * The prototext snippet is created by the agent using the `toString()` method with a
    * `proto-message` annotation comment prepended. We make an attempt to locate the `proto` source
    * file that contains the definition for the message. If found, it is added as a `proto-file`
    * annotation.
    */
-  private fun createTextProtoComponent(text: String): JComponent {
+  private fun createTextProtoComponent(text: String, bytes: ByteArray): JComponent {
     val protoFiles = protoFileFinder.findProtoFiles()
     val type = text.substringAfter(": ").substringBefore("\n")
     val regex = "^message $type \\{$".toRegex(MULTILINE)
     val protoFile = protoFiles.find { it.readText().contains(regex) }?.name ?: "???"
-    val bytes = "# proto-file: $protoFile\n$text".toByteArray()
+    val protoBytes = "# proto-file: $protoFile\n$text".toByteArray()
     val fileType = getFileTypeManager().getFileTypeByExtension("textproto")
-    return createPrettyComponent("Payload (Proto)", bytes, fileType)
+    val protoTextComponent = createPrettyComponent(protoBytes, fileType)
+    val rawComponent = BinaryDataViewer(bytes)
+    val switchingPanel =
+      SwitchingPanel(protoTextComponent, "View Proto Text", rawComponent, "View Raw")
+    return createHideablePanel("Payload (Proto)", switchingPanel, switchingPanel.switcher)
+  }
+
+  /** Creates a component that displays a raw payload. */
+  private fun createRawComponent(text: String, bytes: ByteArray): JComponent {
+    val rawComponent = BinaryDataViewer(bytes)
+    val textComponent = createPrettyComponent(text.toByteArray(), PlainTextFileType.INSTANCE)
+    val switchingPanel = SwitchingPanel(rawComponent, "View Raw", textComponent, "View Text")
+    return createHideablePanel("Payload", switchingPanel, switchingPanel.switcher)
   }
 
   /**
@@ -110,20 +123,18 @@ internal class GrpcDataComponentFactory(
     }
   }
 
-  private fun createPrettyComponent(
-    title: String,
-    bytes: ByteArray,
-    fileType: FileType
-  ): JComponent {
-    val viewer =
-      IntellijDataViewer.createPrettyViewerIfPossible(
+  private fun createHideablePrettyComponent(title: String, bytes: ByteArray, fileType: FileType) =
+    createHideablePanel(title, createPrettyComponent(bytes, fileType), null)
+
+  private fun createPrettyComponent(bytes: ByteArray, fileType: FileType): JComponent {
+    return IntellijDataViewer.createPrettyViewerIfPossible(
         project,
         bytes,
         fileType,
         true,
         parentDisposable
       )
-    return createHideablePanel(title, viewer.component, null)
+      .component
   }
 
   fun interface ProtoFileFinder {
