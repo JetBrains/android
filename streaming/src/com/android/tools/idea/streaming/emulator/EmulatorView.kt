@@ -1099,8 +1099,7 @@ class EmulatorView(
         val touchEvent = TouchEvent.newBuilder()
           .setDisplay(displayId)
           .addTouches(createTouch(displayX, displayY, 0, pressure))
-          .addTouches(
-              createTouch(deviceDisplayRegion.width - 1 - displayX, deviceDisplayRegion.height - 1 - displayY, 1, pressure))
+          .addTouches(createTouch(deviceDisplayRegion.width - 1 - displayX, deviceDisplayRegion.height - 1 - displayY, 1, pressure))
           .build()
         emulator.sendTouch(touchEvent)
       }
