@@ -113,6 +113,15 @@ public final class StudioFlags {
     NPW, "enable.version.catalog", "Enable Gradle Version Catalog",
     "Use Gradle Version Catalogs for dependencies added in the new project/module wizard. (when existing project already uses Version Catalogs for new modules)",
     true);
+
+  public static final Flag<Boolean> NPW_ENABLE_GENAI_TEMPLATE = new BooleanFlag(
+    NPW, "genai.template",
+    "Enable GenAI template",
+    "Allows the GenAI template to be used.",
+    ChannelDefault.of(false)
+      .withDevOverride(true)
+      .withNightlyOverride(true)
+      .withCanaryOverride(true));
   //endregion
 
   //region Memory Usage Reporting

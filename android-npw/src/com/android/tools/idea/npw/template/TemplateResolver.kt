@@ -30,7 +30,11 @@ class TemplateResolver {
 
     fun getAllTemplates(): List<Template> {
       return EP_NAME.extensions
-        .flatMap { it.getTemplates() }
+        .flatMap {
+          it.getTemplates().filter {
+            StudioFlags.NPW_ENABLE_GENAI_TEMPLATE.get() || it.name != "Gemini API Starter"
+          }
+        }
     }
 
     fun getTemplateByName(name: String, category: Category? = null, formFactor: FormFactor? = null) =
