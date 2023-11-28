@@ -27,9 +27,9 @@ import com.android.tools.idea.insights.Selection
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import java.awt.Component
-import java.awt.Dimension
 import javax.swing.DefaultListCellRenderer
 import javax.swing.JList
+import kotlin.math.max
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
@@ -50,6 +50,14 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
   private var isDisabledIndex = false
   private var currentVariantSelection: Selection<IssueVariant>? = null
   private val scope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
+
+  override fun getMinimumPopupWidth(): Int {
+    var popupWidth = 100
+    for (i in 0 until model.size) {
+      popupWidth = max(popupWidth, model.getElementAt(i).getRendererComponent().preferredSize.width)
+    }
+    return popupWidth
+  }
 
   init {
     Disposer.register(parentDisposable, this)
@@ -83,6 +91,7 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
                   model.selectedItem = variants.selected!!.toVariantRow()
                 }
               }
+              prototypeDisplayValue = model.selectedItem as? Row
               currentVariantSelection = variants
               model.enabled = true
             }
@@ -99,7 +108,6 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
         }
       }
       .launchIn(scope)
-    preferredSize = Dimension(200, 20)
     renderer =
       object : DefaultListCellRenderer() {
         override fun getListCellRendererComponent(
@@ -156,7 +164,9 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
 
   private fun setDisableText(message: String) {
     model.removeAllElements()
-    model.addElement(DisabledTextRow(message))
+    val disabledRow = DisabledTextRow(message)
+    model.addElement(disabledRow)
+    prototypeDisplayValue = disabledRow
     model.enabled = false
   }
 
