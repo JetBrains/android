@@ -775,8 +775,6 @@ MODULE                        : MainActivity
                 qName                         : :app
                 group                         : MainActivity
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
@@ -790,524 +788,527 @@ MODULE                        : MainActivity
                     testRemoteReleaseUnitTest     : testRemoteReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testRemoteReleaseUnitTest
                 externalSystemId              : GRADLE
-                artifactsByConfiguration
-                    _internal_aapt2_binary        : <empty>
-                    androidApis                   : <empty>
-                    androidTestAnnotationProcessor          : <empty>
-                    androidTestApi                : <empty>
-                    androidTestApiDependenciesMetadata      : <empty>
-                    androidTestApk                : <empty>
-                    androidTestCompile            : <empty>
-                    androidTestCompileOnly        : <empty>
-                    androidTestCompileOnlyDependenciesMetadata        : <empty>
-                    androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugApi           : <empty>
-                    androidTestDebugApiDependenciesMetadata : <empty>
-                    androidTestDebugApk           : <empty>
-                    androidTestDebugCompile       : <empty>
-                    androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugCompileOnlyDependenciesMetadata   : <empty>
-                    androidTestDebugImplementation          : <empty>
-                    androidTestDebugImplementationDependenciesMetadata          : <empty>
-                    androidTestDebugIntransitiveDependenciesMetadata  : <empty>
-                    androidTestDebugProvided      : <empty>
-                    androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
-                    androidTestDebugWearApp       : <empty>
-                    androidTestImplementation     : <empty>
-                    androidTestImplementationDependenciesMetadata     : <empty>
-                    androidTestIntransitiveDependenciesMetadata       : <empty>
-                    androidTestLocalAnnotationProcessor     : <empty>
-                    androidTestLocalApi           : <empty>
-                    androidTestLocalApiDependenciesMetadata : <empty>
-                    androidTestLocalApk           : <empty>
-                    androidTestLocalCompile       : <empty>
-                    androidTestLocalCompileOnly   : <empty>
-                    androidTestLocalCompileOnlyDependenciesMetadata   : <empty>
-                    androidTestLocalDebugAnnotationProcessor          : <empty>
-                    androidTestLocalDebugApi      : <empty>
-                    androidTestLocalDebugApiDependenciesMetadata      : <empty>
-                    androidTestLocalDebugApk      : <empty>
-                    androidTestLocalDebugCompile  : <empty>
-                    androidTestLocalDebugCompileOnly        : <empty>
-                    androidTestLocalDebugCompileOnlyDependenciesMetadata        : <empty>
-                    androidTestLocalDebugImplementation     : <empty>
-                    androidTestLocalDebugImplementationDependenciesMetadata     : <empty>
-                    androidTestLocalDebugIntransitiveDependenciesMetadata       : <empty>
-                    androidTestLocalDebugProvided : <empty>
-                    androidTestLocalDebugRuntimeOnly        : <empty>
-                    androidTestLocalDebugRuntimeOnlyDependenciesMetadata        : <empty>
-                    androidTestLocalDebugWearApp  : <empty>
-                    androidTestLocalImplementation          : <empty>
-                    androidTestLocalImplementationDependenciesMetadata          : <empty>
-                    androidTestLocalIntransitiveDependenciesMetadata  : <empty>
-                    androidTestLocalProvided      : <empty>
-                    androidTestLocalRuntimeOnly   : <empty>
-                    androidTestLocalRuntimeOnlyDependenciesMetadata   : <empty>
-                    androidTestLocalWearApp       : <empty>
-                    androidTestProvided           : <empty>
-                    androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseApi         : <empty>
-                    androidTestReleaseApiDependenciesMetadata         : <empty>
-                    androidTestReleaseApk         : <empty>
-                    androidTestReleaseCompile     : <empty>
-                    androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseCompileOnlyDependenciesMetadata : <empty>
-                    androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseImplementationDependenciesMetadata        : <empty>
-                    androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
-                    androidTestReleaseProvided    : <empty>
-                    androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
-                    androidTestReleaseWearApp     : <empty>
-                    androidTestRemoteAnnotationProcessor    : <empty>
-                    androidTestRemoteApi          : <empty>
-                    androidTestRemoteApiDependenciesMetadata          : <empty>
-                    androidTestRemoteApk          : <empty>
-                    androidTestRemoteCompile      : <empty>
-                    androidTestRemoteCompileOnly  : <empty>
-                    androidTestRemoteCompileOnlyDependenciesMetadata  : <empty>
-                    androidTestRemoteDebugAnnotationProcessor         : <empty>
-                    androidTestRemoteDebugApi     : <empty>
-                    androidTestRemoteDebugApiDependenciesMetadata     : <empty>
-                    androidTestRemoteDebugApk     : <empty>
-                    androidTestRemoteDebugCompile : <empty>
-                    androidTestRemoteDebugCompileOnly       : <empty>
-                    androidTestRemoteDebugCompileOnlyDependenciesMetadata       : <empty>
-                    androidTestRemoteDebugImplementation    : <empty>
-                    androidTestRemoteDebugImplementationDependenciesMetadata    : <empty>
-                    androidTestRemoteDebugIntransitiveDependenciesMetadata      : <empty>
-                    androidTestRemoteDebugProvided          : <empty>
-                    androidTestRemoteDebugRuntimeOnly       : <empty>
-                    androidTestRemoteDebugRuntimeOnlyDependenciesMetadata       : <empty>
-                    androidTestRemoteDebugWearApp : <empty>
-                    androidTestRemoteImplementation         : <empty>
-                    androidTestRemoteImplementationDependenciesMetadata         : <empty>
-                    androidTestRemoteIntransitiveDependenciesMetadata : <empty>
-                    androidTestRemoteProvided     : <empty>
-                    androidTestRemoteRuntimeOnly  : <empty>
-                    androidTestRemoteRuntimeOnlyDependenciesMetadata  : <empty>
-                    androidTestRemoteWearApp      : <empty>
-                    androidTestRuntimeOnly        : <empty>
-                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
-                    androidTestUtil               : <empty>
-                    androidTestWearApp            : <empty>
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    apiDependenciesMetadata       : <empty>
-                    apk                           : <empty>
-                    archives                      : <empty>
-                    compile                       : <empty>
-                    compileOnly                   : <empty>
-                    compileOnlyDependenciesMetadata         : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    debugAnnotationProcessor      : <empty>
-                    debugApi                      : <empty>
-                    debugApiDependenciesMetadata  : <empty>
-                    debugApk                      : <empty>
-                    debugCompile                  : <empty>
-                    debugCompileOnly              : <empty>
-                    debugCompileOnlyDependenciesMetadata    : <empty>
-                    debugImplementation           : <empty>
-                    debugImplementationDependenciesMetadata : <empty>
-                    debugIntransitiveDependenciesMetadata   : <empty>
-                    debugProvided                 : <empty>
-                    debugRuntimeOnly              : <empty>
-                    debugRuntimeOnlyDependenciesMetadata    : <empty>
-                    debugWearApp                  : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    implementationDependenciesMetadata      : <empty>
-                    intransitiveDependenciesMetadata        : <empty>
-                    kapt                          : <empty>
-                    kaptAndroidTest               : <empty>
-                    kaptAndroidTestDebug          : <empty>
-                    kaptAndroidTestLocal          : <empty>
-                    kaptAndroidTestLocalDebug     : <empty>
-                    kaptAndroidTestRelease        : <empty>
-                    kaptAndroidTestRemote         : <empty>
-                    kaptAndroidTestRemoteDebug    : <empty>
-                    kaptClasspath_kaptLocalDebugAndroidTestKotlin     : <empty>
-                    kaptClasspath_kaptLocalDebugKotlin      : <empty>
-                    kaptClasspath_kaptLocalDebugUnitTestKotlin        : <empty>
-                    kaptClasspath_kaptLocalReleaseKotlin    : <empty>
-                    kaptClasspath_kaptLocalReleaseUnitTestKotlin      : <empty>
-                    kaptClasspath_kaptRemoteDebugAndroidTestKotlin    : <empty>
-                    kaptClasspath_kaptRemoteDebugKotlin     : <empty>
-                    kaptClasspath_kaptRemoteDebugUnitTestKotlin       : <empty>
-                    kaptClasspath_kaptRemoteReleaseKotlin   : <empty>
-                    kaptClasspath_kaptRemoteReleaseUnitTestKotlin     : <empty>
-                    kaptDebug                     : <empty>
-                    kaptLocal                     : <empty>
-                    kaptLocalDebug                : <empty>
-                    kaptLocalRelease              : <empty>
-                    kaptRelease                   : <empty>
-                    kaptRemote                    : <empty>
-                    kaptRemoteDebug               : <empty>
-                    kaptRemoteRelease             : <empty>
-                    kaptTest                      : <empty>
-                    kaptTestDebug                 : <empty>
-                    kaptTestLocal                 : <empty>
-                    kaptTestLocalDebug            : <empty>
-                    kaptTestLocalRelease          : <empty>
-                    kaptTestRelease               : <empty>
-                    kaptTestRemote                : <empty>
-                    kaptTestRemoteDebug           : <empty>
-                    kaptTestRemoteRelease         : <empty>
-                    kotlinCompilerClasspath       : <empty>
-                    kotlinCompilerPluginClasspath : <empty>
-                    kotlinCompilerPluginClasspathLocalDebug : <empty>
-                    kotlinCompilerPluginClasspathLocalDebugAndroidTest          : <empty>
-                    kotlinCompilerPluginClasspathLocalDebugUnitTest   : <empty>
-                    kotlinCompilerPluginClasspathLocalRelease         : <empty>
-                    kotlinCompilerPluginClasspathLocalReleaseUnitTest : <empty>
-                    kotlinCompilerPluginClasspathRemoteDebug          : <empty>
-                    kotlinCompilerPluginClasspathRemoteDebugAndroidTest         : <empty>
-                    kotlinCompilerPluginClasspathRemoteDebugUnitTest  : <empty>
-                    kotlinCompilerPluginClasspathRemoteRelease        : <empty>
-                    kotlinCompilerPluginClasspathRemoteReleaseUnitTest          : <empty>
-                    kotlinKaptWorkerDependencies  : <empty>
-                    kotlinKlibCommonizerClasspath : <empty>
-                    kotlinNativeCompilerPluginClasspath     : <empty>
-                    lintChecks                    : <empty>
-                    lintClassPath                 : <empty>
-                    lintPublish                   : <empty>
-                    localAnnotationProcessor      : <empty>
-                    localApi                      : <empty>
-                    localApiDependenciesMetadata  : <empty>
-                    localApk                      : <empty>
-                    localCompile                  : <empty>
-                    localCompileOnly              : <empty>
-                    localCompileOnlyDependenciesMetadata    : <empty>
-                    - localDebugAabPublication    : <ROOT>/app/build/outputs/bundle/localDebug/app-local-debug.aab [-]
-                    localDebugAndroidTestAnnotationProcessorClasspath : <empty>
-                    localDebugAndroidTestApi      : <empty>
-                    localDebugAndroidTestApiDependenciesMetadata      : <empty>
-                    localDebugAndroidTestCompileClasspath   : <empty>
-                    localDebugAndroidTestCompileOnly        : <empty>
-                    localDebugAndroidTestCompileOnlyDependenciesMetadata        : <empty>
-                    localDebugAndroidTestImplementation     : <empty>
-                    localDebugAndroidTestImplementationDependenciesMetadata     : <empty>
-                    localDebugAndroidTestIntransitiveDependenciesMetadata       : <empty>
-                    localDebugAndroidTestRuntimeClasspath   : <empty>
-                    localDebugAndroidTestRuntimeOnly        : <empty>
-                    localDebugAndroidTestRuntimeOnlyDependenciesMetadata        : <empty>
-                    localDebugAnnotationProcessor : <empty>
-                    localDebugAnnotationProcessorClasspath  : <empty>
-                    localDebugApi                 : <empty>
-                    localDebugApiDependenciesMetadata       : <empty>
-                    localDebugApiElements         : <empty>
-                    localDebugApk                 : <empty>
-                    - localDebugApkPublication    : <ROOT>/app/build/outputs/apk-zips/localDebug/apks.zip [-]
-                    localDebugCompile             : <empty>
-                    localDebugCompileClasspath    : <empty>
-                    localDebugCompileOnly         : <empty>
-                    localDebugCompileOnlyDependenciesMetadata         : <empty>
-                    localDebugImplementation      : <empty>
-                    localDebugImplementationDependenciesMetadata      : <empty>
-                    localDebugIntransitiveDependenciesMetadata        : <empty>
-                    localDebugProvided            : <empty>
-                    localDebugReverseMetadataValues         : <empty>
-                    localDebugRuntimeClasspath    : <empty>
-                    localDebugRuntimeElements     : <empty>
-                    localDebugRuntimeOnly         : <empty>
-                    localDebugRuntimeOnlyDependenciesMetadata         : <empty>
-                    localDebugUnitTestAnnotationProcessorClasspath    : <empty>
-                    localDebugUnitTestApi         : <empty>
-                    localDebugUnitTestApiDependenciesMetadata         : <empty>
-                    localDebugUnitTestCompileClasspath      : <empty>
-                    localDebugUnitTestCompileOnly : <empty>
-                    localDebugUnitTestCompileOnlyDependenciesMetadata : <empty>
-                    localDebugUnitTestImplementation        : <empty>
-                    localDebugUnitTestImplementationDependenciesMetadata        : <empty>
-                    localDebugUnitTestIntransitiveDependenciesMetadata          : <empty>
-                    localDebugUnitTestRuntimeClasspath      : <empty>
-                    localDebugUnitTestRuntimeOnly : <empty>
-                    localDebugUnitTestRuntimeOnlyDependenciesMetadata : <empty>
-                    localDebugWearApp             : <empty>
-                    localDebugWearBundling        : <empty>
-                    localImplementation           : <empty>
-                    localImplementationDependenciesMetadata : <empty>
-                    localIntransitiveDependenciesMetadata   : <empty>
-                    localProvided                 : <empty>
-                    - localReleaseAabPublication  : <ROOT>/app/build/outputs/bundle/localRelease/app-local-release.aab [-]
-                    localReleaseAnnotationProcessor         : <empty>
-                    localReleaseAnnotationProcessorClasspath          : <empty>
-                    localReleaseApi               : <empty>
-                    localReleaseApiDependenciesMetadata     : <empty>
-                    localReleaseApiElements       : <empty>
-                    localReleaseApk               : <empty>
-                    - localReleaseApkPublication  : <ROOT>/app/build/outputs/apk-zips/localRelease/apks.zip [-]
-                    localReleaseCompile           : <empty>
-                    localReleaseCompileClasspath  : <empty>
-                    localReleaseCompileOnly       : <empty>
-                    localReleaseCompileOnlyDependenciesMetadata       : <empty>
-                    localReleaseImplementation    : <empty>
-                    localReleaseImplementationDependenciesMetadata    : <empty>
-                    localReleaseIntransitiveDependenciesMetadata      : <empty>
-                    localReleaseProvided          : <empty>
-                    localReleaseReverseMetadataValues       : <empty>
-                    localReleaseRuntimeClasspath  : <empty>
-                    localReleaseRuntimeElements   : <empty>
-                    localReleaseRuntimeOnly       : <empty>
-                    localReleaseRuntimeOnlyDependenciesMetadata       : <empty>
-                    localReleaseUnitTestAnnotationProcessorClasspath  : <empty>
-                    localReleaseUnitTestApi       : <empty>
-                    localReleaseUnitTestApiDependenciesMetadata       : <empty>
-                    localReleaseUnitTestCompileClasspath    : <empty>
-                    localReleaseUnitTestCompileOnly         : <empty>
-                    localReleaseUnitTestCompileOnlyDependenciesMetadata         : <empty>
-                    localReleaseUnitTestImplementation      : <empty>
-                    localReleaseUnitTestImplementationDependenciesMetadata      : <empty>
-                    localReleaseUnitTestIntransitiveDependenciesMetadata        : <empty>
-                    localReleaseUnitTestRuntimeClasspath    : <empty>
-                    localReleaseUnitTestRuntimeOnly         : <empty>
-                    localReleaseUnitTestRuntimeOnlyDependenciesMetadata         : <empty>
-                    localReleaseWearApp           : <empty>
-                    localReleaseWearBundling      : <empty>
-                    localRuntimeOnly              : <empty>
-                    localRuntimeOnlyDependenciesMetadata    : <empty>
-                    localWearApp                  : <empty>
-                    provided                      : <empty>
-                    releaseAnnotationProcessor    : <empty>
-                    releaseApi                    : <empty>
-                    releaseApiDependenciesMetadata          : <empty>
-                    releaseApk                    : <empty>
-                    releaseCompile                : <empty>
-                    releaseCompileOnly            : <empty>
-                    releaseCompileOnlyDependenciesMetadata  : <empty>
-                    releaseImplementation         : <empty>
-                    releaseImplementationDependenciesMetadata         : <empty>
-                    releaseIntransitiveDependenciesMetadata : <empty>
-                    releaseProvided               : <empty>
-                    releaseRuntimeOnly            : <empty>
-                    releaseRuntimeOnlyDependenciesMetadata  : <empty>
-                    releaseWearApp                : <empty>
-                    remoteAnnotationProcessor     : <empty>
-                    remoteApi                     : <empty>
-                    remoteApiDependenciesMetadata : <empty>
-                    remoteApk                     : <empty>
-                    remoteCompile                 : <empty>
-                    remoteCompileOnly             : <empty>
-                    remoteCompileOnlyDependenciesMetadata   : <empty>
-                    - remoteDebugAabPublication   : <ROOT>/app/build/outputs/bundle/remoteDebug/app-remote-debug.aab [-]
-                    remoteDebugAndroidTestAnnotationProcessorClasspath          : <empty>
-                    remoteDebugAndroidTestApi     : <empty>
-                    remoteDebugAndroidTestApiDependenciesMetadata     : <empty>
-                    remoteDebugAndroidTestCompileClasspath  : <empty>
-                    remoteDebugAndroidTestCompileOnly       : <empty>
-                    remoteDebugAndroidTestCompileOnlyDependenciesMetadata       : <empty>
-                    remoteDebugAndroidTestImplementation    : <empty>
-                    remoteDebugAndroidTestImplementationDependenciesMetadata    : <empty>
-                    remoteDebugAndroidTestIntransitiveDependenciesMetadata      : <empty>
-                    remoteDebugAndroidTestRuntimeClasspath  : <empty>
-                    remoteDebugAndroidTestRuntimeOnly       : <empty>
-                    remoteDebugAndroidTestRuntimeOnlyDependenciesMetadata       : <empty>
-                    remoteDebugAnnotationProcessor          : <empty>
-                    remoteDebugAnnotationProcessorClasspath : <empty>
-                    remoteDebugApi                : <empty>
-                    remoteDebugApiDependenciesMetadata      : <empty>
-                    remoteDebugApiElements        : <empty>
-                    remoteDebugApk                : <empty>
-                    - remoteDebugApkPublication   : <ROOT>/app/build/outputs/apk-zips/remoteDebug/apks.zip [-]
-                    remoteDebugCompile            : <empty>
-                    remoteDebugCompileClasspath   : <empty>
-                    remoteDebugCompileOnly        : <empty>
-                    remoteDebugCompileOnlyDependenciesMetadata        : <empty>
-                    remoteDebugImplementation     : <empty>
-                    remoteDebugImplementationDependenciesMetadata     : <empty>
-                    remoteDebugIntransitiveDependenciesMetadata       : <empty>
-                    remoteDebugProvided           : <empty>
-                    remoteDebugReverseMetadataValues        : <empty>
-                    remoteDebugRuntimeClasspath   : <empty>
-                    remoteDebugRuntimeElements    : <empty>
-                    remoteDebugRuntimeOnly        : <empty>
-                    remoteDebugRuntimeOnlyDependenciesMetadata        : <empty>
-                    remoteDebugUnitTestAnnotationProcessorClasspath   : <empty>
-                    remoteDebugUnitTestApi        : <empty>
-                    remoteDebugUnitTestApiDependenciesMetadata        : <empty>
-                    remoteDebugUnitTestCompileClasspath     : <empty>
-                    remoteDebugUnitTestCompileOnly          : <empty>
-                    remoteDebugUnitTestCompileOnlyDependenciesMetadata          : <empty>
-                    remoteDebugUnitTestImplementation       : <empty>
-                    remoteDebugUnitTestImplementationDependenciesMetadata       : <empty>
-                    remoteDebugUnitTestIntransitiveDependenciesMetadata         : <empty>
-                    remoteDebugUnitTestRuntimeClasspath     : <empty>
-                    remoteDebugUnitTestRuntimeOnly          : <empty>
-                    remoteDebugUnitTestRuntimeOnlyDependenciesMetadata          : <empty>
-                    remoteDebugWearApp            : <empty>
-                    remoteDebugWearBundling       : <empty>
-                    remoteImplementation          : <empty>
-                    remoteImplementationDependenciesMetadata          : <empty>
-                    remoteIntransitiveDependenciesMetadata  : <empty>
-                    remoteProvided                : <empty>
-                    - remoteReleaseAabPublication : <ROOT>/app/build/outputs/bundle/remoteRelease/app-remote-release.aab [-]
-                    remoteReleaseAnnotationProcessor        : <empty>
-                    remoteReleaseAnnotationProcessorClasspath         : <empty>
-                    remoteReleaseApi              : <empty>
-                    remoteReleaseApiDependenciesMetadata    : <empty>
-                    remoteReleaseApiElements      : <empty>
-                    remoteReleaseApk              : <empty>
-                    - remoteReleaseApkPublication : <ROOT>/app/build/outputs/apk-zips/remoteRelease/apks.zip [-]
-                    remoteReleaseCompile          : <empty>
-                    remoteReleaseCompileClasspath : <empty>
-                    remoteReleaseCompileOnly      : <empty>
-                    remoteReleaseCompileOnlyDependenciesMetadata      : <empty>
-                    remoteReleaseImplementation   : <empty>
-                    remoteReleaseImplementationDependenciesMetadata   : <empty>
-                    remoteReleaseIntransitiveDependenciesMetadata     : <empty>
-                    remoteReleaseProvided         : <empty>
-                    remoteReleaseReverseMetadataValues      : <empty>
-                    remoteReleaseRuntimeClasspath : <empty>
-                    remoteReleaseRuntimeElements  : <empty>
-                    remoteReleaseRuntimeOnly      : <empty>
-                    remoteReleaseRuntimeOnlyDependenciesMetadata      : <empty>
-                    remoteReleaseUnitTestAnnotationProcessorClasspath : <empty>
-                    remoteReleaseUnitTestApi      : <empty>
-                    remoteReleaseUnitTestApiDependenciesMetadata      : <empty>
-                    remoteReleaseUnitTestCompileClasspath   : <empty>
-                    remoteReleaseUnitTestCompileOnly        : <empty>
-                    remoteReleaseUnitTestCompileOnlyDependenciesMetadata        : <empty>
-                    remoteReleaseUnitTestImplementation     : <empty>
-                    remoteReleaseUnitTestImplementationDependenciesMetadata     : <empty>
-                    remoteReleaseUnitTestIntransitiveDependenciesMetadata       : <empty>
-                    remoteReleaseUnitTestRuntimeClasspath   : <empty>
-                    remoteReleaseUnitTestRuntimeOnly        : <empty>
-                    remoteReleaseUnitTestRuntimeOnlyDependenciesMetadata        : <empty>
-                    remoteReleaseWearApp          : <empty>
-                    remoteReleaseWearBundling     : <empty>
-                    remoteRuntimeOnly             : <empty>
-                    remoteRuntimeOnlyDependenciesMetadata   : <empty>
-                    remoteWearApp                 : <empty>
-                    runtimeOnly                   : <empty>
-                    runtimeOnlyDependenciesMetadata         : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testApi                       : <empty>
-                    testApiDependenciesMetadata   : <empty>
-                    testApk                       : <empty>
-                    testCompile                   : <empty>
-                    testCompileOnly               : <empty>
-                    testCompileOnlyDependenciesMetadata     : <empty>
-                    testDebugAnnotationProcessor  : <empty>
-                    testDebugApi                  : <empty>
-                    testDebugApiDependenciesMetadata        : <empty>
-                    testDebugApk                  : <empty>
-                    testDebugCompile              : <empty>
-                    testDebugCompileOnly          : <empty>
-                    testDebugCompileOnlyDependenciesMetadata          : <empty>
-                    testDebugImplementation       : <empty>
-                    testDebugImplementationDependenciesMetadata       : <empty>
-                    testDebugIntransitiveDependenciesMetadata         : <empty>
-                    testDebugProvided             : <empty>
-                    testDebugRuntimeOnly          : <empty>
-                    testDebugRuntimeOnlyDependenciesMetadata          : <empty>
-                    testDebugWearApp              : <empty>
-                    testImplementation            : <empty>
-                    testImplementationDependenciesMetadata  : <empty>
-                    testIntransitiveDependenciesMetadata    : <empty>
-                    testLocalAnnotationProcessor  : <empty>
-                    testLocalApi                  : <empty>
-                    testLocalApiDependenciesMetadata        : <empty>
-                    testLocalApk                  : <empty>
-                    testLocalCompile              : <empty>
-                    testLocalCompileOnly          : <empty>
-                    testLocalCompileOnlyDependenciesMetadata          : <empty>
-                    testLocalDebugAnnotationProcessor       : <empty>
-                    testLocalDebugApi             : <empty>
-                    testLocalDebugApiDependenciesMetadata   : <empty>
-                    testLocalDebugApk             : <empty>
-                    testLocalDebugCompile         : <empty>
-                    testLocalDebugCompileOnly     : <empty>
-                    testLocalDebugCompileOnlyDependenciesMetadata     : <empty>
-                    testLocalDebugImplementation  : <empty>
-                    testLocalDebugImplementationDependenciesMetadata  : <empty>
-                    testLocalDebugIntransitiveDependenciesMetadata    : <empty>
-                    testLocalDebugProvided        : <empty>
-                    testLocalDebugRuntimeOnly     : <empty>
-                    testLocalDebugRuntimeOnlyDependenciesMetadata     : <empty>
-                    testLocalDebugWearApp         : <empty>
-                    testLocalImplementation       : <empty>
-                    testLocalImplementationDependenciesMetadata       : <empty>
-                    testLocalIntransitiveDependenciesMetadata         : <empty>
-                    testLocalProvided             : <empty>
-                    testLocalReleaseAnnotationProcessor     : <empty>
-                    testLocalReleaseApi           : <empty>
-                    testLocalReleaseApiDependenciesMetadata : <empty>
-                    testLocalReleaseApk           : <empty>
-                    testLocalReleaseCompile       : <empty>
-                    testLocalReleaseCompileOnly   : <empty>
-                    testLocalReleaseCompileOnlyDependenciesMetadata   : <empty>
-                    testLocalReleaseImplementation          : <empty>
-                    testLocalReleaseImplementationDependenciesMetadata          : <empty>
-                    testLocalReleaseIntransitiveDependenciesMetadata  : <empty>
-                    testLocalReleaseProvided      : <empty>
-                    testLocalReleaseRuntimeOnly   : <empty>
-                    testLocalReleaseRuntimeOnlyDependenciesMetadata   : <empty>
-                    testLocalReleaseWearApp       : <empty>
-                    testLocalRuntimeOnly          : <empty>
-                    testLocalRuntimeOnlyDependenciesMetadata          : <empty>
-                    testLocalWearApp              : <empty>
-                    testProvided                  : <empty>
-                    testReleaseAnnotationProcessor          : <empty>
-                    testReleaseApi                : <empty>
-                    testReleaseApiDependenciesMetadata      : <empty>
-                    testReleaseApk                : <empty>
-                    testReleaseCompile            : <empty>
-                    testReleaseCompileOnly        : <empty>
-                    testReleaseCompileOnlyDependenciesMetadata        : <empty>
-                    testReleaseImplementation     : <empty>
-                    testReleaseImplementationDependenciesMetadata     : <empty>
-                    testReleaseIntransitiveDependenciesMetadata       : <empty>
-                    testReleaseProvided           : <empty>
-                    testReleaseRuntimeOnly        : <empty>
-                    testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
-                    testReleaseWearApp            : <empty>
-                    testRemoteAnnotationProcessor : <empty>
-                    testRemoteApi                 : <empty>
-                    testRemoteApiDependenciesMetadata       : <empty>
-                    testRemoteApk                 : <empty>
-                    testRemoteCompile             : <empty>
-                    testRemoteCompileOnly         : <empty>
-                    testRemoteCompileOnlyDependenciesMetadata         : <empty>
-                    testRemoteDebugAnnotationProcessor      : <empty>
-                    testRemoteDebugApi            : <empty>
-                    testRemoteDebugApiDependenciesMetadata  : <empty>
-                    testRemoteDebugApk            : <empty>
-                    testRemoteDebugCompile        : <empty>
-                    testRemoteDebugCompileOnly    : <empty>
-                    testRemoteDebugCompileOnlyDependenciesMetadata    : <empty>
-                    testRemoteDebugImplementation : <empty>
-                    testRemoteDebugImplementationDependenciesMetadata : <empty>
-                    testRemoteDebugIntransitiveDependenciesMetadata   : <empty>
-                    testRemoteDebugProvided       : <empty>
-                    testRemoteDebugRuntimeOnly    : <empty>
-                    testRemoteDebugRuntimeOnlyDependenciesMetadata    : <empty>
-                    testRemoteDebugWearApp        : <empty>
-                    testRemoteImplementation      : <empty>
-                    testRemoteImplementationDependenciesMetadata      : <empty>
-                    testRemoteIntransitiveDependenciesMetadata        : <empty>
-                    testRemoteProvided            : <empty>
-                    testRemoteReleaseAnnotationProcessor    : <empty>
-                    testRemoteReleaseApi          : <empty>
-                    testRemoteReleaseApiDependenciesMetadata          : <empty>
-                    testRemoteReleaseApk          : <empty>
-                    testRemoteReleaseCompile      : <empty>
-                    testRemoteReleaseCompileOnly  : <empty>
-                    testRemoteReleaseCompileOnlyDependenciesMetadata  : <empty>
-                    testRemoteReleaseImplementation         : <empty>
-                    testRemoteReleaseImplementationDependenciesMetadata         : <empty>
-                    testRemoteReleaseIntransitiveDependenciesMetadata : <empty>
-                    testRemoteReleaseProvided     : <empty>
-                    testRemoteReleaseRuntimeOnly  : <empty>
-                    testRemoteReleaseRuntimeOnlyDependenciesMetadata  : <empty>
-                    testRemoteReleaseWearApp      : <empty>
-                    testRemoteRuntimeOnly         : <empty>
-                    testRemoteRuntimeOnlyDependenciesMetadata         : <empty>
-                    testRemoteWearApp             : <empty>
-                    testRuntimeOnly               : <empty>
-                    testRuntimeOnlyDependenciesMetadata     : <empty>
-                    testWearApp                   : <empty>
-                    wearApp                       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    configurationArtifacts
+                        _internal_aapt2_binary        : <empty>
+                        androidApis                   : <empty>
+                        androidTestAnnotationProcessor          : <empty>
+                        androidTestApi                : <empty>
+                        androidTestApiDependenciesMetadata      : <empty>
+                        androidTestApk                : <empty>
+                        androidTestCompile            : <empty>
+                        androidTestCompileOnly        : <empty>
+                        androidTestCompileOnlyDependenciesMetadata        : <empty>
+                        androidTestDebugAnnotationProcessor     : <empty>
+                        androidTestDebugApi           : <empty>
+                        androidTestDebugApiDependenciesMetadata : <empty>
+                        androidTestDebugApk           : <empty>
+                        androidTestDebugCompile       : <empty>
+                        androidTestDebugCompileOnly   : <empty>
+                        androidTestDebugCompileOnlyDependenciesMetadata   : <empty>
+                        androidTestDebugImplementation          : <empty>
+                        androidTestDebugImplementationDependenciesMetadata          : <empty>
+                        androidTestDebugIntransitiveDependenciesMetadata  : <empty>
+                        androidTestDebugProvided      : <empty>
+                        androidTestDebugRuntimeOnly   : <empty>
+                        androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
+                        androidTestDebugWearApp       : <empty>
+                        androidTestImplementation     : <empty>
+                        androidTestImplementationDependenciesMetadata     : <empty>
+                        androidTestIntransitiveDependenciesMetadata       : <empty>
+                        androidTestLocalAnnotationProcessor     : <empty>
+                        androidTestLocalApi           : <empty>
+                        androidTestLocalApiDependenciesMetadata : <empty>
+                        androidTestLocalApk           : <empty>
+                        androidTestLocalCompile       : <empty>
+                        androidTestLocalCompileOnly   : <empty>
+                        androidTestLocalCompileOnlyDependenciesMetadata   : <empty>
+                        androidTestLocalDebugAnnotationProcessor          : <empty>
+                        androidTestLocalDebugApi      : <empty>
+                        androidTestLocalDebugApiDependenciesMetadata      : <empty>
+                        androidTestLocalDebugApk      : <empty>
+                        androidTestLocalDebugCompile  : <empty>
+                        androidTestLocalDebugCompileOnly        : <empty>
+                        androidTestLocalDebugCompileOnlyDependenciesMetadata        : <empty>
+                        androidTestLocalDebugImplementation     : <empty>
+                        androidTestLocalDebugImplementationDependenciesMetadata     : <empty>
+                        androidTestLocalDebugIntransitiveDependenciesMetadata       : <empty>
+                        androidTestLocalDebugProvided : <empty>
+                        androidTestLocalDebugRuntimeOnly        : <empty>
+                        androidTestLocalDebugRuntimeOnlyDependenciesMetadata        : <empty>
+                        androidTestLocalDebugWearApp  : <empty>
+                        androidTestLocalImplementation          : <empty>
+                        androidTestLocalImplementationDependenciesMetadata          : <empty>
+                        androidTestLocalIntransitiveDependenciesMetadata  : <empty>
+                        androidTestLocalProvided      : <empty>
+                        androidTestLocalRuntimeOnly   : <empty>
+                        androidTestLocalRuntimeOnlyDependenciesMetadata   : <empty>
+                        androidTestLocalWearApp       : <empty>
+                        androidTestProvided           : <empty>
+                        androidTestReleaseAnnotationProcessor   : <empty>
+                        androidTestReleaseApi         : <empty>
+                        androidTestReleaseApiDependenciesMetadata         : <empty>
+                        androidTestReleaseApk         : <empty>
+                        androidTestReleaseCompile     : <empty>
+                        androidTestReleaseCompileOnly : <empty>
+                        androidTestReleaseCompileOnlyDependenciesMetadata : <empty>
+                        androidTestReleaseImplementation        : <empty>
+                        androidTestReleaseImplementationDependenciesMetadata        : <empty>
+                        androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
+                        androidTestReleaseProvided    : <empty>
+                        androidTestReleaseRuntimeOnly : <empty>
+                        androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
+                        androidTestReleaseWearApp     : <empty>
+                        androidTestRemoteAnnotationProcessor    : <empty>
+                        androidTestRemoteApi          : <empty>
+                        androidTestRemoteApiDependenciesMetadata          : <empty>
+                        androidTestRemoteApk          : <empty>
+                        androidTestRemoteCompile      : <empty>
+                        androidTestRemoteCompileOnly  : <empty>
+                        androidTestRemoteCompileOnlyDependenciesMetadata  : <empty>
+                        androidTestRemoteDebugAnnotationProcessor         : <empty>
+                        androidTestRemoteDebugApi     : <empty>
+                        androidTestRemoteDebugApiDependenciesMetadata     : <empty>
+                        androidTestRemoteDebugApk     : <empty>
+                        androidTestRemoteDebugCompile : <empty>
+                        androidTestRemoteDebugCompileOnly       : <empty>
+                        androidTestRemoteDebugCompileOnlyDependenciesMetadata       : <empty>
+                        androidTestRemoteDebugImplementation    : <empty>
+                        androidTestRemoteDebugImplementationDependenciesMetadata    : <empty>
+                        androidTestRemoteDebugIntransitiveDependenciesMetadata      : <empty>
+                        androidTestRemoteDebugProvided          : <empty>
+                        androidTestRemoteDebugRuntimeOnly       : <empty>
+                        androidTestRemoteDebugRuntimeOnlyDependenciesMetadata       : <empty>
+                        androidTestRemoteDebugWearApp : <empty>
+                        androidTestRemoteImplementation         : <empty>
+                        androidTestRemoteImplementationDependenciesMetadata         : <empty>
+                        androidTestRemoteIntransitiveDependenciesMetadata : <empty>
+                        androidTestRemoteProvided     : <empty>
+                        androidTestRemoteRuntimeOnly  : <empty>
+                        androidTestRemoteRuntimeOnlyDependenciesMetadata  : <empty>
+                        androidTestRemoteWearApp      : <empty>
+                        androidTestRuntimeOnly        : <empty>
+                        androidTestRuntimeOnlyDependenciesMetadata        : <empty>
+                        androidTestUtil               : <empty>
+                        androidTestWearApp            : <empty>
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        apiDependenciesMetadata       : <empty>
+                        apk                           : <empty>
+                        archives                      : <empty>
+                        compile                       : <empty>
+                        compileOnly                   : <empty>
+                        compileOnlyDependenciesMetadata         : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        debugAnnotationProcessor      : <empty>
+                        debugApi                      : <empty>
+                        debugApiDependenciesMetadata  : <empty>
+                        debugApk                      : <empty>
+                        debugCompile                  : <empty>
+                        debugCompileOnly              : <empty>
+                        debugCompileOnlyDependenciesMetadata    : <empty>
+                        debugImplementation           : <empty>
+                        debugImplementationDependenciesMetadata : <empty>
+                        debugIntransitiveDependenciesMetadata   : <empty>
+                        debugProvided                 : <empty>
+                        debugRuntimeOnly              : <empty>
+                        debugRuntimeOnlyDependenciesMetadata    : <empty>
+                        debugWearApp                  : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        implementationDependenciesMetadata      : <empty>
+                        intransitiveDependenciesMetadata        : <empty>
+                        kapt                          : <empty>
+                        kaptAndroidTest               : <empty>
+                        kaptAndroidTestDebug          : <empty>
+                        kaptAndroidTestLocal          : <empty>
+                        kaptAndroidTestLocalDebug     : <empty>
+                        kaptAndroidTestRelease        : <empty>
+                        kaptAndroidTestRemote         : <empty>
+                        kaptAndroidTestRemoteDebug    : <empty>
+                        kaptClasspath_kaptLocalDebugAndroidTestKotlin     : <empty>
+                        kaptClasspath_kaptLocalDebugKotlin      : <empty>
+                        kaptClasspath_kaptLocalDebugUnitTestKotlin        : <empty>
+                        kaptClasspath_kaptLocalReleaseKotlin    : <empty>
+                        kaptClasspath_kaptLocalReleaseUnitTestKotlin      : <empty>
+                        kaptClasspath_kaptRemoteDebugAndroidTestKotlin    : <empty>
+                        kaptClasspath_kaptRemoteDebugKotlin     : <empty>
+                        kaptClasspath_kaptRemoteDebugUnitTestKotlin       : <empty>
+                        kaptClasspath_kaptRemoteReleaseKotlin   : <empty>
+                        kaptClasspath_kaptRemoteReleaseUnitTestKotlin     : <empty>
+                        kaptDebug                     : <empty>
+                        kaptLocal                     : <empty>
+                        kaptLocalDebug                : <empty>
+                        kaptLocalRelease              : <empty>
+                        kaptRelease                   : <empty>
+                        kaptRemote                    : <empty>
+                        kaptRemoteDebug               : <empty>
+                        kaptRemoteRelease             : <empty>
+                        kaptTest                      : <empty>
+                        kaptTestDebug                 : <empty>
+                        kaptTestLocal                 : <empty>
+                        kaptTestLocalDebug            : <empty>
+                        kaptTestLocalRelease          : <empty>
+                        kaptTestRelease               : <empty>
+                        kaptTestRemote                : <empty>
+                        kaptTestRemoteDebug           : <empty>
+                        kaptTestRemoteRelease         : <empty>
+                        kotlinCompilerClasspath       : <empty>
+                        kotlinCompilerPluginClasspath : <empty>
+                        kotlinCompilerPluginClasspathLocalDebug : <empty>
+                        kotlinCompilerPluginClasspathLocalDebugAndroidTest          : <empty>
+                        kotlinCompilerPluginClasspathLocalDebugUnitTest   : <empty>
+                        kotlinCompilerPluginClasspathLocalRelease         : <empty>
+                        kotlinCompilerPluginClasspathLocalReleaseUnitTest : <empty>
+                        kotlinCompilerPluginClasspathRemoteDebug          : <empty>
+                        kotlinCompilerPluginClasspathRemoteDebugAndroidTest         : <empty>
+                        kotlinCompilerPluginClasspathRemoteDebugUnitTest  : <empty>
+                        kotlinCompilerPluginClasspathRemoteRelease        : <empty>
+                        kotlinCompilerPluginClasspathRemoteReleaseUnitTest          : <empty>
+                        kotlinKaptWorkerDependencies  : <empty>
+                        kotlinKlibCommonizerClasspath : <empty>
+                        kotlinNativeCompilerPluginClasspath     : <empty>
+                        lintChecks                    : <empty>
+                        lintClassPath                 : <empty>
+                        lintPublish                   : <empty>
+                        localAnnotationProcessor      : <empty>
+                        localApi                      : <empty>
+                        localApiDependenciesMetadata  : <empty>
+                        localApk                      : <empty>
+                        localCompile                  : <empty>
+                        localCompileOnly              : <empty>
+                        localCompileOnlyDependenciesMetadata    : <empty>
+                        - localDebugAabPublication    : <ROOT>/app/build/outputs/bundle/localDebug/app-local-debug.aab [-]
+                        localDebugAndroidTestAnnotationProcessorClasspath : <empty>
+                        localDebugAndroidTestApi      : <empty>
+                        localDebugAndroidTestApiDependenciesMetadata      : <empty>
+                        localDebugAndroidTestCompileClasspath   : <empty>
+                        localDebugAndroidTestCompileOnly        : <empty>
+                        localDebugAndroidTestCompileOnlyDependenciesMetadata        : <empty>
+                        localDebugAndroidTestImplementation     : <empty>
+                        localDebugAndroidTestImplementationDependenciesMetadata     : <empty>
+                        localDebugAndroidTestIntransitiveDependenciesMetadata       : <empty>
+                        localDebugAndroidTestRuntimeClasspath   : <empty>
+                        localDebugAndroidTestRuntimeOnly        : <empty>
+                        localDebugAndroidTestRuntimeOnlyDependenciesMetadata        : <empty>
+                        localDebugAnnotationProcessor : <empty>
+                        localDebugAnnotationProcessorClasspath  : <empty>
+                        localDebugApi                 : <empty>
+                        localDebugApiDependenciesMetadata       : <empty>
+                        localDebugApiElements         : <empty>
+                        localDebugApk                 : <empty>
+                        - localDebugApkPublication    : <ROOT>/app/build/outputs/apk-zips/localDebug/apks.zip [-]
+                        localDebugCompile             : <empty>
+                        localDebugCompileClasspath    : <empty>
+                        localDebugCompileOnly         : <empty>
+                        localDebugCompileOnlyDependenciesMetadata         : <empty>
+                        localDebugImplementation      : <empty>
+                        localDebugImplementationDependenciesMetadata      : <empty>
+                        localDebugIntransitiveDependenciesMetadata        : <empty>
+                        localDebugProvided            : <empty>
+                        localDebugReverseMetadataValues         : <empty>
+                        localDebugRuntimeClasspath    : <empty>
+                        localDebugRuntimeElements     : <empty>
+                        localDebugRuntimeOnly         : <empty>
+                        localDebugRuntimeOnlyDependenciesMetadata         : <empty>
+                        localDebugUnitTestAnnotationProcessorClasspath    : <empty>
+                        localDebugUnitTestApi         : <empty>
+                        localDebugUnitTestApiDependenciesMetadata         : <empty>
+                        localDebugUnitTestCompileClasspath      : <empty>
+                        localDebugUnitTestCompileOnly : <empty>
+                        localDebugUnitTestCompileOnlyDependenciesMetadata : <empty>
+                        localDebugUnitTestImplementation        : <empty>
+                        localDebugUnitTestImplementationDependenciesMetadata        : <empty>
+                        localDebugUnitTestIntransitiveDependenciesMetadata          : <empty>
+                        localDebugUnitTestRuntimeClasspath      : <empty>
+                        localDebugUnitTestRuntimeOnly : <empty>
+                        localDebugUnitTestRuntimeOnlyDependenciesMetadata : <empty>
+                        localDebugWearApp             : <empty>
+                        localDebugWearBundling        : <empty>
+                        localImplementation           : <empty>
+                        localImplementationDependenciesMetadata : <empty>
+                        localIntransitiveDependenciesMetadata   : <empty>
+                        localProvided                 : <empty>
+                        - localReleaseAabPublication  : <ROOT>/app/build/outputs/bundle/localRelease/app-local-release.aab [-]
+                        localReleaseAnnotationProcessor         : <empty>
+                        localReleaseAnnotationProcessorClasspath          : <empty>
+                        localReleaseApi               : <empty>
+                        localReleaseApiDependenciesMetadata     : <empty>
+                        localReleaseApiElements       : <empty>
+                        localReleaseApk               : <empty>
+                        - localReleaseApkPublication  : <ROOT>/app/build/outputs/apk-zips/localRelease/apks.zip [-]
+                        localReleaseCompile           : <empty>
+                        localReleaseCompileClasspath  : <empty>
+                        localReleaseCompileOnly       : <empty>
+                        localReleaseCompileOnlyDependenciesMetadata       : <empty>
+                        localReleaseImplementation    : <empty>
+                        localReleaseImplementationDependenciesMetadata    : <empty>
+                        localReleaseIntransitiveDependenciesMetadata      : <empty>
+                        localReleaseProvided          : <empty>
+                        localReleaseReverseMetadataValues       : <empty>
+                        localReleaseRuntimeClasspath  : <empty>
+                        localReleaseRuntimeElements   : <empty>
+                        localReleaseRuntimeOnly       : <empty>
+                        localReleaseRuntimeOnlyDependenciesMetadata       : <empty>
+                        localReleaseUnitTestAnnotationProcessorClasspath  : <empty>
+                        localReleaseUnitTestApi       : <empty>
+                        localReleaseUnitTestApiDependenciesMetadata       : <empty>
+                        localReleaseUnitTestCompileClasspath    : <empty>
+                        localReleaseUnitTestCompileOnly         : <empty>
+                        localReleaseUnitTestCompileOnlyDependenciesMetadata         : <empty>
+                        localReleaseUnitTestImplementation      : <empty>
+                        localReleaseUnitTestImplementationDependenciesMetadata      : <empty>
+                        localReleaseUnitTestIntransitiveDependenciesMetadata        : <empty>
+                        localReleaseUnitTestRuntimeClasspath    : <empty>
+                        localReleaseUnitTestRuntimeOnly         : <empty>
+                        localReleaseUnitTestRuntimeOnlyDependenciesMetadata         : <empty>
+                        localReleaseWearApp           : <empty>
+                        localReleaseWearBundling      : <empty>
+                        localRuntimeOnly              : <empty>
+                        localRuntimeOnlyDependenciesMetadata    : <empty>
+                        localWearApp                  : <empty>
+                        provided                      : <empty>
+                        releaseAnnotationProcessor    : <empty>
+                        releaseApi                    : <empty>
+                        releaseApiDependenciesMetadata          : <empty>
+                        releaseApk                    : <empty>
+                        releaseCompile                : <empty>
+                        releaseCompileOnly            : <empty>
+                        releaseCompileOnlyDependenciesMetadata  : <empty>
+                        releaseImplementation         : <empty>
+                        releaseImplementationDependenciesMetadata         : <empty>
+                        releaseIntransitiveDependenciesMetadata : <empty>
+                        releaseProvided               : <empty>
+                        releaseRuntimeOnly            : <empty>
+                        releaseRuntimeOnlyDependenciesMetadata  : <empty>
+                        releaseWearApp                : <empty>
+                        remoteAnnotationProcessor     : <empty>
+                        remoteApi                     : <empty>
+                        remoteApiDependenciesMetadata : <empty>
+                        remoteApk                     : <empty>
+                        remoteCompile                 : <empty>
+                        remoteCompileOnly             : <empty>
+                        remoteCompileOnlyDependenciesMetadata   : <empty>
+                        - remoteDebugAabPublication   : <ROOT>/app/build/outputs/bundle/remoteDebug/app-remote-debug.aab [-]
+                        remoteDebugAndroidTestAnnotationProcessorClasspath          : <empty>
+                        remoteDebugAndroidTestApi     : <empty>
+                        remoteDebugAndroidTestApiDependenciesMetadata     : <empty>
+                        remoteDebugAndroidTestCompileClasspath  : <empty>
+                        remoteDebugAndroidTestCompileOnly       : <empty>
+                        remoteDebugAndroidTestCompileOnlyDependenciesMetadata       : <empty>
+                        remoteDebugAndroidTestImplementation    : <empty>
+                        remoteDebugAndroidTestImplementationDependenciesMetadata    : <empty>
+                        remoteDebugAndroidTestIntransitiveDependenciesMetadata      : <empty>
+                        remoteDebugAndroidTestRuntimeClasspath  : <empty>
+                        remoteDebugAndroidTestRuntimeOnly       : <empty>
+                        remoteDebugAndroidTestRuntimeOnlyDependenciesMetadata       : <empty>
+                        remoteDebugAnnotationProcessor          : <empty>
+                        remoteDebugAnnotationProcessorClasspath : <empty>
+                        remoteDebugApi                : <empty>
+                        remoteDebugApiDependenciesMetadata      : <empty>
+                        remoteDebugApiElements        : <empty>
+                        remoteDebugApk                : <empty>
+                        - remoteDebugApkPublication   : <ROOT>/app/build/outputs/apk-zips/remoteDebug/apks.zip [-]
+                        remoteDebugCompile            : <empty>
+                        remoteDebugCompileClasspath   : <empty>
+                        remoteDebugCompileOnly        : <empty>
+                        remoteDebugCompileOnlyDependenciesMetadata        : <empty>
+                        remoteDebugImplementation     : <empty>
+                        remoteDebugImplementationDependenciesMetadata     : <empty>
+                        remoteDebugIntransitiveDependenciesMetadata       : <empty>
+                        remoteDebugProvided           : <empty>
+                        remoteDebugReverseMetadataValues        : <empty>
+                        remoteDebugRuntimeClasspath   : <empty>
+                        remoteDebugRuntimeElements    : <empty>
+                        remoteDebugRuntimeOnly        : <empty>
+                        remoteDebugRuntimeOnlyDependenciesMetadata        : <empty>
+                        remoteDebugUnitTestAnnotationProcessorClasspath   : <empty>
+                        remoteDebugUnitTestApi        : <empty>
+                        remoteDebugUnitTestApiDependenciesMetadata        : <empty>
+                        remoteDebugUnitTestCompileClasspath     : <empty>
+                        remoteDebugUnitTestCompileOnly          : <empty>
+                        remoteDebugUnitTestCompileOnlyDependenciesMetadata          : <empty>
+                        remoteDebugUnitTestImplementation       : <empty>
+                        remoteDebugUnitTestImplementationDependenciesMetadata       : <empty>
+                        remoteDebugUnitTestIntransitiveDependenciesMetadata         : <empty>
+                        remoteDebugUnitTestRuntimeClasspath     : <empty>
+                        remoteDebugUnitTestRuntimeOnly          : <empty>
+                        remoteDebugUnitTestRuntimeOnlyDependenciesMetadata          : <empty>
+                        remoteDebugWearApp            : <empty>
+                        remoteDebugWearBundling       : <empty>
+                        remoteImplementation          : <empty>
+                        remoteImplementationDependenciesMetadata          : <empty>
+                        remoteIntransitiveDependenciesMetadata  : <empty>
+                        remoteProvided                : <empty>
+                        - remoteReleaseAabPublication : <ROOT>/app/build/outputs/bundle/remoteRelease/app-remote-release.aab [-]
+                        remoteReleaseAnnotationProcessor        : <empty>
+                        remoteReleaseAnnotationProcessorClasspath         : <empty>
+                        remoteReleaseApi              : <empty>
+                        remoteReleaseApiDependenciesMetadata    : <empty>
+                        remoteReleaseApiElements      : <empty>
+                        remoteReleaseApk              : <empty>
+                        - remoteReleaseApkPublication : <ROOT>/app/build/outputs/apk-zips/remoteRelease/apks.zip [-]
+                        remoteReleaseCompile          : <empty>
+                        remoteReleaseCompileClasspath : <empty>
+                        remoteReleaseCompileOnly      : <empty>
+                        remoteReleaseCompileOnlyDependenciesMetadata      : <empty>
+                        remoteReleaseImplementation   : <empty>
+                        remoteReleaseImplementationDependenciesMetadata   : <empty>
+                        remoteReleaseIntransitiveDependenciesMetadata     : <empty>
+                        remoteReleaseProvided         : <empty>
+                        remoteReleaseReverseMetadataValues      : <empty>
+                        remoteReleaseRuntimeClasspath : <empty>
+                        remoteReleaseRuntimeElements  : <empty>
+                        remoteReleaseRuntimeOnly      : <empty>
+                        remoteReleaseRuntimeOnlyDependenciesMetadata      : <empty>
+                        remoteReleaseUnitTestAnnotationProcessorClasspath : <empty>
+                        remoteReleaseUnitTestApi      : <empty>
+                        remoteReleaseUnitTestApiDependenciesMetadata      : <empty>
+                        remoteReleaseUnitTestCompileClasspath   : <empty>
+                        remoteReleaseUnitTestCompileOnly        : <empty>
+                        remoteReleaseUnitTestCompileOnlyDependenciesMetadata        : <empty>
+                        remoteReleaseUnitTestImplementation     : <empty>
+                        remoteReleaseUnitTestImplementationDependenciesMetadata     : <empty>
+                        remoteReleaseUnitTestIntransitiveDependenciesMetadata       : <empty>
+                        remoteReleaseUnitTestRuntimeClasspath   : <empty>
+                        remoteReleaseUnitTestRuntimeOnly        : <empty>
+                        remoteReleaseUnitTestRuntimeOnlyDependenciesMetadata        : <empty>
+                        remoteReleaseWearApp          : <empty>
+                        remoteReleaseWearBundling     : <empty>
+                        remoteRuntimeOnly             : <empty>
+                        remoteRuntimeOnlyDependenciesMetadata   : <empty>
+                        remoteWearApp                 : <empty>
+                        runtimeOnly                   : <empty>
+                        runtimeOnlyDependenciesMetadata         : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testApi                       : <empty>
+                        testApiDependenciesMetadata   : <empty>
+                        testApk                       : <empty>
+                        testCompile                   : <empty>
+                        testCompileOnly               : <empty>
+                        testCompileOnlyDependenciesMetadata     : <empty>
+                        testDebugAnnotationProcessor  : <empty>
+                        testDebugApi                  : <empty>
+                        testDebugApiDependenciesMetadata        : <empty>
+                        testDebugApk                  : <empty>
+                        testDebugCompile              : <empty>
+                        testDebugCompileOnly          : <empty>
+                        testDebugCompileOnlyDependenciesMetadata          : <empty>
+                        testDebugImplementation       : <empty>
+                        testDebugImplementationDependenciesMetadata       : <empty>
+                        testDebugIntransitiveDependenciesMetadata         : <empty>
+                        testDebugProvided             : <empty>
+                        testDebugRuntimeOnly          : <empty>
+                        testDebugRuntimeOnlyDependenciesMetadata          : <empty>
+                        testDebugWearApp              : <empty>
+                        testImplementation            : <empty>
+                        testImplementationDependenciesMetadata  : <empty>
+                        testIntransitiveDependenciesMetadata    : <empty>
+                        testLocalAnnotationProcessor  : <empty>
+                        testLocalApi                  : <empty>
+                        testLocalApiDependenciesMetadata        : <empty>
+                        testLocalApk                  : <empty>
+                        testLocalCompile              : <empty>
+                        testLocalCompileOnly          : <empty>
+                        testLocalCompileOnlyDependenciesMetadata          : <empty>
+                        testLocalDebugAnnotationProcessor       : <empty>
+                        testLocalDebugApi             : <empty>
+                        testLocalDebugApiDependenciesMetadata   : <empty>
+                        testLocalDebugApk             : <empty>
+                        testLocalDebugCompile         : <empty>
+                        testLocalDebugCompileOnly     : <empty>
+                        testLocalDebugCompileOnlyDependenciesMetadata     : <empty>
+                        testLocalDebugImplementation  : <empty>
+                        testLocalDebugImplementationDependenciesMetadata  : <empty>
+                        testLocalDebugIntransitiveDependenciesMetadata    : <empty>
+                        testLocalDebugProvided        : <empty>
+                        testLocalDebugRuntimeOnly     : <empty>
+                        testLocalDebugRuntimeOnlyDependenciesMetadata     : <empty>
+                        testLocalDebugWearApp         : <empty>
+                        testLocalImplementation       : <empty>
+                        testLocalImplementationDependenciesMetadata       : <empty>
+                        testLocalIntransitiveDependenciesMetadata         : <empty>
+                        testLocalProvided             : <empty>
+                        testLocalReleaseAnnotationProcessor     : <empty>
+                        testLocalReleaseApi           : <empty>
+                        testLocalReleaseApiDependenciesMetadata : <empty>
+                        testLocalReleaseApk           : <empty>
+                        testLocalReleaseCompile       : <empty>
+                        testLocalReleaseCompileOnly   : <empty>
+                        testLocalReleaseCompileOnlyDependenciesMetadata   : <empty>
+                        testLocalReleaseImplementation          : <empty>
+                        testLocalReleaseImplementationDependenciesMetadata          : <empty>
+                        testLocalReleaseIntransitiveDependenciesMetadata  : <empty>
+                        testLocalReleaseProvided      : <empty>
+                        testLocalReleaseRuntimeOnly   : <empty>
+                        testLocalReleaseRuntimeOnlyDependenciesMetadata   : <empty>
+                        testLocalReleaseWearApp       : <empty>
+                        testLocalRuntimeOnly          : <empty>
+                        testLocalRuntimeOnlyDependenciesMetadata          : <empty>
+                        testLocalWearApp              : <empty>
+                        testProvided                  : <empty>
+                        testReleaseAnnotationProcessor          : <empty>
+                        testReleaseApi                : <empty>
+                        testReleaseApiDependenciesMetadata      : <empty>
+                        testReleaseApk                : <empty>
+                        testReleaseCompile            : <empty>
+                        testReleaseCompileOnly        : <empty>
+                        testReleaseCompileOnlyDependenciesMetadata        : <empty>
+                        testReleaseImplementation     : <empty>
+                        testReleaseImplementationDependenciesMetadata     : <empty>
+                        testReleaseIntransitiveDependenciesMetadata       : <empty>
+                        testReleaseProvided           : <empty>
+                        testReleaseRuntimeOnly        : <empty>
+                        testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
+                        testReleaseWearApp            : <empty>
+                        testRemoteAnnotationProcessor : <empty>
+                        testRemoteApi                 : <empty>
+                        testRemoteApiDependenciesMetadata       : <empty>
+                        testRemoteApk                 : <empty>
+                        testRemoteCompile             : <empty>
+                        testRemoteCompileOnly         : <empty>
+                        testRemoteCompileOnlyDependenciesMetadata         : <empty>
+                        testRemoteDebugAnnotationProcessor      : <empty>
+                        testRemoteDebugApi            : <empty>
+                        testRemoteDebugApiDependenciesMetadata  : <empty>
+                        testRemoteDebugApk            : <empty>
+                        testRemoteDebugCompile        : <empty>
+                        testRemoteDebugCompileOnly    : <empty>
+                        testRemoteDebugCompileOnlyDependenciesMetadata    : <empty>
+                        testRemoteDebugImplementation : <empty>
+                        testRemoteDebugImplementationDependenciesMetadata : <empty>
+                        testRemoteDebugIntransitiveDependenciesMetadata   : <empty>
+                        testRemoteDebugProvided       : <empty>
+                        testRemoteDebugRuntimeOnly    : <empty>
+                        testRemoteDebugRuntimeOnlyDependenciesMetadata    : <empty>
+                        testRemoteDebugWearApp        : <empty>
+                        testRemoteImplementation      : <empty>
+                        testRemoteImplementationDependenciesMetadata      : <empty>
+                        testRemoteIntransitiveDependenciesMetadata        : <empty>
+                        testRemoteProvided            : <empty>
+                        testRemoteReleaseAnnotationProcessor    : <empty>
+                        testRemoteReleaseApi          : <empty>
+                        testRemoteReleaseApiDependenciesMetadata          : <empty>
+                        testRemoteReleaseApk          : <empty>
+                        testRemoteReleaseCompile      : <empty>
+                        testRemoteReleaseCompileOnly  : <empty>
+                        testRemoteReleaseCompileOnlyDependenciesMetadata  : <empty>
+                        testRemoteReleaseImplementation         : <empty>
+                        testRemoteReleaseImplementationDependenciesMetadata         : <empty>
+                        testRemoteReleaseIntransitiveDependenciesMetadata : <empty>
+                        testRemoteReleaseProvided     : <empty>
+                        testRemoteReleaseRuntimeOnly  : <empty>
+                        testRemoteReleaseRuntimeOnlyDependenciesMetadata  : <empty>
+                        testRemoteReleaseWearApp      : <empty>
+                        testRemoteRuntimeOnly         : <empty>
+                        testRemoteRuntimeOnlyDependenciesMetadata         : <empty>
+                        testRemoteWearApp             : <empty>
+                        testRuntimeOnly               : <empty>
+                        testRuntimeOnlyDependenciesMetadata     : <empty>
+                        testWearApp                   : <empty>
+                        wearApp                       : <empty>
             javaLib                       : :javaLib (DefaultExternalProject)
                 path                          : :javaLib [-]
                 identityPath                  : :javaLib [-]
@@ -1315,153 +1316,154 @@ MODULE                        : MainActivity
                 qName                         : :javaLib
                 group                         : MainActivity
                 version                       : unspecified
-                sourceCompatibility           : 1.7
-                targetCompatibility           : 1.7
                 projectDir                    : <ROOT>/javaLib
                 buildDir                      : <ROOT>/javaLib/build
                 buildFile                     : <ROOT>/javaLib/build.gradle
                 tasks
                     test                          : test (DefaultExternalTask)
                         qName                         : :javaLib:test
-                sourceSets
-                    main                          : main (DefaultExternalSourceSet)
-                        sources
-                            RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/javaLib/src/main/resources [-]
-                                outputDir                     : <ROOT>/javaLib/out/production/resources [-]
-                                - gradleOutputDirs            : <ROOT>/javaLib/build/resources/main [-]
-                                patterns                      : FilePatternSetImpl
-                            SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/javaLib/src/main/java
-                                - srcDirs                     : <ROOT>/javaLib/src/main/kotlin [-]
-                                outputDir                     : <ROOT>/javaLib/out/production/classes [-]
-                                - gradleOutputDirs            : <ROOT>/javaLib/build/classes/java/main [-]
-                                - gradleOutputDirs            : <ROOT>/javaLib/build/classes/kotlin/main [-]
-                                - gradleOutputDirs            : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
-                                patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/dagger/dagger/2.6/dagger-2.6.jar
-                            source                        : <M2>/com/google/dagger/dagger/2.6/dagger-2.6-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
-                            source                        : <M2>/javax/inject/javax.inject/1/javax.inject-1-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                            source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/javaLib/build/classes/java/main [-]
-                            - files                       : <ROOT>/javaLib/build/classes/kotlin/main [-]
-                            - files                       : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
-                            - files                       : <ROOT>/javaLib/build/resources/main [-]
-                        - artifacts                   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
-                        sourceCompatibility           : 1.7
-                        targetCompatibility           : 1.7
-                    test                          : test (DefaultExternalSourceSet)
-                        sources
-                            TEST                          : alljava (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/javaLib/src/test/java [-]
-                                - srcDirs                     : <ROOT>/javaLib/src/test/kotlin [-]
-                                outputDir                     : <ROOT>/javaLib/out/test/classes [-]
-                                - gradleOutputDirs            : <ROOT>/javaLib/build/classes/java/test [-]
-                                - gradleOutputDirs            : <ROOT>/javaLib/build/classes/kotlin/test [-]
-                                - gradleOutputDirs            : <ROOT>/javaLib/build/tmp/kapt3/classes/test [-]
-                                patterns                      : FilePatternSetImpl
-                            TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/javaLib/src/test/resources [-]
-                                outputDir                     : <ROOT>/javaLib/out/test/resources [-]
-                                - gradleOutputDirs            : <ROOT>/javaLib/build/resources/test [-]
-                                patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/javaLib/build/classes/java/main [-]
-                            - files                       : <ROOT>/javaLib/build/classes/kotlin/main [-]
-                            - files                       : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
-                            - files                       : <ROOT>/javaLib/build/resources/main [-]
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/dagger/dagger/2.6/dagger-2.6.jar
-                            source                        : <M2>/com/google/dagger/dagger/2.6/dagger-2.6-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
-                            source                        : <M2>/javax/inject/javax.inject/1/javax.inject-1-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                            source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/javaLib/build/classes/java/test [-]
-                            - files                       : <ROOT>/javaLib/build/classes/kotlin/test [-]
-                            - files                       : <ROOT>/javaLib/build/tmp/kapt3/classes/test [-]
-                            - files                       : <ROOT>/javaLib/build/resources/test [-]
-                        sourceCompatibility           : 1.7
-                        targetCompatibility           : 1.7
                 externalSystemId              : GRADLE
-                - artifacts                   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
-                artifactsByConfiguration
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    apiDependenciesMetadata       : <empty>
-                    - apiElements                 : <ROOT>/javaLib/build/libs/javaLib.jar [-]
-                    - apiElements-published       : <ROOT>/javaLib/build/libs/javaLib.jar [-]
-                    - archives                    : <ROOT>/javaLib/build/libs/javaLib.jar [-]
-                    compile                       : <empty>
-                    compileClasspath              : <empty>
-                    compileOnly                   : <empty>
-                    compileOnlyApi                : <empty>
-                    compileOnlyDependenciesMetadata         : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    implementationDependenciesMetadata      : <empty>
-                    intransitiveDependenciesMetadata        : <empty>
-                    kapt                          : <empty>
-                    kaptClasspath_kaptKotlin      : <empty>
-                    kaptClasspath_kaptTestKotlin  : <empty>
-                    kaptTest                      : <empty>
-                    kotlinCompilerClasspath       : <empty>
-                    kotlinCompilerPluginClasspath : <empty>
-                    kotlinCompilerPluginClasspathMain       : <empty>
-                    kotlinCompilerPluginClasspathTest       : <empty>
-                    kotlinKaptWorkerDependencies  : <empty>
-                    kotlinKlibCommonizerClasspath : <empty>
-                    kotlinNativeCompilerPluginClasspath     : <empty>
-                    kotlinScriptDef               : <empty>
-                    kotlinScriptDefExtensions     : <empty>
-                    - runtime                     : <ROOT>/javaLib/build/libs/javaLib.jar [-]
-                    runtimeClasspath              : <empty>
-                    - runtimeElements             : <ROOT>/javaLib/build/libs/javaLib.jar [-]
-                    - runtimeElements-published   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
-                    runtimeOnly                   : <empty>
-                    runtimeOnlyDependenciesMetadata         : <empty>
-                    - sourceArtifacts             : <ROOT>/javaLib/build/libs/javaLib-sources.jar [-]
-                    testAnnotationProcessor       : <empty>
-                    testApi                       : <empty>
-                    testApiDependenciesMetadata   : <empty>
-                    testCompile                   : <empty>
-                    testCompileClasspath          : <empty>
-                    testCompileOnly               : <empty>
-                    testCompileOnlyDependenciesMetadata     : <empty>
-                    testImplementation            : <empty>
-                    testImplementationDependenciesMetadata  : <empty>
-                    testIntransitiveDependenciesMetadata    : <empty>
-                    testKotlinScriptDef           : <empty>
-                    testKotlinScriptDefExtensions : <empty>
-                    testRuntime                   : <empty>
-                    testRuntimeClasspath          : <empty>
-                    testRuntimeOnly               : <empty>
-                    testRuntimeOnlyDependenciesMetadata     : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : 1.7
+                    targetCompatibility           : 1.7
+                    - taskArtifacts               : <ROOT>/javaLib/build/libs/javaLib.jar [-]
+                    configurationArtifacts
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        apiDependenciesMetadata       : <empty>
+                        - apiElements                 : <ROOT>/javaLib/build/libs/javaLib.jar [-]
+                        - apiElements-published       : <ROOT>/javaLib/build/libs/javaLib.jar [-]
+                        - archives                    : <ROOT>/javaLib/build/libs/javaLib.jar [-]
+                        compile                       : <empty>
+                        compileClasspath              : <empty>
+                        compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
+                        compileOnlyDependenciesMetadata         : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        implementationDependenciesMetadata      : <empty>
+                        intransitiveDependenciesMetadata        : <empty>
+                        kapt                          : <empty>
+                        kaptClasspath_kaptKotlin      : <empty>
+                        kaptClasspath_kaptTestKotlin  : <empty>
+                        kaptTest                      : <empty>
+                        kotlinCompilerClasspath       : <empty>
+                        kotlinCompilerPluginClasspath : <empty>
+                        kotlinCompilerPluginClasspathMain       : <empty>
+                        kotlinCompilerPluginClasspathTest       : <empty>
+                        kotlinKaptWorkerDependencies  : <empty>
+                        kotlinKlibCommonizerClasspath : <empty>
+                        kotlinNativeCompilerPluginClasspath     : <empty>
+                        kotlinScriptDef               : <empty>
+                        kotlinScriptDefExtensions     : <empty>
+                        - runtime                     : <ROOT>/javaLib/build/libs/javaLib.jar [-]
+                        runtimeClasspath              : <empty>
+                        - runtimeElements             : <ROOT>/javaLib/build/libs/javaLib.jar [-]
+                        - runtimeElements-published   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
+                        runtimeOnly                   : <empty>
+                        runtimeOnlyDependenciesMetadata         : <empty>
+                        - sourceArtifacts             : <ROOT>/javaLib/build/libs/javaLib-sources.jar [-]
+                        testAnnotationProcessor       : <empty>
+                        testApi                       : <empty>
+                        testApiDependenciesMetadata   : <empty>
+                        testCompile                   : <empty>
+                        testCompileClasspath          : <empty>
+                        testCompileOnly               : <empty>
+                        testCompileOnlyDependenciesMetadata     : <empty>
+                        testImplementation            : <empty>
+                        testImplementationDependenciesMetadata  : <empty>
+                        testIntransitiveDependenciesMetadata    : <empty>
+                        testKotlinScriptDef           : <empty>
+                        testKotlinScriptDefExtensions : <empty>
+                        testRuntime                   : <empty>
+                        testRuntimeClasspath          : <empty>
+                        testRuntimeOnly               : <empty>
+                        testRuntimeOnlyDependenciesMetadata     : <empty>
+                    sourceSets
+                        main                          : main (DefaultExternalSourceSet)
+                            sources
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javaLib/src/main/resources [-]
+                                    outputDir                     : <ROOT>/javaLib/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javaLib/src/main/java
+                                    - srcDirs                     : <ROOT>/javaLib/src/main/kotlin [-]
+                                    outputDir                     : <ROOT>/javaLib/out/production/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/classes/java/main [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/classes/kotlin/main [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
+                                    patterns                      : FilePatternSetImpl
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/dagger/dagger/2.6/dagger-2.6.jar
+                                source                        : <M2>/com/google/dagger/dagger/2.6/dagger-2.6-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
+                                source                        : <M2>/javax/inject/javax.inject/1/javax.inject-1-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javaLib/build/classes/java/main [-]
+                                - files                       : <ROOT>/javaLib/build/classes/kotlin/main [-]
+                                - files                       : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
+                                - files                       : <ROOT>/javaLib/build/resources/main [-]
+                            - artifacts                   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
+                            sourceCompatibility           : 1.7
+                            targetCompatibility           : 1.7
+                        test                          : test (DefaultExternalSourceSet)
+                            sources
+                                TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javaLib/src/test/java [-]
+                                    - srcDirs                     : <ROOT>/javaLib/src/test/kotlin [-]
+                                    outputDir                     : <ROOT>/javaLib/out/test/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/classes/java/test [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/classes/kotlin/test [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/tmp/kapt3/classes/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javaLib/src/test/resources [-]
+                                    outputDir                     : <ROOT>/javaLib/out/test/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/javaLib/build/resources/test [-]
+                                    patterns                      : FilePatternSetImpl
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javaLib/build/classes/java/main [-]
+                                - files                       : <ROOT>/javaLib/build/classes/kotlin/main [-]
+                                - files                       : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
+                                - files                       : <ROOT>/javaLib/build/resources/main [-]
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/dagger/dagger/2.6/dagger-2.6.jar
+                                source                        : <M2>/com/google/dagger/dagger/2.6/dagger-2.6-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
+                                source                        : <M2>/javax/inject/javax.inject/1/javax.inject-1-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javaLib/build/classes/java/test [-]
+                                - files                       : <ROOT>/javaLib/build/classes/kotlin/test [-]
+                                - files                       : <ROOT>/javaLib/build/tmp/kapt3/classes/test [-]
+                                - files                       : <ROOT>/javaLib/build/resources/test [-]
+                            sourceCompatibility           : 1.7
+                            targetCompatibility           : 1.7
             lib                           : :lib (DefaultExternalProject)
                 path                          : :lib [-]
                 identityPath                  : :lib [-]
@@ -1469,8 +1471,6 @@ MODULE                        : MainActivity
                 qName                         : :lib
                 group                         : MainActivity
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/lib
                 buildDir                      : <ROOT>/lib/build [-]
                 buildFile                     : <ROOT>/lib/build.gradle
@@ -1480,218 +1480,222 @@ MODULE                        : MainActivity
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :lib:testReleaseUnitTest
                 externalSystemId              : GRADLE
-                artifactsByConfiguration
-                    _internal_aapt2_binary        : <empty>
-                    androidApis                   : <empty>
-                    androidTestAnnotationProcessor          : <empty>
-                    androidTestApi                : <empty>
-                    androidTestApiDependenciesMetadata      : <empty>
-                    androidTestCompile            : <empty>
-                    androidTestCompileOnly        : <empty>
-                    androidTestCompileOnlyDependenciesMetadata        : <empty>
-                    androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugApi           : <empty>
-                    androidTestDebugApiDependenciesMetadata : <empty>
-                    androidTestDebugCompile       : <empty>
-                    androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugCompileOnlyDependenciesMetadata   : <empty>
-                    androidTestDebugImplementation          : <empty>
-                    androidTestDebugImplementationDependenciesMetadata          : <empty>
-                    androidTestDebugIntransitiveDependenciesMetadata  : <empty>
-                    androidTestDebugProvided      : <empty>
-                    androidTestDebugPublish       : <empty>
-                    androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
-                    androidTestDebugWearApp       : <empty>
-                    androidTestImplementation     : <empty>
-                    androidTestImplementationDependenciesMetadata     : <empty>
-                    androidTestIntransitiveDependenciesMetadata       : <empty>
-                    androidTestProvided           : <empty>
-                    androidTestPublish            : <empty>
-                    androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseApi         : <empty>
-                    androidTestReleaseApiDependenciesMetadata         : <empty>
-                    androidTestReleaseCompile     : <empty>
-                    androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseCompileOnlyDependenciesMetadata : <empty>
-                    androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseImplementationDependenciesMetadata        : <empty>
-                    androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
-                    androidTestReleaseProvided    : <empty>
-                    androidTestReleasePublish     : <empty>
-                    androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
-                    androidTestReleaseWearApp     : <empty>
-                    androidTestRuntimeOnly        : <empty>
-                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
-                    androidTestUtil               : <empty>
-                    androidTestWearApp            : <empty>
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    apiDependenciesMetadata       : <empty>
-                    - archives                    : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - archives                    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    compile                       : <empty>
-                    compileOnly                   : <empty>
-                    compileOnlyDependenciesMetadata         : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    - debugAllApiPublication      : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugAllRuntimePublication  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
-                    debugAndroidTestApi           : <empty>
-                    debugAndroidTestApiDependenciesMetadata : <empty>
-                    debugAndroidTestCompileClasspath        : <empty>
-                    debugAndroidTestCompileOnly   : <empty>
-                    debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
-                    debugAndroidTestImplementation          : <empty>
-                    debugAndroidTestImplementationDependenciesMetadata          : <empty>
-                    debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
-                    debugAndroidTestRuntimeClasspath        : <empty>
-                    debugAndroidTestRuntimeOnly   : <empty>
-                    debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
-                    debugAnnotationProcessor      : <empty>
-                    debugAnnotationProcessorClasspath       : <empty>
-                    debugApi                      : <empty>
-                    debugApiDependenciesMetadata  : <empty>
-                    debugApiElements              : <empty>
-                    - debugApiElements-published  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugArchives               : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    debugCompile                  : <empty>
-                    debugCompileClasspath         : <empty>
-                    debugCompileOnly              : <empty>
-                    debugCompileOnlyDependenciesMetadata    : <empty>
-                    debugImplementation           : <empty>
-                    debugImplementationDependenciesMetadata : <empty>
-                    debugIntransitiveDependenciesMetadata   : <empty>
-                    debugProvided                 : <empty>
-                    debugPublish                  : <empty>
-                    debugRuntimeClasspath         : <empty>
-                    debugRuntimeElements          : <empty>
-                    - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    debugRuntimeOnly              : <empty>
-                    debugRuntimeOnlyDependenciesMetadata    : <empty>
-                    - debugRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugSourceArtifacts        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
-                    debugUnitTestAnnotationProcessorClasspath         : <empty>
-                    debugUnitTestApi              : <empty>
-                    debugUnitTestApiDependenciesMetadata    : <empty>
-                    debugUnitTestCompileClasspath : <empty>
-                    debugUnitTestCompileOnly      : <empty>
-                    debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
-                    debugUnitTestImplementation   : <empty>
-                    debugUnitTestImplementationDependenciesMetadata   : <empty>
-                    debugUnitTestIntransitiveDependenciesMetadata     : <empty>
-                    debugUnitTestRuntimeClasspath : <empty>
-                    debugUnitTestRuntimeOnly      : <empty>
-                    debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
-                    debugWearApp                  : <empty>
-                    - default                     : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    implementation                : <empty>
-                    implementationDependenciesMetadata      : <empty>
-                    intransitiveDependenciesMetadata        : <empty>
-                    kotlinCompilerClasspath       : <empty>
-                    kotlinCompilerPluginClasspath : <empty>
-                    kotlinCompilerPluginClasspathDebug      : <empty>
-                    kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
-                    kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
-                    kotlinCompilerPluginClasspathRelease    : <empty>
-                    kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
-                    kotlinKlibCommonizerClasspath : <empty>
-                    kotlinNativeCompilerPluginClasspath     : <empty>
-                    lintChecks                    : <empty>
-                    lintClassPath                 : <empty>
-                    lintPublish                   : <empty>
-                    provided                      : <empty>
-                    publish                       : <empty>
-                    - releaseAllApiPublication    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseAllRuntimePublication          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    releaseAnnotationProcessor    : <empty>
-                    releaseAnnotationProcessorClasspath     : <empty>
-                    releaseApi                    : <empty>
-                    releaseApiDependenciesMetadata          : <empty>
-                    releaseApiElements            : <empty>
-                    - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseArchives             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    releaseCompile                : <empty>
-                    releaseCompileClasspath       : <empty>
-                    releaseCompileOnly            : <empty>
-                    releaseCompileOnlyDependenciesMetadata  : <empty>
-                    releaseImplementation         : <empty>
-                    releaseImplementationDependenciesMetadata         : <empty>
-                    releaseIntransitiveDependenciesMetadata : <empty>
-                    releaseProvided               : <empty>
-                    releasePublish                : <empty>
-                    releaseRuntimeClasspath       : <empty>
-                    releaseRuntimeElements        : <empty>
-                    - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    releaseRuntimeOnly            : <empty>
-                    releaseRuntimeOnlyDependenciesMetadata  : <empty>
-                    - releaseRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseSourceArtifacts      : <ROOT>/lib/build/libs/lib-sources.jar [-]
-                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                    releaseUnitTestApi            : <empty>
-                    releaseUnitTestApiDependenciesMetadata  : <empty>
-                    releaseUnitTestCompileClasspath         : <empty>
-                    releaseUnitTestCompileOnly    : <empty>
-                    releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
-                    releaseUnitTestImplementation : <empty>
-                    releaseUnitTestImplementationDependenciesMetadata : <empty>
-                    releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
-                    releaseUnitTestRuntimeClasspath         : <empty>
-                    releaseUnitTestRuntimeOnly    : <empty>
-                    releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
-                    releaseWearApp                : <empty>
-                    runtimeOnly                   : <empty>
-                    runtimeOnlyDependenciesMetadata         : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testApi                       : <empty>
-                    testApiDependenciesMetadata   : <empty>
-                    testCompile                   : <empty>
-                    testCompileOnly               : <empty>
-                    testCompileOnlyDependenciesMetadata     : <empty>
-                    testDebugAnnotationProcessor  : <empty>
-                    testDebugApi                  : <empty>
-                    testDebugApiDependenciesMetadata        : <empty>
-                    testDebugCompile              : <empty>
-                    testDebugCompileOnly          : <empty>
-                    testDebugCompileOnlyDependenciesMetadata          : <empty>
-                    testDebugImplementation       : <empty>
-                    testDebugImplementationDependenciesMetadata       : <empty>
-                    testDebugIntransitiveDependenciesMetadata         : <empty>
-                    testDebugProvided             : <empty>
-                    testDebugPublish              : <empty>
-                    testDebugRuntimeOnly          : <empty>
-                    testDebugRuntimeOnlyDependenciesMetadata          : <empty>
-                    testDebugWearApp              : <empty>
-                    testImplementation            : <empty>
-                    testImplementationDependenciesMetadata  : <empty>
-                    testIntransitiveDependenciesMetadata    : <empty>
-                    testProvided                  : <empty>
-                    testPublish                   : <empty>
-                    testReleaseAnnotationProcessor          : <empty>
-                    testReleaseApi                : <empty>
-                    testReleaseApiDependenciesMetadata      : <empty>
-                    testReleaseCompile            : <empty>
-                    testReleaseCompileOnly        : <empty>
-                    testReleaseCompileOnlyDependenciesMetadata        : <empty>
-                    testReleaseImplementation     : <empty>
-                    testReleaseImplementationDependenciesMetadata     : <empty>
-                    testReleaseIntransitiveDependenciesMetadata       : <empty>
-                    testReleaseProvided           : <empty>
-                    testReleasePublish            : <empty>
-                    testReleaseRuntimeOnly        : <empty>
-                    testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
-                    testReleaseWearApp            : <empty>
-                    testRuntimeOnly               : <empty>
-                    testRuntimeOnlyDependenciesMetadata     : <empty>
-                    testWearApp                   : <empty>
-                    wearApp                       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    configurationArtifacts
+                        _internal_aapt2_binary        : <empty>
+                        androidApis                   : <empty>
+                        androidTestAnnotationProcessor          : <empty>
+                        androidTestApi                : <empty>
+                        androidTestApiDependenciesMetadata      : <empty>
+                        androidTestCompile            : <empty>
+                        androidTestCompileOnly        : <empty>
+                        androidTestCompileOnlyDependenciesMetadata        : <empty>
+                        androidTestDebugAnnotationProcessor     : <empty>
+                        androidTestDebugApi           : <empty>
+                        androidTestDebugApiDependenciesMetadata : <empty>
+                        androidTestDebugCompile       : <empty>
+                        androidTestDebugCompileOnly   : <empty>
+                        androidTestDebugCompileOnlyDependenciesMetadata   : <empty>
+                        androidTestDebugImplementation          : <empty>
+                        androidTestDebugImplementationDependenciesMetadata          : <empty>
+                        androidTestDebugIntransitiveDependenciesMetadata  : <empty>
+                        androidTestDebugProvided      : <empty>
+                        androidTestDebugPublish       : <empty>
+                        androidTestDebugRuntimeOnly   : <empty>
+                        androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
+                        androidTestDebugWearApp       : <empty>
+                        androidTestImplementation     : <empty>
+                        androidTestImplementationDependenciesMetadata     : <empty>
+                        androidTestIntransitiveDependenciesMetadata       : <empty>
+                        androidTestProvided           : <empty>
+                        androidTestPublish            : <empty>
+                        androidTestReleaseAnnotationProcessor   : <empty>
+                        androidTestReleaseApi         : <empty>
+                        androidTestReleaseApiDependenciesMetadata         : <empty>
+                        androidTestReleaseCompile     : <empty>
+                        androidTestReleaseCompileOnly : <empty>
+                        androidTestReleaseCompileOnlyDependenciesMetadata : <empty>
+                        androidTestReleaseImplementation        : <empty>
+                        androidTestReleaseImplementationDependenciesMetadata        : <empty>
+                        androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
+                        androidTestReleaseProvided    : <empty>
+                        androidTestReleasePublish     : <empty>
+                        androidTestReleaseRuntimeOnly : <empty>
+                        androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
+                        androidTestReleaseWearApp     : <empty>
+                        androidTestRuntimeOnly        : <empty>
+                        androidTestRuntimeOnlyDependenciesMetadata        : <empty>
+                        androidTestUtil               : <empty>
+                        androidTestWearApp            : <empty>
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        apiDependenciesMetadata       : <empty>
+                        - archives                    : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - archives                    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        compile                       : <empty>
+                        compileOnly                   : <empty>
+                        compileOnlyDependenciesMetadata         : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        - debugAllApiPublication      : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugAllRuntimePublication  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                        debugAndroidTestApi           : <empty>
+                        debugAndroidTestApiDependenciesMetadata : <empty>
+                        debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestCompileOnly   : <empty>
+                        debugAndroidTestCompileOnlyDependenciesMetadata   : <empty>
+                        debugAndroidTestImplementation          : <empty>
+                        debugAndroidTestImplementationDependenciesMetadata          : <empty>
+                        debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
+                        debugAndroidTestRuntimeClasspath        : <empty>
+                        debugAndroidTestRuntimeOnly   : <empty>
+                        debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
+                        debugAnnotationProcessor      : <empty>
+                        debugAnnotationProcessorClasspath       : <empty>
+                        debugApi                      : <empty>
+                        debugApiDependenciesMetadata  : <empty>
+                        debugApiElements              : <empty>
+                        - debugApiElements-published  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugArchives               : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        debugCompile                  : <empty>
+                        debugCompileClasspath         : <empty>
+                        debugCompileOnly              : <empty>
+                        debugCompileOnlyDependenciesMetadata    : <empty>
+                        debugImplementation           : <empty>
+                        debugImplementationDependenciesMetadata : <empty>
+                        debugIntransitiveDependenciesMetadata   : <empty>
+                        debugProvided                 : <empty>
+                        debugPublish                  : <empty>
+                        debugRuntimeClasspath         : <empty>
+                        debugRuntimeElements          : <empty>
+                        - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        debugRuntimeOnly              : <empty>
+                        debugRuntimeOnlyDependenciesMetadata    : <empty>
+                        - debugRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugSourceArtifacts        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
+                        debugUnitTestAnnotationProcessorClasspath         : <empty>
+                        debugUnitTestApi              : <empty>
+                        debugUnitTestApiDependenciesMetadata    : <empty>
+                        debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestCompileOnly      : <empty>
+                        debugUnitTestCompileOnlyDependenciesMetadata      : <empty>
+                        debugUnitTestImplementation   : <empty>
+                        debugUnitTestImplementationDependenciesMetadata   : <empty>
+                        debugUnitTestIntransitiveDependenciesMetadata     : <empty>
+                        debugUnitTestRuntimeClasspath : <empty>
+                        debugUnitTestRuntimeOnly      : <empty>
+                        debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
+                        debugWearApp                  : <empty>
+                        - default                     : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        implementation                : <empty>
+                        implementationDependenciesMetadata      : <empty>
+                        intransitiveDependenciesMetadata        : <empty>
+                        kotlinCompilerClasspath       : <empty>
+                        kotlinCompilerPluginClasspath : <empty>
+                        kotlinCompilerPluginClasspathDebug      : <empty>
+                        kotlinCompilerPluginClasspathDebugAndroidTest     : <empty>
+                        kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
+                        kotlinCompilerPluginClasspathRelease    : <empty>
+                        kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
+                        kotlinKlibCommonizerClasspath : <empty>
+                        kotlinNativeCompilerPluginClasspath     : <empty>
+                        lintChecks                    : <empty>
+                        lintClassPath                 : <empty>
+                        lintPublish                   : <empty>
+                        provided                      : <empty>
+                        publish                       : <empty>
+                        - releaseAllApiPublication    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseAllRuntimePublication          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        releaseAnnotationProcessor    : <empty>
+                        releaseAnnotationProcessorClasspath     : <empty>
+                        releaseApi                    : <empty>
+                        releaseApiDependenciesMetadata          : <empty>
+                        releaseApiElements            : <empty>
+                        - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseArchives             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        releaseCompile                : <empty>
+                        releaseCompileClasspath       : <empty>
+                        releaseCompileOnly            : <empty>
+                        releaseCompileOnlyDependenciesMetadata  : <empty>
+                        releaseImplementation         : <empty>
+                        releaseImplementationDependenciesMetadata         : <empty>
+                        releaseIntransitiveDependenciesMetadata : <empty>
+                        releaseProvided               : <empty>
+                        releasePublish                : <empty>
+                        releaseRuntimeClasspath       : <empty>
+                        releaseRuntimeElements        : <empty>
+                        - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        releaseRuntimeOnly            : <empty>
+                        releaseRuntimeOnlyDependenciesMetadata  : <empty>
+                        - releaseRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseSourceArtifacts      : <ROOT>/lib/build/libs/lib-sources.jar [-]
+                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                        releaseUnitTestApi            : <empty>
+                        releaseUnitTestApiDependenciesMetadata  : <empty>
+                        releaseUnitTestCompileClasspath         : <empty>
+                        releaseUnitTestCompileOnly    : <empty>
+                        releaseUnitTestCompileOnlyDependenciesMetadata    : <empty>
+                        releaseUnitTestImplementation : <empty>
+                        releaseUnitTestImplementationDependenciesMetadata : <empty>
+                        releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
+                        releaseUnitTestRuntimeClasspath         : <empty>
+                        releaseUnitTestRuntimeOnly    : <empty>
+                        releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
+                        releaseWearApp                : <empty>
+                        runtimeOnly                   : <empty>
+                        runtimeOnlyDependenciesMetadata         : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testApi                       : <empty>
+                        testApiDependenciesMetadata   : <empty>
+                        testCompile                   : <empty>
+                        testCompileOnly               : <empty>
+                        testCompileOnlyDependenciesMetadata     : <empty>
+                        testDebugAnnotationProcessor  : <empty>
+                        testDebugApi                  : <empty>
+                        testDebugApiDependenciesMetadata        : <empty>
+                        testDebugCompile              : <empty>
+                        testDebugCompileOnly          : <empty>
+                        testDebugCompileOnlyDependenciesMetadata          : <empty>
+                        testDebugImplementation       : <empty>
+                        testDebugImplementationDependenciesMetadata       : <empty>
+                        testDebugIntransitiveDependenciesMetadata         : <empty>
+                        testDebugProvided             : <empty>
+                        testDebugPublish              : <empty>
+                        testDebugRuntimeOnly          : <empty>
+                        testDebugRuntimeOnlyDependenciesMetadata          : <empty>
+                        testDebugWearApp              : <empty>
+                        testImplementation            : <empty>
+                        testImplementationDependenciesMetadata  : <empty>
+                        testIntransitiveDependenciesMetadata    : <empty>
+                        testProvided                  : <empty>
+                        testPublish                   : <empty>
+                        testReleaseAnnotationProcessor          : <empty>
+                        testReleaseApi                : <empty>
+                        testReleaseApiDependenciesMetadata      : <empty>
+                        testReleaseCompile            : <empty>
+                        testReleaseCompileOnly        : <empty>
+                        testReleaseCompileOnlyDependenciesMetadata        : <empty>
+                        testReleaseImplementation     : <empty>
+                        testReleaseImplementationDependenciesMetadata     : <empty>
+                        testReleaseIntransitiveDependenciesMetadata       : <empty>
+                        testReleaseProvided           : <empty>
+                        testReleasePublish            : <empty>
+                        testReleaseRuntimeOnly        : <empty>
+                        testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
+                        testReleaseWearApp            : <empty>
+                        testRuntimeOnly               : <empty>
+                        testRuntimeOnlyDependenciesMetadata     : <empty>
+                        testWearApp                   : <empty>
+                        wearApp                       : <empty>
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
+        sourceSetModel                : DefaultGradleSourceSetModel
 MODULE                        : MainActivity.app
     GradleModuleModel
         agpVersion                    : 4.1.0

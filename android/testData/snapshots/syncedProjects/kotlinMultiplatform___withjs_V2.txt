@@ -802,8 +802,6 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.jsModule.main
             Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.jsModule.main
-            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :jsModule:assemble, :jsModule:testClasses

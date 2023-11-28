@@ -682,8 +682,6 @@ MODULE                        : project
                 qName                         : :app
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
@@ -693,104 +691,121 @@ MODULE                        : project
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
-                artifactsByConfiguration
-                    androidApis                   : <empty>
-                    androidJdkImage               : <empty>
-                    androidTestAnnotationProcessor          : <empty>
-                    androidTestCompileOnly        : <empty>
-                    androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugImplementation          : <empty>
-                    androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugWearApp       : <empty>
-                    androidTestImplementation     : <empty>
-                    androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseWearApp     : <empty>
-                    androidTestRuntimeOnly        : <empty>
-                    androidTestUtil               : <empty>
-                    androidTestWearApp            : <empty>
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    archives                      : <empty>
-                    compileOnly                   : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
-                    debugAndroidTestCompileClasspath        : <empty>
-                    debugAndroidTestRuntimeClasspath        : <empty>
-                    debugAnnotationProcessor      : <empty>
-                    debugAnnotationProcessorClasspath       : <empty>
-                    debugApi                      : <empty>
-                    debugApiElements              : <empty>
-                    debugCompileClasspath         : <empty>
-                    debugCompileOnly              : <empty>
-                    debugImplementation           : <empty>
-                    debugReverseMetadataValues    : <empty>
-                    debugRuntimeClasspath         : <empty>
-                    debugRuntimeElements          : <empty>
-                    debugRuntimeOnly              : <empty>
-                    debugUnitTestAnnotationProcessorClasspath         : <empty>
-                    debugUnitTestCompileClasspath : <empty>
-                    debugUnitTestRuntimeClasspath : <empty>
-                    debugWearApp                  : <empty>
-                    debugWearBundling             : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    lintChecks                    : <empty>
-                    lintPublish                   : <empty>
-                    releaseAnnotationProcessor    : <empty>
-                    releaseAnnotationProcessorClasspath     : <empty>
-                    releaseApi                    : <empty>
-                    releaseApiElements            : <empty>
-                    releaseCompileClasspath       : <empty>
-                    releaseCompileOnly            : <empty>
-                    releaseImplementation         : <empty>
-                    releaseReverseMetadataValues  : <empty>
-                    releaseRuntimeClasspath       : <empty>
-                    releaseRuntimeElements        : <empty>
-                    releaseRuntimeOnly            : <empty>
-                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                    releaseUnitTestCompileClasspath         : <empty>
-                    releaseUnitTestRuntimeClasspath         : <empty>
-                    releaseWearApp                : <empty>
-                    releaseWearBundling           : <empty>
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileOnly               : <empty>
-                    testDebugAnnotationProcessor  : <empty>
-                    testDebugCompileOnly          : <empty>
-                    testDebugImplementation       : <empty>
-                    testDebugRuntimeOnly          : <empty>
-                    testDebugWearApp              : <empty>
-                    testFixturesAnnotationProcessor         : <empty>
-                    testFixturesApi               : <empty>
-                    testFixturesCompileOnly       : <empty>
-                    testFixturesDebugAnnotationProcessor    : <empty>
-                    testFixturesDebugApi          : <empty>
-                    testFixturesDebugCompileOnly  : <empty>
-                    testFixturesDebugImplementation         : <empty>
-                    testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugWearApp      : <empty>
-                    testFixturesImplementation    : <empty>
-                    testFixturesReleaseAnnotationProcessor  : <empty>
-                    testFixturesReleaseApi        : <empty>
-                    testFixturesReleaseCompileOnly          : <empty>
-                    testFixturesReleaseImplementation       : <empty>
-                    testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseWearApp    : <empty>
-                    testFixturesRuntimeOnly       : <empty>
-                    testFixturesWearApp           : <empty>
-                    testImplementation            : <empty>
-                    testReleaseAnnotationProcessor          : <empty>
-                    testReleaseCompileOnly        : <empty>
-                    testReleaseImplementation     : <empty>
-                    testReleaseRuntimeOnly        : <empty>
-                    testReleaseWearApp            : <empty>
-                    testRuntimeOnly               : <empty>
-                    testWearApp                   : <empty>
-                    wearApp                       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    configurationArtifacts
+                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
+                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
+                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
+                        _internal-unified-test-platform-android-test-plugin         : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
+                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                        _internal-unified-test-platform-core    : <empty>
+                        _internal-unified-test-platform-launcher          : <empty>
+                        androidApis                   : <empty>
+                        androidJdkImage               : <empty>
+                        androidTestAnnotationProcessor          : <empty>
+                        androidTestCompileOnly        : <empty>
+                        androidTestDebugAnnotationProcessor     : <empty>
+                        androidTestDebugCompileOnly   : <empty>
+                        androidTestDebugImplementation          : <empty>
+                        androidTestDebugRuntimeOnly   : <empty>
+                        androidTestDebugWearApp       : <empty>
+                        androidTestImplementation     : <empty>
+                        androidTestReleaseAnnotationProcessor   : <empty>
+                        androidTestReleaseCompileOnly : <empty>
+                        androidTestReleaseImplementation        : <empty>
+                        androidTestReleaseRuntimeOnly : <empty>
+                        androidTestReleaseWearApp     : <empty>
+                        androidTestRuntimeOnly        : <empty>
+                        androidTestUtil               : <empty>
+                        androidTestWearApp            : <empty>
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        archives                      : <empty>
+                        compileOnly                   : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                        debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestRuntimeClasspath        : <empty>
+                        debugAnnotationProcessor      : <empty>
+                        debugAnnotationProcessorClasspath       : <empty>
+                        debugApi                      : <empty>
+                        debugApiElements              : <empty>
+                        debugCompileClasspath         : <empty>
+                        debugCompileOnly              : <empty>
+                        debugImplementation           : <empty>
+                        debugReverseMetadataValues    : <empty>
+                        debugRuntimeClasspath         : <empty>
+                        debugRuntimeElements          : <empty>
+                        debugRuntimeOnly              : <empty>
+                        debugUnitTestAnnotationProcessorClasspath         : <empty>
+                        debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestRuntimeClasspath : <empty>
+                        debugWearApp                  : <empty>
+                        debugWearBundling             : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        lintChecks                    : <empty>
+                        lintPublish                   : <empty>
+                        releaseAnnotationProcessor    : <empty>
+                        releaseAnnotationProcessorClasspath     : <empty>
+                        releaseApi                    : <empty>
+                        releaseApiElements            : <empty>
+                        releaseCompileClasspath       : <empty>
+                        releaseCompileOnly            : <empty>
+                        releaseImplementation         : <empty>
+                        releaseReverseMetadataValues  : <empty>
+                        releaseRuntimeClasspath       : <empty>
+                        releaseRuntimeElements        : <empty>
+                        releaseRuntimeOnly            : <empty>
+                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                        releaseUnitTestCompileClasspath         : <empty>
+                        releaseUnitTestRuntimeClasspath         : <empty>
+                        releaseWearApp                : <empty>
+                        releaseWearBundling           : <empty>
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileOnly               : <empty>
+                        testDebugAnnotationProcessor  : <empty>
+                        testDebugCompileOnly          : <empty>
+                        testDebugImplementation       : <empty>
+                        testDebugRuntimeOnly          : <empty>
+                        testDebugWearApp              : <empty>
+                        testFixturesAnnotationProcessor         : <empty>
+                        testFixturesApi               : <empty>
+                        testFixturesCompileOnly       : <empty>
+                        testFixturesDebugAnnotationProcessor    : <empty>
+                        testFixturesDebugApi          : <empty>
+                        testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugImplementation         : <empty>
+                        testFixturesDebugRuntimeOnly  : <empty>
+                        testFixturesDebugWearApp      : <empty>
+                        testFixturesImplementation    : <empty>
+                        testFixturesReleaseAnnotationProcessor  : <empty>
+                        testFixturesReleaseApi        : <empty>
+                        testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseImplementation       : <empty>
+                        testFixturesReleaseRuntimeOnly          : <empty>
+                        testFixturesReleaseWearApp    : <empty>
+                        testFixturesRuntimeOnly       : <empty>
+                        testFixturesWearApp           : <empty>
+                        testImplementation            : <empty>
+                        testReleaseAnnotationProcessor          : <empty>
+                        testReleaseCompileOnly        : <empty>
+                        testReleaseImplementation     : <empty>
+                        testReleaseRuntimeOnly        : <empty>
+                        testReleaseWearApp            : <empty>
+                        testRuntimeOnly               : <empty>
+                        testWearApp                   : <empty>
+                        wearApp                       : <empty>
             javalib1                      : :javalib1 (DefaultExternalProject)
                 path                          : :javalib1 [-]
                 identityPath                  : :javalib1 [-]
@@ -798,104 +813,105 @@ MODULE                        : project
                 qName                         : :javalib1
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/javalib1
                 buildDir                      : <ROOT>/javalib1/build [-]
                 buildFile                     : <ROOT>/javalib1/build.gradle
                 tasks
                     test                          : test (DefaultExternalTask)
                         qName                         : :javalib1:test
-                sourceSets
-                    main                          : main (DefaultExternalSourceSet)
-                        sources
-                            RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/javalib1/src/main/resources [-]
-                                outputDir                     : <ROOT>/javalib1/out/production/resources [-]
-                                - gradleOutputDirs            : <ROOT>/javalib1/build/resources/main [-]
-                                patterns                      : FilePatternSetImpl
-                            SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/javalib1/src/main/java
-                                outputDir                     : <ROOT>/javalib1/out/production/classes [-]
-                                - gradleOutputDirs            : <ROOT>/javalib1/build/classes/java/main [-]
-                                patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/guava/guava/23.0/guava-23.0.jar
-                        - dependencies                : apiElements (DefaultExternalProjectDependency)
-                            projectPath                   : :javalib2
-                            - projectDependencyArtifacts  : <ROOT>/javalib2/build/libs/javalib2.jar [-]
-                            - projectDependencyArtifactsSources     : <ROOT>/javalib2/src/main/java
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/errorprone/error_prone_annotations/2.0.18/error_prone_annotations-2.0.18.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/codehaus/mojo/animal-sniffer-annotations/1.14/animal-sniffer-annotations-1.14.jar
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/javalib1/build/classes/java/main [-]
-                            - files                       : <ROOT>/javalib1/build/resources/main [-]
-                        - artifacts                   : <ROOT>/javalib1/build/libs/javalib1.jar [-]
-                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                    test                          : test (DefaultExternalSourceSet)
-                        sources
-                            TEST                          : alljava (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/javalib1/src/test/java [-]
-                                outputDir                     : <ROOT>/javalib1/out/test/classes [-]
-                                - gradleOutputDirs            : <ROOT>/javalib1/build/classes/java/test [-]
-                                patterns                      : FilePatternSetImpl
-                            TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/javalib1/src/test/resources [-]
-                                outputDir                     : <ROOT>/javalib1/out/test/resources [-]
-                                - gradleOutputDirs            : <ROOT>/javalib1/build/resources/test [-]
-                                patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/javalib1/build/classes/java/main [-]
-                            - files                       : <ROOT>/javalib1/build/resources/main [-]
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/guava/guava/23.0/guava-23.0.jar
-                        - dependencies                : apiElements (DefaultExternalProjectDependency)
-                            projectPath                   : :javalib2
-                            - projectDependencyArtifacts  : <ROOT>/javalib2/build/libs/javalib2.jar [-]
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/errorprone/error_prone_annotations/2.0.18/error_prone_annotations-2.0.18.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/codehaus/mojo/animal-sniffer-annotations/1.14/animal-sniffer-annotations-1.14.jar
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/javalib1/build/classes/java/test [-]
-                            - files                       : <ROOT>/javalib1/build/resources/test [-]
-                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 externalSystemId              : GRADLE
-                - artifacts                   : <ROOT>/javalib1/build/libs/javalib1.jar [-]
-                artifactsByConfiguration
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    - apiElements                 : <ROOT>/javalib1/build/libs/javalib1.jar [-]
-                    - archives                    : <ROOT>/javalib1/build/libs/javalib1.jar [-]
-                    compileClasspath              : <empty>
-                    compileOnly                   : <empty>
-                    compileOnlyApi                : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    - mainSourceElements          : <ROOT>/javalib1/src/main/java
-                    - mainSourceElements          : <ROOT>/javalib1/src/main/resources [-]
-                    runtimeClasspath              : <empty>
-                    - runtimeElements             : <ROOT>/javalib1/build/libs/javalib1.jar [-]
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileClasspath          : <empty>
-                    testCompileOnly               : <empty>
-                    testImplementation            : <empty>
-                    - testResultsElementsForTest  : <ROOT>/javalib1/build/test-results/test/binary [-]
-                    testRuntimeClasspath          : <empty>
-                    testRuntimeOnly               : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    - taskArtifacts               : <ROOT>/javalib1/build/libs/javalib1.jar [-]
+                    configurationArtifacts
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        - apiElements                 : <ROOT>/javalib1/build/libs/javalib1.jar [-]
+                        - archives                    : <ROOT>/javalib1/build/libs/javalib1.jar [-]
+                        compileClasspath              : <empty>
+                        compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        - mainSourceElements          : <ROOT>/javalib1/src/main/java
+                        - mainSourceElements          : <ROOT>/javalib1/src/main/resources [-]
+                        runtimeClasspath              : <empty>
+                        - runtimeElements             : <ROOT>/javalib1/build/libs/javalib1.jar [-]
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileClasspath          : <empty>
+                        testCompileOnly               : <empty>
+                        testImplementation            : <empty>
+                        - testResultsElementsForTest  : <ROOT>/javalib1/build/test-results/test/binary [-]
+                        testRuntimeClasspath          : <empty>
+                        testRuntimeOnly               : <empty>
+                    sourceSets
+                        main                          : main (DefaultExternalSourceSet)
+                            sources
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javalib1/src/main/resources [-]
+                                    outputDir                     : <ROOT>/javalib1/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/javalib1/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javalib1/src/main/java
+                                    outputDir                     : <ROOT>/javalib1/out/production/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/javalib1/build/classes/java/main [-]
+                                    patterns                      : FilePatternSetImpl
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/guava/guava/23.0/guava-23.0.jar
+                            - dependencies                : apiElements (DefaultExternalProjectDependency)
+                                projectPath                   : :javalib2
+                                - projectDependencyArtifacts  : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                                - projectDependencyArtifactsSources     : <ROOT>/javalib2/src/main/java
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/errorprone/error_prone_annotations/2.0.18/error_prone_annotations-2.0.18.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/codehaus/mojo/animal-sniffer-annotations/1.14/animal-sniffer-annotations-1.14.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javalib1/build/classes/java/main [-]
+                                - files                       : <ROOT>/javalib1/build/resources/main [-]
+                            - artifacts                   : <ROOT>/javalib1/build/libs/javalib1.jar [-]
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        test                          : test (DefaultExternalSourceSet)
+                            sources
+                                TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javalib1/src/test/java [-]
+                                    outputDir                     : <ROOT>/javalib1/out/test/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/javalib1/build/classes/java/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javalib1/src/test/resources [-]
+                                    outputDir                     : <ROOT>/javalib1/out/test/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/javalib1/build/resources/test [-]
+                                    patterns                      : FilePatternSetImpl
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javalib1/build/classes/java/main [-]
+                                - files                       : <ROOT>/javalib1/build/resources/main [-]
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/guava/guava/23.0/guava-23.0.jar
+                            - dependencies                : apiElements (DefaultExternalProjectDependency)
+                                projectPath                   : :javalib2
+                                - projectDependencyArtifacts  : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/errorprone/error_prone_annotations/2.0.18/error_prone_annotations-2.0.18.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/codehaus/mojo/animal-sniffer-annotations/1.14/animal-sniffer-annotations-1.14.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javalib1/build/classes/java/test [-]
+                                - files                       : <ROOT>/javalib1/build/resources/test [-]
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             javalib2                      : :javalib2 (DefaultExternalProject)
                 path                          : :javalib2 [-]
                 identityPath                  : :javalib2 [-]
@@ -903,77 +919,78 @@ MODULE                        : project
                 qName                         : :javalib2
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/javalib2
                 buildDir                      : <ROOT>/javalib2/build [-]
                 buildFile                     : <ROOT>/javalib2/build.gradle
                 tasks
                     test                          : test (DefaultExternalTask)
                         qName                         : :javalib2:test
-                sourceSets
-                    main                          : main (DefaultExternalSourceSet)
-                        sources
-                            RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/javalib2/src/main/resources [-]
-                                outputDir                     : <ROOT>/javalib2/out/production/resources [-]
-                                - gradleOutputDirs            : <ROOT>/javalib2/build/resources/main [-]
-                                patterns                      : FilePatternSetImpl
-                            SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/javalib2/src/main/java
-                                outputDir                     : <ROOT>/javalib2/out/production/classes [-]
-                                - gradleOutputDirs            : <ROOT>/javalib2/build/classes/java/main [-]
-                                patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/javalib2/build/classes/java/main [-]
-                            - files                       : <ROOT>/javalib2/build/resources/main [-]
-                        - artifacts                   : <ROOT>/javalib2/build/libs/javalib2.jar [-]
-                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                    test                          : test (DefaultExternalSourceSet)
-                        sources
-                            TEST                          : alljava (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/javalib2/src/test/java [-]
-                                outputDir                     : <ROOT>/javalib2/out/test/classes [-]
-                                - gradleOutputDirs            : <ROOT>/javalib2/build/classes/java/test [-]
-                                patterns                      : FilePatternSetImpl
-                            TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/javalib2/src/test/resources [-]
-                                outputDir                     : <ROOT>/javalib2/out/test/resources [-]
-                                - gradleOutputDirs            : <ROOT>/javalib2/build/resources/test [-]
-                                patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/javalib2/build/classes/java/main [-]
-                            - files                       : <ROOT>/javalib2/build/resources/main [-]
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/javalib2/build/classes/java/test [-]
-                            - files                       : <ROOT>/javalib2/build/resources/test [-]
-                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 externalSystemId              : GRADLE
-                - artifacts                   : <ROOT>/javalib2/build/libs/javalib2.jar [-]
-                artifactsByConfiguration
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    - apiElements                 : <ROOT>/javalib2/build/libs/javalib2.jar [-]
-                    - archives                    : <ROOT>/javalib2/build/libs/javalib2.jar [-]
-                    compileClasspath              : <empty>
-                    compileOnly                   : <empty>
-                    compileOnlyApi                : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    - mainSourceElements          : <ROOT>/javalib2/src/main/java
-                    - mainSourceElements          : <ROOT>/javalib2/src/main/resources [-]
-                    runtimeClasspath              : <empty>
-                    - runtimeElements             : <ROOT>/javalib2/build/libs/javalib2.jar [-]
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileClasspath          : <empty>
-                    testCompileOnly               : <empty>
-                    testImplementation            : <empty>
-                    - testResultsElementsForTest  : <ROOT>/javalib2/build/test-results/test/binary [-]
-                    testRuntimeClasspath          : <empty>
-                    testRuntimeOnly               : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    - taskArtifacts               : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                    configurationArtifacts
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        - apiElements                 : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                        - archives                    : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                        compileClasspath              : <empty>
+                        compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        - mainSourceElements          : <ROOT>/javalib2/src/main/java
+                        - mainSourceElements          : <ROOT>/javalib2/src/main/resources [-]
+                        runtimeClasspath              : <empty>
+                        - runtimeElements             : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileClasspath          : <empty>
+                        testCompileOnly               : <empty>
+                        testImplementation            : <empty>
+                        - testResultsElementsForTest  : <ROOT>/javalib2/build/test-results/test/binary [-]
+                        testRuntimeClasspath          : <empty>
+                        testRuntimeOnly               : <empty>
+                    sourceSets
+                        main                          : main (DefaultExternalSourceSet)
+                            sources
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javalib2/src/main/resources [-]
+                                    outputDir                     : <ROOT>/javalib2/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/javalib2/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javalib2/src/main/java
+                                    outputDir                     : <ROOT>/javalib2/out/production/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/javalib2/build/classes/java/main [-]
+                                    patterns                      : FilePatternSetImpl
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javalib2/build/classes/java/main [-]
+                                - files                       : <ROOT>/javalib2/build/resources/main [-]
+                            - artifacts                   : <ROOT>/javalib2/build/libs/javalib2.jar [-]
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        test                          : test (DefaultExternalSourceSet)
+                            sources
+                                TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javalib2/src/test/java [-]
+                                    outputDir                     : <ROOT>/javalib2/out/test/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/javalib2/build/classes/java/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/javalib2/src/test/resources [-]
+                                    outputDir                     : <ROOT>/javalib2/out/test/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/javalib2/build/resources/test [-]
+                                    patterns                      : FilePatternSetImpl
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javalib2/build/classes/java/main [-]
+                                - files                       : <ROOT>/javalib2/build/resources/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/javalib2/build/classes/java/test [-]
+                                - files                       : <ROOT>/javalib2/build/resources/test [-]
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             library1                      : :library1 (DefaultExternalProject)
                 path                          : :library1 [-]
                 identityPath                  : :library1 [-]
@@ -981,8 +998,6 @@ MODULE                        : project
                 qName                         : :library1
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/library1
                 buildDir                      : <ROOT>/library1/build [-]
                 buildFile                     : <ROOT>/library1/build.gradle
@@ -992,100 +1007,117 @@ MODULE                        : project
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :library1:testReleaseUnitTest
                 externalSystemId              : GRADLE
-                artifactsByConfiguration
-                    androidApis                   : <empty>
-                    androidJdkImage               : <empty>
-                    androidTestAnnotationProcessor          : <empty>
-                    androidTestCompileOnly        : <empty>
-                    androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugImplementation          : <empty>
-                    androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugWearApp       : <empty>
-                    androidTestImplementation     : <empty>
-                    androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseWearApp     : <empty>
-                    androidTestRuntimeOnly        : <empty>
-                    androidTestUtil               : <empty>
-                    androidTestWearApp            : <empty>
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    archives                      : <empty>
-                    compileOnly                   : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
-                    debugAndroidTestCompileClasspath        : <empty>
-                    debugAndroidTestRuntimeClasspath        : <empty>
-                    debugAnnotationProcessor      : <empty>
-                    debugAnnotationProcessorClasspath       : <empty>
-                    debugApi                      : <empty>
-                    debugApiElements              : <empty>
-                    debugCompileClasspath         : <empty>
-                    debugCompileOnly              : <empty>
-                    debugImplementation           : <empty>
-                    debugRuntimeClasspath         : <empty>
-                    debugRuntimeElements          : <empty>
-                    debugRuntimeOnly              : <empty>
-                    debugUnitTestAnnotationProcessorClasspath         : <empty>
-                    debugUnitTestCompileClasspath : <empty>
-                    debugUnitTestRuntimeClasspath : <empty>
-                    debugWearApp                  : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    lintChecks                    : <empty>
-                    lintPublish                   : <empty>
-                    releaseAnnotationProcessor    : <empty>
-                    releaseAnnotationProcessorClasspath     : <empty>
-                    releaseApi                    : <empty>
-                    releaseApiElements            : <empty>
-                    releaseCompileClasspath       : <empty>
-                    releaseCompileOnly            : <empty>
-                    releaseImplementation         : <empty>
-                    releaseRuntimeClasspath       : <empty>
-                    releaseRuntimeElements        : <empty>
-                    releaseRuntimeOnly            : <empty>
-                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                    releaseUnitTestCompileClasspath         : <empty>
-                    releaseUnitTestRuntimeClasspath         : <empty>
-                    releaseWearApp                : <empty>
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileOnly               : <empty>
-                    testDebugAnnotationProcessor  : <empty>
-                    testDebugCompileOnly          : <empty>
-                    testDebugImplementation       : <empty>
-                    testDebugRuntimeOnly          : <empty>
-                    testDebugWearApp              : <empty>
-                    testFixturesAnnotationProcessor         : <empty>
-                    testFixturesApi               : <empty>
-                    testFixturesCompileOnly       : <empty>
-                    testFixturesDebugAnnotationProcessor    : <empty>
-                    testFixturesDebugApi          : <empty>
-                    testFixturesDebugCompileOnly  : <empty>
-                    testFixturesDebugImplementation         : <empty>
-                    testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugWearApp      : <empty>
-                    testFixturesImplementation    : <empty>
-                    testFixturesReleaseAnnotationProcessor  : <empty>
-                    testFixturesReleaseApi        : <empty>
-                    testFixturesReleaseCompileOnly          : <empty>
-                    testFixturesReleaseImplementation       : <empty>
-                    testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseWearApp    : <empty>
-                    testFixturesRuntimeOnly       : <empty>
-                    testFixturesWearApp           : <empty>
-                    testImplementation            : <empty>
-                    testReleaseAnnotationProcessor          : <empty>
-                    testReleaseCompileOnly        : <empty>
-                    testReleaseImplementation     : <empty>
-                    testReleaseRuntimeOnly        : <empty>
-                    testReleaseWearApp            : <empty>
-                    testRuntimeOnly               : <empty>
-                    testWearApp                   : <empty>
-                    wearApp                       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    configurationArtifacts
+                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
+                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
+                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
+                        _internal-unified-test-platform-android-test-plugin         : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
+                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                        _internal-unified-test-platform-core    : <empty>
+                        _internal-unified-test-platform-launcher          : <empty>
+                        androidApis                   : <empty>
+                        androidJdkImage               : <empty>
+                        androidTestAnnotationProcessor          : <empty>
+                        androidTestCompileOnly        : <empty>
+                        androidTestDebugAnnotationProcessor     : <empty>
+                        androidTestDebugCompileOnly   : <empty>
+                        androidTestDebugImplementation          : <empty>
+                        androidTestDebugRuntimeOnly   : <empty>
+                        androidTestDebugWearApp       : <empty>
+                        androidTestImplementation     : <empty>
+                        androidTestReleaseAnnotationProcessor   : <empty>
+                        androidTestReleaseCompileOnly : <empty>
+                        androidTestReleaseImplementation        : <empty>
+                        androidTestReleaseRuntimeOnly : <empty>
+                        androidTestReleaseWearApp     : <empty>
+                        androidTestRuntimeOnly        : <empty>
+                        androidTestUtil               : <empty>
+                        androidTestWearApp            : <empty>
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        archives                      : <empty>
+                        compileOnly                   : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                        debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestRuntimeClasspath        : <empty>
+                        debugAnnotationProcessor      : <empty>
+                        debugAnnotationProcessorClasspath       : <empty>
+                        debugApi                      : <empty>
+                        debugApiElements              : <empty>
+                        debugCompileClasspath         : <empty>
+                        debugCompileOnly              : <empty>
+                        debugImplementation           : <empty>
+                        debugRuntimeClasspath         : <empty>
+                        debugRuntimeElements          : <empty>
+                        debugRuntimeOnly              : <empty>
+                        debugUnitTestAnnotationProcessorClasspath         : <empty>
+                        debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestRuntimeClasspath : <empty>
+                        debugWearApp                  : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        lintChecks                    : <empty>
+                        lintPublish                   : <empty>
+                        releaseAnnotationProcessor    : <empty>
+                        releaseAnnotationProcessorClasspath     : <empty>
+                        releaseApi                    : <empty>
+                        releaseApiElements            : <empty>
+                        releaseCompileClasspath       : <empty>
+                        releaseCompileOnly            : <empty>
+                        releaseImplementation         : <empty>
+                        releaseRuntimeClasspath       : <empty>
+                        releaseRuntimeElements        : <empty>
+                        releaseRuntimeOnly            : <empty>
+                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                        releaseUnitTestCompileClasspath         : <empty>
+                        releaseUnitTestRuntimeClasspath         : <empty>
+                        releaseWearApp                : <empty>
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileOnly               : <empty>
+                        testDebugAnnotationProcessor  : <empty>
+                        testDebugCompileOnly          : <empty>
+                        testDebugImplementation       : <empty>
+                        testDebugRuntimeOnly          : <empty>
+                        testDebugWearApp              : <empty>
+                        testFixturesAnnotationProcessor         : <empty>
+                        testFixturesApi               : <empty>
+                        testFixturesCompileOnly       : <empty>
+                        testFixturesDebugAnnotationProcessor    : <empty>
+                        testFixturesDebugApi          : <empty>
+                        testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugImplementation         : <empty>
+                        testFixturesDebugRuntimeOnly  : <empty>
+                        testFixturesDebugWearApp      : <empty>
+                        testFixturesImplementation    : <empty>
+                        testFixturesReleaseAnnotationProcessor  : <empty>
+                        testFixturesReleaseApi        : <empty>
+                        testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseImplementation       : <empty>
+                        testFixturesReleaseRuntimeOnly          : <empty>
+                        testFixturesReleaseWearApp    : <empty>
+                        testFixturesRuntimeOnly       : <empty>
+                        testFixturesWearApp           : <empty>
+                        testImplementation            : <empty>
+                        testReleaseAnnotationProcessor          : <empty>
+                        testReleaseCompileOnly        : <empty>
+                        testReleaseImplementation     : <empty>
+                        testReleaseRuntimeOnly        : <empty>
+                        testReleaseWearApp            : <empty>
+                        testRuntimeOnly               : <empty>
+                        testWearApp                   : <empty>
+                        wearApp                       : <empty>
             library2                      : :library2 (DefaultExternalProject)
                 path                          : :library2 [-]
                 identityPath                  : :library2 [-]
@@ -1093,8 +1125,6 @@ MODULE                        : project
                 qName                         : :library2
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/library2
                 buildDir                      : <ROOT>/library2/build [-]
                 buildFile                     : <ROOT>/library2/build.gradle
@@ -1104,104 +1134,122 @@ MODULE                        : project
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :library2:testReleaseUnitTest
                 externalSystemId              : GRADLE
-                artifactsByConfiguration
-                    androidApis                   : <empty>
-                    androidJdkImage               : <empty>
-                    androidTestAnnotationProcessor          : <empty>
-                    androidTestCompileOnly        : <empty>
-                    androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugImplementation          : <empty>
-                    androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugWearApp       : <empty>
-                    androidTestImplementation     : <empty>
-                    androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseWearApp     : <empty>
-                    androidTestRuntimeOnly        : <empty>
-                    androidTestUtil               : <empty>
-                    androidTestWearApp            : <empty>
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    archives                      : <empty>
-                    compileOnly                   : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
-                    debugAndroidTestCompileClasspath        : <empty>
-                    debugAndroidTestRuntimeClasspath        : <empty>
-                    debugAnnotationProcessor      : <empty>
-                    debugAnnotationProcessorClasspath       : <empty>
-                    debugApi                      : <empty>
-                    debugApiElements              : <empty>
-                    debugCompileClasspath         : <empty>
-                    debugCompileOnly              : <empty>
-                    debugImplementation           : <empty>
-                    debugRuntimeClasspath         : <empty>
-                    debugRuntimeElements          : <empty>
-                    debugRuntimeOnly              : <empty>
-                    debugUnitTestAnnotationProcessorClasspath         : <empty>
-                    debugUnitTestCompileClasspath : <empty>
-                    debugUnitTestRuntimeClasspath : <empty>
-                    debugWearApp                  : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    lintChecks                    : <empty>
-                    lintPublish                   : <empty>
-                    releaseAnnotationProcessor    : <empty>
-                    releaseAnnotationProcessorClasspath     : <empty>
-                    releaseApi                    : <empty>
-                    releaseApiElements            : <empty>
-                    releaseCompileClasspath       : <empty>
-                    releaseCompileOnly            : <empty>
-                    releaseImplementation         : <empty>
-                    releaseRuntimeClasspath       : <empty>
-                    releaseRuntimeElements        : <empty>
-                    releaseRuntimeOnly            : <empty>
-                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                    releaseUnitTestCompileClasspath         : <empty>
-                    releaseUnitTestRuntimeClasspath         : <empty>
-                    releaseWearApp                : <empty>
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileOnly               : <empty>
-                    testDebugAnnotationProcessor  : <empty>
-                    testDebugCompileOnly          : <empty>
-                    testDebugImplementation       : <empty>
-                    testDebugRuntimeOnly          : <empty>
-                    testDebugWearApp              : <empty>
-                    testFixturesAnnotationProcessor         : <empty>
-                    testFixturesApi               : <empty>
-                    testFixturesCompileOnly       : <empty>
-                    testFixturesDebugAnnotationProcessor    : <empty>
-                    testFixturesDebugApi          : <empty>
-                    testFixturesDebugCompileOnly  : <empty>
-                    testFixturesDebugImplementation         : <empty>
-                    testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugWearApp      : <empty>
-                    testFixturesImplementation    : <empty>
-                    testFixturesReleaseAnnotationProcessor  : <empty>
-                    testFixturesReleaseApi        : <empty>
-                    testFixturesReleaseCompileOnly          : <empty>
-                    testFixturesReleaseImplementation       : <empty>
-                    testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseWearApp    : <empty>
-                    testFixturesRuntimeOnly       : <empty>
-                    testFixturesWearApp           : <empty>
-                    testImplementation            : <empty>
-                    testReleaseAnnotationProcessor          : <empty>
-                    testReleaseCompileOnly        : <empty>
-                    testReleaseImplementation     : <empty>
-                    testReleaseRuntimeOnly        : <empty>
-                    testReleaseWearApp            : <empty>
-                    testRuntimeOnly               : <empty>
-                    testWearApp                   : <empty>
-                    wearApp                       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    configurationArtifacts
+                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
+                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
+                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
+                        _internal-unified-test-platform-android-test-plugin         : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
+                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                        _internal-unified-test-platform-core    : <empty>
+                        _internal-unified-test-platform-launcher          : <empty>
+                        androidApis                   : <empty>
+                        androidJdkImage               : <empty>
+                        androidTestAnnotationProcessor          : <empty>
+                        androidTestCompileOnly        : <empty>
+                        androidTestDebugAnnotationProcessor     : <empty>
+                        androidTestDebugCompileOnly   : <empty>
+                        androidTestDebugImplementation          : <empty>
+                        androidTestDebugRuntimeOnly   : <empty>
+                        androidTestDebugWearApp       : <empty>
+                        androidTestImplementation     : <empty>
+                        androidTestReleaseAnnotationProcessor   : <empty>
+                        androidTestReleaseCompileOnly : <empty>
+                        androidTestReleaseImplementation        : <empty>
+                        androidTestReleaseRuntimeOnly : <empty>
+                        androidTestReleaseWearApp     : <empty>
+                        androidTestRuntimeOnly        : <empty>
+                        androidTestUtil               : <empty>
+                        androidTestWearApp            : <empty>
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        archives                      : <empty>
+                        compileOnly                   : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                        debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestRuntimeClasspath        : <empty>
+                        debugAnnotationProcessor      : <empty>
+                        debugAnnotationProcessorClasspath       : <empty>
+                        debugApi                      : <empty>
+                        debugApiElements              : <empty>
+                        debugCompileClasspath         : <empty>
+                        debugCompileOnly              : <empty>
+                        debugImplementation           : <empty>
+                        debugRuntimeClasspath         : <empty>
+                        debugRuntimeElements          : <empty>
+                        debugRuntimeOnly              : <empty>
+                        debugUnitTestAnnotationProcessorClasspath         : <empty>
+                        debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestRuntimeClasspath : <empty>
+                        debugWearApp                  : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        lintChecks                    : <empty>
+                        lintPublish                   : <empty>
+                        releaseAnnotationProcessor    : <empty>
+                        releaseAnnotationProcessorClasspath     : <empty>
+                        releaseApi                    : <empty>
+                        releaseApiElements            : <empty>
+                        releaseCompileClasspath       : <empty>
+                        releaseCompileOnly            : <empty>
+                        releaseImplementation         : <empty>
+                        releaseRuntimeClasspath       : <empty>
+                        releaseRuntimeElements        : <empty>
+                        releaseRuntimeOnly            : <empty>
+                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                        releaseUnitTestCompileClasspath         : <empty>
+                        releaseUnitTestRuntimeClasspath         : <empty>
+                        releaseWearApp                : <empty>
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileOnly               : <empty>
+                        testDebugAnnotationProcessor  : <empty>
+                        testDebugCompileOnly          : <empty>
+                        testDebugImplementation       : <empty>
+                        testDebugRuntimeOnly          : <empty>
+                        testDebugWearApp              : <empty>
+                        testFixturesAnnotationProcessor         : <empty>
+                        testFixturesApi               : <empty>
+                        testFixturesCompileOnly       : <empty>
+                        testFixturesDebugAnnotationProcessor    : <empty>
+                        testFixturesDebugApi          : <empty>
+                        testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugImplementation         : <empty>
+                        testFixturesDebugRuntimeOnly  : <empty>
+                        testFixturesDebugWearApp      : <empty>
+                        testFixturesImplementation    : <empty>
+                        testFixturesReleaseAnnotationProcessor  : <empty>
+                        testFixturesReleaseApi        : <empty>
+                        testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseImplementation       : <empty>
+                        testFixturesReleaseRuntimeOnly          : <empty>
+                        testFixturesReleaseWearApp    : <empty>
+                        testFixturesRuntimeOnly       : <empty>
+                        testFixturesWearApp           : <empty>
+                        testImplementation            : <empty>
+                        testReleaseAnnotationProcessor          : <empty>
+                        testReleaseCompileOnly        : <empty>
+                        testReleaseImplementation     : <empty>
+                        testReleaseRuntimeOnly        : <empty>
+                        testReleaseWearApp            : <empty>
+                        testRuntimeOnly               : <empty>
+                        testWearApp                   : <empty>
+                        wearApp                       : <empty>
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
+        sourceSetModel                : DefaultGradleSourceSetModel
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 8.1.0

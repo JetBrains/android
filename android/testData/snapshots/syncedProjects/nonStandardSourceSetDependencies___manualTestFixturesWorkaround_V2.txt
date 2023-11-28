@@ -235,6 +235,8 @@ PROJECT                       : NonStandardSourceSetDependencies
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
             Scope                         : Test
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.testEnv
+            Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -359,6 +361,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.testEnv
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
@@ -494,6 +497,8 @@ PROJECT                       : NonStandardSourceSetDependencies
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
             Scope                         : Test
+        ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.testEnv
+            Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
             Scope                         : Test
         BUILD_TASKS
@@ -612,7 +617,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (1.8)
+            Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/common/src/commonMain
@@ -688,7 +693,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (1.8)
+            Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/common/src/commonTest [-]
@@ -2250,10 +2255,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY
+        LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY
+            LIBRARY                       : Gradle:
                 *CLASSES                      : jar://<PROJECT>/jarWrapperLib/JarWrappedLib.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
@@ -2336,10 +2341,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY
+        LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY
+            LIBRARY                       : Gradle:
                 *CLASSES                      : jar://<PROJECT>/jarWrapperLib/JarWrappedLib.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
@@ -2899,7 +2904,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (1.8)
+            Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/commonMain
@@ -2975,7 +2980,7 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (1.8)
+            Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/commonTest [-]

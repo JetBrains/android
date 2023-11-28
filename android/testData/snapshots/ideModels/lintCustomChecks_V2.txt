@@ -55,8 +55,6 @@ MODULE                        : project
                 qName                         : :app
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
@@ -66,104 +64,121 @@ MODULE                        : project
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :app:testReleaseUnitTest
                 externalSystemId              : GRADLE
-                artifactsByConfiguration
-                    androidApis                   : <empty>
-                    androidJdkImage               : <empty>
-                    androidTestAnnotationProcessor          : <empty>
-                    androidTestCompileOnly        : <empty>
-                    androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugImplementation          : <empty>
-                    androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugWearApp       : <empty>
-                    androidTestImplementation     : <empty>
-                    androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseWearApp     : <empty>
-                    androidTestRuntimeOnly        : <empty>
-                    androidTestUtil               : <empty>
-                    androidTestWearApp            : <empty>
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    archives                      : <empty>
-                    compileOnly                   : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
-                    debugAndroidTestCompileClasspath        : <empty>
-                    debugAndroidTestRuntimeClasspath        : <empty>
-                    debugAnnotationProcessor      : <empty>
-                    debugAnnotationProcessorClasspath       : <empty>
-                    debugApi                      : <empty>
-                    debugApiElements              : <empty>
-                    debugCompileClasspath         : <empty>
-                    debugCompileOnly              : <empty>
-                    debugImplementation           : <empty>
-                    debugReverseMetadataValues    : <empty>
-                    debugRuntimeClasspath         : <empty>
-                    debugRuntimeElements          : <empty>
-                    debugRuntimeOnly              : <empty>
-                    debugUnitTestAnnotationProcessorClasspath         : <empty>
-                    debugUnitTestCompileClasspath : <empty>
-                    debugUnitTestRuntimeClasspath : <empty>
-                    debugWearApp                  : <empty>
-                    debugWearBundling             : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    lintChecks                    : <empty>
-                    lintPublish                   : <empty>
-                    releaseAnnotationProcessor    : <empty>
-                    releaseAnnotationProcessorClasspath     : <empty>
-                    releaseApi                    : <empty>
-                    releaseApiElements            : <empty>
-                    releaseCompileClasspath       : <empty>
-                    releaseCompileOnly            : <empty>
-                    releaseImplementation         : <empty>
-                    releaseReverseMetadataValues  : <empty>
-                    releaseRuntimeClasspath       : <empty>
-                    releaseRuntimeElements        : <empty>
-                    releaseRuntimeOnly            : <empty>
-                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                    releaseUnitTestCompileClasspath         : <empty>
-                    releaseUnitTestRuntimeClasspath         : <empty>
-                    releaseWearApp                : <empty>
-                    releaseWearBundling           : <empty>
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileOnly               : <empty>
-                    testDebugAnnotationProcessor  : <empty>
-                    testDebugCompileOnly          : <empty>
-                    testDebugImplementation       : <empty>
-                    testDebugRuntimeOnly          : <empty>
-                    testDebugWearApp              : <empty>
-                    testFixturesAnnotationProcessor         : <empty>
-                    testFixturesApi               : <empty>
-                    testFixturesCompileOnly       : <empty>
-                    testFixturesDebugAnnotationProcessor    : <empty>
-                    testFixturesDebugApi          : <empty>
-                    testFixturesDebugCompileOnly  : <empty>
-                    testFixturesDebugImplementation         : <empty>
-                    testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugWearApp      : <empty>
-                    testFixturesImplementation    : <empty>
-                    testFixturesReleaseAnnotationProcessor  : <empty>
-                    testFixturesReleaseApi        : <empty>
-                    testFixturesReleaseCompileOnly          : <empty>
-                    testFixturesReleaseImplementation       : <empty>
-                    testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseWearApp    : <empty>
-                    testFixturesRuntimeOnly       : <empty>
-                    testFixturesWearApp           : <empty>
-                    testImplementation            : <empty>
-                    testReleaseAnnotationProcessor          : <empty>
-                    testReleaseCompileOnly        : <empty>
-                    testReleaseImplementation     : <empty>
-                    testReleaseRuntimeOnly        : <empty>
-                    testReleaseWearApp            : <empty>
-                    testRuntimeOnly               : <empty>
-                    testWearApp                   : <empty>
-                    wearApp                       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    configurationArtifacts
+                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
+                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
+                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
+                        _internal-unified-test-platform-android-test-plugin         : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
+                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                        _internal-unified-test-platform-core    : <empty>
+                        _internal-unified-test-platform-launcher          : <empty>
+                        androidApis                   : <empty>
+                        androidJdkImage               : <empty>
+                        androidTestAnnotationProcessor          : <empty>
+                        androidTestCompileOnly        : <empty>
+                        androidTestDebugAnnotationProcessor     : <empty>
+                        androidTestDebugCompileOnly   : <empty>
+                        androidTestDebugImplementation          : <empty>
+                        androidTestDebugRuntimeOnly   : <empty>
+                        androidTestDebugWearApp       : <empty>
+                        androidTestImplementation     : <empty>
+                        androidTestReleaseAnnotationProcessor   : <empty>
+                        androidTestReleaseCompileOnly : <empty>
+                        androidTestReleaseImplementation        : <empty>
+                        androidTestReleaseRuntimeOnly : <empty>
+                        androidTestReleaseWearApp     : <empty>
+                        androidTestRuntimeOnly        : <empty>
+                        androidTestUtil               : <empty>
+                        androidTestWearApp            : <empty>
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        archives                      : <empty>
+                        compileOnly                   : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                        debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestRuntimeClasspath        : <empty>
+                        debugAnnotationProcessor      : <empty>
+                        debugAnnotationProcessorClasspath       : <empty>
+                        debugApi                      : <empty>
+                        debugApiElements              : <empty>
+                        debugCompileClasspath         : <empty>
+                        debugCompileOnly              : <empty>
+                        debugImplementation           : <empty>
+                        debugReverseMetadataValues    : <empty>
+                        debugRuntimeClasspath         : <empty>
+                        debugRuntimeElements          : <empty>
+                        debugRuntimeOnly              : <empty>
+                        debugUnitTestAnnotationProcessorClasspath         : <empty>
+                        debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestRuntimeClasspath : <empty>
+                        debugWearApp                  : <empty>
+                        debugWearBundling             : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        lintChecks                    : <empty>
+                        lintPublish                   : <empty>
+                        releaseAnnotationProcessor    : <empty>
+                        releaseAnnotationProcessorClasspath     : <empty>
+                        releaseApi                    : <empty>
+                        releaseApiElements            : <empty>
+                        releaseCompileClasspath       : <empty>
+                        releaseCompileOnly            : <empty>
+                        releaseImplementation         : <empty>
+                        releaseReverseMetadataValues  : <empty>
+                        releaseRuntimeClasspath       : <empty>
+                        releaseRuntimeElements        : <empty>
+                        releaseRuntimeOnly            : <empty>
+                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                        releaseUnitTestCompileClasspath         : <empty>
+                        releaseUnitTestRuntimeClasspath         : <empty>
+                        releaseWearApp                : <empty>
+                        releaseWearBundling           : <empty>
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileOnly               : <empty>
+                        testDebugAnnotationProcessor  : <empty>
+                        testDebugCompileOnly          : <empty>
+                        testDebugImplementation       : <empty>
+                        testDebugRuntimeOnly          : <empty>
+                        testDebugWearApp              : <empty>
+                        testFixturesAnnotationProcessor         : <empty>
+                        testFixturesApi               : <empty>
+                        testFixturesCompileOnly       : <empty>
+                        testFixturesDebugAnnotationProcessor    : <empty>
+                        testFixturesDebugApi          : <empty>
+                        testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugImplementation         : <empty>
+                        testFixturesDebugRuntimeOnly  : <empty>
+                        testFixturesDebugWearApp      : <empty>
+                        testFixturesImplementation    : <empty>
+                        testFixturesReleaseAnnotationProcessor  : <empty>
+                        testFixturesReleaseApi        : <empty>
+                        testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseImplementation       : <empty>
+                        testFixturesReleaseRuntimeOnly          : <empty>
+                        testFixturesReleaseWearApp    : <empty>
+                        testFixturesRuntimeOnly       : <empty>
+                        testFixturesWearApp           : <empty>
+                        testImplementation            : <empty>
+                        testReleaseAnnotationProcessor          : <empty>
+                        testReleaseCompileOnly        : <empty>
+                        testReleaseImplementation     : <empty>
+                        testReleaseRuntimeOnly        : <empty>
+                        testReleaseWearApp            : <empty>
+                        testRuntimeOnly               : <empty>
+                        testWearApp                   : <empty>
+                        wearApp                       : <empty>
             library                       : :library (DefaultExternalProject)
                 path                          : :library [-]
                 identityPath                  : :library [-]
@@ -171,8 +186,6 @@ MODULE                        : project
                 qName                         : :library
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/library
                 buildDir                      : <ROOT>/library/build [-]
                 buildFile                     : <ROOT>/library/build.gradle
@@ -182,100 +195,117 @@ MODULE                        : project
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :library:testReleaseUnitTest
                 externalSystemId              : GRADLE
-                artifactsByConfiguration
-                    androidApis                   : <empty>
-                    androidJdkImage               : <empty>
-                    androidTestAnnotationProcessor          : <empty>
-                    androidTestCompileOnly        : <empty>
-                    androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugImplementation          : <empty>
-                    androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugWearApp       : <empty>
-                    androidTestImplementation     : <empty>
-                    androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseWearApp     : <empty>
-                    androidTestRuntimeOnly        : <empty>
-                    androidTestUtil               : <empty>
-                    androidTestWearApp            : <empty>
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    archives                      : <empty>
-                    compileOnly                   : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
-                    debugAndroidTestCompileClasspath        : <empty>
-                    debugAndroidTestRuntimeClasspath        : <empty>
-                    debugAnnotationProcessor      : <empty>
-                    debugAnnotationProcessorClasspath       : <empty>
-                    debugApi                      : <empty>
-                    debugApiElements              : <empty>
-                    debugCompileClasspath         : <empty>
-                    debugCompileOnly              : <empty>
-                    debugImplementation           : <empty>
-                    debugRuntimeClasspath         : <empty>
-                    debugRuntimeElements          : <empty>
-                    debugRuntimeOnly              : <empty>
-                    debugUnitTestAnnotationProcessorClasspath         : <empty>
-                    debugUnitTestCompileClasspath : <empty>
-                    debugUnitTestRuntimeClasspath : <empty>
-                    debugWearApp                  : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    lintChecks                    : <empty>
-                    lintPublish                   : <empty>
-                    releaseAnnotationProcessor    : <empty>
-                    releaseAnnotationProcessorClasspath     : <empty>
-                    releaseApi                    : <empty>
-                    releaseApiElements            : <empty>
-                    releaseCompileClasspath       : <empty>
-                    releaseCompileOnly            : <empty>
-                    releaseImplementation         : <empty>
-                    releaseRuntimeClasspath       : <empty>
-                    releaseRuntimeElements        : <empty>
-                    releaseRuntimeOnly            : <empty>
-                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                    releaseUnitTestCompileClasspath         : <empty>
-                    releaseUnitTestRuntimeClasspath         : <empty>
-                    releaseWearApp                : <empty>
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileOnly               : <empty>
-                    testDebugAnnotationProcessor  : <empty>
-                    testDebugCompileOnly          : <empty>
-                    testDebugImplementation       : <empty>
-                    testDebugRuntimeOnly          : <empty>
-                    testDebugWearApp              : <empty>
-                    testFixturesAnnotationProcessor         : <empty>
-                    testFixturesApi               : <empty>
-                    testFixturesCompileOnly       : <empty>
-                    testFixturesDebugAnnotationProcessor    : <empty>
-                    testFixturesDebugApi          : <empty>
-                    testFixturesDebugCompileOnly  : <empty>
-                    testFixturesDebugImplementation         : <empty>
-                    testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugWearApp      : <empty>
-                    testFixturesImplementation    : <empty>
-                    testFixturesReleaseAnnotationProcessor  : <empty>
-                    testFixturesReleaseApi        : <empty>
-                    testFixturesReleaseCompileOnly          : <empty>
-                    testFixturesReleaseImplementation       : <empty>
-                    testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseWearApp    : <empty>
-                    testFixturesRuntimeOnly       : <empty>
-                    testFixturesWearApp           : <empty>
-                    testImplementation            : <empty>
-                    testReleaseAnnotationProcessor          : <empty>
-                    testReleaseCompileOnly        : <empty>
-                    testReleaseImplementation     : <empty>
-                    testReleaseRuntimeOnly        : <empty>
-                    testReleaseWearApp            : <empty>
-                    testRuntimeOnly               : <empty>
-                    testWearApp                   : <empty>
-                    wearApp                       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    configurationArtifacts
+                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
+                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
+                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
+                        _internal-unified-test-platform-android-test-plugin         : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
+                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                        _internal-unified-test-platform-core    : <empty>
+                        _internal-unified-test-platform-launcher          : <empty>
+                        androidApis                   : <empty>
+                        androidJdkImage               : <empty>
+                        androidTestAnnotationProcessor          : <empty>
+                        androidTestCompileOnly        : <empty>
+                        androidTestDebugAnnotationProcessor     : <empty>
+                        androidTestDebugCompileOnly   : <empty>
+                        androidTestDebugImplementation          : <empty>
+                        androidTestDebugRuntimeOnly   : <empty>
+                        androidTestDebugWearApp       : <empty>
+                        androidTestImplementation     : <empty>
+                        androidTestReleaseAnnotationProcessor   : <empty>
+                        androidTestReleaseCompileOnly : <empty>
+                        androidTestReleaseImplementation        : <empty>
+                        androidTestReleaseRuntimeOnly : <empty>
+                        androidTestReleaseWearApp     : <empty>
+                        androidTestRuntimeOnly        : <empty>
+                        androidTestUtil               : <empty>
+                        androidTestWearApp            : <empty>
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        archives                      : <empty>
+                        compileOnly                   : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                        debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestRuntimeClasspath        : <empty>
+                        debugAnnotationProcessor      : <empty>
+                        debugAnnotationProcessorClasspath       : <empty>
+                        debugApi                      : <empty>
+                        debugApiElements              : <empty>
+                        debugCompileClasspath         : <empty>
+                        debugCompileOnly              : <empty>
+                        debugImplementation           : <empty>
+                        debugRuntimeClasspath         : <empty>
+                        debugRuntimeElements          : <empty>
+                        debugRuntimeOnly              : <empty>
+                        debugUnitTestAnnotationProcessorClasspath         : <empty>
+                        debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestRuntimeClasspath : <empty>
+                        debugWearApp                  : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        lintChecks                    : <empty>
+                        lintPublish                   : <empty>
+                        releaseAnnotationProcessor    : <empty>
+                        releaseAnnotationProcessorClasspath     : <empty>
+                        releaseApi                    : <empty>
+                        releaseApiElements            : <empty>
+                        releaseCompileClasspath       : <empty>
+                        releaseCompileOnly            : <empty>
+                        releaseImplementation         : <empty>
+                        releaseRuntimeClasspath       : <empty>
+                        releaseRuntimeElements        : <empty>
+                        releaseRuntimeOnly            : <empty>
+                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                        releaseUnitTestCompileClasspath         : <empty>
+                        releaseUnitTestRuntimeClasspath         : <empty>
+                        releaseWearApp                : <empty>
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileOnly               : <empty>
+                        testDebugAnnotationProcessor  : <empty>
+                        testDebugCompileOnly          : <empty>
+                        testDebugImplementation       : <empty>
+                        testDebugRuntimeOnly          : <empty>
+                        testDebugWearApp              : <empty>
+                        testFixturesAnnotationProcessor         : <empty>
+                        testFixturesApi               : <empty>
+                        testFixturesCompileOnly       : <empty>
+                        testFixturesDebugAnnotationProcessor    : <empty>
+                        testFixturesDebugApi          : <empty>
+                        testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugImplementation         : <empty>
+                        testFixturesDebugRuntimeOnly  : <empty>
+                        testFixturesDebugWearApp      : <empty>
+                        testFixturesImplementation    : <empty>
+                        testFixturesReleaseAnnotationProcessor  : <empty>
+                        testFixturesReleaseApi        : <empty>
+                        testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseImplementation       : <empty>
+                        testFixturesReleaseRuntimeOnly          : <empty>
+                        testFixturesReleaseWearApp    : <empty>
+                        testFixturesRuntimeOnly       : <empty>
+                        testFixturesWearApp           : <empty>
+                        testImplementation            : <empty>
+                        testReleaseAnnotationProcessor          : <empty>
+                        testReleaseCompileOnly        : <empty>
+                        testReleaseImplementation     : <empty>
+                        testReleaseRuntimeOnly        : <empty>
+                        testReleaseWearApp            : <empty>
+                        testRuntimeOnly               : <empty>
+                        testWearApp                   : <empty>
+                        wearApp                       : <empty>
             library-remote                : :library-remote (DefaultExternalProject)
                 path                          : :library-remote [-]
                 identityPath                  : :library-remote [-]
@@ -283,8 +313,6 @@ MODULE                        : project
                 qName                         : :library-remote
                 group                         : com.example.google
                 version                       : 1.0
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/library-remote
                 buildDir                      : <ROOT>/library-remote/build [-]
                 buildFile                     : <ROOT>/library-remote/build.gradle
@@ -294,102 +322,119 @@ MODULE                        : project
                     testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
                         qName                         : :library-remote:testReleaseUnitTest
                 externalSystemId              : GRADLE
-                artifactsByConfiguration
-                    androidApis                   : <empty>
-                    androidJdkImage               : <empty>
-                    androidTestAnnotationProcessor          : <empty>
-                    androidTestCompileOnly        : <empty>
-                    androidTestDebugAnnotationProcessor     : <empty>
-                    androidTestDebugCompileOnly   : <empty>
-                    androidTestDebugImplementation          : <empty>
-                    androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugWearApp       : <empty>
-                    androidTestImplementation     : <empty>
-                    androidTestReleaseAnnotationProcessor   : <empty>
-                    androidTestReleaseCompileOnly : <empty>
-                    androidTestReleaseImplementation        : <empty>
-                    androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseWearApp     : <empty>
-                    androidTestRuntimeOnly        : <empty>
-                    androidTestUtil               : <empty>
-                    androidTestWearApp            : <empty>
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    archives                      : <empty>
-                    compileOnly                   : <empty>
-                    coreLibraryDesugaring         : <empty>
-                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
-                    debugAndroidTestCompileClasspath        : <empty>
-                    debugAndroidTestRuntimeClasspath        : <empty>
-                    debugAnnotationProcessor      : <empty>
-                    debugAnnotationProcessorClasspath       : <empty>
-                    debugApi                      : <empty>
-                    debugApiElements              : <empty>
-                    debugCompileClasspath         : <empty>
-                    debugCompileOnly              : <empty>
-                    debugImplementation           : <empty>
-                    debugRuntimeClasspath         : <empty>
-                    debugRuntimeElements          : <empty>
-                    debugRuntimeOnly              : <empty>
-                    debugUnitTestAnnotationProcessorClasspath         : <empty>
-                    debugUnitTestCompileClasspath : <empty>
-                    debugUnitTestRuntimeClasspath : <empty>
-                    debugWearApp                  : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    lintChecks                    : <empty>
-                    lintPublish                   : <empty>
-                    releaseAnnotationProcessor    : <empty>
-                    releaseAnnotationProcessorClasspath     : <empty>
-                    releaseApi                    : <empty>
-                    releaseApiElements            : <empty>
-                    releaseCompileClasspath       : <empty>
-                    releaseCompileOnly            : <empty>
-                    releaseImplementation         : <empty>
-                    releaseRuntimeClasspath       : <empty>
-                    releaseRuntimeElements        : <empty>
-                    releaseRuntimeOnly            : <empty>
-                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
-                    releaseUnitTestCompileClasspath         : <empty>
-                    releaseUnitTestRuntimeClasspath         : <empty>
-                    - releaseVariantReleaseApiPublication   : <ROOT>/library-remote/build/outputs/aar/library-remote-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/library-remote/build/outputs/aar/library-remote-release.aar [-]
-                    releaseWearApp                : <empty>
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileOnly               : <empty>
-                    testDebugAnnotationProcessor  : <empty>
-                    testDebugCompileOnly          : <empty>
-                    testDebugImplementation       : <empty>
-                    testDebugRuntimeOnly          : <empty>
-                    testDebugWearApp              : <empty>
-                    testFixturesAnnotationProcessor         : <empty>
-                    testFixturesApi               : <empty>
-                    testFixturesCompileOnly       : <empty>
-                    testFixturesDebugAnnotationProcessor    : <empty>
-                    testFixturesDebugApi          : <empty>
-                    testFixturesDebugCompileOnly  : <empty>
-                    testFixturesDebugImplementation         : <empty>
-                    testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugWearApp      : <empty>
-                    testFixturesImplementation    : <empty>
-                    testFixturesReleaseAnnotationProcessor  : <empty>
-                    testFixturesReleaseApi        : <empty>
-                    testFixturesReleaseCompileOnly          : <empty>
-                    testFixturesReleaseImplementation       : <empty>
-                    testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseWearApp    : <empty>
-                    testFixturesRuntimeOnly       : <empty>
-                    testFixturesWearApp           : <empty>
-                    testImplementation            : <empty>
-                    testReleaseAnnotationProcessor          : <empty>
-                    testReleaseCompileOnly        : <empty>
-                    testReleaseImplementation     : <empty>
-                    testReleaseRuntimeOnly        : <empty>
-                    testReleaseWearApp            : <empty>
-                    testRuntimeOnly               : <empty>
-                    testWearApp                   : <empty>
-                    wearApp                       : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    configurationArtifacts
+                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
+                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
+                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
+                        _internal-unified-test-platform-android-test-plugin         : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-apk-installer          : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-emulator-control       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
+                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
+                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
+                        _internal-unified-test-platform-core    : <empty>
+                        _internal-unified-test-platform-launcher          : <empty>
+                        androidApis                   : <empty>
+                        androidJdkImage               : <empty>
+                        androidTestAnnotationProcessor          : <empty>
+                        androidTestCompileOnly        : <empty>
+                        androidTestDebugAnnotationProcessor     : <empty>
+                        androidTestDebugCompileOnly   : <empty>
+                        androidTestDebugImplementation          : <empty>
+                        androidTestDebugRuntimeOnly   : <empty>
+                        androidTestDebugWearApp       : <empty>
+                        androidTestImplementation     : <empty>
+                        androidTestReleaseAnnotationProcessor   : <empty>
+                        androidTestReleaseCompileOnly : <empty>
+                        androidTestReleaseImplementation        : <empty>
+                        androidTestReleaseRuntimeOnly : <empty>
+                        androidTestReleaseWearApp     : <empty>
+                        androidTestRuntimeOnly        : <empty>
+                        androidTestUtil               : <empty>
+                        androidTestWearApp            : <empty>
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        archives                      : <empty>
+                        compileOnly                   : <empty>
+                        coreLibraryDesugaring         : <empty>
+                        debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                        debugAndroidTestCompileClasspath        : <empty>
+                        debugAndroidTestRuntimeClasspath        : <empty>
+                        debugAnnotationProcessor      : <empty>
+                        debugAnnotationProcessorClasspath       : <empty>
+                        debugApi                      : <empty>
+                        debugApiElements              : <empty>
+                        debugCompileClasspath         : <empty>
+                        debugCompileOnly              : <empty>
+                        debugImplementation           : <empty>
+                        debugRuntimeClasspath         : <empty>
+                        debugRuntimeElements          : <empty>
+                        debugRuntimeOnly              : <empty>
+                        debugUnitTestAnnotationProcessorClasspath         : <empty>
+                        debugUnitTestCompileClasspath : <empty>
+                        debugUnitTestRuntimeClasspath : <empty>
+                        debugWearApp                  : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        lintChecks                    : <empty>
+                        lintPublish                   : <empty>
+                        releaseAnnotationProcessor    : <empty>
+                        releaseAnnotationProcessorClasspath     : <empty>
+                        releaseApi                    : <empty>
+                        releaseApiElements            : <empty>
+                        releaseCompileClasspath       : <empty>
+                        releaseCompileOnly            : <empty>
+                        releaseImplementation         : <empty>
+                        releaseRuntimeClasspath       : <empty>
+                        releaseRuntimeElements        : <empty>
+                        releaseRuntimeOnly            : <empty>
+                        releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                        releaseUnitTestCompileClasspath         : <empty>
+                        releaseUnitTestRuntimeClasspath         : <empty>
+                        - releaseVariantReleaseApiPublication   : <ROOT>/library-remote/build/outputs/aar/library-remote-release.aar [-]
+                        - releaseVariantReleaseRuntimePublication         : <ROOT>/library-remote/build/outputs/aar/library-remote-release.aar [-]
+                        releaseWearApp                : <empty>
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileOnly               : <empty>
+                        testDebugAnnotationProcessor  : <empty>
+                        testDebugCompileOnly          : <empty>
+                        testDebugImplementation       : <empty>
+                        testDebugRuntimeOnly          : <empty>
+                        testDebugWearApp              : <empty>
+                        testFixturesAnnotationProcessor         : <empty>
+                        testFixturesApi               : <empty>
+                        testFixturesCompileOnly       : <empty>
+                        testFixturesDebugAnnotationProcessor    : <empty>
+                        testFixturesDebugApi          : <empty>
+                        testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugImplementation         : <empty>
+                        testFixturesDebugRuntimeOnly  : <empty>
+                        testFixturesDebugWearApp      : <empty>
+                        testFixturesImplementation    : <empty>
+                        testFixturesReleaseAnnotationProcessor  : <empty>
+                        testFixturesReleaseApi        : <empty>
+                        testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseImplementation       : <empty>
+                        testFixturesReleaseRuntimeOnly          : <empty>
+                        testFixturesReleaseWearApp    : <empty>
+                        testFixturesRuntimeOnly       : <empty>
+                        testFixturesWearApp           : <empty>
+                        testImplementation            : <empty>
+                        testReleaseAnnotationProcessor          : <empty>
+                        testReleaseCompileOnly        : <empty>
+                        testReleaseImplementation     : <empty>
+                        testReleaseRuntimeOnly        : <empty>
+                        testReleaseWearApp            : <empty>
+                        testRuntimeOnly               : <empty>
+                        testWearApp                   : <empty>
+                        wearApp                       : <empty>
             lint                          : :lint (DefaultExternalProject)
                 path                          : :lint [-]
                 identityPath                  : :lint [-]
@@ -397,150 +442,151 @@ MODULE                        : project
                 qName                         : :lint
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/lint
                 buildDir                      : <ROOT>/lint/build [-]
                 buildFile                     : <ROOT>/lint/build.gradle
                 tasks
                     test                          : test (DefaultExternalTask)
                         qName                         : :lint:test
-                sourceSets
-                    main                          : main (DefaultExternalSourceSet)
-                        sources
-                            RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/lint/src/main/resources [-]
-                                outputDir                     : <ROOT>/lint/out/production/resources [-]
-                                - gradleOutputDirs            : <ROOT>/lint/build/resources/main [-]
-                                patterns                      : FilePatternSetImpl
-                            SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/lint/src/main/java
-                                outputDir                     : <ROOT>/lint/out/production/classes [-]
-                                - gradleOutputDirs            : <ROOT>/lint/build/classes/java/main [-]
-                                patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/lint/lint-checks/<ANDROID_TOOLS_BASE_VERSION>/lint-checks-<ANDROID_TOOLS_BASE_VERSION>.jar
-                            source                        : <M2>/com/android/tools/lint/lint-checks/<ANDROID_TOOLS_BASE_VERSION>/lint-checks-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/lint/lint-api/<ANDROID_TOOLS_BASE_VERSION>/lint-api-<ANDROID_TOOLS_BASE_VERSION>.jar
-                            source                        : <M2>/com/android/tools/lint/lint-api/<ANDROID_TOOLS_BASE_VERSION>/lint-api-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/lint/lint-model/<ANDROID_TOOLS_BASE_VERSION>/lint-model-<ANDROID_TOOLS_BASE_VERSION>.jar
-                            source                        : <M2>/com/android/tools/lint/lint-model/<ANDROID_TOOLS_BASE_VERSION>/lint-model-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/external/com-intellij/intellij-core/<ANDROID_TOOLS_BASE_VERSION>/intellij-core-<ANDROID_TOOLS_BASE_VERSION>.jar
-                            source                        : <M2>/com/android/tools/external/com-intellij/intellij-core/<ANDROID_TOOLS_BASE_VERSION>/intellij-core-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/external/com-intellij/kotlin-compiler/<ANDROID_TOOLS_BASE_VERSION>/kotlin-compiler-<ANDROID_TOOLS_BASE_VERSION>.jar
-                            source                        : <M2>/com/android/tools/external/com-intellij/kotlin-compiler/<ANDROID_TOOLS_BASE_VERSION>/kotlin-compiler-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/external/org-jetbrains/uast/<ANDROID_TOOLS_BASE_VERSION>/uast-<ANDROID_TOOLS_BASE_VERSION>.jar
-                            source                        : <M2>/com/android/tools/external/org-jetbrains/uast/<ANDROID_TOOLS_BASE_VERSION>/uast-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/build/manifest-merger/<ANDROID_TOOLS_BASE_VERSION>/manifest-merger-<ANDROID_TOOLS_BASE_VERSION>.jar
-                            source                        : <M2>/com/android/tools/build/manifest-merger/<ANDROID_TOOLS_BASE_VERSION>/manifest-merger-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/common/<ANDROID_TOOLS_BASE_VERSION>/common-<ANDROID_TOOLS_BASE_VERSION>.jar
-                            source                        : <M2>/com/android/tools/common/<ANDROID_TOOLS_BASE_VERSION>/common-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/layoutlib/layoutlib-api/<ANDROID_TOOLS_BASE_VERSION>/layoutlib-api-<ANDROID_TOOLS_BASE_VERSION>.jar
-                            source                        : <M2>/com/android/tools/layoutlib/layoutlib-api/<ANDROID_TOOLS_BASE_VERSION>/layoutlib-api-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/sdk-common/<ANDROID_TOOLS_BASE_VERSION>/sdk-common-<ANDROID_TOOLS_BASE_VERSION>.jar
-                            source                        : <M2>/com/android/tools/sdk-common/<ANDROID_TOOLS_BASE_VERSION>/sdk-common-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/sdklib/<ANDROID_TOOLS_BASE_VERSION>/sdklib-<ANDROID_TOOLS_BASE_VERSION>.jar
-                            source                        : <M2>/com/android/tools/sdklib/<ANDROID_TOOLS_BASE_VERSION>/sdklib-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/commons-io/commons-io/2.13.0/commons-io-2.13.0.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
-                            source                        : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/ow2/asm/asm-tree/9.6/asm-tree-9.6.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/ow2/asm/asm/9.6/asm-9.6.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/annotations/<ANDROID_TOOLS_BASE_VERSION>/annotations-<ANDROID_TOOLS_BASE_VERSION>.jar
-                            source                        : <M2>/com/android/tools/annotations/<ANDROID_TOOLS_BASE_VERSION>/annotations-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/guava/guava/32.0.1-jre/guava-32.0.1-jre.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/android/tools/repository/<ANDROID_TOOLS_BASE_VERSION>/repository-<ANDROID_TOOLS_BASE_VERSION>.jar
-                            source                        : <M2>/com/android/tools/repository/<ANDROID_TOOLS_BASE_VERSION>/repository-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                            source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/checkerframework/checker-qual/3.33.0/checker-qual-3.33.0.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/errorprone/error_prone_annotations/2.18.0/error_prone_annotations-2.18.0.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/lint/build/classes/java/main [-]
-                            - files                       : <ROOT>/lint/build/resources/main [-]
-                        - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
-                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                    test                          : test (DefaultExternalSourceSet)
-                        sources
-                            TEST                          : alljava (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/lint/src/test/java [-]
-                                outputDir                     : <ROOT>/lint/out/test/classes [-]
-                                - gradleOutputDirs            : <ROOT>/lint/build/classes/java/test [-]
-                                patterns                      : FilePatternSetImpl
-                            TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/lint/src/test/resources [-]
-                                outputDir                     : <ROOT>/lint/out/test/resources [-]
-                                - gradleOutputDirs            : <ROOT>/lint/build/resources/test [-]
-                                patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/lint/build/classes/java/main [-]
-                            - files                       : <ROOT>/lint/build/resources/main [-]
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/lint/build/classes/java/test [-]
-                            - files                       : <ROOT>/lint/build/resources/test [-]
-                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 externalSystemId              : GRADLE
-                - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
-                artifactsByConfiguration
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    - apiElements                 : <ROOT>/lint/build/libs/lint.jar [-]
-                    - archives                    : <ROOT>/lint/build/libs/lint.jar [-]
-                    compileClasspath              : <empty>
-                    compileOnly                   : <empty>
-                    compileOnlyApi                : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    - mainSourceElements          : <ROOT>/lint/src/main/java
-                    - mainSourceElements          : <ROOT>/lint/src/main/resources [-]
-                    runtimeClasspath              : <empty>
-                    - runtimeElements             : <ROOT>/lint/build/libs/lint.jar [-]
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileClasspath          : <empty>
-                    testCompileOnly               : <empty>
-                    testImplementation            : <empty>
-                    - testResultsElementsForTest  : <ROOT>/lint/build/test-results/test/binary [-]
-                    testRuntimeClasspath          : <empty>
-                    testRuntimeOnly               : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    - taskArtifacts               : <ROOT>/lint/build/libs/lint.jar [-]
+                    configurationArtifacts
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        - apiElements                 : <ROOT>/lint/build/libs/lint.jar [-]
+                        - archives                    : <ROOT>/lint/build/libs/lint.jar [-]
+                        compileClasspath              : <empty>
+                        compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        - mainSourceElements          : <ROOT>/lint/src/main/java
+                        - mainSourceElements          : <ROOT>/lint/src/main/resources [-]
+                        runtimeClasspath              : <empty>
+                        - runtimeElements             : <ROOT>/lint/build/libs/lint.jar [-]
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileClasspath          : <empty>
+                        testCompileOnly               : <empty>
+                        testImplementation            : <empty>
+                        - testResultsElementsForTest  : <ROOT>/lint/build/test-results/test/binary [-]
+                        testRuntimeClasspath          : <empty>
+                        testRuntimeOnly               : <empty>
+                    sourceSets
+                        main                          : main (DefaultExternalSourceSet)
+                            sources
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lint/src/main/resources [-]
+                                    outputDir                     : <ROOT>/lint/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/lint/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lint/src/main/java
+                                    outputDir                     : <ROOT>/lint/out/production/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/lint/build/classes/java/main [-]
+                                    patterns                      : FilePatternSetImpl
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/android/tools/lint/lint-checks/<ANDROID_TOOLS_BASE_VERSION>/lint-checks-<ANDROID_TOOLS_BASE_VERSION>.jar
+                                source                        : <M2>/com/android/tools/lint/lint-checks/<ANDROID_TOOLS_BASE_VERSION>/lint-checks-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/android/tools/lint/lint-api/<ANDROID_TOOLS_BASE_VERSION>/lint-api-<ANDROID_TOOLS_BASE_VERSION>.jar
+                                source                        : <M2>/com/android/tools/lint/lint-api/<ANDROID_TOOLS_BASE_VERSION>/lint-api-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/android/tools/lint/lint-model/<ANDROID_TOOLS_BASE_VERSION>/lint-model-<ANDROID_TOOLS_BASE_VERSION>.jar
+                                source                        : <M2>/com/android/tools/lint/lint-model/<ANDROID_TOOLS_BASE_VERSION>/lint-model-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/android/tools/external/com-intellij/intellij-core/<ANDROID_TOOLS_BASE_VERSION>/intellij-core-<ANDROID_TOOLS_BASE_VERSION>.jar
+                                source                        : <M2>/com/android/tools/external/com-intellij/intellij-core/<ANDROID_TOOLS_BASE_VERSION>/intellij-core-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/android/tools/external/com-intellij/kotlin-compiler/<ANDROID_TOOLS_BASE_VERSION>/kotlin-compiler-<ANDROID_TOOLS_BASE_VERSION>.jar
+                                source                        : <M2>/com/android/tools/external/com-intellij/kotlin-compiler/<ANDROID_TOOLS_BASE_VERSION>/kotlin-compiler-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/android/tools/external/org-jetbrains/uast/<ANDROID_TOOLS_BASE_VERSION>/uast-<ANDROID_TOOLS_BASE_VERSION>.jar
+                                source                        : <M2>/com/android/tools/external/org-jetbrains/uast/<ANDROID_TOOLS_BASE_VERSION>/uast-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/android/tools/build/manifest-merger/<ANDROID_TOOLS_BASE_VERSION>/manifest-merger-<ANDROID_TOOLS_BASE_VERSION>.jar
+                                source                        : <M2>/com/android/tools/build/manifest-merger/<ANDROID_TOOLS_BASE_VERSION>/manifest-merger-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/android/tools/common/<ANDROID_TOOLS_BASE_VERSION>/common-<ANDROID_TOOLS_BASE_VERSION>.jar
+                                source                        : <M2>/com/android/tools/common/<ANDROID_TOOLS_BASE_VERSION>/common-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/android/tools/layoutlib/layoutlib-api/<ANDROID_TOOLS_BASE_VERSION>/layoutlib-api-<ANDROID_TOOLS_BASE_VERSION>.jar
+                                source                        : <M2>/com/android/tools/layoutlib/layoutlib-api/<ANDROID_TOOLS_BASE_VERSION>/layoutlib-api-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/android/tools/sdk-common/<ANDROID_TOOLS_BASE_VERSION>/sdk-common-<ANDROID_TOOLS_BASE_VERSION>.jar
+                                source                        : <M2>/com/android/tools/sdk-common/<ANDROID_TOOLS_BASE_VERSION>/sdk-common-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/android/tools/sdklib/<ANDROID_TOOLS_BASE_VERSION>/sdklib-<ANDROID_TOOLS_BASE_VERSION>.jar
+                                source                        : <M2>/com/android/tools/sdklib/<ANDROID_TOOLS_BASE_VERSION>/sdklib-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/commons-io/commons-io/2.13.0/commons-io-2.13.0.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
+                                source                        : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/ow2/asm/asm-tree/9.6/asm-tree-9.6.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/ow2/asm/asm/9.6/asm-9.6.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/android/tools/annotations/<ANDROID_TOOLS_BASE_VERSION>/annotations-<ANDROID_TOOLS_BASE_VERSION>.jar
+                                source                        : <M2>/com/android/tools/annotations/<ANDROID_TOOLS_BASE_VERSION>/annotations-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/guava/guava/32.0.1-jre/guava-32.0.1-jre.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/android/tools/repository/<ANDROID_TOOLS_BASE_VERSION>/repository-<ANDROID_TOOLS_BASE_VERSION>.jar
+                                source                        : <M2>/com/android/tools/repository/<ANDROID_TOOLS_BASE_VERSION>/repository-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/org/checkerframework/checker-qual/3.33.0/checker-qual-3.33.0.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/errorprone/error_prone_annotations/2.18.0/error_prone_annotations-2.18.0.jar
+                            - dependencies                : DefaultExternalLibraryDependency
+                                file                          : <M2>/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lint/build/classes/java/main [-]
+                                - files                       : <ROOT>/lint/build/resources/main [-]
+                            - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        test                          : test (DefaultExternalSourceSet)
+                            sources
+                                TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lint/src/test/java [-]
+                                    outputDir                     : <ROOT>/lint/out/test/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/lint/build/classes/java/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lint/src/test/resources [-]
+                                    outputDir                     : <ROOT>/lint/out/test/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/lint/build/resources/test [-]
+                                    patterns                      : FilePatternSetImpl
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lint/build/classes/java/main [-]
+                                - files                       : <ROOT>/lint/build/resources/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lint/build/classes/java/test [-]
+                                - files                       : <ROOT>/lint/build/resources/test [-]
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             lintpublish                   : :lintpublish (DefaultExternalProject)
                 path                          : :lintpublish [-]
                 identityPath                  : :lintpublish [-]
@@ -548,106 +594,107 @@ MODULE                        : project
                 qName                         : :lintpublish
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/lintpublish
                 buildDir                      : <ROOT>/lintpublish/build [-]
                 buildFile                     : <ROOT>/lintpublish/build.gradle
                 tasks
                     test                          : test (DefaultExternalTask)
                         qName                         : :lintpublish:test
-                sourceSets
-                    main                          : main (DefaultExternalSourceSet)
-                        sources
-                            RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/lintpublish/src/main/resources [-]
-                                outputDir                     : <ROOT>/lintpublish/out/production/resources [-]
-                                - gradleOutputDirs            : <ROOT>/lintpublish/build/resources/main [-]
-                                patterns                      : FilePatternSetImpl
-                            SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/lintpublish/src/main/java
-                                outputDir                     : <ROOT>/lintpublish/out/production/classes [-]
-                                - gradleOutputDirs            : <ROOT>/lintpublish/build/classes/java/main [-]
-                                patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/lintpublish/build/classes/java/main [-]
-                            - files                       : <ROOT>/lintpublish/build/resources/main [-]
-                        - artifacts                   : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
-                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                    test                          : test (DefaultExternalSourceSet)
-                        sources
-                            TEST                          : alljava (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/lintpublish/src/test/java [-]
-                                outputDir                     : <ROOT>/lintpublish/out/test/classes [-]
-                                - gradleOutputDirs            : <ROOT>/lintpublish/build/classes/java/test [-]
-                                patterns                      : FilePatternSetImpl
-                            TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/lintpublish/src/test/resources [-]
-                                outputDir                     : <ROOT>/lintpublish/out/test/resources [-]
-                                - gradleOutputDirs            : <ROOT>/lintpublish/build/resources/test [-]
-                                patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/lintpublish/build/classes/java/main [-]
-                            - files                       : <ROOT>/lintpublish/build/resources/main [-]
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/lintpublish/build/classes/java/test [-]
-                            - files                       : <ROOT>/lintpublish/build/resources/test [-]
-                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 externalSystemId              : GRADLE
-                - artifacts                   : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
-                artifactsByConfiguration
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    - apiElements                 : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
-                    - archives                    : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
-                    compileClasspath              : <empty>
-                    compileOnly                   : <empty>
-                    compileOnlyApi                : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    - mainSourceElements          : <ROOT>/lintpublish/src/main/java
-                    - mainSourceElements          : <ROOT>/lintpublish/src/main/resources [-]
-                    runtimeClasspath              : <empty>
-                    - runtimeElements             : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileClasspath          : <empty>
-                    testCompileOnly               : <empty>
-                    testImplementation            : <empty>
-                    - testResultsElementsForTest  : <ROOT>/lintpublish/build/test-results/test/binary [-]
-                    testRuntimeClasspath          : <empty>
-                    testRuntimeOnly               : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    - taskArtifacts               : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
+                    configurationArtifacts
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        - apiElements                 : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
+                        - archives                    : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
+                        compileClasspath              : <empty>
+                        compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        - mainSourceElements          : <ROOT>/lintpublish/src/main/java
+                        - mainSourceElements          : <ROOT>/lintpublish/src/main/resources [-]
+                        runtimeClasspath              : <empty>
+                        - runtimeElements             : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileClasspath          : <empty>
+                        testCompileOnly               : <empty>
+                        testImplementation            : <empty>
+                        - testResultsElementsForTest  : <ROOT>/lintpublish/build/test-results/test/binary [-]
+                        testRuntimeClasspath          : <empty>
+                        testRuntimeOnly               : <empty>
+                    sourceSets
+                        main                          : main (DefaultExternalSourceSet)
+                            sources
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lintpublish/src/main/resources [-]
+                                    outputDir                     : <ROOT>/lintpublish/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/lintpublish/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lintpublish/src/main/java
+                                    outputDir                     : <ROOT>/lintpublish/out/production/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/lintpublish/build/classes/java/main [-]
+                                    patterns                      : FilePatternSetImpl
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lintpublish/build/classes/java/main [-]
+                                - files                       : <ROOT>/lintpublish/build/resources/main [-]
+                            - artifacts                   : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        test                          : test (DefaultExternalSourceSet)
+                            sources
+                                TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lintpublish/src/test/java [-]
+                                    outputDir                     : <ROOT>/lintpublish/out/test/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/lintpublish/build/classes/java/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lintpublish/src/test/resources [-]
+                                    outputDir                     : <ROOT>/lintpublish/out/test/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/lintpublish/build/resources/test [-]
+                                    patterns                      : FilePatternSetImpl
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lintpublish/build/classes/java/main [-]
+                                - files                       : <ROOT>/lintpublish/build/resources/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lintpublish/build/classes/java/test [-]
+                                - files                       : <ROOT>/lintpublish/build/resources/test [-]
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             lintpublish-remote            : :lintpublish-remote (DefaultExternalProject)
                 path                          : :lintpublish-remote [-]
                 identityPath                  : :lintpublish-remote [-]
@@ -655,110 +702,112 @@ MODULE                        : project
                 qName                         : :lintpublish-remote
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/lintpublish-remote
                 buildDir                      : <ROOT>/lintpublish-remote/build [-]
                 buildFile                     : <ROOT>/lintpublish-remote/build.gradle
                 tasks
                     test                          : test (DefaultExternalTask)
                         qName                         : :lintpublish-remote:test
-                sourceSets
-                    main                          : main (DefaultExternalSourceSet)
-                        sources
-                            RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/lintpublish-remote/src/main/resources [-]
-                                outputDir                     : <ROOT>/lintpublish-remote/out/production/resources [-]
-                                - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/resources/main [-]
-                                patterns                      : FilePatternSetImpl
-                            SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/lintpublish-remote/src/main/java
-                                outputDir                     : <ROOT>/lintpublish-remote/out/production/classes [-]
-                                - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/classes/java/main [-]
-                                patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/lintpublish-remote/build/classes/java/main [-]
-                            - files                       : <ROOT>/lintpublish-remote/build/resources/main [-]
-                        - artifacts                   : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
-                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                    test                          : test (DefaultExternalSourceSet)
-                        sources
-                            TEST                          : alljava (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/lintpublish-remote/src/test/java [-]
-                                outputDir                     : <ROOT>/lintpublish-remote/out/test/classes [-]
-                                - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/classes/java/test [-]
-                                patterns                      : FilePatternSetImpl
-                            TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
-                                - srcDirs                     : <ROOT>/lintpublish-remote/src/test/resources [-]
-                                outputDir                     : <ROOT>/lintpublish-remote/out/test/resources [-]
-                                - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/resources/test [-]
-                                patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/lintpublish-remote/build/classes/java/main [-]
-                            - files                       : <ROOT>/lintpublish-remote/build/resources/main [-]
-                        - dependencies                : DefaultFileCollectionDependency
-                            - files                       : <ROOT>/lintpublish-remote/build/classes/java/test [-]
-                            - files                       : <ROOT>/lintpublish-remote/build/resources/test [-]
-                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 externalSystemId              : GRADLE
-                - artifacts                   : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
-                artifactsByConfiguration
-                    annotationProcessor           : <empty>
-                    api                           : <empty>
-                    - apiElements                 : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
-                    - archives                    : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
-                    compileClasspath              : <empty>
-                    compileOnly                   : <empty>
-                    compileOnlyApi                : <empty>
-                    default                       : <empty>
-                    implementation                : <empty>
-                    - mainSourceElements          : <ROOT>/lintpublish-remote/src/main/java
-                    - mainSourceElements          : <ROOT>/lintpublish-remote/src/main/resources [-]
-                    runtimeClasspath              : <empty>
-                    - runtimeElements             : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
-                    runtimeOnly                   : <empty>
-                    testAnnotationProcessor       : <empty>
-                    testCompileClasspath          : <empty>
-                    testCompileOnly               : <empty>
-                    testImplementation            : <empty>
-                    - testResultsElementsForTest  : <ROOT>/lintpublish-remote/build/test-results/test/binary [-]
-                    testRuntimeClasspath          : <empty>
-                    testRuntimeOnly               : <empty>
+                sourceSetModel                : DefaultGradleSourceSetModel
+                    sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                    - taskArtifacts               : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
+                    configurationArtifacts
+                        annotationProcessor           : <empty>
+                        api                           : <empty>
+                        - apiElements                 : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
+                        - archives                    : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
+                        compileClasspath              : <empty>
+                        compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
+                        default                       : <empty>
+                        implementation                : <empty>
+                        - mainSourceElements          : <ROOT>/lintpublish-remote/src/main/java
+                        - mainSourceElements          : <ROOT>/lintpublish-remote/src/main/resources [-]
+                        runtimeClasspath              : <empty>
+                        - runtimeElements             : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
+                        runtimeOnly                   : <empty>
+                        testAnnotationProcessor       : <empty>
+                        testCompileClasspath          : <empty>
+                        testCompileOnly               : <empty>
+                        testImplementation            : <empty>
+                        - testResultsElementsForTest  : <ROOT>/lintpublish-remote/build/test-results/test/binary [-]
+                        testRuntimeClasspath          : <empty>
+                        testRuntimeOnly               : <empty>
+                    sourceSets
+                        main                          : main (DefaultExternalSourceSet)
+                            sources
+                                RESOURCE                      : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lintpublish-remote/src/main/resources [-]
+                                    outputDir                     : <ROOT>/lintpublish-remote/out/production/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/resources/main [-]
+                                    patterns                      : FilePatternSetImpl
+                                SOURCE                        : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lintpublish-remote/src/main/java
+                                    outputDir                     : <ROOT>/lintpublish-remote/out/production/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/classes/java/main [-]
+                                    patterns                      : FilePatternSetImpl
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lintpublish-remote/build/classes/java/main [-]
+                                - files                       : <ROOT>/lintpublish-remote/build/resources/main [-]
+                            - artifacts                   : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        test                          : test (DefaultExternalSourceSet)
+                            sources
+                                TEST                          : alljava (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lintpublish-remote/src/test/java [-]
+                                    outputDir                     : <ROOT>/lintpublish-remote/out/test/classes [-]
+                                    - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/classes/java/test [-]
+                                    patterns                      : FilePatternSetImpl
+                                TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
+                                    - srcDirs                     : <ROOT>/lintpublish-remote/src/test/resources [-]
+                                    outputDir                     : <ROOT>/lintpublish-remote/out/test/resources [-]
+                                    - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/resources/test [-]
+                                    patterns                      : FilePatternSetImpl
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lintpublish-remote/build/classes/java/main [-]
+                                - files                       : <ROOT>/lintpublish-remote/build/resources/main [-]
+                            - dependencies                : DefaultFileCollectionDependency
+                                - files                       : <ROOT>/lintpublish-remote/build/classes/java/test [-]
+                                - files                       : <ROOT>/lintpublish-remote/build/resources/test [-]
+                            sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                            targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
         projectDir                    : <ROOT>
         buildDir                      : <ROOT>/build [-]
         buildFile                     : <ROOT>/build.gradle
         externalSystemId              : GRADLE
+        sourceSetModel                : DefaultGradleSourceSetModel
 MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : <AGP_VERSION>
