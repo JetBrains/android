@@ -56,9 +56,9 @@ import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import java.io.IOException
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
 import org.jetbrains.android.facet.AndroidFacet
-import java.io.IOException
 
 private data class ResourceClasses(
   val namespaced: PsiClass?,
@@ -72,76 +72,105 @@ private data class ResourceClasses(
 }
 
 /**
- * A [LightResourceClassService] that provides R classes for local modules by finding manifests of all Android modules in the project. This
- * implementation of [LightResourceClassService] is intended for use with the Gradle build system.
+ * A [LightResourceClassService] that provides R classes for local modules by finding manifests of
+ * all Android modules in the project. This implementation of [LightResourceClassService] is
+ * intended for use with the Gradle build system.
  */
 class ProjectLightResourceClassService(private val project: Project) : LightResourceClassService {
   companion object {
     @JvmStatic
-    fun getInstance(project: Project) = project.getService(ProjectLightResourceClassService::class.java)!!
+    fun getInstance(project: Project) =
+      project.getService(ProjectLightResourceClassService::class.java)!!
   }
 
   /** Cache of AAR package names. */
-  private val aarPackageNamesCache: Cache<ExternalAndroidLibrary, String> = CacheBuilder.newBuilder().build()
+  private val aarPackageNamesCache: Cache<ExternalAndroidLibrary, String> =
+    CacheBuilder.newBuilder().build()
 
   /** Cache of created classes for a given AAR. */
-  private val aarClassesCache: Cache<ExternalAndroidLibrary, ResourceClasses> = CacheBuilder.newBuilder().build()
+  private val aarClassesCache: Cache<ExternalAndroidLibrary, ResourceClasses> =
+    CacheBuilder.newBuilder().build()
 
   /** Cache of created classes for a given AAR. */
-  private val moduleClassesCache: Cache<AndroidFacet, ResourceClasses> = CacheBuilder.newBuilder().build()
+  private val moduleClassesCache: Cache<AndroidFacet, ResourceClasses> =
+    CacheBuilder.newBuilder().build()
 
   /**
-   * [Multimap] of all [ExternalAndroidLibrary] dependencies in the project, indexed by their package name (read from Manifest).
+   * [Multimap] of all [ExternalAndroidLibrary] dependencies in the project, indexed by their
+   * package name (read from Manifest).
    */
   private var aarsByPackage: CachedValue<Multimap<String, ExternalAndroidLibrary>>
 
   init {
     val connection = project.messageBus.connect()
 
-    // Sync can remove facets or change configuration of modules in a way that affects R classes, e.g. make them non-transitive.
-    connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
-      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-        moduleClassesCache.invalidateAll()
-        invokeAndWaitIfNeeded { PsiManager.getInstance(project).dropPsiCaches() }
-      }
-    })
-
-    connection.subscribe(PROJECT_SYSTEM_BUILD_TOPIC, object : ProjectSystemBuildManager.BuildListener {
-      override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-        if (
-          result.mode != ProjectSystemBuildManager.BuildMode.CLEAN &&
-          result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS
-        ) {
-          // The light R classes might use the actual IDs when available. If the project is successfully compiled,
-          // new IDs might have been generated. This ensures the IDs are invalidated.
+    // Sync can remove facets or change configuration of modules in a way that affects R classes,
+    // e.g. make them non-transitive.
+    connection.subscribe(
+      PROJECT_SYSTEM_SYNC_TOPIC,
+      object : ProjectSystemSyncManager.SyncResultListener {
+        override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
           moduleClassesCache.invalidateAll()
           invokeAndWaitIfNeeded { PsiManager.getInstance(project).dropPsiCaches() }
         }
       }
-    })
+    )
 
-    aarsByPackage = CachedValuesManager.getManager(project).createCachedValue({
-      val libsWithResources = findAllLibrariesWithResources(project).values
-      aarPackageNamesCache.retainAll(libsWithResources) // remove old items that are not needed anymore
-      CachedValueProvider.Result<Multimap<String, ExternalAndroidLibrary>>(
-        Multimaps.index(libsWithResources) { getAarPackageName(it!!) },
-        ProjectRootManager.getInstance(project)
-      )
-    }, false)
-
-
-    // Light classes for AARs store a reference to the Library in UserData. These Library instances can become stale during sync, which
-    // confuses Kotlin (consumer of the information in UserData). Invalidate the AAR R classes cache when the library table changes.
-    LibraryTablesRegistrar.getInstance().getLibraryTable(project).addListener(object : LibraryTable.Listener {
-      override fun afterLibraryAdded(newLibrary: Library) = dropAarClassesCache()
-      override fun afterLibraryRenamed(library: Library, oldName: String?) = dropAarClassesCache()
-      override fun afterLibraryRemoved(library: Library) = dropAarClassesCache()
-
-      private fun dropAarClassesCache() {
-        aarClassesCache.invalidateAll()
-        PsiManager.getInstance(project).dropPsiCaches()
+    connection.subscribe(
+      PROJECT_SYSTEM_BUILD_TOPIC,
+      object : ProjectSystemBuildManager.BuildListener {
+        override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+          if (
+            result.mode != ProjectSystemBuildManager.BuildMode.CLEAN &&
+              result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS
+          ) {
+            // The light R classes might use the actual IDs when available. If the project is
+            // successfully compiled,
+            // new IDs might have been generated. This ensures the IDs are invalidated.
+            moduleClassesCache.invalidateAll()
+            invokeAndWaitIfNeeded { PsiManager.getInstance(project).dropPsiCaches() }
+          }
+        }
       }
-    })
+    )
+
+    aarsByPackage =
+      CachedValuesManager.getManager(project)
+        .createCachedValue(
+          {
+            val libsWithResources = findAllLibrariesWithResources(project).values
+            aarPackageNamesCache.retainAll(
+              libsWithResources
+            ) // remove old items that are not needed anymore
+            CachedValueProvider.Result<Multimap<String, ExternalAndroidLibrary>>(
+              Multimaps.index(libsWithResources) { getAarPackageName(it!!) },
+              ProjectRootManager.getInstance(project)
+            )
+          },
+          false
+        )
+
+    // Light classes for AARs store a reference to the Library in UserData. These Library instances
+    // can become stale during sync, which
+    // confuses Kotlin (consumer of the information in UserData). Invalidate the AAR R classes cache
+    // when the library table changes.
+    LibraryTablesRegistrar.getInstance()
+      .getLibraryTable(project)
+      .addListener(
+        object : LibraryTable.Listener {
+          override fun afterLibraryAdded(newLibrary: Library) = dropAarClassesCache()
+
+          override fun afterLibraryRenamed(library: Library, oldName: String?) =
+            dropAarClassesCache()
+
+          override fun afterLibraryRemoved(library: Library) = dropAarClassesCache()
+
+          private fun dropAarClassesCache() {
+            aarClassesCache.invalidateAll()
+            PsiManager.getInstance(project).dropPsiCaches()
+          }
+        }
+      )
   }
 
   override fun getLightRClasses(qualifiedName: String, scope: GlobalSearchScope): List<PsiClass> {
@@ -154,7 +183,8 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
   }
 
   override fun getLightRClassesAccessibleFromModule(module: Module): Collection<PsiClass> {
-    val namespacing = StudioResourceRepositoryManager.getInstance(module)?.namespacing ?: return emptySet()
+    val namespacing =
+      StudioResourceRepositoryManager.getInstance(module)?.namespacing ?: return emptySet()
     val androidFacet = module.androidFacet ?: return emptySet()
 
     val result = mutableListOf<ResourceClasses>()
@@ -180,11 +210,12 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
   override fun getLightRClassesDefinedByModule(module: Module): Collection<PsiClass> {
     val facet = module.androidFacet ?: return emptySet()
     val moduleRClasses = getModuleRClasses(facet)
-    val relevant = if (ProjectNamespacingStatusService.getInstance(module.project).namespacesUsed) {
-      setOf(moduleRClasses.nonNamespaced, moduleRClasses.namespaced)
-    } else {
-      setOf(moduleRClasses.nonNamespaced)
-    }
+    val relevant =
+      if (ProjectNamespacingStatusService.getInstance(module.project).namespacesUsed) {
+        setOf(moduleRClasses.nonNamespaced, moduleRClasses.namespaced)
+      } else {
+        setOf(moduleRClasses.nonNamespaced)
+      }
 
     return relevant.filterNotNull()
   }
@@ -200,7 +231,8 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
 
     // Non-namespaced classes of this module and all that depend on it:
     val modules = HashSet<Module>().also { ModuleUtilCore.collectModulesDependsOn(module, it) }
-    modules.asSequence()
+    modules
+      .asSequence()
       .mapNotNull { it.androidFacet }
       .mapNotNull { getModuleRClasses(it).nonNamespaced }
       .forEach { result += it }
@@ -220,11 +252,15 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
 
       val module = facet.module
       val moduleSystem = module.getModuleSystem()
-      val transitivity = if (moduleSystem.isRClassTransitive) Transitivity.TRANSITIVE else Transitivity.NON_TRANSITIVE
+      val transitivity =
+        if (moduleSystem.isRClassTransitive) Transitivity.TRANSITIVE
+        else Transitivity.NON_TRANSITIVE
 
       val isTestModule = module.isLinkedAndroidModule() && module.isAndroidTestModule()
 
-      val useConstantIds = if (isTestModule) moduleSystem.testRClassConstantIds else moduleSystem.applicationRClassConstantIds
+      val useConstantIds =
+        if (isTestModule) moduleSystem.testRClassConstantIds
+        else moduleSystem.applicationRClassConstantIds
 
       val fieldModifier =
         if (isLibraryProject || !useConstantIds) FieldModifier.NON_FINAL else FieldModifier.FINAL
@@ -233,79 +269,103 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
 
       ResourceClasses(
         nonNamespaced = ModuleRClass(facet, psiManager, sourceSet, transitivity, fieldModifier),
-        namespaced = ModuleRClass(facet, psiManager, sourceSet, Transitivity.NON_TRANSITIVE, fieldModifier),
+        namespaced =
+          ModuleRClass(facet, psiManager, sourceSet, Transitivity.NON_TRANSITIVE, fieldModifier),
       )
     }
   }
 
   private fun getAarRClasses(packageName: String): Sequence<ResourceClasses> {
-    return aarsByPackage.value.get(packageName).asSequence().map { aarLibrary -> getAarRClasses(aarLibrary, packageName) }
+    return aarsByPackage.value.get(packageName).asSequence().map { aarLibrary ->
+      getAarRClasses(aarLibrary, packageName)
+    }
   }
 
-  private fun getAarRClasses(aarLibrary: ExternalAndroidLibrary, packageName: String = getAarPackageName(aarLibrary)): ResourceClasses {
+  private fun getAarRClasses(
+    aarLibrary: ExternalAndroidLibrary,
+    packageName: String = getAarPackageName(aarLibrary)
+  ): ResourceClasses {
     val ideaLibrary = findIdeaLibrary(aarLibrary) ?: return ResourceClasses.Empty
 
-    // Build the classes from what is currently on disk. They may be null if the necessary files are not there, e.g. the res.apk file
+    // Build the classes from what is currently on disk. They may be null if the necessary files are
+    // not there, e.g. the res.apk file
     // is required to build the namespaced class.
     return aarClassesCache.getAndUnwrap(aarLibrary) {
       val psiManager = PsiManager.getInstance(project)
 
       ResourceClasses(
-        namespaced = aarLibrary.resApkFile?.toFile()?.takeIf { it.exists() }?.let { resApk ->
-          SmallAarRClass(
-            psiManager,
-            ideaLibrary,
-            packageName,
-            AarResourceRepositoryCache.instance.getProtoRepository(aarLibrary),
-            ResourceNamespace.fromPackageName(packageName),
-            aarLibrary.address
-          )
-        },
-        nonNamespaced = aarLibrary.symbolFile?.toFile()?.takeIf { it.exists() }?.let { symbolFile ->
-          TransitiveAarRClass(psiManager, ideaLibrary, packageName, symbolFile, aarLibrary.address)
-        }
+        namespaced =
+          aarLibrary.resApkFile
+            ?.toFile()
+            ?.takeIf { it.exists() }
+            ?.let { resApk ->
+              SmallAarRClass(
+                psiManager,
+                ideaLibrary,
+                packageName,
+                AarResourceRepositoryCache.instance.getProtoRepository(aarLibrary),
+                ResourceNamespace.fromPackageName(packageName),
+                aarLibrary.address
+              )
+            },
+        nonNamespaced =
+          aarLibrary.symbolFile
+            ?.toFile()
+            ?.takeIf { it.exists() }
+            ?.let { symbolFile ->
+              TransitiveAarRClass(
+                psiManager,
+                ideaLibrary,
+                packageName,
+                symbolFile,
+                aarLibrary.address
+              )
+            }
       )
     }
   }
 
   private fun findIdeaLibrary(modelLibrary: ExternalAndroidLibrary): Library? {
     // TODO(b/118485835): Store this mapping at sync time and use it here.
-    return LibraryTablesRegistrar.getInstance()
-      .getLibraryTable(project)
-      .libraries
-      .firstOrNull { it.name?.endsWith(modelLibrary.libraryName()) == true }
+    return LibraryTablesRegistrar.getInstance().getLibraryTable(project).libraries.firstOrNull {
+      it.name?.endsWith(modelLibrary.libraryName()) == true
+    }
   }
 
   override fun findRClassPackage(packageName: String): PsiPackage? {
-    return if (aarsByPackage.value.containsKey(packageName) || findAndroidFacetsWithPackageName(packageName).isNotEmpty()) {
+    return if (
+      aarsByPackage.value.containsKey(packageName) ||
+        findAndroidFacetsWithPackageName(packageName).isNotEmpty()
+    ) {
       AndroidLightPackage.withName(packageName, project)
-    }
-    else {
+    } else {
       null
     }
   }
 
   override fun getAllLightRClasses(): Collection<PsiClass> {
-    val libraryClasses = findAllLibrariesWithResources(project).values.asSequence().map { getAarRClasses(it) }
-    val moduleClasses = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).asSequence().map { getModuleRClasses(it) }
+    val libraryClasses =
+      findAllLibrariesWithResources(project).values.asSequence().map { getAarRClasses(it) }
+    val moduleClasses =
+      ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).asSequence().map {
+        getModuleRClasses(it)
+      }
 
-    return (libraryClasses + moduleClasses)
-      .flatMap { it.all }
-      .filterNotNull()
-      .toList()
+    return (libraryClasses + moduleClasses).flatMap { it.all }.filterNotNull().toList()
   }
 
   private fun findAndroidFacetsWithPackageName(packageName: String): Collection<AndroidFacet> {
     val projectSystem = project.getProjectSystem()
-    val facetsInferredFromPackageName = projectSystem.getAndroidFacetsWithPackageName(project, packageName)
+    val facetsInferredFromPackageName =
+      projectSystem.getAndroidFacetsWithPackageName(project, packageName)
 
     return if (packageName.endsWith(".test")) {
-      val facetsInferredFromTestPackageName = packageName.substringBeforeLast('.').let {
-        projectSystem.getAndroidFacetsWithPackageName(project, it)
-      }
+      val facetsInferredFromTestPackageName =
+        packageName.substringBeforeLast('.').let {
+          projectSystem.getAndroidFacetsWithPackageName(project, it)
+        }
       facetsInferredFromPackageName + facetsInferredFromTestPackageName
-    }
-    else {
+    } else {
       facetsInferredFromPackageName
     }
   }
@@ -316,12 +376,14 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       return packageName
     }
     return aarPackageNamesCache.getAndUnwrap(aarLibrary) {
-      val fromManifest = try {
-        aarLibrary.manifestFile?.let(AndroidManifestPackageNameUtils::getPackageNameFromManifestFile) ?: ""
-      }
-      catch (e: IOException) {
-        null
-      }
+      val fromManifest =
+        try {
+          aarLibrary.manifestFile?.let(
+            AndroidManifestPackageNameUtils::getPackageNameFromManifestFile
+          ) ?: ""
+        } catch (e: IOException) {
+          null
+        }
       fromManifest ?: ""
     }
   }
