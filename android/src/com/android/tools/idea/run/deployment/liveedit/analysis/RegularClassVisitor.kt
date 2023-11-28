@@ -64,13 +64,14 @@ class RegularClassVisitor(private val className: String, private val logger: ILo
     handleUnsupportedChange("enclosing method changed from '$old' to '$new'")
   }
 
+  // Allow adding and removing synthetic methods, such as compiler-generated accessor methods.
   override fun visitMethods(added: List<IrMethod>, removed: List<IrMethod>, modified: List<MethodDiff>) {
-    if (added.isNotEmpty()) {
+    if (added.filterNot { it.isSynthetic() }.isNotEmpty()) {
       val msg = "added method(s): " + added.joinToString(", ") { it.name + it.desc }
       handleUnsupportedChange(msg)
     }
 
-    if (removed.isNotEmpty()) {
+    if (removed.filterNot { it.isSynthetic() }.isNotEmpty()) {
       val msg = "removed method(s): " + removed.joinToString(", ") { it.name + it.desc }
       handleUnsupportedChange(msg)
     }
