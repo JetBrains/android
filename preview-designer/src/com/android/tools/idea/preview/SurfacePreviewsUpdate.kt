@@ -155,7 +155,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
  * @param progressIndicator [ProgressIndicator] that runs while the refresh is in progress. When
  *   cancelled, this method should return early.
  * @param onRenderCompleted method called when all the elements created/updated by this call have
- *   finished rendering.
+ *   finished rendering. The elements count is passed as an argument.
  * @param previewElementModelAdapter object to adapt the [PreviewElement]s to the [NlModel].
  * @param modelUpdater [NlModel.NlModelUpdaterInterface] to be used for updating the [NlModel]
  * @param configureLayoutlibSceneManager helper called when the method needs to configure a
@@ -169,7 +169,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   psiFile: PsiFile,
   parentDisposable: Disposable,
   progressIndicator: ProgressIndicator,
-  onRenderCompleted: () -> Unit,
+  onRenderCompleted: (Int) -> Unit,
   previewElementModelAdapter: PreviewElementModelAdapter<T, NlModel>,
   modelUpdater: NlModel.NlModelUpdaterInterface,
   navigationHandler: PreviewNavigationHandler,
@@ -303,19 +303,15 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   revalidateScrollArea()
 
   // Finally, render
+  var previewsRendered = 0
   elementsToSceneManagers.forEachIndexed { idx, (_, sceneManager) ->
     if (progressIndicator.isCanceled) return@forEachIndexed
     progressIndicator.text =
       message("refresh.progress.indicator.rendering.preview", idx + 1, elementsToSceneManagers.size)
-    sceneManager.render()
+    sceneManager.render { previewsRendered++ }
   }
+  onRenderCompleted(previewsRendered)
 
-  if (elementsToSceneManagers.isNotEmpty()) {
-    // Only trigger the render completed callback if we rendered at least one preview. Otherwise,
-    // we might end up triggering unwanted behaviors (e.g. zooming incorrectly) when refresh happens
-    // with 0 preview, e.g. when the panel is initializing.
-    onRenderCompleted()
-  }
   debugLogger?.logRenderComplete(this)
   log.info("Render completed")
   return elementsToSceneManagers.map { it.first }

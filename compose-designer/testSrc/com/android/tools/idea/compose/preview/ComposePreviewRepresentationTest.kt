@@ -362,8 +362,8 @@ class ComposePreviewRepresentationTest {
             ?.layoutManager
       }
 
-      // Check that the surface scale is reset to its original value
-      assertEquals(originalScale, mainSurface.scale, 0.001)
+      // Check that the surface zooms to fit when exiting UI check mode.
+      assertEquals(1.0, mainSurface.scale, 0.001)
 
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed stop uiCheckMode",

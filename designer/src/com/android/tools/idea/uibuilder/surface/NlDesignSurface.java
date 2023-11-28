@@ -21,12 +21,13 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.actions.LayoutPreviewHandler;
 import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
+import com.android.tools.idea.common.diagnostics.NlDiagnosticKey;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.error.IssueProvider;
-import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.DnDTransferComponent;
@@ -63,7 +64,6 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.common.diagnostics.NlDiagnosticKey;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -73,6 +73,7 @@ import com.android.tools.idea.uibuilder.surface.interaction.CanvasResizeInteract
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager;
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
@@ -98,6 +99,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -905,9 +907,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @Override
   public double getFitScale() {
     Dimension extent = getExtentSize();
-    double scale = ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
-      .getLayoutManager()
-      .getFitIntoScale(getPositionableContent(), extent.width, extent.height);
+    Collection<PositionableContent> positionableContents = getPositionableContent();
+    // If there is no content, use 100% as zoom-to-fit level.
+    double scale = positionableContents.isEmpty() ? 1.0 :
+                   ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
+                     .getLayoutManager()
+                     .getFitIntoScale(getPositionableContent(), extent.width, extent.height);
 
     return Math.min(scale, myMaxFitIntoScale);
   }

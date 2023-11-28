@@ -277,7 +277,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
         psiFile,
         this,
         progressIndicator,
-        this::onAfterRender,
+        { _ -> onAfterRender() },
         previewElementModelAdapter,
         modelUpdater,
         navigationHandler,

@@ -146,7 +146,7 @@ interface ComposePreviewView {
     previewElements: Collection<ComposePreviewElementInstance>,
     psiFile: PsiFile,
     progressIndicator: ProgressIndicator,
-    onRenderCompleted: () -> Unit,
+    onRenderCompleted: (Int) -> Unit,
     previewElementModelAdapter: ComposePreviewElementModelAdapter,
     modelUpdater: NlModel.NlModelUpdaterInterface,
     navigationHandler: PreviewNavigationHandler,

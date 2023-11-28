@@ -603,7 +603,7 @@ class ComposePreviewRepresentation(
     )
     val startTime = System.currentTimeMillis()
     qualityManager.pause()
-    uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance, surface.scale)
+    uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance)
     withContext(uiThread) {
       emptyUiCheckPanel.apply {
         isVisible = true
@@ -655,9 +655,6 @@ class ComposePreviewRepresentation(
     withContext(uiThread) {
       surface.layeredPane.remove(emptyUiCheckPanel)
       surface.updateSceneViewVisibilities { true }
-      (uiCheckFilterFlow.value as? UiCheckModeFilter.Enabled)?.let {
-        surface.setScale(it.surfaceScale)
-      }
     }
     uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
   }
@@ -1018,18 +1015,26 @@ class ComposePreviewRepresentation(
       quality = qualityManager.getTargetQuality(layoutlibSceneManager),
     )
 
-  private fun onAfterRender() {
+  private fun onAfterRender(previewsCount: Int) {
     composeWorkBench.hasRendered = true
-    if (!hasRenderedAtLeastOnce.getAndSet(true)) {
-      logComposePreviewLiteModeEvent(
-        ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.OPEN_AND_RENDER
-      )
-    }
     // Some Composables (e.g. Popup) delay their content placement and wrap them into a coroutine
     // controlled by the Compose clock. For that reason, we need to call
     // executeCallbacksAndRequestRender() once, to make sure the queued behaviors are triggered
     // and displayed in static preview.
     surface.sceneManagers.forEach { it.executeCallbacksAndRequestRender(null) }
+
+    // Only update the hasRenderedAtLeastOnce field if we rendered at least one preview. Otherwise,
+    // we might end up triggering unwanted behaviors (e.g. zooming incorrectly) when refresh happens
+    // with 0 previews, e.g. when the panel is initializing. hasRenderedAtLeastOnce is also checked
+    // when updating the animation panel visibility and when looking for render errors, which can
+    // only happen if at least one preview is (attempted to be) rendered.
+    if (previewsCount > 0 && !hasRenderedAtLeastOnce.getAndSet(true)) {
+      logComposePreviewLiteModeEvent(
+        ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.OPEN_AND_RENDER
+      )
+      // Restore the zoom or zoom-to-fit when rendering the previews for the first time
+      surface.restoreZoomOrZoomToFit()
+    }
   }
 
   /**
@@ -1494,7 +1499,10 @@ class ComposePreviewRepresentation(
       is PreviewMode.Default -> {
         sceneComponentProvider.enabled = true
         invalidateAndRefresh()
-        surface.repaint()
+        withContext(uiThread) {
+          surface.repaint()
+          surface.zoomToFit()
+        }
       }
       is PreviewMode.Interactive -> {
         startInteractivePreview(mode.selected as ComposePreviewElementInstance)

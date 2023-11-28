@@ -131,6 +131,11 @@ class GroupedGridSurfaceLayoutManager(
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate availableHeight: Int
   ): Double {
+    if (content.isEmpty()) {
+      // No content. Use 100% as zoom level
+      return 1.0
+    }
+
     // Use binary search to find the proper zoom-to-fit value.
 
     // Calculate the sum of the area of the original content sizes. This considers the margins and

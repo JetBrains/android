@@ -414,14 +414,10 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
         if (componentEvent.getID() == ComponentEvent.COMPONENT_RESIZED) {
           if (!myIsInitialZoomLevelDetermined && isShowing() && getWidth() > 0 && getHeight() > 0) {
             // Set previous scale when DesignSurface becomes visible at first time.
-            NlModel model = Iterables.getFirst(getModels(), null);
-            if (model == null) {
+            boolean hasModelAttached = restoreZoomOrZoomToFit();
+            if (!hasModelAttached) {
               // No model is attached, ignore the setup of initial zoom level.
               return;
-            }
-
-            if (!restorePreviousScale(model)) {
-              zoomToFit();
             }
             // The default size is defined, enable the flag.
             myIsInitialZoomLevelDetermined = true;
@@ -467,6 +463,21 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
     // Sets the maximum zoom level allowed for ZoomType#FIT.
     myMaxFitIntoScale = maxFitIntoZoomLevel / getScreenScalingFactor();
+  }
+
+  /**
+   * Restore the zoom level if it can be loaded from persistent settings, otherwise zoom-to-fit.
+   * @return whether zoom-to-fit or zoom restore has happened, which won't happen if there is no model.
+   */
+  public boolean restoreZoomOrZoomToFit() {
+    NlModel model = Iterables.getFirst(getModels(), null);
+    if (model == null) {
+      return false;
+    }
+    if (!restorePreviousScale(model)) {
+      zoomToFit();
+    }
+    return true;
   }
 
   @NotNull
@@ -769,9 +780,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return requestRender()
       .whenCompleteAsync((result, ex) -> {
         reactivateGuiInputHandler();
-        if (!restorePreviousScale(model)) {
-          zoomToFit();
-        }
+        restoreZoomOrZoomToFit();
         revalidateScrollArea();
 
         // TODO: The listeners have the expectation of the call happening in the EDT. We need
