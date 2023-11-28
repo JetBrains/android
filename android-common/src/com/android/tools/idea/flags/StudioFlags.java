@@ -1168,7 +1168,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_ESSENTIALS_MODE = Flag.create(
     COMPOSE, "preview.essentials.mode", "Enable Compose Preview Essentials Mode",
     "If enabled, Compose Preview Essentials Mode will be enabled.",
-    true);
+    IdeChannel.getChannel().isAtMost(IdeChannel.Channel.CANARY));
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_DOUBLE_RENDER = Flag.create(
     COMPOSE, "preview.double.render", "Enable the Compose double render mode",
