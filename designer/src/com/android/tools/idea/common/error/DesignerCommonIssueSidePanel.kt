@@ -25,6 +25,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
+import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -114,10 +115,15 @@ class DesignerCommonIssueSidePanel(private val project: Project, parentDisposabl
     }
     val document = ProblemsView.getDocument(project, file) ?: return null
     val newEditor =
-      EditorFactory.getInstance().createEditor(document, project, file, false, EditorKind.PREVIEW)
-    if (newEditor != null) {
-      fileToEditorMap[file] = newEditor
-    }
+      (EditorFactory.getInstance().createViewer(document, project, EditorKind.PREVIEW) as EditorEx)
+        .apply {
+          setCaretEnabled(false)
+          isEmbeddedIntoDialogWrapper = true
+          contentComponent.isOpaque = false
+          setBorder(JBUI.Borders.empty())
+          settings.setGutterIconsShown(false)
+        }
+    fileToEditorMap[file] = newEditor
     return newEditor
   }
 
