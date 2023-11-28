@@ -34,14 +34,14 @@ object IdeChannel {
     STABLE; // More stable
 
     /**
-     * Returns true if this channel is more stable than [channel].
+     * Returns true if this channel is more stable than or equal to [channel].
      */
-    fun isMoreStableThan(channel: Channel): Boolean = compareTo(channel) > 0
+    fun isAtLeast(channel: Channel): Boolean = compareTo(channel) >= 0
 
     /**
-     * Returns true if this channel is less stable than [channel].
+     * Returns true if this channel is less stable than or equal to [channel].
      */
-    fun isLessStableThan(channel: Channel): Boolean = compareTo(channel) < 0
+    fun isAtMost(channel: Channel): Boolean = compareTo(channel) <= 0
   }
 
   private fun versionNameContainsChannel(versionName: String?, channel: String): Boolean {

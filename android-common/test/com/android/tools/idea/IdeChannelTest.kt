@@ -54,13 +54,13 @@ class IdeChannelTest {
     // Verify the relative ordering using isLessStableThan and isMoreStableThan
     val alreadyVisited = mutableListOf<IdeChannel.Channel>()
     sortedChannels.forEach { channel ->
-      assertFalse(channel.isLessStableThan(channel))
-      assertFalse(channel.isMoreStableThan(channel))
+      assertTrue(channel.isAtMost(channel))
+      assertTrue(channel.isAtLeast(channel))
       alreadyVisited.forEach { lessStableChannel ->
-        assertTrue(lessStableChannel.isLessStableThan(channel))
+        assertTrue(lessStableChannel.isAtMost(channel))
       }
       alreadyVisited.forEach { lessStableChannel ->
-        assertFalse(lessStableChannel.isMoreStableThan(channel))
+        assertFalse(lessStableChannel.isAtLeast(channel))
       }
       alreadyVisited.push(channel)
     }

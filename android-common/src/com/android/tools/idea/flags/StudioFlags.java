@@ -1346,7 +1346,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR = Flag.create(
     COMPOSE, "compose.preview.keep.image.on.error", "Keeps the last valid image after a render error",
     "If enabled, when an error happens, the surface will keep the last valid image",
-    IdeChannel.getChannel().isLessStableThan(IdeChannel.Channel.BETA));
+    IdeChannel.getChannel().isAtMost(IdeChannel.Channel.CANARY));
   //endregion
 
   // region Wear surfaces
@@ -1355,7 +1355,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> GLANCE_APP_WIDGET_PREVIEW = Flag.create(
     WEAR_SURFACES, "glance.preview.appwidget.enabled", "Enable Glance AppWidget preview",
     "If enabled, a preview for annotated glance app widget composable functions is displayed",
-    IdeChannel.getChannel().isLessStableThan(IdeChannel.Channel.BETA));
+    IdeChannel.getChannel().isAtMost(IdeChannel.Channel.CANARY));
 
   public static final Flag<Boolean> GLANCE_TILE_PREVIEW = Flag.create(
     WEAR_SURFACES, "glance.preview.tile.enabled", "Enable Glance Tile preview",
@@ -1365,7 +1365,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> WEAR_TILE_PREVIEW = Flag.create(
     WEAR_SURFACES, "wear.tile.preview.enabled", "Enable Wear Tile preview",
     "If enabled, a preview for functions annotated with @Preview and returning TilePreviewData is displayed",
-    IdeChannel.getChannel().isLessStableThan(IdeChannel.Channel.BETA));
+    IdeChannel.getChannel().isAtMost(IdeChannel.Channel.CANARY));
   // endregion
 
   // region Wear Health Services
