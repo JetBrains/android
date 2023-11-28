@@ -88,11 +88,15 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
     }
 
     val isFirstDiff = newClass.name !in irCache
-    val isNewClass = oldClass == null
     val classType = if (isSyntheticClass(newClass)) LiveEditClassType.SUPPORT_CLASS else LiveEditClassType.NORMAL_CLASS
 
     // Live Edit supports adding new synthetic classes in order to handle the lambda classes that Compose generates
-    if (isNewClass && classType == LiveEditClassType.SUPPORT_CLASS) {
+    if (oldClass == null) {
+      if (classType != LiveEditClassType.SUPPORT_CLASS) {
+        throw LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
+                                      "added new class ${newClass.name} in ${newClass.sourceFile}", sourceFile, null)
+      }
+
       inlineCandidateCache.computeIfAbsent(newClass.name) { SourceInlineCandidate(sourceFile, it) }.setByteCode(classBytes)
       output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, LiveEditClassType.SUPPORT_CLASS))
 
@@ -105,24 +109,17 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
       return newClass
     }
 
-    if (isNewClass) {
-      // TODO: throw exception if not synthetic class; we don't support adding a new class yet.
-      output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, LiveEditClassType.NORMAL_CLASS))
-      return newClass
+    val diff = Differ.diff(oldClass, newClass)
+
+    // If we have a class diff, or it is the first time we've diffed this class, send it to the device. The first time we see a class, we
+    // need to send it to the device in case it or one of its dependencies has a different name than the version in the APK.
+    if (diff != null || isFirstDiff) {
+      // Update the inline cache for all classes, both normal and support.
+      inlineCandidateCache.computeIfAbsent(newClass.name) { SourceInlineCandidate(sourceFile, it) }.setByteCode(classBytes)
+      output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, classType))
     }
 
-    val diff = Differ.diff(oldClass!!, newClass)
-
-    // If we have no changes, and we've seen this class before, don't send it to the device. The first time we see a class, we need to send
-    // it to the device in case it or one of its dependencies has a different name than the version in the APK.
-    if (diff == null && !isFirstDiff) {
-      return newClass
-    }
-
-    // Update the inline cache for all classes, both normal and support.
-    inlineCandidateCache.computeIfAbsent(newClass.name) { SourceInlineCandidate(sourceFile, it) }.setByteCode(classBytes)
-    output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, classType))
-
+    // If we have no diff, we don't need to check for incompatible changes or resolve group IDs.
     if (diff == null) {
       return newClass
     }

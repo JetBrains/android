@@ -16,13 +16,15 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
+import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.initialCache
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
 import com.android.tools.idea.testing.AndroidProjectRule
-import junit.framework.Assert
+import org.jetbrains.kotlin.psi.KtFile
 import org.junit.After
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -149,16 +151,45 @@ class BasicCompileTest {
         return test.go()
       }
     """)
-    val output = compile(file)
+    val cache = MutableIrClassCache()
+    val apk = projectRule.directApiCompileIr(file)
+    val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {
+      override fun getClass(ktFile: KtFile, className: String) = apk[className]
+    })
+    val output = compile(listOf(LiveEditCompilerInput(file, file)), compiler)
     Assert.assertEquals(1, output.supportClassesMap.size)
     // Can't test invocation of the method since the functional interface "A" is not loaded.
+  }
+
+  @Test
+  fun noNewClasses() {
+    val file = projectRule.createKtFile("Test.kt", """
+      class A {}
+      class B {}
+    """)
+    val cache = projectRule.initialCache(listOf(file))
+    projectRule.modifyKtFile(file, """
+      class A {}
+      class B {}
+      class C {}
+    """.trimIndent())
+    val exception = Assert.assertThrows(LiveEditUpdateException::class.java) {
+      compile(file, cache)
+    }
+    assertEquals(exception.error, LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE)
+    assertEquals(exception.details, "added new class C in Test.kt")
   }
 
   @Test
   fun crossFileReference() {
     projectRule.createKtFile("A.kt", "fun foo() = \"\"")
     val fileCallA = projectRule.createKtFile("CallA.kt", "fun callA() = foo()")
-    compile(fileCallA)
+    val cache = MutableIrClassCache()
+    val apk = projectRule.directApiCompileIr(fileCallA)
+    val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {
+      override fun getClass(ktFile: KtFile, className: String) = apk[className]
+    })
+    compile(listOf(LiveEditCompilerInput(fileCallA, fileCallA)), compiler)
   }
 
   @Test

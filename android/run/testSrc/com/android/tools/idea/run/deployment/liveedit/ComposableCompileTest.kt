@@ -208,7 +208,12 @@ class ComposableCompileTest {
       @Composable fun hasLambdaA(content: @Composable () -> Unit) { }
       @Composable fun hasLambdaB() { hasLambdaA {} }
     """)
-    val output = compile(file, "hasLambdaA")
+    val cache = MutableIrClassCache()
+    val apk = projectRule.directApiCompileIr(file)
+    val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {
+      override fun getClass(ktFile: KtFile, className: String) = apk[className]
+    })
+    val output = compile(listOf(LiveEditCompilerInput(file, file)), compiler)
     val singleton = output.supportClassesMap["ComposableSingletons\$HasComposableSingletonsKt"];
     Assert.assertNotNull(singleton)
     val cl = loadClass(output, "ComposableSingletons\$HasComposableSingletonsKt")
