@@ -184,6 +184,9 @@ class FakeUi @JvmOverloads constructor(
 
   fun getPosition(component: Component): Point {
     var comp: Component? = component
+    if (component.width == 0 && component.height == 0) {
+      layout() // The component has zero size. Force layout to give it a chance to acquire non-zero dimensions.
+    }
     var rx = 0
     var ry = 0
     while (comp !== root && comp != null) {
