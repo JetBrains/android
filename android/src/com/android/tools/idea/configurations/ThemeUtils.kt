@@ -96,28 +96,16 @@ fun Module.getAppThemeName(): String? {
  *  manifest snapshot if necessary.
  */
 fun Module.getAllActivityThemeNames(): Set<String> {
-  try {
-    val facet = AndroidFacet.getInstance(this)
-    if (facet != null) {
-      return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
-        val activities = SlowOperations.allowSlowOperations(ThrowableComputable { facet.queryActivitiesFromManifestIndex().activities })
-        activities.asSequence()
-          .mapNotNull(DefaultActivityLocator.ActivityWrapper::getTheme)
-          .toSet()
-      })
+  val activities = safeQueryActivitiesFromManifestIndex()
+  if (activities != null) {
+      return activities.asSequence()
+        .mapNotNull(DefaultActivityLocator.ActivityWrapper::getTheme)
+        .toSet()
     }
-  }
-  catch (e: IndexNotReadyException) {
-    // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-    //  We need to refactor the callers of this to require a *smart*
-    //  read action, at which point we can remove this try-catch.
-    logManifestIndexQueryError(e);
-  }
-
-  val manifest = MergedManifestManager.getSnapshot(this)
-  return manifest.activityAttributesMap.values.asSequence()
-    .mapNotNull(ActivityAttributesSnapshot::getTheme)
-    .toSet()
+    val manifest = MergedManifestManager.getSnapshot(this)
+    return manifest.activityAttributesMap.values.asSequence()
+      .mapNotNull(ActivityAttributesSnapshot::getTheme)
+      .toSet()
 }
 
 /**
@@ -125,18 +113,39 @@ fun Module.getAllActivityThemeNames(): Set<String> {
  * And it falls back to merged manifest snapshot if necessary.
  */
 fun Module.getThemeNameForActivity(activityFqcn: String): String? {
+  val activities = safeQueryActivitiesFromManifestIndex()
+  if (activities != null) {
+    return activities.asSequence()
+      .filter { it.qualifiedName == activityFqcn }
+      .mapNotNull(DefaultActivityLocator.ActivityWrapper::getTheme)
+      .filter { it.startsWith(SdkConstants.PREFIX_RESOURCE_REF) }
+      .firstOrNull()
+  }
+  val manifest = MergedManifestManager.getSnapshot(this)
+  return manifest.getActivityAttributes(activityFqcn)
+    ?.theme
+    ?.takeIf { it.startsWith(SdkConstants.PREFIX_RESOURCE_REF) }
+}
+
+fun Module.safeQueryActivitiesFromManifestIndex() : List<DefaultActivityLocator.ActivityWrapper>? {
+  return safeQueryManifestIndex { facet -> facet.queryActivitiesFromManifestIndex().activities }
+}
+
+fun <T> Module.safeQueryManifestIndex(manifestIndexQueryAction: (AndroidFacet) -> T) : T? {
   try {
     val facet = AndroidFacet.getInstance(this)
     if (facet != null) {
       return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
-        val activities = SlowOperations.allowSlowOperations(ThrowableComputable { facet.queryActivitiesFromManifestIndex().activities })
-        activities.asSequence()
-          .filter { it.qualifiedName == activityFqcn }
-          .mapNotNull(DefaultActivityLocator.ActivityWrapper::getTheme)
-          .filter { it.startsWith(SdkConstants.PREFIX_RESOURCE_REF) }
-          .firstOrNull()
+        SlowOperations.allowSlowOperations(ThrowableComputable {
+          if (!facet.queryIsMainManifestIndexReady()) throw MainManifestIndexNotReadyException()
+          manifestIndexQueryAction.invoke(facet)
+        })
       })
     }
+  }
+  catch (e: MainManifestIndexNotReadyException) {
+    // In this case, fallback to the merged manifest until the main manifest index is ready
+
   }
   catch (e: IndexNotReadyException) {
     // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
@@ -144,11 +153,7 @@ fun Module.getThemeNameForActivity(activityFqcn: String): String? {
     //  read action, at which point we can remove this try-catch.
     logManifestIndexQueryError(e);
   }
-
-  val manifest = MergedManifestManager.getSnapshot(this)
-  return manifest.getActivityAttributes(activityFqcn)
-    ?.theme
-    ?.takeIf { it.startsWith(SdkConstants.PREFIX_RESOURCE_REF) }
+  return null
 }
 
 /**
