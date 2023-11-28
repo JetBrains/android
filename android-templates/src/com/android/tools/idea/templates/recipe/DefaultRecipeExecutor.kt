@@ -459,6 +459,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       "mlModelBinding" -> buildModel.android().buildFeatures().mlModelBinding()
       "viewBinding" -> buildModel.android().buildFeatures().viewBinding()
       "prefab" -> buildModel.android().buildFeatures().prefab()
+      "buildConfig" -> buildModel.android().buildFeatures().buildConfig()
       else -> throw IllegalArgumentException("$name is not a supported build feature.")
     }
 
