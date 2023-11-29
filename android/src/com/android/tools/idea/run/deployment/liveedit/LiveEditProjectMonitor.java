@@ -385,7 +385,6 @@ public class LiveEditProjectMonitor implements Disposable {
   // Called before an edit to a Kotlin file is made. Only called on the class-differ code path.
   public void beforeFileChanged(KtFile ktFile) {
     if (shouldLiveEdit()) {
-      System.out.println("before file changed: " + ktFile.getName());
       psiValidator.beforeChanges(ktFile);
     }
   }
