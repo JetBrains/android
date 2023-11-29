@@ -16,8 +16,8 @@
 package com.android.tools.idea.progress
 
 import com.android.tools.environment.CancellationManager
-import com.android.tools.environment.cancellation.ExecutionCancellationException
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.util.Disposer
@@ -36,7 +36,7 @@ class IJCancellationManagerTest {
     try {
       indicator.cancel()
 
-      assertThrows(ExecutionCancellationException::class.java) {
+      assertThrows(ProcessCanceledException::class.java) {
         ProgressManager.getInstance().executeProcessUnderProgress({
                                                                     CancellationManager.throwIfCancelled()
                                                                   }, indicator)
