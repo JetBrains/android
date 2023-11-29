@@ -185,9 +185,7 @@ void Controller::Initialize() {
     device_state_ = device_state;
   }
 
-  if (Agent::flags() & MIRROR_ALL_DISPLAYS) {
-    DisplayManager::AddDisplayListener(jni_, this);
-  }
+  DisplayManager::AddDisplayListener(jni_, this);
 
   Agent::InitializeSessionEnvironment();
 }

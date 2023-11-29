@@ -27,7 +27,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findDescendant
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.createTestEvent
@@ -38,7 +37,6 @@ import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDe
 import com.android.tools.idea.streaming.device.actions.DeviceFoldingAction
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
-import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
@@ -282,7 +280,6 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testMultipleDisplays() {
-    StudioFlags.DEVICE_MIRRORING_MULTIPLE_DISPLAYS.override(true, testRootDisposable)
     device = agentRule.connectDevice("Pixel 7 Pro", 33, Dimension(1440, 3120))
     assertThat(panel.primaryDisplayView).isNull()
 

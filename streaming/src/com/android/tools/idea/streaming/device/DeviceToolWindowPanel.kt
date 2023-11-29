@@ -20,7 +20,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayDescriptor
@@ -159,7 +158,7 @@ internal class DeviceToolWindowPanel(
     mainToolbar.targetComponent = deviceView
     secondaryToolbar.targetComponent = deviceView
     centerPanel.addToCenter(primaryDisplayPanel)
-    val displayConfigurator = if (StudioFlags.DEVICE_MIRRORING_MULTIPLE_DISPLAYS.get()) DisplayConfigurator() else null
+    val displayConfigurator = DisplayConfigurator()
 
     deviceView.addConnectionStateListener(object : ConnectionStateListener {
       @UiThread
@@ -167,19 +166,15 @@ internal class DeviceToolWindowPanel(
         when (connectionState) {
           ConnectionState.CONNECTED -> {
             deviceClient.deviceController?.apply {
-              if (displayConfigurator != null) {
-                addDisplayListener(displayConfigurator)
-                displayConfigurator.onDisplaysChanged()
-              }
+              addDisplayListener(displayConfigurator)
+              displayConfigurator.onDisplaysChanged()
               addDeviceStateListener(deviceStateListener)
             }
           }
           ConnectionState.DISCONNECTED -> {
             deviceClient.deviceController?.apply {
-              if (displayConfigurator != null) {
-                displayConfigurator.reconfigureDisplayPanels(emptyList())
-                removeDisplayListener(displayConfigurator)
-              }
+              displayConfigurator.reconfigureDisplayPanels(emptyList())
+              removeDisplayListener(displayConfigurator)
               removeDeviceStateListener(deviceStateListener)
             }
           }
