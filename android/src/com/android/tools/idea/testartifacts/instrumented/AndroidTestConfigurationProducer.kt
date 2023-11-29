@@ -16,11 +16,14 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.tools.idea.AndroidPsiUtils.getPsiParentsOfType
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.SourceProviderManager
+import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.androidProjectType
 import com.android.tools.idea.projectsystem.containsFile
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.projectsystem.isContainedBy
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.editor.AndroidTestExtraParam.Companion.parseFromString
@@ -36,9 +39,9 @@ import com.intellij.execution.junit.JUnitUtil
 import com.intellij.execution.junit.JavaRunConfigurationProducerBase
 import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase
 import com.intellij.execution.junit2.PsiMemberParameterizedLocation
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
@@ -116,20 +119,26 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
     }
   }
 
-  override fun shouldReplace(self: ConfigurationFromContext, other: ConfigurationFromContext): Boolean = when {
-    // This configuration producer works best for Gradle based project. If the configuration is generated
-    // for non-Gradle project and other configuration is available, prefer the other one.
-    !ProjectFacetManager.getInstance(self.configuration.project).hasFacets(GradleFacet.getFacetTypeId()) -> false
+  override fun shouldReplace(self: ConfigurationFromContext, other: ConfigurationFromContext): Boolean =
+    self.configuration.project.getProjectSystem().getTokenOrNull(AndroidTestConfigurationProducerToken.EP_NAME).let { token ->
+      when {
+        // This configuration producer works best for Gradle based project. If the configuration is generated
+        // for non-Gradle project and other configuration is available, prefer the other one.
+        //
+        // (Above comment left in place though the implementation is more generic than that, because that is the only clue
+        // to the logic behind this.)
+        token?.isProjectIdealForProducer(self.configuration.project) != true -> false
 
-    // If the other configuration type is JUnitConfigurationType or GradleExternalTaskConfigurationType, prefer our configuration.
-    // Although those tests may be able to run on both environment if they are written with the unified-api (androidx.test, Espresso),
-    // here we prioritize instrumentation.
-    other.configurationType is JUnitConfigurationType -> true
-    other.configurationType is GradleExternalTaskConfigurationType -> true
+        // If the other configuration type is JUnitConfigurationType or GradleExternalTaskConfigurationType, prefer our configuration.
+        // Although those tests may be able to run on both environment if they are written with the unified-api (androidx.test, Espresso),
+        // here we prioritize instrumentation.
+        other.configurationType is JUnitConfigurationType -> true
+        other.configurationType is GradleExternalTaskConfigurationType -> true
 
-    // Otherwise, we don't have preference. Let the IDE to decide which one to use.
-    else -> false
-  }
+        // Otherwise, we don't have preference. Let the IDE to decide which one to use.
+        else -> false
+      }
+    }
 
   override fun getConfigurationFactory(): ConfigurationFactory = AndroidTestRunConfigurationType.getInstance().factory
 
@@ -317,4 +326,14 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
 
     return true
   }
+}
+
+interface AndroidTestConfigurationProducerToken<P : AndroidProjectSystem> : Token {
+  companion object {
+    val EP_NAME = ExtensionPointName<AndroidTestConfigurationProducerToken<AndroidProjectSystem>>(
+      "com.android.tools.idea.testartifacts.instrumented.androidTestConfigurationProducerToken"
+    )
+  }
+
+  fun isProjectIdealForProducer(project: Project): Boolean
 }
