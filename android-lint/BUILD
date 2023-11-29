@@ -130,6 +130,7 @@ maven_repository(
         "@maven//:com.google.code.gson.gson_2.2.4",
         "@maven//:com.google.dagger.dagger-compiler_2.6",
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.1",
+        "@maven//:com.google.guava.guava_23.0",
         "@maven//:com.google.guava.guava_27.0.1-android",
         "@maven//:com.google.guava.guava_28.2-jre",
         "@maven//:com.google.truth.truth_0.44",
