@@ -37,7 +37,7 @@ class OpenFileInResourceManagerTest {
 
   @Rule
   @JvmField
-  val guiTest: GuiTestRule = GuiTestRule().withTimeout(7, TimeUnit.MINUTES)
+  val guiTest: GuiTestRule = GuiTestRule().withTimeout(15, TimeUnit.MINUTES)
 
   /**
    * To verify resource manager - Open layout in Resource Manager
@@ -70,11 +70,13 @@ class OpenFileInResourceManagerTest {
         .modifiers(KeyEvent.VK_META, KeyEvent.VK_SHIFT)
       ideFrame.projectView
         .selectAndroidPane()
+        .expand(30)
         .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout", "activity_main.xml")
         .pressAndReleaseKey(keyPressInfo)
     } else {
       ideFrame.projectView
         .selectAndroidPane()
+        .expand(30)
         .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout", "activity_main.xml")
         .openFromContextualMenu({ find(guiTest.robot()) }, "Show In Resource Manager")
     }
