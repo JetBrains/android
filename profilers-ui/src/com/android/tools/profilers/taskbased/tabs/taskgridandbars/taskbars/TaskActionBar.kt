@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.taskbased.tabs.taskgridandactionbar.actionbar
+package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer

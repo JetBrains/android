@@ -31,7 +31,7 @@ import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensi
 import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
 import com.android.tools.profilers.taskbased.tabs.TaskTabComponent
 import com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist.RecordingList
-import com.android.tools.profilers.taskbased.tabs.taskgridandactionbar.TaskGridAndActionBar
+import com.android.tools.profilers.taskbased.tabs.taskgridandbars.TaskGridAndBars
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 
 @Composable
@@ -54,7 +54,7 @@ fun TaskPastRecordingsTab(pastRecordingsTabModel: PastRecordingsTabModel, idePro
         RecordingList(recordingListModel, ideProfilerComponents, it)
       },
       second = {
-        TaskGridAndActionBar(taskGridModel, selectedRecording, taskHandlers, pastRecordingsTabModel::onEnterTaskButtonClick, it)
+        TaskGridAndBars(taskGridModel, selectedRecording, taskHandlers, pastRecordingsTabModel::onEnterTaskButtonClick, it)
       }
     )
   }

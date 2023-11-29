@@ -39,7 +39,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.com.android.tools.profilers.JewelThemedComposableWrapper
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.taskbased.tabs.taskgridandactionbar.taskgrid.TaskGrid
+import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid.TaskGrid
 import com.android.tools.profilers.taskbased.tasks.TaskGridModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.CallstackSampleTaskHandler

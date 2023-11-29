@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers
+package com.android.tools.profilers.taskbased.common.dividers
 
-import com.android.tools.profilers.IdeProfilerComponents
-import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.StudioProfilersHomeTabView
-import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
+import org.jetbrains.jewel.ui.Orientation
+import org.jetbrains.jewel.ui.component.Divider
 
-/**
- * A tab in the Profiler tool window, wrapping a [StudioProfilersHomeTabView].
- */
-class StudioProfilersHomeTab(profilers: StudioProfilers, ideProfilerComponents: IdeProfilerComponents) {
-  val view = StudioProfilersHomeTabView(TaskHomeTabModel(profilers), ideProfilerComponents)
+@Composable
+fun ToolWindowHorizontalDivider() {
+  Divider(thickness = TaskBasedUxDimensions.PROFILER_TOOLWINDOW_DIVIDER_THICKNESS_DP, modifier = Modifier.fillMaxWidth(),
+          orientation = Orientation.Horizontal)
 }

@@ -50,4 +50,9 @@ object TaskBasedUxDimensions {
 
   // Task action bar content padding.
   val TASK_ACTION_BAR_CONTENT_PADDING_DP = 5.dp
+
+  // Top bar dimensions
+  val TOP_BAR_HEIGHT_DP = 30.dp
+  val TOP_BAR_START_PADDING_DP = 10.dp
+  val TOP_BAR_END_PADDING_DP = 5.dp
 }

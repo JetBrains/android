@@ -33,6 +33,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
@@ -63,6 +64,8 @@ class TaskHomeTabTest {
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel("TaskGridViewTestChannel", myTransportService, FakeEventService())
 
+  private val myComponents = FakeIdeProfilerComponents()
+
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
@@ -91,7 +94,7 @@ class TaskHomeTabTest {
       title = "Testing TaskHomeTab",
     ) {
       JewelThemedComposableWrapper(isDark = false) {
-        TaskHomeTab(taskHomeTabModel)
+        TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
   }
@@ -103,7 +106,7 @@ class TaskHomeTabTest {
       title = "Testing TaskHomeTab",
     ) {
       JewelThemedComposableWrapper(isDark = true) {
-        TaskHomeTab(taskHomeTabModel)
+        TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
   }
@@ -112,7 +115,7 @@ class TaskHomeTabTest {
   fun `selecting device, process, and task enable start profiler task button`() {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = true) {
-        TaskHomeTab(taskHomeTabModel)
+        TaskHomeTab(taskHomeTabModel, myComponents)
       }
     }
 

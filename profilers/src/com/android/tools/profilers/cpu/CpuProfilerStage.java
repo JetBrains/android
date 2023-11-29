@@ -145,7 +145,6 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
   @NotNull
   private final Runnable myStopAction;
 
-  @VisibleForTesting
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, new CpuCaptureParser(profilers.getIdeServices()), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, () -> {});
   }

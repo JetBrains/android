@@ -19,4 +19,10 @@ object TaskBasedUxStrings {
   // EnterTaskButton strings
   const val OPEN_PROFILER_TASK = "Open profiler task"
   const val START_PROFILER_TASK = "Start profiler task"
+
+  // Icon description strings
+  const val TASK_CONFIG_DIALOG_DESC = "Task Configurations"
+
+  // Top bar title
+  const val TOP_BAR_TITLE = "Tasks"
 }

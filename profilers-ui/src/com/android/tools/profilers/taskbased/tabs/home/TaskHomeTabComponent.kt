@@ -24,17 +24,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.PROFILER_TOOLWINDOW_DIVIDER_THICKNESS_DP
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.SELECTION_PANEL_MAX_RATIO_FLOAT
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.SELECTION_PANEL_MIN_RATIO_FLOAT
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.tabs.TaskTabComponent
 import com.android.tools.profilers.taskbased.tabs.home.processlist.ProcessList
-import com.android.tools.profilers.taskbased.tabs.taskgridandactionbar.TaskGridAndActionBar
+import com.android.tools.profilers.taskbased.tabs.taskgridandbars.TaskGridAndBars
 import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 
 @Composable
-fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel) {
+fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) {
   Column(
     modifier = Modifier.fillMaxWidth().fillMaxHeight(),
     verticalArrangement = Arrangement.Center,
@@ -45,6 +46,7 @@ fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel) {
     val processListModel = taskHomeTabModel.processListModel
     val selectedProcess by processListModel.selectedProcess.collectAsState()
     val selectedDevice by processListModel.selectedDevice.collectAsState()
+    val profilers = taskHomeTabModel.profilers
 
     HorizontalSplitLayout(
       minRatio = SELECTION_PANEL_MIN_RATIO_FLOAT,
@@ -54,10 +56,12 @@ fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel) {
         ProcessList(processListModel, it)
       },
       second = {
-        TaskGridAndActionBar(taskGridModel, selectedDevice, selectedProcess, taskHandlers, taskHomeTabModel::onEnterTaskButtonClick, it)
+        TaskGridAndBars(taskGridModel, selectedDevice, selectedProcess, taskHandlers, taskHomeTabModel::onEnterTaskButtonClick,
+                        profilers, ideProfilerComponents, it)
       }
     )
   }
 }
 
-class TaskHomeTabComponent(taskHomeTabModel: TaskHomeTabModel) : TaskTabComponent({ TaskHomeTab(taskHomeTabModel) })
+class TaskHomeTabComponent(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) : TaskTabComponent(
+  { TaskHomeTab(taskHomeTabModel, ideProfilerComponents) })

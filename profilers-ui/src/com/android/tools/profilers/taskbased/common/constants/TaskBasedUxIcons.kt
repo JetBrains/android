@@ -56,6 +56,9 @@ object TaskBasedUxIcons {
   val DEBUGGABLE_PROFILER_ICON = TaskBasedUxIcon("$TOOLBAR_ICON_BASE_PATH/profiler-detailed.svg", StudioIcons::class.java,
                                                  StudioIcons.Shell.Toolbar.PROFILER_DETAILED)
 
+  // The settings icon is used as a button to invoke the task configuration dialog.
+  val TASK_CONFIG_ICON = TaskBasedUxIcon("studio/icons/common/settings.svg", StudioIcons::class.java, StudioIcons.Common.SETTINGS)
+
   // The arrow down and arrow up icons are used for the import and export button respectively button.
   val IMPORT_RECORDING_ICON = TaskBasedUxIcon("studio/icons/layout-editor/toolbar/arrow-down.svg", StudioIcons::class.java,
                                               StudioIcons.LayoutEditor.Toolbar.ARROW_UP)

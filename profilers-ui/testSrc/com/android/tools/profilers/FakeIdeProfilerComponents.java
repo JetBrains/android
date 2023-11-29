@@ -193,6 +193,11 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     myDialogCloseCallback = callbackDialog;
   }
 
+  @Override
+  public void openTaskConfigurationsDialog(@NotNull CpuProfilerConfigModel model, @NotNull IdeProfilerServices ideProfilerServices) {
+    myCpuConfigModel = model;
+  }
+
   /**
    * Emulate the action of closing the CPU config dialog.
    */

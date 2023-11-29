@@ -22,6 +22,6 @@ import javax.swing.JPanel
 /**
  * The top-level view of the home tab in the Profiler tool window.
  */
-class StudioProfilersHomeTabView(taskHomeTabModel: TaskHomeTabModel) {
-  val panel: JPanel = TaskHomeTabComponent(taskHomeTabModel)
+class StudioProfilersHomeTabView(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) {
+  val panel: JPanel = TaskHomeTabComponent(taskHomeTabModel, ideProfilerComponents)
 }
