@@ -61,7 +61,7 @@ class DeviceSkinUpdaterTest {
   }
 
   @Test
-  fun updateSkinDeviceEqualsNoSkin() {
+  fun updateSkinNoSkin() {
     // Arrange
     val skin = Paths.get("_no_skin")
 
@@ -165,7 +165,7 @@ class DeviceSkinUpdaterTest {
   }
 
   @Test
-  fun updateSkinDeviceEqualsWearSmallRound() {
+  fun updateSkinWearSmallRound() {
     // Arrange
     val skin = sdkSkins.resolve("WearSmallRound")
 
@@ -179,7 +179,7 @@ class DeviceSkinUpdaterTest {
   }
 
   @Test
-  fun updateSkinDeviceEqualsWearLargeRound() {
+  fun updateSkinWearLargeRound() {
     // Arrange
     val skin = sdkSkins.resolve("WearLargeRound")
 
@@ -193,7 +193,7 @@ class DeviceSkinUpdaterTest {
   }
 
   @Test
-  fun updateSkinDeviceEqualsAndroidWearSquare() {
+  fun updateSkinWearSquare() {
     // Arrange
     val skin = sdkSkins.resolve("WearSquare")
 
@@ -203,6 +203,20 @@ class DeviceSkinUpdaterTest {
     // Assert
     assertThat(deviceSkin).isEqualTo(skin)
     assertThat(DeviceSkinUpdater.areAllFilesUpToDate(deviceSkin, studioSkins.resolve("wearos_square"))).isTrue()
+    assertThat(deviceSkin.resolve("layout")).exists()
+  }
+
+  @Test
+  fun updateSkinWearRect() {
+    // Arrange
+    val skin = sdkSkins.resolve("WearRect")
+
+    // Act
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin, emptyList(), studioSkins, sdkLocation)
+
+    // Assert
+    assertThat(deviceSkin).isEqualTo(skin)
+    assertThat(DeviceSkinUpdater.areAllFilesUpToDate(deviceSkin, studioSkins.resolve("wearos_rect"))).isTrue()
     assertThat(deviceSkin.resolve("layout")).exists()
   }
 
