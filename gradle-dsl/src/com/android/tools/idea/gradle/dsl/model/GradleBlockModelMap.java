@@ -92,7 +92,7 @@ public class GradleBlockModelMap {
 
   @SuppressWarnings("rawtypes")
   public static ImmutableMap<String, PropertiesElementDescription> getElementMap(Class<? extends GradlePropertiesDslElement> parentType) {
-    return ApplicationManager.getApplication().getService(GradleBlockModelMap.class).getOrCreateElementMap(parentType);
+    return getInstance().getOrCreateElementMap(parentType);
   }
 
   public static <T extends GradleDslModel, P extends GradleDslModel, PD extends GradlePropertiesDslElement> T get(PD dslElement,
