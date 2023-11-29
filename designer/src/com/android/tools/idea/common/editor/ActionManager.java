@@ -91,7 +91,7 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
   /**
    * Register keyboard shortcuts onto the provided component.
    *
-   * @param component        The component onto which shortcut should be registered.
+   * @param component The component onto which shortcut should be registered.
    */
   public abstract void registerActionsShortcuts(@NotNull JComponent component);
 
