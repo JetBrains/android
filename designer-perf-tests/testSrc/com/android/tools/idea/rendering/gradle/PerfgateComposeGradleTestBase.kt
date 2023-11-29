@@ -35,6 +35,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.junit.Assert
 import org.junit.Rule
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 private const val NUMBER_OF_SAMPLES = 5
@@ -65,36 +66,44 @@ open class PerfgateComposeGradleTestBase {
   protected val previewView: TestComposePreviewView
     get() = projectRule.previewView
 
+  private suspend fun fullRefresh(allRefreshesFinishTimeout: Duration) {
+    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = allRefreshesFinishTimeout) {
+      composePreviewRepresentation.invalidate()
+      composePreviewRepresentation.requestRefreshForTest()
+    }
+  }
+
   /**
    * First, without using the [measurements], add [nPreviewsToAdd] @Previews on top of the first @Preview found in [psiMainFile], and wait
    * for a refresh to happen.
-   * Then, perform a new full refresh under all [measurements] (see [measureOperation]).
+   * Then, execute the [measuredRunnable] under all [measurements] (see [measureOperation]).
    */
-  protected fun addPreviewsAndMeasure(nPreviewsToAdd: Int, nExpectedPreviewInstances: Int, measurements: List<MetricMeasurement<Unit>>) =
-    runBlocking {
-      projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds) {
-        runWriteActionAndWait {
-          fixture.openFileInEditor(psiMainFile.virtualFile)
-          fixture.moveCaret("|@Preview")
-          fixture.editor.executeAndSave { fixture.editor.insertText(generatePreviewAnnotations(nPreviewsToAdd)) }
-          PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
-          FileDocumentManager.getInstance().saveAllDocuments()
-          if (AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled) {
-            composePreviewRepresentation.requestRefreshForTest()
-          }
-        }
-      }
-      Assert.assertEquals(nExpectedPreviewInstances, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.size)
-
-      composeGradleTimeBenchmark.measureOperation(measurements, samplesCount = NUMBER_OF_SAMPLES, printSamples = true) {
-        runBlocking {
-          projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds) {
-            composePreviewRepresentation.invalidate()
-            composePreviewRepresentation.requestRefreshForTest()
-          }
+  protected fun addPreviewsAndMeasure(
+    nPreviewsToAdd: Int,
+    nExpectedPreviewInstances: Int,
+    measurements: List<MetricMeasurement<Unit>>,
+    measuredRunnable: suspend () -> Unit = { fullRefresh(maxOf(15, nExpectedPreviewInstances).seconds) }
+  ) = runBlocking {
+    projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds) {
+      runWriteActionAndWait {
+        fixture.openFileInEditor(psiMainFile.virtualFile)
+        fixture.moveCaret("|@Preview")
+        fixture.editor.executeAndSave { fixture.editor.insertText(generatePreviewAnnotations(nPreviewsToAdd)) }
+        PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+        FileDocumentManager.getInstance().saveAllDocuments()
+        if(AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled) {
+          composePreviewRepresentation.requestRefreshForTest()
         }
       }
     }
+    Assert.assertEquals(nExpectedPreviewInstances, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.size)
+
+    composeGradleTimeBenchmark.measureOperation(measurements, samplesCount = NUMBER_OF_SAMPLES, printSamples = true) {
+      runBlocking {
+        measuredRunnable()
+      }
+    }
+  }
 
   private fun generatePreviewAnnotations(nPreviews: Int) : String {
     val builder = StringBuilder()

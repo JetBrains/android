@@ -160,6 +160,20 @@ class ComposePreviewFakeUiGradleRule(
     setUpPreview()
   }
 
+  fun runWithRenderQualityEnabled(runnable: suspend () -> Unit) = runBlocking {
+    try {
+      if (!StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get()) {
+        StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.override(true)
+        // We need to set up things again to make sure that the flag change takes effect
+        resetInitialConfiguration()
+        withContext(AndroidDispatchers.uiThread) { fakeUi.root.validate() }
+      }
+      runnable()
+    } finally {
+      StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.clearOverride()
+    }
+  }
+
   /**
    * Executes [runnable], expecting it to cause a refresh of type [expectedRefreshType] to start
    * running.

@@ -35,6 +35,11 @@ iml_module(
             "shard_count": 3,
             "test_filter": "com.android.tools.idea.rendering.gradle.PerfgateComposeEssentialsGradleTest",
         },
+        "perfgateComposeRenderQualityGradle": {
+            "tags": ["perfgate"],
+            "shard_count": 3,
+            "test_filter": "com.android.tools.idea.rendering.gradle.PerfgateComposeRenderQualityGradleTest",
+        },
         "perfgateUiCheck": {
             "tags": ["perfgate"],
             "shard_count": 5,
