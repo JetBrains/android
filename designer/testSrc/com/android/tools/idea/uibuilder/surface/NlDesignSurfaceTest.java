@@ -610,4 +610,12 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.zoomToFit();
     assertEquals(0.01, surface.getScale());
   }
+
+  public void testNlSupportedActions() {
+    NlDesignSurface surface = mySurface;
+    // All NlSupportedActions are supported by default in the NlDesignSurface
+    for (NlSupportedActions value : NlSupportedActions.values()) {
+      assertTrue(NlSupportedActionsKt.isActionSupported(surface, value));
+    }
+  }
 }

@@ -126,6 +126,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @SurfaceScale private static final double DEFAULT_MIN_SCALE = 0.025;
   @SurfaceScale private static final double DEFAULT_MAX_SCALE = 10;
+  private static final ImmutableSet<NlSupportedActions> DEFAULT_NL_SUPPORTED_ACTIONS =
+    ImmutableSet.copyOf(NlSupportedActions.values());
 
   /**
    * See {@link Builder#setDelegateDataProvider(DataProvider)}
@@ -165,7 +167,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     private Function<DesignSurface<LayoutlibSceneManager>, DesignSurfaceActionHandler> myActionHandlerProvider = NlDesignSurface::defaultActionHandlerProvider;
     @Nullable private SelectionModel mySelectionModel = null;
     private ZoomControlsPolicy myZoomControlsPolicy = ZoomControlsPolicy.AUTO_HIDE;
-    @NotNull private Supplier<ImmutableSet<NlSupportedActions>> mySupportedActionsProvider = ImmutableSet::of;
+    @NotNull private Supplier<ImmutableSet<NlSupportedActions>> mySupportedActionsProvider = () -> DEFAULT_NL_SUPPORTED_ACTIONS;
 
     private boolean myShouldRenderErrorsPanel = false;
 
