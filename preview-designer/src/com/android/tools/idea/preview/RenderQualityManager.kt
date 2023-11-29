@@ -24,8 +24,9 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.idea.modes.essentials.EssentialsMode
+import com.android.tools.idea.rendering.isCancellationException
+import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.util.Disposer
 import java.awt.Rectangle
@@ -159,7 +160,7 @@ class DefaultRenderQualityManager(
   override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean =
     !isPaused &&
       sceneManager.let {
-        !it.hasRenderErrors() &&
+        (!it.renderResult.isErrorResult() || it.renderResult.isCancellationException()) &&
           abs(
             it.lastRenderQuality -
               getTargetQuality(

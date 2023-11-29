@@ -27,6 +27,9 @@ fun RenderResult?.isErrorResult(): Boolean =
   && (!renderResult.isSuccess
       || (logger.hasErrors() && renderResult.exception !is CancellationException))
 
+fun RenderResult?.isCancellationException(): Boolean =
+  this != null && renderResult.exception is CancellationException
+
 /**
  * Extension implementing some heuristics to detect custom View rendering errors. This allows to
  * identify render errors better.

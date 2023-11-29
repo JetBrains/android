@@ -53,5 +53,6 @@ iml_module(
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
     ],
 )
