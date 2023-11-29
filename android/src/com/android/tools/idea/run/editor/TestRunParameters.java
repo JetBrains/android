@@ -54,7 +54,6 @@ import com.intellij.ui.EditorTextField;
 import com.intellij.ui.EditorTextFieldWithBrowseButton;
 import com.intellij.ui.TextAccessor;
 import com.intellij.ui.UserActivityProviderComponent;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -71,10 +70,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunConfiguration> {
-  private static final String RETENTION_ENABLE_TOOLTIP = "Enabling this feature instructs virtual devices to capture an Emulator " +
-                                                        "snapshot when a test encounters a Java assertion failure. Snapshots are then " +
-                                                        "available for you to load onto the device from the test results panel.";
-  private static final String RETENTION_ENABLE_URL = "https://developer.android.com/studio/preview/features#automated-test-snapshots";
   private JRadioButton myAllInPackageTestButton;
   private JRadioButton myClassTestButton;
   private JRadioButton myMethodTestButton;
@@ -84,7 +79,6 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   private LabeledComponent<SimpleEditorTextFieldWithBrowseButton> myTestMethodComponent;
   private JPanel myContentPanel;
   private LabeledComponent<EditorTextFieldWithBrowseButton> myInstrumentationClassComponent;
-  private JBLabel myLabelTest;
   private LabeledComponent<SimpleEditorTextFieldWithBrowseButton> myInstrumentationArgsComponent;
   private LabeledComponent myTestRegexComponent;
 
