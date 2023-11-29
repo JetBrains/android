@@ -21,13 +21,15 @@ import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunCo
 import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.TEST_CLASS;
 import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.TEST_METHOD;
 
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpressions;
 import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.Token;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.android.tools.idea.testartifacts.instrumented.AndroidInheritingClassBrowser;
 import com.android.tools.idea.testartifacts.instrumented.AndroidInheritingClassVisibilityChecker;
@@ -39,8 +41,8 @@ import com.intellij.execution.MethodListDlg;
 import com.intellij.execution.configuration.BrowseModuleValueActionListener;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.PackageChooserDialog;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
@@ -57,6 +59,7 @@ import com.intellij.ui.UserActivityProviderComponent;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.JPanel;
@@ -101,7 +104,13 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   public TestRunParameters(Project project, ConfigurationModuleSelector moduleSelector) {
     myProject = project;
     myModuleSelector = moduleSelector;
-    canSelectInstrumentationRunnerClass = !ProjectFacetManager.getInstance(project).hasFacets(GradleFacet.getFacetTypeId());
+    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+    TestRunParametersToken<AndroidProjectSystem> token =
+      Arrays.stream(TestRunParametersToken.EP_NAME.getExtensions(project))
+        .filter(it -> it.isApplicable(projectSystem))
+        .findFirst()
+        .orElse(null);
+    canSelectInstrumentationRunnerClass = token == null || token.canSelectInstrumentationRunnerClass(projectSystem);
 
     myBindingsManager = new BindingsManager();
     mySelectedTestType = new SelectedRadioButtonProperty<>(
@@ -314,5 +323,12 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     public String getText() {
       return getChildComponent().getText();
     }
+  }
+
+  public interface TestRunParametersToken<P extends AndroidProjectSystem> extends Token {
+    ExtensionPointName<TestRunParametersToken<AndroidProjectSystem>> EP_NAME =
+      new ExtensionPointName<>("com.android.tools.idea.run.editor.testRunParametersToken");
+
+    boolean canSelectInstrumentationRunnerClass(@NotNull P projectSystem);
   }
 }

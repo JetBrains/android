@@ -736,6 +736,9 @@
                     dynamic="true"/>
     <extensionPoint qualifiedName="com.android.tools.idea.flags.experimentalSettingsContributor"
                     interface="com.android.tools.idea.flags.ExperimentalSettingsContributor"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.run.editor.testRunParametersToken"
+                    interface="com.android.tools.idea.run.editor.TestRunParameters$TestRunParametersToken"
+                    area="IDEA_PROJECT"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.tools.idea.flags">
