@@ -84,7 +84,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
 
   private final Project myProject;
   private final ConfigurationModuleSelector myModuleSelector;
-  private final boolean isBuildWithGradle;
+  private final boolean canSelectInstrumentationRunnerClass;
 
   private final ContentWrapper myContentWrapper;
   private final BindingsManager myBindingsManager;
@@ -101,7 +101,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   public TestRunParameters(Project project, ConfigurationModuleSelector moduleSelector) {
     myProject = project;
     myModuleSelector = moduleSelector;
-    isBuildWithGradle = ProjectFacetManager.getInstance(project).hasFacets(GradleFacet.getFacetTypeId());
+    canSelectInstrumentationRunnerClass = !ProjectFacetManager.getInstance(project).hasFacets(GradleFacet.getFacetTypeId());
 
     myBindingsManager = new BindingsManager();
     mySelectedTestType = new SelectedRadioButtonProperty<>(
@@ -186,7 +186,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     // Disable the instrumentation class selector component for Gradle based project because AGP doesn't allow
     // users to define multiple <instrumentation> tag in their manifest. We just show the instrumentation
     // runner specified in their gradle file as FYI.
-    instrClassEditorText.setEnabled(!isBuildWithGradle);
+    instrClassEditorText.setEnabled(canSelectInstrumentationRunnerClass);
     myInstrumentationClass = new TextProperty(instrClassEditorText.getChildComponent());
     myInstrumentationClassComponent.setComponent(instrClassEditorText);
 
@@ -226,7 +226,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     configuration.CLASS_NAME = myTestClass.get();
     configuration.METHOD_NAME = myTestMethod.get();
     configuration.TEST_NAME_REGEX = myTestRegex.get();
-    configuration.INSTRUMENTATION_RUNNER_CLASS = isBuildWithGradle ? "" : myInstrumentationClass.get();
+    configuration.INSTRUMENTATION_RUNNER_CLASS = canSelectInstrumentationRunnerClass ? myInstrumentationClass.get() : "";
     configuration.EXTRA_OPTIONS = myUserModifiedInstrumentationExtraParams;
   }
 
@@ -242,9 +242,9 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myTestMethod.set(configuration.METHOD_NAME);
     myTestRegex.set(configuration.TEST_NAME_REGEX);
     myInstrumentationClass.set(
-      isBuildWithGradle
-      ? AndroidTestRunConfiguration.getDefaultInstrumentationRunner(androidFacet)
-      : configuration.INSTRUMENTATION_RUNNER_CLASS);
+      canSelectInstrumentationRunnerClass
+      ? configuration.INSTRUMENTATION_RUNNER_CLASS
+      : AndroidTestRunConfiguration.getDefaultInstrumentationRunner(androidFacet));
     myInstrumentationArgs.set(configuration.getExtraInstrumentationOptions(androidFacet));
     myUserModifiedInstrumentationExtraParams = configuration.EXTRA_OPTIONS;
   }
