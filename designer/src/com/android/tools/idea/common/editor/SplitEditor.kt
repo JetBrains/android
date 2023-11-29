@@ -31,12 +31,14 @@ import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.SplitEditorToolbar
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
+import com.intellij.openapi.fileEditor.impl.text.TextEditorPsiDataProvider
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
 import com.intellij.pom.Navigatable
@@ -117,13 +119,7 @@ abstract class SplitEditor<P : FileEditor>(
       isComponentInitialized = true
       registerModeNavigationShortcuts(thisComponent)
 
-      val textEditorComponent = textEditor.component
-      if (textEditorComponent is DataProvider) {
-        DataManager.registerDataProvider(
-          thisComponent,
-          SplitEditorDataProvider(textEditorComponent)
-        )
-      }
+      DataManager.registerDataProvider(thisComponent, SplitEditorDataProvider(editor))
     }
     return thisComponent
   }
@@ -208,40 +204,36 @@ abstract class SplitEditor<P : FileEditor>(
     )
   }
 
-  /**
-   * Some actions require access to data provided by the contained text editor. This data provider
-   * redirects to it as needed.
-   */
-  private class SplitEditorDataProvider(private val wrappedDataProvider: DataProvider) :
-    DataProvider {
+  /** Data provider attached to the SplitEditor component. */
+  private class SplitEditorDataProvider(private val editor: Editor) : DataProvider {
 
     override fun getData(dataId: String): Any? {
       if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
-        val wrappedBackgroundProvider = wrappedDataProvider.getData(dataId)
-        if (wrappedBackgroundProvider is DataProvider) {
-          return SplitEditorBackgroundDataProvider(wrappedBackgroundProvider)
-        }
+        return SplitEditorBackgroundDataProvider(editor)
       }
 
       return null
     }
   }
 
-  /**
-   * The contained text editor's data provider has a corresponding background data provider that
-   * also needs to be wrapped.
-   */
-  private class SplitEditorBackgroundDataProvider(
-    private val wrappedBackgroundProvider: DataProvider
-  ) : DataProvider {
+  /** Background data provider attached to the SplitEditor component. */
+  private class SplitEditorBackgroundDataProvider(private val editor: Editor) : DataProvider {
 
     override fun getData(dataId: String): Any? {
       if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
-        return wrappedBackgroundProvider.getData(dataId)
+        return getBackgroundDataProvider()?.getData(dataId)
       }
 
       return null
     }
+
+    private fun getBackgroundDataProvider() =
+      TextEditorPsiDataProvider()
+        .getData(
+          PlatformCoreDataKeys.BGT_DATA_PROVIDER.name,
+          editor,
+          editor.caretModel.currentCaret
+        ) as? DataProvider
   }
 
   /**
