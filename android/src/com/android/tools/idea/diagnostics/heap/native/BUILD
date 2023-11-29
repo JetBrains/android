@@ -124,21 +124,17 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-genrule(
+# bazel run :update_libjni_object_tagger
+sh_binary(
     name = "update_libjni_object_tagger",
-    srcs = [
-        ":libjni_object_tagger",
-        "//tools/base/repository:find_workspace",
-    ],
-    outs = ["unused_out"],
-    cmd = "touch $(location unused_out) && cp $(location libjni_object_tagger) " +
-          "`cat $(location //tools/base/repository:find_workspace)`/tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native/" +
-          select({
-              "@platforms//os:linux": "linux",
-              ":macos": "mac",
-              ":macos_arm": "mac_arm",
-              "@platforms//os:windows": "win",
-          }),
-    local = True,
-    tags = ["manual"],
+    srcs = ["//tools/base/bazel/shell:workspace-cp.sh"],
+    args = [
+        "$(execpath libjni_object_tagger)",
+    ] + select({
+        "@platforms//os:linux": ["tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native/linux"],
+        ":macos": ["tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native/mac"],
+        ":macos_arm": ["tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native/mac_arm"],
+        "@platforms//os:windows": ["tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native/win"],
+    }),
+    data = [":libjni_object_tagger"],
 )
