@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
-import com.android.adblib.AdbDeviceServices
+import com.android.adblib.AdbSession
 import com.android.adblib.DeviceSelector
 import com.android.adblib.RemoteFileMode
 import com.android.adblib.ShellCommandOutputElement
@@ -164,7 +164,7 @@ internal class DeviceClient(
       }
       catch (e: Throwable) {
         connectionState.set(null)
-        throwIfCancellationOrDeviceDisconnected(e, project)
+        AdbLibService.getSession(project).throwIfCancellationOrDeviceDisconnected(e)
         connection.completeExceptionally(e)
       }
     }
@@ -188,11 +188,11 @@ internal class DeviceClient(
    */
   private suspend fun startAgentAndConnect(
       maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean, project: Project) {
-    val adb = AdbLibService.getSession(project).deviceServices
+    val adbSession = AdbLibService.getSession(project)
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
     val agentPushed = coroutineScope {
       async {
-        pushAgent(project, deviceSelector, adb)
+        pushAgent(deviceSelector, adbSession, project)
       }
     }
 
@@ -203,10 +203,10 @@ internal class DeviceClient(
     var channels: Channels? = null
     SuspendingServerSocketChannel(asyncChannel).use { serverSocketChannel ->
       val socketName = "screen-sharing-agent-$port"
-      ClosableReverseForwarding(deviceSelector, SocketSpec.LocalAbstract(socketName), SocketSpec.Tcp(port), adb).use {
+      ClosableReverseForwarding(deviceSelector, adbSession, SocketSpec.LocalAbstract(socketName), SocketSpec.Tcp(port)).use {
         it.startForwarding()
         agentPushed.await()
-        startAgent(deviceSelector, adb, socketName, maxVideoSize, initialDisplayOrientation, startVideoStream, project)
+        startAgent(deviceSelector, adbSession, socketName, maxVideoSize, initialDisplayOrientation, startVideoStream)
         channels = connectChannels(serverSocketChannel)
         // Port forwarding can be removed since the already established connections will continue to work without it.
       }
@@ -272,27 +272,6 @@ internal class DeviceClient(
     return count
   }
 
-  /** Throws [CancellationException] if [throwable] is [CancellationException] or the device is disconnected. */
-  private suspend fun throwIfCancellationOrDeviceDisconnected(throwable: Throwable, project: Project) {
-    when {
-      throwable is CancellationException -> throw throwable
-      isDeviceConnected(project) == false -> throw CancellationException()
-    }
-  }
-
-  /** Checks if the device is connected. Returns null if it cannot be determined. */
-  private suspend fun isDeviceConnected(project: Project): Boolean? {
-    return try {
-      return AdbLibService.getSession(project).hostServices.devices().entries.find { it.serialNumber == deviceSerialNumber } != null
-    }
-    catch (e: CancellationException) {
-      throw e
-    }
-    catch (_: Throwable) {
-      null
-    }
-  }
-
   private suspend fun connectChannels(serverSocketChannel: SuspendingServerSocketChannel): Channels {
     return withVerboseTimeout(getConnectionTimeout(), "Device agent is not responding") {
       val videoChannel: SuspendingSocketChannel
@@ -347,7 +326,7 @@ internal class DeviceClient(
     streamingSessionTracker.streamingEnded()
   }
 
-  private suspend fun pushAgent(project: Project, deviceSelector: DeviceSelector, adb: AdbDeviceServices) {
+  private suspend fun pushAgent(deviceSelector: DeviceSelector, adbSession: AdbSession, project: Project) {
     streamingSessionTracker.agentPushStarted()
 
     val soFile: Path
@@ -381,6 +360,7 @@ internal class DeviceClient(
     }
 
     coroutineScope {
+      val adb = adbSession.deviceServices
       // "chown shell:shell" ensures proper ownership of /data/local/tmp/.studio if adb is rooted.
       val command = "mkdir -p $DEVICE_PATH_BASE; chmod 755 $DEVICE_PATH_BASE; chown shell:shell $DEVICE_PATH_BASE"
       adb.shellAsLines(deviceSelector, command).collect {
@@ -390,9 +370,9 @@ internal class DeviceClient(
       }
       val permissions = RemoteFileMode.fromPosixPermissions(PosixFilePermission.OWNER_READ)
       val nativeLibraryPushed = async {
-        adb.pushFile(deviceSelector, soFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME", permissions, project)
+        adbSession.pushFile(deviceSelector, soFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME", permissions)
       }
-      adb.pushFile(deviceSelector, jarFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME", permissions, project)
+      adbSession.pushFile(deviceSelector, jarFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME", permissions)
       nativeLibraryPushed.await()
     }
     streamingSessionTracker.agentPushEnded()
@@ -402,12 +382,11 @@ internal class DeviceClient(
 
   private suspend fun startAgent(
       deviceSelector: DeviceSelector,
-      adb: AdbDeviceServices,
+      adbSession: AdbSession,
       socketName: String,
       maxVideoSize: Dimension,
       initialDisplayOrientation: Int,
-      startVideoStream: Boolean,
-      project: Project) {
+      startVideoStream: Boolean) {
     val maxSizeArg =
         if (maxVideoSize.width > 0 && maxVideoSize.height > 0) " --max_size=${maxVideoSize.width},${maxVideoSize.height}" else ""
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
@@ -431,7 +410,7 @@ internal class DeviceClient(
       val errors = OutputAccumulator(MAX_TOTAL_AGENT_MESSAGE_LENGTH, MAX_ERROR_MESSAGE_AGE_MILLIS)
       try {
         logger.info("Executing adb shell $command")
-        adb.shellAsLines(deviceSelector, command).collect {
+        adbSession.deviceServices.shellAsLines(deviceSelector, command).collect {
           when (it) {
             is ShellCommandOutputElement.StdoutLine -> if (it.contents.isNotBlank()) log.info(it.contents)
             is ShellCommandOutputElement.StderrLine -> {
@@ -465,7 +444,7 @@ internal class DeviceClient(
         }
       }
       catch (e: Throwable) {
-        throwIfCancellationOrDeviceDisconnected(e, project)
+        adbSession.throwIfCancellationOrDeviceDisconnected(e)
         throw RuntimeException("Command \"$command\" failed", e)
       }
     }
@@ -521,17 +500,35 @@ internal class DeviceClient(
     connectionState.set(null)
   }
 
-  private suspend fun AdbDeviceServices.pushFile(device: DeviceSelector,
-                                                 file: Path,
-                                                 remoteFilePath: String,
-                                                 permissions: RemoteFileMode,
-                                                 project: Project) {
+  private suspend fun AdbSession.pushFile(device: DeviceSelector, file: Path, remoteFilePath: String, permissions: RemoteFileMode) {
     try {
-      syncSend(device, file, remoteFilePath, permissions)
+      deviceServices.syncSend(device, file, remoteFilePath, permissions)
     }
     catch (e: Throwable) {
-      throwIfCancellationOrDeviceDisconnected(e, project)
+      throwIfCancellationOrDeviceDisconnected(e)
       throw RuntimeException("Failed to push ${file.fileName} to $device", e)
+    }
+  }
+
+  /** Throws [CancellationException] if [throwable] is [CancellationException] or the device is disconnected. */
+  private suspend fun AdbSession.throwIfCancellationOrDeviceDisconnected(throwable: Throwable) {
+    when {
+      throwable is CancellationException -> throw throwable
+      isDeviceConnected() == false -> throw CancellationException()
+    }
+  }
+
+
+  /** Checks if the device is connected. Returns null if it cannot be determined. */
+  private suspend fun AdbSession.isDeviceConnected(): Boolean? {
+    return try {
+      return hostServices.devices().entries.find { it.serialNumber == deviceSerialNumber } != null
+    }
+    catch (e: CancellationException) {
+      throw e
+    }
+    catch (_: Throwable) {
+      null
     }
   }
 
@@ -562,22 +559,22 @@ internal class DeviceClient(
 
   private class ClosableReverseForwarding(
     val deviceSelector: DeviceSelector,
+    val adbSession: AdbSession,
     val deviceSocket: SocketSpec,
     val localSocket: SocketSpec,
-    val adb: AdbDeviceServices,
   ) : SuspendingCloseable {
 
     var opened = false
 
     suspend fun startForwarding() {
-      adb.reverseForward(deviceSelector, deviceSocket, localSocket, rebind = true)
+      adbSession.deviceServices.reverseForward(deviceSelector, deviceSocket, localSocket, rebind = true)
       opened = true
     }
 
     override suspend fun close() {
       if (opened) {
         opened = false
-        adb.reverseKillForward(deviceSelector, deviceSocket)
+        adbSession.deviceServices.reverseKillForward(deviceSelector, deviceSocket)
       }
     }
   }
