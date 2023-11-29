@@ -18,6 +18,7 @@ package com.android.tools.idea.execution.common.debug
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
+import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.executeOnPooledThread
@@ -64,9 +65,10 @@ object DebugSessionStarter {
     destroyRunningProcess: (IDevice) -> Unit,
     indicator: ProgressIndicator,
     consoleView: ConsoleView? = null,
-    timeout: Long = 15
+    timeout: Long = 15,
+    waitingProcessState: ClientData.DebuggerStatus = ClientData.DebuggerStatus.WAITING
   ): XDebugSessionImpl = RunStats.from(environment).track(START_DEBUGGER_SESSION) {
-    val client = waitForClientReadyForDebug(device, listOf(applicationContext.applicationId), timeout, indicator)
+    val client = waitForClientReadyForDebug(device, listOf(applicationContext.applicationId), timeout, indicator, waitingProcessState)
 
     val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
       environment.project,
@@ -191,6 +193,7 @@ object DebugSessionStarter {
     val sessionName = "${androidDebugger.displayName} (${client.clientData.pid})"
     val applicationContext = project.getProjectSystem().getApplicationProjectContext(client)
       ?: throw ExecutionException("Cannot obtain RunningApplicationContext for client: $client")
+
     val starter = androidDebugger.getDebugProcessStarterForExistingProcess(project, client, applicationContext, androidDebuggerState)
 
     val session = withContext(uiThread) {

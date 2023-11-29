@@ -15,20 +15,49 @@
  */
 package com.android.tools.idea.execution.common
 
+import com.android.ddmlib.ClientData
+import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.execution.common.adb.shell.tasks.getCommandStopSdkSandbox
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
+import com.android.tools.idea.execution.common.debug.DebugSessionStarter
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.intellij.execution.ExecutionException
-
+import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
+import com.intellij.openapi.progress.ProgressIndicator
 
 @Throws(ExecutionException::class)
 fun shouldDebugSandboxSdk(apkProvider: ApkProvider, device: IDevice, state: AndroidDebuggerState): Boolean {
   return hasDebugSandboxSdkEnabled(state) &&
     device.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU) &&
     hasPrivacySandboxSdk(apkProvider, device)
+}
+
+@Throws(ExecutionException::class)
+suspend fun attachDebuggerToSandboxSdk(device: IDevice, applicationId: String, env: ExecutionEnvironment, indicator: ProgressIndicator, console: ConsoleView) {
+  val debugger = AndroidJavaDebugger()
+  DebugSessionStarter.attachDebuggerToStartedProcess(
+    device,
+    object : ApplicationProjectContext {
+      override val applicationId: String
+        get() = "com.google.android.sdksandbox"
+    },
+    env,
+    debugger,
+    debugger.createState(),
+    destroyRunningProcess = { d -> d.executeShellCommand(getCommandStopSdkSandbox(applicationId), CollectingOutputReceiver()) },
+    indicator,
+    console,
+    15,
+    ClientData.DebuggerStatus.DEFAULT
+  )
+
 }
 
 private fun hasDebugSandboxSdkEnabled(state: AndroidDebuggerState): Boolean {

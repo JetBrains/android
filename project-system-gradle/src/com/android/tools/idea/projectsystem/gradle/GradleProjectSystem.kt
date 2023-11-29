@@ -496,6 +496,14 @@ fun AssembleInvocationResult.getBuiltApksForSelectedVariant(androidFacet: Androi
  */
 class GradleApplicationProjectContextProvider(val project: Project) : ApplicationProjectContextProvider, GradleToken {
   override fun getApplicationProjectContextProvider(client: Client): ApplicationProjectContext {
+    // This hard code might not make b/305650392 feasible anymore
+    if (client.clientData.packageName == SANDBOX_SDK_APPLICATION_ID) {
+      return object : ApplicationProjectContext {
+        override val applicationId: String
+          get() = SANDBOX_SDK_APPLICATION_ID
+      }
+    }
+
     val result = FacetFinder.findFacetForProcess(project, client.clientData)
     return FacetBasedApplicationProjectContext(
       result.applicationId,
@@ -503,3 +511,5 @@ class GradleApplicationProjectContextProvider(val project: Project) : Applicatio
     )
   }
 }
+
+const val SANDBOX_SDK_APPLICATION_ID = "com.google.android.sdksandbox"
