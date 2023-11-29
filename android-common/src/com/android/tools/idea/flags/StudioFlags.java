@@ -1615,12 +1615,6 @@ public final class StudioFlags {
 
   // region App Links Assistant
   private static final FlagGroup APP_LINKS_ASSISTANT = new FlagGroup(FLAGS, "app.links.assistant", "App Links Assistant");
-  public static final Flag<Boolean> KOTLIN_INTENT_HANDLING =
-    Flag.create(APP_LINKS_ASSISTANT, "kotlin.intent.handling", "Kotlin Intent Handling",
-                "Support adding logic for intent handling in Kotlin.", true);
-  public static final Flag<Boolean> APP_LINKS_ASSISTANT_V2 =
-    Flag.create(APP_LINKS_ASSISTANT, "v2", "App Links Assistant V2",
-                "Revamped App Links Assistant (new surfaces and navigation between surfaces).", true);
   public static final Flag<Boolean> WEBSITE_ASSOCIATION_GENERATOR_V2 =
     Flag.create(APP_LINKS_ASSISTANT, "website.association.generator.v2", "Website Association Generator V2",
                 "Improvements to Website Association Generator.", false);
