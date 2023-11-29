@@ -1546,14 +1546,14 @@ class ComposePreviewRepresentation(
       is PreviewMode.Interactive -> {
         log.debug("Stopping interactive")
         onInteractivePreviewStop()
-        requestVisibilityAndNotificationsUpdate()
       }
       is PreviewMode.UiCheck -> {
         log.debug("Stopping UI check")
         onUiCheckPreviewStop()
       }
       is PreviewMode.AnimationInspection -> {
-        onInteractivePreviewStop()
+        log.debug("Stopping Animation Preview")
+        requestVisibilityAndNotificationsUpdate()
         withContext(uiThread) {
           // Close the animation inspection panel
           ComposePreviewAnimationManager.closeCurrentInspector()
