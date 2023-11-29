@@ -36,7 +36,9 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.psi.PsiFile
 import org.gradle.api.plugins.JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME
+import org.jetbrains.kotlin.utils.addIfNotNull
 
 typealias Alias = String
 
@@ -48,38 +50,88 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
     dependency: String,
     enforced: Boolean,
     parsedModel: GradleBuildModel,
-    matcher: DependencyMatcher = ExactDependencyMatcher(configuration, dependency)) {
+    matcher: DependencyMatcher = ExactDependencyMatcher(configuration, dependency)): Set<PsiFile> {
     val buildscriptDependencies = parsedModel.dependencies()
+    val updatedFiles = mutableSetOf<PsiFile>()
     when (calculateAddDependencyPolicy(projectModel)) {
-      AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency, matcher)?.let { alias ->
+      AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency, matcher).let { (alias, updatedFile) ->
+        updatedFiles.addIfNotNull(updatedFile)
+        alias ?: return@let
         val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), buildscriptDependencies)
         if(!buildscriptDependencies.hasArtifact(matcher))
-          buildscriptDependencies.addPlatformArtifact(configuration, reference, enforced)
+          buildscriptDependencies.addPlatformArtifact(configuration, reference, enforced).also {
+            updatedFiles.addIfNotNull(parsedModel.psiFile)
+          }
       }
       AddDependencyPolicy.BUILD_FILE -> {
         if(!buildscriptDependencies.hasArtifact(matcher))
-          buildscriptDependencies.addPlatformArtifact(configuration, dependency, enforced)
+          buildscriptDependencies.addPlatformArtifact(configuration, dependency, enforced).also {
+            updatedFiles.addIfNotNull(parsedModel.psiFile)
+          }
       }
     }
+    return updatedFiles
   }
 
   @JvmOverloads
   fun addClasspathDependency(dependency: String,
                              excludes: List<ArtifactDependencySpec> = listOf(),
-                             matcher: DependencyMatcher = ExactDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, dependency)) {
-    val buildModel = projectModel.projectBuildModel ?: return
+                             matcher: DependencyMatcher = ExactDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, dependency)): Set<PsiFile> {
+    val updatedFiles = mutableSetOf<PsiFile>()
+    val buildModel = projectModel.projectBuildModel ?: return updatedFiles
     val buildscriptDependencies = buildModel.buildscript().dependencies()
     when (calculateAddDependencyPolicy(projectModel)) {
-      AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency, matcher)?.let { alias ->
+      AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency, matcher).let { (alias, updatedFile) ->
+        updatedFiles.addIfNotNull(updatedFile)
+        alias ?: return@let
         val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), buildscriptDependencies)
         if(!buildscriptDependencies.hasArtifact(matcher))
-          buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, reference, excludes)
+          buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, reference, excludes).also {
+            updatedFiles.addIfNotNull(buildModel.psiFile)
+          }
       }
       AddDependencyPolicy.BUILD_FILE -> {
         if(!buildscriptDependencies.hasArtifact(matcher))
-          buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, dependency, excludes)
+          buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, dependency, excludes).also {
+            updatedFiles.addIfNotNull(buildModel.psiFile)
+          }
       }
     }
+    return updatedFiles
+  }
+
+  @JvmOverloads
+  fun addClasspathDependencyWithVersionVariable(dependency: String,
+                                                variableName: String,
+                                                excludes: List<ArtifactDependencySpec> = listOf(),
+                                                matcher: DependencyMatcher = ExactDependencyMatcher(CLASSPATH_CONFIGURATION_NAME,
+                                                                                                    dependency)): Set<PsiFile> {
+    val updatedFiles = mutableSetOf<PsiFile>()
+    val buildModel = projectModel.projectBuildModel ?: return updatedFiles
+    val buildscriptDependencies = buildModel.buildscript().dependencies()
+    when (calculateAddDependencyPolicy(projectModel)) {
+      AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency, matcher).let { (alias, updatedFile) ->
+        updatedFiles.addIfNotNull(updatedFile)
+        alias ?: return@let
+        val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), buildscriptDependencies)
+        if(!buildscriptDependencies.hasArtifact(matcher))
+          buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, reference, excludes).also {
+            updatedFiles.addIfNotNull(buildModel.psiFile)
+          }
+      }
+      AddDependencyPolicy.BUILD_FILE -> {
+        val parsedDependency = Dependency.parse(dependency)
+        val version = parsedDependency.version?.toIdentifier()
+        buildModel.buildscript().ext().findProperty(variableName).setValue(version!!)
+        if(!buildscriptDependencies.hasArtifact(matcher))
+          buildscriptDependencies.addArtifact(
+            CLASSPATH_CONFIGURATION_NAME,
+            "${parsedDependency.group}:${parsedDependency.name}:\$$variableName",
+            excludes)
+        updatedFiles.addIfNotNull(buildModel.psiFile)
+      }
+    }
+    return updatedFiles
   }
 
   /**
@@ -89,35 +141,69 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
   fun addPlugin(pluginId: String,
                 version: String,
                 apply: Boolean?,
-                pluginsModel: PluginsModel,
+                projectPlugins: PluginsModel,
                 buildModel: GradleBuildModel,
-                matcher: PluginMatcher = IdPluginMatcher(pluginId)) {
-    val alreadyHasPlugin = pluginsModel.hasPlugin(matcher)
-    when (calculateAddDependencyPolicy(projectModel)) {
-      AddDependencyPolicy.VERSION_CATALOG -> getOrAddPluginToCatalog(pluginId, version, matcher)?.let { alias ->
-        val reference = ReferenceTo(getCatalogModel().plugins().findProperty(alias))
-        if (!alreadyHasPlugin) pluginsModel.applyPlugin(reference, apply)
+                matcher: PluginMatcher = IdPluginMatcher(pluginId)): Set<PsiFile> {
+    val changedFiles = mutableSetOf<PsiFile>()
 
-        if (!buildModel.hasPlugin(matcher)) {
+    // Inserting project level plugins in case
+    // - projectPlugins is in settings file
+    // - projectPlugins in project file and it's not single module project
+    val insertProjectPlugins = shouldInsertProjectPlugins(projectPlugins) && !projectPlugins.hasPlugin(matcher)
+    // Insert plugins for module in case
+    // - buildModel is a separate module
+    // - buildModel is a single module project
+    val moduleInsertion = shouldInsertModulePlugins(projectPlugins, buildModel)
+    when (calculateAddDependencyPolicy(projectModel)) {
+      AddDependencyPolicy.VERSION_CATALOG -> getOrAddPluginToCatalog(pluginId, version, matcher).let { (alias, changedFile) ->
+        changedFiles.addIfNotNull(changedFile)
+        alias ?: return@let
+        val reference = ReferenceTo(getCatalogModel().plugins().findProperty(alias))
+        if (insertProjectPlugins) {
+          projectPlugins.applyPlugin(reference, apply)
+          changedFiles.addIfNotNull(projectPlugins.psiElement?.containingFile)
+        }
+        if (!buildModel.hasPlugin(matcher) && moduleInsertion) {
           buildModel.applyPlugin(reference, null)
+          changedFiles.addIfNotNull(buildModel.psiFile)
         }
       }
 
       AddDependencyPolicy.BUILD_FILE -> {
-        if (!alreadyHasPlugin) pluginsModel.applyPlugin(pluginId, version, apply)
-        addPlugin(pluginId, buildModel, matcher)
+        if (insertProjectPlugins) {
+          projectPlugins.applyPlugin(pluginId, version, apply)
+          changedFiles.addIfNotNull(projectPlugins.psiElement?.containingFile)
+        }
+        if (moduleInsertion)
+        addPlugin(pluginId, buildModel, matcher)?.also { changedFiles.add(it) }
       }
     }
+    return changedFiles
   }
+
+  private fun shouldInsertModulePlugins(projectPlugins: PluginsModel, buildModel: GradleBuildModel) =
+    !isSettingsFile(buildModel.psiFile) && (projectPlugins.psiElement?.containingFile != buildModel.psiFile || isSingleModuleProject())
+
+  private fun shouldInsertProjectPlugins(projectPlugins: PluginsModel) =
+    isSettingsFile(projectPlugins.psiElement?.containingFile) || !isSingleModuleProject()
+
+  private fun isSettingsFile(psiFile: PsiFile?) =
+    projectModel.projectSettingsModel?.psiFile == psiFile
+
+  private fun isSingleModuleProject() =
+    projectModel.projectSettingsModel?.modulePaths()?.let { it.size < 2 } ?: true
 
   /**
    * Adds plugin without version - it adds plugin declaration directly to build script file.
    */
-  fun addPlugin(pluginId: String, buildModel: GradleBuildModel, matcher: PluginMatcher = IdPluginMatcher(pluginId)) {
+  fun addPlugin(pluginId: String, buildModel: GradleBuildModel, matcher: PluginMatcher = IdPluginMatcher(pluginId)): PsiFile? =
     if (!buildModel.hasPlugin(matcher)) {
       buildModel.applyPlugin(pluginId)
+      buildModel.psiFile
     }
-  }
+    else
+      null
+
 
   private fun PluginsModel.hasPlugin(matcher: PluginMatcher): Boolean =
     plugins().any { matcher.match(it) }
@@ -130,20 +216,29 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
                     dependency: String,
                     excludes: List<ArtifactDependencySpec>,
                     parsedModel: GradleBuildModel,
-                    matcher: DependencyMatcher) {
+                    matcher: DependencyMatcher): Set<PsiFile> {
+    val updateFiles = mutableSetOf<PsiFile>()
     when (calculateAddDependencyPolicy(projectModel)) {
-      AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency, matcher)?.let { alias ->
+      AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency, matcher).let { (alias, changedFile) ->
+        updateFiles.addIfNotNull(changedFile)
+        alias ?: return@let
         val dependenciesModel = parsedModel.dependencies()
         val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), dependenciesModel)
-        if(!dependenciesModel.hasArtifact(matcher))
-          dependenciesModel.addArtifact(configuration, reference, excludes)
+        if (!dependenciesModel.hasArtifact(matcher))
+          dependenciesModel.addArtifact(configuration, reference, excludes).also {
+            updateFiles.addIfNotNull(parsedModel.psiFile)
+          }
+
       }
       AddDependencyPolicy.BUILD_FILE -> {
         val dependenciesModel = parsedModel.dependencies()
         if(!dependenciesModel.hasArtifact(matcher))
-          dependenciesModel.addArtifact(configuration, dependency, excludes);
+          dependenciesModel.addArtifact(configuration, dependency, excludes).also {
+            updateFiles.addIfNotNull(dependenciesModel.psiElement?.containingFile)
+          }
       }
     }
+    return updateFiles
   }
 
   private fun getCatalogModel(): GradleVersionCatalogModel {
@@ -160,24 +255,26 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
   fun addDependency(configuration: String, dependency: String, parsedModel: GradleBuildModel) =
     addDependency(configuration, dependency, listOf(), parsedModel, ExactDependencyMatcher(configuration, dependency))
 
-  private fun getOrAddDependencyToCatalog(dependency: String, matcher: DependencyMatcher): Alias? {
+  private fun getOrAddDependencyToCatalog(dependency: String, matcher: DependencyMatcher): Pair<Alias?, PsiFile?> {
     val catalogModel = getCatalogModel()
-    val alias = findCatalogDeclaration(catalogModel, matcher) ?: addCatalogLibrary(catalogModel, dependency)
-    if (alias == null) {
+    val result = findCatalogDeclaration(catalogModel, matcher)?.let { Pair(it, null) } ?: Pair(addCatalogLibrary(catalogModel, dependency),
+                                                                                               catalogModel.psiFile)
+    if (result.first == null) {
       log.warn("Cannot add catalog reference to build as we cannot find/add catalog declaration")
-      return null
     }
-    return alias
+    return result
   }
 
-  private fun getOrAddPluginToCatalog(plugin: String, version: String, matcher: PluginMatcher): Alias? {
+  private fun getOrAddPluginToCatalog(plugin: String, version: String, matcher: PluginMatcher): Pair<Alias?, PsiFile?> {
     val catalogModel = getCatalogModel()
-    val alias = findCatalogPluginDeclaration(catalogModel, matcher) ?: addCatalogPlugin(catalogModel, plugin, version)
-    if (alias == null) {
+    val result = findCatalogPluginDeclaration(catalogModel, matcher)?.let { Pair(it, null) } ?: Pair(
+      addCatalogPlugin(catalogModel, plugin, version),
+      catalogModel.psiFile
+    )
+    if (result.first == null) {
       log.warn("Cannot add catalog reference to build as we cannot find/add catalog declaration")
-      return null
     }
-    return alias
+    return result
   }
 
   private fun findCatalogPluginDeclaration(catalogModel: GradleVersionCatalogModel,

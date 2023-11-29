@@ -41,7 +41,8 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   fun testSimpleAddWithCatalog() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
            { _, moduleModel, helper ->
-             helper.addDependency("api", "com.example.libs:lib2:1.0", moduleModel)
+             val updates = helper.addDependency("api", "com.example.libs:lib2:1.0", moduleModel)
+             assertThat(updates.size).isEqualTo(2)
            },
            {
              assertThat(project.getTextForFile("gradle/libs.versions.toml"))
@@ -55,7 +56,8 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   fun testAddToBuildscriptWithCatalog() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
            { _, moduleModel, helper ->
-             helper.addClasspathDependency("com.example.libs:lib2:1.0")
+             val updates = helper.addClasspathDependency("com.example.libs:lib2:1.0")
+             assertThat(updates.size).isEqualTo(2)
            },
            {
              assertThat(project.getTextForFile("gradle/libs.versions.toml"))
@@ -69,7 +71,8 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   fun testSimpleAddNoCatalog() {
     doTest(SIMPLE_APPLICATION,
            { _, moduleModel, helper ->
-             helper.addDependency("api", "com.example.libs:lib2:1.0", moduleModel)
+             val updates = helper.addDependency("api", "com.example.libs:lib2:1.0", moduleModel)
+             assertThat(updates.size).isEqualTo(1)
            },
            {
              assertThat(project.getTextForFile("app/build.gradle"))
@@ -81,7 +84,8 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   fun testAddToClasspathNoCatalog() {
     doTest(SIMPLE_APPLICATION,
            { _, moduleModel, helper ->
-             helper.addClasspathDependency("com.example.libs:lib2:1.0")
+             val updates = helper.addClasspathDependency("com.example.libs:lib2:1.0")
+             assertThat(updates.size).isEqualTo(1)
            },
            {
              assertThat(project.getTextForFile("build.gradle"))
@@ -93,11 +97,12 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   fun testAddDependencyWithExceptions() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
            { _, moduleModel, helper ->
-             helper.addDependency("api",
+             val updates = helper.addDependency("api",
                                   "com.example.libs:lib2:1.0",
                                   listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
                                   moduleModel,
                                   ExactDependencyMatcher("api", "com.example.libs:lib2:1.0"))
+             assertThat(updates.size).isEqualTo(2)
            },
            {
              assertThat(project.getTextForFile("gradle/libs.versions.toml"))
@@ -112,11 +117,12 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   fun testAddToBuildScriptWithExceptions() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
            { _, moduleModel, helper ->
-             helper.addClasspathDependency(
+             val updates = helper.addClasspathDependency(
                "com.example.libs:lib2:1.0",
                listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
                ExactDependencyMatcher("classpath", "com.example.libs:lib2:1.0"),
              )
+             assertThat(updates.size).isEqualTo(2)
            },
            {
              assertThat(project.getTextForFile("gradle/libs.versions.toml"))
@@ -131,7 +137,8 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   fun testAddToBuildScriptWithNoVersion() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
            { _, moduleModel, helper ->
-             helper.addDependency("implementation", "com.example.libs:lib2", moduleModel)
+             val updates = helper.addDependency("implementation", "com.example.libs:lib2", moduleModel)
+             assertThat(updates.size).isEqualTo(2)
            },
            {
              assertThat(project.getTextForFile("gradle/libs.versions.toml"))
@@ -150,12 +157,13 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   fun testAddToBuildScriptWithExistingDependency() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
            { _, moduleModel, helper ->
-             helper.addDependency("implementation",
-                                  "junit:junit:999",
-                                  listOf(),
-                                  moduleModel,
-                                  GroupNameDependencyMatcher("implementation", "junit:junit:999")
+             val updates = helper.addDependency("implementation",
+                                                "junit:junit:999",
+                                                listOf(),
+                                                moduleModel,
+                                                GroupNameDependencyMatcher("implementation", "junit:junit:999")
              )
+             assertThat(updates.size).isEqualTo(1)
            },
            {
              assertThat(project.getTextForFile("gradle/libs.versions.toml"))
@@ -169,11 +177,12 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   fun testSimpleAddNoCatalogWithExceptions() {
     doTest(SIMPLE_APPLICATION,
            { _, moduleModel, helper ->
-             helper.addDependency("api",
-                                  "com.example.libs:lib2:1.0",
-                                  listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
-                                  moduleModel,
-                                  ExactDependencyMatcher("api", "com.example.libs:lib2:1.0"))
+             val updates = helper.addDependency("api",
+                                                "com.example.libs:lib2:1.0",
+                                                listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
+                                                moduleModel,
+                                                ExactDependencyMatcher("api", "com.example.libs:lib2:1.0"))
+              assertThat(updates.size).isEqualTo(1)
            },
            {
              val buildFileContent = project.getTextForFile("app/build.gradle")
@@ -188,7 +197,8 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            { projectBuildModel, moduleModel, helper ->
              val projectModel = projectBuildModel.projectBuildModel
              assertThat(projectModel).isNotNull()
-             helper.addPlugin("com.example.foo", "10.0", false, projectModel!!, moduleModel)
+             val updates = helper.addPlugin("com.example.foo", "10.0", false, projectModel!!, moduleModel)
+             assertThat(updates.size).isEqualTo(3)
            },
            {
              val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
@@ -209,7 +219,8 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            { projectBuildModel, moduleModel, helper ->
              val projectModel = projectBuildModel.projectBuildModel
              assertThat(projectModel).isNotNull()
-             helper.addPlugin("com.example.foo", "10.0", false, projectModel!!, moduleModel)
+             val updates = helper.addPlugin("com.example.foo", "10.0", false, projectModel!!, moduleModel)
+             assertThat(updates.size).isEqualTo(2)
            },
            {
              val projectBuildContent = project.getTextForFile("build.gradle")
@@ -234,12 +245,13 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            { projectBuildModel, moduleModel, helper ->
              val projectModel = projectBuildModel.projectBuildModel
              assertThat(projectModel).isNotNull()
-             helper.addPlugin("com.android.application",
-                              version,
-                              false,
-                              projectModel!!,
-                              moduleModel,
-                              IdPluginMatcher("com.android.application"))
+             val updates = helper.addPlugin("com.android.application",
+                                            version,
+                                            false,
+                                            projectModel!!,
+                                            moduleModel,
+                                            IdPluginMatcher("com.android.application"))
+             assertThat(updates.size).isEqualTo(0)
            },
            {
              val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
@@ -382,12 +394,13 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            { projectBuildModel, moduleModel, helper ->
              val projectModel = projectBuildModel.projectBuildModel
              assertThat(projectModel).isNotNull()
-             helper.addPlugin("com.android.application",
+             val updated = helper.addPlugin("com.android.application",
                               version,
                               false,
                               projectModel!!,
                               moduleModel,
                               IdPluginMatcher("com.android.application"))
+             assertThat(updated.size).isEqualTo(0)
            },
            {
              val projectBuildContent = project.getTextForFile("build.gradle")
