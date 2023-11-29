@@ -28,6 +28,7 @@ object TaskTypeMappingUtils {
     Common.ProfilerTaskType.HEAP_DUMP to ProfilerTaskType.HEAP_DUMP,
     Common.ProfilerTaskType.NATIVE_ALLOCATIONS to ProfilerTaskType.NATIVE_ALLOCATIONS,
     Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS to ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
+    Common.ProfilerTaskType.LIVE_VIEW to ProfilerTaskType.LIVE_VIEW,
   )
 
   private val reverseTaskTypeMapping = taskTypeMapping.reverse()

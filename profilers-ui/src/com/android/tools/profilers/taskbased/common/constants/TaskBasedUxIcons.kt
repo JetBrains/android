@@ -34,6 +34,8 @@ object TaskBasedUxIcons {
                                                       StudioIcons.Profiler.Sessions.ALLOCATIONS)
   private val HEAP_DUMP_TASK_ICON = TaskBasedUxIcon("$TASK_ICON_BASE_PATH/sessions/heap.svg", StudioIcons::class.java,
                                                     StudioIcons.Profiler.Sessions.HEAP)
+  private val LIVE_VIEW_TASK_ICON = TaskBasedUxIcon("studio/icons/shell/filetree/library-unknown.svg", StudioIcons::class.java,
+                                                    StudioIcons.Shell.Filetree.LIBRARY_UNKNOWN)
 
   fun getTaskIcon(taskType: ProfilerTaskType): TaskBasedUxIcon {
     return when (taskType) {
@@ -45,6 +47,7 @@ object TaskBasedUxIcons {
       ProfilerTaskType.HEAP_DUMP -> HEAP_DUMP_TASK_ICON
       ProfilerTaskType.NATIVE_ALLOCATIONS -> ALLOCATIONS_TASK_ICON
       ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> ALLOCATIONS_TASK_ICON
+      ProfilerTaskType.LIVE_VIEW -> LIVE_VIEW_TASK_ICON
     }
   }
 

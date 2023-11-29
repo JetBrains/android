@@ -17,24 +17,9 @@ package com.android.tools.profilers.tasks.taskhandlers.singleartifact
 
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
-import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
-import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Trace
-import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.InterimStage
-import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
-import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.TaskArgs
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.SingleArtifactTaskHandler
-import com.google.common.truth.Truth.assertThat
-import org.junit.Assert.assertThrows
-import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify

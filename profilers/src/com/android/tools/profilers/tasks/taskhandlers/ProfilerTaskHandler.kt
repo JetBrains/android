@@ -19,7 +19,6 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.intellij.openapi.diagnostic.Logger
 
@@ -94,6 +93,11 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
    * @param selectedSession the current session (alive or not) that the current task corresponds to
    */
   abstract fun createArgs(sessionItems: Map<Long, SessionItem>, selectedSession: Common.Session): TaskArgs?
+
+  /**
+   * Returns whether the task supports a given session artifact (backing data construct).
+   */
+  abstract fun supportsArtifact(artifact: SessionArtifact<*>?): Boolean
 
   /**
    * Returns whether the task supports a given device and process. Some tasks only require checking the device, some only the process, and

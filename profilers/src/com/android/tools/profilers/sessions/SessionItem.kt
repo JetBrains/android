@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData
 import com.android.tools.profiler.proto.Common.SessionMetaData
+import com.android.tools.profilers.LiveStage
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.StudioMonitorStage
 import com.android.tools.profilers.StudioProfilers
@@ -95,10 +96,13 @@ class SessionItem(
   override fun doSelect() {
     // Navigate to the new session
     profilers.sessionsManager.setSession(activeSession)
-    if (sessionMetaData.type == SessionMetaData.SessionType.FULL &&
-        profilers.stageClass != StudioMonitorStage::class.java
-    ) {
-      profilers.stage = StudioMonitorStage(profilers)
+    if (sessionMetaData.type == SessionMetaData.SessionType.FULL) {
+      val targetStageClass =
+        if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled) LiveStage(profilers) else StudioMonitorStage(profilers)
+
+      if (profilers.stageClass != targetStageClass::class.java) {
+        profilers.stage = targetStageClass
+      }
     }
     profilers.ideServices.featureTracker.trackSessionArtifactSelected(this, profilers.sessionsManager.isSessionAlive)
   }

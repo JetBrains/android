@@ -18,6 +18,8 @@ package com.android.tools.profilers
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.model.ViewBinder
+import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.adtui.stdui.TimelineScrollbar
 import com.android.tools.profilers.cpu.LiveCpuUsageModel
 import com.android.tools.profilers.cpu.LiveCpuUsageView
 import com.android.tools.profilers.event.EventMonitorView
@@ -27,8 +29,11 @@ import com.android.tools.profilers.event.UserEventTooltip
 import com.android.tools.profilers.event.UserEventTooltipView
 import com.android.tools.profilers.memory.LiveMemoryFootprintModel
 import com.android.tools.profilers.memory.LiveMemoryFootprintView
+import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI
+import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.FlowLayout
+import javax.swing.AbstractButton
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -102,8 +107,17 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
     val profilers = liveStage.studioProfilers
     val timeAxis = buildTimeAxis(profilers)
     topPanel.add(timeAxis, TabularLayout.Constraint(3, 0))
+    topPanel.add(TimelineScrollbar(liveStage.timeline, topPanel), TabularLayout.Constraint(4, 0))
 
     component.add(topPanel, BorderLayout.CENTER)
+  }
+
+  private fun getStopRecordingButton(): CommonButton {
+    return CommonButton(StudioIcons.Profiler.Toolbar.STOP_RECORDING).apply {
+      toolTipText = "Stop Recording"
+      addActionListener { stage.studioProfilers.sessionsManager.endCurrentSession() }
+      putClientProperty(DarculaButtonUI.DEFAULT_STYLE_KEY, true)
+    }
   }
 
   private fun rowSizeString(view: LiveDataView<LiveDataModel>): String {
@@ -121,6 +135,7 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
     val toolbar = JPanel(ProfilerLayout.createToolbarLayout())
     toolbar.removeAll()
     liveDataViewsToolBar.forEach{toolbar.add(it)}
+    toolbar.add(getStopRecordingButton())
     panel.add(toolbar, BorderLayout.WEST)
     return panel
   }

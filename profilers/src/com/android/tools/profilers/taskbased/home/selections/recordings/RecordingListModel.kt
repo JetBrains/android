@@ -68,8 +68,8 @@ class RecordingListModel(val profilers: StudioProfilers,
    * Constructs and returns a comma separated string of tasks that can be launched from a given recording.
    */
   fun createStringOfSupportedTasks(recording: SessionItem): String {
-    val supportedTaskTypes = taskHandlers.filter { (_, taskHandler) ->
-      TaskSupportUtils.isTaskSupportedByRecording(taskHandler, recording)
+    val supportedTaskTypes = taskHandlers.filter { (taskType, taskHandler) ->
+      TaskSupportUtils.isTaskSupportedByRecording(taskType, taskHandler, recording)
     }.keys
 
     return if (supportedTaskTypes.isEmpty()) "No tasks available" else supportedTaskTypes.joinToString(separator = ", ") { it.description }

@@ -60,6 +60,7 @@ class TaskProfilersView(override val studioProfilers: StudioProfilers,
     binder.bind(MainMemoryProfilerStage::class.java, ::MainMemoryProfilerStageViewV2)
     binder.bind(MemoryCaptureStage::class.java, ::MemoryCaptureStageView)
     binder.bind(AllocationStage::class.java, ::AllocationStageView)
+    binder.bind(LiveStage::class.java, ::LiveStageView)
 
     stageWithToolbarView = StageWithToolbarView(studioProfilers,
                                                 stageComponent,

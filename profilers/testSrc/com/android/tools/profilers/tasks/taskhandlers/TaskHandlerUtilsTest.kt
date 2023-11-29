@@ -21,9 +21,11 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.SessionArtifactUtils.createCpuCaptureSessionArtifact
 import com.android.tools.profilers.SessionArtifactUtils.createSessionItem
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
@@ -78,6 +80,36 @@ class TaskHandlerUtilsTest {
     val sessionIdToSessionItems = mapOf(
       1L to createSessionItem(myProfilers, selectedSession, 1, listOf(createCpuCaptureSessionArtifact(myProfilers, selectedSession, 1, 3))),
     )
+    val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { false }
+    assertThat(artifact).isNull()
+  }
+
+  @Test
+  fun `test findTaskArtifact when its Live View without artifacts`() {
+    val selectedSession = Common.Session.newBuilder()
+      .setSessionId(1).setEndTimestamp(100)
+      .build()
+    val sessionIdToSessionItems = mapOf(
+      1L to createSessionItem(myProfilers, selectedSession, 1, listOf() ))
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process1 = Utils.debuggableProcess { pid = 10 }
+    myProfilers.sessionsManager.beginSession(device.deviceId, device, process1, Common.ProfilerTaskType.LIVE_VIEW)
+    myProfilers.sessionsManager.update()
+    val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { false }
+    assertThat(artifact).isEqualTo(sessionIdToSessionItems[selectedSession.sessionId])
+  }
+
+  @Test
+  fun `test findTaskArtifact when its not Live View without artifacts`() {
+    val selectedSession = Common.Session.newBuilder()
+      .setSessionId(1).setEndTimestamp(100)
+      .build()
+    val sessionIdToSessionItems = mapOf(
+      1L to createSessionItem(myProfilers, selectedSession, 1, listOf() ))
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process1 = Utils.debuggableProcess { pid = 10 }
+    myProfilers.sessionsManager.beginSession(device.deviceId, device, process1, Common.ProfilerTaskType.HEAP_DUMP)
+    myProfilers.sessionsManager.update()
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { false }
     assertThat(artifact).isNull()
   }

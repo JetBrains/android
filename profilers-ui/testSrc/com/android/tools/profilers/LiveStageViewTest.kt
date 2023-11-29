@@ -22,6 +22,7 @@ import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.adtui.stdui.TimelineScrollbar
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -47,6 +48,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -143,6 +145,23 @@ class LiveStageViewTest {
     assertThat(topPanelAxisComponents.size).isGreaterThan(0)
   }
 
+  @Test
+  fun testTopPanelStopRecordingButton() {
+    val stageView = LiveStageView(myProfilersView, myStage)
+    val result = stageView.toolbar
+    val topLevelToolBar = TreeWalker(result.components[0])
+    val topPanelAxisComponents = topLevelToolBar.descendants().filterIsInstance(CommonButton::class.java)
+    assertThat(topPanelAxisComponents.size).isGreaterThan(0)
+    val stopRecordingButton = topPanelAxisComponents.stream().filter{i -> "Stop Recording" == i.toolTipText }.findAny()
+    assertThat(stopRecordingButton.isPresent).isTrue()
+  }
+
+  @Test
+  fun testTopPanelHasScrollBar() {
+    val topPanelAxisComponents = getTreeWalkerTopPanel(getJPanels()).descendants().filterIsInstance(TimelineScrollbar::class.java)
+    assertThat(topPanelAxisComponents.size).isEqualTo(1)
+  }
+
   /** Test main panel has top panel, top panel has the liveViews as child **/
   @Test
   fun testLiveStageViewPanel() {
@@ -216,14 +235,20 @@ class LiveStageViewTest {
     assertThat(componentsInToolbar.size).isGreaterThan(0)
 
     var toolbar = result.getComponent(0) as JPanel
-    // 1 item which is the garbage collection
-    assertThat(toolbar.components).asList().hasSize(1)
+    // 1st item is garbage collection and 2nd item is stop recording button
+    assertThat(toolbar.components).asList().hasSize(2)
 
     val firstElementInToolbar = toolbar.components[0]
 
     // Verify garbage collection button is there in toolbar
     val garbageCollectionButtonInToolbar = TreeWalker(firstElementInToolbar).descendants().filterIsInstance(CommonButton::class.java)
     assertThat(garbageCollectionButtonInToolbar.size).isEqualTo(1)
+
+    val secondElementInToolbar = toolbar.components[0]
+
+    // Verify stop recording button is there in toolbar
+    val stopRecordingButtonInToolbar = TreeWalker(secondElementInToolbar).descendants().filterIsInstance(CommonButton::class.java)
+    assertThat(stopRecordingButtonInToolbar.size).isEqualTo(1)
   }
 
   @Test

@@ -94,7 +94,7 @@ fun TaskGrid(taskGridModel: TaskGridModel, selectedRecording: SessionItem?, task
     with(lazyGridScope) {
       // If the task is not supported/enabled, do not render it for the recording-based task selection.
       items(taskHandlers.entries.toList().filter {
-        selectedRecording != null && TaskSupportUtils.isTaskSupportedByRecording(it.value, selectedRecording)
+        selectedRecording != null && TaskSupportUtils.isTaskSupportedByRecording(it.key, it.value, selectedRecording)
       }) { (taskType, _) ->
         taskType.let {
           TaskGridItem(

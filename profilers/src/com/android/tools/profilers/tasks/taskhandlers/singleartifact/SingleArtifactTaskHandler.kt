@@ -15,11 +15,9 @@
  */
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact
 
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.InterimStage
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerUtils
@@ -108,9 +106,4 @@ abstract class SingleArtifactTaskHandler<T : InterimStage>(sessionsManager: Sess
    * Utilizing the parametrized InterimStage, implementations invoke the stop of a capture for their respective tasks.
    */
   protected abstract fun stopCapture(stage: T)
-
-  /**
-   * Returns whether the task supports a given session artifact (backing data construct).
-   */
-  abstract fun supportsArtifact(artifact: SessionArtifact<*>?): Boolean
 }

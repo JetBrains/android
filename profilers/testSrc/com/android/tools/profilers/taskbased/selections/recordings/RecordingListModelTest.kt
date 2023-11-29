@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.taskbased.selections.recordings
 
+import com.android.testutils.MockitoKt
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -29,6 +30,8 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HprofSessionArtifact
+import com.android.tools.profilers.sessions.SessionArtifact
+import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
@@ -202,10 +205,18 @@ class RecordingListModelTest {
   }
 
   @Test
-  fun `recording with no artifacts shows no tasks available`() {
+  fun `recording with no artifacts shows live view tasks available`() {
     val sessionId = 1L
     val session = Common.Session.newBuilder().setSessionId(sessionId).build()
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf())
+    val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
+    assertThat(supportedTasksString).isEqualTo("Live View")
+  }
+
+  @Test
+  fun `recording with invalid artifacts no task available`() {
+    val sessionItem = MockitoKt.mock<SessionItem>()
+    MockitoKt.whenever(sessionItem.getChildArtifacts()).thenReturn(listOf(MockitoKt.mock <SessionArtifact<Memory.AllocationsInfo>>()))
     val supportedTasksString = recordingListModel.createStringOfSupportedTasks(sessionItem)
     assertThat(supportedTasksString).isEqualTo("No tasks available")
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.taskbased.pastrecordings
 
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.taskbased.TaskEntranceTabModel
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel
@@ -36,19 +37,18 @@ class PastRecordingsTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(
   override val isEnterTaskButtonEnabled get() = selectedRecording != null && selectedTaskType != ProfilerTaskType.UNSPECIFIED
 
   override fun onEnterTaskButtonClick() {
-    // The following implementation assumes all tasks are backed by a single artifact (all tasks handlers are SingleArtifactTaskHandlers).
-    val artifact = selectedRecording!!.getChildArtifacts().first()
+    val selectedSession = selectedRecording!!.session
 
     // If the existing Profiler task tab is already showing the selected recording, there is no need to load the task again. Instead, the
     // existing task tab will be re-opened.
-    if (artifact.session == profilers.session) {
+    if (selectedSession == profilers.session) {
       profilers.openTaskTab()
       return
     }
 
     // Update the currently selected task type used to launch the recording with before setting the session. This guarantees that the
     // most up-to-date Profiler task will be used to handle the set session's data.
-    profilers.sessionsManager.setSessionProfilerTaskType(artifact.session.sessionId, selectedTaskType)
-    profilers.sessionsManager.setSession(artifact.session)
+    profilers.sessionsManager.setSessionProfilerTaskType(selectedSession.sessionId, selectedTaskType)
+    profilers.sessionsManager.setSession(selectedSession)
   }
 }

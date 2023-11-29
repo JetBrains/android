@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers
 
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.cpu.LiveCpuUsageModel
 import com.android.tools.profilers.event.EventMonitor
 import com.android.tools.profilers.memory.LiveMemoryFootprintModel
@@ -23,6 +24,7 @@ import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
+import kotlin.test.assertFalse
 
 class LiveStageTest {
   private lateinit var myProfilers: StudioProfilers
@@ -37,7 +39,7 @@ class LiveStageTest {
 
   @Test
   fun testEnter() {
-    myLiveStage.enter();
+    myLiveStage.enter()
     val result = myLiveStage.liveModels
     assertThat(result.size).isEqualTo(2)
     // 1st component is Cpu
@@ -47,7 +49,13 @@ class LiveStageTest {
   }
 
   @Test
-  fun testExit() {
+  fun testStopDisableAutoProfiling() {
+    myLiveStage.exit()
+    assertThat( myLiveStage.studioProfilers.autoProfilingEnabled).isFalse()
+  }
+
+  @Test
+  fun testExitModel() {
     myLiveStage.exit()
     val result = myLiveStage.liveModels
     // All live models to be cleared on exit
@@ -57,8 +65,22 @@ class LiveStageTest {
   @Test
   fun testStageType() {
     val result = myLiveStage.stageType
-    /** TODO b/296125029: Update stage once its added in Android package **/
-    assertThat(result).isEqualTo(AndroidProfilerEvent.Stage.OVERVIEW_STAGE);
+    assertThat(result).isEqualTo(AndroidProfilerEvent.Stage.LIVE_STAGE);
+  }
+
+  @Test
+  fun testExitSession() {
+    myLiveStage.enter()
+    startSessionHelper()
+    myLiveStage.exit()
+    assertFalse { myLiveStage.studioProfilers.sessionsManager.isSessionAlive }
+  }
+
+  private fun startSessionHelper() {
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process = Utils.debuggableProcess { pid = 10 }
+    myLiveStage.studioProfilers.sessionsManager.beginSession(device.deviceId, device, process)
+    myLiveStage.studioProfilers.sessionsManager.update()
   }
 
   @Test

@@ -22,7 +22,7 @@ import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import org.jetbrains.annotations.NotNull
 import java.util.Optional
 
-class LiveStage(@NotNull private val profilers : StudioProfilers) :StreamingStage(profilers) {
+class LiveStage(@NotNull private val profilers : StudioProfilers) : StreamingStage(profilers) {
 
   @NotNull
   val liveModels = mutableListOf<LiveDataModel>()
@@ -36,23 +36,26 @@ class LiveStage(@NotNull private val profilers : StudioProfilers) :StreamingStag
 
     // Clear the selection
     timeline.selectionRange.clear()
+    liveModels.clear()
 
     eventMonitor = Optional.ofNullable(getEventMonitorInstance())
     liveModels.add(LiveCpuUsageModel(profilers, this))
     liveModels.add(LiveMemoryFootprintModel(profilers))
+
+    liveModels.stream().forEach { liveModel -> liveModel.enter() }
     profilers.ideServices.featureTracker.trackEnterStage(stageType)
   }
 
   override fun exit() {
     liveModels.clear()
+    liveModels.stream().forEach { liveModel -> liveModel.exit() }
     eventMonitor.ifPresent(EventMonitor::exit)
   }
 
   private fun getEventMonitorInstance() =
     if (profilers.selectedSessionSupportLevel == SupportLevel.DEBUGGABLE) EventMonitor(profilers) else null
 
-  /** TODO b/296125029: Update stage once its added in Android package **/
-  override fun getStageType(): AndroidProfilerEvent.Stage = AndroidProfilerEvent.Stage.OVERVIEW_STAGE
+  override fun getStageType(): AndroidProfilerEvent.Stage = AndroidProfilerEvent.Stage.LIVE_STAGE
 }
 
 

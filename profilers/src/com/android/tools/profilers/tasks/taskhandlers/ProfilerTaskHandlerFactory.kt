@@ -17,6 +17,7 @@ package com.android.tools.profilers.tasks.taskhandlers
 
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.taskhandlers.singleartifact.LiveTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.CallstackSampleTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.JavaKotlinMethodSampleTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.JavaKotlinMethodTraceTaskHandler
@@ -36,6 +37,7 @@ object ProfilerTaskHandlerFactory {
     taskHandlers[ProfilerTaskType.HEAP_DUMP] = HeapDumpTaskHandler(sessionsManager)
     taskHandlers[ProfilerTaskType.NATIVE_ALLOCATIONS] = NativeAllocationsTaskHandler(sessionsManager)
     taskHandlers[ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS] = JavaKotlinAllocationsTaskHandler(sessionsManager)
+    taskHandlers[ProfilerTaskType.LIVE_VIEW] = LiveTaskHandler(sessionsManager)
     return taskHandlers
   }
 }

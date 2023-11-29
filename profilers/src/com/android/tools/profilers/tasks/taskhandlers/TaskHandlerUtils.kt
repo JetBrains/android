@@ -16,8 +16,10 @@
 package com.android.tools.profilers.tasks.taskhandlers
 
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.ProfilerTaskType
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
+import com.android.tools.profilers.tasks.TaskTypeMappingUtils
 
 object TaskHandlerUtils {
 
@@ -38,7 +40,7 @@ object TaskHandlerUtils {
    * 1. Exists in the mapping of session ids to SessionItems (registration in this map from SessionsManager verifies its past existence)
    * 2. An artifact of the currently selected session
    * 3. Is supported by the respective task (task handlers calling this method send in their own override of the supportsTask method)
-   * 4. Has one child artifact
+   * 4. Has one child artifact or no child artifact when it's a live view task
    *
    * This logic applies for task artifacts contained in imported and non-imported sessions.
    */
@@ -47,10 +49,18 @@ object TaskHandlerUtils {
     sessionIdToSessionItems: Map<Long, SessionItem>,
     supportsArtifact: (SessionArtifact<*>) -> Boolean): SessionArtifact<*>? {
     val sessionItem = sessionIdToSessionItems[selectedSession.sessionId]
+
     return sessionItem?.let {
       val childArtifacts = it.getChildArtifacts()
+
+      // If no child artifact and its live view task then parent session artifact is returned.
+      if (childArtifacts.isEmpty() &&
+          it.profilers.sessionsManager.selectedSessionProfilerTaskType == TaskTypeMappingUtils.convertTaskType(
+          ProfilerTaskType.LIVE_VIEW)) {
+        it
+      }
       // Verify there is only one child artifact and that it is supported by the task.
-      if (childArtifacts.size == 1 && supportsArtifact(childArtifacts[0])) {
+      else if (childArtifacts.size == 1 && supportsArtifact(childArtifacts[0])) {
         childArtifacts[0]
       }
       else {

@@ -15,16 +15,22 @@
  */
 package com.android.tools.profilers.tasks
 
-import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.SingleArtifactTaskHandler
 
 object TaskSupportUtils {
-  private fun doesTaskSupportArtifact(taskHandler: ProfilerTaskHandler, artifact: SessionArtifact<*>) =
-    taskHandler is SingleArtifactTaskHandler<*> && taskHandler.supportsArtifact(artifact)
 
-  fun isTaskSupportedByRecording(taskHandler: ProfilerTaskHandler, selectedRecording: SessionItem) =
-    selectedRecording.containsExactlyOneArtifact()
-    && doesTaskSupportArtifact(taskHandler, selectedRecording.getChildArtifacts().first())
+  /**
+   * Returns whether the task supports a session artifact. In the case of LiveView Task, there are no children artifacts, so it uses the
+   * SessionItem (the parent session artifact). Otherwise, it uses the first and only child artifact
+   */
+  fun isTaskSupportedByRecording(taskType: ProfilerTaskType, taskHandler: ProfilerTaskHandler, selectedRecording: SessionItem): Boolean {
+    // If no child artifact and its live view task then parent session artifact support is verified.
+    if (taskType == ProfilerTaskType.LIVE_VIEW && selectedRecording.getChildArtifacts().isEmpty()) {
+      return taskHandler.supportsArtifact(selectedRecording)
+    }
+    // If only one child artifact then its support by the task is verified.
+    return selectedRecording.containsExactlyOneArtifact()
+           && taskHandler.supportsArtifact(selectedRecording.getChildArtifacts().first())
+  }
 }
