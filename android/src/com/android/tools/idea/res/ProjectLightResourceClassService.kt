@@ -394,15 +394,13 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       return packageName
     }
     return aarPackageNamesCache.getAndUnwrap(aarLibrary) {
-      val fromManifest =
-        try {
-          aarLibrary.manifestFile?.let(
-            AndroidManifestPackageNameUtils::getPackageNameFromManifestFile
-          ) ?: ""
-        } catch (e: IOException) {
-          null
-        }
-      fromManifest ?: ""
+      try {
+        aarLibrary.manifestFile?.let(
+          AndroidManifestPackageNameUtils::getPackageNameFromManifestFile
+        )
+      } catch (e: IOException) {
+        null
+      } ?: ""
     }
   }
 }
