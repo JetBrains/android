@@ -31,13 +31,3 @@ suspend fun SceneManager.render(onCompleteCallback: () -> Unit = {}) {
     }
     .await()
 }
-
-/** Suspendable equivalent to [SceneManager.requestLayoutAndRenderAsync]. */
-suspend fun SceneManager.layoutAndRender(animate: Boolean) {
-  requestLayoutAndRenderAsync(animate).await()
-}
-
-/** Suspendable equivalent to [SceneManager.requestLayoutAsync]. */
-suspend fun SceneManager.layout(animate: Boolean) {
-  requestLayoutAsync(animate).await()
-}
