@@ -141,6 +141,33 @@ public class RenderTaskTest extends AndroidTestCase {
     });
   }
 
+  public void testRenderCrash() {
+    VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTask.TestEventListener eventListener = new RenderTask.TestEventListener() {
+      @Override
+      public void onAfterRender() {
+        // Inject an exception during rendering.
+        // Inflation will work fine without errors.
+        throw new IllegalStateException();
+      }
+    };
+    RenderTestUtil.withRenderTask(myFacet, layoutFile, configuration, logger, task -> {
+      // Make sure we throw an exception during the inflate call
+      try {
+        RenderResult result = task.render().get();
+        assertEquals(Result.Status.ERROR_RENDER, result.getRenderResult().getStatus());
+        assertTrue(result.getRenderResult().getException() instanceof IllegalStateException);
+        assertEquals("Render error", result.getRenderResult().getErrorMessage());
+      }
+      catch (ExecutionException | InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }, false, eventListener);
+  }
+
 
   public void testDrawableRender() {
     VirtualFile drawableFile = myFixture.addFileToProject("res/drawable/test.xml",
@@ -956,9 +983,9 @@ public class RenderTaskTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task1 = createRenderTask(myFacet, file, configuration, logger, getLowPriorityRenderingTopicForTest());
-    RenderTask task2 = createRenderTask(myFacet, file, configuration, logger, getHighPriorityRenderingTopicForTest());
-    RenderTask task3 = createRenderTask(myFacet, file, configuration, logger, getLowPriorityRenderingTopicForTest());
+    RenderTask task1 = createRenderTask(myFacet, file, configuration, logger, getLowPriorityRenderingTopicForTest(), RenderTask.NOP_TEST_EVENT_LISTENER);
+    RenderTask task2 = createRenderTask(myFacet, file, configuration, logger, getHighPriorityRenderingTopicForTest(), RenderTask.NOP_TEST_EVENT_LISTENER);
+    RenderTask task3 = createRenderTask(myFacet, file, configuration, logger, getLowPriorityRenderingTopicForTest(), RenderTask.NOP_TEST_EVENT_LISTENER);
 
     CountDownLatch latch = new CountDownLatch(1);
 

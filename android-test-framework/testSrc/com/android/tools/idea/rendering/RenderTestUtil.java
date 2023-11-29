@@ -168,7 +168,8 @@ public class RenderTestUtil {
                                              @NotNull VirtualFile file,
                                              @NotNull Configuration configuration,
                                              @NotNull RenderLogger logger,
-                                             @NotNull RenderAsyncActionExecutor.RenderingTopic topic) {
+                                             @NotNull RenderAsyncActionExecutor.RenderingTopic topic,
+                                             @NotNull RenderTask.TestEventListener testEventListener) {
     Module module = facet.getModule();
     XmlFile xmlFile = (XmlFile)ReadAction.compute(() -> PsiManager.getInstance(module.getProject()).findFile(file));
     assertNotNull(xmlFile);
@@ -177,6 +178,7 @@ public class RenderTestUtil {
       .withPsiFile(new PsiXmlFile(xmlFile))
       .disableSecurityManager()
       .withTopic(topic)
+      .setTestEventListener(testEventListener)
       .build();
     RenderTask task = Futures.getUnchecked(taskFuture);
     assertNotNull(task);
@@ -188,8 +190,9 @@ public class RenderTestUtil {
                                        @NotNull Configuration configuration,
                                        @NotNull RenderLogger logger,
                                        @NotNull Consumer<RenderTask> f,
-                                       boolean layoutScannerEnabled) {
-    final RenderTask task = createRenderTask(facet, file, configuration, logger, RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED);
+                                       boolean layoutScannerEnabled,
+                                       @NotNull RenderTask.TestEventListener testEventListener) {
+    final RenderTask task = createRenderTask(facet, file, configuration, logger, RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED, testEventListener);
     task.setEnableLayoutScanner(layoutScannerEnabled);
     try {
       f.accept(task);
@@ -209,7 +212,7 @@ public class RenderTestUtil {
                                         @NotNull Configuration configuration,
                                         @NotNull RenderLogger logger,
                                         @NotNull Consumer<RenderTask> f) {
-    withRenderTask(facet, file, configuration, logger, f, false);
+    withRenderTask(facet, file, configuration, logger, f, false, RenderTask.NOP_TEST_EVENT_LISTENER);
   }
 
   /**
@@ -221,7 +224,7 @@ public class RenderTestUtil {
                                     @NotNull VirtualFile file,
                                     @NotNull Configuration configuration) {
     RenderService renderService = StudioRenderService.getInstance(facet.getModule().getProject());
-    return createRenderTask(facet, file, configuration, renderService.createLogger(facet.getModule().getProject()), RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED);
+    return createRenderTask(facet, file, configuration, renderService.createLogger(facet.getModule().getProject()), RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED, RenderTask.NOP_TEST_EVENT_LISTENER);
   }
 
   public static void withRenderTask(@NotNull AndroidFacet facet,
@@ -238,7 +241,8 @@ public class RenderTestUtil {
                                     boolean enableLayoutScanner,
                                     @NotNull Consumer<RenderTask> f) {
     RenderService renderService = StudioRenderService.getInstance(facet.getModule().getProject());
-    withRenderTask(facet, file, configuration, renderService.createLogger(facet.getModule().getProject()), f, enableLayoutScanner);
+    withRenderTask(facet, file, configuration, renderService.createLogger(facet.getModule().getProject()), f, enableLayoutScanner,
+                   RenderTask.NOP_TEST_EVENT_LISTENER);
   }
 
   public static void withRenderTask(@NotNull AndroidFacet facet,

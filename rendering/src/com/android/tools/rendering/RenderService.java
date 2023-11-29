@@ -328,6 +328,7 @@ final public class RenderService implements Disposable {
      * Material themes, for example, usually contain a viewInflaterClass attribute.
      */
     private boolean useCustomInflater = true;
+    private RenderTask.TestEventListener myTestEventListener = RenderTask.NOP_TEST_EVENT_LISTENER;
 
     private RenderTaskBuilder(@NotNull RenderModelModule module,
                               @NotNull Configuration configuration,
@@ -517,6 +518,13 @@ final public class RenderService implements Disposable {
       return this;
     }
 
+    @TestOnly
+    @NotNull
+    public RenderTaskBuilder setTestEventListener(@NotNull RenderTask.TestEventListener testEventListener) {
+      myTestEventListener = testEventListener;
+      return this;
+    }
+
     /**
      * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
      * can not be created.
@@ -572,7 +580,7 @@ final public class RenderService implements Disposable {
                            myCredential, myContext.getModule().getEnvironment().getCrashReporter(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, tracker,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
-                           classesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater);
+                           classesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, myTestEventListener);
 
           if (myXmlFile != null) {
             task.setXmlFile(myXmlFile);

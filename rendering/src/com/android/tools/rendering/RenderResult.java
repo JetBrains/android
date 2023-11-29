@@ -258,10 +258,12 @@ public class RenderResult {
   }
 
   @NotNull
-  public static RenderResult createRenderTaskErrorResult(@NotNull RenderModelModule renderModule,
-                                                         @NotNull Supplier<PsiFile> file,
-                                                         @Nullable Throwable throwable,
-                                                         @NotNull RenderLogger logger) {
+  public static RenderResult createErrorRenderResult(
+    @NotNull Result.Status status,
+    @NotNull RenderModelModule renderModule,
+    @NotNull Supplier<PsiFile> file,
+    @Nullable Throwable throwable,
+    @NotNull RenderLogger logger) {
     RenderResult result = new RenderResult(
       createSourceFileProvider(renderModule.getEnvironment(), file),
       renderModule.getProject(),
@@ -269,7 +271,7 @@ public class RenderResult {
       logger,
       null,
       false,
-      Result.Status.ERROR_RENDER_TASK.createResult("Render error", throwable),
+      status.createResult("Render error", throwable),
       ImmutableList.of(),
       ImmutableList.of(),
       ImagePool.NULL_POOLED_IMAGE,
@@ -284,6 +286,14 @@ public class RenderResult {
     }
 
     return result;
+  }
+
+  @NotNull
+  public static RenderResult createRenderTaskErrorResult(@NotNull RenderModelModule renderModule,
+                                                         @NotNull Supplier<PsiFile> file,
+                                                         @Nullable Throwable throwable,
+                                                         @NotNull RenderLogger logger) {
+    return createErrorRenderResult(Result.Status.ERROR_RENDER_TASK, renderModule, file, throwable, logger);
   }
 
   @NotNull

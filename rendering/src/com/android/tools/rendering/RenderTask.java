@@ -107,6 +107,22 @@ import org.jetbrains.annotations.TestOnly;
  * Android layouts. This is a wrapper around the layout library.
  */
 public class RenderTask {
+  /**
+   * Listener that receives call before and after relevant {@link RenderTask} events.
+   * This is <b>only for testing</b> and can only be set via a {@link TestOnly} method. This can be used
+   * for test logging or to inject errors during a specific phase of the execution.
+   */
+  // TODO(b/313930015): Find a better name/location for this class.
+  public interface TestEventListener {
+    default void onBeforeInflate() {}
+    default void onAfterInflate() {}
+    default void onBeforeRender() {}
+    default void onAfterRender() {}
+  }
+
+  public static final TestEventListener NOP_TEST_EVENT_LISTENER = new TestEventListener() {
+  };
+
   private static final Logger LOG = Logger.getInstance(RenderTask.class);
 
   /**
@@ -184,6 +200,7 @@ public class RenderTask {
   @Nullable private RenderXmlFile myXmlFile;
   @NotNull private String myDefaultForegroundColor = "#333333";
   @NotNull private final ModuleClassLoaderManager.Reference<?> myModuleClassLoaderReference;
+  @NotNull private final TestEventListener myTestEventListener;
 
   /**
    * If true, the {@link RenderTask#render()} will report when the user classes loaded by this class loader are out of date.
@@ -221,7 +238,8 @@ public class RenderTask {
              @NotNull Collection<String> classesToPreload,
              boolean reportOutOfDateUserClasses,
              @NotNull RenderAsyncActionExecutor.RenderingTopic topic,
-             boolean useCustomInflater) throws NoDeviceException {
+             boolean useCustomInflater,
+             @NotNull TestEventListener testEventListener) throws NoDeviceException {
     myTracker = tracker;
     myImagePool = imagePool;
     myContext = renderContext;
@@ -237,6 +255,7 @@ public class RenderTask {
     myLogger = logger;
     myCredential = credential;
     myCrashReporter = crashReporter;
+    myTestEventListener = testEventListener;
     Device device = renderContext.getConfiguration().getDevice();
     if (device == null) {
       throw new NoDeviceException();
@@ -913,12 +932,14 @@ public class RenderTask {
     // Inflation can be way slower than a regular render since it will load classes and initiate most of the state.
     // That's why, for inflating, we allow a more generous timeout than for rendering.
     return runAsyncRenderAction(() -> createRenderSession((width, height) -> {
+      myTestEventListener.onBeforeInflate();
       if (myImageFactoryDelegate != null) {
         return myImageFactoryDelegate.getImage(width, height);
       }
 
       return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB_PRE);
     }), RenderAsyncActionExecutor.DEFAULT_RENDER_THREAD_TIMEOUT_MS * 10, TimeUnit.MILLISECONDS)
+      .whenComplete((result, ex) -> myTestEventListener.onAfterInflate())
       .handle((result, ex) -> {
         if (ex != null) {
           while (ex instanceof CompletionException) {
@@ -942,7 +963,7 @@ public class RenderTask {
         }
         else {
           if (xmlFile.isValid()) {
-            return RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile, ex, myLogger);
+            return RenderResult.createErrorRenderResult(Result.Status.ERROR_RENDER_TASK, myContext.getModule(), xmlFile, ex, myLogger);
           }
           else {
             LOG.warn("Invalid file " + xmlFile);
@@ -1093,6 +1114,7 @@ public class RenderTask {
       try {
         long startRenderTimeMs = System.currentTimeMillis();
         return runAsyncRenderAction(() -> {
+          myTestEventListener.onBeforeRender();
           myRenderSession.render(forceMeasure);
           BufferedImage resultImage = myRenderSession.getImage();
           RenderResult result =
@@ -1110,19 +1132,32 @@ public class RenderTask {
             myLogger.addMessage(problem);
           }
           return result;
-        }).handle((result, ex) -> {
-          ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
-          // After render clean-up. Dispose the GapWorker cache.
-          RenderSessionCleaner.clearGapWorkerCache(moduleClassLoader);
-          RenderSessionCleaner.clearFontRequestWorker(moduleClassLoader);
-          RenderSessionCleaner.clearCompositions(moduleClassLoader);
-          return result.createWithStats(new RenderResultStats(
-            inflateResult != null ? inflateResult.getStats().getInflateDurationMs() : result.getStats().getInflateDurationMs(),
-            System.currentTimeMillis() - startRenderTimeMs,
-            moduleClassLoader.getStats().getClassesFound(),
-            moduleClassLoader.getStats().getAccumulatedFindTimeMs(),
-            moduleClassLoader.getStats().getAccumulatedRewriteTimeMs()));
-        });
+        })
+          .whenComplete((result, ex) -> myTestEventListener.onAfterRender())
+          .whenComplete((result, ex) -> {
+            ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
+            // After render clean-up. Dispose the GapWorker cache.
+            RenderSessionCleaner.clearGapWorkerCache(moduleClassLoader);
+            RenderSessionCleaner.clearFontRequestWorker(moduleClassLoader);
+            RenderSessionCleaner.clearCompositions(moduleClassLoader);
+          })
+          .handle((result, ex) -> {
+            if (ex != null) {
+              while (ex instanceof CompletionException) {
+                ex = ex.getCause();
+              }
+            }
+            if (result == null) {
+              result = RenderResult.createErrorRenderResult(Result.Status.ERROR_RENDER, myContext.getModule(), xmlFile, ex, myLogger);
+            }
+            ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
+            return result.createWithStats(new RenderResultStats(
+              inflateResult != null ? inflateResult.getStats().getInflateDurationMs() : result.getStats().getInflateDurationMs(),
+              System.currentTimeMillis() - startRenderTimeMs,
+              moduleClassLoader.getStats().getClassesFound(),
+              moduleClassLoader.getStats().getAccumulatedFindTimeMs(),
+              moduleClassLoader.getStats().getAccumulatedRewriteTimeMs()));
+          });
       }
       catch (Exception e) {
         reportException(e);
@@ -1133,7 +1168,8 @@ public class RenderTask {
         RenderModelModule module = myContext.getModule();
         RenderProblem.RunnableFixFactory fixFactory = module.getEnvironment().getRunnableFixFactory();
         myLogger.addMessage(RenderProblem.createHtml(ERROR, message, module.getProject(), myLogger.getLinkManager(), e, fixFactory));
-        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(module, xmlFile, e, myLogger));
+        return CompletableFuture.completedFuture(
+          RenderResult.createErrorRenderResult(Result.Status.ERROR_RENDER_TASK, module, xmlFile, e, myLogger));
       }
     });
   }

@@ -114,7 +114,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -1305,6 +1307,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
           // The new result is an error
           && RenderResultUtilKt.isErrorResult(result)
         ) {
+          assert result != null; // result can not be null if isErrorResult is true
           result = result.copyWithNewImageAndRootViewDimensions(
             StudioRenderService.getInstance(result.getProject()).getSharedImagePool()
               .copyOf(myRenderResult.getRenderedImage().getCopy()),
@@ -1556,7 +1559,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
           final float currentQuality = quality;
           myRenderTask.setQuality(quality);
           return myRenderTask.render().thenApply(result -> {
-            if (result.getRenderResult().isSuccess()) {
+            if (result != null && result.getRenderResult().isSuccess()) {
               lastRenderQuality = currentQuality;
             }
             // When the layout was inflated in this same call, we do not have to update the hierarchy again
@@ -1569,6 +1572,9 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       })
       .handle((result, exception) -> {
         if (exception != null) {
+          if (exception instanceof CompletionException && exception.getCause() != null) {
+            exception = exception.getCause();
+          }
           return RenderResults.createRenderTaskErrorResult(getModel().getFile(), exception);
         }
         return result;
