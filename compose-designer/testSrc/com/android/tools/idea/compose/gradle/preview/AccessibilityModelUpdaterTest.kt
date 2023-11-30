@@ -45,7 +45,6 @@ import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -106,22 +105,24 @@ class AccessibilityModelUpdaterTest {
   }
 
   @Test
-  @Ignore("b/313922792")
   fun testNlComponentTreeCreation() {
     val twoElementsPreviewModel =
       previewView.mainSurface.models.first { it.modelDisplayName == "TwoElementsPreview" }
 
     val uiCheckElement = twoElementsPreviewModel.dataContext.previewElement()!!
 
-    val onRefreshCompletable = previewView.getOnRefreshCompletable()
-    composePreviewRepresentation.setMode(
-      PreviewMode.UiCheck(
-        uiCheckElement,
-        atfChecksEnabled = true,
-      ),
-    )
+    runBlocking {
+      composePreviewRepresentation.waitForAnyPendingRefresh()
+      val onRefreshCompletable = previewView.getOnRefreshCompletable()
+      composePreviewRepresentation.setMode(
+        PreviewMode.UiCheck(
+          uiCheckElement,
+          atfChecksEnabled = true,
+        )
+      )
+      onRefreshCompletable.join()
+    }
 
-    runBlocking { onRefreshCompletable.join() }
     val twoElementsPreviewRoot =
       previewView.mainSurface.models
         .first { it.modelDisplayName == "Medium Phone - TwoElementsPreview" }
