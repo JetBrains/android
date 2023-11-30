@@ -33,17 +33,18 @@ import org.jetbrains.android.AndroidPluginDisposable
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Project-wide listener which invalidates the [SampleDataResourceRepository] corresponding to
- * any module whose sample data directory has been modified (if such a repository exists).
+ * Project-wide listener which invalidates the [SampleDataResourceRepository] corresponding to any
+ * module whose sample data directory has been modified (if such a repository exists).
  *
  * A project's [SampleDataListener] is instantiated the first time a [SampleDataResourceRepository]
- * is created for one of project's modules (e.g. when the user opens a resource file or activity
- * for the first time). The listener remains for the lifetime of the project.
+ * is created for one of project's modules (e.g. when the user opens a resource file or activity for
+ * the first time). The listener remains for the lifetime of the project.
  *
  * When a [SampleDataResourceRepository] is created, it calls [ensureSubscribed] to make sure that
  * the project's [SampleDataListener] is tracking VFS and PSI events.
  */
-class SampleDataListener(project: Project) : PoliteAndroidVirtualFileListener(project), PsiTreeChangeListener {
+class SampleDataListener(project: Project) :
+  PoliteAndroidVirtualFileListener(project), PsiTreeChangeListener {
 
   companion object {
     private val LOG = Logger.getInstance(SampleDataListener::class.java)
@@ -54,9 +55,15 @@ class SampleDataListener(project: Project) : PoliteAndroidVirtualFileListener(pr
     }
   }
 
-  /** Project service responsible for subscribing a new [SampleDataListener] to listen for both VFS and PSI changes. */
+  /**
+   * Project service responsible for subscribing a new [SampleDataListener] to listen for both VFS
+   * and PSI changes.
+   */
   class Subscriber(val project: Project) :
-      LazyFileListenerSubscriber<SampleDataListener>(SampleDataListener(project), AndroidPluginDisposable.getProjectInstance(project)) {
+    LazyFileListenerSubscriber<SampleDataListener>(
+      SampleDataListener(project),
+      AndroidPluginDisposable.getProjectInstance(project)
+    ) {
 
     override fun subscribe() {
       VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
@@ -66,21 +73,20 @@ class SampleDataListener(project: Project) : PoliteAndroidVirtualFileListener(pr
 
   /**
    * A file is relevant to this listener if
-   *   1. There's a SampleDataResourceRepository instance corresponding to the
-   *      module the file belongs to that needs to be invalidated.
-   *   2. The file is actually in the module's sample data directory (as opposed
-   *      to just having FD_SAMPLE_DATA in its path somewhere).
+   * 1. There's a SampleDataResourceRepository instance corresponding to the module the file belongs
+   *    to that needs to be invalidated.
+   * 2. The file is actually in the module's sample data directory (as opposed to just having
+   *    FD_SAMPLE_DATA in its path somewhere).
    */
   override fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean {
     return !facet.isDisposed &&
-           StudioResourceRepositoryManager.getInstance(facet).cachedSampleDataResources != null
-           && facet.module.isSampleDataFile(file)
+      StudioResourceRepositoryManager.getInstance(facet).cachedSampleDataResources != null &&
+      facet.module.isSampleDataFile(file)
   }
 
-  /**
-   * Java and XML files have nothing to do with sample data.
-   */
-  override fun isPossiblyRelevant(file: VirtualFile) = file.extension.let { it != "java" && it != "xml" }
+  /** Java and XML files have nothing to do with sample data. */
+  override fun isPossiblyRelevant(file: VirtualFile) =
+    file.extension.let { it != "java" && it != "xml" }
 
   override fun fileChanged(path: PathString, facet: AndroidFacet) {
     LOG.info("Invalidating SampleDataResourceRepository because $path was modified.")
@@ -96,16 +102,27 @@ class SampleDataListener(project: Project) : PoliteAndroidVirtualFileListener(pr
   }
 
   override fun childAdded(event: PsiTreeChangeEvent) = psiFileChanged(event)
+
   override fun childMoved(event: PsiTreeChangeEvent) = psiFileChanged(event)
+
   override fun childRemoved(event: PsiTreeChangeEvent) = psiFileChanged(event)
+
   override fun childReplaced(event: PsiTreeChangeEvent) = psiFileChanged(event)
+
   override fun childrenChanged(event: PsiTreeChangeEvent) = psiFileChanged(event)
+
   override fun beforeChildAddition(event: PsiTreeChangeEvent) {}
+
   override fun beforeChildRemoval(event: PsiTreeChangeEvent) {}
+
   override fun beforeChildReplacement(event: PsiTreeChangeEvent) {}
+
   override fun beforeChildMovement(event: PsiTreeChangeEvent) {}
+
   override fun beforeChildrenChange(event: PsiTreeChangeEvent) {}
+
   override fun beforePropertyChange(event: PsiTreeChangeEvent) {}
+
   override fun propertyChanged(event: PsiTreeChangeEvent) {}
 }
 

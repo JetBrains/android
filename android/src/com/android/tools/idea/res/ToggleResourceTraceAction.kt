@@ -21,19 +21,15 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ex.ApplicationInfoEx
 import com.intellij.openapi.project.DumbAware
 
-/**
- * Enables/disables resource update trace.
- */
+/** Enables/disables resource update trace. */
 class ToggleResourceTraceAction : ToggleAction("Trace Resource Updates"), DumbAware {
 
-  override fun isSelected(event: AnActionEvent): Boolean =
-    ResourceUpdateTracer.isTracingActive()
+  override fun isSelected(event: AnActionEvent): Boolean = ResourceUpdateTracer.isTracingActive()
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     if (state) {
       ResourceUpdateTracer.startTracing()
-    }
-    else {
+    } else {
       ResourceUpdateTracer.stopTracing()
     }
     ResourceUpdateTraceSettings.getInstance().enabled = state

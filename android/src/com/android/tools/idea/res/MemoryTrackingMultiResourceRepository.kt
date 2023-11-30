@@ -20,10 +20,11 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.LowMemoryWatcher
 import com.intellij.openapi.vfs.VirtualFile
 
-/** [MultiResourceRepository] that adjusts memory usage when the memory consumption becomes critical. */
-abstract class MemoryTrackingMultiResourceRepository protected constructor(
-  displayName: String
-) : MultiResourceRepository<VirtualFile>(displayName), Disposable {
+/**
+ * [MultiResourceRepository] that adjusts memory usage when the memory consumption becomes critical.
+ */
+abstract class MemoryTrackingMultiResourceRepository protected constructor(displayName: String) :
+  MultiResourceRepository<VirtualFile>(displayName), Disposable {
   init {
     LowMemoryWatcher.register({ onLowMemory() }, this)
   }

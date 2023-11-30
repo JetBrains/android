@@ -26,11 +26,11 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.TimeoutCachedValue
-import org.jetbrains.annotations.TestOnly
 import java.util.WeakHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import org.jetbrains.annotations.TestOnly
 
 private val PACKAGE_TIMEOUT = 5.minutes
 
@@ -46,27 +46,38 @@ class ResourceClassRegistry @TestOnly constructor(private val packageTimeout: Du
   private var packages: TimeoutCachedValue<Set<String>> = createPackageCache()
 
   /**
-   * Adds definition of a new R class to the registry. The R class will contain resources from the given repo in the given namespace and
-   * will be generated when the [findClassDefinition] is called with a class name that matches the [packageName] and
-   * the `repo` resource repository can be found in the [StudioResourceRepositoryManager] passed to [findClassDefinition].
+   * Adds definition of a new R class to the registry. The R class will contain resources from the
+   * given repo in the given namespace and will be generated when the [findClassDefinition] is
+   * called with a class name that matches the [packageName] and the `repo` resource repository can
+   * be found in the [StudioResourceRepositoryManager] passed to [findClassDefinition].
    *
-   * Note that the [ResourceClassRegistry] is a project-level component, so the same R class may be generated in different ways
-   * depending on the repository used. In non-namespaced project, the repository is the full [AppResourceRepository] of the module
-   * in question. In namespaced projects the repository is a [com.android.resources.aar.AarResourceRepository] of just
-   * the AAR contents.
+   * Note that the [ResourceClassRegistry] is a project-level component, so the same R class may be
+   * generated in different ways depending on the repository used. In non-namespaced project, the
+   * repository is the full [AppResourceRepository] of the module in question. In namespaced
+   * projects the repository is a [com.android.resources.aar.AarResourceRepository] of just the AAR
+   * contents.
    */
-  fun addLibrary(repo: ResourceRepository, idManager: ResourceIdManager, packageName: String?, namespace: ResourceNamespace) {
+  fun addLibrary(
+    repo: ResourceRepository,
+    idManager: ResourceIdManager,
+    packageName: String?,
+    namespace: ResourceNamespace
+  ) {
     if (packageName.isNullOrEmpty()) return
 
     val info = repoMap.getOrPut(repo) { ResourceRepositoryInfo(repo, idManager, namespace) }
     info.packages.add(packageName)
     // Explicit cleanup for Disposable instead of waiting for GC.
-    if (repo is Disposable && !Disposer.tryRegister(repo) { removeRepository(repo) }) removeRepository(repo)
-    packages = createPackageCache()  // Invalidate cache.
+    if (repo is Disposable && !Disposer.tryRegister(repo) { removeRepository(repo) })
+      removeRepository(repo)
+    packages = createPackageCache() // Invalidate cache.
   }
 
-  /** Looks up a class definition for the given name, if possible  */
-  fun findClassDefinition(className: String, repositoryManager: ResourceRepositoryManager): ByteArray? {
+  /** Looks up a class definition for the given name, if possible */
+  fun findClassDefinition(
+    className: String,
+    repositoryManager: ResourceRepositoryManager
+  ): ByteArray? {
     if (!className.isRClassName()) return null
     val pkg = className.substringBeforeLast(".", "")
     if (pkg in packages.get()) {
@@ -79,7 +90,8 @@ class ResourceClassRegistry @TestOnly constructor(private val packageTimeout: Du
 
   /**
    * Ideally, this method would not exist. But there are potential bugs in the caching mechanism.
-   * So, the method should be called when rendering fails due to hard-to-explain causes like NoSuchFieldError.
+   * So, the method should be called when rendering fails due to hard-to-explain causes like
+   * NoSuchFieldError.
    *
    * @see ResourceIdManager.resetDynamicIds
    */
@@ -88,32 +100,43 @@ class ResourceClassRegistry @TestOnly constructor(private val packageTimeout: Du
     packages = createPackageCache()
   }
 
-  private fun findClassGenerator(repositories: List<ResourceRepository>, className: String): ResourceClassGenerator? {
-    return repositories.asSequence().mapNotNull { repoMap[it]?.resourceClassGenerator }.reduceOrNull { _, _ ->
-      // There is a package name collision between libraries. Throw NoClassDefFoundError exception.
-      throw NoClassDefFoundError("$className class could not be loaded because of package name collision between libraries")
-    }
+  private fun findClassGenerator(
+    repositories: List<ResourceRepository>,
+    className: String
+  ): ResourceClassGenerator? {
+    return repositories
+      .asSequence()
+      .mapNotNull { repoMap[it]?.resourceClassGenerator }
+      .reduceOrNull { _, _ ->
+        // There is a package name collision between libraries. Throw NoClassDefFoundError
+        // exception.
+        throw NoClassDefFoundError(
+          "$className class could not be loaded because of package name collision between libraries"
+        )
+      }
   }
 
-  private fun createPackageCache() = TimeoutCachedValue(packageTimeout.inWholeMilliseconds, TimeUnit.MILLISECONDS) {
-    buildSet {
-      repoMap.values.forEach { this.addAll(it.packages) }
+  private fun createPackageCache() =
+    TimeoutCachedValue(packageTimeout.inWholeMilliseconds, TimeUnit.MILLISECONDS) {
+      buildSet { repoMap.values.forEach { this.addAll(it.packages) } }
     }
-  }
 
   private fun removeRepository(repo: ResourceRepository) {
     repoMap.remove(repo)
     packages = createPackageCache()
   }
 
-  private class ResourceRepositoryInfo(repo: ResourceRepository, idManager: ResourceIdManager, namespace: ResourceNamespace) {
+  private class ResourceRepositoryInfo(
+    repo: ResourceRepository,
+    idManager: ResourceIdManager,
+    namespace: ResourceNamespace
+  ) {
     val resourceClassGenerator = ResourceClassGenerator.create(idManager, repo, namespace)
     val packages = mutableSetOf<String>()
   }
 
   companion object {
     /** Lazily instantiates a registry with the target project. */
-    @JvmStatic
-    fun get(project: Project): ResourceClassRegistry = project.service()
+    @JvmStatic fun get(project: Project): ResourceClassRegistry = project.service()
   }
 }

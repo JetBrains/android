@@ -24,6 +24,7 @@ import org.jetbrains.android.facet.AndroidFacet
 class ResourceIdManagerImpl private constructor(val module: Module) :
   ResourceIdManagerBase(
     AndroidFacetResourceIdManagerModelModule(
-      AndroidFacet.getInstance(module) ?: error("${ResourceIdManager::class.qualifiedName} used on a non-Android module.")
+      AndroidFacet.getInstance(module)
+        ?: error("${ResourceIdManager::class.qualifiedName} used on a non-Android module.")
     )
   )

@@ -44,7 +44,8 @@ class ProjectLightResourceClassServiceTest {
     assertThat(rClass.name).isEqualTo("R")
 
     assertWithMessage("Before a build, the same R class should be returned")
-      .that(getProjectRClass()).isSameAs(rClass)
+      .that(getProjectRClass())
+      .isSameAs(rClass)
 
     rule.project.messageBus
       .syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC)
@@ -57,6 +58,7 @@ class ProjectLightResourceClassServiceTest {
       )
 
     assertWithMessage("After a build, R class should re-generate")
-      .that(getProjectRClass()).isNotSameAs(rClass)
+      .that(getProjectRClass())
+      .isNotSameAs(rClass)
   }
 }

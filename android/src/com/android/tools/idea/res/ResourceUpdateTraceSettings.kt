@@ -22,14 +22,13 @@ import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
 
-/**
- * Persistent settings for resource update tracing.
- */
+/** Persistent settings for resource update tracing. */
 @State(name = "ResourceTrace", storages = [Storage("resourceTrace.xml")])
 @Service
 class ResourceUpdateTraceSettings : PersistentStateComponent<ResourceUpdateTraceSettings> {
 
   var enabled: Boolean = false
+
   override fun getState(): ResourceUpdateTraceSettings {
     return this
   }

@@ -38,24 +38,28 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [GoToAndroidResourceContributor].
- */
+/** Tests for [GoToAndroidResourceContributor]. */
 @RunsInEdt
 class GoToAndroidResourceContributorTest {
-  val projectRule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder()).named(this::class.simpleName)
+  val projectRule =
+    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder()).named(this::class.simpleName)
 
-  @get:Rule
-  val chain = RuleChain(projectRule, EdtRule())
+  @get:Rule val chain = RuleChain(projectRule, EdtRule())
 
   @Before
   fun setUp() {
-    projectRule.fixture.addFileToProject("src/main/res/values/strings.xml", """
+    projectRule.fixture.addFileToProject(
+      "src/main/res/values/strings.xml",
+      """
         <resources>
           <string name="my_string">My string</string>
         </resources>
-        """.trimIndent())
-    projectRule.fixture.addFileToProject("src/main/res/layout/my_layout.xml", """
+        """
+        .trimIndent()
+    )
+    projectRule.fixture.addFileToProject(
+      "src/main/res/layout/my_layout.xml",
+      """
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
           android:id="@+id/activity_main"
           android:layout_width="match_parent"
@@ -73,10 +77,17 @@ class GoToAndroidResourceContributorTest {
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         </RelativeLayout>
-        """.trimIndent())
+        """
+        .trimIndent()
+    )
   }
 
-  private fun navigate(name: String, pattern: String, expectedNumberOfResults: Int = 1, selectResult: Int = 0): PsiElement {
+  private fun navigate(
+    name: String,
+    pattern: String,
+    expectedNumberOfResults: Int = 1,
+    selectResult: Int = 0
+  ): PsiElement {
     val model = GotoSymbolModel2(projectRule.project, projectRule.testRootDisposable)
     val searchResults = model.getElementsByName(name, false, pattern)
     assertThat(searchResults).hasLength(expectedNumberOfResults)
@@ -107,19 +118,25 @@ class GoToAndroidResourceContributorTest {
   fun testGoToString() {
     val element = navigate("my_string", "my_s")
     assertThat(element.text).isEqualTo("\"my_string\"")
-    assertThat(element.parent.parent.text).isEqualTo("<string name=\"my_string\">My string</string>")
+    assertThat(element.parent.parent.text)
+      .isEqualTo("<string name=\"my_string\">My string</string>")
   }
 
   @Test
   fun testGoToStringDefinedInTwoPlaces() {
-    projectRule.fixture.addFileToProject("src/debug/res/values/strings.xml", """
+    projectRule.fixture.addFileToProject(
+      "src/debug/res/values/strings.xml",
+      """
         <resources>
           <string name="my_string">My debug string</string>
         </resources>
-        """.trimIndent())
+        """
+        .trimIndent()
+    )
     val element = navigate("my_string", "my_s", expectedNumberOfResults = 2, selectResult = 0)
     assertThat(element.text).isEqualTo("\"my_string\"")
-    assertThat(element.parent.parent.text).isEqualTo("<string name=\"my_string\">My debug string</string>")
+    assertThat(element.parent.parent.text)
+      .isEqualTo("<string name=\"my_string\">My debug string</string>")
   }
 
   @Test
@@ -137,8 +154,10 @@ class GoToAndroidResourceContributorTest {
   }
 
   /**
-   * Tries to emulate what [com.intellij.ide.actions.searcheverywhere.TrivialElementsEqualityProvider] is doing to
-   * deduplicate the result list. Unfortunately some of the types involved are not public, so we cannot do exactly the same.
+   * Tries to emulate what
+   * [com.intellij.ide.actions.searcheverywhere.TrivialElementsEqualityProvider] is doing to
+   * deduplicate the result list. Unfortunately some of the types involved are not public, so we
+   * cannot do exactly the same.
    */
   @Test
   fun testEquality() {

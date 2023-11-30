@@ -20,7 +20,8 @@ import com.android.tools.res.ids.ResourceIdManagerModelModule
 import org.jetbrains.android.facet.AndroidFacet
 
 /** Studio-specific [ResourceIdManagerModelModule] implementation based on [AndroidFacet]. */
-class AndroidFacetResourceIdManagerModelModule(private val facet: AndroidFacet) : ResourceIdManagerModelModule {
+class AndroidFacetResourceIdManagerModelModule(private val facet: AndroidFacet) :
+  ResourceIdManagerModelModule {
   override val isAppOrFeature: Boolean
     get() = facet.configuration.isAppOrFeature
 

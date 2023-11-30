@@ -37,10 +37,8 @@ import org.jetbrains.android.augment.AndroidLightClassBase
  * @see ProjectSystemPsiElementFinder
  * @see com.android.tools.idea.projectsystem.LightResourceClassService
  */
-class AndroidLightPackage private constructor(
-  manager: PsiManager,
-  qualifiedName: String
-) : PsiPackageImpl(manager, qualifiedName) {
+class AndroidLightPackage private constructor(manager: PsiManager, qualifiedName: String) :
+  PsiPackageImpl(manager, qualifiedName) {
 
   companion object {
     @JvmStatic
@@ -50,17 +48,16 @@ class AndroidLightPackage private constructor(
   }
 
   /**
-   * Overrides [PsiPackageImpl.isValid] to ignore what files exist on disk. [AndroidLightPackage] instances are only used if the right
-   * [PsiElementFinder] decided there are light R classes with this package name, so the package is valid even if there are no physical
-   * files in corresponding directories.
+   * Overrides [PsiPackageImpl.isValid] to ignore what files exist on disk. [AndroidLightPackage]
+   * instances are only used if the right [PsiElementFinder] decided there are light R classes with
+   * this package name, so the package is valid even if there are no physical files in corresponding
+   * directories.
    */
   override fun isValid(): Boolean {
     return project.isDisposed.not()
   }
 
-  /**
-   * Returns true if there are corresponding physical directories to navigate to.
-   */
+  /** Returns true if there are corresponding physical directories to navigate to. */
   override fun canNavigate(): Boolean {
     return super.isValid()
   }
@@ -84,10 +81,11 @@ class AndroidLightPackage private constructor(
 
     // Find all modules with the required package name that are in the search scope.
     val projectSystem = project.getProjectSystem()
-    val modulesInScope = projectSystem
-      .getAndroidFacetsWithPackageName(project, qualifiedName)
-      .map { it.module }
-      .filter { scope.isSearchInModuleContent(it) }
+    val modulesInScope =
+      projectSystem
+        .getAndroidFacetsWithPackageName(project, qualifiedName)
+        .map { it.module }
+        .filter { scope.isSearchInModuleContent(it) }
 
     // Return the containing files for `R` classes defined by those modules.
     val lightResourceClassService = projectSystem.getLightResourceClassService()
@@ -103,11 +101,11 @@ class AndroidLightPackage private constructor(
   @Service(Service.Level.PROJECT)
   class InstanceCache(val project: Project) {
 
-    /**
-     * Cache of [PsiPackage] instances for a given package name.
-     */
-    private val packageCache: Cache<String, PsiPackage> = CacheBuilder.newBuilder().softValues().build()
+    /** Cache of [PsiPackage] instances for a given package name. */
+    private val packageCache: Cache<String, PsiPackage> =
+      CacheBuilder.newBuilder().softValues().build()
 
-    fun get(name: String): PsiPackage = packageCache.getAndUnwrap(name) { AndroidLightPackage(PsiManager.getInstance(project), name) }
+    fun get(name: String): PsiPackage =
+      packageCache.getAndUnwrap(name) { AndroidLightPackage(PsiManager.getInstance(project), name) }
   }
 }

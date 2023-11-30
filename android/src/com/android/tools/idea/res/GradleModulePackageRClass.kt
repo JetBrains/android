@@ -38,12 +38,16 @@ class ModuleRClass(
   private val sourceSet: SourceSet,
   transitivity: Transitivity,
   fieldModifier: AndroidLightField.FieldModifier
-) : ResourceRepositoryRClass(
-  psiManager,
-  ModuleResourcesSource(facet, sourceSet, transitivity, fieldModifier)
-) {
+) :
+  ResourceRepositoryRClass(
+    psiManager,
+    ModuleResourcesSource(facet, sourceSet, transitivity, fieldModifier)
+  ) {
 
-  enum class SourceSet { MAIN, TEST }
+  enum class SourceSet {
+    MAIN,
+    TEST
+  }
 
   init {
     setModuleInfo(
@@ -56,23 +60,30 @@ class ModuleRClass(
     val lightVirtualFile = myFile.viewProvider.virtualFile
 
     if (fieldModifier == AndroidLightField.FieldModifier.FINAL) {
-      // If the R fields are final, we try to find the actual physical R class to use real values. This ensures that
-      // if the values used by the Light R class are inlined by the Live Edit compiler, they remain valid and map to
+      // If the R fields are final, we try to find the actual physical R class to use real values.
+      // This ensures that
+      // if the values used by the Light R class are inlined by the Live Edit compiler, they remain
+      // valid and map to
       // the values from the last compilation.
       getRClassResources(packageName) {
-        facet.getModuleSystem().moduleClassFileFinder.findClassFile(it)?.content
-      }?.let { lightVirtualFile.putUserData(BACKING_CLASS, it) }
+          facet.getModuleSystem().moduleClassFileFinder.findClassFile(it)?.content
+        }
+        ?.let { lightVirtualFile.putUserData(BACKING_CLASS, it) }
     }
-    lightVirtualFile.putUserData(MODULE_POINTER_KEY, ModulePointerManager.getInstance(project).create(facet.module))
+    lightVirtualFile.putUserData(
+      MODULE_POINTER_KEY,
+      ModulePointerManager.getInstance(project).create(facet.module)
+    )
     lightVirtualFile.putUserData(LIGHT_CLASS_KEY, ModuleRClass::class.java)
     lightVirtualFile.putUserData(TRANSITIVITY_KEY, transitivity)
     lightVirtualFile.putUserData(FILE_SOURCE_SET_KEY, sourceSet)
   }
 
-  override fun getScopeType() = when (sourceSet) {
-    MAIN -> ScopeType.MAIN
-    TEST -> ScopeType.ANDROID_TEST
-  }
+  override fun getScopeType() =
+    when (sourceSet) {
+      MAIN -> ScopeType.MAIN
+      TEST -> ScopeType.ANDROID_TEST
+    }
 
   private class ModuleResourcesSource(
     val facet: AndroidFacet,
@@ -80,14 +91,16 @@ class ModuleRClass(
     private val transitivity: Transitivity,
     val _fieldModifier: AndroidLightField.FieldModifier
   ) : ResourcesSource {
-    override fun getResourceNamespace() = StudioResourceRepositoryManager.getInstance(facet).namespace
+    override fun getResourceNamespace() =
+      StudioResourceRepositoryManager.getInstance(facet).namespace
 
     override fun getFieldModifier() = _fieldModifier
 
-    override fun getPackageName() = when (sourceSet) {
-      MAIN -> facet.getModuleSystem().getPackageName()
-      TEST -> facet.getModuleSystem().getTestPackageName()
-    }
+    override fun getPackageName() =
+      when (sourceSet) {
+        MAIN -> facet.getModuleSystem().getPackageName()
+        TEST -> facet.getModuleSystem().getTestPackageName()
+      }
 
     override fun getResourceRepositoryManager(): StudioResourceRepositoryManager {
       return StudioResourceRepositoryManager.getInstance(facet)
@@ -96,14 +109,16 @@ class ModuleRClass(
     override fun getResourceRepository(): CacheableResourceRepository {
       val repoManager = StudioResourceRepositoryManager.getInstance(facet)
       return when (sourceSet) {
-        MAIN -> when (transitivity) {
-          TRANSITIVE -> repoManager.appResources
-          NON_TRANSITIVE -> repoManager.moduleResources
-        }
-        TEST -> when (transitivity) {
-          TRANSITIVE -> repoManager.testAppResources
-          NON_TRANSITIVE -> repoManager.testModuleResources
-        }
+        MAIN ->
+          when (transitivity) {
+            TRANSITIVE -> repoManager.appResources
+            NON_TRANSITIVE -> repoManager.moduleResources
+          }
+        TEST ->
+          when (transitivity) {
+            TRANSITIVE -> repoManager.testAppResources
+            NON_TRANSITIVE -> repoManager.testModuleResources
+          }
       }
     }
 
@@ -112,4 +127,3 @@ class ModuleRClass(
     }
   }
 }
-

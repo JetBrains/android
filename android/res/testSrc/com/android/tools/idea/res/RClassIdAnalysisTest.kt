@@ -29,14 +29,14 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class RClassIdAnalysisTest {
 
-  @get:Rule
-  val tempFolder = TemporaryFolder()
+  @get:Rule val tempFolder = TemporaryFolder()
 
   private val packageName = "com.myapp"
 
   @Test
   fun testNamesAndIds() {
-    val rClass = """
+    val rClass =
+      """
       package $packageName;
 
       public final class R {
@@ -53,18 +53,23 @@ class RClassIdAnalysisTest {
           public static final int main_page = 301;
         }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     val resources = getResources(rClass)
 
     ResourceType.values().forEach {
       when (it) {
-        ResourceType.STRING -> assertThat(resources.getResources(it)!!).containsExactlyEntriesIn(
-          mapOf("app_name" to 101, "ok_text" to 102, "cancel_text" to 103))
-
-        ResourceType.DRAWABLE -> assertThat(resources.getResources(it)!!).containsExactlyEntriesIn(
-          mapOf("ic_first" to 201, "ic_second" to 202))
-
-        ResourceType.LAYOUT -> assertThat(resources.getResources(ResourceType.LAYOUT)!!).containsExactlyEntriesIn(mapOf("main_page" to 301))
+        ResourceType.STRING ->
+          assertThat(resources.getResources(it)!!)
+            .containsExactlyEntriesIn(
+              mapOf("app_name" to 101, "ok_text" to 102, "cancel_text" to 103)
+            )
+        ResourceType.DRAWABLE ->
+          assertThat(resources.getResources(it)!!)
+            .containsExactlyEntriesIn(mapOf("ic_first" to 201, "ic_second" to 202))
+        ResourceType.LAYOUT ->
+          assertThat(resources.getResources(ResourceType.LAYOUT)!!)
+            .containsExactlyEntriesIn(mapOf("main_page" to 301))
         else -> assertThat(resources.getResources(it)).isNull()
       }
     }
@@ -72,7 +77,8 @@ class RClassIdAnalysisTest {
 
   @Test
   fun testStyleables() {
-    val rClass = """
+    val rClass =
+      """
       package $packageName;
 
       public final class R {
@@ -85,16 +91,20 @@ class RClassIdAnalysisTest {
           public static final int[] x = {203, 204, 205};
         }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     val resources = getResources(rClass)
 
-    assertThat(resources.getResources(ResourceType.ATTR)).containsExactlyEntriesIn(mapOf("a1" to 101))
-    assertThat(resources.getResources(ResourceType.STYLEABLE)).containsExactlyEntriesIn(mapOf("x1" to 201, "x2" to 202))
+    assertThat(resources.getResources(ResourceType.ATTR))
+      .containsExactlyEntriesIn(mapOf("a1" to 101))
+    assertThat(resources.getResources(ResourceType.STYLEABLE))
+      .containsExactlyEntriesIn(mapOf("x1" to 201, "x2" to 202))
   }
 
   @Test
   fun testUnknownTypesAreIgnored() {
-    val rClass = """
+    val rClass =
+      """
       package $packageName;
 
       public final class R {
@@ -107,15 +117,18 @@ class RClassIdAnalysisTest {
           public static final int app_name = 101;
         }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     val resources = getResources(rClass)
 
-    assertThat(resources.getResources(ResourceType.STRING)).containsExactlyEntriesIn(mapOf("app_name" to 101))
+    assertThat(resources.getResources(ResourceType.STRING))
+      .containsExactlyEntriesIn(mapOf("app_name" to 101))
   }
 
   @Test
   fun testNonIntConstantsAreIgnored() {
-    val rClass = """
+    val rClass =
+      """
       package $packageName;
 
       public final class R {
@@ -125,15 +138,18 @@ class RClassIdAnalysisTest {
           public static final int app_name = 100;
         }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     val resources = getResources(rClass)
 
-    assertThat(resources.getResources(ResourceType.STRING)).containsExactlyEntriesIn(mapOf("app_name" to 100))
+    assertThat(resources.getResources(ResourceType.STRING))
+      .containsExactlyEntriesIn(mapOf("app_name" to 100))
   }
 
   @Test
   fun testDoubleNestedClassesAreIgnored() {
-    val rClass = """
+    val rClass =
+      """
       package $packageName;
 
       public final class R {
@@ -145,10 +161,12 @@ class RClassIdAnalysisTest {
             }
         }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     val resources = getResources(rClass)
 
-    assertThat(resources.getResources(ResourceType.STRING)).containsExactlyEntriesIn(mapOf("app_name" to 100))
+    assertThat(resources.getResources(ResourceType.STRING))
+      .containsExactlyEntriesIn(mapOf("app_name" to 100))
     assertThat(resources.getResources(ResourceType.LAYOUT)).isNull()
   }
 
@@ -157,10 +175,7 @@ class RClassIdAnalysisTest {
     val output = tempFolder.newFolder()
     JavacUtil.getJavac().run(null, null, null, "-d", output.path, rJava.path)
 
-    val loader = { fqcn: String ->
-      output.resolve(getPathFromFqcn(fqcn)).readBytes()
-    }
+    val loader = { fqcn: String -> output.resolve(getPathFromFqcn(fqcn)).readBytes() }
     return getRClassResources(packageName, loader)!!
   }
-
 }

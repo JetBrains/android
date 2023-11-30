@@ -33,8 +33,7 @@ import org.mockito.Mockito.verify
 
 @RunWith(JUnit4::class)
 class AndroidProjectRootListenerTest {
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val androidProjectRule = AndroidProjectRule.inMemory()
 
   private val project by lazy { androidProjectRule.project }
   private val module by lazy { androidProjectRule.fixture.module }
@@ -46,7 +45,8 @@ class AndroidProjectRootListenerTest {
     module.registerOrReplaceServiceInstance(
       ResourceFolderManager::class.java,
       resourceFolderManagerSpy,
-      androidProjectRule.testRootDisposable)
+      androidProjectRule.testRootDisposable
+    )
 
     // Register AndroidProjectRootListener and ensure it doesn't trigger updates as it starts.
     AndroidProjectRootListener.ensureSubscribed(project)
@@ -54,11 +54,13 @@ class AndroidProjectRootListenerTest {
 
     // Simulate sync finishing.
     ApplicationManager.getApplication().invokeAndWait {
-      project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      project.messageBus
+        .syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)
+        .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
     }
 
     // Wait for the event queue to clear out, and verify the ResourceFolderManager was updated.
-    ApplicationManager.getApplication().invokeAndWait { }
+    ApplicationManager.getApplication().invokeAndWait {}
     verify(resourceFolderManagerSpy, times(1)).checkForChanges()
   }
 
@@ -69,7 +71,8 @@ class AndroidProjectRootListenerTest {
     module.registerOrReplaceServiceInstance(
       ResourceFolderManager::class.java,
       resourceFolderManagerSpy,
-      androidProjectRule.testRootDisposable)
+      androidProjectRule.testRootDisposable
+    )
 
     // Register AndroidProjectRootListener and ensure it doesn't trigger updates as it starts.
     AndroidProjectRootListener.ensureSubscribed(project)
@@ -77,13 +80,14 @@ class AndroidProjectRootListenerTest {
 
     // Simulate roots changing.
     ApplicationManager.getApplication().invokeAndWait {
-      // Replacing the current AndroidProjectSystem with itself is enough to trigger the relevant events for this test.
+      // Replacing the current AndroidProjectSystem with itself is enough to trigger the relevant
+      // events for this test.
       val projectSystemService = ProjectSystemService.getInstance(project)
       projectSystemService.replaceProjectSystemForTests(projectSystemService.projectSystem)
     }
 
     // Wait for the event queue to clear out, and verify the ResourceFolderManager was updated.
-    ApplicationManager.getApplication().invokeAndWait { }
+    ApplicationManager.getApplication().invokeAndWait {}
     verify(resourceFolderManagerSpy, times(1)).checkForChanges()
   }
 }

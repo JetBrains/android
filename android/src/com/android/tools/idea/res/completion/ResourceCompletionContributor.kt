@@ -34,11 +34,11 @@ import com.intellij.codeInsight.lookup.LookupElementRenderer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import javax.swing.Icon
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.base.util.module
-import javax.swing.Icon
 
 /**
  * [CompletionContributor] for Kotlin vs. Java-agnostic transformations and filtering of resources.
