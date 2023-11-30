@@ -22,28 +22,36 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.getApiNameAndDetails
+import kotlinx.collections.immutable.ImmutableCollection
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 
 @Composable
-internal fun DeviceAndApiPanel(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
+internal fun DeviceAndApiPanel(
+  device: VirtualDevice,
+  images: ImmutableCollection<SystemImage>,
+  onDeviceChange: (VirtualDevice) -> Unit
+) {
   Text("Name")
   TextField(device.name, { onDeviceChange(device.copy(name = it)) })
 
   Text("API level")
-  ApiLevelDropdown()
+  ApiLevelDropdown(images)
 }
 
 @Composable
-private fun ApiLevelDropdown() {
-  val levels = remember {
-    listOf(
-      AndroidVersion(34, "UpsideDownCakePrivacySandbox", 7, true),
-      AndroidVersion(34, null, 7, true),
-      AndroidVersion(33, null, null, true)
-    )
+private fun ApiLevelDropdown(images: ImmutableCollection<SystemImage>) {
+  if (images.isEmpty()) {
+    Dropdown(menuContent = {}, content = {})
+    return
   }
+
+  val levels =
+    images //
+      .map(SystemImage::apiLevel)
+      .distinct()
+      .sortedDescending()
 
   var selectedLevel by remember { mutableStateOf(levels.first()) }
 
