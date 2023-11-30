@@ -31,7 +31,6 @@ import java.lang.reflect.Method
 import java.util.Arrays
 import java.util.Optional
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 
 /**
@@ -66,9 +65,9 @@ private const val COMBINED_CONTEXT_FQN = "${INTERNAL_PACKAGE}kotlin.coroutines.C
  */
 fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Void> {
   var disposeMethod = Optional.empty<Method>()
-  val applyObserversRef = AtomicReference<WeakReference<MutableCollection<*>?>?>(null)
-  val globalWriteObserversRef = AtomicReference<WeakReference<MutableCollection<*>?>?>(null)
-  val toRunTrampolinedRef = AtomicReference<WeakReference<MutableCollection<*>?>?>(null)
+  var applyObserversRef: WeakReference<MutableCollection<*>?>? = null
+  var globalWriteObserversRef: WeakReference<MutableCollection<*>?>? = null
+  var toRunTrampolinedRef: WeakReference<MutableCollection<*>?>? = null
   if (classLoader.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
     try {
       val composeViewAdapter: Class<*> = classLoader.loadClass(CLASS_COMPOSE_VIEW_ADAPTER)
@@ -97,13 +96,16 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
       // ignore.
       LOG.debug("Unable to dispose the recompose animationScale", ex)
     }
-    applyObserversRef.set(
-      WeakReference(findSnapshotKtObserversField(classLoader, "applyObservers"))
-    )
-    globalWriteObserversRef.set(
+    applyObserversRef = WeakReference(findSnapshotKtObserversField(classLoader, "applyObservers"))
+    globalWriteObserversRef =
       WeakReference(findSnapshotKtObserversField(classLoader, "globalWriteObservers"))
-    )
-    toRunTrampolinedRef.set(WeakReference(findToRunTrampolined(classLoader)))
+    toRunTrampolinedRef = WeakReference(findToRunTrampolined(classLoader))
+
+    // Run an early clean-up of the snapshot and global write observers. These hold a lot of
+    // information and can cause memory pressure if the render queue is slow to process events.
+    runCatching { applyObserversRef.get()?.clear() }
+    runCatching { globalWriteObserversRef.get()?.clear() }
+    runCatching { toRunTrampolinedRef.get()?.clear() }
   }
 
   val broadcastManagerInstanceField = WeakReference(findLocalBroadcastManagerInstance(classLoader))
@@ -120,9 +122,9 @@ fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Voi
         }
       )
     }
-    applyObserversRef.get()?.get()?.clear()
-    globalWriteObserversRef.get()?.get()?.clear()
-    toRunTrampolinedRef.get()?.get()?.clear()
+    applyObserversRef?.get()?.clear()
+    globalWriteObserversRef?.get()?.clear()
+    toRunTrampolinedRef?.get()?.clear()
     broadcastManagerInstanceField.get()?.set(null, null)
     this@dispose.dispose()
   }
