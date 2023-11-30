@@ -42,11 +42,11 @@ open class StudioModuleRenderContext protected constructor(
     get() = moduleWeakRef.get()
   override fun createInjectableClassLoaderLoader(): ProjectSystemClassLoader {
     val moduleRef = WeakReference(module)
-    val psiFile = fileProvider.get()
     return ProjectSystemClassLoader { fqcn ->
       val module = moduleRef.get()
       if (module == null || module.isDisposed) return@ProjectSystemClassLoader null
 
+      val psiFile = fileProvider.get()
       val virtualFile = psiFile?.virtualFile
 
       return@ProjectSystemClassLoader module.getModuleSystem()
