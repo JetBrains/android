@@ -100,7 +100,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:perfetto-proto",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//tools/adt/idea/lint:intellij.lint[module]",
-        "//tools/adt/idea/dagger:intellij.android.dagger[module]",
         "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
         "//tools/adt/idea/android:libandroid-core-proto",
