@@ -63,12 +63,26 @@ class DynamicSymbolSource: SymbolSource {
   }
 }
 
+abstract class ModuleSymbolSource(module: Module): SymbolSource {
+  // Use a weak reference so that we don't keep holding onto the module after it has been disposed of. If the module has not been freed, we
+  // check if it has been disposed so we stop using it.
+  private val moduleRef = WeakReference(module)
+
+  final override fun getDirsFor(abi: Abi): Collection<File> {
+    val module = moduleRef.get()?.takeIf { !it.isDisposed } ?: return emptySet()
+    return getDirsFor(abi, module)
+  }
+
+  /** Implement [getDirsFor] for a known-live (non-Disposed non-freed) [module] */
+  abstract fun getDirsFor(abi: Abi, module: Module): Collection<File>
+}
+
 interface ModuleSymbolSourceContributor {
   companion object {
     val EP_NAME = ExtensionPointName<ModuleSymbolSourceContributor>("com.android.tools.nativeSymbolizer.moduleSymbolSourceContributor")
   }
 
-  fun create(module: Module): SymbolSource
+  fun create(module: Module): ModuleSymbolSource
 }
 
 /** A SymbolSource to collect native symbols from a project. */
@@ -83,18 +97,8 @@ class ProjectSymbolSource(project: Project): SymbolSource {
 }
 
 /** Gets symbol directories from an APK's debug directory. */
-class ApkSymbolSource(module: Module): SymbolSource {
-  // Use a weak reference so that we don't keep holding onto the module after it has been disposed of. If the module has not been freed, we
-  // check if it has been disposed so we stop using it.
-  private val moduleRef = WeakReference(module)
-
-  override fun getDirsFor(abi: Abi): Collection<File> {
-    val module = moduleRef.get() ?: return emptySet()
-
-    if (module.isDisposed) {
-      return emptySet()
-    }
-
+class ApkSymbolSource(module: Module): ModuleSymbolSource(module) {
+  override fun getDirsFor(abi: Abi, module: Module): Collection<File> {
     val apkFacet = ApkFacet.getInstance(module) ?: return emptySet()
 
     val folders = apkFacet.configuration.getDebugSymbolFolderPaths(listOf(abi))
@@ -106,18 +110,8 @@ class ApkSymbolSourceContributor : ModuleSymbolSourceContributor {
   override fun create(module: Module) = ApkSymbolSource(module)
 }
 
-class NdkSymbolSource(module: Module): SymbolSource {
-  // Use a weak reference so that we don't keep holding onto the module after it has been disposed of. If the module has not been freed, we
-  // check if it has been disposed so we stop using it.
-  private val moduleRef = WeakReference(module)
-
-  override fun getDirsFor(abi: Abi): Collection<File> {
-    val module = moduleRef.get() ?: return emptySet()
-
-    if (module.isDisposed) {
-      return emptySet()
-    }
-
+class NdkSymbolSource(module: Module): ModuleSymbolSource(module) {
+  override fun getDirsFor(abi: Abi, module: Module): Collection<File> {
     val ndkFacet = NdkFacet.getInstance(module) ?: return emptySet()
     val ndkModuleModel = NdkModuleModel.get(module) ?: return emptySet()
     val selectedAbi = ndkFacet.selectedVariantAbi ?: return emptySet()
@@ -133,18 +127,8 @@ class NdkSymbolSourceContributor : ModuleSymbolSourceContributor {
 }
 
 /** Gets symbol directories from a module's Gradle file. */
-class JniSymbolSource(module: Module) : SymbolSource {
-  // Use a weak reference so that we don't keep holding onto the module after it has been disposed of. If the module has not been freed, we
-  // check if it has been disposed so we stop using it.
-  private val moduleRef = WeakReference(module)
-
-  override fun getDirsFor(abi: Abi): Collection<File> {
-    val module = moduleRef.get() ?: return emptySet()
-
-    if (module.isDisposed) {
-      return emptySet()
-    }
-
+class JniSymbolSource(module: Module) : ModuleSymbolSource(module) {
+  override fun getDirsFor(abi: Abi, module: Module): Collection<File> {
     return module.androidFacet?.let { SourceProviders.getInstance(it) }?.sources?.jniLibsDirectories?.map {
       it.findChild(abi.toString())?.toIoFile()
     }.orEmpty().filterNotNull()
