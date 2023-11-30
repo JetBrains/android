@@ -40,6 +40,9 @@ data class SurfaceLayoutManagerOption(
   val sceneViewAlignment: DesignSurface.SceneViewAlignment = DesignSurface.SceneViewAlignment.CENTER
 )
 
+private const val PREVIEW_LEFT_PADDING = 25
+private const val PREVIEW_TOP_PADDING = 5
+
 private val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale ->
   // Minimum 5 at 20% and maximum 20 at 100%, responsive.
   val min = 5
@@ -85,7 +88,12 @@ val LIST_LAYOUT_MANAGER_OPTION =
     SurfaceLayoutManagerOption(
       // TODO(b/289994157) Change name to "List"
       message("vertical.groups"),
-      GroupedListSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, GROUP_BY_BASE_COMPONENT),
+      GroupedListSurfaceLayoutManager(
+        PREVIEW_TOP_PADDING,
+        PREVIEW_LEFT_PADDING,
+        PREVIEW_FRAME_PADDING_PROVIDER,
+        GROUP_BY_BASE_COMPONENT,
+      ),
       DesignSurface.SceneViewAlignment.LEFT
     )
   } else if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
@@ -102,7 +110,12 @@ val LIST_LAYOUT_MANAGER_OPTION =
   } else {
     SurfaceLayoutManagerOption(
       message("new.list.layout.title"),
-      GroupedListSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
+      GroupedListSurfaceLayoutManager(
+        PREVIEW_TOP_PADDING,
+        PREVIEW_LEFT_PADDING,
+        PREVIEW_FRAME_PADDING_PROVIDER,
+        NO_GROUP_TRANSFORM,
+      ),
       DesignSurface.SceneViewAlignment.LEFT
     )
   }
@@ -113,8 +126,8 @@ val GRID_LAYOUT_MANAGER_OPTIONS =
       // TODO(b/289994157) Change name to "Grid"
       message("grid.groups"),
       GroupedGridSurfaceLayoutManager(
-        5,
-        25,
+        PREVIEW_TOP_PADDING,
+        PREVIEW_LEFT_PADDING,
         PREVIEW_FRAME_PADDING_PROVIDER,
         GROUP_BY_BASE_COMPONENT
       ),
@@ -134,7 +147,12 @@ val GRID_LAYOUT_MANAGER_OPTIONS =
   } else {
     SurfaceLayoutManagerOption(
       message("new.grid.layout.title"),
-      GroupedGridSurfaceLayoutManager(5, 0, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
+      GroupedGridSurfaceLayoutManager(
+        PREVIEW_TOP_PADDING,
+        0,
+        PREVIEW_FRAME_PADDING_PROVIDER,
+        NO_GROUP_TRANSFORM,
+      ),
       DesignSurface.SceneViewAlignment.LEFT,
     )
   }

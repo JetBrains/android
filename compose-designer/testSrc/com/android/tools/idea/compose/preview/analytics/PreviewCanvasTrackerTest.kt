@@ -39,7 +39,7 @@ class PreviewCanvasTrackerTest {
       }
     previewCanvasTracker.logSwitchLayout(groupedGridLayout)
     val groupedListLayout =
-      GroupedListSurfaceLayoutManager(0, { 0 }) { content ->
+      GroupedListSurfaceLayoutManager(0, 0, { 0 }) { content ->
         listOf(PositionableGroup(content.toList()))
       }
     previewCanvasTracker.logSwitchLayout(groupedListLayout)
