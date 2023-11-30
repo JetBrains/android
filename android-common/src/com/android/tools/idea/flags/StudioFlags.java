@@ -1621,9 +1621,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> CREATE_APP_LINKS_V2 =
     Flag.create(APP_LINKS_ASSISTANT, "create.app.links.v2", "Create App Links V2",
                 "Improvements to the Create App Links functionalities.", false);
-  public static final Flag<Boolean> DATALAYER_MEMORY_IMPROVEMENT =
-    Flag.create(APP_LINKS_ASSISTANT, "datalayer.memory.improvement", "Data layer memory improvements",
-                "Memory improvements in the data layer.", true);
   public static final Flag<Boolean> IMPACT_TRACKING =
     Flag.create(APP_LINKS_ASSISTANT, "app.links.assistant.impact.tracking", "App Links Assistant impact tracking",
                 "Impact tracking for the App Links Assistant", false);
