@@ -16,7 +16,6 @@
 package org.jetbrains.android.quickDefinitions
 
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
@@ -25,16 +24,21 @@ import com.intellij.codeInsight.hint.ImplementationViewSession
 import com.intellij.codeInsight.hint.ImplementationViewSessionFactory
 import com.intellij.codeInsight.hint.PsiImplementationViewElement
 import com.intellij.codeInsight.hint.PsiImplementationViewSession
+import com.intellij.codeInsight.navigation.ImplementationSearcher
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.util.Processor
 import org.jetbrains.android.dom.AndroidXmlDocumentationProvider
+import java.lang.Exception
 
 /**
  *  [ImplementationViewSessionFactory] for Android resources, for a better "Quick Definition" UI.`
@@ -102,9 +106,14 @@ class AndroidImplementationViewSession(
   // TODO(lukeegan): Create own ImplementationViewElement to show custom text eg. entire Style Tags for styleable attrs.
   override val implementationElements: List<ImplementationViewElement>
     get() {
-      return AndroidResourceToPsiResolver.getInstance()
-        .getGotoDeclarationTargets(resourceReferencePsiElement.resourceReference, contextElement)
-        .map { PsiImplementationViewElement(it) }
+      val computeImplementations = ThrowableComputable<List<PsiImplementationViewElement>, Exception> {
+        runReadAction {
+          AndroidResourceToPsiResolver.getInstance()
+            .getGotoDeclarationTargets(resourceReferencePsiElement.resourceReference, contextElement)
+            .map { PsiImplementationViewElement(it) }
+        }
+      }
+      return ProgressManager.getInstance().runProcessWithProgressSynchronously(computeImplementations, ImplementationSearcher.getSearchingForImplementations(), false, contextElement.project)
     }
 
     override val file: VirtualFile? = contextElement.containingFile.virtualFile

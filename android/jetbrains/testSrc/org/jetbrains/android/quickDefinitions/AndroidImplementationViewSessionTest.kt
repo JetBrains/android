@@ -175,7 +175,7 @@ class AndroidImplementationViewSessionTest : AndroidTestCase() {
     val colorPrimaryElement = completionElements.stream().filter { it.lookupString == "@color/colorPrimary" }.findFirst().get()
     val implementationsForCompletionObject = getImplementationsForCompletionObject(colorPrimaryElement)
     assertThat(implementationsForCompletionObject).hasLength(1)
-    assertThat(ImplementationViewComponent.getNewText((implementationsForCompletionObject[0] as PsiImplementationViewElement).psiElement))
+    assertThat(ImplementationViewComponent.getNewText((implementationsForCompletionObject[0] as PsiImplementationViewElement).getPsiElement()))
       .isEqualTo("  <color name=\"colorPrimary\">#008577</color>")
   }
 
@@ -204,7 +204,7 @@ class AndroidImplementationViewSessionTest : AndroidTestCase() {
     val colorPrimaryElement = completionElements.stream().filter { it.lookupString == "thumbnail" }.findFirst().get()
     val implementations = getImplementationsForCompletionObject(colorPrimaryElement)
     assertThat(implementations).hasLength(2)
-    assertThat(implementations.map { (it as PsiImplementationViewElement).psiElement.toString() })
+    assertThat(implementations.map { (it as PsiImplementationViewElement).getPsiElement()?.toString() })
       .containsExactly("PsiBinaryFile:thumbnail.png", "PsiBinaryFile:thumbnail.png")
   }
 
