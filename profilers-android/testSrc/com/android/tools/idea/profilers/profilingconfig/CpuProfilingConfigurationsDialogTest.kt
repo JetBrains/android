@@ -42,20 +42,22 @@ import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.Mockito.spy
 import javax.swing.JComponent
 import javax.swing.JLabel
 
-class CpuProfilingConfigurationsDialogTest {
+@RunWith(Parameterized::class)
+class CpuProfilingConfigurationsDialogTest(private val deviceLevel: Int) {
 
   private lateinit var configurations: CpuProfilingConfigurationsDialog.ProfilingConfigurable
   private lateinit var project: Project
   private lateinit var model: CpuProfilerConfigModel
   private lateinit var featureTracker: FeatureTracker
   private lateinit var myStage: CpuProfilerStage
-  private var deviceLevel = 0
 
   private val myTimer = FakeTimer()
   private val myIdeServices = FakeIdeProfilerServices()
@@ -79,7 +81,7 @@ class CpuProfilingConfigurationsDialogTest {
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     project = MockProjectEx(disposableRule.disposable)
     myStage = CpuProfilerStage(profilers)
-    model =  CpuProfilerConfigModel(profilers, myStage)
+    model = CpuProfilerConfigModel(profilers, myStage)
     model.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
     featureTracker = FakeFeatureTracker()
     myIdeServices.enableTaskBasedUx(true)
@@ -148,9 +150,9 @@ class CpuProfilingConfigurationsDialogTest {
   fun setupConfigWhenTaskBasedUxEnabled() {
     project = spy(MockProjectEx(disposableRule.disposable))
     configurations = getCpuProfilingDialogConfiguration(project)
-
-    // Contains task configurations SAMPLED_NATIVE, SAMPLED_JAVA, INSTRUMENTED_JAVA, NATIVE_ALLOCATIONS, ATRACE/PERFETTO
-    assertThat(configurations.configurationModel.size()).isEqualTo(5)
+    // Contains task configurations SAMPLED_NATIVE, SAMPLED_JAVA, INSTRUMENTED_JAVA, NATIVE_ALLOCATIONS
+    // ATRACE/PERFETTO will not be available since it doesn't have an editable fields
+    assertThat(configurations.configurationModel.size()).isEqualTo(4)
   }
 
   @Test
@@ -231,5 +233,13 @@ class CpuProfilingConfigurationsDialogTest {
     model.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
     featureTracker = FakeFeatureTracker()
     return CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
+  }
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters
+    fun data(): Collection<Int> {
+      return listOf(23, 27, 30)
+    }
   }
 }
