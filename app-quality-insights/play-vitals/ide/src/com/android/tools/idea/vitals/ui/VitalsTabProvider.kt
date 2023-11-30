@@ -24,7 +24,6 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
-import com.android.tools.idea.vitals.ui.icons.VitalsIcons
 import com.google.gct.login.GoogleLogin
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.icons.AllIcons
@@ -34,6 +33,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.StatusText
 import icons.StudioIcons
+import icons.StudioIllustrations
 import java.awt.Graphics
 import java.time.Clock
 import javax.swing.JPanel
@@ -113,7 +113,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
         }
         .apply {
           appendLine(
-            VitalsIcons.PLAY_CONSOLE_ICON,
+            StudioIllustrations.Common.PLAY_CONSOLE,
             "",
             SimpleTextAttributes.REGULAR_ATTRIBUTES,
             null

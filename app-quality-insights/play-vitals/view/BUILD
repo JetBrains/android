@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.app-quality-insights.play-vitals.view",
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.play-vitals.view.iml"],
-    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
