@@ -23,6 +23,7 @@ import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
 import com.android.utils.FileUtils
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -48,6 +49,39 @@ class MergeSymbolSource(private val sources:Collection<SymbolSource>): SymbolSou
   }
 }
 
+/** Allows us to manually add/remove symbol directories programmatically. */
+class DynamicSymbolSource: SymbolSource {
+  private val dirsByAbi = HashMap<String, HashSet<File>>()
+
+  fun add(cpuArch: String, path:File): DynamicSymbolSource {
+    dirsByAbi.computeIfAbsent(cpuArch) { HashSet() }.add(path)
+    return this
+  }
+
+  override fun getDirsFor(abi: Abi): Collection<File> {
+    return dirsByAbi.getOrDefault(abi.cpuArch, emptyList())
+  }
+}
+
+interface ModuleSymbolSourceContributor {
+  companion object {
+    val EP_NAME = ExtensionPointName<ModuleSymbolSourceContributor>("com.android.tools.nativeSymbolizer.moduleSymbolSourceContributor")
+  }
+
+  fun create(module: Module): SymbolSource
+}
+
+/** A SymbolSource to collect native symbols from a project. */
+class ProjectSymbolSource(project: Project): SymbolSource {
+  private val source = MergeSymbolSource(ModuleManager.getInstance(project).modules.flatMap { module ->
+    ModuleSymbolSourceContributor.EP_NAME.extensions.map { contributor -> contributor.create(module) }
+  })
+
+  override fun getDirsFor(abi: Abi): Collection<File> {
+    return source.getDirsFor(abi)
+  }
+}
+
 /** Gets symbol directories from an APK's debug directory. */
 class ApkSymbolSource(module: Module): SymbolSource {
   // Use a weak reference so that we don't keep holding onto the module after it has been disposed of. If the module has not been freed, we
@@ -66,6 +100,10 @@ class ApkSymbolSource(module: Module): SymbolSource {
     val folders = apkFacet.configuration.getDebugSymbolFolderPaths(listOf(abi))
     return folders.map { File(FileUtils.toSystemDependentPath(it)) }
   }
+}
+
+class ApkSymbolSourceContributor : ModuleSymbolSourceContributor {
+  override fun create(module: Module) = ApkSymbolSource(module)
 }
 
 class NdkSymbolSource(module: Module): SymbolSource {
@@ -90,6 +128,10 @@ class NdkSymbolSource(module: Module): SymbolSource {
   }
 }
 
+class NdkSymbolSourceContributor : ModuleSymbolSourceContributor {
+  override fun create(module: Module) = NdkSymbolSource(module)
+}
+
 /** Gets symbol directories from a module's Gradle file. */
 class JniSymbolSource(module: Module) : SymbolSource {
   // Use a weak reference so that we don't keep holding onto the module after it has been disposed of. If the module has not been freed, we
@@ -109,27 +151,6 @@ class JniSymbolSource(module: Module) : SymbolSource {
   }
 }
 
-/** Allows us to manually add/remove symbol directories programmatically. */
-class DynamicSymbolSource: SymbolSource {
-  private val dirsByAbi = HashMap<String, HashSet<File>>()
-
-  fun add(cpuArch: String, path:File): DynamicSymbolSource {
-    dirsByAbi.computeIfAbsent(cpuArch) { HashSet() }.add(path)
-    return this
-  }
-
-  override fun getDirsFor(abi: Abi): Collection<File> {
-    return dirsByAbi.getOrDefault(abi.cpuArch, emptyList())
-  }
-}
-
-/** A SymbolSource to collect native symbols from a project. */
-class ProjectSymbolSource(project: Project): SymbolSource {
-  private val source = MergeSymbolSource(ModuleManager.getInstance(project).modules.flatMap {
-    listOf(ApkSymbolSource(it), NdkSymbolSource(it), JniSymbolSource(it))
-  })
-
-  override fun getDirsFor(abi: Abi): Collection<File> {
-    return source.getDirsFor(abi)
-  }
+class JniSymbolSourceContributor : ModuleSymbolSourceContributor {
+  override fun create(module: Module) = JniSymbolSource(module)
 }
