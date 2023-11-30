@@ -15,27 +15,32 @@
  */
 package com.android.tools.idea.tests.gui.editors;
 
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.util.Ref;
 import com.intellij.ui.components.JBList;
+import java.awt.event.KeyEvent;
+import java.util.regex.Pattern;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JListItemFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.regex.Pattern;
 
 public class LiveTemplatesTestUtil {
 
   protected static String JAVA_FILE = "/app/src/main/java/google/simpleapplication/MyActivity.java";
   protected static String STATEMENT = "setContentView\\(R.layout.activity_my\\);";
 
-  protected static JListFixture clickOnCodeInsertLiveTemplate(@NotNull IdeFrameFixture ideFrame,
+  protected static JListFixture clickOnCodeInsertLiveTemplate(@NotNull GuiTestRule guiTest, @NotNull IdeFrameFixture ideFrame,
                                                               @NotNull EditorFixture editorFixture) {
-    editorFixture.moveBetween("", "setContentView(R.layout.activity_my);");
+    editorFixture.waitForFileToActivate();
+    ideFrame.requestFocusIfLost();
+    editorFixture.moveBetween("", "setContentView(R.layout.activity_my);")
+      .enterText("\n");
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
 
-    ideFrame.invokeMenuPath("Code", "Insert Live Template...");
+    ideFrame.waitAndInvokeMenuPath("Code", "Insert Live Template...");
 
     Ref<JBList> out = new Ref<>();
     Wait.seconds(10).expecting("Live Templates list to show.").until(() -> {
@@ -54,10 +59,10 @@ public class LiveTemplatesTestUtil {
     return listFixture;
   }
 
-  protected static void doubleTapToInsertLiveTemplate(@NotNull IdeFrameFixture ideFrame,
+  protected static void doubleTapToInsertLiveTemplate(@NotNull GuiTestRule guiTest,  @NotNull IdeFrameFixture ideFrame,
                                                       @NotNull EditorFixture editorFixture,
                                                       String itemText) {
-    JListFixture listFixture = clickOnCodeInsertLiveTemplate(ideFrame, editorFixture);
+    JListFixture listFixture = clickOnCodeInsertLiveTemplate(guiTest, ideFrame, editorFixture);
     JListItemFixture jListItemFixture = listFixture.item(Pattern.compile(".*" + itemText + ".*", Pattern.DOTALL));
     jListItemFixture.doubleClick();
   }

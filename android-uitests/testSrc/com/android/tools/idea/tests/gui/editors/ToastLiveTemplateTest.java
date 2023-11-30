@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 @RunWith(GuiTestRemoteRunner.class)
 public class ToastLiveTemplateTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private static String TOAST = ".*Toast\\.makeText\\(this, \"\",.*Toast\\.LENGTH_SHORT\\)\\.show\\(\\);" + LiveTemplatesTestUtil.STATEMENT + ".*";
   private static final Pattern TOAST_PATTERN = Pattern.compile(TOAST, Pattern.DOTALL);
@@ -61,7 +61,7 @@ public class ToastLiveTemplateTest {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(120));
     EditorFixture editorFixture = ideFrame.getEditor().open(LiveTemplatesTestUtil.JAVA_FILE);
 
-    LiveTemplatesTestUtil.clickOnCodeInsertLiveTemplate(ideFrame, editorFixture);
+    LiveTemplatesTestUtil.clickOnCodeInsertLiveTemplate(guiTest, ideFrame, editorFixture);
     guiTest.robot().enterText("Toast\n");
     Wait.seconds(20).expecting("Toast statement to show in code.")
       .until(() -> new PatternTextMatcher(TOAST_PATTERN).isMatching(editorFixture.getCurrentFileContents()));

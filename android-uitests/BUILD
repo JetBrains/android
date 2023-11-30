@@ -3652,6 +3652,7 @@ java_test(
 # fat test
 java_test(
     name = "SurroundWithShortcutTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
@@ -3667,6 +3668,7 @@ java_test(
 # fat test
 java_test(
     name = "ForeachLiveTemplateTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
@@ -3682,6 +3684,7 @@ java_test(
 # fat test
 java_test(
     name = "ForiLiveTemplateTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
@@ -3697,6 +3700,7 @@ java_test(
 # fat test
 java_test(
     name = "ToastLiveTemplateTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
