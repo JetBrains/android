@@ -29,6 +29,8 @@ import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionMenu;
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.TransactionGuardImpl;
 import com.intellij.ui.icons.CachedImageIcon;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -441,7 +443,8 @@ public class StudioInteractionService {
         Optional<Component> component = findComponentFromMatchers(matchers);
         if (component.isPresent() && filter.apply(component.get())) {
           foundComponent.set(true);
-          exec.accept(component.get());
+          Runnable execComponent = () -> exec.accept(component.get());
+          ((TransactionGuardImpl)TransactionGuard.getInstance()).performUserActivity(execComponent);
         }
       });
 
