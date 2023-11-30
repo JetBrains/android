@@ -106,15 +106,6 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
   protected abstract fun checkDeviceAndProcess(device: Common.Device, process: Common.Process): Boolean
 
   /**
-   * Returns whether the task has transitioned from an ongoing to terminated state. This termination condition is arbitrary and thus left
-   * to the task to implement/define. This method is repeatedly called on a timer to detect the aforementioned state transition. This state
-   * transitions determines whether to end the task's corresponding session.
-   */
-  abstract fun isTaskNewlyFinished(taskType: ProfilerTaskType,
-                                   artifacts: List<SessionArtifact<*>>,
-                                   sessionIdToProfilerTaskType: Map<Long, ProfilerTaskType>): Boolean
-
-  /**
    * Unified error handler for all task handlers.
    */
   fun handleError(errorMessage: String) {

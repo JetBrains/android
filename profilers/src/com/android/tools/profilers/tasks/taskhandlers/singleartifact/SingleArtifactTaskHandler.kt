@@ -113,34 +113,4 @@ abstract class SingleArtifactTaskHandler<T : InterimStage>(sessionsManager: Sess
    * Returns whether the task supports a given session artifact (backing data construct).
    */
   abstract fun supportsArtifact(artifact: SessionArtifact<*>?): Boolean
-
-  override fun isTaskNewlyFinished(taskType: ProfilerTaskType,
-                                   artifacts: List<SessionArtifact<*>>,
-                                   sessionIdToProfilerTaskType: Map<Long, ProfilerTaskType>): Boolean {
-    // For single artifact task handlers, the termination condition of the task is when a single artifact within the corresponding ongoing
-    // session is no longer ongoing. The ongoing session's task type should also match the ongoing task type.
-
-    // If the artifacts are empty they might not have
-    if (artifacts.isEmpty() || taskType == ProfilerTaskType.UNSPECIFIED) {
-      return false
-    }
-
-    // Check if the artifact was part of the current/ongoing session/task and that the artifact is non-ongoing.
-    val terminatedArtifactsWithAliveSessions = artifacts.filter { !it.isOngoing && it.session.endTimestamp == Long.MAX_VALUE }
-
-    // Termination condition is when there is exactly one non-ongoing/terminated child artifact of the session.
-    if (terminatedArtifactsWithAliveSessions.isEmpty()) {
-      return false
-    }
-    else if (terminatedArtifactsWithAliveSessions.size > 1) {
-      throw IllegalStateException(
-        "There cannot be more than one terminated artifact under the currently alive session for a SingleArtifactTaskHandler.")
-    }
-
-    assert(terminatedArtifactsWithAliveSessions.size == 1)
-    val taskArtifact = terminatedArtifactsWithAliveSessions.first()
-
-    // Check if the artifact matches the expected task type.
-    return sessionIdToProfilerTaskType[taskArtifact.session.sessionId] == taskType
-  }
 }
