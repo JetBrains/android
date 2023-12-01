@@ -59,6 +59,7 @@ class SessionStatisticsTest {
     assertThat(result.attach.isEmbeddedLayoutInspector).isTrue()
     assertThat(result.attach.debuggerAttached).isFalse()
     assertThat(result.attach.debuggerPausedDuringAttach).isFalse()
+    assertThat(result.attach.attachDurationMs).isEqualTo(0)
   }
 
   @Test
