@@ -52,7 +52,7 @@ import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
 /**
  * The includes node that contains all non-project native headers in a module. This is the top node that is directly under the `cpp` node.
  *
- * Comparing with [IncludesViewNode], this node
+ * This node class, compared with its predecessor (now removed):
  * - is populated with data from [NativeWorkspaceService] instead of [NdkModuleModel], which gets the information from AGP
  * - is per module rather than per artifact
  */
