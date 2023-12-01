@@ -75,4 +75,5 @@
   <xi:include href="/META-INF/google-login.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/samples-browser.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/native-symbolizer.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/native-symbolizer-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

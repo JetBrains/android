@@ -17,8 +17,6 @@ package com.android.tools.nativeSymbolizer
 
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.apk.ApkFacet
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
@@ -108,22 +106,6 @@ class ApkSymbolSource(module: Module): ModuleSymbolSource(module) {
 
 class ApkSymbolSourceContributor : ModuleSymbolSourceContributor {
   override fun create(module: Module) = ApkSymbolSource(module)
-}
-
-class NdkSymbolSource(module: Module): ModuleSymbolSource(module) {
-  override fun getDirsFor(abi: Abi, module: Module): Collection<File> {
-    val ndkFacet = NdkFacet.getInstance(module) ?: return emptySet()
-    val ndkModuleModel = NdkModuleModel.get(module) ?: return emptySet()
-    val selectedAbi = ndkFacet.selectedVariantAbi ?: return emptySet()
-
-    return ndkModuleModel.symbolFolders
-        .filter { it.key.abi == abi.toString() && it.key.variant == selectedAbi.variant}
-        .flatMapTo(mutableSetOf()) { it.value }
-  }
-}
-
-class NdkSymbolSourceContributor : ModuleSymbolSourceContributor {
-  override fun create(module: Module) = NdkSymbolSource(module)
 }
 
 /** Gets symbol directories from a module's Gradle file. */

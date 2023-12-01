@@ -239,6 +239,7 @@ studio_plugin(
             "//tools/adt/idea/wizard-model:intellij.android.wizard.model",
             "//tools/adt/idea/wizard:intellij.android.wizard",
             "//tools/adt/idea/native-symbolizer:native-symbolizer",
+            "//tools/adt/idea/native-symbolizer/gradle:native-symbolizer.gradle",
             "//tools/adt/idea/whats-new-assistant:whats-new-assistant",
             "//tools/base/dynamic-layout-inspector/common:studio.dynamic-layout-inspector.common",
             "//tools/adt/idea/app-inspection/inspectors/network/ide:app-inspection.inspectors.network.ide",

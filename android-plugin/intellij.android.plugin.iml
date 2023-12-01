@@ -64,5 +64,6 @@
     <orderEntry type="module" module-name="samples-browser" />
     <orderEntry type="module" module-name="intellij.android.nav.safeargs.common.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="native-symbolizer" />
+    <orderEntry type="module" module-name="native-symbolizer.gradle" scope="RUNTIME" />
   </component>
 </module>

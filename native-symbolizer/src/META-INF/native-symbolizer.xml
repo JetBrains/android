@@ -21,6 +21,5 @@
   <extensions defaultExtensionNs="com.android.tools.nativeSymbolizer">
     <moduleSymbolSourceContributor implementation="com.android.tools.nativeSymbolizer.ApkSymbolSourceContributor"/>
     <moduleSymbolSourceContributor implementation="com.android.tools.nativeSymbolizer.JniSymbolSourceContributor"/>
-    <moduleSymbolSourceContributor implementation="com.android.tools.nativeSymbolizer.NdkSymbolSourceContributor"/>
   </extensions>
 </idea-plugin>
