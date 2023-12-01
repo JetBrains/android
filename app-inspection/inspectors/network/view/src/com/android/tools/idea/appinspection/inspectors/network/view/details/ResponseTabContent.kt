@@ -40,7 +40,9 @@ internal class ResponseTabContent : TabContent() {
       return
     }
     val headersComponent = dataComponentFactory.createHeaderComponent(RESPONSE)
-    panel.add(createHideablePanel(SECTION_TITLE_HEADERS, headersComponent, null))
+    if (headersComponent != null) {
+      panel.add(createHideablePanel(SECTION_TITLE_HEADERS, headersComponent, null))
+    }
     val trailersComponent = dataComponentFactory.createTrailersComponent()
     if (trailersComponent != null) {
       panel.add(createHideablePanel(SECTION_TITLE_TRAILERS, trailersComponent, null))

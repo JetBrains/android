@@ -119,7 +119,7 @@ internal class GrpcDataComponentFactory(
   override fun createTrailersComponent(): JComponent? {
     return when {
       grpcData.responseTrailers.isEmpty() -> null
-      else -> createStyledMapComponent(grpcData.responseTrailers)
+      else -> createHeaderComponent(grpcData.responseTrailers)
     }
   }
 

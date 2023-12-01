@@ -41,7 +41,9 @@ internal class RequestTabContent : TabContent() {
       return
     }
     val headersComponent = dataComponentFactory.createHeaderComponent(REQUEST)
-    contentPanel.add(createHideablePanel(HEADERS_TITLE, headersComponent, null))
+    if (headersComponent != null) {
+      contentPanel.add(createHideablePanel(HEADERS_TITLE, headersComponent, null))
+    }
     val bodyComponent = dataComponentFactory.createBodyComponent(REQUEST)
     if (bodyComponent != null) {
       contentPanel.add(bodyComponent)

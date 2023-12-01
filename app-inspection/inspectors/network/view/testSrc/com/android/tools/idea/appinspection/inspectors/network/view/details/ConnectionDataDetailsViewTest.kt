@@ -57,6 +57,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextArea
+import javax.swing.JTextPane
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -98,6 +99,7 @@ private val TEST_HEADERS =
     "border" to listOf("border-value"),
     "apple" to listOf("apple-value"),
     "123" to listOf("numeric-value"),
+    "multiple-values" to listOf("value1", "value2"),
   )
 
 /** Will throw an exception if no match is found. */
@@ -315,25 +317,25 @@ class ConnectionDataDetailsViewTest {
   }
 
   @Test
-  fun headerSectionIsSorted() {
+  fun headerSectionRendering() {
     val data: HttpData = DEFAULT_DATA.copy(requestHeaders = TEST_HEADERS)
     detailsView.setConnectionData(data)
     val tabContent = detailsView.findTab(RequestTabContent::class.java)!!
-    val labels =
-      allDescendantsWithType(tabContent.component, NoWrapBoldLabel::class.java).map { it.text }
-    val values =
-      allDescendantsWithType(tabContent.component, WrappedTextArea::class.java).map { it.text }
-    val labelsWithValues = labels.zip(values) { label, value -> "$label $value" }
 
-    // Add a colon (":") to all labels since it is added to the label in the UI.
-    assertUiContainsLabelAndValue(labelsWithValues[0], "123:", "numeric-value")
-    assertUiContainsLabelAndValue(labelsWithValues[1], "apple:", "apple-value")
-    assertUiContainsLabelAndValue(labelsWithValues[2], "border:", "border-value")
-    assertUiContainsLabelAndValue(labelsWithValues[3], "car:", "car-value")
-    assertThat(labels.indexOf("123:")).isGreaterThan(-1)
-    assertThat(labels.indexOf("123:")).isLessThan(labels.indexOf("apple:"))
-    assertThat(labels.indexOf("apple:")).isLessThan(labels.indexOf("border:"))
-    assertThat(labels.indexOf("border:")).isLessThan(labels.indexOf("car:"))
+    val headersPanel = firstDescendantWithType(tabContent.component, HeadersPanel::class.java)
+    val headersText = firstDescendantWithType(headersPanel, JTextPane::class.java).text
+
+    assertThat(headersText.lines())
+      .containsExactly(
+        "123:                numeric-value",
+        "apple:              apple-value",
+        "border:             border-value",
+        "car:                car-value",
+        "multiple-values:    value1",
+        "                    value2",
+        "",
+      )
+      .inOrder()
   }
 
   private fun assertUiContainsLabelAndValue(uiText: String, label: String, value: String) {

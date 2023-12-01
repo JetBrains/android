@@ -16,6 +16,8 @@
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
+import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.REQUEST
+import com.android.tools.idea.appinspection.inspectors.network.view.details.DataComponentFactory.ConnectionType.RESPONSE
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import javax.swing.JComponent
 
@@ -36,9 +38,7 @@ internal abstract class DataComponentFactory(protected val data: ConnectionData)
    * Creates a component which displays the current [ConnectionData]'s headers as a list of
    * key/value pairs.
    */
-  fun createHeaderComponent(type: ConnectionType): JComponent {
-    return createStyledMapComponent(getHeaders(type))
-  }
+  fun createHeaderComponent(type: ConnectionType) = createHeaderComponent(getHeaders(type))
 
   /**
    * Creates a component which displays the current [ConnectionData]'s trailers as a list of
@@ -52,9 +52,16 @@ internal abstract class DataComponentFactory(protected val data: ConnectionData)
 
   private fun getHeaders(type: ConnectionType) =
     when (type) {
-      ConnectionType.REQUEST -> data.requestHeaders
-      ConnectionType.RESPONSE -> data.responseHeaders
+      REQUEST -> data.requestHeaders
+      RESPONSE -> data.responseHeaders
     }
 
   abstract fun createBodyComponent(type: ConnectionType): JComponent?
+
+  protected fun createHeaderComponent(map: Map<String, List<String>>): JComponent? {
+    if (map.isEmpty()) {
+      return null
+    }
+    return HeadersPanel(map)
+  }
 }
