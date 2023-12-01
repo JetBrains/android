@@ -216,7 +216,7 @@ internal class DeviceClient(
         catch (e: IncorrectOperationException) {
           return // Already disposed.
         }
-        videoDecoder = VideoDecoder(it. videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker)
+        videoDecoder = VideoDecoder(it.videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker)
             .apply { start(startVideoStream) }
       }
     }
