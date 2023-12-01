@@ -97,7 +97,7 @@ sealed class DaggerElement {
    * applicable. This includes comparing [PsiType]s, although the exact comparison depends on the
    * relationship between this [DaggerElement] and the candidate.
    */
-  abstract fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean
+  protected abstract fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean
 
   /**
    * Gets the index keys associated with the given [PsiType], using the project and project scope
