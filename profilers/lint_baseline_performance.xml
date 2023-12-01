@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
+
+    <issue
+        id="SuspiciousIndentation"
+        message="Suspicious indentation: This is indented but is not continuing the previous expression (`val samples = ArrayL`...)"
+        errorLine1="      samples.add(MemoryProfiler.MemoryData.GcStatsSample.newBuilder().setStartTime(timestamp).setEndTime(timestamp - 1).build())"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/profilers/performance/MemoryGenerator.kt"
+            line="43"
+            column="7"/>
+        <location
+            file="testSrc/com/android/tools/profilers/performance/MemoryGenerator.kt"
+            line="42"
+            column="5"
+            message="Previous statement here"/>
+    </issue>
+
+</issues>

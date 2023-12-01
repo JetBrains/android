@@ -56,6 +56,7 @@ kotlin_library(
         "src/**/*.java",
         "src/**/*.kt",
     ]),
+    lint_baseline = "lint_baseline_rendering.xml",
     resources = glob(["resources/**"]),
     visibility = ["//visibility:public"],
     deps = [
@@ -84,6 +85,7 @@ kotlin_test(
         "//tools/adt/idea/rendering/testData",
     ],
     jvm_flags = ["-Dtest.suite.jar=tools.rendering.tests.jar"],
+    lint_baseline = "lint_baseline_tests.xml",
     test_class = "com.android.testutils.JarTestSuite",
     deps = [
         ":tools.rendering",

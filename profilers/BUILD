@@ -63,6 +63,7 @@ kotlin_test(
         "testSrc/com/android/tools/profilers/performance/**/*.java",
     ]),
     jvm_flags = ["-Dtest.suite.jar=intellij.android.profilers.performance.jar"],
+    lint_baseline = "lint_baseline_performance.xml",
     test_class = "com.android.testutils.JarTestSuite",
     deps = [
         ":intellij.android.profilers",

@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="30"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="34"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="38"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="42"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="46"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="50"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="54"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="60"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="64"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="68"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="72"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="76"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="80"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="84"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="88"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="92"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="96"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="100"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="104"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="108"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="112"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="116"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="120"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="StopShip"
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;Not yet implemented&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="124"
+            column="7"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
+        errorLine1="  private val isWindows = System.getProperty(&quot;os.name&quot;).toLowerCase().startsWith(&quot;win&quot;)"
+        errorLine2="                                                        ~~~~~~~~~~~">
+        <location
+            file="testSrc/com/android/tools/sdk/EmbeddedRenderTargetTest.kt"
+            line="128"
+            column="57"/>
+    </issue>
+
+</issues>

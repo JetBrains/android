@@ -109,6 +109,7 @@ kotlin_test(
         "//tools/adt/idea/profilers:test_data",
     ],
     jvm_flags = ["-Dtest.suite.jar=intellij.android.profilersAndroid.performance.captureDetails.jar"],
+    lint_baseline = "lint_baseline_captureDetails.xml",
     tags = [
         "no_test_mac",  # b/168793471
     ],
