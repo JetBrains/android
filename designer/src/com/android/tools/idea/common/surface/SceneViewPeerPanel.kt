@@ -103,9 +103,9 @@ class SceneViewPeerPanel(
   private val labelPanel: LabelPanel,
   private val sceneViewStatusIconAction: AnAction?,
   private val sceneViewToolbarActions: List<AnAction>,
-  private val sceneViewBottomBar: JComponent?,
-  private val sceneViewLeftBar: JComponent?,
-  private val sceneViewRightBar: JComponent?,
+  sceneViewBottomBar: JComponent?,
+  sceneViewLeftBar: JComponent?,
+  sceneViewRightBar: JComponent?,
   private val sceneViewErrorsPanel: JComponent?,
 ) : JPanel(), PositionablePanel, DataProvider {
 
