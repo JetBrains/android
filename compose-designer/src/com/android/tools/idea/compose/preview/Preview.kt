@@ -652,11 +652,11 @@ class ComposePreviewRepresentation(
       IssuePanelService.getInstance(project)
         .stopUiCheck(it.instanceId, surface, postIssueUpdateListenerForUiCheck)
     }
+    uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
     withContext(uiThread) {
       surface.layeredPane.remove(emptyUiCheckPanel)
       surface.updateSceneViewVisibilities { true }
     }
-    uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
   }
 
   private fun onInteractivePreviewStop() {
@@ -794,20 +794,27 @@ class ComposePreviewRepresentation(
 
         if (PreviewModeManager.areModesOfDifferentType(lastMode, it)) {
           lastMode?.let { last -> onExit(last) }
+          // The layout update needs to happen before onEnter, so that any zooming performed
+          // in onEnter uses the correct preview layout when measuring scale.
+          updateLayoutManager(it)
           onEnter(it)
+        } else {
+          updateLayoutManager(it)
         }
         lastMode = it
-
-        withContext(uiThread) {
-          val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
-          layoutManager.setLayoutManager(
-            it.layoutOption.layoutManager,
-            it.layoutOption.sceneViewAlignment
-          )
-        }
       }
     }
     updateGalleryMode()
+  }
+
+  private suspend fun updateLayoutManager(mode: PreviewMode) {
+    withContext(uiThread) {
+      val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
+      layoutManager.setLayoutManager(
+        mode.layoutOption.layoutManager,
+        mode.layoutOption.sceneViewAlignment
+      )
+    }
   }
 
   override val component: JComponent
