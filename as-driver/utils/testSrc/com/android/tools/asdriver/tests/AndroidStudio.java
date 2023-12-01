@@ -505,6 +505,12 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
+  public String threadDump() {
+    ASDriver.ThreadDumpRequest rq = ASDriver.ThreadDumpRequest.newBuilder().build();
+    ASDriver.ThreadDumpResponse res = androidStudio.getThreadDump(rq);
+    return res.getThreadDump();
+  }
+
   private static String formatErrorMessage(String errorMessage) {
     if (StringUtil.isEmpty(errorMessage)) {
       return "Check the Android Studio stderr log for the cause. See go/e2e-find-log-files for more info.";

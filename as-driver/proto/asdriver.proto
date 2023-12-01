@@ -30,6 +30,8 @@ service AndroidStudio {
   rpc TakeBleakSnapshot(TakeBleakSnapshotRequest) returns (TakeBleakSnapshotResponse) {}
 
   rpc StartCapturingScreenshots(StartCapturingScreenshotsRequest) returns (StartCapturingScreenshotsResponse) {}
+
+  rpc GetThreadDump(ThreadDumpRequest) returns (ThreadDumpResponse) {}
 }
 
 message GetVersionRequest {}
@@ -246,4 +248,10 @@ message StartCapturingScreenshotsResponse {
   }
   StartCapturingScreenshotsResponse.Result result = 1;
   string error_message = 2;
+}
+
+message ThreadDumpRequest {}
+
+message ThreadDumpResponse {
+  string thread_dump = 1;
 }
