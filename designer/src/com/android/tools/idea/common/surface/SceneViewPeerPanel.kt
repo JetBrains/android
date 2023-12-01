@@ -133,9 +133,6 @@ class SceneViewPeerPanel(
       override val y: Int
         get() = sceneView.y
 
-      override val isVisible: Boolean
-        get() = sceneView.isVisible
-
       override fun getMargin(scale: Double): Insets {
         val contentSize = getContentSize(null).scaleBy(scale)
         val sceneViewMargin =

@@ -63,8 +63,8 @@ class GroupedListSurfaceLayoutManager(
     }
     // Use binary search to find the proper zoom-to-fit value.
     // Find the scale to put all the previews into the screen without any margin and padding.
-    val totalRawHeight = content.filter { it.isVisible }.sumOf { it.contentSize.height }
-    val maxRawWidth = content.filter { it.isVisible }.maxOf { it.contentSize.width }
+    val totalRawHeight = content.sumOf { it.contentSize.height }
+    val maxRawWidth = content.maxOf { it.contentSize.width }
     // The zoom-to-fit scale can not be larger than this scale, since it may need some margins
     // and/or paddings.
     val upperBound =
@@ -120,7 +120,7 @@ class GroupedListSurfaceLayoutManager(
   ): Dimension {
     val dim = dimension ?: Dimension()
 
-    val verticalList = transform(content).flatMap { it.content }.filter { it.isVisible }
+    val verticalList = transform(content).flatMap { it.content }
 
     if (verticalList.isEmpty()) {
       dim.setSize(0, 0)
@@ -152,7 +152,7 @@ class GroupedListSurfaceLayoutManager(
     availableHeight: Int,
     keepPreviousPadding: Boolean
   ): Map<PositionableContent, Point> {
-    val verticalList = transform(content).flatMap { it.content }.filter { it.isVisible }
+    val verticalList = transform(content).flatMap { it.content }
     if (verticalList.isEmpty()) {
       return emptyMap()
     }
@@ -189,7 +189,6 @@ class GroupedListSurfaceLayoutManager(
       nextY += heightMap[view]!!
     }
 
-    content.filterNot { it.isVisible }.forEach { positionMap[it] = INVISIBLE_POINT }
     return positionMap
   }
 

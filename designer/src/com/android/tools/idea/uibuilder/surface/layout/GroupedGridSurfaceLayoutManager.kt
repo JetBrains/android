@@ -231,14 +231,14 @@ class GroupedGridSurfaceLayoutManager(
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate widthFunc: PositionableContent.() -> Int
   ): List<List<PositionableContent>> {
-    val visibleContent = group.content.filter { it.isVisible }
+    val content = group.content
     val gridList = mutableListOf<List<PositionableContent>>()
     // Add header if it exists and visible.
-    group.header?.takeIf { it.isVisible }?.let { gridList.add(listOf(it)) }
-    if (visibleContent.isEmpty()) {
+    group.header?.let { gridList.add(listOf(it)) }
+    if (content.isEmpty()) {
       return gridList
     }
-    val firstView = visibleContent.first()
+    val firstView = content.first()
     val firstPreviewFramePadding = previewFramePaddingProvider(scaleFunc(firstView))
     var nextX =
       firstPreviewFramePadding +
@@ -247,7 +247,7 @@ class GroupedGridSurfaceLayoutManager(
         firstPreviewFramePadding
 
     var columnList = mutableListOf(firstView)
-    for (view in visibleContent.drop(1)) {
+    for (view in content.drop(1)) {
       val framePadding = previewFramePaddingProvider(scaleFunc(view))
       val nextViewWidth =
         framePadding + view.widthFunc() + view.getMargin(view.scaleFunc()).horizontal + framePadding
@@ -274,14 +274,12 @@ class GroupedGridSurfaceLayoutManager(
       return emptyMap()
     }
 
-    val visibleContents = content.filter { it.isVisible }
-    if (visibleContents.size == 1) {
-      val singleContent = visibleContents.single()
+    if (content.size == 1) {
+      val singleContent = content.single()
       // When there is only one visible preview, centralize it as a special case.
       val point = getSingleContentPosition(singleContent, availableWidth, availableHeight)
 
-      return mapOf(singleContent to point) +
-        content.filterNot { it.isVisible }.associateWith { INVISIBLE_POINT }
+      return mapOf(singleContent to point)
     }
 
     val groupedViews = transform(content)
@@ -300,9 +298,6 @@ class GroupedGridSurfaceLayoutManager(
       var maxBottomInRow = 0
       for (row in grid) {
         for (view in row) {
-          if (!view.isVisible) {
-            continue
-          }
           val framePadding = previewFramePaddingProvider(view.scale)
           positionMap[view] = getContentPosition(view, nextX + framePadding, nextY + framePadding)
           nextX +=
@@ -324,7 +319,7 @@ class GroupedGridSurfaceLayoutManager(
       nextGroupY = nextY
     }
 
-    return positionMap + content.filterNot { it.isVisible }.associateWith { INVISIBLE_POINT }
+    return positionMap
   }
 
   @SwingCoordinate

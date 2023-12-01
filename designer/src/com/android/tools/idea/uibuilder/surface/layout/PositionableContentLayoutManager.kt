@@ -23,6 +23,8 @@ import java.awt.Dimension
 import java.awt.LayoutManager
 import java.awt.Point
 
+val INVISIBLE_POINT = Point(Integer.MIN_VALUE, Integer.MIN_VALUE)
+
 /**
  * [LayoutManager] responsible for positioning and measuring all the [PositionablePanel] in a
  * [DesignSurface]. [PositionablePanel] is accessed via [PositionableContent].
@@ -38,18 +40,25 @@ abstract class PositionableContentLayoutManager : LayoutManager {
    */
   abstract fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension)
 
-  private fun Container.findPositionablePanels(): Collection<PositionablePanel> =
-    components.filterIsInstance<PositionablePanel>()
+  private fun Container.findVisiblePositionablePanels(): Collection<PositionablePanel> =
+    components.filterIsInstance<PositionablePanel>().filter { it.isVisible() }
 
   private val Container.availableSize: Dimension
     get() = Dimension(size.width - insets.horizontal, size.height - insets.vertical)
 
   final override fun layoutContainer(parent: Container) {
-    val panels = parent.findPositionablePanels()
+    val panels = parent.findVisiblePositionablePanels()
 
     // We lay out the [SceneView]s first, so we have the actual sizes available for setting the
     // bounds of the Swing components.
     layoutContainer(panels.map { it.positionableAdapter }, parent.availableSize)
+
+    // We set invisible panels to have the most negative coordinates possible, so that their
+    // entire content is guaranteed to be outside of the user visible area.
+    parent.components
+      .filterIsInstance<PositionablePanel>()
+      .filterNot { it.isVisible() }
+      .forEach { it.positionableAdapter.setLocation(INVISIBLE_POINT.x, INVISIBLE_POINT.y) }
   }
 
   open fun minimumLayoutSize(
@@ -59,7 +68,7 @@ abstract class PositionableContentLayoutManager : LayoutManager {
 
   final override fun minimumLayoutSize(parent: Container): Dimension =
     minimumLayoutSize(
-      parent.findPositionablePanels().map { it.positionableAdapter },
+      parent.findVisiblePositionablePanels().map { it.positionableAdapter },
       parent.availableSize
     )
 
@@ -70,7 +79,7 @@ abstract class PositionableContentLayoutManager : LayoutManager {
 
   final override fun preferredLayoutSize(parent: Container): Dimension =
     preferredLayoutSize(
-      parent.findPositionablePanels().map { it.positionableAdapter },
+      parent.findVisiblePositionablePanels().map { it.positionableAdapter },
       parent.availableSize
     )
 

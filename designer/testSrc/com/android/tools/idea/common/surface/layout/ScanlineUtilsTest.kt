@@ -34,12 +34,8 @@ class TestPositionableContent(
 ) : PositionableContent {
 
   private val dimension = Dimension(width, height)
-  private var _isVisible = true
 
   override val organizationGroup: String? = null
-
-  override val isVisible: Boolean
-    get() = _isVisible
 
   override fun setLocation(x: Int, y: Int) {
     this.x = x
@@ -49,10 +45,6 @@ class TestPositionableContent(
   override fun getMargin(scale: Double): Insets = marginFunc(scale)
 
   override fun getContentSize(dimension: Dimension?): Dimension = Dimension(this.dimension)
-
-  fun setVisible(isVisible: Boolean) {
-    _isVisible = isVisible
-  }
 }
 
 class ScanlineUtilsTest {

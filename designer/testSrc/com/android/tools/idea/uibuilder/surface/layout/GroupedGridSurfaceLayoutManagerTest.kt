@@ -688,4 +688,22 @@ class GroupedGridSurfaceLayoutManagerTest {
     LayoutTestCase.assertEquals(zoomToFitScale1, zoomToFitScale2)
     LayoutTestCase.assertEquals(zoomToFitScale1, zoomToFitScale3)
   }
+
+  @Test
+  fun testEmptyContent() {
+    val manager =
+      GroupedGridSurfaceLayoutManager(0, 0, { (it * 20).toInt() }) { contents ->
+        listOf(PositionableGroup(contents.toList()))
+      }
+    val content = emptyList<PositionableContent>()
+    val width = 1000
+    val height = 300
+
+    run {
+      val fitScale = manager.getFitIntoScale(content, width, height)
+      assertEquals(1.0, fitScale, 0.001)
+      val size = manager.getRequiredSize(content, width, height, null)
+      assertEquals(Dimension(0, 0), size)
+    }
+  }
 }

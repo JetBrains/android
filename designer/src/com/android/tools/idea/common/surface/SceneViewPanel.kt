@@ -70,10 +70,14 @@ internal class SceneViewPanel(
       }
     }
 
-  /** Returns the components of this panel that are [PositionableContent] */
+  /** Returns the components of this panel that are visible [PositionableContent] */
   val positionableContent: Collection<PositionableContent>
     get() =
-      components.filterIsInstance<SceneViewPeerPanel>().map { it.positionableAdapter }.toList()
+      components
+        .filterIsInstance<SceneViewPeerPanel>()
+        .filter { it.isVisible }
+        .map { it.positionableAdapter }
+        .toList()
 
   /** Remove any components associated to the given model. */
   fun removeSceneViewForModel(modelToRemove: NlModel) {

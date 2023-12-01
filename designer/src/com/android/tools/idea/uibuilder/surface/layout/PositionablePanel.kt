@@ -19,4 +19,6 @@ package com.android.tools.idea.uibuilder.surface.layout
 interface PositionablePanel {
   /** Adapter to information about [PositionablePanel]. */
   val positionableAdapter: PositionableContent
+
+  fun isVisible(): Boolean
 }

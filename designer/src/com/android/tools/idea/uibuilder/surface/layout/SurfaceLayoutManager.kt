@@ -23,8 +23,6 @@ import java.awt.Dimension
 import java.awt.Insets
 import java.awt.Point
 
-val INVISIBLE_POINT = Point(Integer.MIN_VALUE, Integer.MIN_VALUE)
-
 /** Sorts the [Collection<PositionableContent>] by its x and y coordinates. */
 internal fun Collection<PositionableContent>.sortByPosition() =
   sortedWith(compareBy({ it.y }, { it.x }))
@@ -46,8 +44,6 @@ interface PositionableContent {
   @get:SwingCoordinate val x: Int
 
   @get:SwingCoordinate val y: Int
-
-  val isVisible: Boolean
 
   /**
    * Returns the current size of the view content, excluding margins. This doesn't account the
