@@ -473,6 +473,11 @@ class TemplateDiffTest(private val testMode: TestMode) {
   }
 
   @Test
+  fun testNewEmptyComposeForTvActivity() {
+    checkCreateTemplate("Empty Activity", withSpecificKotlin, formFactor = FormFactor.Tv)
+  }
+
+  @Test
   fun testNewNativeCppActivity() {
     checkCreateTemplate("Native C++")
   }

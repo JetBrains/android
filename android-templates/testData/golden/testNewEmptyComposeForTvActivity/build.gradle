@@ -1,0 +1,15 @@
+buildscript {
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:+'
+        classpath libs.kotlin.gradle.plugin
+    }
+}
+
+allprojects {
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
+}
