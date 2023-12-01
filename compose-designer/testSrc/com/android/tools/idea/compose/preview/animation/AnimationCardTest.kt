@@ -67,6 +67,7 @@ class AnimationCardTest {
         card.state.addExpandedListener { expandCalls++ }
         ui.clickOn(it)
         ui.updateToolbars()
+        ui.layoutAndDispatchEvents()
         assertEquals(1, expandCalls)
       }
       // Transition name label.
@@ -81,15 +82,16 @@ class AnimationCardTest {
       }
 
       // Freeze button.
-      findFreezeButton(card).also {
+      run {
+        var freezeButton = findFreezeButton(card)
         // Button is here and visible.
-        assertTrue(it.isVisible)
-        assertTrue(it.isEnabled)
-        TestUtils.assertBigger(minimumSize, it.size)
+        assertTrue(freezeButton.isVisible)
+        assertTrue(freezeButton.isEnabled)
+        TestUtils.assertBigger(minimumSize, freezeButton.size)
         // After clicking button callback is called.
         var freezeCalls = 0
         card.state.addFreezeListener { freezeCalls++ }
-        ui.clickOn(it)
+        ui.clickOn(freezeButton)
         ui.updateToolbars()
         assertEquals(1, freezeCalls)
         card.state.frozen = false
@@ -97,8 +99,10 @@ class AnimationCardTest {
         ui.updateToolbars()
         assertEquals(2, freezeCalls)
         // Freeze and unfreeze
-        ui.clickOn(it)
-        ui.clickOn(it)
+        freezeButton = findFreezeButton(card)
+        ui.clickOn(freezeButton)
+        freezeButton = findFreezeButton(card)
+        ui.clickOn(freezeButton)
         assertEquals(4, freezeCalls)
       }
       // Double click to open in new tab. Use label position just to make sure we are not clicking

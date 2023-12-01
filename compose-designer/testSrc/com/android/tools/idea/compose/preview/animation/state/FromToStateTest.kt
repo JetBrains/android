@@ -68,38 +68,38 @@ class FromToStateTest {
           layoutAndDispatchEvents()
         }
 
-      val toolbarComponents = card.findToolbar("AnimationCard").component.components
-      assertEquals(5, toolbarComponents.size)
+      val toolbar = card.findToolbar("AnimationCard")
+      assertEquals(5, toolbar.components.size)
       // All components are visible
-      toolbarComponents.forEach { assertBigger(minimumSize, it.size) }
+      toolbar.components.forEach { assertBigger(minimumSize, it.size) }
       // Default state.
-      assertEquals("One", (toolbarComponents[2] as JPanel).findComboBox().text)
-      assertEquals("Two", (toolbarComponents[4] as JPanel).findComboBox().text)
+      assertEquals("One", (toolbar.components[2] as JPanel).findComboBox().text)
+      assertEquals("Two", (toolbar.components[4] as JPanel).findComboBox().text)
       assertEquals("One", state.getState(0))
       assertEquals("Two", state.getState(1))
       val hash = state.stateHashCode()
       // Swap state.
-      ui.clickOn(toolbarComponents[1])
+      ui.clickOn(toolbar.components[1])
       // State hashCode has changed.
       assertNotEquals(hash, state.stateHashCode())
       // The states swapped.
       assertEquals(1, callbacks)
-      assertEquals("Two", (toolbarComponents[2] as JPanel).findComboBox().text)
-      assertEquals("One", (toolbarComponents[4] as JPanel).findComboBox().text)
+      assertEquals("Two", (toolbar.components[2] as JPanel).findComboBox().text)
+      assertEquals("One", (toolbar.components[4] as JPanel).findComboBox().text)
       assertEquals("Two", state.getState(0))
       assertEquals("One", state.getState(1))
       // Update states.
       state.updateStates(setOf("Four", "Five", "Six"))
       state.setStartState("Four")
       ui.updateToolbars()
-      assertEquals("Four", (toolbarComponents[2] as JPanel).findComboBox().text)
-      assertEquals("Five", (toolbarComponents[4] as JPanel).findComboBox().text)
+      assertEquals("Four", (toolbar.components[2] as JPanel).findComboBox().text)
+      assertEquals("Five", (toolbar.components[4] as JPanel).findComboBox().text)
       assertEquals("Four", state.getState(0))
       assertEquals("Five", state.getState(1))
       // Swap state.
-      ui.clickOn(toolbarComponents[1])
-      assertEquals("Five", (toolbarComponents[2] as JPanel).findComboBox().text)
-      assertEquals("Four", (toolbarComponents[4] as JPanel).findComboBox().text)
+      ui.clickOn(toolbar.components[1])
+      assertEquals("Five", (toolbar.components[2] as JPanel).findComboBox().text)
+      assertEquals("Four", (toolbar.components[4] as JPanel).findComboBox().text)
       assertEquals("Five", state.getState(0))
       assertEquals("Four", state.getState(1))
       // State doesn't exist
