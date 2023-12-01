@@ -436,7 +436,7 @@ internal data class ErrorResponse(override val requestId: Int, val errorMessage:
   }
 
   override fun toString(): String {
-    return "ErrorResponse(requestId=$requestId, errorMesage=\"$errorMessage\")"
+    return "ErrorResponse(requestId=$requestId, errorMessage=\"$errorMessage\")"
   }
 
   companion object : Deserializer {
@@ -466,7 +466,7 @@ internal class DisplayConfigurationResponse(override val requestId: Int, val dis
   }
 
   override fun toString(): String {
-    return "ScreenshotResponse(requestId=$requestId, displays=$displays"
+    return "ScreenshotResponse(requestId=$requestId, displays=$displays)"
   }
 
   companion object : Deserializer {
