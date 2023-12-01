@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule

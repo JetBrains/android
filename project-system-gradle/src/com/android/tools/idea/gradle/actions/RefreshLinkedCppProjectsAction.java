@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys;
-import com.android.tools.idea.gradle.util.GradleProjects;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;

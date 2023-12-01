@@ -39,7 +39,7 @@ import java.util.List;
 
 /**
  * Wraps a view over a filesystem directory that represents a single include folder.
- * There is a set of exclusions that is used to hid sub-folders that would be contained in other components.
+ * There is a set of exclusions that is used to hide sub-folders that would be contained in other components.
  */
 public class PsiIncludeDirectoryView extends PsiDirectoryNode {
   @NotNull private final ImmutableList<VirtualFile> myVirtualFileExcludes;

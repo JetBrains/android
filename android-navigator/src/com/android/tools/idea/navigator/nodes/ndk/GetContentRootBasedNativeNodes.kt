@@ -21,7 +21,6 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode
 import com.android.tools.idea.ndk.NativeWorkspaceService
 import com.android.tools.idea.util.toIoFile
 import com.intellij.ide.projectView.ViewSettings
-import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.module.Module

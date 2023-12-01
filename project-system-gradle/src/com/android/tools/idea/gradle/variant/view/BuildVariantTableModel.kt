@@ -21,13 +21,11 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel.Companion.get
 import com.android.tools.idea.gradle.project.model.VariantAbi
-import com.android.tools.idea.gradle.project.sync.findSelectedVariant
 import com.android.tools.idea.gradle.project.sync.idea.getVariantAndAbi
 import com.android.tools.idea.gradle.util.ModuleTypeComparator
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.modules
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.table.DefaultTableModel
