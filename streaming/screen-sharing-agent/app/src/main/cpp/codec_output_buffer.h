@@ -36,8 +36,8 @@ public:
   uint8_t* buffer() const { return buffer_; }
   int32_t offset() const { return info_.offset; }
   int32_t size() const { return info_.size; }
-  int32_t presentation_time_us() const { return info_.presentationTimeUs; }
-  int32_t flags() const { return info_.flags; }
+  int64_t presentation_time_us() const { return info_.presentationTimeUs; }
+  uint32_t flags() const { return info_.flags; }
 
 private:
   AMediaCodec* codec_;
