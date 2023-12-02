@@ -352,7 +352,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
     }
     packet_header->packet_size = codec_buffer.size();
     if (Log::IsEnabled(Log::Level::VERBOSE)) {
-      Log::V("Display %d: writing video packet %s", display_id_, packet_header->ToDebugString().c_str());
+      Log::V("Display %d: writing video packet: %s", display_id_, packet_header->ToDebugString().c_str());
     }
     iovec buffers[] = { { packet_header, VideoPacketHeader::SIZE }, { codec_buffer.buffer(), static_cast<size_t>(codec_buffer.size()) } };
     if (writev(socket_fd_, buffers, 2) != buffers[0].iov_len + buffers[1].iov_len) {
