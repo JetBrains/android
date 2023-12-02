@@ -27,7 +27,9 @@ import com.android.tools.idea.streaming.core.scaled
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.util.text.StringUtil.toHexString
 import com.intellij.util.containers.ContainerUtil
+import com.intellij.util.io.toByteArray
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -213,16 +215,16 @@ internal class VideoDecoder(
     private val packet: AVPacket = av_packet_alloc()
 
     suspend fun readAndProcessPacket() {
-      // Each video packet contains a 40-byte header followed by the packet data.
+      // Each video packet contains a 44-byte header followed by the packet data.
       videoChannel.readFully(headerBuffer)
       headerBuffer.rewind()
       val header = VideoPacketHeader.deserialize(headerBuffer)
-      headerBuffer.clear()
       val presentationTimestampUs = header.presentationTimestampUs
       val packetSize = header.packetSize
       if (presentationTimestampUs < 0 || packetSize <= 0) {
-        throw VideoDecoderException("Invalid packet header: $headerBuffer")
+        throw VideoDecoderException("Invalid packet header: ${toHexString(headerBuffer.rewind().toByteArray())}")
       }
+      headerBuffer.clear()
 
       try {
         if (av_new_packet(packet, packetSize) != 0) {
