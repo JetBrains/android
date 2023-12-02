@@ -97,7 +97,7 @@ class AppInspectionInspectorClient(
   private val metrics: LayoutInspectorSessionMetrics,
   private val treeSettings: TreeSettings,
   private val inspectorClientSettings: InspectorClientSettings,
-  private val coroutineScope: CoroutineScope,
+  coroutineScope: CoroutineScope,
   parentDisposable: Disposable,
   @TestOnly
   private val apiServices: AppInspectionApiServices =

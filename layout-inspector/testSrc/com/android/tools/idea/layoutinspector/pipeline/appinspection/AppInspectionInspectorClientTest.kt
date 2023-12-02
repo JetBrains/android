@@ -1480,7 +1480,8 @@ class AppInspectionInspectorClientWithFailingClientTest {
           projectRule.project,
           notificationModel,
           ListenerCollection.createWithDirectExecutor(),
-          client.stats
+          client.stats,
+          client.coroutineScope
         )
       )
       .also {
