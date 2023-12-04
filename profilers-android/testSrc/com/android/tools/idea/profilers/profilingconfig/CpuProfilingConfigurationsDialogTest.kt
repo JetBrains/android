@@ -98,6 +98,20 @@ class CpuProfilingConfigurationsDialogTest(private val deviceLevel: Int) {
   }
 
   @Test
+  fun testGetDisplayNameWithTaskBasedUx() {
+    myIdeServices.enableTaskBasedUx(true)
+    configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
+    assertThat(configurations.displayName).isEqualTo("Task Settings")
+  }
+
+  @Test
+  fun testGetDisplayNameWithoutTaskBasedUx() {
+    myIdeServices.enableTaskBasedUx(false)
+    configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
+    assertThat(configurations.displayName).isEqualTo("CPU Recording Configurations")
+  }
+
+  @Test
   fun nonTaskBasedUxHasNoTaskHeader() {
     myIdeServices.enableTaskBasedUx(false)
     configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)

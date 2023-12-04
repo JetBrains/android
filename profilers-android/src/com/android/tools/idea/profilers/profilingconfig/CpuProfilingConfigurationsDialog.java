@@ -290,6 +290,9 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     @Nls
     @Override
     public String getDisplayName() {
+      if (isTaskBasedUxEnabled) {
+        return "Task Settings";
+      }
       return "CPU Recording Configurations";
     }
 
