@@ -527,7 +527,7 @@ private fun AvdInfo.toPairingDevice(deviceID: String): PairingDevice {
     displayName = displayName,
     apiLevel = androidVersion.featureLevel,
     isEmulator = true,
-    isWearDevice = SystemImageTags.WEAR_TAG == tag,
+    isWearDevice = SystemImageTags.isWearImage(tags),
     state = ConnectionState.OFFLINE,
     hasPlayStore = hasPlayStore(),
   ).apply {

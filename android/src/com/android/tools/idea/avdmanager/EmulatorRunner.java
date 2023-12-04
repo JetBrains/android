@@ -18,9 +18,12 @@ package com.android.tools.idea.avdmanager;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_TAG_ID;
 import static com.android.tools.idea.avdmanager.AvdManagerConnection.isFoldable;
 
+import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.analytics.UsageTracker;
+import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AvdLaunchEvent;
 import com.google.wireless.android.sdk.stats.AvdLaunchEvent.AvdClass;
@@ -94,14 +97,14 @@ public class EmulatorRunner {
     if (avdInfo == null) {
       return AvdClass.UNKNOWN_AVD_CLASS;
     }
-    String tag = avdInfo.getProperty(AVD_INI_TAG_ID);
-    if ("android-tv".equals(tag)) {
+    ImmutableList<IdDisplay> tags = avdInfo.getTags();
+    if (SystemImageTags.isTvImage(tags)) {
       return AvdClass.TV;
     }
-    if ("android-automotive".equals(tag)) {
+    if (SystemImageTags.isAutomotiveImage(tags)) {
       return AvdClass.AUTOMOTIVE;
     }
-    if ("android-wear".equals(tag)) {
+    if (SystemImageTags.isWearImage(tags)) {
       return AvdClass.WEARABLE;
     }
     if (isFoldable(avdInfo)) {

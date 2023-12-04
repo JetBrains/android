@@ -116,16 +116,12 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
 
   @Override
   public boolean supportsFeature(@NotNull IDevice.HardwareFeature feature) {
-    switch (feature) {
-      case WATCH:
-        return SystemImageTags.WEAR_TAG.equals(myAvdInfo.getTag());
-      case TV:
-        return SystemImageTags.ANDROID_TV_TAG.equals(myAvdInfo.getTag()) || SystemImageTags.GOOGLE_TV_TAG.equals(myAvdInfo.getTag());
-      case AUTOMOTIVE:
-        return SystemImageTags.AUTOMOTIVE_TAG.equals(myAvdInfo.getTag());
-      default:
-        return true;
-    }
+    return switch (feature) {
+      case WATCH -> SystemImageTags.isWearImage(myAvdInfo.getTags());
+      case TV -> SystemImageTags.isTvImage(myAvdInfo.getTags());
+      case AUTOMOTIVE -> SystemImageTags.isAutomotiveImage(myAvdInfo.getTags());
+      default -> true;
+    };
   }
 
   @Override
