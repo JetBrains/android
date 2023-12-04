@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.connectionsview
 
-import com.android.tools.adtui.TooltipComponent
-import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.stdui.TimelineTable
-import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.adtui.table.ConfigColumnTableAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
@@ -28,16 +25,12 @@ import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspe
 import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn.TIMELINE
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.ROW_HEIGHT_PADDING
-import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BACKGROUND
-import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BORDER
-import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_TEXT
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.registerEnterKeyAction
 import java.awt.KeyboardFocusManager
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JTable
-import javax.swing.JTextPane
 import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionEvent
 import javax.swing.table.TableCellRenderer
@@ -46,10 +39,7 @@ import javax.swing.table.TableCellRenderer
  * This class responsible for displaying table of connections information (e.g. url, duration,
  * timeline) for network inspector. Each row in the table represents a single connection.
  */
-class ConnectionsView(
-  private val model: NetworkInspectorModel,
-  private val parentPane: TooltipLayeredPane
-) : AspectObserver() {
+class ConnectionsView(private val model: NetworkInspectorModel) : AspectObserver() {
 
   private val tableModel = ConnectionsTableModel(model.selectionRangeDataFetcher)
   private val connectionsTable: JTable
@@ -62,7 +52,6 @@ class ConnectionsView(
       TimelineTable.create(tableModel, model.timeline, TIMELINE.displayString, true)
     customizeConnectionsTable()
     ConfigColumnTableAspect.apply(connectionsTable, NetworkInspectorViewState.getInstance().columns)
-    createTooltip()
     model.aspect.addDependency(this).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
       updateTableSelection()
     }
@@ -76,8 +65,13 @@ class ConnectionsView(
     }
 
     connectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
-    connectionsTable.addMouseListener(
+    val mouseAdapter =
       object : MouseAdapter() {
+        override fun mouseMoved(e: MouseEvent) {
+          connectionsTable.toolTipText =
+            tableModel.getUrlForRow(connectionsTable.rowAtPoint(e.point))
+        }
+
         override fun mouseClicked(e: MouseEvent) {
           val row = connectionsTable.rowAtPoint(e.point)
           if (row != -1) {
@@ -85,7 +79,9 @@ class ConnectionsView(
           }
         }
       }
-    )
+    connectionsTable.addMouseListener(mouseAdapter)
+    connectionsTable.addMouseMotionListener(mouseAdapter)
+
     connectionsTable.registerEnterKeyAction {
       if (connectionsTable.selectedRow != -1) {
         model.detailContent = DetailContent.CONNECTION
@@ -121,30 +117,11 @@ class ConnectionsView(
     connectionsTable.columnModel.getColumn(column.ordinal).cellRenderer = renderer
   }
 
-  private fun createTooltip() {
-    val textPane = JTextPane()
-    textPane.isEditable = false
-    textPane.border = TOOLTIP_BORDER
-    textPane.background = TOOLTIP_BACKGROUND
-    textPane.foreground = TOOLTIP_TEXT
-    textPane.font = TooltipView.TOOLTIP_BODY_FONT
-    val tooltip = TooltipComponent.Builder(textPane, connectionsTable, parentPane).build()
-    tooltip.registerListenersOn(connectionsTable)
-    connectionsTable.addMouseMotionListener(
-      object : MouseAdapter() {
-        override fun mouseMoved(e: MouseEvent) {
-          val row = connectionsTable.rowAtPoint(e.point)
-          if (row >= 0) {
-            tooltip.isVisible = true
-            val url = tableModel.getConnectionData(connectionsTable.convertRowIndexToModel(row)).url
-            textPane.text = url
-          } else {
-            tooltip.isVisible = false
-          }
-        }
-      }
-    )
-  }
+  private fun ConnectionsTableModel.getUrlForRow(row: Int) =
+    when {
+      row < 0 -> null
+      else -> getConnectionData(connectionsTable.convertRowIndexToModel(row)).url
+    }
 
   private fun updateTableSelection() {
     val selectedData = model.selectedConnection
