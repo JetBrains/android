@@ -35,7 +35,9 @@ class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) :
           override fun valueOf(item: AppInsightsIssue) = item
 
           override fun getComparator(): Comparator<AppInsightsIssue> {
-            return Comparator.comparing { it.issueDetails.title }
+            return Comparator.comparing { issue ->
+              issue.issueDetails.getDisplayTitle().toList().joinToString(".")
+            }
           }
 
           override fun getRenderer(item: AppInsightsIssue) = renderer
