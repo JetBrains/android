@@ -41,6 +41,7 @@ class EssentialsModeRecommenderTest : LightPlatformTestCase() {
     UsageTracker.setWriterForTest(usageTracker)
     StudioFlags.ESSENTIALS_MODE_VISIBLE.clearOverride()
     StudioFlags.ESSENTIALS_MODE_GETS_RECOMMENDED.override(true)
+    StudioFlags.ESSENTIALS_MODE_VISIBLE.override(true)
     PropertiesComponent.getInstance().setValue(recommender.ignoreEssentialsMode, false)
     EssentialsMode.setEnabled(false, project)
   }

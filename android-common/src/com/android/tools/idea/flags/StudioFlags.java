@@ -1082,20 +1082,20 @@ public final class StudioFlags {
     ESSENTIALS_MODE, "essentials.mode.action.visible",
     "Show Essentials Mode visible in File drop down menu",
     "If enabled, makes Essential Highlighting action visible",
-    true
+    false
   );
   public static final Flag<Boolean> ESSENTIALS_HIGHLIGHTING_MODE = Flag.create(
     ESSENTIALS_MODE, "essential.highlighting.in.essentials.mode",
     "Essential Highlighting mode on in Essentials mode",
    "When enabled turns on Essential Highlighting mode when in Essentials Mode. Essential Highlighting mode enables " +
    "limited code inspections and highlighting while editing until a save all action is received e.g. Lint.",
-   true);
+   false);
 
   public static final Flag<Boolean> ESSENTIALS_MODE_GETS_RECOMMENDED = Flag.create(
     ESSENTIALS_MODE, "essentials.mode.gets.recommend",
     "Essentials Mode is able to get recommended to the user",
     "When enabled this allows Android Studio to drive adoption of Essentials Mode by recommending users should try it out.",
-    true);
+    false);
 
   //endregion
 

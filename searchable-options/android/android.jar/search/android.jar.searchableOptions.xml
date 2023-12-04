@@ -1030,15 +1030,6 @@
     <option name="libusb" hit="Use libusb backend" />
     <option name="use" hit="Use libusb backend" />
   </configurable>
-  <configurable id="essentials.mode.settings" configurable_name="Essentials Mode">
-    <option name="enable" hit="Enable Essentials Mode" />
-    <option name="essentials" hit="Enable Essentials Mode" />
-    <option name="mode" hit="Enable Essentials Mode" />
-    <option name="essentials" hit="Essentials Mode" />
-    <option name="mode" hit="Essentials Mode" />
-    <option name="features" hit="Related Features" />
-    <option name="related" hit="Related Features" />
-  </configurable>
   <configurable id="instant.run" configurable_name="Deployment">
     <option name="apply" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
     <option name="automatically" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />

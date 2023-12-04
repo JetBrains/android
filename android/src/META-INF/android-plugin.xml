@@ -213,14 +213,6 @@
     <cachesInvalidator implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$CacheInvalidator"/>
     <cachesInvalidator implementation="com.android.tools.idea.project.metrics.CacheInvalidatorMetricCollector"/>
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$PopulateCachesActivity"/>
-    <postStartupActivity implementation="com.android.tools.idea.modes.essentials.EssentialsModeRecommender"/>
-    <postStartupActivity implementation="com.android.tools.idea.modes.essentials.EssentialsModeNotifierOnStartup"/>
-    <applicationConfigurable groupId="appearance" groupWeight="140" id="essentials.mode.settings"
-                             instance="com.android.tools.idea.modes.essentials.EssentialsModeSettingsPage"
-                             bundle="messages.AndroidBundle"
-                             key="configurable.EssentialsModeSettingsPage.displayName"/>
-    <statusBarWidgetFactory id="Essentials Mode Widget" implementation="com.android.tools.idea.modes.essentials.EssentialsModeWidgetFactory"/>
-    <postStartupActivity implementation="com.intellij.ide.actions.EssentialHighlightingNotifier"/>
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
 
