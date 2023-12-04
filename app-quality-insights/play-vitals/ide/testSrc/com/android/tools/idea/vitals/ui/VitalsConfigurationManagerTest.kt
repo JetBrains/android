@@ -61,8 +61,9 @@ class VitalsConfigurationManagerTest {
         VitalsConfigurationManager(
           projectRule.project,
           cache,
-          client,
-          MutableStateFlow(LoginStatus.LoggedIn("test@goog.com"))
+          MutableStateFlow(LoginStatus.LoggedIn("test@goog.com")),
+          projectRule.testRootDisposable,
+          client
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -88,8 +89,9 @@ class VitalsConfigurationManagerTest {
         VitalsConfigurationManager(
           projectRule.project,
           AppInsightsCacheImpl(),
-          client,
-          MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com"))
+          MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com")),
+          projectRule.testRootDisposable,
+          client
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -106,8 +108,9 @@ class VitalsConfigurationManagerTest {
         VitalsConfigurationManager(
           projectRule.project,
           AppInsightsCacheImpl(),
-          client,
-          MutableStateFlow(LoginStatus.LoggedOut)
+          MutableStateFlow(LoginStatus.LoggedOut),
+          projectRule.testRootDisposable,
+          client
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -125,8 +128,9 @@ class VitalsConfigurationManagerTest {
         VitalsConfigurationManager(
           projectRule.project,
           AppInsightsCacheImpl(),
-          client,
-          MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com"))
+          MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com")),
+          projectRule.testRootDisposable,
+          client
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -164,8 +168,9 @@ class VitalsConfigurationManagerTest {
         VitalsConfigurationManager(
           projectRule.project,
           AppInsightsCacheImpl(),
-          client,
-          loggedInFlow
+          loggedInFlow,
+          projectRule.testRootDisposable,
+          client
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -187,8 +192,9 @@ class VitalsConfigurationManagerTest {
         VitalsConfigurationManager(
           projectRule.project,
           AppInsightsCacheImpl(),
-          client,
-          MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com"))
+          MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com")),
+          projectRule.testRootDisposable,
+          client
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -213,8 +219,9 @@ class VitalsConfigurationManagerTest {
         VitalsConfigurationManager(
           projectRule.project,
           AppInsightsCacheImpl(),
-          client,
-          MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com"))
+          MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com")),
+          projectRule.testRootDisposable,
+          client
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
