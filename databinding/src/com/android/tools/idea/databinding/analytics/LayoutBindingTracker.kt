@@ -29,15 +29,17 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DataBindingEvent
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
+import java.util.concurrent.Callable
 
 /** Class for logging data binding and view binding related metrics. */
 @VisibleForTesting // This class uses inheritance to override threading behavior for tests only
-open class LayoutBindingTracker constructor(private val project: Project) : DataBindingTracker {
+open class LayoutBindingTracker(private val project: Project) : DataBindingTracker {
 
   override fun trackPolledMetaData() {
     if (enabledFacetsProvider.getAllBindingEnabledFacets().isNotEmpty()) {
@@ -101,50 +103,65 @@ open class LayoutBindingTracker constructor(private val project: Project) : Data
   /** This task must be run inside of a read action. Collects basic data binding usage metrics. */
   private inner class TrackPollingMetadataTask(val project: Project) : Runnable {
     override fun run() {
-      DumbService.getInstance(project).runReadActionInSmartMode {
-        var dataBindingLayoutCount = 0
-        var viewBindingLayoutCount = 0
-        var importCount = 0
-        var variableCount = 0
+      val bindingXmlData =
+        ReadAction.nonBlocking(
+            Callable {
+              // BindingXmlIndex uses the shared "single entry" index. As such, calling
+              // FileBasedIndex.getAllKeys() for it returns a key for every file in the project, not
+              // just those that are binding files.
+              // Instead, the best that can be done here is to scope down to only XML files and then
+              // call into BindingXmlIndex. There will obviously be false positive keys, but the
+              // index will just return a null value for them.
+              FileTypeIndex.getFiles(XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project))
+                .mapNotNull {
+                  ProgressManager.checkCanceled()
+                  BindingXmlIndex.getDataForFile(project, it)
+                }
+            }
+          )
+          .inSmartMode(project)
+          .executeSynchronously()
 
-        FileTypeIndex.getFiles(XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project))
-          .mapNotNull { BindingXmlIndex.getDataForFile(project, it) }
-          .forEach { layoutInfo ->
-            if (layoutInfo.layoutType == DATA_BINDING_LAYOUT) {
-              dataBindingLayoutCount++
-              importCount += layoutInfo.imports.size
-              variableCount += layoutInfo.variables.size
-            } else if (layoutInfo.layoutType == PLAIN_LAYOUT && !layoutInfo.viewBindingIgnore) {
-              viewBindingLayoutCount++
-            }
-          }
+      var dataBindingLayoutCount = 0
+      var viewBindingLayoutCount = 0
+      var importCount = 0
+      var variableCount = 0
 
-        trackPollingEvent(
-          DataBindingEvent.EventType.DATA_BINDING_BUILD_EVENT,
-          DataBindingEvent.DataBindingPollMetadata.newBuilder()
-            .apply {
-              dataBindingEnabled = isDataBindingEnabled()
-              layoutXmlCount = dataBindingLayoutCount
-              this.importCount = importCount
-              this.variableCount = variableCount
-              // We only care about Android modules (modules with an android facet).
-              moduleCount =
-                ModuleManager.getInstance(project).modules.count { it.androidFacet != null }
-              dataBindingEnabledModuleCount =
-                ModuleManager.getInstance(project)
-                  .modules
-                  .mapNotNull { it.androidFacet }
-                  .count { DataBindingUtil.isDataBindingEnabled(it) }
-            }
-            .build(),
-          DataBindingEvent.ViewBindingPollMetadata.newBuilder()
-            .apply {
-              viewBindingEnabled = isViewBindingEnabled()
-              layoutXmlCount = viewBindingLayoutCount
-            }
-            .build()
-        )
+      for (layoutInfo in bindingXmlData) {
+        if (layoutInfo.layoutType == DATA_BINDING_LAYOUT) {
+          dataBindingLayoutCount++
+          importCount += layoutInfo.imports.size
+          variableCount += layoutInfo.variables.size
+        } else if (layoutInfo.layoutType == PLAIN_LAYOUT && !layoutInfo.viewBindingIgnore) {
+          viewBindingLayoutCount++
+        }
       }
+
+      trackPollingEvent(
+        DataBindingEvent.EventType.DATA_BINDING_BUILD_EVENT,
+        DataBindingEvent.DataBindingPollMetadata.newBuilder()
+          .apply {
+            dataBindingEnabled = isDataBindingEnabled()
+            layoutXmlCount = dataBindingLayoutCount
+            this.importCount = importCount
+            this.variableCount = variableCount
+            // We only care about Android modules (modules with an android facet).
+            moduleCount =
+              ModuleManager.getInstance(project).modules.count { it.androidFacet != null }
+            dataBindingEnabledModuleCount =
+              ModuleManager.getInstance(project)
+                .modules
+                .mapNotNull { it.androidFacet }
+                .count { DataBindingUtil.isDataBindingEnabled(it) }
+          }
+          .build(),
+        DataBindingEvent.ViewBindingPollMetadata.newBuilder()
+          .apply {
+            viewBindingEnabled = isViewBindingEnabled()
+            layoutXmlCount = viewBindingLayoutCount
+          }
+          .build()
+      )
     }
   }
 
