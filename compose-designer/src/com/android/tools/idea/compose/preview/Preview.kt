@@ -481,7 +481,9 @@ class ComposePreviewRepresentation(
             }
 
             override fun ancestorRemoved(event: AncestorEvent?) {
-              label.isVisible = false
+              if (parent == event?.ancestorParent) {
+                label.isVisible = false
+              }
             }
           }
         )
