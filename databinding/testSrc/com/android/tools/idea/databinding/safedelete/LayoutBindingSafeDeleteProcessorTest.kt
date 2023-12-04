@@ -27,19 +27,18 @@ import com.intellij.refactoring.safeDelete.SafeDeleteProcessorDelegate
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import kotlin.test.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import kotlin.test.fail
 
 @RunsInEdt
 class LayoutBindingSafeDeleteProcessorTest {
   private val projectRule = AndroidProjectRule.onDisk()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   // Legal cast because project rule is initialized with onDisk
   private val fixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
@@ -51,69 +50,87 @@ class LayoutBindingSafeDeleteProcessorTest {
   fun setUp() {
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT + "/databinding"
 
-    fixture.addFileToProject("AndroidManifest.xml", """
+    fixture.addFileToProject(
+      "AndroidManifest.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     LayoutBindingModuleCache.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
   }
 
   /**
-   * Checks that calling find usages of a layout element will find the equivalent DataBinding classes.
+   * Checks that calling find usages of a layout element will find the equivalent DataBinding
+   * classes.
    */
   @Test
   fun assertSafeDeletePreventsDeletingBindingLayoutFiles() {
-    val activityWithUsagesFile = fixture.addFileToProject(
-      "res/layout/activity_with_usages.xml",
-      // language=XML
-      """
+    val activityWithUsagesFile =
+      fixture.addFileToProject(
+        "res/layout/activity_with_usages.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent" />
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
-    val activityWithoutUsagesFile = fixture.addFileToProject(
-      "res/layout/activity_without_usages.xml",
-      // language=XML
-      """
+    val activityWithoutUsagesFile =
+      fixture.addFileToProject(
+        "res/layout/activity_without_usages.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent" />
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
-    val activityWithoutBindingFile = fixture.addFileToProject(
-      "res/layout/activity_without_binding.xml",
-      // language=XML
-      """
+    val activityWithoutBindingFile =
+      fixture.addFileToProject(
+        "res/layout/activity_without_binding.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <LinearLayout
           android:layout_width="fill_parent"
           android:layout_height="fill_parent" />
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
-    val nonLayoutResourceFile = fixture.addFileToProject(
-      "res/values/strings.xml",
-      // language=XML
-      """
+    val nonLayoutResourceFile =
+      fixture.addFileToProject(
+        "res/values/strings.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <resources>
           <string name="hello">Hello World</string>
       </resources>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
-    val classFile = fixture.addFileToProject(
-      "src/java/test/db/WithUsagesActivity.java",
-      // language=JAVA
-      """
+    val classFile =
+      fixture.addFileToProject(
+        "src/java/test/db/WithUsagesActivity.java",
+        // language=JAVA
+        """
       package test.db;
 
       import android.app.Activity;
@@ -129,11 +146,15 @@ class LayoutBindingSafeDeleteProcessorTest {
               setContentView(binding.getRoot());
           }
       }
-    """.trimIndent()
-    )
+    """
+          .trimIndent()
+      )
 
     // Make sure we take precedence over the regular android resource file SafeDeleteProcessor
-    val safeDeleteProcessor = SafeDeleteProcessorDelegate.EP_NAME.findExtensionOrFail(LayoutBindingSafeDeleteProcessor::class.java)
+    val safeDeleteProcessor =
+      SafeDeleteProcessorDelegate.EP_NAME.findExtensionOrFail(
+        LayoutBindingSafeDeleteProcessor::class.java
+      )
     assertThat(safeDeleteProcessor.handlesElement(activityWithUsagesFile)).isTrue()
     assertThat(safeDeleteProcessor.handlesElement(activityWithoutUsagesFile)).isTrue()
     assertThat(safeDeleteProcessor.handlesElement(activityWithoutBindingFile)).isFalse()
@@ -146,9 +167,7 @@ class LayoutBindingSafeDeleteProcessorTest {
     try {
       SafeDeleteHandler.invoke(projectRule.project, arrayOf(activityWithUsagesFile), true)
       fail("Should not be able to safe delete layout file with usages from code")
-    }
-    catch (ignored: BaseRefactoringProcessor.ConflictsInTestsException) {
-    }
+    } catch (ignored: BaseRefactoringProcessor.ConflictsInTestsException) {}
     assertThat(activityWithUsagesFile.virtualFile.exists()).isTrue()
 
     // But we can delete everything at once
@@ -159,12 +178,16 @@ class LayoutBindingSafeDeleteProcessorTest {
     SafeDeleteHandler.invoke(projectRule.project, arrayOf(activityWithoutUsagesFile), true)
     assertThat(activityWithoutUsagesFile.virtualFile.exists()).isFalse()
 
-    // Verify we get out of the way to allow the regular android resource file SafeDeleteProcessor to work
+    // Verify we get out of the way to allow the regular android resource file SafeDeleteProcessor
+    // to work
     assertThat(activityWithoutBindingFile.virtualFile.exists()).isTrue()
     assertThat(nonLayoutResourceFile.virtualFile.exists()).isTrue()
-    SafeDeleteHandler.invoke(projectRule.project, arrayOf(activityWithoutBindingFile, nonLayoutResourceFile), true)
+    SafeDeleteHandler.invoke(
+      projectRule.project,
+      arrayOf(activityWithoutBindingFile, nonLayoutResourceFile),
+      true
+    )
     assertThat(activityWithoutBindingFile.virtualFile.exists()).isFalse()
     assertThat(nonLayoutResourceFile.virtualFile.exists()).isFalse()
   }
 }
-

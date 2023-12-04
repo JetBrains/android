@@ -18,7 +18,6 @@ package com.android.tools.idea.databinding.finders
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.findClass
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.DumbService
@@ -36,9 +35,9 @@ import org.junit.rules.RuleChain
 class BindingScopeEnlargerTest {
   private val projectRule = AndroidProjectRule.onDisk()
 
-  // We want to run tests on EDT, but we also need to make sure the project rule is not initialized on EDT.
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  // We want to run tests on EDT, but we also need to make sure the project rule is not initialized
+  // on EDT.
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -59,13 +58,15 @@ class BindingScopeEnlargerTest {
   fun setUp() {
     fixture.addFileToProject(
       "AndroidManifest.xml",
-      //language=XML
+      // language=XML
       """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     LayoutBindingModuleCache.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
   }
@@ -74,23 +75,27 @@ class BindingScopeEnlargerTest {
   fun scopeDoesNotCacheStaleValuesInDumbMode() {
     assertThat(DumbService.isDumb(project)).isFalse()
 
-    // In dumb mode, add a resource and then request the current scope. In the past, this would cause
+    // In dumb mode, add a resource and then request the current scope. In the past, this would
+    // cause
     // the scope enlarger to internally cache stale values (because the service that the enlarger
     // queries into aborts early in dumb mode).
-    val (activityClass, dumbScope) = DumbModeTestUtils.computeInDumbModeSynchronously(project) {
-      fixture.addFileToProject(
-        "res/layout/activity_main.xml",
-        //language=XML
-        """
+    val (activityClass, dumbScope) =
+      DumbModeTestUtils.computeInDumbModeSynchronously(project) {
+        fixture.addFileToProject(
+          "res/layout/activity_main.xml",
+          // language=XML
+          """
           <?xml version="1.0" encoding="utf-8"?>
           <layout xmlns:android="http://schemas.android.com/apk/res/android">
             <LinearLayout />
           </layout>
-        """.trimIndent())
-      val activityClass = fixture.addClass("public class MainActivity {}")
-      val dumbScope = activityClass.resolveScope
-      Pair(activityClass, dumbScope)
-    }
+        """
+            .trimIndent()
+        )
+        val activityClass = fixture.addClass("public class MainActivity {}")
+        val dumbScope = activityClass.resolveScope
+        Pair(activityClass, dumbScope)
+      }
     // Exit dumb mode and request our final enlarged scope. It should pick up the changes that
     // occurred while we were previously in dumb mode.
     val enlargedScope = activityClass.resolveScope

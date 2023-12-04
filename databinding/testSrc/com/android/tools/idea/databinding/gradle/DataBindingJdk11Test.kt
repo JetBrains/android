@@ -42,8 +42,7 @@ class DataBindingJdk11Test {
   private val projectRule = AndroidGradleProjectRule()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -73,7 +72,8 @@ class DataBindingJdk11Test {
     val facet = projectRule.androidFacet(":app")
     assertThat(facet.isViewBindingEnabled()).isTrue()
 
-    val mainActivityFile = fixture.findClass("com.android.example.viewbinding.MainActivity").containingFile.virtualFile
+    val mainActivityFile =
+      fixture.findClass("com.android.example.viewbinding.MainActivity").containingFile.virtualFile
 
     fixture.configureFromExistingVirtualFile(mainActivityFile)
     fixture.checkHighlighting(false, false, false)

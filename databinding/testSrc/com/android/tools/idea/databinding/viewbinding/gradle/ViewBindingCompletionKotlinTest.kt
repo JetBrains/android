@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.databinding.viewbinding.gradle
 
-import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.databinding.finders.BindingKotlinScopeEnlarger
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
+import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject
@@ -41,27 +41,35 @@ import org.junit.rules.RuleChain
 
 @RunsInEdt
 class ViewBindingCompletionKotlinTest {
-  private object ViewBindingCompletionTestProject: LightGradleSyncTestProject {
-    override val templateProject: TemplateBasedTestProject = AndroidCoreTestProject.SIMPLE_APPLICATION
-    override val modelBuilders: List<ModuleModelBuilder> =listOf(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      AndroidModuleModelBuilder(
-        gradlePath = ":app",
-        selectedBuildVariant = "debug",
-        projectBuilder = AndroidProjectBuilder(
-          namespace = { "google.simpleapplication" },
-          viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) },
-          // TODO(b/300170256): Remove this once 2023.3 merges and we no longer need kotlin-stdlib for every Kotlin test.
-          javaLibraryDependencyList = { listOf(JavaLibraryDependency.forJar(AdtTestKotlinArtifacts.kotlinStdlib)) },
-        ).build(),
+  private object ViewBindingCompletionTestProject : LightGradleSyncTestProject {
+    override val templateProject: TemplateBasedTestProject =
+      AndroidCoreTestProject.SIMPLE_APPLICATION
+    override val modelBuilders: List<ModuleModelBuilder> =
+      listOf(
+        JavaModuleModelBuilder.rootModuleBuilder,
+        AndroidModuleModelBuilder(
+          gradlePath = ":app",
+          selectedBuildVariant = "debug",
+          projectBuilder =
+            AndroidProjectBuilder(
+                namespace = { "google.simpleapplication" },
+                viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) },
+                // TODO(b/300170256): Remove this once 2023.3 merges and we no longer need
+                // kotlin-stdlib for every Kotlin test.
+                javaLibraryDependencyList = {
+                  listOf(JavaLibraryDependency.forJar(AdtTestKotlinArtifacts.kotlinStdlib))
+                },
+              )
+              .build(),
+        )
       )
-    )
   }
 
-  private val projectRule = AndroidProjectRule.testProject(ViewBindingCompletionTestProject).named("viewBindingCompletionTest")
+  private val projectRule =
+    AndroidProjectRule.testProject(ViewBindingCompletionTestProject)
+      .named("viewBindingCompletionTest")
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   private val fixture
     get() = projectRule.fixture
@@ -73,24 +81,26 @@ class ViewBindingCompletionKotlinTest {
   fun setUp() {
     assertThat(facet.isViewBindingEnabled()).isTrue()
 
-    fixture.addFileToProject("app/src/main/res/layout/activity_main.xml", """
+    fixture.addFileToProject(
+      "app/src/main/res/layout/activity_main.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
         <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
-    """.trimIndent())
-
+    """
+        .trimIndent()
+    )
   }
 
-  /**
-   * Note: This test indirectly verifies [BindingKotlinScopeEnlarger].
-   */
+  /** Note: This test indirectly verifies [BindingKotlinScopeEnlarger]. */
   @Test
   fun completeViewBindingField_KotlinContext() {
-    val testUtilFile = fixture.addFileToProject(
-      "app/src/main/java/google/simpleapplication/TestUtil.kt",
-      // language=kotlin
-      """
+    val testUtilFile =
+      fixture.addFileToProject(
+        "app/src/main/java/google/simpleapplication/TestUtil.kt",
+        // language=kotlin
+        """
           package google.simpleapplication
 
           import google.simpleapplication.databinding.ActivityMainBinding
@@ -99,15 +109,17 @@ class ViewBindingCompletionKotlinTest {
             lateinit var binding: ActivityMainBinding
             binding.test${caret}
           }
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
 
     fixture.configureFromExistingVirtualFile(testUtilFile.virtualFile)
 
     fixture.completeBasic()
 
-        fixture.checkResult(
-          // language=kotlin
-          """
+    fixture.checkResult(
+      // language=kotlin
+      """
               package google.simpleapplication
 
               import google.simpleapplication.databinding.ActivityMainBinding
@@ -116,6 +128,8 @@ class ViewBindingCompletionKotlinTest {
                 lateinit var binding: ActivityMainBinding
                 binding.testId
               }
-          """.trimIndent())
+          """
+        .trimIndent()
+    )
   }
 }

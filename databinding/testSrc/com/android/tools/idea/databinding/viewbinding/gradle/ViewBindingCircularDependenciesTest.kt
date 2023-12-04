@@ -40,8 +40,7 @@ class ViewBindingCircularDependenciesTest {
 
   private val projectRule = AndroidGradleProjectRule()
 
-  @get:Rule
-  val chainedRule = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val chainedRule = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   @Test
   @RunsInEdt
@@ -73,15 +72,16 @@ class ViewBindingCircularDependenciesTest {
     val module2BindingClassName = "com.example.module2.databinding.ActivityMainBinding"
 
     // Trigger initialization
-    StudioResourceRepositoryManager.getModuleResources(facet);
-    val javaPsiFacade = JavaPsiFacade.getInstance(project);
+    StudioResourceRepositoryManager.getModuleResources(facet)
+    val javaPsiFacade = JavaPsiFacade.getInstance(project)
 
     // Everything viewable from app module
     assertThat(javaPsiFacade.findClass(appBindingClassName, appScope)).isNotNull()
     assertThat(javaPsiFacade.findClass(module1BindingClassName, appScope)).isNotNull()
     assertThat(javaPsiFacade.findClass(module2BindingClassName, appScope)).isNotNull()
 
-    // module1 can only see itself (since databinding classes are not part of a module2's test sources)
+    // module1 can only see itself (since databinding classes are not part of a module2's test
+    // sources)
     assertThat(javaPsiFacade.findClass(appBindingClassName, module1Scope)).isNull()
     assertThat(javaPsiFacade.findClass(module1BindingClassName, module1Scope)).isNotNull()
     assertThat(javaPsiFacade.findClass(module2BindingClassName, module1Scope)).isNull()

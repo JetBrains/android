@@ -58,14 +58,16 @@ private const val ALL_FIELD = "_all"
 /**
  * In-memory PSI that represents a data binding BR file.
  *
- * See also: https://developer.android.com/topic/libraries/data-binding/generated-binding#advanced_binding
+ * See also:
+ * https://developer.android.com/topic/libraries/data-binding/generated-binding#advanced_binding
  */
-class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, private val qualifiedName: String) :
-  AndroidLightClassBase(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL)) {
+class LightBrClass(
+  psiManager: PsiManager,
+  private val facet: AndroidFacet,
+  private val qualifiedName: String
+) : AndroidLightClassBase(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL)) {
 
-  /**
-   * All fields in this BR class, including the top "_all" field
-   */
+  /** All fields in this BR class, including the top "_all" field */
   val allFieldNames
     get() = fieldCache.value.map { field -> field.name }.toTypedArray()
 
@@ -75,37 +77,53 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
   init {
     val project = facet.module.project
     val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
-    fieldCache = CachedValuesManager.getManager(project).createCachedValue {
-      val variableNamesList = mutableListOf(ALL_FIELD)
-      run {
-        val groups = LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return@run
+    fieldCache =
+      CachedValuesManager.getManager(project).createCachedValue {
+        val variableNamesList = mutableListOf(ALL_FIELD)
+        run {
+          val groups =
+            LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.takeIf {
+              it.isNotEmpty()
+            } ?: return@run
 
-        val variableNamesSet = groups
-          .flatMap { group -> group.layouts }
-          .flatMap { layout -> layout.data.variables }
-          .map { variable -> variable.name }
-          .toMutableSet()
-        collectVariableNamesFromUserBindables()?.let { bindables -> variableNamesSet.addAll(bindables) }
+          val variableNamesSet =
+            groups
+              .flatMap { group -> group.layouts }
+              .flatMap { layout -> layout.data.variables }
+              .map { variable -> variable.name }
+              .toMutableSet()
+          collectVariableNamesFromUserBindables()?.let { bindables ->
+            variableNamesSet.addAll(bindables)
+          }
 
-        variableNamesList.addAll(variableNamesSet.sorted())
+          variableNamesList.addAll(variableNamesSet.sorted())
+        }
+
+        val elementFactory = PsiElementFactory.getInstance(project)
+        val psiFields =
+          variableNamesList
+            .map { name -> createPsiField(project, elementFactory, name) }
+            .toTypedArray()
+
+        // TODO(b/147513068): Reliance on javaStructureModificationTracker is known to cause
+        // performance problems.
+        CachedValueProvider.Result.create(
+          psiFields,
+          resourcesModifiedTracker,
+          psiManager.modificationTracker.javaStructureModificationTracker
+        )
       }
-
-      val elementFactory = PsiElementFactory.getInstance(project)
-      val psiFields = variableNamesList
-        .map { name -> createPsiField(project, elementFactory, name) }
-        .toTypedArray()
-
-      // TODO(b/147513068): Reliance on javaStructureModificationTracker is known to cause performance problems.
-      CachedValueProvider.Result.create(psiFields, resourcesModifiedTracker,
-                                        psiManager.modificationTracker.javaStructureModificationTracker)
-    }
 
     setModuleInfo(facet.module, false)
 
     // Create a fake backing file to represent this BR file
     val factory = PsiFileFactory.getInstance(project)
-    val backingFile = factory.createFileFromText("BR.java", JavaFileType.INSTANCE,
-                                                 "// This class is generated on-the-fly by the IDE.") as PsiJavaFile
+    val backingFile =
+      factory.createFileFromText(
+        "BR.java",
+        JavaFileType.INSTANCE,
+        "// This class is generated on-the-fly by the IDE."
+      ) as PsiJavaFile
     backingFile.packageName = qualifiedName.replace(".BR", "")
     containingFile = backingFile
   }
@@ -124,9 +142,15 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
     // ViewDataBinding. User code should never do this.
     val psiElements =
       AnnotatedElementsSearch.searchElements<PsiModifierListOwner>(
-        bindableAnnotation, moduleScope, PsiMethod::class.java, PsiField::class.java)
+          bindableAnnotation,
+          moduleScope,
+          PsiMethod::class.java,
+          PsiField::class.java
+        )
         // Asserting non-null as we are confident that @Bindable fields exist within a class
-        .filter { element -> PsiUtil.getTopLevelClass(element)!!.superClass!!.qualifiedName != mode.viewDataBinding }
+        .filter { element ->
+          PsiUtil.getTopLevelClass(element)!!.superClass!!.qualifiedName != mode.viewDataBinding
+        }
 
     return BrUtil.collectIds(psiElements)
   }
@@ -183,11 +207,9 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
     return false
   }
 
-  /**
-   * The light field representing elements of BR class
-   */
-  internal class LightBRField(manager: PsiManager, field: PsiField, containingClass: PsiClass)
-    : LightField(manager, field, containingClass), ModificationTracker {
+  /** The light field representing elements of BR class */
+  internal class LightBRField(manager: PsiManager, field: PsiField, containingClass: PsiClass) :
+    LightField(manager, field, containingClass), ModificationTracker {
 
     override fun getModificationCount(): Long {
       // See http://b.android.com/212766

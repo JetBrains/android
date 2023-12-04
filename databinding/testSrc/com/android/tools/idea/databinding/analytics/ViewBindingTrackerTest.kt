@@ -36,14 +36,14 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-
 @RunsInEdt
 class ViewBindingTrackerTest {
   private val projectRule =
-    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }))
+    AndroidProjectRule.withAndroidModel(
+      AndroidProjectBuilder(viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) })
+    )
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -60,73 +60,93 @@ class ViewBindingTrackerTest {
   @Before
   fun setUp() {
     assertThat(facet.isViewBindingEnabled()).isTrue()
-    fixture.addFileToProject("src/main/AndroidManifest.xml", """
+    fixture.addFileToProject(
+      "src/main/AndroidManifest.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
   }
 
   @Test
   fun trackViewBindingPollingMetadata() {
-    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+    fixture.addFileToProject(
+      "src/main/res/layout/activity_main.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
         <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     val tracker = TestUsageTracker(VirtualTimeScheduler())
-      try {
-        UsageTracker.setWriterForTest(tracker)
-        projectRule.project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
-        val viewBindingPollMetadata = tracker.usages
+    try {
+      UsageTracker.setWriterForTest(tracker)
+      projectRule.project.messageBus
+        .syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)
+        .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      val viewBindingPollMetadata =
+        tracker.usages
           .map { it.studioEvent }
           .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
           .map { it.dataBindingEvent.viewBindingMetadata }
           .lastOrNull()
 
-        assertThat(viewBindingPollMetadata!!.viewBindingEnabled).isTrue()
-        assertThat(viewBindingPollMetadata.layoutXmlCount).isEqualTo(1)
-      }
-      finally {
-        tracker.close()
-        UsageTracker.cleanAfterTesting()
-      }
+      assertThat(viewBindingPollMetadata!!.viewBindingEnabled).isTrue()
+      assertThat(viewBindingPollMetadata.layoutXmlCount).isEqualTo(1)
+    } finally {
+      tracker.close()
+      UsageTracker.cleanAfterTesting()
+    }
   }
 
   @Test
   fun trackViewBindingProjectWithIgnoredLayouts() {
-    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+    fixture.addFileToProject(
+      "src/main/res/layout/activity_main.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
         <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
-    """.trimIndent())
-    fixture.addFileToProject("src/main/res/layout/activity_ignored.xml", """
+    """
+        .trimIndent()
+    )
+    fixture.addFileToProject(
+      "src/main/res/layout/activity_ignored.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
         <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools" tools:viewBindingIgnore="true">
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     val tracker = TestUsageTracker(VirtualTimeScheduler())
-      try {
-        UsageTracker.setWriterForTest(tracker)
-        projectRule.project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
-        val viewBindingPollMetadata = tracker.usages
+    try {
+      UsageTracker.setWriterForTest(tracker)
+      projectRule.project.messageBus
+        .syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)
+        .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      val viewBindingPollMetadata =
+        tracker.usages
           .map { it.studioEvent }
           .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
           .map { it.dataBindingEvent.viewBindingMetadata }
           .lastOrNull()
 
-        assertThat(viewBindingPollMetadata!!.layoutXmlCount).isEqualTo(1)
-      }
-      finally {
-        tracker.close()
-        UsageTracker.cleanAfterTesting()
-      }
+      assertThat(viewBindingPollMetadata!!.layoutXmlCount).isEqualTo(1)
+    } finally {
+      tracker.close()
+      UsageTracker.cleanAfterTesting()
+    }
   }
 }
