@@ -100,6 +100,7 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
   private fun createToolbar(): ActionToolbar {
     val fakeAction = FakeAction("fake action")
     return createStandaloneLayoutInspectorToolbar(
+      projectRule.testRootDisposable,
       JPanel(),
       layoutInspectorRule.inspector,
       fakeAction

@@ -191,7 +191,7 @@ data class SelectedTabState(
   ): JPanel {
     val toolsPanel = BorderLayoutPanel()
 
-    val toolbar = createToolbar(toolsPanel)
+    val toolbar = createToolbar(disposable, toolsPanel)
 
     val workBench =
       createLayoutInspectorWorkbench(project, disposable, layoutInspector, uiConfig, centerPanel)
@@ -214,7 +214,7 @@ data class SelectedTabState(
     return toolsPanel
   }
 
-  private fun createToolbar(targetComponent: JComponent): JComponent {
+  private fun createToolbar(parentDisposable: Disposable, targetComponent: JComponent): JComponent {
     val toggleDeepInspectAction =
       ToggleDeepInspectAction(
         { layoutInspectorRenderer.interceptClicks },
@@ -228,6 +228,7 @@ data class SelectedTabState(
         deviceId.serialNumber
       )
     return createEmbeddedLayoutInspectorToolbar(
+      parentDisposable,
       targetComponent,
       layoutInspector,
       processPicker,

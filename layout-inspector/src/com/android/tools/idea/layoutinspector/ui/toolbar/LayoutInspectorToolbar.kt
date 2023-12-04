@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.ui.toolbar
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.AlphaSliderAction
@@ -26,15 +27,18 @@ import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RefreshAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RenderSettingsAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleLiveUpdatesAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleOverlayAction
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.impl.content.BaseLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
+import java.awt.EventQueue.invokeLater
 import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.BoxLayout
@@ -52,6 +56,7 @@ const val EMBEDDED_LAYOUT_INSPECTOR_TOOLBAR = "EmbeddedLayoutInspector.Toolbar"
  * tool.
  */
 fun createEmbeddedLayoutInspectorToolbar(
+  parentDisposable: Disposable,
   targetComponent: JComponent,
   layoutInspector: LayoutInspector,
   selectProcessAction: AnAction?,
@@ -59,6 +64,7 @@ fun createEmbeddedLayoutInspectorToolbar(
 ): JPanel {
   val actionToolbar =
     createStandaloneLayoutInspectorToolbar(
+      parentDisposable,
       targetComponent,
       layoutInspector,
       selectProcessAction,
@@ -92,6 +98,7 @@ fun createEmbeddedLayoutInspectorToolbar(
 
 /** * Creates the toolbar used by Stadalone Layout Inspector. */
 fun createStandaloneLayoutInspectorToolbar(
+  parentDisposable: Disposable,
   targetComponent: JComponent,
   layoutInspector: LayoutInspector,
   selectProcessAction: AnAction?,
@@ -108,6 +115,17 @@ fun createStandaloneLayoutInspectorToolbar(
   actionToolbar.updateActionsImmediately()
   // Removes empty space on the right side of the toolbar.
   actionToolbar.setReservePlaceAutoPopupIcon(false)
+
+  val modificationListener =
+    InspectorModel.ModificationListener { _, _, _ ->
+      invokeLater { actionToolbar.updateActionsImmediately() }
+    }
+  layoutInspector.inspectorModel.addModificationListener(modificationListener)
+
+  Disposer.register(parentDisposable) {
+    layoutInspector.inspectorModel.removeModificationListener(modificationListener)
+  }
+
   return actionToolbar
 }
 

@@ -199,6 +199,7 @@ class DeviceViewPanel(
 
   private val actionToolbar =
     createStandaloneLayoutInspectorToolbar(
+      disposableParent,
       this,
       layoutInspector,
       targetSelectedAction?.dropDownAction
@@ -329,7 +330,6 @@ class DeviceViewPanel(
 
     contentPanel.renderModel.modificationListeners.add {
       ApplicationManager.getApplication().invokeLater {
-        actionToolbar.updateActionsImmediately()
         val performanceWarningNeeded =
           layoutInspector.currentClient.isCapturing &&
             (contentPanel.renderModel.isRotated || model.hasHiddenNodes())
