@@ -609,7 +609,9 @@ class ComposePreviewRepresentation(
     withContext(uiThread) {
       emptyUiCheckPanel.apply {
         isVisible = true
-        surface.layeredPane.add(this, JLayeredPane.POPUP_LAYER, 0)
+        // Put this panel in the DRAG_LAYER so that it hides everything in the surface,
+        // including the zoom toolbar.
+        surface.layeredPane.add(this, JLayeredPane.DRAG_LAYER, 0)
       }
       createUiCheckTab(instance)
     }
