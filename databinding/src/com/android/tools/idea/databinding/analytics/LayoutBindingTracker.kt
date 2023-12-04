@@ -122,20 +122,15 @@ open class LayoutBindingTracker(private val project: Project) : DataBindingTrack
           .inSmartMode(project)
           .executeSynchronously()
 
-      var dataBindingLayoutCount = 0
-      var viewBindingLayoutCount = 0
-      var importCount = 0
-      var variableCount = 0
+      val dataBindingLayouts =
+        bindingXmlData.asSequence().filter { it.layoutType == DATA_BINDING_LAYOUT }
 
-      for (layoutInfo in bindingXmlData) {
-        if (layoutInfo.layoutType == DATA_BINDING_LAYOUT) {
-          dataBindingLayoutCount++
-          importCount += layoutInfo.imports.size
-          variableCount += layoutInfo.variables.size
-        } else if (layoutInfo.layoutType == PLAIN_LAYOUT && !layoutInfo.viewBindingIgnore) {
-          viewBindingLayoutCount++
-        }
-      }
+      val dataBindingLayoutCount = dataBindingLayouts.count()
+      val importCount = dataBindingLayouts.sumOf { it.imports.size }
+      val variableCount = dataBindingLayouts.sumOf { it.variables.size }
+
+      val viewBindingLayoutCount =
+        bindingXmlData.count { it.layoutType == PLAIN_LAYOUT && !it.viewBindingIgnore }
 
       trackPollingEvent(
         DataBindingEvent.EventType.DATA_BINDING_BUILD_EVENT,
@@ -145,14 +140,13 @@ open class LayoutBindingTracker(private val project: Project) : DataBindingTrack
             layoutXmlCount = dataBindingLayoutCount
             this.importCount = importCount
             this.variableCount = variableCount
-            // We only care about Android modules (modules with an android facet).
+            // We only care about Android modules (modules with an Android facet).
             moduleCount =
               ModuleManager.getInstance(project).modules.count { it.androidFacet != null }
             dataBindingEnabledModuleCount =
-              ModuleManager.getInstance(project)
-                .modules
-                .mapNotNull { it.androidFacet }
-                .count { DataBindingUtil.isDataBindingEnabled(it) }
+              ModuleManager.getInstance(project).modules.count {
+                it.androidFacet?.let(DataBindingUtil::isDataBindingEnabled) ?: false
+              }
           }
           .build(),
         DataBindingEvent.ViewBindingPollMetadata.newBuilder()
