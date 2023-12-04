@@ -17,11 +17,10 @@ package com.android.tools.idea.insights.vcs
 
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ui.vcs.ContextDataForDiff
-import com.android.tools.idea.insights.ui.vcs.InsightsDiffRequestChain
+import com.android.tools.idea.insights.ui.vcs.InsightsDiffVirtualFile
 import com.android.tools.idea.insights.ui.vcs.goToDiff
 import com.android.tools.idea.insights.vcs.AlternativeSourceNotificationProvider.AppScopeMatchResult
 import com.android.tools.idea.model.AndroidModel
-import com.intellij.diff.editor.ChainDiffVirtualFile
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -68,8 +67,9 @@ class AlternativeSourceNotificationProvider : EditorNotificationProvider {
     project: Project,
     file: VirtualFile
   ): Function<FileEditor, EditorNotificationPanel?>? {
-    if (file !is ChainDiffVirtualFile) return null
-    val diffRequestContext = (file.chain as? InsightsDiffRequestChain)?.context ?: return null
+    if (file !is InsightsDiffVirtualFile) return null
+
+    val diffRequestContext = file.provider.insightsContext
     val diffContextVFile = diffRequestContext.filePath.virtualFile ?: return null
 
     // Locate other files not in scope (e.g. files from inactive variant src set)

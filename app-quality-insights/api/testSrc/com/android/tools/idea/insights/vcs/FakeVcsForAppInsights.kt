@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.vcs
 
 import com.android.tools.idea.insights.VCS_CATEGORY
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vcs.AbstractVcs
 import com.intellij.openapi.vcs.FilePath
 import com.intellij.openapi.vcs.changes.ContentRevision
@@ -32,8 +33,12 @@ class FakeVcsForAppInsights : VcsForAppInsights {
     localFilePath: FilePath,
     revision: String,
     project: Project
-  ): ContentRevision = FakeContentRevision(localFilePath, revision)
+  ): ContentRevision {
+    return FakeContentRevision(localFilePath, revision) { vcsContentProvider(localFilePath) }
+  }
 
   override fun createVcsRevision(revision: String): VcsRevisionNumber =
     FakeVcsRevisionNumber(revision)
+
+  var vcsContentProvider = { filePath: FilePath -> FileUtil.loadFile(filePath.ioFile) }
 }

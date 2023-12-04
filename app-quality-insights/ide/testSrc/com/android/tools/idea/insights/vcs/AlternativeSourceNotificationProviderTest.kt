@@ -19,14 +19,14 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.VCS_CATEGORY
 import com.android.tools.idea.insights.ui.vcs.ContextDataForDiff
-import com.android.tools.idea.insights.ui.vcs.InsightsDiffRequestChain
+import com.android.tools.idea.insights.ui.vcs.InsightsDiffViewProvider
+import com.android.tools.idea.insights.ui.vcs.InsightsDiffVirtualFile
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.ui.flatten
 import com.google.common.truth.Truth.assertThat
-import com.intellij.diff.editor.ChainDiffVirtualFile
 import com.intellij.diff.editor.DiffRequestProcessorEditor
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditor
@@ -256,7 +256,7 @@ class AlternativeSourceNotificationProviderTest {
     file: VirtualFile,
     project: Project,
     origin: Connection?
-  ): ChainDiffVirtualFile {
+  ): InsightsDiffVirtualFile {
     val contextDataForDiff =
       ContextDataForDiff(
         vcsKey = VCS_CATEGORY.TEST_VCS,
@@ -265,10 +265,10 @@ class AlternativeSourceNotificationProviderTest {
         lineNumber = 4,
         origin = origin
       )
-    return ChainDiffVirtualFile(InsightsDiffRequestChain(contextDataForDiff, project), "")
+    return InsightsDiffVirtualFile(InsightsDiffViewProvider(contextDataForDiff, project))
   }
 
-  private fun ChainDiffVirtualFile.createFileEditor(
+  private fun InsightsDiffVirtualFile.createFileEditor(
     project: Project,
     parentDisposable: Disposable
   ): FileEditor {
