@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersi
 import com.android.tools.idea.gradle.structure.quickfix.SdkIndexLinkQuickFix
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex
 import com.android.tools.lint.checks.GooglePlaySdkIndex
+import com.android.utils.SdkUtils
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -50,6 +51,7 @@ import com.intellij.util.EventDispatcher
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.File
 import java.util.EventListener
 
@@ -324,17 +326,25 @@ private fun createIndexIssue(
 ): PsGeneralIssue {
   val url = sdkIndex.getSdkUrl(groupId, artifactId)
   val fixes = if (url != null) {
-    listOf(SdkIndexLinkQuickFix("View details on Google Play SDK Index", url, groupId, artifactId, versionString))
+    listOf(SdkIndexLinkQuickFix("View details", url, groupId, artifactId, versionString))
   }
   else {
     listOf()
   }
+  val wrappedMessage = wrapMessage(message)
   return PsGeneralIssue(
-    message,
+    wrappedMessage,
     "",
     mainPath,
     PLAY_SDK_INDEX_ISSUE,
     severity,
     fixes
   )
+}
+
+@VisibleForTesting
+fun wrapMessage(message: String, maxWidth: Int = 55): String {
+  return SdkUtils.wrap(message, maxWidth, maxWidth, /* no hanging*/null, /*no breaks*/false)
+    .trim()
+    .replace("\n", "\n<br>")
 }
