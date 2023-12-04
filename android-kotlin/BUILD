@@ -55,7 +55,6 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//prebuilts/r8",
-        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
     ],
 )
 
