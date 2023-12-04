@@ -221,7 +221,7 @@ class PsiUtilsTest {
   }
 
   @Test
-  fun composableScope_lambdaArgument() {
+  fun composableScope_lambdaArgument_positional() {
     fixture.loadNewFile(
       "Test.kt",
       // language=kotlin
@@ -241,8 +241,7 @@ class PsiUtilsTest {
     )
 
     runReadAction {
-      val element: KtElement = fixture.getEnclosing("35")
-      val scope = element.composableScope()
+      val scope = fixture.getEnclosing<KtElement>("35").composableScope()
       assertThat(scope).isNotNull()
       val function: KtLambdaExpression = fixture.getEnclosing("35")
       assertThat(scope).isEqualTo(function)
@@ -251,10 +250,71 @@ class PsiUtilsTest {
     fixture.removeComposableAnnotation("|@Composable| (Int)")
 
     runReadAction {
-      val element: KtElement = fixture.getEnclosing("35")
-      assertThat(element.composableScope()).isNull()
+      assertThat(fixture.getEnclosing<KtElement>("35").composableScope()).isNull()
     }
   }
+
+  @Test
+  fun composableScope_lambdaArgument_named() {
+    fixture.loadNewFile(
+      "Test.kt",
+      // language=kotlin
+      """
+      import androidx.compose.runtime.Composable
+      fun repeat(times: Int, action: @Composable (Int) -> Unit) {
+        for (index in 0 until times) {
+          action(index)
+        }
+      }
+      @Composable
+      fun Greeting() {
+        repeat(2, action = { val a = 35 })
+      }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val scope = fixture.getEnclosing<KtElement>("35").composableScope()
+      assertThat(scope).isNotNull()
+      val function: KtLambdaExpression = fixture.getEnclosing("35")
+      assertThat(scope).isEqualTo(function)
+    }
+
+    fixture.removeComposableAnnotation("|@Composable| (Int)")
+
+    runReadAction {
+      assertThat(fixture.getEnclosing<KtElement>("35").composableScope()).isNull()
+    }
+  }
+
+  // This specifically tests for the issue in b/313902116 in which we threw NoSuchElementException
+  // when the parameter was misnamed.
+  @Test
+  fun composableScope_lambdaArgument_misnamed() {
+    fixture.loadNewFile(
+      "Test.kt",
+      // language=kotlin
+      """
+      import androidx.compose.runtime.Composable
+      fun repeat(times: Int, action: @Composable (Int) -> Unit) {
+        for (index in 0 until times) {
+          action(index)
+        }
+      }
+      @Composable
+      fun Greeting() {
+        repeat(2, notNamedAction = { val a = 35 })
+      }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      assertThat(fixture.getEnclosing<KtElement>("35").composableScope()).isNull()
+    }
+  }
+
 
   @Test
   fun composableScope_lambdaArgument_anonymousFunction() {
@@ -616,7 +676,7 @@ class PsiUtilsTest {
   }
 
   @Test
-  fun expectedComposableAnnotationHolder_lambdaParameterType() {
+  fun expectedComposableAnnotationHolder_lambdaParameterType_positional() {
     fixture.loadNewFile(
       "Test.kt",
       // language=kotlin
@@ -641,6 +701,57 @@ class PsiUtilsTest {
       assertThat(scope).isNotNull()
       val function: KtTypeReference = fixture.getEnclosing("(Int) -> Unit")
       assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  @Test
+  fun expectedComposableAnnotationHolder_lambdaParameterType_named() {
+    fixture.loadNewFile(
+      "Test.kt",
+      // language=kotlin
+      """
+      fun repeat(times: Int, action: (Int) -> Unit) {
+        for (index in 0 until times) {
+          action(index)
+        }
+      }
+      fun Greeting() {
+        repeat(2, action= { val a = 35 })
+      }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      val scope = fixture.getEnclosing<KtElement>("35").expectedComposableAnnotationHolder()
+      assertThat(scope).isNotNull()
+      val function: KtTypeReference = fixture.getEnclosing("(Int) -> Unit")
+      assertThat(scope).isEqualTo(function)
+    }
+  }
+
+  // This specifically tests for the issue in b/313902116 in which we threw NoSuchElementException
+  // when the parameter was misnamed.
+  @Test
+  fun expectedComposableAnnotationHolder_lambdaParameterType_misnamed() {
+    fixture.loadNewFile(
+      "Test.kt",
+      // language=kotlin
+      """
+      fun repeat(times: Int, action: (Int) -> Unit) {
+        for (index in 0 until times) {
+          action(index)
+        }
+      }
+      fun Greeting() {
+        repeat(2, notNamedAction = { val a = 35 })
+      }
+      """
+        .trimIndent()
+    )
+
+    runReadAction {
+      assertThat(fixture.getEnclosing<KtElement>("35").expectedComposableAnnotationHolder()).isNull()
     }
   }
 

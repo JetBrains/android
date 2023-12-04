@@ -221,7 +221,7 @@ private fun KtFunction.getParameterForArgument(argument: KtValueArgument): KtPar
 
   // If it's a named argument, then we have to look it up in our parameter list.
   val argumentName = argument.getArgumentName()?.asName?.asString()
-  if (argumentName != null) return valueParameters.first { it.name == argumentName }
+  if (argumentName != null) return valueParameters.firstOrNull { it.name == argumentName }
 
   // Otherwise, it's a positional argument, so just take its current position.
   return (argument.parent as? KtValueArgumentList)
