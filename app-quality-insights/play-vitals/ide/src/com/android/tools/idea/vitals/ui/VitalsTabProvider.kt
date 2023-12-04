@@ -38,6 +38,7 @@ import java.awt.Graphics
 import java.time.Clock
 import javax.swing.JPanel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class VitalsTabProvider : AppInsightsTabProvider {
   override val displayName = VITALS_KEY.displayName
@@ -46,40 +47,42 @@ class VitalsTabProvider : AppInsightsTabProvider {
 
   override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel) {
     tabPanel.setComponent(placeholderContent())
-    val configManager = project.service<VitalsConfigurationService>().manager
-    val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
-    AndroidCoroutineScope(tabPanel, AndroidDispatchers.uiThread).launch {
-      configManager.configuration.collect { appInsightsModel ->
-        when (appInsightsModel) {
-          AppInsightsModel.Unauthenticated -> {
-            tracker.logZeroState(
-              AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.newBuilder()
-                .apply {
-                  emptyState =
-                    AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.EmptyState
-                      .NO_LOGIN
-                }
-                .build()
-            )
-            tabPanel.setComponent(loggedOutErrorStateComponent())
-          }
-          is AppInsightsModel.Authenticated -> {
-            tabPanel.setComponent(
-              VitalsTab(
-                appInsightsModel.controller,
-                project,
-                Clock.systemDefaultZone(),
-                AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
+    AndroidCoroutineScope(tabPanel, AndroidDispatchers.diskIoThread).launch {
+      val configManager = project.service<VitalsConfigurationService>().manager
+      val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
+      withContext(AndroidDispatchers.uiThread) {
+        configManager.configuration.collect { appInsightsModel ->
+          when (appInsightsModel) {
+            AppInsightsModel.Unauthenticated -> {
+              tracker.logZeroState(
+                AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.newBuilder()
+                  .apply {
+                    emptyState =
+                      AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.EmptyState
+                        .NO_LOGIN
+                  }
+                  .build()
               )
-            )
+              tabPanel.setComponent(loggedOutErrorStateComponent())
+            }
+            is AppInsightsModel.Authenticated -> {
+              tabPanel.setComponent(
+                VitalsTab(
+                  appInsightsModel.controller,
+                  project,
+                  Clock.systemDefaultZone(),
+                  AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
+                )
+              )
+            }
+            AppInsightsModel.Uninitialized -> {}
           }
-          AppInsightsModel.Uninitialized -> {}
         }
       }
     }
   }
 
-  override fun isApplicable() = StudioFlags.PLAY_VITALS_ENABLED.get()
+  override fun isApplicable(): Boolean = StudioFlags.PLAY_VITALS_ENABLED.get()
 
   override fun getConfigurationManager(project: Project) =
     project.service<VitalsConfigurationService>().manager
