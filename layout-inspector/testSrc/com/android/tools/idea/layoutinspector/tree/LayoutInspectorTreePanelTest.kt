@@ -98,7 +98,6 @@ import javax.swing.tree.TreeModel
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsCommand
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -946,7 +945,6 @@ class LayoutInspectorTreePanelTest {
     assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
   }
 
-  @Ignore("311033895")
   @Test
   fun testResetRecompositionCounts() {
     val tree = runInEdtAndGet { LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable) }
@@ -981,12 +979,21 @@ class LayoutInspectorTreePanelTest {
     component.size = Dimension(800, 1000)
     val ui = FakeUi(component, createFakeWindow = true)
     val treeColumnWidth = table.columnModel.getColumn(0).width
-    updateSettingsLatch = ReportingCountDownLatch(1)
+    val treeModel = tree.componentTreeModel as TreeModel
+    var columnDataChanged = false
+    treeModel.addTreeModelListener(
+      object : TreeTableModelImplAdapter() {
+        override fun columnDataChanged() {
+          columnDataChanged = true
+        }
+      }
+    )
 
     // Click on the reset recomposition counts button in the table header:
     ui.mouse.click(treeColumnWidth - 8, 8)
 
-    updateSettingsLatch?.await(TIMEOUT, TIMEOUT_UNIT)
+    // Wait for a Tree column data changed event:
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { columnDataChanged }
 
     assertThat(compose1.recompositions.count).isEqualTo(0)
     assertThat(compose1.recompositions.skips).isEqualTo(0)
