@@ -53,8 +53,6 @@ import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionSt
 import com.android.tools.idea.streaming.emulator.EmulatorId
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
-import com.android.utils.FlightRecorder
-import com.android.utils.TraceUtils
 import com.google.common.cache.CacheBuilder
 import com.intellij.collaboration.async.disposingScope
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -259,7 +257,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
   init {
-    FlightRecorder.initialize(1000)
     Disposer.register(toolWindow.disposable, this)
     PhysicalDeviceWatcher(this)
 
@@ -420,7 +417,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
             val emulator = emulators.find { it.emulatorId == deviceId.emulatorId }
             if (emulator == null || emulator.isShuttingDown) {
               savedUiState.remove(deviceId)
-              content.removeAndDispose()
+              content.manager?.removeContent(content, true)
             }
           }
 
@@ -428,7 +425,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
             val clientWithHandle = deviceClients[deviceId.serialNumber]
             if (clientWithHandle == null) {
               savedUiState.remove(deviceId)
-              content.removeAndDispose()
+              content.manager?.removeContent(content, true)
             }
           }
         }
@@ -504,9 +501,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
       if (findContentByDeviceId(panel.id) != null) {
-        thisLogger().error("An attempt to add a duplicate panel ${TraceUtils.getSimpleId(content)} ${content.displayName}\n" +
-                           TraceUtils.getCurrentStack() +
-                           "Panel creation history:\n${FlightRecorder.getAndClear().joinToString("\n")}")
+        thisLogger().error("An attempt to add a duplicate panel ${content.displayName}")
         return
       }
 
@@ -516,17 +511,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     else {
       val index = Arrays.binarySearch(contentManager.contents, content, TAB_COMPARATOR).inv()
       if (index < 0) {
-        thisLogger().error("An attempt to add a duplicate panel ${TraceUtils.getSimpleId(panel)} ${panel.title}\n" +
-                           FlightRecorder.getAndClear())
+        thisLogger().error("An attempt to add a duplicate panel ${panel.title}")
         return
       }
 
       // Insert panel in alphabetical order of the title.
       contentManager.addContent(content, index)
     }
-
-    FlightRecorder.log { "${TraceUtils.getSimpleId(this)}: added panel ${TraceUtils.getSimpleId(content)} ${content.displayName}\n" +
-                         TraceUtils.getCurrentStack() }
 
     if (!content.isSelected) {
       // Activate the newly added panel if it corresponds to a recently launched or used Emulator.
@@ -542,7 +533,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     if (placeholderContent != null) {
       showLiveIndicator()
-      placeholderContent.removeAndDispose() // Remove the placeholder panel if it was present.
+      placeholderContent.manager?.removeContent(placeholderContent, true) // Remove the placeholder panel if it was present.
     }
   }
 
@@ -550,7 +541,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     emulator.removeConnectionStateListener(connectionStateListener)
     val content = findContentByEmulatorId(emulator.emulatorId) ?: return false
     savedUiState.remove(ID_KEY.get(content))
-    content.removeAndDispose()
+    content.manager?.removeContent(content, true)
     return true
   }
 
@@ -561,7 +552,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       Disposer.dispose(it)
       updateMirroringHandlesFlow()
     }
-    content.removeAndDispose()
+    content.manager?.removeContent(content, true)
   }
 
   private fun removeAllPhysicalDevicePanels() {
@@ -573,7 +564,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     for (contentManager in contentManagers) {
       for (content in contentManager.contents) {
         if (content.component is DeviceToolWindowPanel) {
-          content.removeAndDispose()
+          content.manager?.removeContent(content, true)
         }
       }
     }
@@ -629,12 +620,15 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun findContentByDeviceId(deviceId: DeviceId): Content? =
       findContent { ID_KEY.get(it) == deviceId }
+
   private fun findContentByEmulatorId(emulatorId: EmulatorId): Content? =
       findContent { (ID_KEY.get(it) as? DeviceId.EmulatorDeviceId)?.emulatorId == emulatorId }
+
   private fun findContentByAvdId(avdId: String): Content? =
       findContent { (ID_KEY.get(it) as? DeviceId.EmulatorDeviceId)?.emulatorId?.avdId == avdId }
+
   private fun findContentBySerialNumberOfPhysicalDevice(serialNumber: String): Content? =
-      findContent { ID_KEY.get(it)?.serialNumber == serialNumber && it.component is DeviceToolWindowPanel}
+      findContent { ID_KEY.get(it)?.serialNumber == serialNumber && it.component is DeviceToolWindowPanel }
 
   private fun findContent(predicate: (Content) -> Boolean): Content? {
     for (contentManager in contentManagers) {
@@ -690,7 +684,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun deactivateMirroring(serialNumber: String, deviceHandle: DeviceHandle) {
     if (contentShown) {
       val content = findContentBySerialNumberOfPhysicalDevice(serialNumber) ?: return
-      content.removeAndDispose()
+      content.manager?.removeContent(content, true)
     }
     else {
       stopMirroring(serialNumber, deviceHandle)
@@ -1225,11 +1219,6 @@ private val ContentManager.placeholderContent: Content?
 
 private fun Content.select() {
   manager?.setSelectedContent(this)
-}
-
-private fun Content.removeAndDispose() {
-  FlightRecorder.log { "${TraceUtils.getSimpleId(this)}.removeAndDispose()\n${TraceUtils.getCurrentStack()}" }
-  manager?.removeContent(this, true)
 }
 
 private fun isLocalEmulator(deviceSerialNumber: String) =
