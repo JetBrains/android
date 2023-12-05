@@ -33,6 +33,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.project.Project;
@@ -169,7 +170,7 @@ public class SdkSync {
       return;
     }
 
-    if (!filesEqual(ideAndroidSdkPath, projectAndroidSdkPath) && !Boolean.getBoolean("startup.performance.framework")) {
+    if (!filesEqual(ideAndroidSdkPath, projectAndroidSdkPath) && !ApplicationManagerEx.isInIntegrationTest()) {
       String msg = String.format("The project and %3$s point to different Android SDKs.\n\n" +
                                  "%3$s's default SDK is in:\n" +
                                  "%1$s\n\n" +
