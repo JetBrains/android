@@ -784,7 +784,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     Disposer.dispose(b);
 
     MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots,
-                                                             200);
+                                                             50);
     assertSize(1, crushReporter.crashReports);
     CrashReport report = crushReporter.crashReports.get(0);
     MultipartEntityBuilder builder = MultipartEntityBuilder.create();

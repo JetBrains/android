@@ -44,6 +44,8 @@ public class RootPathTree {
     IntSet.of(DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE, OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE);
   @NotNull final Map<ExtendedStackNode, RootPathTreeNode> roots = Maps.newHashMap();
   @NotNull final ObjectsStatistics totalNominatedLoadersReferringObjectsStatistics = new ObjectsStatistics();
+  @NotNull final ObjectsStatistics totalRetainedDisposedObjectsStatistics = new ObjectsStatistics();
+
   private int numberOfRootPathTreeNodes = 0;
 
   private final ExtendedReportStatistics extendedReportStatistics;
@@ -56,6 +58,7 @@ public class RootPathTree {
   public void addDisposedReferencedObjectWithPathToRoot(@NotNull final Stack<RootPathElement> rootPath,
                                                         @NotNull final ExceededClusterStatistics exceededClusterStatistics) {
     addObjectWithPathToRoot(rootPath, exceededClusterStatistics, DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE);
+    totalRetainedDisposedObjectsStatistics.addObject(rootPath.lastElement().size);
   }
 
   public void addClassLoaderPath(@NotNull final Stack<RootPathElement> rootPath,
@@ -108,9 +111,11 @@ public class RootPathTree {
     if (rootPathElement.isArray) {
       return new RootPathTreeNode.RootPathArrayTreeNode(rootPathElement.getLabel(), rootPathElement.getClassName(),
                                                         rootPathElement.isDisposedButReferenced(),
+                                                        rootPathElement.isLoadedWithNominatedLoader(),
                                                         extendedReportStatistics);
     }
     return new RootPathTreeNode(rootPathElement.getLabel(), rootPathElement.getClassName(), rootPathElement.isDisposedButReferenced(),
+                                rootPathElement.isLoadedWithNominatedLoader(),
                                 extendedReportStatistics);
   }
 
@@ -190,6 +195,10 @@ public class RootPathTree {
 
     public boolean isDisposedButReferenced() {
       return extendedStackNode.isDisposedButReferenced();
+    }
+
+    public boolean isLoadedWithNominatedLoader() {
+      return extendedStackNode.isLoadedWithNominatedLoader();
     }
 
     public void setRootPathTreeNode(@Nullable RootPathTreeNode rootPathTreeNode,

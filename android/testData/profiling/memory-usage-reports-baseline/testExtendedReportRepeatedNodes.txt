@@ -44,37 +44,37 @@ Nominated classes:
 
 CLASS: java.util.LinkedList$Node (5 objects)
 Root 1:
-[    4/100%/  120B]     600KB/1 objects          (root): java.util.LinkedList
-[    2/ 60%/   72B]     600KB/1 objects *        +-last: java.util.LinkedList$Node
-[    1/ 40%/   48B]     600KB/1 objects * (rep)  | prev: java.util.LinkedList$Node
-[    2/ 40%/   48B]      144B/1 objects *        \-first: java.util.LinkedList$Node
-[    1/ 20%/   24B]       72B/1 objects *          next: java.util.LinkedList$Node
+[    4/100%/  120B] 600KB          1          (root): java.util.LinkedList
+[    2/ 60%/   72B] 600KB          1 *        +-last: java.util.LinkedList$Node
+[    1/ 40%/   48B] 600KB          1 * (rep)  | prev: java.util.LinkedList$Node
+[    2/ 40%/   48B]  144B          1 *        \-first: java.util.LinkedList$Node
+[    1/ 20%/   24B]   72B          1 *          next: java.util.LinkedList$Node
 CLASS: [B (5 objects)
 Root 1:
-[    5/100%/ 600KB]     600KB/1 objects          (root): java.util.LinkedList
-[    3/ 99%/ 600KB]     600KB/1 objects          +-last: java.util.LinkedList$Node
-[    2/ 99%/ 600KB]     600KB/1 objects   (rep)  | +-prev: java.util.LinkedList$Node
-[    2/ 99%/ 600KB]     600KB/2 objects          | | item: java.lang.String
-[    2/ 99%/ 600KB]     600KB/2 objects *        | | value: [B {0-250KB->1;250KB-1MB->1;}
-[    1/  0%/   24B]       48B/1 objects          | \-item: java.lang.String
-[    1/  0%/   24B]       24B/1 objects *        |   value: [B {0-250KB->1;}
-[    2/  0%/   48B]      144B/1 objects          \-first: java.util.LinkedList$Node
-[    1/  0%/   24B]       72B/1 objects            +-next: java.util.LinkedList$Node
-[    1/  0%/   24B]       48B/1 objects            | item: java.lang.String
-[    1/  0%/   24B]       24B/1 objects *          | value: [B {0-250KB->1;}
-[    1/  0%/   24B]       48B/1 objects            \-item: java.lang.String
-[    1/  0%/   24B]       24B/1 objects *            value: [B {0-250KB->1;}
+[    5/100%/ 600KB] 600KB          1          (root): java.util.LinkedList
+[    3/ 99%/ 600KB] 600KB          1          +-last: java.util.LinkedList$Node
+[    2/ 99%/ 600KB] 600KB          1   (rep)  | +-prev: java.util.LinkedList$Node
+[    2/ 99%/ 600KB] 600KB          2          | | item: java.lang.String
+[    2/ 99%/ 600KB] 600KB          2 *        | | value: [B {0-250KB->1;250KB-1MB->1;}
+[    1/  0%/   24B]   48B          1          | \-item: java.lang.String
+[    1/  0%/   24B]   24B          1 *        |   value: [B {0-250KB->1;}
+[    2/  0%/   48B]  144B          1          \-first: java.util.LinkedList$Node
+[    1/  0%/   24B]   72B          1            +-next: java.util.LinkedList$Node
+[    1/  0%/   24B]   48B          1            | item: java.lang.String
+[    1/  0%/   24B]   24B          1 *          | value: [B {0-250KB->1;}
+[    1/  0%/   24B]   48B          1            \-item: java.lang.String
+[    1/  0%/   24B]   24B          1 *            value: [B {0-250KB->1;}
 CLASS: java.lang.String (5 objects)
 Root 1:
-[    5/100%/  120B]     600KB/1 objects          (root): java.util.LinkedList
-[    3/ 60%/   72B]     600KB/1 objects          +-last: java.util.LinkedList$Node
-[    2/ 40%/   48B]     600KB/1 objects   (rep)  | +-prev: java.util.LinkedList$Node
-[    2/ 40%/   48B]     600KB/2 objects *        | | item: java.lang.String
-[    1/ 20%/   24B]       48B/1 objects *        | \-item: java.lang.String
-[    2/ 40%/   48B]      144B/1 objects          \-first: java.util.LinkedList$Node
-[    1/ 20%/   24B]       72B/1 objects            +-next: java.util.LinkedList$Node
-[    1/ 20%/   24B]       48B/1 objects *          | item: java.lang.String
-[    1/ 20%/   24B]       48B/1 objects *          \-item: java.lang.String
+[    5/100%/  120B] 600KB          1          (root): java.util.LinkedList
+[    3/ 60%/   72B] 600KB          1          +-last: java.util.LinkedList$Node
+[    2/ 40%/   48B] 600KB          1   (rep)  | +-prev: java.util.LinkedList$Node
+[    2/ 40%/   48B] 600KB          2 *        | | item: java.lang.String
+[    1/ 20%/   24B]   48B          1 *        | \-item: java.lang.String
+[    2/ 40%/   48B]  144B          1          \-first: java.util.LinkedList$Node
+[    1/ 20%/   24B]   72B          1            +-next: java.util.LinkedList$Node
+[    1/ 20%/   24B]   48B          1 *          | item: java.lang.String
+[    1/ 20%/   24B]   48B          1 *          \-item: java.lang.String
 CLASS: java.util.LinkedList (1 objects)
 Root 1:
-[    1/100%/   32B]     600KB/1 objects *        (root): java.util.LinkedList
+[    1/100%/   32B] 600KB          1 *        (root): java.util.LinkedList

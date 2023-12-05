@@ -257,11 +257,7 @@ public class ExtendedReportStatistics {
       .sorted(Comparator.comparingInt((Map.Entry<String, ObjectsStatistics> e) -> e.getValue().getObjectsCount()).reversed())
       .map(e -> new Pair<>(e.getKey(), e.getValue())).toList();
 
-    ObjectsStatistics totalDisposedButReferencedObjectsStatistics = new ObjectsStatistics();
-    for (ObjectsStatistics value : componentHistograms.get(component.getId()).disposedButReferencedObjects.values()) {
-      totalDisposedButReferencedObjectsStatistics.addStats(value);
-    }
-    new RootPathTreePrinter.RootPathTreeDisposedObjectsPrinter(totalDisposedButReferencedObjectsStatistics, this,
+    new RootPathTreePrinter.RootPathTreeDisposedObjectsPrinter(rootPathTree.totalRetainedDisposedObjectsStatistics, this,
                                                                statistics).print(writer);
 
     writer.accept("======== INSTANCES OF EACH NOMINATED CLASS ========");

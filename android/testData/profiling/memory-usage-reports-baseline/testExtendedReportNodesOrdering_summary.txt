@@ -1,8 +1,8 @@
 Root 1:
-      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
-      104B/1 objects          myArray: [Ljava.lang.Object;
-       80B/2 objects          []: [I
+  120B          1          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+  104B          1          myArray: [Ljava.lang.Object;
+   72B          3          []: [I
 Root 2:
-      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
-      104B/1 objects          myArray: [Ljava.lang.Object;
-       72B/3 objects          []: [I
+  120B          1          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
+  104B          1          myArray: [Ljava.lang.Object;
+   80B          2          []: [I

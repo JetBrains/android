@@ -1,5 +1,4 @@
 Root 1:
-      144B/1 objects          (root): java.util.ImmutableCollections$List12
-       72B/1 objects          e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-       56B/1 objects          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
-       16B/1 objects          []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B(disposed)
+  144B          1          (root): java.util.ImmutableCollections$List12
+   72B          1          e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+   56B          1          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;

@@ -1,3 +1,3 @@
 Root 1:
-       56B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
-       16B/1 objects          myInt: java.lang.Integer
+   56B          1          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+   16B          1          myInt: java.lang.Integer
