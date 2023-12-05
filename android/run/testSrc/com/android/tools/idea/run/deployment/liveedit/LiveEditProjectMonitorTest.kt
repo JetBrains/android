@@ -110,24 +110,6 @@ class LiveEditProjectMonitorTest {
     Assert.assertEquals(1, monitor.numFilesWithCompilationErrors())
   }
 
-  @Test
-  @Ignore("b/303114511")
-  fun `Auto Mode with Private and Public Inline`() {
-    var monitor = LiveEditProjectMonitor(
-      LiveEditService.getInstance(myProject), myProject);
-    var file = projectRule.fixture.configureByText("A.kt", "public inline fun foo() : Int { return 1}")
-    var foo = findFunction(file, "foo")
-    monitor.processChanges(myProject, listOf(EditEvent(file, foo)), LiveEditEvent.Mode.AUTO)
-    monitor.onPsiChanged(EditEvent(file, foo))
-
-    var file2 = projectRule.fixture.configureByText("B.kt", "private inline fun foo2() : Int { return 1}")
-    var foo2 = findFunction(file2, "foo2")
-    monitor.processChanges(myProject, listOf(EditEvent(file2, foo2)), LiveEditEvent.Mode.AUTO)
-    monitor.onPsiChanged(EditEvent(file2, foo2))
-    Assert.assertEquals(1, monitor.numFilesWithCompilationErrors())
-    Assert.assertTrue(hasMetricStatus(LiveEditEvent.Status.NON_PRIVATE_INLINE_FUNCTION))
-  }
-
   /**
    * This test needs to be updated when multi-deploy is supported (its failure will signify so).
    */
