@@ -152,15 +152,11 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
         }
 
         override fun paintComponent(g: Graphics) {
-          g.color = if (isSelected) UIUtil.getListSelectionBackground(true) else UIUtil.SIDE_PANEL_BACKGROUND
+          g.color = UIUtil.SIDE_PANEL_BACKGROUND
           g.fillRect(0, 0, width, height)
           if (StringUtil.isEmpty(text)) return
           val deepBlue = JBColor(Color(0x97A4B2), Color(92, 98, 113))
-          g.color = when {
-            isSelected -> Gray._255.withAlpha(if (UIUtil.isUnderDarcula()) 100 else 220)
-            containsErrors -> JBColor.RED.darker()
-            else -> deepBlue
-          }
+          g.color = if (containsErrors) JBColor.RED.darker() else deepBlue
           val config = GraphicsUtil.setupAAPainting(g)
           g.fillRoundRect(0, 3, width - 6 - 1, height - 6, height - 6, height - 6)
           config.restore()
@@ -171,7 +167,6 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
           }
           super.paintComponent(g)
         }
-
       }
 
       val component = super.createItemComponent()
