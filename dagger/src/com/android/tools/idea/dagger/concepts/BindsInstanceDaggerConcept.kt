@@ -111,12 +111,14 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
     val bindsInstanceParameters =
       wrapper.getParameters().filter { it.getIsAnnotatedWith(DaggerAnnotation.BINDS_INSTANCE) }
     for (parameter in bindsInstanceParameters) {
+      val parameterTypeSimpleName = parameter.getType()?.getSimpleName() ?: continue
+      val parameterSimpleName = parameter.getSimpleName() ?: continue
       indexEntries.addIndexValue(
-        parameter.getType()?.getSimpleName() ?: "",
+        parameterTypeSimpleName,
         BindsInstanceFactoryMethodParameterIndexValue(
           containingClass.getClassId(),
           wrapper.getSimpleName(),
-          parameter.getSimpleName()
+          parameterSimpleName
         )
       )
     }

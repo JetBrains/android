@@ -99,8 +99,8 @@ private object AssistedInjectConstructorIndexer : DaggerConceptIndexer<DaggerInd
       // the absence of an annotation, and the best we can do at indexing it to say that an
       // annotation *might* be present. Therefore we index all of the parameters, and ensure during
       // resolution at analysis time that we drop any which are assisted.
-      val parameterSimpleTypeName = parameter.getType()?.getSimpleName() ?: ""
-      val parameterName = parameter.getSimpleName()
+      val parameterSimpleTypeName = parameter.getType()?.getSimpleName() ?: continue
+      val parameterName = parameter.getSimpleName() ?: continue
       indexEntries.addIndexValue(
         parameterSimpleTypeName,
         AssistedInjectConstructorUnassistedParameterIndexValue(classId, parameterName)

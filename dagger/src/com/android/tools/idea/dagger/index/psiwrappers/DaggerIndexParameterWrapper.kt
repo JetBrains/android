@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.psi.KtParameter
 /** A [DaggerIndexPsiWrapper] representing a parameter. */
 interface DaggerIndexParameterWrapper : DaggerIndexAnnotatedWrapper {
   /** Simple name of the parameter. Eg: "someParameterName" */
-  fun getSimpleName(): String
+  fun getSimpleName(): String?
 
   fun getType(): DaggerIndexTypeWrapper?
 }
@@ -30,7 +30,7 @@ internal class KtParameterWrapper(
   private val ktParameter: KtParameter,
   private val importHelper: KotlinImportHelper
 ) : DaggerIndexAnnotatedKotlinWrapper(ktParameter, importHelper), DaggerIndexParameterWrapper {
-  override fun getSimpleName(): String = ktParameter.name!!
+  override fun getSimpleName(): String? = ktParameter.name
 
   override fun getType(): DaggerIndexTypeWrapper? {
     val typeReference = ktParameter.typeReference ?: return null
