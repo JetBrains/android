@@ -19,6 +19,10 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.stdui.TimelineTable
 import com.android.tools.adtui.stdui.TooltipLayeredPane
+import com.android.tools.adtui.swing.FakeMouse.Button.RIGHT
+import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.popup.FakeListPopup
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
@@ -37,8 +41,11 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.popup.PopupFactoryImpl.ActionItem
 import java.awt.Color
+import java.awt.Dimension
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
@@ -62,11 +69,12 @@ private val FAKE_DATA =
 
 @RunsInEdt
 class ConnectionsViewTest {
-  @get:Rule val edtRule = EdtRule()
+  private val edtRule = EdtRule()
+  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
+  private val popupRule = JBPopupRule()
 
-  @get:Rule val projectRule = ProjectRule()
-
-  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val rule = RuleChain(projectRule, edtRule, popupRule, disposableRule)
 
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
@@ -268,6 +276,21 @@ class ConnectionsViewTest {
     table.setRowSelectionInterval(1, 1)
     assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background)
       .isEqualTo(selectionColor)
+  }
+
+  @Test
+  fun connectionTableItemPopupMenu() {
+    model.timeline.selectionRange.set(0.0, TimeUnit.SECONDS.toMicros(100).toDouble())
+    val view = inspectorView.connectionsView
+    view.component.size = Dimension(500, 500)
+    val table = getConnectionsTable(view)
+    val fakeUi = FakeUi(table, createFakeWindow = true)
+    val rect = table.getCellRect(0, 0, true)
+
+    fakeUi.clickRelativeTo(table, rect.x + rect.width / 2, rect.y + rect.height / 2, RIGHT)
+
+    val popupMenu = popupRule.fakePopupFactory.getNextPopup<ActionItem, FakeListPopup<ActionItem>>()
+    assertThat(popupMenu.actions.map { it::class }).containsExactly(CopyUrlAction::class)
   }
 }
 

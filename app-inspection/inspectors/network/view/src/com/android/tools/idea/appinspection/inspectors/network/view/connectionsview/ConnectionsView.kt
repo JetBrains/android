@@ -21,11 +21,16 @@ import com.android.tools.adtui.table.ConfigColumnTableAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorViewState
 import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn.TIMELINE
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.ROW_HEIGHT_PADDING
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.registerEnterKeyAction
+import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.ui.awt.RelativePoint
 import java.awt.KeyboardFocusManager
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -65,11 +70,10 @@ class ConnectionsView(private val model: NetworkInspectorModel) : AspectObserver
     }
 
     connectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
-    val mouseAdapter =
+    connectionsTable.addMouseListener(
       object : MouseAdapter() {
         override fun mouseMoved(e: MouseEvent) {
-          connectionsTable.toolTipText =
-            tableModel.getUrlForRow(connectionsTable.rowAtPoint(e.point))
+          connectionsTable.toolTipText = e.getConnectionData()?.url
         }
 
         override fun mouseClicked(e: MouseEvent) {
@@ -78,10 +82,16 @@ class ConnectionsView(private val model: NetworkInspectorModel) : AspectObserver
             model.detailContent = DetailContent.CONNECTION
           }
         }
-      }
-    connectionsTable.addMouseListener(mouseAdapter)
-    connectionsTable.addMouseMotionListener(mouseAdapter)
 
+        override fun mouseReleased(e: MouseEvent) {
+          openContextMenu(e)
+        }
+
+        override fun mousePressed(e: MouseEvent) {
+          openContextMenu(e)
+        }
+      }
+    )
     connectionsTable.registerEnterKeyAction {
       if (connectionsTable.selectedRow != -1) {
         model.detailContent = DetailContent.CONNECTION
@@ -113,15 +123,31 @@ class ConnectionsView(private val model: NetworkInspectorModel) : AspectObserver
     }
   }
 
+  private fun openContextMenu(e: MouseEvent) {
+    if (!e.isPopupTrigger) {
+      return
+    }
+    val connectionData = e.getConnectionData() ?: return
+    val actions = connectionData.getActions()
+    if (actions.isEmpty()) {
+      return
+    }
+    JBPopupFactory.getInstance()
+      .createActionGroupPopup(null, DefaultActionGroup(actions), EMPTY_CONTEXT, false, null, -1)
+      .show(RelativePoint(e))
+  }
+
   private fun setRenderer(column: ConnectionColumn, renderer: TableCellRenderer) {
     connectionsTable.columnModel.getColumn(column.ordinal).cellRenderer = renderer
   }
 
-  private fun ConnectionsTableModel.getUrlForRow(row: Int) =
-    when {
+  private fun MouseEvent.getConnectionData(): ConnectionData? {
+    val row = connectionsTable.rowAtPoint(point)
+    return when {
       row < 0 -> null
-      else -> getConnectionData(connectionsTable.convertRowIndexToModel(row)).url
+      else -> tableModel.getConnectionData(connectionsTable.convertRowIndexToModel(row))
     }
+  }
 
   private fun updateTableSelection() {
     val selectedData = model.selectedConnection
@@ -138,3 +164,5 @@ class ConnectionsView(private val model: NetworkInspectorModel) : AspectObserver
     }
   }
 }
+
+private fun ConnectionData.getActions() = listOf(CopyUrlAction(this))
