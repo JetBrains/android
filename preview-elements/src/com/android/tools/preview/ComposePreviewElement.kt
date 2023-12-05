@@ -157,8 +157,8 @@ private fun PreviewConfiguration.applyTo(
     renderConfiguration.device?.let { device ->
       // The PX are converted to DP by multiplying it by the dpiFactor that is the ratio of the
       // current dpi vs the default dpi (160).
-      val dpiFactor = renderConfiguration.density.dpiValue / Density.DEFAULT_DENSITY
-      renderConfiguration.updateScreenSize(it.width * dpiFactor, it.height * dpiFactor, device)
+      val dpiFactor = 1.0 * renderConfiguration.density.dpiValue / Density.DEFAULT_DENSITY
+      renderConfiguration.updateScreenSize((it.width * dpiFactor).toInt(), (it.height * dpiFactor).toInt(), device)
     }
   }
   renderConfiguration.finishBulkEditing()

@@ -107,6 +107,13 @@ private val roundWearOsDevice =
         }
       )
   )
+private val deviceWithCustomDensity =
+  buildDevice(
+    name = "Device with custom density",
+    id = "device_with_custom_density",
+    states =
+      listOf(buildState("default", 1000, 2000, Density.create(440)).apply { isDefaultState = true })
+  )
 
 private val deviceProvider: (Configuration) -> Collection<Device> = {
   listOf(pixel4Device, nexus7Device, nexus10Device, roundWearOsDevice)
@@ -190,6 +197,25 @@ class ComposePreviewElementConfigurationTest {
         val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.PORTRAIT)!!
         assertEquals(1000, screenSize.width)
         assertEquals(2000, screenSize.height)
+      }
+
+    SingleComposePreviewElementInstance(
+        "WithSizeAndCustomDensity",
+        PreviewDisplaySettings("Name", null, false, false, null),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null, null)
+      )
+      .let { previewElement ->
+        previewElement.applyConfigurationForTest(
+          configuration,
+          highestApiTarget = { null },
+          devicesProvider = deviceProvider,
+          defaultDeviceProvider = { deviceWithCustomDensity }
+        )
+        val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.PORTRAIT)!!
+        assertEquals(338, screenSize.width)
+        assertEquals(643, screenSize.height)
       }
   }
 
