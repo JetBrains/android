@@ -70,16 +70,38 @@ class PsJavaModuleTest {
     }
   }
 
-  // TODO(b/117969438) : Find out what the correct configurations are and implement.
   @Test
-  @Ignore("b/303085801")
-  fun /*testC*/onfigurations() {
+  fun testConfigurations() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     projectRule.psTestWithProject(preparedProject) {
       val appModule = moduleWithSyncedModel(project, "jav")
       assertNotNull(appModule)
-
-      TODO("b/117969438")
+      Truth.assertThat(appModule.getConfigurations()).containsExactly(
+        "implementation",
+        "annotationProcessor",
+        "api",
+        "compile",
+        "compileOnly",
+        "runtime",
+        "runtimeOnly",
+        "testAnnotationProcessor",
+        "testCompile",
+        "testCompileOnly",
+        "testImplementation",
+        "testRuntime",
+        "testRuntimeOnly",
+        "compileClasspath",
+        "testCompileClasspath",
+        "archives",
+        "apiElements",
+        "runtimeElements",
+        "testResultsElementsForTest",
+        "testRuntimeClasspath",
+        "runtimeClasspath",
+        "default",
+        "mainSourceElements",
+        "compileOnlyApi"
+      )
     }
   }
 
