@@ -41,7 +41,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.projectRoots.JdkUtil
 import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Pair
@@ -205,7 +204,7 @@ private fun validateAndGetErrors(jdk: Sdk): String? {
 }
 
 @TestOnly
-fun createNewGradleJvmProjectJdk(project: Project, parent: Disposable): ProjectJdkImpl {
+fun createNewGradleJvmProjectJdk(project: Project, parent: Disposable): Sdk {
   val gradleExecutionSettings =
     (ExternalSystemApiUtil.getManager(GradleConstants.SYSTEM_ID) as GradleManager).executionSettingsProvider.`fun`(
       Pair(
@@ -215,6 +214,8 @@ fun createNewGradleJvmProjectJdk(project: Project, parent: Disposable): ProjectJ
     )
   @Suppress("UnstableApiUsage")
   val sdk = ExternalSystemJdkProvider.getInstance().createJdk(null, gradleExecutionSettings.javaHome!!)
-  Disposer.register(parent, sdk as Disposable)
-  return sdk as ProjectJdkImpl
+  if (sdk is Disposable) {
+    Disposer.register(parent, sdk)
+  }
+  return sdk
 }

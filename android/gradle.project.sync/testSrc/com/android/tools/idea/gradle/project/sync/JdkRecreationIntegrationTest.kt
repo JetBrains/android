@@ -27,7 +27,7 @@ import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.projectRoots.ProjectJdkTable
-import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
@@ -52,7 +52,7 @@ class JdkRecreationIntegrationTest {
 
       // Create a project with modified JDK
       val project1File = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION, "project_1").root
-      var projectJdk: ProjectJdkImpl? = null
+      var projectJdk: Sdk? = null
       projectRule.openPreparedProject("project_1") { project ->
         assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SUCCESS)
         val basePath = project.basePath
@@ -65,16 +65,18 @@ class JdkRecreationIntegrationTest {
       // Corrupt JDK by removing a class root
       assertThat(projectJdk).isNotNull()
       val corruptedJdk = projectJdk!!.clone()
-      val roots = corruptedJdk.getRoots(OrderRootType.CLASSES)
+      val roots = corruptedJdk.rootProvider.getFiles(OrderRootType.CLASSES)
       assertThat(roots).isNotEmpty()
       val originalSize = roots.size
-      corruptedJdk.removeRoot(roots[0], OrderRootType.CLASSES)
+      val sdkModificator = corruptedJdk.sdkModificator
       WriteAction.runAndWait<RuntimeException> {
+        sdkModificator.removeRoot(roots[0], OrderRootType.CLASSES)
+        sdkModificator.commitChanges()
         ProjectJdkTable.getInstance().updateJdk(projectJdk!!, corruptedJdk)
       }
 
       // Verify corrupted JDK has a class root less
-      assertThat(projectJdk!!.getRoots(OrderRootType.CLASSES)).hasLength(originalSize - 1)
+      assertThat(projectJdk!!.rootProvider.getFiles(OrderRootType.CLASSES)).hasLength(originalSize - 1)
 
       // Copy project1
       val copiedProjectPath = File(FileUtilRt.toSystemDependentName(projectRule.getBaseTestPath() + "/project_2"))
@@ -85,7 +87,7 @@ class JdkRecreationIntegrationTest {
         assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SUCCESS)
 
         val project2Jdk = createNewGradleJvmProjectJdk(project, projectRule.testRootDisposable)
-        assertThat(project2Jdk.getRoots(OrderRootType.CLASSES)).hasLength(originalSize)
+        assertThat(project2Jdk.rootProvider.getFiles(OrderRootType.CLASSES)).hasLength(originalSize)
       }
     }
     finally {
