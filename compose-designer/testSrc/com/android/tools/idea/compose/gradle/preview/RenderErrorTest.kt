@@ -134,7 +134,6 @@ class RenderErrorTest {
           1.0,
           true,
         )
-      fakeUi.root.validate()
     }
 
     runBlocking {
@@ -349,12 +348,18 @@ class RenderErrorTest {
       ),
     )
     onRefreshCompletable.join()
+
+    // Every time we start UI Check mode we have a different number of previews based on the
+    // analyzer we run.
+    // Thus, we need to validate again fakeUi to update it with the Previews generated.
+    fakeUi.root.validate()
   }
 
   private suspend fun stopUiCheck() {
     val onRefreshCompletable = previewView.getOnRefreshCompletable()
     composePreviewRepresentation.setMode(PreviewMode.Default())
     onRefreshCompletable.join()
+    fakeUi.root.validate()
   }
 
   private suspend fun visualLintRenderIssues(
