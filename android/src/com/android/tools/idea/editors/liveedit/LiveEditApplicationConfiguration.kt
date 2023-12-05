@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEdi
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
+import com.android.tools.idea.flags.ChannelDefault
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
@@ -43,7 +44,8 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
   }
 
   class State : BaseState() {
-    var mode by enum(LIVE_EDIT)
+    // Enabled by default only in Canary.
+    var mode by enum(ChannelDefault.of(DISABLED).withCanaryOverride(LIVE_EDIT).withDevOverride(LIVE_EDIT).get())
     var leTriggerMode by enum(ON_HOTKEY)
   }
 
