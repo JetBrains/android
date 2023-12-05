@@ -41,7 +41,6 @@ public class FeatureMergedManifestTest {
   public RuleChain ruleChain = RuleChain.outerRule(projectRule).around(new EdtRule());
 
   @Test
-  @Ignore("b/303110397")
   public void testLibraryManifestMergedOnFeature() throws Exception {
     // Use a plugin version with feature support
     projectRule.loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
@@ -51,7 +50,6 @@ public class FeatureMergedManifestTest {
   }
 
   @Test
-  @Ignore("b/303110397")
   public void testCanFindURL() throws Exception {
     // Use a plugin version with feature support
     projectRule.loadProject(INSTANT_APP_LIBRARY_DEPENDENCY, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
