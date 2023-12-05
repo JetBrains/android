@@ -70,7 +70,8 @@ object PerfettoTraceWebLoader {
 
         // open ui.perfetto.dev in the browser (with trace file url passed as an url parameter)
         val urlEncodedFileName = URLEncoder.encode(traceFile.name, Charsets.UTF_8)
-        BrowserLauncher.instance.browse(URI.create("$origin/#!/?url=http://127.0.0.1:$port/$urlEncodedFileName"))
+        BrowserLauncher.instance.browse(
+          URI.create("$origin/#!/?url=http://127.0.0.1:$port/$urlEncodedFileName&referrer=android_studio_desktop"))
 
         // Wait until the request has been received and order the server to gracefully shut down (requests being processed will be allowed
         // to finish before the server is completely stopped)
