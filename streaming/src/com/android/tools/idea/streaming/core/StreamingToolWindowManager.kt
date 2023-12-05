@@ -157,6 +157,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private val deviceClientRegistry = ApplicationManager.getApplication().service<DeviceClientRegistry>()
   private var initialized = false
   private var contentShown = false
+  private var initialContentUpdate = false
   private var mirroringConfirmationDialogShowing = false
 
   /** When the tool window is hidden, the state of the UI for all emulators, otherwise empty. */
@@ -205,9 +206,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         return
       }
       val panel = content.component as? StreamingDevicePanel ?: return
-      when (panel) {
-        is EmulatorToolWindowPanel -> panel.emulator.shutdown()
-        is DeviceToolWindowPanel -> panelClosed(panel)
+      if (!initialContentUpdate) {
+        when (panel) {
+          is EmulatorToolWindowPanel -> panel.emulator.shutdown()
+          is DeviceToolWindowPanel -> panelClosed(panel)
+        }
       }
 
       savedUiState.remove(panel.id)
@@ -270,7 +273,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         toolWindowManager.invokeLater {
           if (!toolWindow.isDisposed) {
             if (toolWindow.isVisible) {
-              onToolWindowShown()
+              initialContentUpdate = true
+              try {
+                onToolWindowShown()
+              }
+              finally {
+                initialContentUpdate = false
+              }
             }
             else {
               onToolWindowHidden()
