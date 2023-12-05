@@ -1402,6 +1402,31 @@
     <option name="turn" hit="Turn off device display while mirroring" />
     <option name="while" hit="Turn off device display while mirroring" />
   </configurable>
+  <configurable id="layout.inspector" configurable_name="Layout Inspector">
+    <option name="a" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="android" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="auto" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="connect" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="enable" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="of" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="requires" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="restart" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="studio" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="a" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="android" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="embedded" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="enable" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="inspector" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="layout" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="of" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="requires" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="restart" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="studio" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="inspector" hit="Layout Inspector" />
+    <option name="layout" hit="Layout Inspector" />
+    <option name="learn" hit="Learn More" />
+    <option name="more" hit="Learn More" />
+  </configurable>
   <configurable id="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider" configurable_name="Logcat">
     <option name="" hit=" KB" />
     <option name="kb" hit=" KB" />
@@ -1541,8 +1566,6 @@
     <option name="jetpack" hit="Jetpack Compose" />
     <option name="editor" hit="Layout Editor" />
     <option name="layout" hit="Layout Editor" />
-    <option name="inspector" hit="Layout Inspector" />
-    <option name="layout" hit="Layout Inspector" />
   </configurable>
   <configurable id="experimental" configurable_name="Experimental">
     <option name="all" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
@@ -1611,29 +1634,6 @@
   <configurable id="experimental" configurable_name="Experimental">
     <option name="quality" hit="Quality Setting" />
     <option name="setting" hit="Quality Setting" />
-  </configurable>
-  <configurable id="experimental" configurable_name="Experimental">
-    <option name="a" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="android" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="auto" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="connect" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="enable" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="of" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="requires" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="restart" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="studio" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="a" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="android" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="embedded" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="enable" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="inspector" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="layout" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="of" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="requires" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="restart" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="studio" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="learn" hit="Learn More" />
-    <option name="more" hit="Learn More" />
   </configurable>
   <configurable id="gradle.compiler" configurable_name="Gradle-Android Compiler">
     <option name="" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
