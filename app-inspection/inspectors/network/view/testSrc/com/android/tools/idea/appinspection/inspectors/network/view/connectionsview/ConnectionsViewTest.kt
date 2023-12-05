@@ -32,7 +32,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.connections
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.android.tools.idea.protobuf.ByteString
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -129,53 +129,49 @@ class ConnectionsViewTest {
   @Test
   fun logicToExtractColumnValuesFromDataWorks() {
     val data = FAKE_DATA[2] // Request: id = 3, time = 8->13
-    Truth.assertThat(data.id).isEqualTo(3)
+    assertThat(data.id).isEqualTo(3)
 
     // ID is set as the URL name, e.g. example.com/{id}, by TestHttpData
-    Truth.assertThat(ConnectionColumn.NAME.getValueFrom(data)).isEqualTo(data.id.toString())
-    Truth.assertThat(ConnectionColumn.SIZE.getValueFrom(data)).isEqualTo(4)
-    Truth.assertThat(FAKE_CONTENT_TYPE).endsWith(ConnectionColumn.TYPE.getValueFrom(data) as String)
-    Truth.assertThat(ConnectionColumn.STATUS.getValueFrom(data))
-      .isEqualTo(FAKE_RESPONSE_CODE.toString())
-    Truth.assertThat(ConnectionColumn.TIME.getValueFrom(data))
-      .isEqualTo(TimeUnit.SECONDS.toMicros(5))
-    Truth.assertThat(ConnectionColumn.TIMELINE.getValueFrom(data))
-      .isEqualTo(TimeUnit.SECONDS.toMicros(8))
+    assertThat(ConnectionColumn.NAME.getValueFrom(data)).isEqualTo(data.id.toString())
+    assertThat(ConnectionColumn.SIZE.getValueFrom(data)).isEqualTo(4)
+    assertThat(FAKE_CONTENT_TYPE).endsWith(ConnectionColumn.TYPE.getValueFrom(data) as String)
+    assertThat(ConnectionColumn.STATUS.getValueFrom(data)).isEqualTo(FAKE_RESPONSE_CODE.toString())
+    assertThat(ConnectionColumn.TIME.getValueFrom(data)).isEqualTo(TimeUnit.SECONDS.toMicros(5))
+    assertThat(ConnectionColumn.TIMELINE.getValueFrom(data)).isEqualTo(TimeUnit.SECONDS.toMicros(8))
   }
 
   @Test
   fun mimeTypeContainingMultipleComponentsIsTruncated() {
     val data = FAKE_DATA[0] // Request: id = 1
-    Truth.assertThat(data.id).isEqualTo(1)
-    Truth.assertThat(FAKE_CONTENT_TYPE).endsWith(ConnectionColumn.TYPE.getValueFrom(data) as String)
-    Truth.assertThat(FAKE_CONTENT_TYPE)
-      .isNotEqualTo(ConnectionColumn.TYPE.getValueFrom(data) as String)
+    assertThat(data.id).isEqualTo(1)
+    assertThat(FAKE_CONTENT_TYPE).endsWith(ConnectionColumn.TYPE.getValueFrom(data) as String)
+    assertThat(FAKE_CONTENT_TYPE).isNotEqualTo(ConnectionColumn.TYPE.getValueFrom(data) as String)
   }
 
   @Test
   fun simpleMimeTypeIsCorrectlyDisplayed() {
     val data = FAKE_DATA[3] // Request: id = 4
-    Truth.assertThat(data.id).isEqualTo(4)
-    Truth.assertThat("bmp").isEqualTo(ConnectionColumn.TYPE.getValueFrom(data) as String)
+    assertThat(data.id).isEqualTo(4)
+    assertThat("bmp").isEqualTo(ConnectionColumn.TYPE.getValueFrom(data) as String)
   }
 
   @Test
   fun dataRangeControlsVisibleConnections() {
     val view = inspectorView.connectionsView
     val table = getConnectionsTable(view)
-    Truth.assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange)
+    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange)
       .isEqualTo(model.timeline.dataRange)
-    Truth.assertThat(table.rowCount).isEqualTo(4)
+    assertThat(table.rowCount).isEqualTo(4)
     // When a range is selected, table should only show connections within.
     model.timeline.selectionRange.set(
       TimeUnit.SECONDS.toMicros(3).toDouble(),
       TimeUnit.SECONDS.toMicros(10).toDouble()
     )
-    Truth.assertThat(table.rowCount).isEqualTo(2)
+    assertThat(table.rowCount).isEqualTo(2)
     // Once selection is cleared, table goes back to showing everything.
     model.timeline.selectionRange.set(0.0, -1.0)
-    Truth.assertThat(table.rowCount).isEqualTo(4)
-    Truth.assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange)
+    assertThat(table.rowCount).isEqualTo(4)
+    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange)
       .isEqualTo(model.timeline.dataRange)
   }
 
@@ -198,7 +194,7 @@ class ConnectionsViewTest {
     }
     model.timeline.selectionRange.set(0.0, TimeUnit.SECONDS.toMicros(100).toDouble())
     latchSelected.await()
-    Truth.assertThat(selectedRow).isEqualTo(arbitraryIndex)
+    assertThat(selectedRow).isEqualTo(arbitraryIndex)
   }
 
   @Test
@@ -213,14 +209,14 @@ class ConnectionsViewTest {
     table.rowSorter.toggleSortOrder(ConnectionColumn.TIME.ordinal)
 
     // After reverse sorting, data should be backwards
-    Truth.assertThat(table.rowCount).isEqualTo(4)
-    Truth.assertThat(table.convertRowIndexToView(0)).isEqualTo(3)
-    Truth.assertThat(table.convertRowIndexToView(1)).isEqualTo(2)
-    Truth.assertThat(table.convertRowIndexToView(2)).isEqualTo(1)
-    Truth.assertThat(table.convertRowIndexToView(3)).isEqualTo(0)
+    assertThat(table.rowCount).isEqualTo(4)
+    assertThat(table.convertRowIndexToView(0)).isEqualTo(3)
+    assertThat(table.convertRowIndexToView(1)).isEqualTo(2)
+    assertThat(table.convertRowIndexToView(2)).isEqualTo(1)
+    assertThat(table.convertRowIndexToView(3)).isEqualTo(0)
 
     model.timeline.selectionRange.set(0.0, 0.0)
-    Truth.assertThat(table.rowCount).isEqualTo(0)
+    assertThat(table.rowCount).isEqualTo(0)
 
     // Include middle two requests: 3->5 (time = 2), and 8->13 (time=5)
     // This should still be shown in reverse sorted over
@@ -228,9 +224,9 @@ class ConnectionsViewTest {
       TimeUnit.SECONDS.toMicros(3).toDouble(),
       TimeUnit.SECONDS.toMicros(10).toDouble()
     )
-    Truth.assertThat(table.rowCount).isEqualTo(2)
-    Truth.assertThat(table.convertRowIndexToView(0)).isEqualTo(1)
-    Truth.assertThat(table.convertRowIndexToView(1)).isEqualTo(0)
+    assertThat(table.rowCount).isEqualTo(2)
+    assertThat(table.convertRowIndexToView(0)).isEqualTo(1)
+    assertThat(table.convertRowIndexToView(1)).isEqualTo(0)
   }
 
   @Test
@@ -242,16 +238,16 @@ class ConnectionsViewTest {
     // Size should be sorted by raw size as opposed to alphabetically.
     // Toggle once for ascending, twice for descending
     table.rowSorter.toggleSortOrder(ConnectionColumn.SIZE.ordinal)
-    Truth.assertThat(table.convertRowIndexToView(0)).isEqualTo(0)
-    Truth.assertThat(table.convertRowIndexToView(1)).isEqualTo(1)
-    Truth.assertThat(table.convertRowIndexToView(2)).isEqualTo(3)
-    Truth.assertThat(table.convertRowIndexToView(3)).isEqualTo(2)
+    assertThat(table.convertRowIndexToView(0)).isEqualTo(0)
+    assertThat(table.convertRowIndexToView(1)).isEqualTo(1)
+    assertThat(table.convertRowIndexToView(2)).isEqualTo(3)
+    assertThat(table.convertRowIndexToView(3)).isEqualTo(2)
 
     table.rowSorter.toggleSortOrder(ConnectionColumn.SIZE.ordinal)
-    Truth.assertThat(table.convertRowIndexToView(0)).isEqualTo(3)
-    Truth.assertThat(table.convertRowIndexToView(1)).isEqualTo(2)
-    Truth.assertThat(table.convertRowIndexToView(2)).isEqualTo(0)
-    Truth.assertThat(table.convertRowIndexToView(3)).isEqualTo(1)
+    assertThat(table.convertRowIndexToView(0)).isEqualTo(3)
+    assertThat(table.convertRowIndexToView(1)).isEqualTo(2)
+    assertThat(table.convertRowIndexToView(2)).isEqualTo(0)
+    assertThat(table.convertRowIndexToView(3)).isEqualTo(1)
   }
 
   @Test
@@ -267,10 +263,10 @@ class ConnectionsViewTest {
     table.background = backgroundColor
     table.selectionBackground = selectionColor
     val renderer = table.getCellRenderer(1, timelineColumn)
-    Truth.assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background)
+    assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background)
       .isEqualTo(backgroundColor)
     table.setRowSelectionInterval(1, 1)
-    Truth.assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background)
+    assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background)
       .isEqualTo(selectionColor)
   }
 }
