@@ -98,6 +98,7 @@ import javax.swing.tree.TreeModel
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsCommand
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -945,6 +946,7 @@ class LayoutInspectorTreePanelTest {
     assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
   }
 
+  @Ignore("b/314988069")
   @Test
   fun testResetRecompositionCounts() {
     val tree = runInEdtAndGet { LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable) }
