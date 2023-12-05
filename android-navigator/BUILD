@@ -20,7 +20,6 @@ iml_module(
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
-        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
         "//tools/adt/idea/smali:intellij.android.smali[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",

@@ -18,7 +18,6 @@
     <orderEntry type="module" module-name="intellij.android.lang" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="module" module-name="intellij.android.smali" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
