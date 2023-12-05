@@ -32,13 +32,15 @@ import java.nio.file.attribute.BasicFileAttributes
 object DeviceSkinUpdater {
 
   /**
-   * Usually returns the SDK skins path for the device (${HOME}/Android/Sdk/skins/pixel_4). This method also copies device skins from
-   * Studio to the SDK if the SDK ones are out of date.
+   * Copies device skin from Studio to the SDK if the SDK one is out of date. The [skin] parameter
+   * could be the absolute path to the SDK skin, e.g. "${HOME}/Android/Sdk/skins/pixel_4", a path
+   * relative to the SDK "skins" folder, e.g. "pixel_4", an empty or "_no_skin" path.
    *
-   * Returns the SDK skins path for the device. Returns device as is if it's empty, absolute, equal to _no_skin, or both the Studio skins
-   * path and SDK are not found. Returns the SDK skins path for the device if the Studio skins path is not found. Returns the Studio skins
-   * path for the device (${HOME}/android-studio/plugins/android/resources/device-art-resources/pixel_4) if the SDK is not found or
-   * an IOException is thrown.
+   * Returns the SDK skin path. Returns the passed in [skin] path if it is absolute, empty, or equal
+   * "_no_skin". Also returns [skin] if the Studio skins folder and the SDK location are both not
+   * found. Returns the SDK skin path if the Studio skins path is not found. Returns the Studio
+   * skin, e.g. "${HOME}/android-studio/plugins/android/resources/device-art-resources/pixel_4",
+   * if the SDK is not found or there is an I/O error.
    * @see DeviceSkinUpdaterService
    */
   @JvmStatic
@@ -69,19 +71,16 @@ object DeviceSkinUpdater {
       }
     }
 
-    if (studioSkins == null && sdkLocation == null) {
-      return skin
-    }
-
+    val sdkSkins = sdkLocation?.resolve("skins")
     if (studioSkins == null) {
-      return sdkLocation!!.resolve(skin)
+      return sdkSkins?.resolve(skin) ?: skin
     }
 
-    if (sdkLocation == null) {
+    if (sdkSkins == null) {
       return studioSkins.resolve(getStudioSkinName(skin.fileName.toString()))
     }
 
-    return updateSkinImpl(skin, studioSkins, sdkLocation)
+    return updateSkinImpl(skin, studioSkins, sdkSkins)
   }
 
   /**
@@ -122,10 +121,9 @@ object DeviceSkinUpdater {
     return !checker.targetOlder
   }
 
-  private fun updateSkinImpl(skin: Path, studioSkins: Path, sdkLocation: Path): Path {
+  private fun updateSkinImpl(skin: Path, studioSkins: Path, skinFolder: Path): Path {
     assert(skin.toString().isNotEmpty() && skin.toString() != "_no_skin")
-    // For historical reasons relative skin paths are resolved relative to SDK itself, not its "skins" directory.
-    val sdkDeviceSkin = sdkLocation.resolve(skin)
+    val sdkDeviceSkin = skinFolder.resolve(skin)
     val studioDeviceSkin = getStudioDeviceSkin(skin.fileName.toString(), studioSkins)
 
     try {

@@ -141,7 +141,7 @@ class DeviceSkinUpdaterTest {
     val skin = sdkSkins.resolve("pixel_fold")
 
     // Act
-    val deviceSkin = DeviceSkinUpdater.updateSkin(sdkLocation.relativize(skin), emptyList(), studioSkins, sdkLocation)
+    val deviceSkin = DeviceSkinUpdater.updateSkin(skin.fileName, emptyList(), studioSkins, sdkLocation)
 
     // Assert
     assertThat(deviceSkin).isEqualTo(skin)

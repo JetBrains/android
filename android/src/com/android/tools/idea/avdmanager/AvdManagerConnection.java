@@ -20,6 +20,8 @@ import static com.android.SdkConstants.FD_EMULATOR;
 import static com.android.SdkConstants.FD_LIB;
 import static com.android.SdkConstants.FN_HARDWARE_INI;
 import static com.android.ide.common.rendering.HardwareConfigHelper.isRollable;
+import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_SETTINGS_FILE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_TYPE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_POSTURE_LISTS;
@@ -34,8 +36,6 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RANGES;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_1_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_2_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
-import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
-import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 import com.android.SdkConstants;
@@ -536,7 +536,14 @@ public class AvdManagerConnection {
 
     String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
     if (skinPath != null) {
-      DeviceSkinUpdater.updateSkin(mySdkHandler.toCompatiblePath(skinPath), null);
+      Path skin = mySdkHandler.toCompatiblePath(skinPath);
+      // For historical reasons skin.path in config.ini may be a path relative to SDK
+      // rather than its "skins" directory. Remove the "skins" prefix in that case.
+      if (!skin.isAbsolute() && skin.getNameCount() > 1 && skin.getName(0).toString().equals("skins")) {
+        skin = skin.subpath(1, skin.getNameCount());
+      }
+
+      DeviceSkinUpdater.updateSkin(skin, null);
     }
 
     // noinspection ConstantConditions, UnstableApiUsage
