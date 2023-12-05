@@ -59,6 +59,7 @@ fun previewAnnotationToPreviewElement(
     when (backgroundColor) {
       is Int -> backgroundColor.toString(16)
       is Long -> backgroundColor.toString(16)
+      is String -> backgroundColor.toLongOrNull()?.toString(16)
       else -> null
     }?.let { "#$it" }
 
