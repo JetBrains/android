@@ -104,10 +104,8 @@ public class GradleDependencyManagerTest {
     });
   }
 
-  @SuppressWarnings("unused")
   @Test
-  @Ignore("b/303113825")
-  public void ignore_testDependencyAarIsExplodedForLayoutLib() {
+  public void testDependencyAarIsExplodedForLayoutLib() {
     final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.SIMPLE_APPLICATION);
     preparedProject.open(it -> it, project -> {
 
@@ -128,10 +126,8 @@ public class GradleDependencyManagerTest {
     });
   }
 
-  @SuppressWarnings("unused")
   @Test
-  @Ignore("b/303113825")
-  public void ignore_testAddDependencyAndSync() {
+  public void testAddDependencyAndSync() {
     final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.SIMPLE_APPLICATION);
     preparedProject.open(it -> it, project -> {
       Module appModule = TestModuleUtil.findAppModule(project);
