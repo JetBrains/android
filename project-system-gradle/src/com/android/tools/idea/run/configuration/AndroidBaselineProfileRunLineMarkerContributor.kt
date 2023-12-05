@@ -18,9 +18,11 @@ package com.android.tools.idea.run.configuration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.kotlin.getQualifiedName
+import com.android.tools.idea.kotlin.hasAnnotation
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolve
+import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -28,6 +30,7 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.icons.AllIcons
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.actionSystem.ActionGroupWrapper
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -40,19 +43,24 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.PsiMember
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiNewExpression
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.util.isUnderKotlinSourceRootTypes
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 import org.jetbrains.plugins.groovy.intentions.style.inference.resolve
+import javax.swing.Icon
 
 class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
 
@@ -65,7 +73,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
 
     private val generateAction = ActionManager.getInstance().getAction("AndroidX.BaselineProfile.RunGenerate")
 
-    private val executorActions = ExecutorAction.getActionList()
+    private val executorActions: List<AnAction> = ExecutorAction.getActionList()
       .mapNotNull { it as? ExecutorAction }
       .filter { it.executor == DefaultRunExecutor.getRunExecutorInstance() ||
                 it.executor == DefaultDebugExecutor.getDebugExecutorInstance() }
@@ -73,14 +81,6 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
     private val createRunConfigAction = ExecutorAction.getActionList()
       .mapNotNull { it as? ActionGroupWrapper }
       .firstOrNull { it.delegate == ActionManager.getInstance().getAction("CreateRunConfiguration") }
-
-    private val allActions = mutableListOf(generateAction).apply {
-      if (executorActions.isNotEmpty()) {
-        add(Separator.getInstance())
-        addAll(executorActions)
-        createRunConfigAction?.let { add(createRunConfigAction) }
-      }
-    }.toTypedArray()
 
     internal fun isKtTestClassIdentifier(e: PsiElement): Boolean {
       if (e.node?.elementType != KtTokens.IDENTIFIER) {
@@ -91,16 +91,33 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
 
       return declaration is KtClassOrObject &&
              declaration.isUnderKotlinSourceRootTypes() &&
-             e.parent is KtClass &&
-             doesKtClassHaveBaselineProfileRule(e)
+             e.parent is KtClass
+    }
+
+    internal fun isKtTestMethodIdentifier(e: PsiElement): Boolean {
+      if (e.node?.elementType != KtTokens.IDENTIFIER) {
+        return false
+      }
+
+      val declaration = e.getStrictParentOfType<KtNamedDeclaration>()?.takeIf { it.nameIdentifier == e } ?: return false
+
+      return declaration is KtNamedFunction &&
+             declaration.isUnderKotlinSourceRootTypes() &&
+             e.parent is KtNamedFunction &&
+             declaration.hasAnnotation(ClassId.fromString("org/junit/Test"))
     }
 
     internal fun isJavaTestClassIdentifier(e: PsiElement): Boolean {
-      return e is PsiIdentifier && e.parent is PsiClass && doesJavaClassHaveBaselineProfileRule(e)
+      return e is PsiIdentifier && e.parent is PsiClass
     }
 
-    private fun doesKtClassHaveBaselineProfileRule(psiElement: PsiElement): Boolean {
+    internal fun isJavaTestMethodIdentifier(e: PsiElement): Boolean {
+      return e is PsiIdentifier &&
+             e.parent is PsiMethod &&
+             AnnotationUtil.findAnnotation(e.parent as PsiMethod, "org.junit.Test") != null
+    }
 
+    internal fun doesKtClassHaveBaselineProfileRule(psiElement: PsiElement): Boolean {
       // Find class body
       val topLevelClass = if (psiElement is KtClass) {
         psiElement
@@ -142,8 +159,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
       }
     }
 
-    private fun doesJavaClassHaveBaselineProfileRule(psiElement: PsiElement): Boolean {
-
+    internal fun doesJavaClassHaveBaselineProfileRule(psiElement: PsiElement): Boolean {
       // Find class body
       val topLevelClass = if (psiElement is PsiClass) {
         psiElement
@@ -153,16 +169,15 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
       }
 
       // Find class members
-      val classMembers = PsiTreeUtil.findChildrenOfType(topLevelClass, PsiMember::class.java).toList()
+      val classMembers = PsiTreeUtil.getChildrenOfTypeAsList(topLevelClass, PsiField::class.java)
       if (classMembers.isEmpty()) {
         return false
       }
 
       // Find a class member that has a BaselineProfileRule applied.
-      for (member : PsiMember in classMembers.filterIsInstance<PsiField>()) {
+      for (member : PsiMember in classMembers) {
         // Only evaluate direct field member of the top level class
-        if (PsiTreeUtil.getDepth(member, topLevelClass) == 1 &&
-            PsiTreeUtil.findChildrenOfType(member, PsiAnnotation::class.java).any {
+        if (PsiTreeUtil.findChildrenOfType(member, PsiAnnotation::class.java).any {
               it.resolveAnnotationType()?.qualifiedName == FQ_NAME_ORG_JUNIT_RULE &&
               PsiTreeUtil.findChildOfType(member, PsiNewExpression::class.java)
                 ?.type
@@ -179,25 +194,75 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
     }
   }
 
+  private val classInfo = createOverridingInfo(
+    AllIcons.RunConfigurations.TestState.Run_run,
+    AndroidBundle.message("android.run.configuration.generate.baseline.profile"),
+    listOfNotNull(
+      generateAction,
+      Separator.getInstance().takeIf { executorActions.isNotEmpty() },
+      *executorActions.toTypedArray(),
+      createRunConfigAction.takeIf { executorActions.isNotEmpty() && createRunConfigAction != null })
+  )
+
+  private val methodInfo = createOverridingInfo(
+    AllIcons.RunConfigurations.TestState.Run,
+    AndroidBundle.message("android.run.configuration.generate.baseline.profile"),
+    listOfNotNull(
+      *executorActions.toTypedArray(),
+      createRunConfigAction.takeIf { executorActions.isNotEmpty() && createRunConfigAction != null })
+  )
+
+  private fun createOverridingInfo(
+    icon: Icon,
+    message: String,
+    actions: List<AnAction>): Info {
+    return object: Info(
+      icon,
+      actions.toTypedArray(),
+      { _ -> message }
+    ) {
+      override fun shouldReplace(other: Info): Boolean {
+        return other.actions.intersect(executorActions.toSet()).isNotEmpty()
+      }
+    }
+  }
+
   override fun getInfo(e: PsiElement): Info? {
     // If the studio flag is not enabled, skip entirely.
     if (!StudioFlags.GENERATE_BASELINE_PROFILE_GUTTER_ICON.get()) return null
 
     if (e.project.getSyncManager().isSyncNeeded()) return null
 
-    if (!isKtTestClassIdentifier(e) && !isJavaTestClassIdentifier(e)) {
-      return null
+    if (e.language == KotlinLanguage.INSTANCE) {
+      val classIdentifier = isKtTestClassIdentifier(e)
+      val methodIdentifier = isKtTestMethodIdentifier(e)
+      if (!classIdentifier && !methodIdentifier) {
+        return null
+      }
+      // This check is potentially computationally expensive, but needs to be checked if when
+      // either this PsiElement is a class or a method. Therefore, we check it only once after
+      // making sure we have a class or method identifier.
+      if (!doesKtClassHaveBaselineProfileRule(e)) {
+        return null
+      }
+      return if (classIdentifier) classInfo else methodInfo
+    }
+    else if (e.language == JavaLanguage.INSTANCE) {
+      val classIdentifier = isJavaTestClassIdentifier(e)
+      val methodIdentifier = isJavaTestMethodIdentifier(e)
+      if (!classIdentifier && !methodIdentifier) {
+        return null
+      }
+      // This check is potentially computationally expensive, but needs to be checked if when
+      // either this PsiElement is a class or a method. Therefore, we check it only once after
+      // making sure we have a class or method identifier.
+      if (!doesJavaClassHaveBaselineProfileRule(e)) {
+        return null
+      }
+      return if (classIdentifier) classInfo else methodInfo
     }
 
-    return object: Info(
-      AllIcons.RunConfigurations.TestState.Run_run,
-      allActions,
-      { AndroidBundle.message("android.run.configuration.generate.baseline.profile") }
-    ) {
-      override fun shouldReplace(other: Info): Boolean {
-        return other.actions.intersect(executorActions.toSet()).isNotEmpty()
-      }
-    }
+    return null
   }
 }
 

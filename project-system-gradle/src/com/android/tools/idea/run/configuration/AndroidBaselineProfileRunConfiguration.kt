@@ -13,8 +13,12 @@ import com.android.tools.idea.run.AndroidRunConfigurationFactoryBase
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.ValidationError
+import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.doesJavaClassHaveBaselineProfileRule
+import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.doesKtClassHaveBaselineProfileRule
 import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.isJavaTestClassIdentifier
+import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.isJavaTestMethodIdentifier
 import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.isKtTestClassIdentifier
+import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.isKtTestMethodIdentifier
 import com.android.tools.idea.run.editor.DeployTargetProvider
 import com.android.tools.idea.testartifacts.instrumented.TestRunConfigurationOptions
 import com.intellij.execution.BeforeRunTask
@@ -28,13 +32,16 @@ import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefau
 import com.intellij.execution.configurations.WithoutOwnBeforeRunSteps
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
+import com.intellij.psi.PsiElement
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import javax.swing.Icon
 
 /**
@@ -100,7 +107,19 @@ class AndroidBaselineProfileTestOptions : TestRunConfigurationOptions() {
 
   private fun checkContext(context: ConfigurationContext): Boolean {
     val element = context.location?.psiElement ?: return false
-    return isKtTestClassIdentifier(element) || isJavaTestClassIdentifier(element)
+    return isKotlinTest(element) || isJavaTest(element)
+  }
+
+  private fun isKotlinTest(e: PsiElement): Boolean {
+    return e.language == KotlinLanguage.INSTANCE &&
+           doesKtClassHaveBaselineProfileRule(e) &&
+           (isKtTestClassIdentifier(e) || isKtTestMethodIdentifier(e))
+  }
+
+  private fun isJavaTest(e: PsiElement): Boolean {
+    return e.language == JavaLanguage.INSTANCE &&
+           doesJavaClassHaveBaselineProfileRule(e) &&
+           (isJavaTestClassIdentifier(e) || isJavaTestMethodIdentifier(e))
   }
 }
 
