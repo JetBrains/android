@@ -122,10 +122,6 @@ class DesignerCommonIssuePanel(
     Disposer.register(parentDisposable, this)
     treeModel.root = DesignerCommonIssueRoot(project, issueProvider, nodeFactoryProvider)
     updateIssueOrder()
-    issueProvider.registerUpdateListener {
-      updateTree()
-      updateEmptyMessageIfNeed()
-    }
 
     val asyncModel = AsyncTreeModel(treeModel, this)
     tree = Tree(asyncModel)
@@ -195,6 +191,11 @@ class DesignerCommonIssuePanel(
     }
 
     updateSidePanel(getSelectedNode(), sidePanelVisible)
+
+    issueProvider.registerUpdateListener {
+      updateTree()
+      updateEmptyMessageIfNeed()
+    }
   }
 
   fun setSelectedNode(visitor: TreeVisitor) {
