@@ -19,7 +19,8 @@ fun baselineProfileBenchmarksJava(
   newModuleName: String,
   className: String,
   packageName: String,
-  targetPackageName: String
+  targetPackageName: String,
+  useInstrumentationArgumentForAppId: Boolean
 ): String {
   return """package $packageName;
 
@@ -30,6 +31,7 @@ import androidx.benchmark.macro.StartupTimingMetric;
 import androidx.benchmark.macro.junit4.MacrobenchmarkRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
+${if (useInstrumentationArgumentForAppId) "import androidx.test.platform.app.InstrumentationRegistry;" else ""}
 import kotlin.Unit;
 import org.junit.Rule;
 import org.junit.Test;
@@ -75,8 +77,15 @@ public class $className {
     }
 
     private void benchmark(CompilationMode compilationMode) {
+        ${if (useInstrumentationArgumentForAppId) """
+          // The application id for the running build variant is read from the instrumentation arguments.
+          String targetAppId = InstrumentationRegistry.getArguments().getString("targetAppId");
+          if (targetAppId == null) {
+              throw new RuntimeException("targetAppId not passed as instrumentation runner arg");
+          }
+        """.trimIndent() else "// This example works only with the variant with application id `$targetPackageName`."}
         rule.measureRepeated(
-            "$targetPackageName",
+            ${if (useInstrumentationArgumentForAppId) "targetAppId" else "\"$targetPackageName\""},
             Collections.singletonList(new StartupTimingMetric()),
             compilationMode,
             StartupMode.COLD,

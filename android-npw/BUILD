@@ -144,6 +144,7 @@ iml_module(
         "//tools/adt/idea/android-material:intellij.android.android-material[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/android-templates:intellij.android.templates[module, test]",
     ],
 )
 

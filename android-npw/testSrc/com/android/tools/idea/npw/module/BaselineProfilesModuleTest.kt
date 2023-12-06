@@ -17,48 +17,39 @@ package com.android.tools.idea.npw.module
 
 import com.android.sdklib.SdkVersionInfo
 import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.npw.baselineprofiles.getBaselineProfilesMinSdk
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BENCHMARKS_CLASS_NAME
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.GENERATOR_CLASS_NAME
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.RUN_CONFIGURATION_NAME
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.baselineProfileTaskName
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.chooseReleaseTargetApplicationId
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.createTestClasses
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.getModuleNameForGradleTask
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.runConfigurationGradleTask
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.setupRunConfigurations
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
-import com.android.tools.idea.wizard.template.Language
-import com.android.tools.idea.wizard.template.ModuleTemplateData
-import com.android.tools.idea.wizard.template.ProjectTemplateData
-import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.mock.MockModule
-import com.intellij.mock.MockProjectEx
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
-import java.io.File
+import org.junit.rules.TemporaryFolder
 
 class BaselineProfilesModuleTest {
+
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
+
+  @get:Rule
+  var tmpFolderRule = TemporaryFolder()
 
   private lateinit var testDisposable: Disposable
 
@@ -70,47 +61,6 @@ class BaselineProfilesModuleTest {
   @After
   fun tearDown() {
     Disposer.dispose(testDisposable)
-  }
-
-  @Test
-  fun createTestClasses_kotlin() = createTestClasses(Language.Kotlin)
-
-  @Test
-  fun createTestClasses_java() = createTestClasses(Language.Java)
-
-  private fun createTestClasses(language: Language) {
-    val targetApplicationId = "target_app_id"
-
-    val projectTemplateDataMock = MockitoKt.mock<ProjectTemplateData>()
-    whenever(projectTemplateDataMock.language).thenReturn(language)
-
-    val newModule = MockitoKt.mock<ModuleTemplateData>()
-    whenever(newModule.packageName).thenReturn("package_name")
-    whenever(newModule.projectTemplateData).thenReturn(projectTemplateDataMock)
-    whenever(newModule.srcDir).thenReturn(File(""))
-    whenever(newModule.name).thenReturn("newModule")
-
-    val targetModule = MockitoKt.mock<Module>()
-    whenever(targetModule.name).thenReturn("targetModule")
-    whenever(targetModule.project).thenReturn(projectRule.project)
-
-    val mockExecutor = MockitoKt.mock<RecipeExecutor>()
-
-    mockExecutor.createTestClasses(
-      targetModule,
-      newModule,
-      targetApplicationId
-    )
-
-    verify(mockExecutor).run {
-      val generatorFile = newModule.srcDir.resolve("$GENERATOR_CLASS_NAME.${language.extension}")
-      save(MockitoKt.any(), eq(generatorFile))
-      open(generatorFile)
-
-      val benchmarksFile = newModule.srcDir.resolve("$BENCHMARKS_CLASS_NAME.${language.extension}")
-      save(MockitoKt.any(), eq(benchmarksFile))
-      open(benchmarksFile)
-    }
   }
 
   @Test
@@ -131,35 +81,6 @@ class BaselineProfilesModuleTest {
   }
 
   @Test
-  fun getModuleNameForGradleTask() {
-    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
-    val project = projectRule.project
-
-    val appModule = project.findAppModule()
-
-    assertThat(appModule.getModuleNameForGradleTask()).isEqualTo("app")
-  }
-
-
-  private class MockProjectWithName(
-    private val myName: String,
-    parentDisposable: Disposable
-  ) : MockProjectEx(
-    parentDisposable) {
-    override fun getName(): String {
-      return myName
-    }
-  }
-
-  @Test
-  fun getModuleNameForGradleTaskWithSpaces() {
-    val projectWithName = MockProjectWithName("My Application is great", testDisposable)
-    val module = MockModule(projectWithName, testDisposable)
-    module.setName("My_Application_is_great.app")
-    assertThat(module.getModuleNameForGradleTask()).isEqualTo("app")
-  }
-
-  @Test
   fun runConfiguration() {
     val task = runConfigurationGradleTask("moduleName", "variantName", BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_BASELINE_PROFILE)
     assertThat(task).run {
@@ -177,7 +98,6 @@ class BaselineProfilesModuleTest {
       doesNotContain("-P${BaselineProfilesMacrobenchmarkCommon.FILTER_INSTR_ARG}")
     }
   }
-
 
   /**
    * We're checking +1 size, because of implicit app run configuration

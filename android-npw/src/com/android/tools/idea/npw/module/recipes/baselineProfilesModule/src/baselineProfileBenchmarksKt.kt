@@ -19,7 +19,8 @@ fun baselineProfileBenchmarksKt(
   newModuleName: String,
   className: String,
   packageName: String,
-  targetPackageName: String
+  targetPackageName: String,
+  useInstrumentationArgumentForAppId: Boolean
 ): String {
   return """package $packageName
 
@@ -31,6 +32,7 @@ import androidx.benchmark.macro.StartupTimingMetric
 import androidx.benchmark.macro.junit4.MacrobenchmarkRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+${if (useInstrumentationArgumentForAppId) "import androidx.test.platform.app.InstrumentationRegistry" else ""}
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -71,8 +73,9 @@ class $className {
         benchmark(CompilationMode.Partial(BaselineProfileMode.Require))
 
     private fun benchmark(compilationMode: CompilationMode) {
+        ${if (useInstrumentationArgumentForAppId) "// The application id for the running build variant is read from the instrumentation arguments." else "// This example works only with the variant with application id `$targetPackageName`.\""}
         rule.measureRepeated(
-            packageName = "$targetPackageName",
+            packageName = ${if (useInstrumentationArgumentForAppId) "InstrumentationRegistry.getArguments().getString(\"targetAppId\") ?: throw Exception(\"targetAppId not passed as instrumentation runner arg\")" else "\"$targetPackageName\""},
             metrics = listOf(StartupTimingMetric()),
             compilationMode = compilationMode,
             startupMode = StartupMode.COLD,

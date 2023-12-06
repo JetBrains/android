@@ -20,13 +20,15 @@ fun baselineProfileGeneratorJava(
   pluginTaskName: String,
   className: String,
   packageName: String,
-  targetPackageName: String
+  targetPackageName: String,
+  useInstrumentationArgumentForAppId: Boolean
 ): String {
   return """package $packageName;
 
 import androidx.benchmark.macro.junit4.BaselineProfileRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
+${if (useInstrumentationArgumentForAppId) "import androidx.test.platform.app.InstrumentationRegistry;" else ""}
 import kotlin.Unit;
 import org.junit.Rule;
 import org.junit.Test;
@@ -63,8 +65,15 @@ public class $className {
 
     @Test
     public void generate() {
+        ${if (useInstrumentationArgumentForAppId) """
+          // The application id for the running build variant is read from the instrumentation arguments.
+          String targetAppId = InstrumentationRegistry.getArguments().getString("targetAppId");
+          if (targetAppId == null) {
+              throw new RuntimeException("targetAppId not passed as instrumentation runner arg");
+          }
+        """.trimIndent() else "// This example works only with the variant with application id `$targetPackageName`."}
         baselineProfileRule.collect(
-            /* packageName = */ "$targetPackageName",
+            /* packageName = */ ${if (useInstrumentationArgumentForAppId) "targetAppId" else "\"$targetPackageName\""},
             /* maxIterations = */ 15,
             /* stableIterations = */ 3,
             /* outputFilePrefix = */ null,

@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
 import com.android.tools.idea.gradle.model.IdeBasicVariant
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_BASELINE_PROFILE
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_MACROBENCHMARK
@@ -54,13 +55,17 @@ fun RecipeExecutor.generateBaselineProfilesModule(
   useGradleKts: Boolean,
   targetModule: Module,
   useGmd: Boolean,
-  useVersionCatalog: Boolean
+  useVersionCatalog: Boolean = true
 ) {
   val targetModuleGradleModel = GradleAndroidModel.get(targetModule) ?: return
+
+  // For agp 8.3.0-alpha10 and above, the target application id is passed as instrumentation runner argument.
+  // This is because TestVariant#testedApks was introduced in that version.
+  val useInstrumentationArgumentForAppId = targetModuleGradleModel.agpVersion >= AgpVersion.parse("8.3.0-alpha10")
   val targetApplicationId = chooseReleaseTargetApplicationId(
-    basicVariants = targetModuleGradleModel.androidProject.basicVariants,
-    defaultValue = targetModuleGradleModel.applicationId
-  )
+      basicVariants = targetModuleGradleModel.androidProject.basicVariants,
+      defaultValue = targetModuleGradleModel.applicationId
+    )
 
   addClasspathDependency("androidx.benchmark:benchmark-baseline-profile-gradle-plugin:+", BASELINE_PROFILES_PLUGIN_MIN_REV)
 
@@ -78,7 +83,7 @@ fun RecipeExecutor.generateBaselineProfilesModule(
       useGradleKts = useGradleKts,
       targetModule = targetModule,
       useGmd = gmdSpec,
-      useVersionCatalog = useVersionCatalog
+      useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId
     ),
     customizeModule = {
       applyPlugin("androidx.baselineprofile", BASELINE_PROFILES_PLUGIN_MIN_REV)
@@ -86,7 +91,8 @@ fun RecipeExecutor.generateBaselineProfilesModule(
       createTestClasses(
         targetModule = targetModule,
         newModule = newModule,
-        targetApplicationId = targetApplicationId
+        targetApplicationId = targetApplicationId,
+        useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId
       )
     }
   )
@@ -127,6 +133,7 @@ fun RecipeExecutor.createTestClasses(
   targetModule: Module,
   newModule: ModuleTemplateData,
   targetApplicationId: String,
+  useInstrumentationArgumentForAppId: Boolean
 ) {
   val language = newModule.projectTemplateData.language
   val pluginTaskName = baselineProfileTaskName("release")
@@ -140,6 +147,7 @@ fun RecipeExecutor.createTestClasses(
         className = GENERATOR_CLASS_NAME,
         packageName = newModule.packageName,
         targetPackageName = targetApplicationId,
+        useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId
       )
       // Create Macrobenchmark tests
       val benchmarksContent = baselineProfileBenchmarksKt(
@@ -147,6 +155,7 @@ fun RecipeExecutor.createTestClasses(
         className = MACROBENCHMARKS_CLASS_NAME,
         packageName = newModule.packageName,
         targetPackageName = targetApplicationId,
+        useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId
       )
 
       generatorContent to benchmarksContent
@@ -160,6 +169,7 @@ fun RecipeExecutor.createTestClasses(
         className = GENERATOR_CLASS_NAME,
         packageName = newModule.packageName,
         targetPackageName = targetApplicationId,
+        useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId
       )
       // Create Macrobenchmark tests
       val benchmarksContent = baselineProfileBenchmarksJava(
@@ -167,6 +177,7 @@ fun RecipeExecutor.createTestClasses(
         className = MACROBENCHMARKS_CLASS_NAME,
         packageName = newModule.packageName,
         targetPackageName = targetApplicationId,
+        useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId
       )
 
       generatorContent to benchmarksContent
