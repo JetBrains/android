@@ -28,13 +28,16 @@ import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.BalloonBuilder
 import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.awt.RelativePoint
 import java.util.concurrent.Future
 import org.junit.Before
@@ -84,7 +87,9 @@ class LambdaParameterItemTest {
   fun testLambdaLookupOfUnknownLocation() {
     val item = createParameterItem("MyCompose.kt", 10, 20)
     val balloon = mockBalloonBuilder()
-    projectRule.replaceService(FileDocumentManager::class.java, mock())
+    val disposable = Disposer.newDisposable()
+    ApplicationManager.getApplication()
+      .replaceService(FileDocumentManager::class.java, mock(), disposable)
     lateinit var future: Future<*>
     item.futureCaptor = { future = it }
     item.link.actionPerformed(mockEvent())
@@ -92,6 +97,9 @@ class LambdaParameterItemTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(balloon).show(any(RelativePoint::class.java), any())
     assertThat(capturedBalloonContent()).isEqualTo("Could not determine exact source location")
+
+    // FileOpenCaptureRule is using FileDocumentManager:
+    Disposer.dispose(disposable)
     fileOpenCaptureRule.checkEditor("MyCompose.kt", 1, "package com.example")
   }
 
