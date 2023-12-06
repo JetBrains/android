@@ -47,6 +47,7 @@ add_library(
         string_printf.cc
         string_util.cc
         surface.cc
+        ui_settings.cc
         video_packet_header.cc
 )
 
