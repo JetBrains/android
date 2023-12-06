@@ -160,11 +160,7 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
           val config = GraphicsUtil.setupAAPainting(g)
           g.fillRoundRect(0, 3, width - 6 - 1, height - 6, height - 6, height - 6)
           config.restore()
-          foreground = when {
-            isSelected && containsErrors -> JBColor.RED.darker()
-            isSelected -> deepBlue.darker()
-            else -> UIUtil.getListForeground(true, true)
-          }
+          foreground = UIUtil.getListForeground(true, true)
           super.paintComponent(g)
         }
       }
