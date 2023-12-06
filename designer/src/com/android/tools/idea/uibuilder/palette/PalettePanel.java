@@ -150,7 +150,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     myItemList = new ItemList(myDependencyManager);
     myAddToDesignAction = new AddToDesignAction();
     myFavoriteAction = new FavoriteAction();
-    myAndroidDocAction = new ComponentHelpAction(project, this::getSelectedTagName);
+    myAndroidDocAction = new ComponentHelpAction(this::getSelectedTagName);
     myMaterialDocAction = new MaterialDocAction();
     myActionGroup = createPopupActionGroup();
 

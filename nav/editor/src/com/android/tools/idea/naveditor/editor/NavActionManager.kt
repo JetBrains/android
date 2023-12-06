@@ -61,15 +61,15 @@ import javax.swing.KeyStroke
  */
 // Open for testing only
 open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
-  private val gotoComponentAction: AnAction = GotoComponentAction(surface)
+  private val gotoComponentAction: AnAction = GotoComponentAction()
   private val autoArrangeAction: AnAction = AutoArrangeAction.instance
   private val orientationAction = OrientationMenuAction(false)
   private val zoomInAction: AnAction = ZoomInAction.getInstance()
   private val zoomOutAction: AnAction = ZoomOutAction.getInstance()
   private val zoomToFitAction: AnAction = ZoomToFitAction.getInstance()
-  private val selectNextAction: AnAction = SelectNextAction(surface)
-  private val selectPreviousAction: AnAction = SelectPreviousAction(surface)
-  private val selectAllAction: AnAction = SelectAllAction(surface)
+  private val selectNextAction: AnAction = SelectNextAction()
+  private val selectPreviousAction: AnAction = SelectPreviousAction()
+  private val selectAllAction: AnAction = SelectAllAction()
   private val addToNewGraphAction: AnAction = AddToNewGraphAction(surface)
   private val nestedGraphToolbarAction: AnAction = NestedGraphToolbarAction(surface)
   private val startDestinationToolbarAction: AnAction = StartDestinationToolbarAction.instance

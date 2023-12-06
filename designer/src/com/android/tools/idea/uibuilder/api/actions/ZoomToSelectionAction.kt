@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.api.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
@@ -33,11 +34,9 @@ import java.awt.Rectangle
  * [AnAction] that zooms the current [com.android.tools.idea.common.model.NlComponent] under the
  * mouse in a given sceneView that.
  */
-class ZoomToSelectionAction
-@JvmOverloads
-constructor(private val surface: NlDesignSurface, title: String = "Zoom to Selection") :
-  AnAction(title) {
+class ZoomToSelectionAction : AnAction("Zoom to Selection") {
   override fun update(e: AnActionEvent) {
+    val surface = e.getData(DESIGN_SURFACE) ?: return
     val sceneView = surface.focusedSceneView
     e.presentation.isEnabledAndVisible =
       surface.selectionModel.primary != null &&
@@ -50,6 +49,7 @@ constructor(private val surface: NlDesignSurface, title: String = "Zoom to Selec
   }
 
   override fun actionPerformed(e: AnActionEvent) {
+    val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface ?: return
     val sceneView = surface.focusedSceneView ?: return
     val component = surface.selectionModel.primary ?: return
     val topLeftCorner =

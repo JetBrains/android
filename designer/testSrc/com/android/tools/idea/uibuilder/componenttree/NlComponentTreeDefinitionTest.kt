@@ -62,6 +62,7 @@ import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.collect.ImmutableCollection
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.XmlElementFactory
@@ -253,6 +254,7 @@ class NlComponentTreeDefinitionTest {
 
   @Test
   fun testGotoDeclarationFromKeyboard() {
+    HeadlessDataManager.fallbackToProductionDataManager(projectRule.testRootDisposable)
     runInEdtAndWait {
       val content = createToolContent()
       val model = createFlowModel()

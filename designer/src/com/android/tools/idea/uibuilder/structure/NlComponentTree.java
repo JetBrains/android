@@ -149,7 +149,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     addMouseListener(myBadgeHandler.getBadgeMouseAdapter());
     addMouseMotionListener(myBadgeHandler.getBadgeMouseAdapter());
 
-    ComponentHelpAction help = new ComponentHelpAction(project, () -> {
+    ComponentHelpAction help = new ComponentHelpAction(() -> {
       List<NlComponent> components = getSelectedComponents();
       return !components.isEmpty() ? components.get(0).getTagName() : null;
     });

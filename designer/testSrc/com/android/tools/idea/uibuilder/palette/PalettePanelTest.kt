@@ -46,6 +46,7 @@ import com.intellij.ide.CopyProvider
 import com.intellij.ide.browsers.BrowserLauncher
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
@@ -64,6 +65,7 @@ import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import java.awt.Point
 import java.awt.datatransfer.Transferable
 import java.awt.dnd.DnDConstants
@@ -408,7 +410,10 @@ public class MyWebView extends android.webkit.WebView {
     setUpLayoutDesignSurface()
     myPanel!!.categoryList.selectedIndex = BUTTON_CATEGORY_INDEX
     myPanel!!.itemList.selectedIndex = CHECKBOX_ITEM_INDEX
-    val event: AnActionEvent = mock()
+    val event =
+      TestActionEvent.createTestEvent {
+        if (CommonDataKeys.PROJECT.`is`(it)) projectRule.project else null
+      }
     myPanel!!.androidDocAction.actionPerformed(event)
     verify(BrowserLauncher.instance)
       .browse(

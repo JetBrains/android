@@ -117,11 +117,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   @Override
   public void registerActionsShortcuts(@NotNull JComponent component) {
     if (mySelectAllAction == null) {
-      mySelectAllAction = new SelectAllAction(mySurface);
-      myGotoComponentAction = new GotoComponentAction(mySurface);
-      mySelectParent = new SelectParentAction(mySurface);
-      mySelectNextAction = new SelectNextAction(mySurface);
-      mySelectPreviousAction = new SelectPreviousAction(mySurface);
+      mySelectAllAction = new SelectAllAction();
+      myGotoComponentAction = new GotoComponentAction();
+      mySelectParent = new SelectParentAction();
+      mySelectNextAction = new SelectNextAction();
+      mySelectPreviousAction = new SelectPreviousAction();
       myPasteWithNewIdsAction = new PasteWithNewIds();
     }
     registerAction(mySelectAllAction, IdeActions.ACTION_SELECT_ALL, component);
@@ -226,7 +226,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     //noinspection ConstantConditions
     group.add(getRegisteredActionByName(IdeActions.ACTION_DELETE));
     group.addSeparator();
-    group.add(new ZoomToSelectionAction(mySurface));
+    group.add(new ZoomToSelectionAction());
     group.add(myGotoComponentAction);
 
     return group;
@@ -237,7 +237,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       group.add(new MorphComponentAction(leafComponent));
     }
     if (ConvertToConstraintLayoutAction.ENABLED) {
-      group.add(new ConvertToConstraintLayoutAction(mySurface));
+      group.add(new ConvertToConstraintLayoutAction());
     }
     group.add(createRefactoringMenu());
 
