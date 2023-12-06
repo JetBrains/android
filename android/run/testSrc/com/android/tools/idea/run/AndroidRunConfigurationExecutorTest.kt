@@ -253,7 +253,7 @@ class AndroidRunConfigurationExecutorTest {
     val runContentDescriptor = ProgressManager.getInstance()
       .runProcess(Computable { runner.applyChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
     assertThat(runContentDescriptor.isHiddenContent).isEqualTo(true)
-    assertThat(liveEditServiceNotified).isEqualTo(true)
+    assertThat(liveEditServiceNotified).isEqualTo(false) // Live Edit doesn't need to know if AC was performed.
 
     val processHandler = runContentDescriptor.processHandler
 
@@ -305,7 +305,7 @@ class AndroidRunConfigurationExecutorTest {
       ProgressManager.getInstance().runProcess(Computable { runner.applyCodeChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
 
     assertThat(runContentDescriptor.isHiddenContent).isEqualTo(true)
-    assertThat(liveEditServiceNotified).isEqualTo(true)
+    assertThat(liveEditServiceNotified).isEqualTo(false) // Live Edit doesn't need to know if AC was performed.
 
     val processHandler = runContentDescriptor.processHandler
 

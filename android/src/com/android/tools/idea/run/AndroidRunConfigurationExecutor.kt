@@ -309,7 +309,6 @@ class AndroidRunConfigurationExecutor(
           { apks.map { applicationDeployer.applyChangesDeploy(device, it, configuration.deployOptions, indicator) } },
           isApplyChangesFallbackToRun()
         )
-        notifyLiveEditService(device, applicationId)
 
         if (deployResults.any { it.needsRestart }) {
           val mainApp = deployResults.find { it.app.appId == applicationId }
@@ -374,8 +373,6 @@ class AndroidRunConfigurationExecutor(
           { apks.map { applicationDeployer.applyCodeChangesDeploy(device, it, configuration.deployOptions, indicator) } },
           isApplyCodeChangesFallbackToRun()
         )
-
-        notifyLiveEditService(device, applicationId)
 
         if (deployResults.any { it.needsRestart }) {
           val mainApp = deployResults.find { it.app.appId == applicationId }
