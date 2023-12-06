@@ -32,6 +32,7 @@ import java.lang.ref.SoftReference;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +49,16 @@ public class AndroidSdkData {
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull File sdkLocation, boolean forceReparse) {
+    return getSdkData(sdkLocation, forceReparse, true);
+  }
+
+  @NotNull
+  public static AndroidSdkData getSdkDataWithoutValidityCheck(@NotNull File sdkLocation, boolean forceReparse) {
+    return Objects.requireNonNull(getSdkData(sdkLocation, forceReparse, false));
+  }
+
+  @Nullable
+  private static AndroidSdkData getSdkData(@NotNull File sdkLocation, boolean forceReparse, boolean checkValidity) {
     String canonicalPath = toCanonicalPath(sdkLocation.getPath());
 
     // Try to use cached data.
@@ -65,7 +76,7 @@ public class AndroidSdkData {
     }
 
     File canonicalLocation = new File(canonicalPath);
-    if (!AndroidSdkPath.isValid(canonicalLocation)) {
+    if (checkValidity && !AndroidSdkPath.isValid(canonicalLocation)) {
       return null;
     }
 
