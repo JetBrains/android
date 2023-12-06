@@ -109,15 +109,15 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
   override val project: Project,
   private val documentManager: FileDocumentManager,
   private val taskExecutor: GradleTasksExecutor,
-  private val nativeDebugSessionFinder: NativeDebugSessionFinder
-) : GradleBuildInvoker {
+  private val nativeDebugSessionFinder: NativeDebugSessionFinder,
+  private val taskFinder: GradleTaskFinder) : GradleBuildInvoker {
   private val oneTimeGradleOptions: MutableList<String> = mutableListOf()
   private val lastBuildTasks: MutableMap<Path, List<String>> = mutableMapOf()
   private val buildStopper: BuildStopper = BuildStopper()
 
   @Suppress("unused")
   constructor (project: Project) :
-    this(project, FileDocumentManager.getInstance(), GradleTasksExecutorImpl(), NativeDebugSessionFinder(project))
+    this(project, FileDocumentManager.getInstance(), GradleTasksExecutorImpl(), NativeDebugSessionFinder(project), GradleTaskFinder.getInstance())
 
   override fun cleanProject(): ListenableFuture<GradleMultiInvocationResult> {
     if (stopNativeDebugSessionOrStopBuild()) {
@@ -138,7 +138,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
   override fun generateSources(modules: Array<Module>): ListenableFuture<GradleMultiInvocationResult> {
     val buildMode = SOURCE_GEN
 
-    val tasks: ListMultimap<Path, String> = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.NONE)
+    val tasks: ListMultimap<Path, String> = taskFinder.findTasksToExecute(modules, buildMode, TestCompileType.NONE)
     return combineGradleInvocationResults(
       tasks.keySet()
         .map { rootPath ->
@@ -176,9 +176,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
       request
         .mapNotNull { it.mode }
         .distinct()
-        .singleOrNull()
-      ?: throw IllegalArgumentException("Each request requires the same not null build mode to be set")
-
+        .singleOrNull() ?: return Futures.immediateCancelledFuture<AssembleInvocationResult>()
     val modulesByRootProject: Map<Path, List<Module>> =
       assembledModules
         .mapNotNull { module ->
@@ -206,7 +204,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
    */
   override fun compileJava(modules: Array<Module>, testCompileType: TestCompileType): ListenableFuture<GradleMultiInvocationResult> {
     val buildMode = COMPILE_JAVA
-    val tasks: ListMultimap<Path, String> = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType)
+    val tasks: ListMultimap<Path, String> = taskFinder.findTasksToExecute(modules, buildMode, testCompileType)
     return combineGradleInvocationResults(
       tasks.keySet()
         .map { rootPath -> executeTasks(buildMode, rootPath.toFile(), tasks.get(rootPath)) }
@@ -219,7 +217,10 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
 
   override fun assemble(modules: Array<Module>, testCompileType: TestCompileType): ListenableFuture<AssembleInvocationResult> {
     val buildMode = ASSEMBLE
-    val tasks: ListMultimap<Path, String> = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType)
+    val tasks: ListMultimap<Path, String> = taskFinder.findTasksToExecute(modules, buildMode, testCompileType)
+    if (tasks.isEmpty) {
+      return Futures.immediateCancelledFuture<AssembleInvocationResult>()
+    }
     return executeAssembleTasks(
       modules,
       tasks.keySet()
@@ -233,7 +234,11 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
 
   override fun bundle(modules: Array<Module>): ListenableFuture<AssembleInvocationResult> {
     val buildMode = BUNDLE
-    val tasks: ListMultimap<Path, String> = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.NONE)
+    val tasks: ListMultimap<Path, String> = taskFinder.findTasksToExecute(modules, buildMode, TestCompileType.NONE)
+    if (tasks.isEmpty) {
+      return Futures.immediateCancelledFuture<AssembleInvocationResult>()
+    }
+
     return executeAssembleTasks(
       modules,
       tasks.keySet()
@@ -249,7 +254,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     val buildMode = REBUILD
     val moduleManager: ModuleManager = ModuleManager.getInstance(project)
     val tasks: ListMultimap<Path, String> =
-      GradleTaskFinder.getInstance().findTasksToExecute(moduleManager.modules, buildMode, TestCompileType.ALL)
+      taskFinder.findTasksToExecute(moduleManager.modules, buildMode, TestCompileType.ALL)
     return combineGradleInvocationResults(
       tasks.keySet()
         .map { rootPath -> executeTasks(buildMode, rootPath.toFile(), tasks.get(rootPath)) }
@@ -633,6 +638,23 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     }
 
     @TestOnly
+    fun createBuildInvoker(
+      project: Project,
+      fileDocumentManager: FileDocumentManager,
+      tasksExecutor: GradleTasksExecutor,
+      nativeDebugSessionFinder: NativeDebugSessionFinder,
+      taskFinder: GradleTaskFinder
+    ): GradleBuildInvoker {
+      return GradleBuildInvokerImpl(
+        project,
+        fileDocumentManager,
+        tasksExecutor,
+        nativeDebugSessionFinder,
+        taskFinder
+      )
+    }
+
+    @TestOnly
     fun createBuildTaskListenerForTests(
       project: Project,
       fileDocumentManager: FileDocumentManager,
@@ -643,7 +665,8 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
         project,
         fileDocumentManager,
         FakeGradleTaskExecutor(),
-        NativeDebugSessionFinder(project)
+        NativeDebugSessionFinder(project),
+        GradleTaskFinder.getInstance()
       )
         .createBuildTaskListener(request, executionName, null)
     }

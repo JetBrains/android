@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.build.invoker;
 
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
+import static com.android.tools.idea.gradle.util.BuildMode.BUNDLE;
 import static com.android.tools.idea.gradle.util.BuildMode.CLEAN;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
-import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
@@ -48,7 +48,6 @@ import com.intellij.xdebugger.XDebugSession;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Semaphore;
@@ -76,8 +75,13 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   private GradleBuildInvoker createBuildInvoker() {
+    return createBuildInvoker(GradleTaskFinder.getInstance());
+  }
+
+  private GradleBuildInvoker createBuildInvoker(GradleTaskFinder taskFinder) {
     myModules = new Module[]{getModule()};
-    return new GradleBuildInvokerImpl(myProject, myFileDocumentManager, myGradleTaskExecutor, myDebugSessionFinder);
+    return GradleBuildInvokerImpl.Companion.createBuildInvoker(myProject, myFileDocumentManager, myGradleTaskExecutor, myDebugSessionFinder,
+                                                               taskFinder);
   }
 
   @Override
@@ -192,6 +196,50 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     ));
 
     verifyInteractionWithMocks(COMPILE_JAVA);
+  }
+
+  public void testAssembleWhenNoTasksToRun() {
+    setupTestProjectFromAndroidModel(myProject,
+                                     Projects.getBaseDirPath(myProject),
+                                     JavaModuleModelBuilder.Companion.getRootModuleBuilder(),
+                                     new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
+                                     new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
+    var modules = ImmutableList.of(
+      Objects.requireNonNull(gradleModule(myProject, ":app")),
+      Objects.requireNonNull(gradleModule(myProject, ":lib"))
+    ).toArray(new Module[0]);
+    when(myTaskFinder.findTasksToExecute(modules, ASSEMBLE, TestCompileType.NONE)).thenReturn(ArrayListMultimap.create());
+    GradleBuildInvoker buildInvoker = createBuildInvoker(myTaskFinder);
+    ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assemble(
+      modules,
+      TestCompileType.NONE);
+
+    assertThat(assembleResult.isCancelled()).isTrue();
+    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
+    assertThat(request).isNull();
+    assertThat(myGradleTaskExecutor.getInvoked()).isEqualTo(0);
+    assertThat(myGradleTaskExecutor.getLastRequest()).isNull();
+  }
+
+  public void testBundleWhenNoTasksToRun() {
+    setupTestProjectFromAndroidModel(myProject,
+                                     Projects.getBaseDirPath(myProject),
+                                     JavaModuleModelBuilder.Companion.getRootModuleBuilder(),
+                                     new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
+                                     new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
+    var modules = ImmutableList.of(
+      Objects.requireNonNull(gradleModule(myProject, ":app")),
+      Objects.requireNonNull(gradleModule(myProject, ":lib"))
+    ).toArray(new Module[0]);
+    when(myTaskFinder.findTasksToExecute(modules, BUNDLE, TestCompileType.NONE)).thenReturn(ArrayListMultimap.create());
+    GradleBuildInvoker buildInvoker = createBuildInvoker(myTaskFinder);
+
+    ListenableFuture<AssembleInvocationResult> bundleResult = buildInvoker.bundle(modules);
+    assertThat(bundleResult.isCancelled()).isTrue();
+    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
+    assertThat(request).isNull();
+    assertThat(myGradleTaskExecutor.getInvoked()).isEqualTo(0);
+    assertThat(myGradleTaskExecutor.getLastRequest()).isNull();
   }
 
   public void testAssemble() throws Exception {
