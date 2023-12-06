@@ -13,8 +13,8 @@ import com.android.tools.idea.run.AndroidRunConfigurationFactoryBase
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.ValidationError
-import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.doesJavaClassHaveBaselineProfileRule
-import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.doesKtClassHaveBaselineProfileRule
+import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.anyTopLevelJavaRule
+import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.anyTopLevelKtRule
 import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.isJavaTestClassIdentifier
 import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.isJavaTestMethodIdentifier
 import com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor.Companion.isKtTestClassIdentifier
@@ -112,14 +112,15 @@ class AndroidBaselineProfileTestOptions : TestRunConfigurationOptions() {
 
   private fun isKotlinTest(e: PsiElement): Boolean {
     return e.language == KotlinLanguage.INSTANCE &&
-           doesKtClassHaveBaselineProfileRule(e) &&
-           (isKtTestClassIdentifier(e) || isKtTestMethodIdentifier(e))
+           (isKtTestClassIdentifier(e) || isKtTestMethodIdentifier(e)) &&
+           anyTopLevelKtRule(e) != null
+
   }
 
   private fun isJavaTest(e: PsiElement): Boolean {
     return e.language == JavaLanguage.INSTANCE &&
-           doesJavaClassHaveBaselineProfileRule(e) &&
-           (isJavaTestClassIdentifier(e) || isJavaTestMethodIdentifier(e))
+           (isJavaTestClassIdentifier(e) || isJavaTestMethodIdentifier(e)) &&
+           anyTopLevelJavaRule(e) != null
   }
 }
 

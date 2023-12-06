@@ -117,84 +117,82 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
              AnnotationUtil.findAnnotation(e.parent as PsiMethod, "org.junit.Test") != null
     }
 
-    internal fun doesKtClassHaveBaselineProfileRule(psiElement: PsiElement): Boolean {
+    internal fun anyTopLevelKtRule(psiElement: PsiElement): String? {
       // Find class body
       val topLevelClass = if (psiElement is KtClass) {
         psiElement
       }
       else {
-        PsiTreeUtil.getParentOfType(psiElement, KtClass::class.java) ?: return false
+        PsiTreeUtil.getParentOfType(psiElement, KtClass::class.java) ?: return null
       }
 
       // Find properties
       val ktProperties = PsiTreeUtil.findChildrenOfType(topLevelClass, KtProperty::class.java).toList()
       if (ktProperties.isEmpty()) {
-        return false
+        return null
       }
 
       // Analyzes the class to check each property to see if there is at least a BaselineProfileRule applied.
       return analyze(topLevelClass) {
         ktProperties
-          .any { prop ->
-
-            // Check that this property has a rule annotation applied.
-            val isRule = prop
-              .annotationEntries
-              .any { it.getQualifiedName() == FQ_NAME_ORG_JUNIT_RULE }
-
+          .filter { prop ->
+            // Check that this property has a rule annotation applied and that the parent class node is the
+            // same of the method (to ensure both method and rule are in the same class).
+            prop.annotationEntries.any { it.getQualifiedName() == FQ_NAME_ORG_JUNIT_RULE } &&
+            PsiTreeUtil.getParentOfType(prop, KtClass::class.java) == topLevelClass
+          }.firstNotNullOfOrNull { prop ->
             // TODO(b/303222395): Only using the receiver type here, but this won't work if the baseline profile rule
             // gets extended.
-            val isBaselineProfileCallExpression = PsiTreeUtil
+            PsiTreeUtil
               .findChildOfType(prop, KtCallExpression::class.java)
               ?.getExpectedType()
               ?.asStringForDebugging()
-              ?.let { it == NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || it == NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE } == true
-
-            // Check that the parent class node is the same of the method (to ensure both method and rule are in the same class).
-            val isInSameClassOfMethod = PsiTreeUtil.getParentOfType(prop, KtClass::class.java) == topLevelClass
-
-            // All the three conditions have to be true.
-            isRule && isBaselineProfileCallExpression && isInSameClassOfMethod
+              ?.takeIf { it == NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || it == NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE }
           }
       }
     }
 
-    internal fun doesJavaClassHaveBaselineProfileRule(psiElement: PsiElement): Boolean {
+    internal fun anyTopLevelJavaRule(psiElement: PsiElement, vararg filter: String): String? {
       // Find class body
       val topLevelClass = if (psiElement is PsiClass) {
         psiElement
       }
       else {
-        PsiTreeUtil.getParentOfType(psiElement, PsiClass::class.java) ?: return false
+        PsiTreeUtil.getParentOfType(psiElement, PsiClass::class.java) ?: return null
       }
 
       // Find class members
       val classMembers = PsiTreeUtil.getChildrenOfTypeAsList(topLevelClass, PsiField::class.java)
       if (classMembers.isEmpty()) {
-        return false
+        return null
       }
 
       // Find a class member that has a BaselineProfileRule applied.
       for (member : PsiMember in classMembers) {
         // Only evaluate direct field member of the top level class
-        if (PsiTreeUtil.findChildrenOfType(member, PsiAnnotation::class.java).any {
-              it.resolveAnnotationType()?.qualifiedName == FQ_NAME_ORG_JUNIT_RULE &&
-              PsiTreeUtil.findChildOfType(member, PsiNewExpression::class.java)
-                ?.type
-                .resolve()
-                ?.qualifiedName
-                ?.let { name ->
-                  name == FQ_NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || name == FQ_NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE
-                } == true
-            }) {
-          return true
+        val rule = PsiTreeUtil
+          .findChildrenOfType(member, PsiAnnotation::class.java)
+          .filter {
+            it.resolveAnnotationType()?.qualifiedName == FQ_NAME_ORG_JUNIT_RULE
+          }
+          .map {
+            PsiTreeUtil.findChildOfType(member, PsiNewExpression::class.java)
+              ?.type
+              .resolve()
+              ?.qualifiedName
+              ?.takeIf { it == FQ_NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || it == FQ_NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE }
+          }
+          .firstOrNull()
+
+        if (rule != null) {
+          return rule
         }
       }
-      return false
+      return null
     }
   }
 
-  private val classInfo = createOverridingInfo(
+  private val generateBaselineProfileInfo = createOverridingInfo(
     AllIcons.RunConfigurations.TestState.Run_run,
     AndroidBundle.message("android.run.configuration.generate.baseline.profile"),
     listOfNotNull(
@@ -204,7 +202,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
       createRunConfigAction.takeIf { executorActions.isNotEmpty() && createRunConfigAction != null })
   )
 
-  private val methodInfo = createOverridingInfo(
+  private val runTestInfo = createOverridingInfo(
     AllIcons.RunConfigurations.TestState.Run,
     AndroidBundle.message("android.run.configuration.generate.baseline.profile"),
     listOfNotNull(
@@ -233,8 +231,11 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
 
     if (e.project.getSyncManager().isSyncNeeded()) return null
 
+    var classIdentifier = false
+    var rule: String? = null
+
     if (e.language == KotlinLanguage.INSTANCE) {
-      val classIdentifier = isKtTestClassIdentifier(e)
+      classIdentifier = isKtTestClassIdentifier(e)
       val methodIdentifier = isKtTestMethodIdentifier(e)
       if (!classIdentifier && !methodIdentifier) {
         return null
@@ -242,13 +243,10 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
       // This check is potentially computationally expensive, but needs to be checked if when
       // either this PsiElement is a class or a method. Therefore, we check it only once after
       // making sure we have a class or method identifier.
-      if (!doesKtClassHaveBaselineProfileRule(e)) {
-        return null
-      }
-      return if (classIdentifier) classInfo else methodInfo
+      rule = anyTopLevelKtRule(e)
     }
     else if (e.language == JavaLanguage.INSTANCE) {
-      val classIdentifier = isJavaTestClassIdentifier(e)
+      classIdentifier = isJavaTestClassIdentifier(e)
       val methodIdentifier = isJavaTestMethodIdentifier(e)
       if (!classIdentifier && !methodIdentifier) {
         return null
@@ -256,13 +254,15 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
       // This check is potentially computationally expensive, but needs to be checked if when
       // either this PsiElement is a class or a method. Therefore, we check it only once after
       // making sure we have a class or method identifier.
-      if (!doesJavaClassHaveBaselineProfileRule(e)) {
-        return null
-      }
-      return if (classIdentifier) classInfo else methodInfo
+      rule = anyTopLevelJavaRule(e)
     }
 
-    return null
+    return when (rule) {
+      NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE, FQ_NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE ->
+        if (classIdentifier) generateBaselineProfileInfo else runTestInfo
+      NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE, FQ_NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE -> runTestInfo
+      else -> null
+    }
   }
 }
 
