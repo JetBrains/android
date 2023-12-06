@@ -339,7 +339,7 @@ class RuleDetailsViewTest {
     val methodComponent =
       findComponentWithUniqueName(ruleDetailsView, "methodComboBox") as CommonComboBox<*, *>
     assertThat(methodComponent.getModel().text).isEqualTo("GET")
-    methodComponent.setSelectedIndex(1)
+    methodComponent.setSelectedIndex(2)
 
     assertThat(rule.criteria.host).isEqualTo(url)
     assertThat(inspectorView.rulesView.table.getValueAt(0, 2))
@@ -1198,6 +1198,30 @@ class RuleDetailsViewTest {
     client.verifyLatestCommand {
       assertThat(it.interceptRuleUpdated.rule.transformationList.size).isEqualTo(0)
     }
+  }
+
+  @Test
+  fun methodComboContainsAllMethods() {
+    addNewRule()
+    val combo =
+      findComponentWithUniqueName(detailsPanel.ruleDetailsView, "methodComboBox")
+        as CommonComboBox<*, *>
+
+    val items = (0 until combo.getModel().size).map { combo.getModel().getElementAt(it).toString() }
+    assertThat(items)
+      .containsExactly(
+        "ANY",
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+        "HEAD",
+        "TRACE",
+        "CONNECT",
+        "OPTIONS"
+      )
+      .inOrder()
   }
 
   private fun addNewRule(): RuleData {

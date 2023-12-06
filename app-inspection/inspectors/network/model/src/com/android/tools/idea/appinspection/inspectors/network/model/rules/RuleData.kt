@@ -83,12 +83,12 @@ class RuleData(
     fun toProto(): InterceptCriteria =
       InterceptCriteria.newBuilder()
         .apply {
-          protocol = this@CriteriaData.protocol.toProto()
+          protocol = this@CriteriaData.protocol.proto
           host = this@CriteriaData.host
           port = this@CriteriaData.port
           path = this@CriteriaData.path
           query = this@CriteriaData.query
-          method = this@CriteriaData.method.toProto()
+          method = this@CriteriaData.method.proto
         }
         .build()
 

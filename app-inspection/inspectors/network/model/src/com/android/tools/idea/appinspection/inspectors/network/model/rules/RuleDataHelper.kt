@@ -16,27 +16,35 @@
 package com.android.tools.idea.appinspection.inspectors.network.model.rules
 
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria
+import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria.Method.METHOD_CONNECT
+import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria.Method.METHOD_DELETE
+import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria.Method.METHOD_GET
+import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria.Method.METHOD_HEAD
+import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria.Method.METHOD_OPTIONS
+import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria.Method.METHOD_PATCH
+import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria.Method.METHOD_POST
+import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria.Method.METHOD_PUT
+import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria.Method.METHOD_TRACE
+import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria.Method.METHOD_UNSPECIFIED
+import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria.Protocol.PROTOCOL_HTTP
+import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria.Protocol.PROTOCOL_HTTPS
 
-enum class Protocol(private val displayString: String) {
-  HTTPS("https"),
-  HTTP("http");
+enum class Protocol(private val displayString: String, val proto: InterceptCriteria.Protocol) {
+  HTTPS("https", PROTOCOL_HTTPS),
+  HTTP("http", PROTOCOL_HTTP);
 
   override fun toString() = displayString
-
-  fun toProto() =
-    when (this) {
-      HTTPS -> InterceptCriteria.Protocol.PROTOCOL_HTTPS
-      HTTP -> InterceptCriteria.Protocol.PROTOCOL_HTTP
-    }
 }
 
-enum class Method {
-  GET,
-  POST;
-
-  fun toProto() =
-    when (this) {
-      GET -> InterceptCriteria.Method.METHOD_GET
-      POST -> InterceptCriteria.Method.METHOD_POST
-    }
+enum class Method(val proto: InterceptCriteria.Method) {
+  ANY(METHOD_UNSPECIFIED),
+  GET(METHOD_GET),
+  POST(METHOD_POST),
+  PUT(METHOD_PUT),
+  DELETE(METHOD_DELETE),
+  PATCH(METHOD_PATCH),
+  HEAD(METHOD_HEAD),
+  TRACE(METHOD_TRACE),
+  CONNECT(METHOD_CONNECT),
+  OPTIONS(METHOD_OPTIONS),
 }
