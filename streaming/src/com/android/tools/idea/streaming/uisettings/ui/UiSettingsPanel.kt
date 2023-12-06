@@ -54,11 +54,10 @@ internal class UiSettingsPanel(
   init {
     add(panel {
       customizeSpacingConfiguration(SPACING) {
-        title(TITLE) {
-          separator()
-          row(label(DARK_THEME_TITLE)) {
-            checkBox("").bind(model.inDarkMode, parentDisposable).apply { component.name = DARK_THEME_TITLE }
-          }
+        row(title(TITLE)) {}
+        separator()
+        row(label(DARK_THEME_TITLE)) {
+          checkBox("").bind(model.inDarkMode, parentDisposable).apply { component.name = DARK_THEME_TITLE }
         }
       }
     })
@@ -76,10 +75,11 @@ internal class UiSettingsPanel(
       .createBalloon()
   }
 
-  private fun Panel.title(title: String, init: Panel.() -> Unit): Row {
-    val label = JBLabel(title).apply { foreground = UIUtil.getInactiveTextColor() }
-    return group(label, indent = false, init = init)
-  }
+  /**
+   * Create a label for the title of the panel.
+   */
+  private fun title(title: String): JBLabel =
+    JBLabel(title).apply { foreground = UIUtil.getInactiveTextColor() }
 
   /**
    * Create a bold label.
