@@ -926,7 +926,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> B_303684492_WORKAROUND = new BooleanFlag(
     DEVICE_MIRRORING, "b.303684492.workaround", "Workaround for Bug 303684492",
     "Workaround for Android bug 303684492",
-    true);
+    false);
   public static final Flag<Boolean> DEVICE_MIRRORING_TAB_DND = new BooleanFlag(
     DEVICE_MIRRORING, "tab.dnd", "Drag and Drop of Device Tabs",
     "Allow drag and drop of device tabs",
