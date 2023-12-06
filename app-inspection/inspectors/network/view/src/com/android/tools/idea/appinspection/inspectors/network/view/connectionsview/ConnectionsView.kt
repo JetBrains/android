@@ -22,11 +22,14 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorViewState
 import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn.TIMELINE
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.ROW_HEIGHT_PADDING
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.registerEnterKeyAction
+import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -35,7 +38,6 @@ import java.awt.KeyboardFocusManager
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
-import javax.swing.JTable
 import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionEvent
 import javax.swing.table.TableCellRenderer
@@ -47,14 +49,13 @@ import javax.swing.table.TableCellRenderer
 class ConnectionsView(private val model: NetworkInspectorModel) : AspectObserver() {
 
   private val tableModel = ConnectionsTableModel(model.selectionRangeDataFetcher)
-  private val connectionsTable: JTable
+  private val connectionsTable =
+    TimelineTable.create(tableModel, model.timeline, TIMELINE.displayString, true)
 
   val component: JComponent
     get() = connectionsTable
 
   init {
-    connectionsTable =
-      TimelineTable.create(tableModel, model.timeline, TIMELINE.displayString, true)
     customizeConnectionsTable()
     ConfigColumnTableAspect.apply(connectionsTable, NetworkInspectorViewState.getInstance().columns)
     model.aspect.addDependency(this).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
@@ -133,7 +134,7 @@ class ConnectionsView(private val model: NetworkInspectorModel) : AspectObserver
       return
     }
     JBPopupFactory.getInstance()
-      .createActionGroupPopup(null, DefaultActionGroup(actions), EMPTY_CONTEXT, false, null, -1)
+      .createActionGroupPopup(null, DefaultActionGroup(actions), EMPTY_CONTEXT, true, null, -1)
       .show(RelativePoint(e))
   }
 
@@ -165,4 +166,12 @@ class ConnectionsView(private val model: NetworkInspectorModel) : AspectObserver
   }
 }
 
-private fun ConnectionData.getActions() = listOf(CopyUrlAction(this))
+private fun ConnectionData.getActions(): List<AnAction> {
+  val data = this@getActions
+  return buildList {
+    add(CopyUrlAction(data))
+    if (data is HttpData && StudioFlags.NETWORK_INSPECTOR_COPY_AS_CURL.get()) {
+      add(CopyAsCurlAction(data))
+    }
+  }
+}

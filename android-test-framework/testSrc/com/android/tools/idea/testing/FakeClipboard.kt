@@ -17,6 +17,7 @@ package com.android.tools.idea.testing
 
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.ClipboardOwner
+import java.awt.datatransfer.DataFlavor.stringFlavor
 import java.awt.datatransfer.Transferable
 
 /** A [Clipboard] that can be used in tests without any dependencies */
@@ -24,4 +25,7 @@ class FakeClipboard : Clipboard("fake") {
   override fun setContents(contents: Transferable?, owner: ClipboardOwner?) {
     this.contents = contents
   }
+
+  fun getTextContents() =
+    contents.getTransferData(stringFlavor).toString().lines().joinToString("\n") { it }
 }

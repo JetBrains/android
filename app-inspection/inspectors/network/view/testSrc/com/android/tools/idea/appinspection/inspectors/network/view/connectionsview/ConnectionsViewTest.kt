@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.connectionsview
 
+import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.stdui.TimelineTable
@@ -31,6 +32,8 @@ import com.android.tools.idea.appinspection.inspectors.network.model.connections
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.FAKE_CONTENT_TYPE
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.FAKE_RESPONSE_CODE
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.GrpcData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.JavaThread
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.createFakeHttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.fakeResponseHeaders
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
@@ -41,6 +44,7 @@ import com.android.tools.idea.appinspection.inspectors.network.view.connectionsv
 import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn.TIME
 import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn.TIMELINE
 import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn.TYPE
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -72,6 +76,7 @@ private val FAKE_DATA =
     createHttpData(2, 3, 5, "12"),
     createHttpData(3, 8, 13, "1234"),
     createHttpData(4, 21, 34, "123", fakeResponseHeaders(4, "bmp")),
+    createGrpcData(5, 23, 30, "12345"),
   )
 
 @RunsInEdt
@@ -81,7 +86,15 @@ class ConnectionsViewTest {
   private val disposableRule = DisposableRule()
   private val popupRule = JBPopupRule()
 
-  @get:Rule val rule = RuleChain(projectRule, edtRule, popupRule, disposableRule)
+  @get:Rule
+  val rule =
+    RuleChain(
+      projectRule,
+      FlagRule(StudioFlags.NETWORK_INSPECTOR_COPY_AS_CURL, true),
+      edtRule,
+      popupRule,
+      disposableRule
+    )
 
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
@@ -227,6 +240,7 @@ class ConnectionsViewTest {
     assertThat(table.getTimesInSeconds())
       .containsExactly(
         13,
+        7,
         5,
         2,
         1,
@@ -261,11 +275,13 @@ class ConnectionsViewTest {
         "12",
         "123",
         "1234",
+        "12345",
       )
 
     table.rowSorter.toggleSortOrder(SIZE.ordinal)
     assertThat(table.getPayloads())
       .containsExactly(
+        "12345",
         "1234",
         "123",
         "12",
@@ -293,13 +309,32 @@ class ConnectionsViewTest {
   }
 
   @Test
-  fun connectionTableItemPopupMenu() {
+  fun connectionTableItemPopupMenu_http() {
     model.timeline.selectionRange.set(0.0, SECONDS.toMicros(100).toDouble())
     val view = inspectorView.connectionsView
     view.component.size = Dimension(500, 500)
     val table = getConnectionsTable(view)
     val fakeUi = FakeUi(table, createFakeWindow = true)
     val rect = table.getCellRect(0, 0, true)
+
+    fakeUi.clickRelativeTo(table, rect.x + rect.width / 2, rect.y + rect.height / 2, RIGHT)
+
+    val popupMenu = popupRule.fakePopupFactory.getNextPopup<ActionItem, FakeListPopup<ActionItem>>()
+    assertThat(popupMenu.actions.map { it::class })
+      .containsExactly(
+        CopyUrlAction::class,
+        CopyAsCurlAction::class,
+      )
+  }
+
+  @Test
+  fun connectionTableItemPopupMenu_grpc() {
+    model.timeline.selectionRange.set(0.0, SECONDS.toMicros(100).toDouble())
+    val view = inspectorView.connectionsView
+    view.component.size = Dimension(500, 500)
+    val table = getConnectionsTable(view)
+    val fakeUi = FakeUi(table, createFakeWindow = true)
+    val rect = table.getCellRect(4, 0, true)
 
     fakeUi.clickRelativeTo(table, rect.x + rect.width / 2, rect.y + rect.height / 2, RIGHT)
 
@@ -324,6 +359,25 @@ private fun createHttpData(
     SECONDS.toMicros(endS),
     responsePayload = ByteString.copyFromUtf8(responsePayload),
     responseHeaders = responseHeaders,
+  )
+
+@Suppress("SameParameterValue")
+private fun createGrpcData(
+  id: Long,
+  startS: Long,
+  endS: Long,
+  responsePayload: String,
+) =
+  GrpcData.createGrpcData(
+    id = id,
+    threads = listOf(JavaThread(1, "thread-1")),
+    updateTimeUs = SECONDS.toMicros(startS),
+    requestStartTimeUs = SECONDS.toMicros(startS),
+    requestCompleteTimeUs = SECONDS.toMicros(endS),
+    responseStartTimeUs = SECONDS.toMicros(endS),
+    responseCompleteTimeUs = SECONDS.toMicros(endS),
+    connectionEndTimeUs = SECONDS.toMicros(endS),
+    responsePayload = ByteString.copyFromUtf8(responsePayload),
   )
 
 private fun JTable.getTimesInSeconds() =

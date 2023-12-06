@@ -1434,6 +1434,12 @@ public final class StudioFlags {
     "Track gRPC Connections",
     true
   );
+  public static final Flag<Boolean> NETWORK_INSPECTOR_COPY_AS_CURL = Flag.create(
+    NETWORK_INSPECTOR, "copy.as.curl",
+    "Copy as a cURL command",
+    "Copy as a cURL command",
+    false
+  );
   // endregion
 
   // region BackgroundTask Inspector
