@@ -33,7 +33,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.Messages.YES
+import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.util.IconUtil
+import org.jetbrains.annotations.VisibleForTesting
 
 const val SIGNING_CONFIGS_DISPLAY_NAME = "Signing Configs"
 class SigningConfigsPanel(
@@ -52,7 +54,7 @@ class SigningConfigsPanel(
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction("Remove Signing Config", "Removes a Signing Config", IconUtil.removeIcon) {
       override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = selectedConfigurable != null
+        e.presentation.isEnabled = isNonDebugSelected(selectedConfigurable)
       }
 
       override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
@@ -76,7 +78,7 @@ class SigningConfigsPanel(
   override fun getRenameAction(): AnAction? {
     return object : DumbAwareAction("Rename Signing Config", "Renames a Signing Config", IconUtil.editIcon) {
       override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = selectedConfigurable != null
+        e.presentation.isEnabled = isNonDebugSelected(selectedConfigurable)
       }
 
       override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
@@ -129,4 +131,11 @@ class SigningConfigsPanel(
   }
 
   override val topConfigurable: PSDEvent.PSDTopTab = PSDEvent.PSDTopTab.PROJECT_STRUCTURE_DIALOG_TOP_TAB_SIGNING_CONFIGS
+
+  companion object {
+    @VisibleForTesting
+    fun isNonDebugSelected(selected: NamedConfigurable<*>?): Boolean {
+      return selected != null && selected.displayName != "debug"
+    }
+  }
 }
