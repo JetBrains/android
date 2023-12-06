@@ -54,6 +54,11 @@ internal interface WearHealthServicesDeviceManager {
    * Loads the current state from WHS to compare with the current UI.
    */
   suspend fun loadCurrentCapabilityStates(): Map<WhsCapability, OnDeviceCapabilityState>
+
+  /**
+   * Sets the serial number of the emulator to connect.
+   */
+  fun setSerialNumber(serialNumber: String)
 }
 
 internal data class OnDeviceCapabilityState(

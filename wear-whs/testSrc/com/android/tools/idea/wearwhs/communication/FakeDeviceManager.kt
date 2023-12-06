@@ -76,4 +76,6 @@ internal class FakeDeviceManager(
     delay(DELAY_MS)
     onDeviceStates
   }
+
+  override fun setSerialNumber(serialNumber: String) {}
 }

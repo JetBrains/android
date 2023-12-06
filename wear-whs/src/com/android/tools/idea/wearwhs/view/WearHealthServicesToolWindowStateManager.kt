@@ -72,6 +72,11 @@ internal interface WearHealthServicesToolWindowStateManager {
    * across to the device, an error state, or an idle state.
    */
   fun getStatus(): StateFlow<WhsStateManagerStatus?>
+
+  /**
+   * Used to get/set the serial number of the currently running emulator.
+   */
+  var serialNumber: String?
 }
 
 /**
@@ -99,3 +104,12 @@ internal sealed class WhsStateManagerStatus {
   object ConnectionLost : WhsStateManagerStatus()
   object Idle : WhsStateManagerStatus()
 }
+
+/**
+ * Data class representing current state of a WHS capability.
+ */
+internal data class CapabilityState(
+  val enabled: Boolean = false,
+  val overrideValue: Float? = null,
+  val synced: Boolean = false,
+)

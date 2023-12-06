@@ -20,23 +20,29 @@ import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.communication.ConnectionLostException
 import com.android.tools.idea.wearwhs.communication.ContentProviderDeviceManager
 import com.android.tools.idea.wearwhs.communication.WearHealthServicesDeviceManager
-import com.intellij.collaboration.async.mapState
 import com.intellij.openapi.Disposable
 import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 internal class WearHealthServicesToolWindowStateManagerImpl(
-  private val deviceManager: WearHealthServicesDeviceManager = ContentProviderDeviceManager())
+  private val deviceManager: WearHealthServicesDeviceManager = ContentProviderDeviceManager(), )
   : WearHealthServicesToolWindowStateManager, Disposable {
   private val currentPreset = MutableStateFlow(Preset.STANDARD)
   private val capabilitiesList = MutableStateFlow(emptyList<WhsCapability>())
   private val capabilityToState = ConcurrentMap<WhsCapability, MutableStateFlow<CapabilityState>>()
   private val progress = MutableStateFlow<WhsStateManagerStatus>(WhsStateManagerStatus.Idle)
+
+  override var serialNumber: String? = null
+    set(value) {
+      // Only accept non-null values to avoid tool window unbinding completely
+      value?.let {
+        deviceManager.setSerialNumber(it)
+        field = value
+      }
+    }
 
   init {
     AndroidCoroutineScope(this).launch {
@@ -127,9 +133,3 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
     capabilityToState.clear()
   }
 }
-
-internal data class CapabilityState(
-  val enabled: Boolean = false,
-  val overrideValue: Float? = null,
-  val synced: Boolean = false,
-)

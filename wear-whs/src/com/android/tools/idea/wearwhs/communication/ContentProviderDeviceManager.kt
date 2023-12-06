@@ -25,6 +25,7 @@ import com.android.tools.idea.wearwhs.WhsCapability
  * of the UI to the selected Wear OS device.
  */
 internal class ContentProviderDeviceManager(private var capabilities: List<WhsCapability> = WHS_CAPABILITIES) : WearHealthServicesDeviceManager {
+  private var serialNumber: String? = null
 
   // TODO(b/309608749): Implement loadCapabilities method
   override suspend fun loadCapabilities() = capabilities
@@ -32,6 +33,10 @@ internal class ContentProviderDeviceManager(private var capabilities: List<WhsCa
   // TODO(b/309607065): Implement loadCurrentCapabilityStates method
   override suspend fun loadCurrentCapabilityStates() = capabilities.associateWith {
     OnDeviceCapabilityState(false, null)
+  }
+
+  override fun setSerialNumber(serialNumber: String) {
+    this.serialNumber = serialNumber
   }
 
   // TODO(b/305924111) Implement loadOngoingExercise method

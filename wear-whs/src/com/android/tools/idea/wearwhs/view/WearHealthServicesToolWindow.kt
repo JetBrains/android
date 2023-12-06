@@ -55,9 +55,13 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
   private val uiScope: CoroutineScope = AndroidCoroutineScope(this, uiThread)
   private val workerScope: CoroutineScope = AndroidCoroutineScope(this, workerThread)
 
+  fun setSerialNumber(serialNumber: String) {
+    stateManager.serialNumber = serialNumber
+  }
+
   private fun getLogger() = Logger.getInstance(this::class.java)
 
-  private val contentPanel = run {
+  private fun createContentPanel(): JPanel {
     val header = JPanel(BorderLayout()).apply {
       border = horizontalBorders
       val capabilitiesComboBox = ComboBox<Preset>().apply {
@@ -120,7 +124,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
         }
       })
     }
-    JPanel(BorderLayout()).apply {
+    return JPanel(BorderLayout()).apply {
       add(header, BorderLayout.NORTH)
       add(content, BorderLayout.CENTER)
       add(footer, BorderLayout.SOUTH)
@@ -208,7 +212,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
   }
 
   init {
-    add(contentPanel)
+    add(createContentPanel())
   }
 
   override fun dispose() {}

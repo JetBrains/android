@@ -16,6 +16,11 @@
 package com.android.tools.idea.wearwhs.action
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
+import com.android.tools.idea.streaming.emulator.EmulatorId
+import com.android.tools.idea.wearwhs.WearWhsBundle.message
+import com.android.tools.idea.wearwhs.view.WearHealthServicesToolWindow
+import com.android.tools.idea.wearwhs.widget.WearHealthServicesToolWindowFactory
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -36,13 +41,19 @@ class OpenWearHealthServicesPanelAction : AnAction() {
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.getData(CommonDataKeys.PROJECT)
+    val emulatorId = e.getData(EMULATOR_VIEW_KEY)?.emulator?.emulatorId
     if (project != null) {
-      showWearHealthServicesToolWindow(project)
+      showWearHealthServicesToolWindow(project, emulatorId)
     }
   }
 
-  private fun showWearHealthServicesToolWindow(project: Project) {
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Wear Health Services")!!
+  private fun showWearHealthServicesToolWindow(project: Project, emulatorId: EmulatorId?) {
+    val toolWindowManager = ToolWindowManager.getInstance(project)
+    val toolWindow = toolWindowManager.getToolWindow(WearHealthServicesToolWindowFactory.ID) ?: return
+    if (emulatorId != null) {
+      (toolWindow.contentManager.contents[0].component as WearHealthServicesToolWindow).setSerialNumber(emulatorId.serialNumber)
+      toolWindow.stripeTitle = message("wear.whs.panel.title.with.emulator.name").format(emulatorId.avdName)
+    }
     toolWindow.show()
   }
 }

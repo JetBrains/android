@@ -24,8 +24,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
-import com.intellij.util.ui.components.BorderLayoutPanel
-import javax.swing.JComponent
 
 /**
  * Provides the Wear Health Services panel.
@@ -43,6 +41,10 @@ class WearHealthServicesToolWindowFactory : DumbAware, ToolWindowFactory {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     toolWindow.displayWearHealthServices()
   }
+
+  companion object {
+    const val ID = "Wear Health Services"
+  }
 }
 
 /**
@@ -56,9 +58,6 @@ private fun ToolWindow.displayWearHealthServices() {
   Disposer.register(disposable, stateManager)
   Disposer.register(disposable, view)
 
-  val container = BorderLayoutPanel()
-  container.addToCenter(view)
-
-  val content = contentManager.factory.createContent(container, null, true)
+  val content = contentManager.factory.createContent(view, null, true)
   contentManager.addContent(content)
 }
