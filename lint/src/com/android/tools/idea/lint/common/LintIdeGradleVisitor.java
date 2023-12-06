@@ -33,7 +33,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.util.PsiTreeUtil;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -93,18 +92,33 @@ public class LintIdeGradleVisitor extends GradleVisitor {
     return result;
   }
 
-  private static List<String> getReferenceExpressionNames(GrReferenceExpression referenceExpression) {
+  private static @NotNull List<String> getReferenceExpressionNames(GrReferenceExpression referenceExpression) {
     ArrayList<String> result = new ArrayList<>(3); // common case is 1, needed downstream is 3, unlimited in principle
+    getReferenceExpressionNames(referenceExpression, result);
+    return result;
+  }
+
+  private static @Nullable List<String> getReferenceExpressionNamesOrNull(GrReferenceExpression referenceExpression) {
+    ArrayList<String> result = new ArrayList<>(3);
+    if (getReferenceExpressionNames(referenceExpression, result)) {
+      return result;
+    }
+    else {
+      return null;
+    }
+  }
+
+  private static boolean getReferenceExpressionNames(GrReferenceExpression referenceExpression, List<String> result) {
     String name = referenceExpression.getReferenceName();
     while (name != null) {
       result.add(name);
-      if (!(referenceExpression.isQualified())) return result;
+      if (!(referenceExpression.isQualified())) return true;
       GrExpression qualifierExpression = referenceExpression.getQualifierExpression();
       if (!(qualifierExpression instanceof GrReferenceExpression)) break;
       referenceExpression = (GrReferenceExpression)qualifierExpression;
       name = referenceExpression.getReferenceName();
     }
-    return result;
+    return false;
   }
 
   private static void extractMethodCallArguments(GrMethodCall methodCall, List<String> unnamed, Map<String, String> named) {
@@ -206,6 +220,11 @@ public class LintIdeGradleVisitor extends GradleVisitor {
                     qualifier = s.substring(0, index);
                   }
                 }
+                else {
+                  // if we don't understand our operator, don't proceed.
+                  super.visitMethodCall(call);
+                  return;
+                }
               }
               String parent = null;
               String parentParent = null;
@@ -289,7 +308,11 @@ public class LintIdeGradleVisitor extends GradleVisitor {
             else {
               return;
             }
-            List<String> names = getReferenceExpressionNames(propertyRef);
+            List<String> names = getReferenceExpressionNamesOrNull(propertyRef);
+            if (names == null) {
+              handleApplicationOrMethodCallInClosure(closureNames, propertyRef.getQualifierExpression());
+              return;
+            }
             names.addAll(closureNames);
             String property = names.get(0);
             String parentName = names.size() > 1 ? names.get(1) : null;

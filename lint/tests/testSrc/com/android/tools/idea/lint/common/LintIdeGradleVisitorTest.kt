@@ -219,6 +219,21 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
     )
   }
 
+  fun testPluginsDsl() {
+    check(
+      """
+      plugins {
+        id 'android' version '2.2.3' apply true
+      }
+      """,
+      """
+      checkDslPropertyAssignment(property="id", value="'android'", parent="plugins")
+      checkMethodCall(statement="id", parent="plugins", unnamedArguments="'android'")
+      checkMethodCall(statement="plugins", unnamedArguments="{ id 'android' version '2.2.3' apply true }")
+      """
+    )
+  }
+
   // Test infrastructure below
 
   private fun check(@Language("groovy") gradleSource: String, expected: String) {
