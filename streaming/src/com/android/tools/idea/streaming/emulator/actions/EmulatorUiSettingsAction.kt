@@ -45,14 +45,14 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = 
     val component = event.findComponentForAction(this) as? JComponent ?: emulatorView
     val project = event.project ?: return
     val serialNumber = getEmulatorController(event)?.emulatorId?.serialNumber ?: return
-    val disposable = Disposer.newDisposable()
     val model = UiSettingsModel()
-    val controller = EmulatorUiSettingsController(project, serialNumber, model, disposable)
-    val balloon = UiSettingsPanel(model, disposable).createPicker()
-    Disposer.register(balloon, disposable)
+    val controller = EmulatorUiSettingsController(project, serialNumber, model, emulatorView)
     AndroidCoroutineScope(emulatorView).launch {
       controller.populateModel()
       EventQueue.invokeLater {
+        val disposable = Disposer.newDisposable()
+        val balloon = UiSettingsPanel(model, disposable).createPicker()
+        Disposer.register(balloon, disposable)
         balloon.show(RelativePoint.getCenterOf(component), Balloon.Position.above)
       }
     }

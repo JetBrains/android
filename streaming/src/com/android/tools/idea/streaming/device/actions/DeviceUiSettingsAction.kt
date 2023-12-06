@@ -46,14 +46,14 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(configFilter = { it
     val deviceView = event.getData(DEVICE_VIEW_KEY) ?: return
     val component = event.findComponentForAction(this) as? JComponent ?: deviceView
     val deviceController = getDeviceController(event) ?: return
-    val disposable = Disposer.newDisposable()
     val model = UiSettingsModel()
     val controller = DeviceUiSettingsController(deviceController, model)
-    val balloon = UiSettingsPanel(model, disposable).createPicker()
-    Disposer.register(balloon, disposable)
     AndroidCoroutineScope(deviceView).launch {
       controller.populateModel()
       EventQueue.invokeLater {
+        val disposable = Disposer.newDisposable()
+        val balloon = UiSettingsPanel(model, disposable).createPicker()
+        Disposer.register(balloon, disposable)
         balloon.show(RelativePoint.getCenterOf(component), Balloon.Position.above)
       }
     }
