@@ -25,10 +25,15 @@ iml_module(
             "tags": ["perfgate"],
             "test_filter": "com.android.tools.idea.rendering.PerfgateJarManagerTest",
         },
-        "perfgateComposeGradle": {
+        "perfgateComposeStandardGradle": {
             "tags": ["perfgate"],
-            "shard_count": 5,
-            "test_filter": "com.android.tools.idea.rendering.PerfgateComposeGradleTest",
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.rendering.gradle.PerfgateComposeStandardGradleTest",
+        },
+        "perfgateComposeEssentialsGradle": {
+            "tags": ["perfgate"],
+            "shard_count": 3,
+            "test_filter": "com.android.tools.idea.rendering.gradle.PerfgateComposeEssentialsGradleTest",
         },
         "perfgateUiCheck": {
             "tags": ["perfgate"],
