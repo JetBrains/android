@@ -155,4 +155,8 @@ class ModuleDependenciesForm {
   List<PsModule> getSelectedModules() {
     return Lists.newArrayList(mySelectedModules);
   }
+
+  JComponent getModulesLabel() {
+    return myModulesLabel;
+  }
 }
