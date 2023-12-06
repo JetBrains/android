@@ -22,17 +22,18 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import org.jetbrains.android.util.AndroidBundle.message
 
 /** [ToggleAction] to that sets an specific [ScreenViewProvider] to the [NlDesignSurface]. */
-class SetScreenViewProviderAction(
-  private val sceneModeProvider: ScreenViewProvider,
-  private val designSurface: NlDesignSurface
-) :
+class SetScreenViewProviderAction(private val sceneModeProvider: ScreenViewProvider) :
   ToggleAction(
     sceneModeProvider.displayName,
     message("android.layout.screenview.action.description", sceneModeProvider.displayName),
     null
   ) {
-  override fun isSelected(e: AnActionEvent) = designSurface.screenViewProvider == sceneModeProvider
+  override fun isSelected(e: AnActionEvent): Boolean {
+    val surface = e.getData(DESIGN_SURFACE) as? NlDesignSurface ?: return false
+    return surface.screenViewProvider == sceneModeProvider
+  }
 
-  override fun setSelected(e: AnActionEvent, state: Boolean) =
-    designSurface.setScreenViewProvider(sceneModeProvider, true)
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    (e.getData(DESIGN_SURFACE) as? NlDesignSurface)?.setScreenViewProvider(sceneModeProvider, true)
+  }
 }

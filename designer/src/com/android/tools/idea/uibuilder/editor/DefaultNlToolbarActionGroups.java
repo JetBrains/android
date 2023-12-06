@@ -134,12 +134,11 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
   @NotNull
   private DropDownAction createDesignModeAction() {
-    NlDesignSurface nlDesignSurface = (NlDesignSurface) mySurface;
     DropDownAction designSurfaceMenu =
       new DropDownAction("Select Design Surface", "Select Design Surface", StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
-    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER, nlDesignSurface));
-    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.BLUEPRINT, nlDesignSurface));
-    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER_AND_BLUEPRINT, nlDesignSurface));
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER));
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.BLUEPRINT));
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER_AND_BLUEPRINT));
 
     DefaultActionGroup colorBlindMode = new ColorBlindModeAction();
     designSurfaceMenu.addAction(colorBlindMode);
