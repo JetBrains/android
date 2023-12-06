@@ -26,6 +26,7 @@ import com.android.utils.appendCapitalized
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
+import com.intellij.openapi.externalSystem.model.project.LibraryDependencyData
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
@@ -43,8 +44,10 @@ import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinPlatform
 import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
+import org.jetbrains.kotlin.utils.filterIsInstanceAnd
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 
 @Order(ExternalSystemConstants.UNORDERED - 1)
@@ -83,6 +86,9 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
   override fun populateModuleDependencies(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>, ideProject: DataNode<ProjectData>) {
     super.populateModuleDependencies(gradleModule, ideModule, ideProject)
 
+    // Workaround added for KT-64114
+    addMissingGradlePrefixForLibraryDependencies(ideModule)
+
     val mppModel = resolverCtx.getMppModel(gradleModule) ?: return
     val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java) ?: return
     val selectedVariantName = androidModels.selectedVariantName
@@ -101,6 +107,14 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
         )
       }
     }
+  }
+
+  private fun addMissingGradlePrefixForLibraryDependencies(ideModule: DataNode<ModuleData>) {
+    ideModule.sourceSetsByName().values
+      .flatMap { it.children }
+      .map { it.data }
+      .filterIsInstanceAnd<LibraryDependencyData> { !it.internalName.startsWith(GradleConstants.GRADLE_NAME) }
+      .forEach { it.internalName = "${GradleConstants.GRADLE_NAME}: ${it.internalName}" }
   }
 }
 
