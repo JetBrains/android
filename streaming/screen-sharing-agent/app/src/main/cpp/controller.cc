@@ -292,6 +292,10 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       SetDarkMode((const SetDarkModeMessage&) message);
       break;
 
+    case SetFontSizeMessage::TYPE:
+      SetFontSize((const SetFontSizeMessage&) message);
+      break;
+
     default:
       Log::E("Unexpected message type %d", message.type());
       break;
@@ -566,6 +570,10 @@ void Controller::SendUiSettings(const UiSettingsRequest& message) {
 
 void Controller::SetDarkMode(const SetDarkModeMessage& message) {
   ui_settings_.SetDarkMode(message.dark_mode());
+}
+
+void Controller::SetFontSize(const SetFontSizeMessage& message) {
+  ui_settings_.SetFontSize(message.font_size());
 }
 
 void Controller::OnDisplayAdded(int32_t display_id) {

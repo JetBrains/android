@@ -16,11 +16,35 @@
 package com.android.tools.idea.streaming.uisettings.ui
 
 import com.android.tools.idea.streaming.uisettings.binding.DefaultTwoWayProperty
+import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
+import kotlin.math.abs
+
+/**
+ * Give 7 choices for font sizes. A [percent] of 100 is the normal font size.
+ */
+internal enum class FontSize(val percent: Int) {
+  SMALL(85),
+  NORMAL(100),
+  LARGE_115(115),
+  LARGE_130(130),
+  LARGE_150(150),
+  LARGE_180(180),
+  LARGE_200(200);
+}
 
 /**
  * A model for the [UiSettingsPanel] with bindable properties for getting and setting various Android settings.
  */
 internal class UiSettingsModel {
   val inDarkMode: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
+  val fontSizeInPercent: TwoWayProperty<Int> = DefaultTwoWayProperty(100)
+  val fontSizeIndex: TwoWayProperty<Int> = fontSizeInPercent.createMappedProperty(::toFontSizeIndex, ::toFontSizeInPercent)
+  val fontSizeMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(FontSize.values().size - 1)
+
+  private fun toFontSizeInPercent(fontIndex: Int): Int =
+    FontSize.values()[fontIndex.coerceIn(0, fontSizeMaxIndex.value)].percent
+
+  private fun toFontSizeIndex(percent: Int): Int =
+    FontSize.values().minBy { abs(it.percent - percent) }.ordinal
 }

@@ -30,6 +30,8 @@ public:
 
   void SetDarkMode(bool dark_mode);
 
+  void SetFontSize(int32_t font_size);
+
 private:
   DISALLOW_COPY_AND_ASSIGN(UiSettings);
 };

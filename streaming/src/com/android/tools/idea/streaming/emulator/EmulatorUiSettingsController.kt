@@ -28,9 +28,18 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 
-private const val DARK_MODE_ON = "Night mode: yes"
-private const val DARK_MODE_OFF = "Night mode: no"
+private const val DARK_MODE_DIVIDER = "-- Dark Mode --"
+private const val FONT_SIZE_DIVIDER = "-- Font Size --"
+
+internal const val POPULATE_COMMAND =
+  "echo $DARK_MODE_DIVIDER; " +
+  "cmd uimode night; " +
+  "echo $FONT_SIZE_DIVIDER; " +
+  "settings get system font_scale"
 
 /**
  * A controller for the UI settings for an Emulator,
@@ -43,23 +52,37 @@ internal class EmulatorUiSettingsController(
   parentDisposable: Disposable
 ) : UiSettingsController(model) {
   private val scope = AndroidCoroutineScope(parentDisposable)
+  private val decimalFormat = DecimalFormat("#.##", DecimalFormatSymbols.getInstance(Locale.US))
 
   override suspend fun populateModel() {
-    executeShellCommand("cmd uimode night") { processAdbOutput(it) }
-  }
-
-  private fun processAdbOutput(output: List<String>) {
-    output.forEach {
-      when (it) {
-        DARK_MODE_ON -> model.inDarkMode.setFromController(true)
-        DARK_MODE_OFF -> model.inDarkMode.setFromController(false)
+    executeShellCommand(POPULATE_COMMAND) {
+      val iterator = it.listIterator()
+      while (iterator.hasNext()) {
+        when (iterator.next()) {
+          DARK_MODE_DIVIDER -> processDarkMode(iterator)
+          FONT_SIZE_DIVIDER -> processFontSize(iterator)
+        }
       }
     }
+  }
+
+  private fun processDarkMode(iterator: ListIterator<String>) {
+    val isInDarkMode = iterator.hasNext() && iterator.next() == "Night mode: yes"
+    model.inDarkMode.setFromController(isInDarkMode)
+  }
+
+  private fun processFontSize(iterator: ListIterator<String>) {
+    val fontSize = (if (iterator.hasNext()) iterator.next() else "1.0").toFloatOrNull() ?: 1f
+    model.fontSizeInPercent.setFromController((fontSize * 100f + 0.5f).toInt())
   }
 
   override fun setDarkMode(on: Boolean) {
     val darkMode = if (on) "yes" else "no"
     scope.launch { executeShellCommand("cmd uimode night $darkMode") }
+  }
+
+  override fun setFontSize(percent: Int) {
+    scope.launch { executeShellCommand("settings put system font_scale %s".format(decimalFormat.format(percent.toFloat() / 100f))) }
   }
 
   private suspend fun executeShellCommand(command: String, commandProcessor: (lines: List<String>) -> Unit = {}) {

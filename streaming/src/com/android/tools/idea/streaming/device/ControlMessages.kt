@@ -75,6 +75,7 @@ sealed class ControlMessage(val type: Int) {
         UiSettingsRequest.TYPE -> UiSettingsRequest.deserialize(stream)
         UiSettingsResponse.TYPE -> UiSettingsResponse.deserialize(stream)
         SetDarkModeMessage.TYPE -> SetDarkModeMessage.deserialize(stream)
+        SetFontSizeMessage.TYPE -> SetFontSizeMessage.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
       }
       FlightRecorder.log { "${TraceUtils.currentTime()} deserialize: message = $message" }
@@ -643,15 +644,16 @@ internal class UiSettingsRequest private constructor (override val requestId: In
 /**
  * The current UI settings received from a device.
  */
-internal data class UiSettingsResponse(override val requestId: Int, val darkMode: Boolean) : CorrelatedMessage(TYPE) {
+internal data class UiSettingsResponse(override val requestId: Int, val darkMode: Boolean, val fontSize: Int) : CorrelatedMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
     stream.writeBoolean(darkMode)
+    stream.writeInt(fontSize)
   }
 
   override fun toString(): String =
-    "UiSettingsResponse(requestId=$requestId, darkMode=$darkMode)"
+    "UiSettingsResponse(requestId=$requestId, darkMode=$darkMode, fontSize=$fontSize)"
 
   companion object : Deserializer {
     const val TYPE = 20
@@ -659,7 +661,8 @@ internal data class UiSettingsResponse(override val requestId: Int, val darkMode
     override fun deserialize(stream: Base128InputStream): UiSettingsResponse {
       val requestId = stream.readInt()
       val darkMode = stream.readBoolean()
-      return UiSettingsResponse(requestId, darkMode)
+      val fontSize = stream.readInt()
+      return UiSettingsResponse(requestId, darkMode, fontSize)
     }
   }
 }
@@ -683,6 +686,32 @@ internal data class SetDarkModeMessage(val darkMode: Boolean) : ControlMessage(T
     override fun deserialize(stream: Base128InputStream): SetDarkModeMessage {
       val darkMode = stream.readBoolean()
       return SetDarkModeMessage(darkMode)
+    }
+  }
+}
+
+/**
+ * Changes the Font Size setting on a device.
+ *
+ * The [fontSize] is specified as a percentage of the normal font.
+ * A value of 100 is the normal size.
+ */
+internal data class SetFontSizeMessage(val fontSize: Int) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(fontSize)
+  }
+
+  override fun toString(): String =
+    "SetFontSizeMessage(fontSize=$fontSize)"
+
+  companion object : Deserializer {
+    const val TYPE = 22
+
+    override fun deserialize(stream: Base128InputStream): SetFontSizeMessage {
+      val fontSize = stream.readInt()
+      return SetFontSizeMessage(fontSize)
     }
   }
 }

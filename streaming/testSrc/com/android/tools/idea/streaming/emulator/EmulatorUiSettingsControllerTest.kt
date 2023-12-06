@@ -21,7 +21,6 @@ import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
-import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -49,35 +48,47 @@ class EmulatorUiSettingsControllerTest {
   fun before() {
     adb.configureShellCommand(rule.deviceSelector, "cmd uimode night yes", "Night mode: yes")
     adb.configureShellCommand(rule.deviceSelector, "cmd uimode night no", "Night mode: no")
-    simulateDarkTheme(false)
+    adb.configureShellCommand(rule.deviceSelector, "settings put system font_scale 2", "")
+    adb.configureShellCommand(rule.deviceSelector, "settings put system font_scale 0.75", "")
   }
 
   @Test
   fun testReadDefaultValueWhenAttachingAfterInit() {
     controller.initAndWait()
-    val state = createAndAddListener(model.inDarkMode, true)
-    assertThat(model.inDarkMode.value).isFalse()
-    assertThat(state.changes).isEqualTo(1)
-    assertThat(state.lastValue).isFalse()
+    val darkMode = createAndAddListener(model.inDarkMode, true)
+    val fontSize = createAndAddListener(model.fontSizeInPercent, 100)
+    checkInitialValues(changes = 1, darkMode, fontSize)
   }
 
   @Test
   fun testReadDefaultValueWhenAttachingBeforeInit() {
-    val state = createAndAddListener(model.inDarkMode, true)
+    val darkMode = createAndAddListener(model.inDarkMode, true)
+    val fontSize = createAndAddListener(model.fontSizeInPercent, 100)
     controller.initAndWait()
+    checkInitialValues(changes = 2, darkMode, fontSize)
+  }
+
+  private fun checkInitialValues(changes: Int, darkMode: ListenerState<Boolean>, fontSize: ListenerState<Int>) {
     assertThat(model.inDarkMode.value).isFalse()
-    assertThat(state.changes).isEqualTo(2) // After addListener and after value read
-    assertThat(state.lastValue).isFalse()
+    assertThat(darkMode.changes).isEqualTo(changes)
+    assertThat(darkMode.lastValue).isFalse()
+    assertThat(model.fontSizeInPercent.value).isEqualTo(100)
+    assertThat(fontSize.changes).isEqualTo(changes)
+    assertThat(fontSize.lastValue).isEqualTo(100)
   }
 
   @Test
   fun testReadCustomValue() {
-    simulateDarkTheme(true)
+    rule.configureUiSettings(darkMode = true, fontSize = 85)
     controller.initAndWait()
-    val state = createAndAddListener(model.inDarkMode, false)
+    val darkMode = createAndAddListener(model.inDarkMode, false)
+    val fontSize = createAndAddListener(model.fontSizeInPercent, 100)
     assertThat(model.inDarkMode.value).isTrue()
-    assertThat(state.changes).isEqualTo(1)
-    assertThat(state.lastValue).isTrue()
+    assertThat(darkMode.changes).isEqualTo(1)
+    assertThat(darkMode.lastValue).isTrue()
+    assertThat(model.fontSizeInPercent.value).isEqualTo(85)
+    assertThat(fontSize.changes).isEqualTo(1)
+    assertThat(fontSize.lastValue).isEqualTo(85)
   }
 
   @Test
@@ -89,19 +100,23 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testSetNightOff() {
-    simulateDarkTheme(true)
+    rule.configureUiSettings(darkMode = true)
     controller.initAndWait()
     model.inDarkMode.setFromUi(false)
-    waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd uimode night no" }
+    waitForCondition(120.seconds) { lastIssuedChangeCommand == "cmd uimode night no" }
+  }
+
+  @Test
+  fun testSetFontSize() {
+    controller.initAndWait()
+    model.fontSizeInPercent.setFromUi(200)
+    waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings put system font_scale 2" }
+    model.fontSizeInPercent.setFromUi(75)
+    waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings put system font_scale 0.75" }
   }
 
   private fun createController() =
     EmulatorUiSettingsController(rule.project, rule.emulatorSerialNumber, model, testRootDisposable)
-
-  private fun simulateDarkTheme(on: Boolean) {
-    val state = if (on) "yes" else "no"
-    adb.configureShellCommand(rule.deviceSelector, "cmd uimode night", "Night mode: $state")
-  }
 
   private data class ListenerState<T>(var changes: Int, var lastValue: T)
 

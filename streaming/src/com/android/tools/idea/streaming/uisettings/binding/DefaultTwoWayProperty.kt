@@ -25,8 +25,9 @@ import com.intellij.openapi.util.Disposer
 internal class DefaultTwoWayProperty<T>(initialValue: T) : TwoWayProperty<T> {
   private val listeners = ListenerCollection.createWithDirectExecutor<ChangeListener<T>>()
   private var actualValue = initialValue
-
-  override var uiChangeListener = ChangeListener<T> {}
+  private val emptyChangeListener = ChangeListener<T> {}
+  override var uiChangeListener = emptyChangeListener
+    set(value) { if (field === emptyChangeListener) field = value else error("uiChangeListener is already specified")}
 
   override val value: T
     get() = actualValue
@@ -51,5 +52,12 @@ internal class DefaultTwoWayProperty<T>(initialValue: T) : TwoWayProperty<T> {
   override fun setFromController(newValue: T) {
     actualValue = newValue
     listeners.forEach { it.valueChanged(newValue) }
+  }
+
+  override fun <U> createMappedProperty(toTarget: (T) -> U, fromTarget: (U) -> T): TwoWayProperty<U> {
+    val property = DefaultTwoWayProperty(toTarget(value))
+    property.uiChangeListener = ChangeListener { setFromUi(fromTarget(it)) }
+    listeners.add { property.setFromController(toTarget(it)) }
+    return property
   }
 }

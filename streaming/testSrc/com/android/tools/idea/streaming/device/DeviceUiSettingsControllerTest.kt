@@ -20,6 +20,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
+import com.android.tools.idea.streaming.uisettings.ui.FontSize
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
@@ -51,29 +52,41 @@ class DeviceUiSettingsControllerTest {
   @Test
   fun testReadDefaultValueWhenAttachingAfterInit() {
     controller.initAndWait()
-    val state = createAndAddListener(model.inDarkMode, true)
-    assertThat(model.inDarkMode.value).isFalse()
-    assertThat(state.changes).isEqualTo(1)
-    assertThat(state.lastValue).isFalse()
+    val darkMode = createAndAddListener(model.inDarkMode, true)
+    val fontSize = createAndAddListener(model.fontSizeInPercent, 100)
+    checkInitialValues(changes = 1, darkMode, fontSize)
   }
 
   @Test
   fun testReadDefaultValueWhenAttachingBeforeInit() {
-    val state = createAndAddListener(model.inDarkMode, true)
+    val darkMode = createAndAddListener(model.inDarkMode, true)
+    val fontSize = createAndAddListener(model.fontSizeInPercent, 100)
     controller.initAndWait()
+    checkInitialValues(changes = 2, darkMode, fontSize)
+  }
+
+  private fun checkInitialValues(changes: Int, darkMode: ListenerState<Boolean>, fontSize: ListenerState<Int>) {
     assertThat(model.inDarkMode.value).isFalse()
-    assertThat(state.changes).isEqualTo(2) // After addListener and after value read
-    assertThat(state.lastValue).isFalse()
+    assertThat(darkMode.changes).isEqualTo(changes)
+    assertThat(darkMode.lastValue).isFalse()
+    assertThat(model.fontSizeInPercent.value).isEqualTo(100)
+    assertThat(fontSize.changes).isEqualTo(changes)
+    assertThat(fontSize.lastValue).isEqualTo(100)
   }
 
   @Test
   fun testReadCustomValue() {
     agent.darkMode = true
+    agent.fontSize = 85
     controller.initAndWait()
-    val state = createAndAddListener(model.inDarkMode, false)
+    val darkMode = createAndAddListener(model.inDarkMode, false)
+    val fontSize = createAndAddListener(model.fontSizeInPercent, 100)
     assertThat(model.inDarkMode.value).isTrue()
-    assertThat(state.changes).isEqualTo(1)
-    assertThat(state.lastValue).isTrue()
+    assertThat(darkMode.changes).isEqualTo(1)
+    assertThat(darkMode.lastValue).isTrue()
+    assertThat(model.fontSizeInPercent.value).isEqualTo(85)
+    assertThat(fontSize.changes).isEqualTo(1)
+    assertThat(fontSize.lastValue).isEqualTo(85)
   }
 
   @Test
@@ -89,6 +102,15 @@ class DeviceUiSettingsControllerTest {
     controller.initAndWait()
     model.inDarkMode.setFromUi(false)
     waitForCondition(10.seconds) { !agent.darkMode }
+  }
+
+  @Test
+  fun testSetFontSize() {
+    controller.initAndWait()
+    model.fontSizeIndex.setFromUi(0)
+    waitForCondition(10.seconds) { agent.fontSize == 85 }
+    model.fontSizeIndex.setFromUi(FontSize.values().size - 1)
+    waitForCondition(10.seconds) { agent.fontSize == FontSize.values().last().percent }
   }
 
   private fun createUiSettingsController(): DeviceUiSettingsController =

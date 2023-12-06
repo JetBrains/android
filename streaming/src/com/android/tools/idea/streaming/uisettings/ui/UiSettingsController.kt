@@ -16,7 +16,6 @@
 package com.android.tools.idea.streaming.uisettings.ui
 
 import com.android.tools.idea.streaming.uisettings.binding.ChangeListener
-import kotlinx.coroutines.Job
 
 /**
  * A controller for the [UiSettingsPanel] that populates the model and reacts to changes to the model initiated by the UI.
@@ -30,6 +29,7 @@ internal abstract class UiSettingsController(
 
   init {
     model.inDarkMode.uiChangeListener = ChangeListener(::setDarkMode)
+    model.fontSizeInPercent.uiChangeListener = ChangeListener(::setFontSize)
   }
 
   /**
@@ -41,4 +41,9 @@ internal abstract class UiSettingsController(
    * Changes the dark mode on the device/emulator.
    */
   protected abstract fun setDarkMode(on: Boolean)
+
+  /**
+   * Changes the font size on the device/emulator.
+   */
+  protected abstract fun setFontSize(percent: Int)
 }

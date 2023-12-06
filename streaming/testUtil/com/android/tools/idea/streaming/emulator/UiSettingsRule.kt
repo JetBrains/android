@@ -53,8 +53,16 @@ class UiSettingsRule(emulatorPort: Int) : ExternalResource() {
     configureAdbShellCommands()
   }
 
-  private fun configureAdbShellCommands() {
-    adb.configureShellCommand(deviceSelector, "cmd uimode night", "Night mode: no")
+  private fun configureAdbShellCommands() =
+    configureUiSettings()
+
+  fun configureUiSettings(darkMode: Boolean = false, fontSize: Int = 100) {
+    adb.configureShellCommand(deviceSelector, POPULATE_COMMAND, """
+      -- Dark Mode --
+      Night mode: ${if (darkMode) "yes" else "no"}
+      -- Font Size --
+      ${(fontSize.toFloat() / 100f)}
+    """.trimIndent())
   }
 
   override fun apply(base: Statement, description: Description): Statement =

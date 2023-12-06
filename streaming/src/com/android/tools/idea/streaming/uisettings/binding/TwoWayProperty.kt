@@ -66,4 +66,10 @@ internal interface TwoWayProperty<T> : ReadOnlyProperty<T> {
    * The UI should call this function to specify a new value.
    */
   fun setFromUi(newValue: T)
+
+  /**
+   * Create a property of type [U] that maps a value from this property via
+   * the functions: [toTarget] and the inverse function [fromTarget].
+   */
+  fun <U> createMappedProperty(toTarget: (T) -> U, fromTarget: (U) -> T): TwoWayProperty<U>
 }

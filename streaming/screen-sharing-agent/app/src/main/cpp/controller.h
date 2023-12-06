@@ -113,6 +113,7 @@ private:
 
   void SendUiSettings(const UiSettingsRequest& request);
   void SetDarkMode(const SetDarkModeMessage& message);
+  void SetFontSize(const SetFontSizeMessage& message);
 
   // TODO: Remove the following 4 methods when b/303684492 is fixed.
   void StartDisplayPolling();

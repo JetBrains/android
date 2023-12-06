@@ -29,6 +29,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JCheckBox
+import javax.swing.JSlider
 import kotlin.time.Duration.Companion.seconds
 
 class UiSettingsPanelTest {
@@ -47,10 +48,11 @@ class UiSettingsPanelTest {
     model = UiSettingsModel()
     panel = UiSettingsPanel(model, projectRule.disposable)
     model.inDarkMode.uiChangeListener = ChangeListener { lastCommand = "dark=$it" }
+    model.fontSizeInPercent.uiChangeListener = ChangeListener { lastCommand = "fontSize=$it" }
   }
 
   @Test
-  fun testSetFromUi() {
+  fun testSetDarkModeFromUi() {
     val checkBox = AdtUiUtils.allComponents(panel).filterIsInstance<JCheckBox>().filter { it.name == DARK_THEME_TITLE }.single()
     assertThat(checkBox.isSelected).isFalse()
 
@@ -59,6 +61,18 @@ class UiSettingsPanelTest {
 
     checkBox.doClick()
     waitForCondition(1.seconds) { lastCommand == "dark=false" }
+  }
+
+  @Test
+  fun testSetFontSizeFromUi() {
+    val slider = AdtUiUtils.allComponents(panel).filterIsInstance<JSlider>().filter { it.name == FONT_SIZE_TITLE }.single()
+    assertThat(slider.value).isEqualTo(FontSize.NORMAL.ordinal)
+
+    slider.value = FontSize.values().size - 1
+    waitForCondition(1.seconds) { lastCommand == "fontSize=200" }
+
+    slider.value = 0
+    waitForCondition(1.seconds) { lastCommand == "fontSize=85" }
   }
 
   @Test
