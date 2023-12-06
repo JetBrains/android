@@ -15,25 +15,23 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.npw.baselineprofiles.getBaselineProfilesMinSdk
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BENCHMARKS_CLASS_NAME
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.GENERATOR_CLASS_NAME
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.RUN_CONFIGURATION_NAME
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.baselineProfileTaskName
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.chooseReleaseTargetApplicationId
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.createTestClasses
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.getModuleNameForGradleTask
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.runConfigurationFilterArgument
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.runConfigurationGradleTask
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.setupRunConfigurations
-import com.android.tools.idea.run.configuration.BP_PLUGIN_FILTERING_SUPPORTED
-import com.android.tools.idea.run.configuration.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
@@ -55,6 +53,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import java.io.File
 
 class BaselineProfilesModuleTest {
@@ -212,29 +211,72 @@ class BaselineProfilesModuleTest {
     assertThat(getBaselineProfilesMinSdk(appModule)).isEqualTo(higherThanPGO)
   }
 
-
   @Test
-  fun runConfigurationFilterArgumentNotSupportedByPlugin() {
-    listOf(
-      BP_PLUGIN_MIN_SUPPORTED,
-      AgpVersion(BP_PLUGIN_FILTERING_SUPPORTED.major, BP_PLUGIN_FILTERING_SUPPORTED.minor - 1, 0),
-    ).forEach {
-      val argument = runConfigurationFilterArgument(it)
+  fun testApplicationIdIsForFirstReleaseVariant() {
 
-      assertThat(argument).contains(BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_BASELINE_PROFILE)
+    fun mockIdeBasicVariant(name: String, applicationId: String): IdeBasicVariant {
+      val mock = MockitoKt.mock<IdeBasicVariant>()
+      whenever(mock.name).thenReturn(name)
+      whenever(mock.applicationId).thenReturn(applicationId)
+      return mock
     }
-  }
 
-  @Test
-  fun runConfigurationFilterArgumentSupportedByPlugin() {
-    // Test version when plugin adds support and some arbitrary higher version
-    listOf(
-      BP_PLUGIN_FILTERING_SUPPORTED,
-      AgpVersion(BP_PLUGIN_FILTERING_SUPPORTED.major, BP_PLUGIN_FILTERING_SUPPORTED.minor + 1, 0),
-    ).forEach {
-      val argument = runConfigurationFilterArgument(it)
+    // Basic case
+    assertThat(chooseReleaseTargetApplicationId(
+      basicVariants = listOf(
+        mockIdeBasicVariant("debug", "com.test.debug"),
+        mockIdeBasicVariant("release", "com.test.release")
+      ),
+      defaultValue = "com.test")).isEqualTo("com.test.release")
 
-      assertThat(argument).isNull()
-    }
+    // Release not found (this should never happen)
+    assertThat(chooseReleaseTargetApplicationId(
+      basicVariants = listOf(
+        mockIdeBasicVariant("debug", "com.test.debug"),
+        mockIdeBasicVariant("somethingElse", "com.test.release")
+      ),
+      defaultValue = "com.test")).isEqualTo("com.test")
+
+    // Multiple flavors
+    assertThat(chooseReleaseTargetApplicationId(
+      basicVariants = listOf(
+        mockIdeBasicVariant("freeDebug", "com.test.free.debug"),
+        mockIdeBasicVariant("paidDebug", "com.test.paid.debug"),
+        mockIdeBasicVariant("freeRelease", "com.test.free.release"),
+        mockIdeBasicVariant("paidRelease", "com.test.paid.release"),
+      ),
+      defaultValue = "com.test")).isEqualTo("com.test.free.release")
+
+    // Multidimensional flavors
+    assertThat(chooseReleaseTargetApplicationId(
+      basicVariants = listOf(
+        mockIdeBasicVariant("freeOneDebug", "com.test.free.one.debug"),
+        mockIdeBasicVariant("freeTwoDebug", "com.test.free.two.debug"),
+        mockIdeBasicVariant("paidOneDebug", "com.test.paid.one.debug"),
+        mockIdeBasicVariant("paidTwoDebug", "com.test.paid.two.debug"),
+        mockIdeBasicVariant("freeOneRelease", "com.test.free.one.release"),
+        mockIdeBasicVariant("freeTwoRelease", "com.test.free.two.release"),
+        mockIdeBasicVariant("paidOneRelease", "com.test.paid.one.release"),
+        mockIdeBasicVariant("paidTwoRelease", "com.test.paid.two.release"),
+      ),
+      defaultValue = "com.test")).isEqualTo("com.test.free.one.release")
+
+    // Multidimensional flavors and multiple build types
+    assertThat(chooseReleaseTargetApplicationId(
+      basicVariants = listOf(
+        mockIdeBasicVariant("freeOneDebug", "com.test.free.one.debug"),
+        mockIdeBasicVariant("freeTwoDebug", "com.test.free.two.debug"),
+        mockIdeBasicVariant("paidOneDebug", "com.test.paid.one.debug"),
+        mockIdeBasicVariant("paidTwoDebug", "com.test.paid.two.debug"),
+        mockIdeBasicVariant("freeOneRelease", "com.test.free.one.release"),
+        mockIdeBasicVariant("freeTwoRelease", "com.test.free.two.release"),
+        mockIdeBasicVariant("paidOneRelease", "com.test.paid.one.release"),
+        mockIdeBasicVariant("paidTwoRelease", "com.test.paid.two.release"),
+        mockIdeBasicVariant("freeOneStaging", "com.test.free.one.staging"),
+        mockIdeBasicVariant("freeTwoStaging", "com.test.free.two.staging"),
+        mockIdeBasicVariant("paidOneStaging", "com.test.paid.one.staging"),
+        mockIdeBasicVariant("paidTwoStaging", "com.test.paid.two.staging"),
+      ),
+      defaultValue = "com.test")).isEqualTo("com.test.free.one.release")
   }
 }

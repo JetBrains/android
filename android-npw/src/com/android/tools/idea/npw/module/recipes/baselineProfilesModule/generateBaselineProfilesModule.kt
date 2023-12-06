@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
-import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_BASELINE_PROFILE
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_MACROBENCHMARK
@@ -27,7 +27,6 @@ import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src.base
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src.baselineProfileGeneratorKt
 import com.android.tools.idea.run.configuration.AndroidBaselineProfileRunConfiguration
 import com.android.tools.idea.run.configuration.AndroidBaselineProfileRunConfigurationType
-import com.android.tools.idea.run.configuration.BP_PLUGIN_FILTERING_SUPPORTED
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -58,7 +57,10 @@ fun RecipeExecutor.generateBaselineProfilesModule(
   useVersionCatalog: Boolean
 ) {
   val targetModuleGradleModel = GradleAndroidModel.get(targetModule) ?: return
-  val targetApplicationId = targetModuleGradleModel.applicationId
+  val targetApplicationId = chooseReleaseTargetApplicationId(
+    basicVariants = targetModuleGradleModel.androidProject.basicVariants,
+    defaultValue = targetModuleGradleModel.applicationId
+  )
 
   addClasspathDependency("androidx.benchmark:benchmark-baseline-profile-gradle-plugin:+", BASELINE_PROFILES_PLUGIN_MIN_REV)
 
@@ -233,14 +235,13 @@ fun runConfigurationGradleTask(
   }
 }
 
-/**
- * This parameter allows filtering only Baseline Profile generators as part of the run configuration (Gradle task).
- * If not added, the task would fail, because Macrobenchmarks by default can't run on an emulator (GMD).
- * Baseline profiles Gradle plugin adds this filtering parameter automatically from AGP 8.2.0, so we need to prevent adding it from then
- */
 @VisibleForTesting
-fun runConfigurationFilterArgument(agpVersion: AgpVersion): String? =
-  if (agpVersion >= BP_PLUGIN_FILTERING_SUPPORTED) null else FILTER_ARG_BASELINE_PROFILE
+fun chooseReleaseTargetApplicationId(basicVariants: Collection<IdeBasicVariant>, defaultValue: String) =
+  basicVariants
+    .sortedBy { it.name }
+    .firstOrNull { it.name.endsWith("Release") || it.name == "release" }
+    ?.applicationId
+  ?: defaultValue
 
 @VisibleForTesting
 fun baselineProfileTaskName(variantName: String?): String =
