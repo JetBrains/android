@@ -15,20 +15,24 @@
  */
 package com.android.tools.idea.streaming.emulator.dialogs
 
+import com.android.tools.idea.streaming.StreamingBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.dialog
-import com.intellij.ui.layout.applyToComponent
-import com.intellij.ui.layout.panel
-import com.intellij.ui.layout.toBinding
+import com.intellij.ui.dsl.builder.Align
+import com.intellij.ui.dsl.builder.LabelPosition
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.bindText
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.rows
+import com.intellij.ui.dsl.builder.toMutableProperty
+import com.intellij.ui.util.minimumWidth
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Insets
-import javax.swing.JTextPane
 import javax.swing.border.LineBorder
 
 /**
@@ -47,31 +51,29 @@ class EditSnapshotDialog(snapshotName: String, snapshotDescription: String, var 
   private fun createPanel(): DialogPanel {
     return panel {
       row {
-        label("Name:")
-      }
-      row {
-        textField(::snapshotName)
-          .constraints(growX)
+        textField()
+          .label(StreamingBundle.message("edit.snapshot.label.name"), LabelPosition.TOP)
+          .bindText(::snapshotName)
+          .align(Align.FILL)
           .focused()
-          .withValidationOnApply { validateSnapshotName() }
+          .validationOnInput { if (it.text.isEmpty()) error(StreamingBundle.message("edit.snapshot.enter.name")) else null }
       }
       row {
-        label("Description:")
-      }
-      row {
-        component(JTextPane())
-          .constraints(growX, growY, pushY)
-          .withBinding(JTextPane::getText, JTextPane::setText, ::snapshotDescription.toBinding()).applyToComponent {
+        textArea()
+          .label(StreamingBundle.message("edit.snapshot.label.description"), LabelPosition.TOP)
+          .rows(7)
+          .bindText(::snapshotDescription.toMutableProperty())
+          .align(Align.FILL)
+          .applyToComponent {
+            lineWrap = true
             background = JBTextField().background
             border = TextAreaBorder()
-            preferredSize = JBUI.size(400, 64)
-            text = snapshotDescription
           }
-      }
+      }.resizableRow()
       row {
-        checkBox("Boot from this snapshot", ::useToBoot)
+        checkBox(StreamingBundle.message("edit.snapshot.checkbox.boot.from.this.snapshot")).bindSelected(::useToBoot)
       }
-    }
+    }.apply { minimumWidth = 500 }
   }
 
   /**
@@ -79,21 +81,14 @@ class EditSnapshotDialog(snapshotName: String, snapshotDescription: String, var 
    */
   fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
     return dialog(
-      title = "Edit Snapshot",
+      title = StreamingBundle.message("edit.snapshot.dialog.title"),
       resizable = true,
       panel = createPanel(),
       project = project,
       parent = parent)
   }
 
-  private fun validateSnapshotName(): ValidationInfo? {
-    if (snapshotName.isEmpty()) {
-      return ValidationInfo("Please enter snapshot name")
-    }
-    return null
-  }
-
-  class TextAreaBorder : LineBorder(JBColor.border(), 1) {
+  private class TextAreaBorder : LineBorder(JBColor.border(), 1) {
 
     override fun getBorderInsets(c: Component, insets: Insets): Insets {
       val left = JBUI.scale(6)

@@ -62,8 +62,8 @@ import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JLayeredPane
+import javax.swing.JTextArea
 import javax.swing.JTextField
-import javax.swing.JTextPane
 import javax.swing.table.DefaultTableCellRenderer
 
 /**
@@ -455,7 +455,7 @@ class ManageSnapshotsDialogTest {
       }
 
       if (description != null) {
-        val descriptionField = ui.getComponent<JTextPane>()
+        val descriptionField = ui.getComponent<JTextArea>()
         descriptionField.text = description
       }
 
