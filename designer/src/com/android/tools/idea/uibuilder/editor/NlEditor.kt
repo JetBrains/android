@@ -48,7 +48,8 @@ private val LAYOUT_EDITOR_SUPPORTED_ACTIONS =
     NlSupportedActions.SWITCH_DEVICE_ORIENTATION,
     NlSupportedActions.SWITCH_DESIGN_MODE,
     NlSupportedActions.SWITCH_NIGHT_MODE,
-    NlSupportedActions.TOGGLE_ISSUE_PANEL
+    NlSupportedActions.TOGGLE_ISSUE_PANEL,
+    NlSupportedActions.REFRESH
   )
 
 class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, project) {
