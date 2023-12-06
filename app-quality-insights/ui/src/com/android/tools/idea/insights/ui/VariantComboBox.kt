@@ -26,9 +26,15 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.JBFont
+import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
 import java.awt.Component
 import javax.swing.DefaultListCellRenderer
 import javax.swing.JList
+import javax.swing.JPanel
+import javax.swing.SwingConstants
 import kotlin.math.max
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -61,6 +67,7 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
 
   init {
     Disposer.register(parentDisposable, this)
+    font = font.deriveFont(JBFont.BOLD).deriveFont(JBFont.ITALIC)
     flow
       .mapNotNull {
         (it.issues as? LoadingState.Ready)?.value?.value?.selected?.let { issue ->
@@ -119,13 +126,18 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
         ): Component {
           // index == -1 means it's trying to render the title of the combo box
           if (index == -1 && value is VariantRow) {
-            return super.getListCellRendererComponent(
-              list,
-              value.name,
-              index,
-              isSelected,
-              cellHasFocus
-            )
+            return JPanel(BorderLayout()).apply {
+              add(
+                JBLabel("Variant: ").apply { font = font.deriveFont(JBFont.ITALIC) },
+                BorderLayout.WEST
+              )
+              add(
+                JBLabel(value.name).apply { font = font.deriveFont(JBFont.BOLD or JBFont.ITALIC) },
+                BorderLayout.CENTER
+              )
+              border = JBUI.Borders.empty()
+              verticalTextPosition = SwingConstants.CENTER
+            }
           }
           return when (value) {
             is Row -> {
@@ -186,4 +198,4 @@ fun AppInsightsIssue.toVariantRow(size: Int) =
 
 @VisibleForTesting
 fun IssueVariant.toVariantRow() =
-  VariantRow("Variant #${id.takeLast(4)}", eventsCount, impactedDevicesCount, this)
+  VariantRow(id.takeLast(4), eventsCount, impactedDevicesCount, this)

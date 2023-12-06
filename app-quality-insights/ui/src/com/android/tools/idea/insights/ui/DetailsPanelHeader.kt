@@ -107,8 +107,8 @@ class DetailsPanelHeader(
       variantPanel =
         transparentPanel(BorderLayout()).apply {
           isVisible = false
-          add(JBLabel("|").apply { border = JBUI.Borders.empty(0, 5) }, BorderLayout.WEST)
           add(variantComboBox, BorderLayout.CENTER)
+          border = JBUI.Borders.customLineLeft(JBColor.border())
         }
     } else {
       variantPanel = transparentPanel().apply { isVisible = false }

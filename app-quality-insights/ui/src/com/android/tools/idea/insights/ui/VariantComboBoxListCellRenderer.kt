@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.insights.IssueVariant
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.JBFont
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
@@ -39,7 +40,7 @@ data class VariantRow(
   val issueVariant: IssueVariant?
 ) : Row {
   override fun getRendererComponent(): Component {
-    textLabel.update(name, null)
+    textLabel.update(if (issueVariant == null) name else "Variant $name", null)
     eventCountLabel.update(
       eventCount.formatNumberToPrettyString(),
       StudioIcons.AppQualityInsights.ISSUE
@@ -48,6 +49,7 @@ data class VariantRow(
       userCount.formatNumberToPrettyString(),
       StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE
     )
+    rendererComponent.invalidate()
     return rendererComponent
   }
 
@@ -60,6 +62,7 @@ data class VariantRow(
         layout = BoxLayout(this, BoxLayout.X_AXIS)
         isOpaque = false
         add(textLabel)
+        add(Box.createHorizontalStrut(10))
         add(Box.createHorizontalGlue())
         add(eventCountLabel)
         add(Box.createHorizontalStrut(4))
@@ -96,22 +99,21 @@ object HeaderRow : Row {
   private val rendererComponent =
     JPanel(BorderLayout()).apply {
       add(
-        JBLabel("VARIANTS").apply {
-          isEnabled = false
+        JBLabel("Variants").apply {
           isOpaque = false
+          font = font.deriveFont(JBFont.BOLD)
         },
         BorderLayout.WEST
       )
       add(
-        JBLabel("IMPACT").apply {
-          isEnabled = false
+        JBLabel("Impact").apply {
           isOpaque = false
           horizontalAlignment = SwingConstants.RIGHT
+          font = font.deriveFont(JBFont.BOLD)
         },
         BorderLayout.EAST
       )
       isOpaque = false
-      isEnabled = false
     }
 
   override fun getRendererComponent() = rendererComponent

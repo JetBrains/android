@@ -168,10 +168,10 @@ class VariantComboBoxTest {
       assertThat(comboBox.model.getElementAt(1)).isEqualTo(ISSUE1.toVariantRow(2))
       val firstVariantRow = comboBox.model.getElementAt(2) as VariantRow
       assertThat(firstVariantRow).isEqualTo(variant1.toVariantRow())
-      assertThat(firstVariantRow.name).isEqualTo("Variant #ant1")
+      assertThat(firstVariantRow.name).isEqualTo("ant1")
       val secondVariantRow = comboBox.model.getElementAt(3) as VariantRow
       assertThat(secondVariantRow).isEqualTo(variant2.toVariantRow())
-      assertThat(secondVariantRow.name).isEqualTo("Variant #ant2")
+      assertThat(secondVariantRow.name).isEqualTo("ant2")
     }
 
   @Test
