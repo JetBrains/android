@@ -64,7 +64,6 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
@@ -1012,7 +1011,9 @@ public class IdeSdks {
       if (shouldUpdate) {
         ProjectJdkTable.getInstance().updateJdk(jdkInTable, updatedJdk);
       }
-      Disposer.dispose((ProjectJdkImpl)updatedJdk);
+      if (updatedJdk instanceof Disposable disposableJdk) {
+        Disposer.dispose(disposableJdk);
+      }
     } else {
       // Could not find JDK in JDK table, add as new entry
       jdkTable.addJdk(updatedJdk);
