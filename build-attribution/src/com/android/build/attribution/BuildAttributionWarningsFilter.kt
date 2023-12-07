@@ -50,10 +50,6 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnin
     return !suppressedWarnings.nonIncrementalAnnotationProcessors.contains(annotationProcessorClassName)
   }
 
-  fun applyNoncacheableTaskFilter(task: TaskData): Boolean {
-    return !suppressedWarnings.noncacheableTasks.contains(Pair(getTaskIdentifier(task), task.originPlugin.idName))
-  }
-
   var suppressNoGCSettingWarning: Boolean
     get() = suppressedWarnings.noGCSettingWarning
     set(value) { suppressedWarnings.noGCSettingWarning = value }
@@ -66,20 +62,12 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnin
     suppressedWarnings.nonIncrementalAnnotationProcessors.add(annotationProcessorClassName)
   }
 
-  fun suppressNoncacheableTaskWarning(taskIdentifier: String, pluginDisplayName: String) {
-    suppressedWarnings.noncacheableTasks.add(Pair(taskIdentifier, pluginDisplayName))
-  }
-
   fun unsuppressAlwaysRunTaskWarning(taskName: String, pluginDisplayName: String) {
     suppressedWarnings.alwaysRunTasks.remove(Pair(taskName, pluginDisplayName))
   }
 
   fun unsuppressNonIncrementalAnnotationProcessorWarning(annotationProcessorClassName: String) {
     suppressedWarnings.nonIncrementalAnnotationProcessors.remove(annotationProcessorClassName)
-  }
-
-  fun unsuppressNoncacheableTaskWarning(taskName: String, pluginDisplayName: String) {
-    suppressedWarnings.noncacheableTasks.remove(Pair(taskName, pluginDisplayName))
   }
 
   fun suppressNoGCSettingWarning() {

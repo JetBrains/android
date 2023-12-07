@@ -42,8 +42,6 @@ class BuildResultsProtoMessageConverter {
         buildResults.getAlwaysRunTasks())
       analyzersDataBuilder.criticalPathAnalyzerResult = CriticalPathAnalyzerResultMessageConverter.transform(
         buildResults.getCriticalPathAnalyzerResult())
-      analyzersDataBuilder.noncacheableTasksAnalyzerResult = NoncacheableTaskDataMessageConverter.transform(
-        buildResults.getNonCacheableTasks())
       analyzersDataBuilder.garbageCollectionAnalyzerResult = GarbageCollectionAnalyzerResultMessageConverter.transform(
         buildResults.getGarbageCollectionAnalyzerResult()
       )
@@ -81,8 +79,6 @@ class BuildResultsProtoMessageConverter {
       val criticalPathAnalyzerResult = CriticalPathAnalyzerResultMessageConverter.construct(buildResultsMsg.criticalPathAnalyzerResult,
                                                                                             tasks,
                                                                                             plugins)
-      val noncacheableTaskAnalyzerResult = NoncacheableTaskDataMessageConverter.construct(buildResultsMsg.noncacheableTasksAnalyzerResult,
-                                                                                          tasks)
       val garbageCollectionAnalyzerResult = GarbageCollectionAnalyzerResultMessageConverter.construct(
         buildResultsMsg.garbageCollectionAnalyzerResult)
       val projectConfigurationAnalyzerResult = ProjectConfigurationAnalyzerResultMessageConverter.construct(
@@ -102,7 +98,6 @@ class BuildResultsProtoMessageConverter {
         annotationProcessorAnalyzerResult = annotationProcessorsAnalyzerResult,
         alwaysRunTasksAnalyzerResult = alwaysRunTaskAnalyzerResult,
         criticalPathAnalyzerResult = criticalPathAnalyzerResult,
-        noncacheableTasksAnalyzerResult = noncacheableTaskAnalyzerResult,
         garbageCollectionAnalyzerResult = garbageCollectionAnalyzerResult,
         projectConfigurationAnalyzerResult = projectConfigurationAnalyzerResult,
         tasksConfigurationIssuesAnalyzerResult = tasksConfigurationIssuesAnalyzerResult,

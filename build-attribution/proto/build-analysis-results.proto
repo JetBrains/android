@@ -9,7 +9,6 @@ message BuildAnalysisResultsMessage {
   optional AnnotationProcessorsAnalyzerResult annotationProcessorsAnalyzerResult = 1;
   optional AlwaysRunTasksAnalyzerResult alwaysRunTasksAnalyzerResult = 2;
   optional CriticalPathAnalyzerResult criticalPathAnalyzerResult = 3;
-  optional NoncacheableTasksAnalyzerResult noncacheableTasksAnalyzerResult= 4;
   optional GarbageCollectionAnalyzerResult garbageCollectionAnalyzerResult = 5;
   optional ProjectConfigurationAnalyzerResult projectConfigurationAnalyzerResult = 6;
   optional TasksConfigurationIssuesAnalyzerResult tasksConfigurationAnalyzerResult = 7;
@@ -142,10 +141,6 @@ message BuildAnalysisResultsMessage {
       BUILD_SCRIPT = 35;
       BUILD_SOURCE = 36;
     }
-  }
-
-  message NoncacheableTasksAnalyzerResult {
-    repeated string noncacheableTaskIds = 1;
   }
 
   message GarbageCollectionAnalyzerResult {

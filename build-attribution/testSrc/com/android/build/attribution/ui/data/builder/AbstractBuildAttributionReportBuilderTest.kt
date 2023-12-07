@@ -60,7 +60,6 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun getTotalConfigurationData(): ProjectConfigurationData = getProjectsConfigurationData().first()
     override fun getProjectsConfigurationData(): List<ProjectConfigurationData> = emptyList()
     override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = emptyList()
-    override fun getNonCacheableTasks(): List<TaskData> = emptyList()
     override fun getAppliedPlugins(): Map<String, List<PluginData>> = emptyMap()
     override fun getConfigurationCachingCompatibility(): ConfigurationCachingCompatibilityProjectResult = NoIncompatiblePlugins(emptyList(), false)
     override fun getJetifierUsageResult(): JetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierNotUsed)

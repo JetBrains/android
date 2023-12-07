@@ -25,7 +25,6 @@ import com.android.build.attribution.analyzers.CriticalPathAnalyzer
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.GarbageCollectionAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
-import com.android.build.attribution.analyzers.NoncacheableTasksAnalyzer
 import com.android.build.attribution.analyzers.ProjectConfigurationAnalyzer
 import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.analyzers.TasksConfigurationIssuesAnalyzer
@@ -41,7 +40,6 @@ import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
 import kotlinx.collections.immutable.toImmutableMap
-import java.io.File
 
 sealed interface AbstractBuildAnalysisResult {
   fun getBuildSessionID(): String
@@ -52,7 +50,6 @@ data class BuildAnalysisResults(
   private val annotationProcessorAnalyzerResult: AnnotationProcessorsAnalyzer.Result,
   private val alwaysRunTasksAnalyzerResult: AlwaysRunTasksAnalyzer.Result,
   private val criticalPathAnalyzerResult: CriticalPathAnalyzer.Result,
-  private val noncacheableTasksAnalyzerResult: NoncacheableTasksAnalyzer.Result,
   private val garbageCollectionAnalyzerResult: GarbageCollectionAnalyzer.Result,
   private val projectConfigurationAnalyzerResult: ProjectConfigurationAnalyzer.Result,
   private val tasksConfigurationIssuesAnalyzerResult: TasksConfigurationIssuesAnalyzer.Result,
@@ -148,10 +145,6 @@ data class BuildAnalysisResults(
     return alwaysRunTasksAnalyzerResult.alwaysRunTasks
   }
 
-  override fun getNonCacheableTasks(): List<TaskData> {
-    return noncacheableTasksAnalyzerResult.noncacheableTasks
-  }
-
   override fun getTasksSharingOutput(): List<TasksSharingOutputData> {
     return tasksConfigurationIssuesAnalyzerResult.tasksSharingOutput
   }
@@ -210,7 +203,6 @@ data class BuildAnalysisResults(
   annotationProcessorAnalyzerResult,
   alwaysRunTasksAnalyzerResult,
   criticalPathAnalyzerResult,
-  noncacheableTasksAnalyzerResult,
   garbageCollectionAnalyzerResult,
   projectConfigurationAnalyzerResult,
   tasksConfigurationIssuesAnalyzerResult,
@@ -229,7 +221,6 @@ data class HistoricBuildAnalysisResults(
   val annotationProcessorAnalyzerResult: AnnotationProcessorsAnalyzer.Result,
   val alwaysRunTasksAnalyzerResult: AlwaysRunTasksAnalyzer.Result,
   val criticalPathAnalyzerResult: CriticalPathAnalyzer.Result,
-  val noncacheableTasksAnalyzerResult: NoncacheableTasksAnalyzer.Result,
   val garbageCollectionAnalyzerResult: GarbageCollectionAnalyzer.Result,
   val projectConfigurationAnalyzerResult: ProjectConfigurationAnalyzer.Result,
   val tasksConfigurationIssuesAnalyzerResult: TasksConfigurationIssuesAnalyzer.Result,

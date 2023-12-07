@@ -9,7 +9,6 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.GarbageCollectionAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.NoDataFromSavedResult
-import com.android.build.attribution.analyzers.NoncacheableTasksAnalyzer
 import com.android.build.attribution.analyzers.ProjectConfigurationAnalyzer
 import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.analyzers.TasksConfigurationIssuesAnalyzer
@@ -26,8 +25,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.util.toIoFile
-import com.intellij.openapi.project.guessProjectDir
 import org.junit.After
 import org.junit.Ignore
 import org.junit.Rule
@@ -216,11 +213,6 @@ class BuildAnalyzerStorageMetricsTest {
       12345,
       67891
     )
-    val noncacheableTasksAnalyzerTaskData = mutableListOf<TaskData>()
-    for (i in 0 until listSize) {
-      noncacheableTasksAnalyzerTaskData.add(taskCache.values.asSequence().drop(i).first())
-    }
-    val noncacheableTasksAnalyzerResult = NoncacheableTasksAnalyzer.Result(noncacheableTasksAnalyzerTaskData)
     val garbageCollectionDataList = mutableListOf<GarbageCollectionData>()
     // This will never be more than 10
     for (i in 0 until 10) {
@@ -264,7 +256,6 @@ class BuildAnalyzerStorageMetricsTest {
       annotationProcessorsAnalyzerResult,
       alwaysRunTaskDataResult,
       criticalPathAnalyzerResult,
-      noncacheableTasksAnalyzerResult,
       garbageCollectionAnalyzerResult,
       projectConfigurationAnalyzerResult,
       taskConfigurationAnalyzerResult,

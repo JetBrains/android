@@ -49,7 +49,6 @@ interface BuildEventsAnalysisResult {
    */
   fun getProjectsConfigurationData(): List<ProjectConfigurationData>
   fun getAlwaysRunTasks(): List<AlwaysRunTaskData>
-  fun getNonCacheableTasks(): List<TaskData>
   fun getTasksSharingOutput(): List<TasksSharingOutputData>
 
   /**
@@ -96,7 +95,6 @@ class BuildEventsAnalyzersProxy(
   val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(taskContainer, pluginContainer)
   val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(taskContainer, pluginContainer)
   val criticalPathAnalyzer = CriticalPathAnalyzer(taskContainer, pluginContainer)
-  val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(taskContainer)
   val garbageCollectionAnalyzer = GarbageCollectionAnalyzer()
   val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(pluginContainer)
   val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(taskContainer)
@@ -114,7 +112,6 @@ class BuildEventsAnalyzersProxy(
       alwaysRunTasksAnalyzer,
       annotationProcessorsAnalyzer,
       criticalPathAnalyzer,
-      noncacheableTasksAnalyzer,
       garbageCollectionAnalyzer,
       projectConfigurationAnalyzer,
       tasksConfigurationIssuesAnalyzer,
