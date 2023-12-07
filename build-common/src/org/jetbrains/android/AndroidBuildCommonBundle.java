@@ -8,11 +8,11 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
-public class AndroidCommonBundle {
-  private static final @NonNls String BUNDLE = "messages.AndroidCommonBundle";
-  private static final DynamicBundle INSTANCE = new DynamicBundle(AndroidCommonBundle.class, BUNDLE);
+public class AndroidBuildCommonBundle {
+  private static final @NonNls String BUNDLE = "messages.AndroidBuildCommonBundle";
+  private static final DynamicBundle INSTANCE = new DynamicBundle(AndroidBuildCommonBundle.class, BUNDLE);
 
-  private AndroidCommonBundle() {}
+  private AndroidBuildCommonBundle() {}
 
   public static @NotNull @Nls String message(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, @NotNull Object... params) {
     return INSTANCE.getMessage(key, params);
