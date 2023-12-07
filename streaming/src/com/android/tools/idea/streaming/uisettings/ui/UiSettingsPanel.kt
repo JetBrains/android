@@ -22,16 +22,21 @@ import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.IntelliJSpacingConfiguration
 import com.intellij.ui.dsl.builder.actionListener
-import com.intellij.util.ui.components.BorderLayoutPanel
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Font
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import javax.swing.AbstractButton
+import javax.swing.JComponent
 import javax.swing.JSlider
+import javax.swing.SwingUtilities
 import javax.swing.plaf.UIResource
 
 private const val TITLE = "Device Settings Shortcuts"
@@ -74,8 +79,8 @@ internal class UiSettingsPanel(
     updateBackground()
   }
 
-  fun createPicker(): Balloon {
-    return JBPopupFactory.getInstance()
+  fun createPicker(component: JComponent, parentDisposable: Disposable): Balloon {
+    val balloon = JBPopupFactory.getInstance()
       .createBalloonBuilder(this)
       .setShadow(true)
       .setHideOnAction(false)
@@ -83,6 +88,20 @@ internal class UiSettingsPanel(
       .setAnimationCycle(200)
       .setFillColor(secondaryPanelBackground)
       .createBalloon()
+
+    // Hide the balloon if Studio looses focus:
+    val window = SwingUtilities.windowForComponent(component)
+    val listener = object : WindowAdapter() {
+      override fun windowLostFocus(event: WindowEvent) {
+        balloon.hide()
+      }
+    }
+    window?.addWindowFocusListener(listener)
+    Disposer.register(balloon) { window?.removeWindowFocusListener(listener) }
+
+    // Hide the balloon when the device window closes:
+    Disposer.register(parentDisposable, balloon)
+    return balloon
   }
 
   /**

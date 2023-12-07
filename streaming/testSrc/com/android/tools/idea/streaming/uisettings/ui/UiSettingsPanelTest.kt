@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.streaming.uisettings.ui
 
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeBalloon
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.streaming.uisettings.binding.ChangeListener
@@ -28,8 +32,12 @@ import com.intellij.testFramework.RuleChain
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.doAnswer
+import java.awt.event.WindowFocusListener
 import javax.swing.JCheckBox
+import javax.swing.JPanel
 import javax.swing.JSlider
+import javax.swing.SwingUtilities
 import kotlin.time.Duration.Companion.seconds
 
 class UiSettingsPanelTest {
@@ -77,8 +85,35 @@ class UiSettingsPanelTest {
 
   @Test
   fun testCreatePicker() {
-    val balloon = panel.createPicker() as FakeBalloon
-    Disposer.register(projectRule.disposable, balloon)
+    val component = JPanel().apply { setBounds(0, 0, 600, 800) }
+    FakeUi(component, createFakeWindow = true)
+    val balloon = panel.createPicker(component, projectRule.disposable) as FakeBalloon
     assertThat(balloon.component).isInstanceOf(UiSettingsPanel::class.java)
+  }
+
+  @Test
+  fun testPickerClosesWhenWindowCloses() {
+    val component = JPanel().apply { setBounds(0, 0, 600, 800) }
+    FakeUi(component, createFakeWindow = true)
+    val window = SwingUtilities.windowForComponent(component)
+    val listeners = mutableListOf<WindowFocusListener>()
+    doAnswer { invocation ->
+      listeners.add(invocation.arguments[0] as WindowFocusListener)
+    }.whenever(window).addWindowFocusListener(any())
+    val balloon = panel.createPicker(component, projectRule.disposable) as FakeBalloon
+    listeners.forEach { it.windowLostFocus(mock()) }
+    assertThat(balloon.isDisposed).isTrue()
+  }
+
+  @Test
+  fun testPickerClosesWithParentDisposable() {
+    val component = JPanel().apply { setBounds(0, 0, 600, 800) }
+    FakeUi(component, createFakeWindow = true)
+    val parentDisposable = Disposer.newDisposable()
+    Disposer.register(projectRule.disposable, parentDisposable)
+    val balloon = panel.createPicker(component, parentDisposable) as FakeBalloon
+
+    Disposer.dispose(parentDisposable)
+    assertThat(balloon.isDisposed).isTrue()
   }
 }

@@ -51,7 +51,7 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = 
       controller.populateModel()
       EventQueue.invokeLater {
         val disposable = Disposer.newDisposable()
-        val balloon = UiSettingsPanel(model, disposable).createPicker()
+        val balloon = UiSettingsPanel(model, disposable).createPicker(component, emulatorView)
         Disposer.register(balloon, disposable)
         balloon.show(RelativePoint.getCenterOf(component), Balloon.Position.above)
       }
