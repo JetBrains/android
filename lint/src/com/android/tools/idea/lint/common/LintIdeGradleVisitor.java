@@ -94,24 +94,15 @@ public class LintIdeGradleVisitor extends GradleVisitor {
   }
 
   private static List<String> getReferenceExpressionNames(GrReferenceExpression referenceExpression) {
-    ArrayList<String> result = new ArrayList<>(3);
-    // We need at most three strings: the property name and two parent qualifiers (for parent and parentParent in GradleDetector calls).
-    if (referenceExpression.getReferenceName() != null) {
-      result.add(referenceExpression.getReferenceName());
-      if (referenceExpression.isQualified() && referenceExpression.getQualifierExpression() instanceof GrReferenceExpression) {
-        GrReferenceExpression qualifierReferenceExpression = (GrReferenceExpression)referenceExpression.getQualifierExpression();
-        if (qualifierReferenceExpression.getReferenceName() != null) {
-          result.add(qualifierReferenceExpression.getReferenceName());
-          if (qualifierReferenceExpression.isQualified() &&
-              qualifierReferenceExpression.getQualifierExpression() instanceof GrReferenceExpression) {
-            GrReferenceExpression qualifierQualifierReferenceExpression =
-              (GrReferenceExpression)qualifierReferenceExpression.getQualifierExpression();
-            if (qualifierQualifierReferenceExpression.getReferenceName() != null) {
-              result.add(qualifierQualifierReferenceExpression.getReferenceName());
-            }
-          }
-        }
-      }
+    ArrayList<String> result = new ArrayList<>(3); // common case is 1, needed downstream is 3, unlimited in principle
+    String name = referenceExpression.getReferenceName();
+    while (name != null) {
+      result.add(name);
+      if (!(referenceExpression.isQualified())) return result;
+      GrExpression qualifierExpression = referenceExpression.getQualifierExpression();
+      if (!(qualifierExpression instanceof GrReferenceExpression)) break;
+      referenceExpression = (GrReferenceExpression)qualifierExpression;
+      name = referenceExpression.getReferenceName();
     }
     return result;
   }
