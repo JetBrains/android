@@ -66,6 +66,11 @@ void ProcessAdbOutput(const string& output, UiSettingsResponse* response) {
 
 } // namespace
 
+UiSettings::UiSettings()
+  : initial_settings_(-1),
+    last_settings_(-1) {
+}
+
 void UiSettings::Get(UiSettingsResponse* response) {
   string command =
     "echo " DARK_MODE_DIVIDER "; "
@@ -75,16 +80,40 @@ void UiSettings::Get(UiSettingsResponse* response) {
 
   string output = ExecuteShellCommand(command);
   ProcessAdbOutput(TrimEnd(output), response);
+  if (!initial_settings_recorded_) {
+    initial_settings_recorded_ = true;
+    response->copy(&initial_settings_);
+    response->copy(&last_settings_);
+  }
 }
 
 void UiSettings::SetDarkMode(bool dark_mode) {
   string command = string("cmd uimode night ") + (dark_mode ? "yes" : "no");
   ExecuteShellCommand(command);
+  last_settings_.set_dark_mode(dark_mode);
 }
 
 void UiSettings::SetFontSize(int32_t font_size) {
   string command = string("settings put system font_scale ") + StringPrintf("%g", font_size / 100.0f);
   ExecuteShellCommand(command);
+  last_settings_.set_font_size(font_size);
+}
+
+// Reset all changed settings to the initial state.
+// If the user overrides any setting on the device the original state is ignored.
+void UiSettings::Reset() {
+  if (!initial_settings_recorded_) {
+    return;
+  }
+
+  UiSettingsResponse current_settings(-1);
+  Get(&current_settings);
+  if (current_settings.dark_mode() != initial_settings_.dark_mode() && current_settings.dark_mode() == last_settings_.dark_mode()) {
+    SetDarkMode(initial_settings_.dark_mode());
+  }
+  if (current_settings.font_size() != initial_settings_.font_size() && current_settings.font_size() == last_settings_.font_size()) {
+    SetFontSize(initial_settings_.font_size());
+  }
 }
 
 }  // namespace screensharing

@@ -590,12 +590,25 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
+  void copy(UiSettingsResponse* result) {
+    result->set_dark_mode(dark_mode_);
+    result->set_font_size(font_size_);
+  }
+
   void set_dark_mode(bool dark_mode) {
     dark_mode_ = dark_mode;
   }
 
+  bool dark_mode() {
+    return dark_mode_;
+  }
+
   void set_font_size(int32_t font_size) {
     font_size_ = font_size;
+  }
+
+  int32_t font_size() {
+    return font_size_;
   }
 
   static constexpr int TYPE = 20;

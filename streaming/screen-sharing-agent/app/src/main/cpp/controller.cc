@@ -145,6 +145,7 @@ void Controller::Stop() {
   if (device_supports_multiple_states_) {
     DeviceStateManager::RemoveDeviceStateListener(&device_state_listener_);
   }
+  ui_settings_.Reset();
   stopped = true;
 }
 
