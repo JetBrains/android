@@ -78,7 +78,6 @@ import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.declarations.impl.IrExternalPackageFragmentImpl
-import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
 import org.jetbrains.kotlin.ir.declarations.inlineClassRepresentation
 import org.jetbrains.kotlin.ir.declarations.name
@@ -409,19 +408,19 @@ abstract class AbstractComposeLowering(
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun IrFunction.createParameterDeclarations() {
-        fun ParameterDescriptor.irValueParameter() = IrValueParameterImpl(
-            this.startOffset ?: UNDEFINED_OFFSET,
-            this.endOffset ?: UNDEFINED_OFFSET,
-            IrDeclarationOrigin.DEFINED,
-            IrValueParameterSymbolImpl(this),
-            this.name,
-            this.index(),
-            type.toIrType(),
-            (this as? ValueParameterDescriptor)?.varargElementType?.toIrType(),
-            this.isCrossinline,
-            this.isNoinline,
-            false,
-            false
+        fun ParameterDescriptor.irValueParameter() = context.irFactory.createValueParameter(
+          this.startOffset ?: UNDEFINED_OFFSET,
+          this.endOffset ?: UNDEFINED_OFFSET,
+          IrDeclarationOrigin.DEFINED,
+          this.name,
+          type.toIrType(),
+          isAssignable = false,
+          IrValueParameterSymbolImpl(this),
+          this.index(),
+          varargElementType = (this as? ValueParameterDescriptor)?.varargElementType?.toIrType(),
+          this.isCrossinline,
+          this.isNoinline,
+          isHidden = false,
         ).also {
             it.parent = this@createParameterDeclarations
         }
