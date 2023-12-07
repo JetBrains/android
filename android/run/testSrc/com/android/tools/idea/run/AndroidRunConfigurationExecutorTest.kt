@@ -42,6 +42,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.applicationProjectContextForTests
+import com.android.tools.idea.run.AndroidRunConfiguration.Companion.DO_NOTHING
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
@@ -54,6 +55,7 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.Executor
 import com.intellij.execution.RunManager
+import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
@@ -328,18 +330,32 @@ class AndroidRunConfigurationExecutorTest {
     val configuration = env.runProfile as AndroidRunConfiguration
     configuration.executeMakeBeforeRunStepInTest(device)
 
+    var liveEditServiceNotified = false
+    val liveEditServiceImpl = LiveEditServiceImpl(projectRule.project).apply { Disposer.register(projectRule.testRootDisposable, this) }
+    val liveEditService = object : LiveEditService by liveEditServiceImpl {
+      override fun notifyAppDeploy(
+        runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp
+      ): Boolean {
+        liveEditServiceNotified = true
+        return true
+      }
+    }
+
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
       configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
-      apkProvider = { throw ApkProvisionException("ApkProvisionException") })
+      apkProvider = { throw ApkProvisionException("ApkProvisionException") },
+      liveEditService
+      )
 
     val thrown = assertThrows(ExecutionException::class.java) {
       ProgressManager.getInstance()
         .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
     }
     assertThat(thrown).hasMessageThat().contains("ApkProvisionException")
+    assertThat(liveEditServiceNotified).isEqualTo(false)
   }
 
   @Test
@@ -376,10 +392,98 @@ class AndroidRunConfigurationExecutorTest {
   }
 
   @Test
+  fun runNoLaunchOptions() {
+    val deviceState = fakeAdb.connectAndWaitForDevice()
+    val latch = CountDownLatch(1)
+    deviceState.setActivityManager { args, _ ->
+      val command = args.joinToString(" ")
+      if (command == "start -n google.simpleapplication/google.simpleapplication.MyActivity" +
+        " -a android.intent.action.MAIN -c android.intent.category.LAUNCHER") {
+        deviceState.startClient(1234, 1235, APPLICATION_ID, false)
+        latch.countDown()
+      }
+    }
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+
+    val stats = RunStatsService.get(projectRule.project).create()
+    val env = getExecutionEnvironment(listOf(device)).apply {
+      putUserData(RunStats.KEY, stats)
+    }
+    val configuration = env.runProfile as AndroidRunConfiguration
+    configuration.CLEAR_APP_STORAGE = true
+    configuration.CLEAR_LOGCAT = true
+    configuration.MODE = DO_NOTHING
+    configuration.executeMakeBeforeRunStepInTest(device)
+
+    var logcatCleared = false
+    projectRule.project.messageBus.connect(projectRule.testRootDisposable)
+      .subscribe(ClearLogcatListener.TOPIC, ClearLogcatListener { logcatCleared = true })
+
+    var liveEditServiceNotified = false
+    val liveEditServiceImpl = LiveEditServiceImpl(projectRule.project).apply { Disposer.register(projectRule.testRootDisposable, this) }
+    val liveEditService = object : LiveEditService by liveEditServiceImpl {
+      override fun notifyAppDeploy(
+        runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp
+      ): Boolean {
+        liveEditServiceNotified = true
+        return true
+      }
+    }
+
+    val runner = AndroidRunConfigurationExecutor(
+      configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
+      env,
+      deviceFutures,
+      configuration.apkProvider!!,
+      applicationDeployer = testApplicationDeployer(device, ApplicationDeployer::fullDeploy.name),
+      liveEditService = liveEditService
+    )
+
+    val runContentDescriptor = ProgressManager.getInstance()
+      .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
+
+    stats.success()
+    assertTaskPresentedInStats(usageTrackerRule.usages, "CLEAR_APP_STORAGE_TASK")
+    assertTaskPresentedInStats(usageTrackerRule.usages, "NO_LAUNCH")
+
+    val processHandler = runContentDescriptor.processHandler!!
+    processHandler.startNotify()
+
+    assertThat(logcatCleared).isTrue() // comes from [com.android.tools.idea.run.tasks.ClearAppStorageTaskKt.clearAppStorage]
+    assertThat(deviceState.pmLogs).contains("list packages google.simpleapplication")
+    assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
+    assertThat((processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(APPLICATION_ID)
+    assertThat(processHandler.autoTerminate).isEqualTo(true)
+    assertThat(processHandler.isAssociated(device)).isEqualTo(true)
+    assertThat(AndroidSessionInfo.from(processHandler)).isNotNull()
+    assertThat(liveEditServiceNotified).isEqualTo(false) // Live Edit doesn't need to know if AC was performed.
+
+    deviceState.stopClient(1234) // TODO: flaky test b/273744887
+    //if (!processHandler.waitFor(5000)) {
+    //  fail("Process handler didn't stop when debug process terminated")
+    //}
+    processHandler.destroyProcess()
+  }
+
+  @Test
   fun runFailedDeployException() {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
     val deviceFutures = DeviceFutures.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
+
+    var liveEditServiceNotified = false
+    val liveEditServiceImpl = LiveEditServiceImpl(projectRule.project).apply { Disposer.register(projectRule.testRootDisposable, this) }
+    val liveEditService = object : LiveEditService by liveEditServiceImpl {
+      override fun notifyAppDeploy(
+        runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp
+      ): Boolean {
+        liveEditServiceNotified = true
+        return true
+      }
+    }
+
     val configuration = env.runProfile as AndroidRunConfiguration
     configuration.executeMakeBeforeRunStepInTest(device)
 
@@ -389,6 +493,7 @@ class AndroidRunConfigurationExecutorTest {
       env,
       deviceFutures,
       configuration.apkProvider!!,
+      liveEditService,
       applicationDeployer = object : ApplicationDeployer {
         override fun fullDeploy(
           device: IDevice,
@@ -423,6 +528,7 @@ class AndroidRunConfigurationExecutorTest {
         .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
     }
     assertThat(thrown).hasMessageThat().contains(DeployerException.pmFlagsNotSupported().message)
+    assertThat(liveEditServiceNotified).isEqualTo(false)
   }
 
   @Test

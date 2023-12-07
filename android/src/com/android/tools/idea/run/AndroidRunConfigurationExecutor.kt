@@ -127,7 +127,6 @@ class AndroidRunConfigurationExecutor(
             val apks = apkInfosSafe(device)
             val deployResults =
               deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) } })
-            notifyLiveEditService(device, applicationId)
 
             if (shouldDebugSandboxSdk(apkProvider, device, configuration.androidDebuggerContext.getAndroidDebuggerState()!!)) {
               launchSandboxSdk(device, applicationId)
@@ -135,7 +134,9 @@ class AndroidRunConfigurationExecutor(
 
             val mainApp = deployResults.find { it.app.appId == applicationId }
               ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
-            launch(mainApp.app, device, console, isDebug = false)
+            if (launch(mainApp.app, device, console, isDebug = false)) {
+              notifyLiveEditService(device, applicationId)
+            }
           }
         }
       }.awaitAll()
@@ -445,8 +446,9 @@ class AndroidRunConfigurationExecutor(
   }
 
   @Throws(ExecutionException::class)
-  fun launch(app: App, device: IDevice, consoleView: ConsoleView, isDebug: Boolean) {
+  fun launch(app: App, device: IDevice, consoleView: ConsoleView, isDebug: Boolean) : Boolean {
     val amStartOptions = StringBuilder()
+    var didAnything = false
 
     for (taskContributor in AndroidLaunchTaskContributor.EP_NAME.extensionList) {
       val amOptions = taskContributor.getAmStartOptions(app.appId, configuration, device, env.executor)
@@ -454,10 +456,12 @@ class AndroidRunConfigurationExecutor(
     }
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
     try {
-      configuration.launch(app, device, facet, amStartOptions.toString(), isDebug, apkProvider, consoleView, RunStats.from(env))
+      didAnything = configuration.launch(app, device, facet, amStartOptions.toString(), isDebug, apkProvider, consoleView, RunStats.from(env))
     } catch (e: DeployerException) {
       throw AndroidExecutionException(e.id, e.message)
     }
+
+    return didAnything
   }
 }
 
