@@ -37,34 +37,35 @@ import studio.network.inspection.NetworkInspectorProtocol
 class NetworkInspectorTabTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
+  private val scope = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
+  private val timer = FakeTimer().apply { start() }
+
+  private val services =
+    TestNetworkInspectorServices(
+      FakeCodeNavigationProvider(),
+      timer,
+      NetworkInspectorClientImpl(
+        object : AppInspectorMessenger {
+          override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
+            return NetworkInspectorProtocol.Response.newBuilder()
+              .apply {
+                startInspectionResponse =
+                  NetworkInspectorProtocol.StartInspectionResponse.newBuilder()
+                    .apply { timestamp = 12345 }
+                    .build()
+              }
+              .build()
+              .toByteArray()
+          }
+
+          override val eventFlow = emptyFlow<ByteArray>()
+          override val scope = this@NetworkInspectorTabTest.scope
+        }
+      )
+    )
+
   @Test
   fun pressActionButtons() = runBlocking {
-    val scope = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
-    val timer = FakeTimer()
-    timer.start()
-    val services =
-      TestNetworkInspectorServices(
-        FakeCodeNavigationProvider(),
-        timer,
-        NetworkInspectorClientImpl(
-          object : AppInspectorMessenger {
-            override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
-              return NetworkInspectorProtocol.Response.newBuilder()
-                .apply {
-                  startInspectionResponse =
-                    NetworkInspectorProtocol.StartInspectionResponse.newBuilder()
-                      .apply { timestamp = 12345 }
-                      .build()
-                }
-                .build()
-                .toByteArray()
-            }
-
-            override val eventFlow = emptyFlow<ByteArray>()
-            override val scope = scope
-          }
-        )
-      )
     val tab =
       NetworkInspectorTab(
         projectRule.project,
@@ -104,5 +105,30 @@ class NetworkInspectorTabTest {
     resetZoom.doClick()
     timer.step()
     assertThat(tab.model.timeline.viewRange.length).isGreaterThan(defaultViewRange.length)
+  }
+
+  @Test
+  fun zoomToSelection_enableState() = runBlocking {
+    val tab =
+      NetworkInspectorTab(
+        projectRule.project,
+        FakeUiComponentsProvider(),
+        FakeNetworkInspectorDataSource(),
+        services,
+        scope,
+        projectRule.fixture.testRootDisposable
+      )
+
+    tab.launchJob.join()
+
+    val zoomToSelection = tab.actionsToolBar.getComponent(3) as CommonButton
+
+    assertThat(zoomToSelection.isEnabled).isFalse()
+
+    tab.model.timeline.dataRange.set(0.0, 10.0)
+    assertThat(zoomToSelection.isEnabled).isFalse()
+
+    tab.model.timeline.selectionRange.set(0.0, 4.0)
+    assertThat(zoomToSelection.isEnabled).isTrue()
   }
 }

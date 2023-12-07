@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.view
 import com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER
 import com.android.tools.adtui.flat.FlatSeparator
 import com.android.tools.adtui.model.AspectObserver
+import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.StreamingTimeline
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.stdui.CommonButton
@@ -184,10 +185,16 @@ class NetworkInspectorTab(
       DefaultContextMenuItem.Builder("Zoom to Selection")
         .setContainerComponent(splitter)
         .setActionRunnable { zoomToSelection.doClick(0) }
-        .setEnableBooleanSupplier { model.timeline.selectionRange.isEmpty }
+        .setEnableBooleanSupplier { !model.timeline.selectionRange.isEmpty }
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0))
         .build()
     zoomToSelection.toolTipText = zoomToSelectionAction.defaultToolTipText
+
+    model.timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE) {
+      // DefaultContextMenuItem.setEnableBooleanSupplier() seems like it would cause auto updates,
+      // but it doesn't
+      zoomToSelection.isEnabled = !model.timeline.selectionRange.isEmpty
+    }
     actionsToolBar.add(zoomToSelection)
 
     if (!StudioFlags.NETWORK_INSPECTOR_STATIC_TIMELINE.get()) {
