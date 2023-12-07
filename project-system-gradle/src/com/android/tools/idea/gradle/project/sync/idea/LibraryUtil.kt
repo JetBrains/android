@@ -35,11 +35,13 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.DataNode
+import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.LibraryData
 import com.intellij.openapi.externalSystem.model.project.LibraryLevel
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.util.Key
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import java.io.File
@@ -187,7 +189,33 @@ internal fun maybeLinkLibraryAndWorkOutLibraryLevel(projectDataNode: DataNode<Pr
   // TODO(b/243008075): Work out the level of the library, if the library path is inside the module directory we treat
   // this as a Module level library. Otherwise we treat it as a Project level one.
   return when {
-    !GradleProjectResolverUtil.linkProjectLibrary(projectDataNode, libraryData) -> LibraryLevel.MODULE
+    !linkProjectLibrary(projectDataNode, libraryData) -> LibraryLevel.MODULE
     else -> LibraryLevel.PROJECT
   }
+}
+
+/**
+ * This was copied from [GradleProjectResolverUtil.linkProjectLibrary] but avoid comparing the LibraryData since may existing
+ * differences regarding [LibraryData.paths] with the cached platform ones which don't include javadoc and sources
+ */
+private fun linkProjectLibrary(ideProject: DataNode<ProjectData>, library: LibraryData): Boolean {
+  val libraryByNameCacheKey = Key.create<MutableMap<String, DataNode<LibraryData>>>("GradleProjectResolverUtil.FOUND_LIBRARIES")
+  var cache = ideProject.getUserData(libraryByNameCacheKey)
+  if (cache == null) {
+    cache = HashMap()
+    ideProject.putUserData(libraryByNameCacheKey, cache)
+  }
+
+  val libraryName = library.externalName
+  val libraryData = cache.computeIfAbsent(libraryName) { _: String? ->
+    var newValueToCache = ExternalSystemApiUtil.find(ideProject, ProjectKeys.LIBRARY) {
+      node: DataNode<LibraryData> -> libraryName == node.data.externalName
+    }
+    if (newValueToCache == null) {
+      newValueToCache = ideProject.createChild(ProjectKeys.LIBRARY, library)
+    }
+    newValueToCache
+  }
+
+  return libraryData.data.toString() == library.toString()
 }
