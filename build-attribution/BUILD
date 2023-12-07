@@ -47,7 +47,7 @@ iml_module(
             "shard_count": 2,
             "test_filter": "com.android.build.attribution.analyzers",
             "data": [
-                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_latest_prebuilts",
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
             ],
@@ -58,7 +58,7 @@ iml_module(
         },
         "other": {
             "data": [
-                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_latest_prebuilts",
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
             ],
@@ -111,9 +111,6 @@ iml_module(
 
 generate_old_agp_tests_from_list(
     name = "ConfigurationCachingCompatibilityAnalyzerTest",
-    ignore_locations = [
-        "com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityAnalyzerTest#testOldKotlinDetectedAppliedInPluginDsl",
-    ],
     iml_module = ":intellij.android.build-attribution.tests",
     tests_list = [
         dict(
