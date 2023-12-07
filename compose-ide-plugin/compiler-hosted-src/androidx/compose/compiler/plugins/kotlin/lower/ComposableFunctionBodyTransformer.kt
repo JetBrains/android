@@ -75,6 +75,7 @@ import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
+import org.jetbrains.kotlin.ir.declarations.createBlockBody
 import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
 import org.jetbrains.kotlin.ir.declarations.name
 import org.jetbrains.kotlin.ir.expressions.IrBlock
@@ -99,7 +100,6 @@ import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.IrWhileLoop
-import org.jetbrains.kotlin.ir.expressions.impl.IrBlockBodyImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrBlockImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrBranchImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
@@ -882,7 +882,7 @@ class ComposableFunctionBodyTransformer(
 
         if (!elideGroups) scope.realizeGroup(::irEndReplaceableGroup)
 
-        declaration.body = IrBlockBodyImpl(
+        declaration.body = context.irFactory.createBlockBody(
             body.startOffset,
             body.endOffset,
             listOfNotNull(
@@ -1029,7 +1029,7 @@ class ComposableFunctionBodyTransformer(
                 endOffset = body.endOffset
             )
             scope.realizeCoalescableGroup()
-            declaration.body = IrBlockBodyImpl(
+            declaration.body = context.irFactory.createBlockBody(
                 body.startOffset,
                 body.endOffset,
                 listOfNotNull(
@@ -1047,7 +1047,7 @@ class ComposableFunctionBodyTransformer(
                 )
             )
         } else {
-            declaration.body = IrBlockBodyImpl(
+            declaration.body = context.irFactory.createBlockBody(
                 body.startOffset,
                 body.endOffset,
                 listOfNotNull(
@@ -1198,7 +1198,7 @@ class ComposableFunctionBodyTransformer(
 
         scope.realizeGroup(end)
 
-        declaration.body = IrBlockBodyImpl(
+        declaration.body = context.irFactory.createBlockBody(
             body.startOffset,
             body.endOffset,
             listOfNotNull(
