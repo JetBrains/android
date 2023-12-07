@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * A default implementation of {@link Timeline}.
  */
 public class DefaultTimeline implements Timeline {
-  private static final double DEFAULT_ZOOM_RATIO = 0.75;
+  protected static final double DEFAULT_ZOOM_RATIO = 0.75;
   public static final double PADDING_RATIO = 0.1;
   public static final double PAN_RATIO_PER_WHEEL_CLICK = 0.1;
 
@@ -29,8 +29,6 @@ public class DefaultTimeline implements Timeline {
   private final Range myViewRange = new Range();
   private final Range myTooltipRange = new Range();
   private final Range mySelectionRange = new Range();
-  private final Range myZoomLeft = new Range(0, 0);
-  private final TimelineZoomHelper myZoomHelper = new TimelineZoomHelper(myDataRange, myViewRange, myZoomLeft);
 
   /**
    * Ratio to multiply when zooming in and to divide by when zooming out.
@@ -83,7 +81,6 @@ public class DefaultTimeline implements Timeline {
   @Override
   public void frameViewToRange(@NotNull Range targetRange) {
     myViewRange.set(targetRange.getIntersection(myDataRange));
-    myZoomHelper.updateZoomLeft(targetRange, PADDING_RATIO);
   }
 
   @Override

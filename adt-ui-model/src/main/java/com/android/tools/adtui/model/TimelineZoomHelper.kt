@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.model
 
+import com.android.tools.adtui.model.updater.Updater
 import kotlin.math.max
 
 /*
@@ -39,10 +40,11 @@ import kotlin.math.max
  */
 private const val ZOOM_IN_DELTA_RANGE_US_MAX_RATIO = 0.90
 
-/**
- * Facilitates some zoom related operations that are used Timelines
- */
-internal class TimelineZoomHelper(
+/** How many nanoseconds left in our zoom before we just clamp to our final value. */
+private const val ZOOM_LERP_THRESHOLD_NS = 10.0
+
+/** Facilitates some zoom related operations that are used Timelines */
+class TimelineZoomHelper(
   private val dataRange: Range,
   private val viewRange: Range,
   private val zoomLeft: Range,
@@ -53,8 +55,8 @@ internal class TimelineZoomHelper(
    * over is applied to the view minimum.
    *
    * @param amountUs the amount of time request to change the view by.
-   * @param ratio a ratio between 0 and 1 that determines the focal point of the zoom. 1 applies
-   *   the full delta to the min while 0 applies the full delta to the max.
+   * @param ratio a ratio between 0 and 1 that determines the focal point of the zoom. 1 applies the
+   *   full delta to the min while 0 applies the full delta to the max.
    */
   fun zoom(amountUs: Double, ratio: Double) {
     var deltaUs = amountUs
@@ -91,9 +93,7 @@ internal class TimelineZoomHelper(
     zoomLeft.set(minUs - viewRange.min, maxUs - viewRange.max)
   }
 
-  /**
-   * Updates [zoomLeft] after a timeline `frameViewToRange` call
-   */
+  /** Updates [zoomLeft] after a timeline `frameViewToRange` call */
   fun updateZoomLeft(targetRange: Range, paddingRatio: Double) {
     val finalRange =
       Range(
@@ -106,5 +106,23 @@ internal class TimelineZoomHelper(
       finalRange.max = dataRange.max
     }
     zoomLeft.set(finalRange.min - viewRange.min, finalRange.max - viewRange.max)
+  }
+
+  /**
+   * Handles updating the view range by the delta stored in our {@link #myZoomLeft} value. If we
+   * have a delta stored in {@link #myZoomLeft} we apply a percentage of that value to our current
+   * view, and reduce the delta currently stored. Eg: View = 10, 100 myZoomLeft = 30,-30 After we
+   * call this function we end up with View = 20, 90 myZoomLeft = 20, -20.
+   */
+  fun handleZoomView(elapsedNs: Long) {
+    if (zoomLeft.min != 0.0 || zoomLeft.max != 0.0) {
+      val min = Updater.lerp(0.0, zoomLeft.min, 0.99999f, elapsedNs, ZOOM_LERP_THRESHOLD_NS)
+      var max = Updater.lerp(0.0, zoomLeft.max, 0.99999f, elapsedNs, ZOOM_LERP_THRESHOLD_NS)
+      zoomLeft.set(zoomLeft.min - min, zoomLeft.max - max)
+      if ((viewRange.max + max) > dataRange.max) {
+        max = dataRange.max - viewRange.max
+      }
+      viewRange.set(viewRange.min + min, viewRange.max + max)
+    }
   }
 }

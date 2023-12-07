@@ -55,11 +55,6 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
    */
   public static final double ZOOM_MIDDLE_FOCAL_POINT = 0.5;
 
-  /**
-   * How many nanoseconds left in our zoom before we just clamp to our final value.
-   */
-  public static final float ZOOM_LERP_THRESHOLD_NS = 10;
-
   @VisibleForTesting
   public static final long DEFAULT_VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(30);
 
@@ -242,31 +237,9 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
     else {
       myStreamingFactor = 0.0f;
     }
-    handleZoomView(elapsedNs);
+    myZoomHelper.handleZoomView(elapsedNs);
 
     handleJumpToTargetMax(elapsedNs);
-  }
-
-  /**
-   * Handles updating the view range by the delta stored in our {@link #myZoomLeft} value.
-   * If we have a delta stored in {@link #myZoomLeft} we apply a percentage of that value to
-   * our current view, and reduce the delta currently stored.
-   * Eg: View = 10, 100
-   * myZoomLeft = 30,-30
-   * After we call this function we end up with
-   * View = 20, 90
-   * myZoomLeft = 20, -20.
-   */
-  private void handleZoomView(long elapsedNs) {
-    if (myZoomLeft.getMin() != 0 || myZoomLeft.getMax() != 0) {
-      double min = Updater.lerp(0, myZoomLeft.getMin(), 0.99999f, elapsedNs, ZOOM_LERP_THRESHOLD_NS);
-      double max = Updater.lerp(0, myZoomLeft.getMax(), 0.99999f, elapsedNs, ZOOM_LERP_THRESHOLD_NS);
-      myZoomLeft.set(myZoomLeft.getMin() - min, myZoomLeft.getMax() - max);
-      if (myViewRangeUs.getMax() + max > myDataRangeUs.getMax()) {
-        max = myDataRangeUs.getMax() - myViewRangeUs.getMax();
-      }
-      myViewRangeUs.set(myViewRangeUs.getMin() + min, myViewRangeUs.getMax() + max);
-    }
   }
 
   /**
