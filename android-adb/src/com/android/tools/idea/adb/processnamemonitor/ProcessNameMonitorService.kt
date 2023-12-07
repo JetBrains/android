@@ -28,10 +28,10 @@ import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.AndroidAdbLogger
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.android.tools.idea.downloads.AndroidProfilerDownloader
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
@@ -73,8 +73,7 @@ internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor,
   private fun getAgentPath(): Path {
     return when  {
       !IdeInfo.getInstance().isAndroidStudio -> {
-        Paths.get(PathManager.getSystemPath(), "android/android-plugin-resources/231.0.1.4/plugins/android")
-          .resolve(AGENT_RESOURCE_PROD)
+        AndroidProfilerDownloader.getInstance().getHostDir("plugins/android/$AGENT_RESOURCE_PROD").toPath()
       }
       StudioPathManager.isRunningFromSources() -> Paths.get(StudioPathManager.getBinariesRoot()).resolve(AGENT_SOURCE_DEV)
       else -> PluginPathManager.getPluginHome("android").toPath().resolve(AGENT_RESOURCE_PROD)
