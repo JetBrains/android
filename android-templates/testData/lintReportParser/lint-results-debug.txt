@@ -1,0 +1,76 @@
+C:\Windows\fakeProjectDir\testNewBasicViewsActivity_VALIDATING_\Template test module\src\main\res\layout\content_main.xml:8: Error: Replace the <fragment> tag with FragmentContainerView. [FragmentTagUsage from androidx.fragment]
+    <fragment
+     ~~~~~~~~
+
+   Explanation for issues of type "FragmentTagUsage":
+   FragmentContainerView replaces the <fragment> tag as the preferred
+          way of adding fragments via XML. Unlike the <fragment> tag,
+   FragmentContainerView                 uses a normal FragmentTransaction
+   under the hood to add the initial fragment,                 allowing
+   further FragmentTransaction operations on the FragmentContainerView
+           and providing a consistent timing for lifecycle events.
+
+   https://developer.android.com/reference/androidx/fragment/app/FragmentContainerView.html
+
+   Vendor: Android Open Source Project
+   Identifier: androidx.fragment
+   Feedback: https://issuetracker.google.com/issues/new?component=460964
+
+C:\Windows\fakeProjectDir\testNewBasicViewsActivity_VALIDATING_\Template test module\src\main\AndroidManifest.xml:18: Error: Redundant label can be removed [RedundantLabel]
+            android:label="@string/app_name"
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "RedundantLabel":
+   When an activity does not have a label attribute, it will use the one from
+   the application tag. Since the application has already specified the same
+   label, the label on this activity can be omitted.
+
+C:\Windows\fakeProjectDir\testNewBasicViewsActivity_VALIDATING_\gradle\libs.versions.toml:8: Error: A newer version of androidx.navigation:navigation-fragment than 2.6.0 is available: 2.7.0 [GradleDependency]
+navigation-fragment = "2.6.0"
+                      ~~~~~~~
+C:\Windows\fakeProjectDir\testNewBasicViewsActivity_VALIDATING_\gradle\libs.versions.toml:9: Error: A newer version of androidx.navigation:navigation-ui than 2.6.0 is available: 2.7.0 [GradleDependency]
+navigation-ui = "2.6.0"
+                ~~~~~~~
+
+   Explanation for issues of type "GradleDependency":
+   This detector looks for usages of libraries where the version you are using
+   is not the current stable release. Using older versions is fine, and there
+   are cases where you deliberately want to stick with an older version.
+   However, you may simply not be aware that a more recent version is
+   available, and that is what this lint check helps find.
+
+C:\Windows\fakeProjectDir\testNewBasicViewsActivity_VALIDATING_\Template test module\src\main\res\values-v23: Error: This folder configuration (v23) is unnecessary; minSdkVersion is 23. Merge all the resources in this folder into values. [ObsoleteSdkInt]
+
+   Explanation for issues of type "ObsoleteSdkInt":
+   This check flags version checks that are not necessary, because the
+   minSdkVersion (or surrounding known API level) is already at least as high
+   as the version checked for.
+
+   Similarly, it also looks for resources in -vNN folders, such as values-v14
+   where the version qualifier is less than or equal to the minSdkVersion,
+   where the contents should be merged into the best folder.
+
+C:\Windows\fakeProjectDir\testNewBasicViewsActivity_VALIDATING_\Template test module\src\main\res\layout\activity_main.xml:24: Error: Missing contentDescription attribute on image [ContentDescription]
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "ContentDescription":
+   Non-textual widgets like ImageViews and ImageButtons should use the
+   contentDescription attribute to specify a textual description of the widget
+   such that screen readers and other accessibility tools can adequately
+   describe the user interface.
+
+   Note that elements in application screens that are purely decorative and do
+   not provide any content or enable a user action should not have
+   accessibility content descriptions. In this case, set their descriptions to
+   @null. If your app's minSdkVersion is 16 or higher, you can instead set
+   these graphical elements' android:importantForAccessibility attributes to
+   no.
+
+   Note that for text fields, you should not set both the hint and the
+   contentDescription attributes since the hint will never be shown. Just set
+   the hint.
+
+   https://developer.android.com/guide/topics/ui/accessibility/apps#special-cases
+
+6 errors, 0 warnings
