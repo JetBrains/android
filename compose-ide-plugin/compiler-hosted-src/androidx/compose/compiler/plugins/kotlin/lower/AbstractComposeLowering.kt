@@ -78,7 +78,6 @@ import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.declarations.impl.IrExternalPackageFragmentImpl
-import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrTypeParameterImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
@@ -467,21 +466,22 @@ abstract class AbstractComposeLowering(
         require(type.isFunction()) { "Function references should always have function type" }
         val returnType = (type as IrSimpleTypeImpl).arguments.last() as IrType
 
-        val lambda = IrFunctionImpl(
-            startOffset, endOffset,
+        val lambda = context.irFactory.createSimpleFunction(
+            startOffset,
+            endOffset,
             IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA,
-            symbol,
             name = descriptor.name,
             visibility = descriptor.visibility,
-            modality = descriptor.modality,
-            returnType = returnType,
             isInline = descriptor.isInline,
-            isExternal = descriptor.isExternal,
+            isExpect = descriptor.isExpect,
+            returnType = returnType,
+            modality = descriptor.modality,
+            symbol,
             isTailrec = descriptor.isTailrec,
             isSuspend = descriptor.isSuspend,
             isOperator = descriptor.isOperator,
-            isExpect = descriptor.isExpect,
-            isInfix = descriptor.isInfix
+            isInfix = descriptor.isInfix,
+            isExternal = descriptor.isExternal,
         ).also {
             it.parent = scope.getLocalDeclarationParent()
             it.createParameterDeclarations()

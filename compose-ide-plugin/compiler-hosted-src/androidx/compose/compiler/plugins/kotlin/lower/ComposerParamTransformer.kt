@@ -47,7 +47,6 @@ import org.jetbrains.kotlin.ir.declarations.IrOverridableDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.copyAttributes
-import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.descriptors.IrBasedDeclarationDescriptor
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
@@ -373,24 +372,24 @@ class ComposerParamTransformer(
         // TODO(lmr): use deepCopy instead?
         val descriptor = descriptor
 
-        return IrFunctionImpl(
+        return context.irFactory.createSimpleFunction(
             startOffset,
             endOffset,
             origin,
-            IrSimpleFunctionSymbolImpl(),
             name,
             visibility,
-            modality,
-            returnType,
             isInline,
-            isExternal,
+            isExpect,
+            returnType,
+            modality,
+            IrSimpleFunctionSymbolImpl(),
             descriptor.isTailrec,
             descriptor.isSuspend,
             descriptor.isOperator,
             descriptor.isInfix,
-            isExpect,
+            isExternal,
+            containerSource,
             isFakeOverride,
-            containerSource
         ).also { fn ->
             if (this is IrSimpleFunction) {
                 fn.copyAttributes(this)

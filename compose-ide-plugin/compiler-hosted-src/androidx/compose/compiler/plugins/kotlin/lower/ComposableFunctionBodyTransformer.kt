@@ -75,7 +75,6 @@ import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
 import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
-import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
 import org.jetbrains.kotlin.ir.declarations.name
 import org.jetbrains.kotlin.ir.expressions.IrBlock
@@ -1653,21 +1652,22 @@ class ComposableFunctionBodyTransformer(
             )
         }
 
-        val lambda = IrFunctionImpl(
-            UNDEFINED_OFFSET, UNDEFINED_OFFSET,
+        val lambda = context.irFactory.createSimpleFunction(
+            UNDEFINED_OFFSET,
+            UNDEFINED_OFFSET,
             IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA,
-            IrSimpleFunctionSymbolImpl(lambdaDescriptor),
             name = lambdaDescriptor.name,
             visibility = lambdaDescriptor.visibility,
-            modality = lambdaDescriptor.modality,
-            returnType = context.irBuiltIns.unitType,
             isInline = lambdaDescriptor.isInline,
-            isExternal = lambdaDescriptor.isExternal,
+            isExpect = lambdaDescriptor.isExpect,
+            returnType = context.irBuiltIns.unitType,
+            modality = lambdaDescriptor.modality,
+            IrSimpleFunctionSymbolImpl(lambdaDescriptor),
             isTailrec = lambdaDescriptor.isTailrec,
             isSuspend = lambdaDescriptor.isSuspend,
             isOperator = lambdaDescriptor.isOperator,
-            isExpect = lambdaDescriptor.isExpect,
             isInfix = lambdaDescriptor.isInfix,
+            isExternal = lambdaDescriptor.isExternal,
         ).also { fn ->
             fn.parent = function
             val localIrBuilder = DeclarationIrBuilder(context, fn.symbol)
