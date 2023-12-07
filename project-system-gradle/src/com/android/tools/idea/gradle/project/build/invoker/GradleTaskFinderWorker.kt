@@ -19,14 +19,20 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
+import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isHolderModule
+import com.android.tools.idea.projectsystem.isMainModule
+import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -46,12 +52,12 @@ class GradleTaskFinderWorker private constructor(
   private val requestedModules: List<ModuleAndMode>
 ) {
 
-  constructor(project: Project, buildMode: BuildMode, testCompileType: TestCompileType, modules: List<Module>):
+  constructor(project: Project, buildMode: BuildMode, testCompileType: TestCompileType, modules: List<Module>, expandModule: Boolean = false):
     this(
       project,
       requestedModules = modules.mapNotNull {
         if (it.getGradleProjectPath() == null) return@mapNotNull null // Skip any non Gradle projects.
-        ModuleAndMode(it, buildMode, testCompileType)
+        ModuleAndMode(it, buildMode, testCompileType, expandModule = expandModule)
       }
     )
 
@@ -83,96 +89,53 @@ class GradleTaskFinderWorker private constructor(
         val moduleToProcess = modulesToProcess.poll()
         if (!seen.add(moduleToProcess)) continue
 
-        expandModule(moduleToProcess).forEach { modulesToProcess.addFirst(it) }
+        moduleToProcess.expand().forEach { modulesToProcess.addFirst(it) }
         yield(moduleToProcess)
       }
     }
     return modulesAndModes.toList()
   }
 
-  /**
-   * Includes targets required by the requested build mode but such that are not implicitly build by tasks invoked on the current module.
-   *
-   * Examples:
-   *   `TEST_ONLY_MODULE` does not build its target APK
-   *   `APP`s do not build their dynamic features
-   *   `DYNAMIC_FEATURE`s need to be built in the scope of the whole APP for deployment from a bundle.
-   */
-  private fun expandModule(moduleToProcess: ModuleAndMode): List<ModuleAndMode> {
-    return when (moduleToProcess.buildMode) {
-      BuildMode.CLEAN ->
-        // TODO(b/235567998): Why? CLEAN should be applied to the same projects to which ASSEMBLE is applied.
-        if (moduleToProcess.androidModel?.androidProject?.projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) emptyList()
-        else moduleToProcess.expand()
-
-      BuildMode.ASSEMBLE -> moduleToProcess.expand()
-      BuildMode.REBUILD -> moduleToProcess.expand()
-
-      BuildMode.BUNDLE -> moduleToProcess.expand() // TODO(b/235567998): emptyList() // Do not expand for BUNDLE as one can only bundle an app.
-      BuildMode.APK_FROM_BUNDLE -> moduleToProcess.expand()
-
-      BuildMode.COMPILE_JAVA -> moduleToProcess.expand() // TODO(b/235567998): no need - compilation naturally follows dependencies.
-      BuildMode.SOURCE_GEN -> moduleToProcess.expand()  // TODO(b/235567998): no need - invoked on this module only. It should be invoked
-                                                        // on all modules when needed.
-      BuildMode.BASELINE_PROFILE_GEN -> moduleToProcess.expand()
-      BuildMode.BASELINE_PROFILE_GEN_ALL_VARIANTS -> moduleToProcess.expand()
-    }
-  }
-
   private fun ModuleAndMode.expand(): List<ModuleAndMode> {
-    if (!expand) return emptyList()
+    if (!expandModule) return emptyList()
     val androidModel = androidModel ?: return emptyList()
     val androidProject = androidModel.androidProject
     val buildRoot = module.getGradleProjectPath()?.buildRoot ?: error("No Gradle path for $module")
 
     return when (androidProject.projectType) {
-      IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> emptyList()
-      IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> emptyList()
-      IdeAndroidProjectType.PROJECT_TYPE_ATOM -> emptyList()
-      IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> emptyList() // Builds everything needed.
-      IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> emptyList() // Is treated like a library module.
-
       IdeAndroidProjectType.PROJECT_TYPE_APP ->
         androidProject
           .dynamicFeatures
-          .mapNotNull { GradleHolderProjectPath(buildRoot, it).toModuleAndMode(buildMode, testCompileMode = testCompileMode) }
+          .mapNotNull { GradleSourceSetProjectPath(buildRoot, it, IdeModuleWellKnownSourceSet.MAIN).toModuleAndMode(buildMode, testCompileMode = testCompileMode) }
 
       IdeAndroidProjectType.PROJECT_TYPE_TEST ->
-        // TODO(b/235567998): Review. It does not look right that building a test module to test the app deployed from a bundle
-        // should not build APKs from bundle but should build APKs directly. There should not be a difference between a test module
-        // and androidTests in general.
         if (buildMode != BuildMode.ASSEMBLE && buildMode != BuildMode.REBUILD) emptyList()
         else androidModel
           .selectedVariant
           .testedTargetVariants
           .map { it.targetProjectPath }
-          // TODO(b/235567998): expand REBUILD to CLEAN + ASSEMBLE at the first step when CLEAN reworked.
-          .mapNotNull { GradleHolderProjectPath(buildRoot, it).toModuleAndMode(if (buildMode == BuildMode.REBUILD) BuildMode.ASSEMBLE else buildMode) }
-
+          .mapNotNull {
+            GradleSourceSetProjectPath(
+              buildRoot,
+              it,
+              IdeModuleWellKnownSourceSet.MAIN
+            ).toModuleAndMode(if (buildMode == BuildMode.REBUILD) BuildMode.ASSEMBLE else buildMode)
+          }
       IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE ->
-        // TODO(b/235567998): Review. Assembling/bundling etc. a feature involves its app. Compiling should follow dependencies and does
-        //  not need handling by expand.
-        if (!testCompileMode.compileAndroidTests) emptyList()
-        else {
-          androidProject
-            .baseFeature
-            ?.let {
-              listOfNotNull(
-                GradleHolderProjectPath(buildRoot, it)
-                  .toModuleAndMode(
-                    buildMode = buildMode,
-                    testCompileMode =
-                    // TODO(b/235567998):tests should come from the first module in the chain only.
-                    if (buildMode == BuildMode.BUNDLE || buildMode == BuildMode.APK_FROM_BUNDLE) TestCompileType.NONE else testCompileMode,
-                    // TODO(b/235567998): Not clear why bundling needs to expand further. In general if we build a feature we do not need
-                    //  not build all features and bundling builds all of them anyway.
-                    // TODO(b/235567998): change to false // No need to include other dynamic features.
-                    expand = (buildMode == BuildMode.BUNDLE || buildMode == BuildMode.APK_FROM_BUNDLE)
-                  )
-              )
-            }
-            .orEmpty()
-        }
+        androidProject
+          .baseFeature
+          ?.let {
+            listOfNotNull(
+              GradleHolderProjectPath(buildRoot, it)
+                .toModuleAndMode(
+                  buildMode = buildMode,
+                  testCompileMode =
+                  if (buildMode == BuildMode.BUNDLE || buildMode == BuildMode.APK_FROM_BUNDLE) TestCompileType.NONE else testCompileMode
+                )
+            )
+          }
+          .orEmpty()
+      else -> emptyList()
     }
   }
 
@@ -200,11 +163,9 @@ class GradleTaskFinderWorker private constructor(
                 it.getPrivacySandboxSdkLegacyTask())
             }
           BuildMode.COMPILE_JAVA ->
-            moduleToProcess
-              // TODO(b/235567998): Review. This is to exclude main artifact compile task when building unit tests, but probably applies to
-              // android tests as well. It looks like it might be simpler to expand the test compile mode similarly to build modes and
-              // handle this at expand level.
-              .getTaskBy(implicitMain = moduleToProcess.testCompileMode == TestCompileType.UNIT_TESTS) { it.compileTaskName }
+            moduleToProcess.getTaskBy {
+                it.compileTaskName
+            }
 
           BuildMode.SOURCE_GEN -> moduleToProcess.getTasksBy { it.ideSetupTaskNames }
           BuildMode.BUNDLE -> {
@@ -281,10 +242,9 @@ class GradleTaskFinderWorker private constructor(
 
   private fun GradleProjectPath.toModuleAndMode(
     buildMode: BuildMode,
-    expand: Boolean = true,
     testCompileMode: TestCompileType = TestCompileType.NONE
   ): ModuleAndMode? =
-    resolveIn(project)?.let { ModuleAndMode(it, buildMode = buildMode, expand = expand, testCompileMode = testCompileMode) }
+    resolveIn(project)?.let { ModuleAndMode(it, buildMode = buildMode, testCompileMode = testCompileMode) }
 }
 
 private data class RootedTask(val root: Path, val taskPath: String)
@@ -317,7 +277,7 @@ private data class ModuleAndMode(
   val module: Module,
   val buildMode: BuildMode,
   val testCompileMode: TestCompileType,
-  val expand: Boolean = true
+  val expandModule: Boolean = false
 ) {
   val androidModel: GradleAndroidModel? = GradleAndroidModel.get(module)
   val isGradleJavaModule: Boolean = if (androidModel == null) module.isGradleJavaModule() else false
@@ -365,16 +325,15 @@ private fun getGradleJavaTaskNames(buildMode: BuildMode, testCompileMode: TestCo
 
 private fun ModuleAndMode.getTasksBy(
   isClean: Boolean = false,
-  implicitMain: Boolean = false,
   by: (artifact: IdeBaseArtifact) -> List<String>
 ): ModuleTasks {
   val tasks: Set<String> = androidModel?.selectedVariant?.let { variant ->
     val artifacts =
       mutableListOf<IdeBaseArtifact>().apply {
-        addIfNotNull(variant.mainArtifact.takeUnless { implicitMain && (testCompileMode.compileAndroidTests || testCompileMode.compileUnitTests) })
+        addIfNotNull(variant.mainArtifact.takeIf { module.isHolderModule() || module.isMainModule() || (module.isAndroidTestModule() && expandModule) })
         // TODO(karimai): Add support for Screenshot test.
-        addIfNotNull(variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }.takeIf { testCompileMode.compileUnitTests })
-        addIfNotNull(variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }.takeIf { testCompileMode.compileAndroidTests })
+        addIfNotNull(variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }.takeIf { module.isUnitTestModule() || module.isHolderModule() })
+        addIfNotNull(variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }.takeIf { module.isAndroidTestModule() || module.isHolderModule() })
       }
       artifacts.flatMap { by.invoke(it) }.toSet()
   }.orEmpty()
@@ -383,10 +342,9 @@ private fun ModuleAndMode.getTasksBy(
 
 private fun ModuleAndMode.getTaskBy(
   isClean: Boolean = false,
-  implicitMain: Boolean = false,
   by: (artifact: IdeBaseArtifact) -> String?
 ): ModuleTasks {
-  return getTasksBy(isClean, implicitMain, fun(artifact: IdeBaseArtifact): List<String> = listOfNotNull(by(artifact)))
+  return getTasksBy(isClean, fun(artifact: IdeBaseArtifact): List<String> = listOfNotNull(by(artifact)))
 }
 
 private val supportsDirectTaskInvocationInCompositeBuilds = GradleVersion.version("6.8")

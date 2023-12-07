@@ -207,7 +207,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     var modules = ImmutableList.of(
       Objects.requireNonNull(gradleModule(myProject, ":app"))
     ).toArray(new Module[0]);
-    when(myTaskFinder.findTasksToExecute(modules, ASSEMBLE, TestCompileType.NONE)).thenReturn(ArrayListMultimap.create());
+    when(myTaskFinder.findTasksToExecute(modules, ASSEMBLE, TestCompileType.NONE, false)).thenReturn(ArrayListMultimap.create());
     GradleBuildInvoker buildInvoker = createBuildInvoker(myTaskFinder);
     ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assemble(
       modules,
@@ -254,7 +254,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
       Objects.requireNonNull(gradleModule(myProject, ":app")),
       Objects.requireNonNull(gradleModule(myProject, ":lib"))
     ).toArray(new Module[0]);
-    when(myTaskFinder.findTasksToExecute(modules, BUNDLE, TestCompileType.NONE)).thenReturn(ArrayListMultimap.create());
+    when(myTaskFinder.findTasksToExecute(modules, BUNDLE, TestCompileType.NONE, false)).thenReturn(ArrayListMultimap.create());
     GradleBuildInvoker buildInvoker = createBuildInvoker(myTaskFinder);
 
     ListenableFuture<AssembleInvocationResult> bundleResult = buildInvoker.bundle(modules);
@@ -282,7 +282,14 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
 
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request).isNotNull();
-    assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(":lib:assembleDebug", ":app:assembleDebug"));
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(
+      ImmutableList.of(":app:assembleDebug",
+                       ":app:assembleDebugUnitTest",
+                       ":app:assembleDebugAndroidTest",
+                       ":lib:assembleDebug",
+                       ":lib:assembleDebugUnitTest",
+                       ":lib:assembleDebugAndroidTest"
+      ));
     assertThat(request.getCommandLineArguments()).isEmpty();
     assertThat(assembleResult.get().getBuildMode()).isEqualTo(ASSEMBLE);
 
@@ -306,7 +313,14 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
 
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request).isNotNull();
-    assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(":lib:assembleDebug", ":app:assembleDebug"));
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(
+      ":app:assembleDebug",
+      ":app:assembleDebugUnitTest",
+      ":app:assembleDebugAndroidTest",
+      ":lib:assembleDebug",
+      ":lib:assembleDebugUnitTest",
+      ":lib:assembleDebugAndroidTest"
+    ));
     assertThat(assembleResult.get().getBuildMode()).isEqualTo(ASSEMBLE);
 
     verifyInteractionWithMocks(ASSEMBLE);

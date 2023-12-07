@@ -79,27 +79,27 @@ PROJECT                       : reference
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
-                ASSEMBLE                      : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest
-                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:clean
-                COMPILE_JAVA                  : :androidlibrary:compileDebugAndroidTestSources, :androidlibrary:compileDebugSources
-                SOURCE_GEN                    : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
+                CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
+                ASSEMBLE                      : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:assembleDebugUnitTest
+                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:assembleDebugUnitTest, :androidlibrary:clean
+                COMPILE_JAVA                  : :androidlibrary:compileDebugAndroidTestSources, :androidlibrary:compileDebugSources, :androidlibrary:compileDebugUnitTestSources
+                SOURCE_GEN                    : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
-                ASSEMBLE                      : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugUnitTest
-                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugUnitTest, :androidlibrary:clean
-                COMPILE_JAVA                  : :androidlibrary:compileDebugUnitTestSources
-                SOURCE_GEN                    : :androidlibrary:generateDebugSources, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
+                CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
+                ASSEMBLE                      : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:assembleDebugUnitTest
+                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:assembleDebugUnitTest, :androidlibrary:clean
+                COMPILE_JAVA                  : :androidlibrary:compileDebugAndroidTestSources, :androidlibrary:compileDebugSources, :androidlibrary:compileDebugUnitTestSources
+                SOURCE_GEN                    : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :androidlibrary:generateDebugSources
-                ASSEMBLE                      : :androidlibrary:assembleDebug
-                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:clean
-                COMPILE_JAVA                  : :androidlibrary:compileDebugSources
-                SOURCE_GEN                    : :androidlibrary:generateDebugSources
+                CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
+                ASSEMBLE                      : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:assembleDebugUnitTest
+                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:assembleDebugUnitTest, :androidlibrary:clean
+                COMPILE_JAVA                  : :androidlibrary:compileDebugAndroidTestSources, :androidlibrary:compileDebugSources, :androidlibrary:compileDebugUnitTestSources
+                SOURCE_GEN                    : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
     MODULE                        : reference.androidlibrary.androidTest
@@ -174,35 +174,35 @@ PROJECT                       : reference
             -                             : file://<PROJECT>/androidlibrary/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
-                ASSEMBLE                      : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:assembleDebugUnitTest
-                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:assembleDebugUnitTest, :androidlibrary:clean
-                COMPILE_JAVA                  : :androidlibrary:compileDebugAndroidTestSources, :androidlibrary:compileDebugSources, :androidlibrary:compileDebugUnitTestSources
-                SOURCE_GEN                    : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
+                CLEAN                         : :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :androidlibrary:assembleDebugAndroidTest
+                REBUILD                       : :androidlibrary:assembleDebugAndroidTest, :androidlibrary:clean
+                COMPILE_JAVA                  : :androidlibrary:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
-                ASSEMBLE                      : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest
-                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:clean
-                COMPILE_JAVA                  : :androidlibrary:compileDebugAndroidTestSources, :androidlibrary:compileDebugSources
-                SOURCE_GEN                    : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
+                CLEAN                         : :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :androidlibrary:assembleDebugAndroidTest
+                REBUILD                       : :androidlibrary:assembleDebugAndroidTest, :androidlibrary:clean
+                COMPILE_JAVA                  : :androidlibrary:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
-                ASSEMBLE                      : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugUnitTest
-                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugUnitTest, :androidlibrary:clean
-                COMPILE_JAVA                  : :androidlibrary:compileDebugUnitTestSources
-                SOURCE_GEN                    : :androidlibrary:generateDebugSources, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
+                CLEAN                         : :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :androidlibrary:assembleDebugAndroidTest
+                REBUILD                       : :androidlibrary:assembleDebugAndroidTest, :androidlibrary:clean
+                COMPILE_JAVA                  : :androidlibrary:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :androidlibrary:generateDebugSources
-                ASSEMBLE                      : :androidlibrary:assembleDebug
-                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:clean
-                COMPILE_JAVA                  : :androidlibrary:compileDebugSources
-                SOURCE_GEN                    : :androidlibrary:generateDebugSources
+                CLEAN                         : :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :androidlibrary:assembleDebugAndroidTest
+                REBUILD                       : :androidlibrary:assembleDebugAndroidTest, :androidlibrary:clean
+                COMPILE_JAVA                  : :androidlibrary:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
     MODULE                        : reference.androidlibrary.main
@@ -271,27 +271,27 @@ PROJECT                       : reference
         ORDER_ENTRY                   : reference.javalib.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
-                ASSEMBLE                      : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:assembleDebugUnitTest
-                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:assembleDebugUnitTest, :androidlibrary:clean
-                COMPILE_JAVA                  : :androidlibrary:compileDebugAndroidTestSources, :androidlibrary:compileDebugSources, :androidlibrary:compileDebugUnitTestSources
-                SOURCE_GEN                    : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
+                CLEAN                         : :androidlibrary:generateDebugSources
+                ASSEMBLE                      : :androidlibrary:assembleDebug
+                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:clean
+                COMPILE_JAVA                  : :androidlibrary:compileDebugSources
+                SOURCE_GEN                    : :androidlibrary:generateDebugSources
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
-                ASSEMBLE                      : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest
-                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:clean
-                COMPILE_JAVA                  : :androidlibrary:compileDebugAndroidTestSources, :androidlibrary:compileDebugSources
-                SOURCE_GEN                    : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
+                CLEAN                         : :androidlibrary:generateDebugSources
+                ASSEMBLE                      : :androidlibrary:assembleDebug
+                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:clean
+                COMPILE_JAVA                  : :androidlibrary:compileDebugSources
+                SOURCE_GEN                    : :androidlibrary:generateDebugSources
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
-                ASSEMBLE                      : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugUnitTest
-                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugUnitTest, :androidlibrary:clean
-                COMPILE_JAVA                  : :androidlibrary:compileDebugUnitTestSources
-                SOURCE_GEN                    : :androidlibrary:generateDebugSources, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
+                CLEAN                         : :androidlibrary:generateDebugSources
+                ASSEMBLE                      : :androidlibrary:assembleDebug
+                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:clean
+                COMPILE_JAVA                  : :androidlibrary:compileDebugSources
+                SOURCE_GEN                    : :androidlibrary:generateDebugSources
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
             TEST_COMPILE_MODE             : None
@@ -368,35 +368,35 @@ PROJECT                       : reference
             -                             : file://<PROJECT>/androidlibrary/build/intermediates/javac/debugUnitTest/classes
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
-                ASSEMBLE                      : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:assembleDebugUnitTest
-                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:assembleDebugUnitTest, :androidlibrary:clean
-                COMPILE_JAVA                  : :androidlibrary:compileDebugAndroidTestSources, :androidlibrary:compileDebugSources, :androidlibrary:compileDebugUnitTestSources
-                SOURCE_GEN                    : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
+                CLEAN                         : :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
+                ASSEMBLE                      : :androidlibrary:assembleDebugUnitTest
+                REBUILD                       : :androidlibrary:assembleDebugUnitTest, :androidlibrary:clean
+                COMPILE_JAVA                  : :androidlibrary:compileDebugUnitTestSources
+                SOURCE_GEN                    : :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
-                ASSEMBLE                      : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest
-                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugAndroidTest, :androidlibrary:clean
-                COMPILE_JAVA                  : :androidlibrary:compileDebugAndroidTestSources, :androidlibrary:compileDebugSources
-                SOURCE_GEN                    : :androidlibrary:generateDebugSources, :androidlibrary:ideAndroidTestSetupTask1, :androidlibrary:ideAndroidTestSetupTask2
+                CLEAN                         : :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
+                ASSEMBLE                      : :androidlibrary:assembleDebugUnitTest
+                REBUILD                       : :androidlibrary:assembleDebugUnitTest, :androidlibrary:clean
+                COMPILE_JAVA                  : :androidlibrary:compileDebugUnitTestSources
+                SOURCE_GEN                    : :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :androidlibrary:generateDebugSources, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
-                ASSEMBLE                      : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugUnitTest
-                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:assembleDebugUnitTest, :androidlibrary:clean
+                CLEAN                         : :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
+                ASSEMBLE                      : :androidlibrary:assembleDebugUnitTest
+                REBUILD                       : :androidlibrary:assembleDebugUnitTest, :androidlibrary:clean
                 COMPILE_JAVA                  : :androidlibrary:compileDebugUnitTestSources
-                SOURCE_GEN                    : :androidlibrary:generateDebugSources, :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
+                SOURCE_GEN                    : :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :androidlibrary:generateDebugSources
-                ASSEMBLE                      : :androidlibrary:assembleDebug
-                REBUILD                       : :androidlibrary:assembleDebug, :androidlibrary:clean
-                COMPILE_JAVA                  : :androidlibrary:compileDebugSources
-                SOURCE_GEN                    : :androidlibrary:generateDebugSources
+                CLEAN                         : :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
+                ASSEMBLE                      : :androidlibrary:assembleDebugUnitTest
+                REBUILD                       : :androidlibrary:assembleDebugUnitTest, :androidlibrary:clean
+                COMPILE_JAVA                  : :androidlibrary:compileDebugUnitTestSources
+                SOURCE_GEN                    : :androidlibrary:ideUnitTestSetupTask1, :androidlibrary:ideUnitTestSetupTask2
                 BASELINE_PROFILE_GEN          : :androidlibrary:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :androidlibrary:generateBaselineProfile
     MODULE                        : reference.app
@@ -457,31 +457,31 @@ PROJECT                       : reference
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
+                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
@@ -558,43 +558,35 @@ PROJECT                       : reference
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebugAndroidTest
+                REBUILD                       : :app:assembleDebugAndroidTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebugAndroidTest
+                REBUILD                       : :app:assembleDebugAndroidTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebugAndroidTest
+                REBUILD                       : :app:assembleDebugAndroidTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebugAndroidTest
+                REBUILD                       : :app:assembleDebugAndroidTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources
+                SOURCE_GEN                    : :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : reference.app.main
@@ -666,31 +658,31 @@ PROJECT                       : reference
             -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                CLEAN                         : :app:generateDebugSources
+                ASSEMBLE                      : :app:assembleDebug
+                REBUILD                       : :app:assembleDebug, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugSources
+                SOURCE_GEN                    : :app:generateDebugSources
                 BUNDLE                        : :app:bundleDebug
                 APK_FROM_BUNDLE               : :app:extractApksForDebug
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
@@ -771,43 +763,35 @@ PROJECT                       : reference
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources, :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugAndroidTestSources, :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources, :app:ideAndroidTestSetupTask1, :app:ideAndroidTestSetupTask2
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
-                ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
-                REBUILD                       : :app:assembleDebug, :app:assembleDebugUnitTest, :app:clean
+                CLEAN                         : :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebugUnitTest, :app:clean
                 COMPILE_JAVA                  : :app:compileDebugUnitTestSources
-                SOURCE_GEN                    : :app:generateDebugSources, :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                SOURCE_GEN                    : :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :app:generateDebugSources
-                ASSEMBLE                      : :app:assembleDebug
-                REBUILD                       : :app:assembleDebug, :app:clean
-                COMPILE_JAVA                  : :app:compileDebugSources
-                SOURCE_GEN                    : :app:generateDebugSources
-                BUNDLE                        : :app:bundleDebug
-                APK_FROM_BUNDLE               : :app:extractApksForDebug
+                CLEAN                         : :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
+                ASSEMBLE                      : :app:assembleDebugUnitTest
+                REBUILD                       : :app:assembleDebugUnitTest, :app:clean
+                COMPILE_JAVA                  : :app:compileDebugUnitTestSources
+                SOURCE_GEN                    : :app:ideUnitTestSetupTask1, :app:ideUnitTestSetupTask2
                 BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
                 BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
     MODULE                        : reference.javalib
@@ -930,31 +914,31 @@ PROJECT                       : reference
             BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
             BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
         TEST_COMPILE_MODE             : Android tests
-            CLEAN                         : <PROJECT>::androidlibrary:generateDebugSources, <PROJECT>::androidlibrary:ideAndroidTestSetupTask1, <PROJECT>::androidlibrary:ideAndroidTestSetupTask2, <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2
-            ASSEMBLE                      : <PROJECT>::androidlibrary:assembleDebug, <PROJECT>::androidlibrary:assembleDebugAndroidTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::javalib:assemble
-            REBUILD                       : <PROJECT>::androidlibrary:assembleDebug, <PROJECT>::androidlibrary:assembleDebugAndroidTest, <PROJECT>::androidlibrary:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::javalib:assemble, <PROJECT>::javalib:clean
-            COMPILE_JAVA                  : <PROJECT>::androidlibrary:compileDebugAndroidTestSources, <PROJECT>::androidlibrary:compileDebugSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::javalib:compileJava
-            SOURCE_GEN                    : <PROJECT>::androidlibrary:generateDebugSources, <PROJECT>::androidlibrary:ideAndroidTestSetupTask1, <PROJECT>::androidlibrary:ideAndroidTestSetupTask2, <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2
+            CLEAN                         : <PROJECT>::androidlibrary:generateDebugSources, <PROJECT>::androidlibrary:ideAndroidTestSetupTask1, <PROJECT>::androidlibrary:ideAndroidTestSetupTask2, <PROJECT>::androidlibrary:ideUnitTestSetupTask1, <PROJECT>::androidlibrary:ideUnitTestSetupTask2, <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2
+            ASSEMBLE                      : <PROJECT>::androidlibrary:assembleDebug, <PROJECT>::androidlibrary:assembleDebugAndroidTest, <PROJECT>::androidlibrary:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::javalib:assemble
+            REBUILD                       : <PROJECT>::androidlibrary:assembleDebug, <PROJECT>::androidlibrary:assembleDebugAndroidTest, <PROJECT>::androidlibrary:assembleDebugUnitTest, <PROJECT>::androidlibrary:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::javalib:assemble, <PROJECT>::javalib:clean
+            COMPILE_JAVA                  : <PROJECT>::androidlibrary:compileDebugAndroidTestSources, <PROJECT>::androidlibrary:compileDebugSources, <PROJECT>::androidlibrary:compileDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::javalib:compileJava
+            SOURCE_GEN                    : <PROJECT>::androidlibrary:generateDebugSources, <PROJECT>::androidlibrary:ideAndroidTestSetupTask1, <PROJECT>::androidlibrary:ideAndroidTestSetupTask2, <PROJECT>::androidlibrary:ideUnitTestSetupTask1, <PROJECT>::androidlibrary:ideUnitTestSetupTask2, <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
             BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
             BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
         TEST_COMPILE_MODE             : Unit tests
-            CLEAN                         : <PROJECT>::androidlibrary:generateDebugSources, <PROJECT>::androidlibrary:ideUnitTestSetupTask1, <PROJECT>::androidlibrary:ideUnitTestSetupTask2, <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2
-            ASSEMBLE                      : <PROJECT>::androidlibrary:assembleDebug, <PROJECT>::androidlibrary:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::javalib:assemble, <PROJECT>::javalib:testClasses
-            REBUILD                       : <PROJECT>::androidlibrary:assembleDebug, <PROJECT>::androidlibrary:assembleDebugUnitTest, <PROJECT>::androidlibrary:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::javalib:assemble, <PROJECT>::javalib:clean, <PROJECT>::javalib:testClasses
-            COMPILE_JAVA                  : <PROJECT>::androidlibrary:compileDebugUnitTestSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::javalib:compileJava, <PROJECT>::javalib:testClasses
-            SOURCE_GEN                    : <PROJECT>::androidlibrary:generateDebugSources, <PROJECT>::androidlibrary:ideUnitTestSetupTask1, <PROJECT>::androidlibrary:ideUnitTestSetupTask2, <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2
+            CLEAN                         : <PROJECT>::androidlibrary:generateDebugSources, <PROJECT>::androidlibrary:ideAndroidTestSetupTask1, <PROJECT>::androidlibrary:ideAndroidTestSetupTask2, <PROJECT>::androidlibrary:ideUnitTestSetupTask1, <PROJECT>::androidlibrary:ideUnitTestSetupTask2, <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2
+            ASSEMBLE                      : <PROJECT>::androidlibrary:assembleDebug, <PROJECT>::androidlibrary:assembleDebugAndroidTest, <PROJECT>::androidlibrary:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::javalib:assemble, <PROJECT>::javalib:testClasses
+            REBUILD                       : <PROJECT>::androidlibrary:assembleDebug, <PROJECT>::androidlibrary:assembleDebugAndroidTest, <PROJECT>::androidlibrary:assembleDebugUnitTest, <PROJECT>::androidlibrary:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::javalib:assemble, <PROJECT>::javalib:clean, <PROJECT>::javalib:testClasses
+            COMPILE_JAVA                  : <PROJECT>::androidlibrary:compileDebugAndroidTestSources, <PROJECT>::androidlibrary:compileDebugSources, <PROJECT>::androidlibrary:compileDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::javalib:compileJava, <PROJECT>::javalib:testClasses
+            SOURCE_GEN                    : <PROJECT>::androidlibrary:generateDebugSources, <PROJECT>::androidlibrary:ideAndroidTestSetupTask1, <PROJECT>::androidlibrary:ideAndroidTestSetupTask2, <PROJECT>::androidlibrary:ideUnitTestSetupTask1, <PROJECT>::androidlibrary:ideUnitTestSetupTask2, <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
             BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile
             BASELINE_PROFILE_GEN_ALL_VARIANTS       : :app:generateBaselineProfile
         TEST_COMPILE_MODE             : None
-            CLEAN                         : <PROJECT>::androidlibrary:generateDebugSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::androidlibrary:assembleDebug, <PROJECT>::app:assembleDebug, <PROJECT>::javalib:assemble
-            REBUILD                       : <PROJECT>::androidlibrary:assembleDebug, <PROJECT>::androidlibrary:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::javalib:assemble, <PROJECT>::javalib:clean
-            COMPILE_JAVA                  : <PROJECT>::androidlibrary:compileDebugSources, <PROJECT>::app:compileDebugSources, <PROJECT>::javalib:compileJava
-            SOURCE_GEN                    : <PROJECT>::androidlibrary:generateDebugSources, <PROJECT>::app:generateDebugSources
+            CLEAN                         : <PROJECT>::androidlibrary:generateDebugSources, <PROJECT>::androidlibrary:ideAndroidTestSetupTask1, <PROJECT>::androidlibrary:ideAndroidTestSetupTask2, <PROJECT>::androidlibrary:ideUnitTestSetupTask1, <PROJECT>::androidlibrary:ideUnitTestSetupTask2, <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2
+            ASSEMBLE                      : <PROJECT>::androidlibrary:assembleDebug, <PROJECT>::androidlibrary:assembleDebugAndroidTest, <PROJECT>::androidlibrary:assembleDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::javalib:assemble
+            REBUILD                       : <PROJECT>::androidlibrary:assembleDebug, <PROJECT>::androidlibrary:assembleDebugAndroidTest, <PROJECT>::androidlibrary:assembleDebugUnitTest, <PROJECT>::androidlibrary:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::javalib:assemble, <PROJECT>::javalib:clean
+            COMPILE_JAVA                  : <PROJECT>::androidlibrary:compileDebugAndroidTestSources, <PROJECT>::androidlibrary:compileDebugSources, <PROJECT>::androidlibrary:compileDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::javalib:compileJava
+            SOURCE_GEN                    : <PROJECT>::androidlibrary:generateDebugSources, <PROJECT>::androidlibrary:ideAndroidTestSetupTask1, <PROJECT>::androidlibrary:ideAndroidTestSetupTask2, <PROJECT>::androidlibrary:ideUnitTestSetupTask1, <PROJECT>::androidlibrary:ideUnitTestSetupTask2, <PROJECT>::app:generateDebugSources, <PROJECT>::app:ideAndroidTestSetupTask1, <PROJECT>::app:ideAndroidTestSetupTask2, <PROJECT>::app:ideUnitTestSetupTask1, <PROJECT>::app:ideUnitTestSetupTask2
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
             BASELINE_PROFILE_GEN          : :app:generateDebugBaselineProfile

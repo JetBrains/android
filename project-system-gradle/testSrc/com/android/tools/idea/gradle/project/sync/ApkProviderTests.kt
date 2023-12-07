@@ -255,7 +255,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             Files:
               project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
-
+            
             ApplicationId: google.simpleapplication.test
             Files:
                -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
@@ -325,7 +325,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             Files:
                -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
-
+            
             ApplicationId: com.example.android.app.testmodule
             Files:
               project.test -> project/test/build/intermediates/apk/debug/test-debug.apk
@@ -402,12 +402,12 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
                 simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
                 simpleApplication.feature1 -> project/feature1/build/outputs/apk/debug/feature1-debug.apk
               RequiredInstallationOptions: []
-
+              
               ApplicationId: google.simpleapplication.test
               Files:
                  -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
               RequiredInstallationOptions: []
-            """),
+        """),
         AGP_CURRENT to """
               ApplicationId: google.simpleapplication
               Files:
@@ -433,11 +433,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       IGNORE = { TODO("b/189190337") },
       expectApks = mapOf(
         AGP_CURRENT to """
-            ApplicationId: google.simpleapplication
-            Files:
-              standalone -> project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
-            RequiredInstallationOptions: []
-
             ApplicationId: google.simpleapplication.test
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
@@ -495,7 +490,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
                 base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
               RequiredInstallationOptions: []
-
+              
               ApplicationId: com.example.feature1.test
               Files:
                  -> project/feature1/build/intermediates/apk/androidTest/debug/feature1-debug-androidTest.apk
@@ -564,7 +559,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             Files:
               project.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
-
+            
             ApplicationId: google.testapplication.test
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
@@ -586,7 +581,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             Files:
               project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
-
+            
             ApplicationId: google.testapplication.test
             Files:
                -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk

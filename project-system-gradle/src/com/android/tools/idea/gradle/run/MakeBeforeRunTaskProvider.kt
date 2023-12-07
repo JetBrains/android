@@ -495,9 +495,9 @@ private fun build(
     //       AndroidRunConfigurationBase.
     // Um, except that AndroidWearConfiguration now exists.
     useSelectApksFromBundleBuilder(modules, configuration, targetDeviceVersion) ->
-      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, testCompileType).asMap(), BuildMode.APK_FROM_BUNDLE)
+      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, testCompileType, expandModules = true).asMap(), BuildMode.APK_FROM_BUNDLE)
     else ->
-      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, testCompileType).asMap(), BuildMode.ASSEMBLE)
+      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, testCompileType, expandModules = true).asMap(), BuildMode.ASSEMBLE)
   }
 }
 
