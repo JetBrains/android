@@ -32,7 +32,6 @@ import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrExpressionBodyImpl
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
 import org.jetbrains.kotlin.ir.util.constructors
@@ -164,7 +163,7 @@ class ClassStabilityTransformer(
 
         val stabilityField = makeStabilityField().also { f ->
             f.parent = cls
-            f.initializer = IrExpressionBodyImpl(
+            f.initializer = context.irFactory.createExpressionBody(
                 UNDEFINED_OFFSET,
                 UNDEFINED_OFFSET,
                 stableExpr
