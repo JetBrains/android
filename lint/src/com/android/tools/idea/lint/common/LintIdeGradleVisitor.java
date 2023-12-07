@@ -270,55 +270,54 @@ public class LintIdeGradleVisitor extends GradleVisitor {
             super.visitMethodCall(call);
           }
 
+          private void handleApplicationOrMethodCallInClosure(List<String> closureNames, PsiElement element) {
+            GrReferenceExpression propertyRef;
+            GroovyPsiElement valueCookie;
+            String value;
+            if (element instanceof GrApplicationStatement) {
+              GrApplicationStatement call = (GrApplicationStatement)element;
+              GrExpression propertyExpression = call.getInvokedExpression();
+              if (!(propertyExpression instanceof GrReferenceExpression)) return;
+              propertyRef = (GrReferenceExpression)propertyExpression;
+              GrCommandArgumentList argumentList = call.getArgumentList();
+              //noinspection ConstantConditions
+              if (argumentList == null) return;
+              valueCookie = argumentList;
+              value = argumentList.getText();
+            }
+            else if (element instanceof GrMethodCallExpression) {
+              GrMethodCallExpression call = (GrMethodCallExpression)element;
+              GrExpression propertyExpression = call.getInvokedExpression();
+              if (!(propertyExpression instanceof GrReferenceExpression)) return;
+              propertyRef = (GrReferenceExpression)propertyExpression;
+              GrExpression[] argumentList = call.getArgumentList().getExpressionArguments();
+              if (argumentList.length != 1) return;
+              valueCookie = argumentList[0];
+              value = argumentList[0].getText();
+            }
+            else {
+              return;
+            }
+            List<String> names = getReferenceExpressionNames(propertyRef);
+            names.addAll(closureNames);
+            String property = names.get(0);
+            String parentName = names.size() > 1 ? names.get(1) : null;
+            String parentParentName = names.size() > 2 ? names.get(2) : null;
+            if (property != null && parentName != null) {
+              for (GradleScanner detector : detectors) {
+                detector.checkDslPropertyAssignment(context, property, value, parentName, parentParentName, propertyRef, valueCookie,
+                                                    element);
+              }
+            }
+          }
+
           @Override
           public void visitClosure(@NotNull GrClosableBlock closure) {
             List<String> closureNames = getClosureNames(closure);
             if (!closureNames.isEmpty()) {
               for (PsiElement element : closure.getChildren()) {
-                if (element instanceof GrApplicationStatement) {
-                  GrApplicationStatement call = (GrApplicationStatement)element;
-                  GrExpression propertyExpression = call.getInvokedExpression();
-                  GrCommandArgumentList argumentList = call.getArgumentList();
-                  if (propertyExpression instanceof GrReferenceExpression) {
-                    GrReferenceExpression propertyRef = (GrReferenceExpression)propertyExpression;
-                    List<String> names = getReferenceExpressionNames(propertyRef);
-                    names.addAll(closureNames);
-                    String property = names.get(0);
-                    String parentName = names.size() > 1 ? names.get(1) : null;
-                    String parentParentName = names.size() > 2 ? names.get(2) : null;
-                    //noinspection ConstantConditions
-                    if (property != null && parentName != null && argumentList != null) {
-                      String value = argumentList.getText();
-                      for (GradleScanner detector : detectors) {
-                        detector
-                          .checkDslPropertyAssignment(context, property, value, parentName, parentParentName, propertyRef, argumentList,
-                                                      call);
-                      }
-                    }
-                  }
-                }
-                else if (element instanceof GrMethodCallExpression) {
-                  GrMethodCallExpression assignment = (GrMethodCallExpression)element;
-                  GrExpression lValue = assignment.getInvokedExpression();
-                  if (lValue instanceof GrReferenceExpression) {
-                    GrReferenceExpression propertyRef = (GrReferenceExpression)lValue;
-                    List<String> names = getReferenceExpressionNames(propertyRef);
-                    names.addAll(closureNames);
-                    String property = names.get(0);
-                    String parentName = names.size() > 1 ? names.get(1) : null;
-                    String parentParentName = names.size() > 2 ? names.get(2) : null;
-                    if (property != null && parentName != null) {
-                      GrExpression[] list = assignment.getArgumentList().getExpressionArguments();
-                      if (list.length == 1) {
-                        GrExpression rValue = list[0];
-                        String value = rValue.getText();
-                        for (GradleScanner detector : detectors) {
-                          detector
-                            .checkDslPropertyAssignment(context, property, value, parentName, parentParentName, lValue, rValue, assignment);
-                        }
-                      }
-                    }
-                  }
+                if (element instanceof GrApplicationStatement || element instanceof GrMethodCallExpression) {
+                  handleApplicationOrMethodCallInClosure(closureNames, element);
                 }
                 else if (element instanceof GrAssignmentExpression) {
                   GrAssignmentExpression assignment = (GrAssignmentExpression)element;
