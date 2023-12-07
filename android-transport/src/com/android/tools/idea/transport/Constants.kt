@@ -17,9 +17,6 @@
 
 package com.android.tools.idea.transport
 
-import com.intellij.openapi.application.PathManager
-import java.nio.file.Paths
-
 @JvmField
 val TRANSPORT_DEV_DIR = "bazel-bin/tools/base/transport/android"
 @JvmField
@@ -49,10 +46,3 @@ val PERFETTO_RELEASE_DIR = "plugins/android/resources/perfetto"
 val TRACEBOX_DEV_DIR = "prebuilts/tools/common/tracebox"
 @JvmField
 val TRACEBOX_RELEASE_DIR = "plugins/android/resources/tracebox"
-
-internal fun androidPluginIJDir(childDirectory: String): String {
-  return Paths.get(PathManager.getSystemPath(), "android/android-plugin-resources/231.0.1.4")
-    .resolve(childDirectory)
-    .toAbsolutePath()
-    .toString()
-}
