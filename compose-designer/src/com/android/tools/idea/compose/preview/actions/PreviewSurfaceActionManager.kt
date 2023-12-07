@@ -30,12 +30,13 @@ import com.android.tools.idea.preview.actions.hideIfRenderErrors
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Separator
+import java.awt.MouseInfo
 import javax.swing.JComponent
+import javax.swing.SwingUtilities
 
 /** [ActionManager] to be used by the Compose Preview. */
 internal class PreviewSurfaceActionManager(
@@ -72,13 +73,12 @@ internal class PreviewSurfaceActionManager(
     // Copy Image
     val actionGroup = DefaultActionGroup().apply { add(copyResultImageAction) }
 
-    val sceneView = surface.sceneViewAtMousePosition ?: return actionGroup
+    val mousePosition = MouseInfo.getPointerInfo().location
+    SwingUtilities.convertPointFromScreen(mousePosition, surface.interactionPane)
     // Zoom to Selection
-    (surface as? NlDesignSurface)?.let {
-      actionGroup.add(ZoomToSelectionAction(surface, sceneView))
-    }
+    actionGroup.add(ZoomToSelectionAction(mousePosition.x, mousePosition.y))
     // Jump to Definition
-    actionGroup.add(JumpToDefinitionAction(surface, navigationHandler, sceneView))
+    actionGroup.add(JumpToDefinitionAction(mousePosition.x, mousePosition.y, navigationHandler))
 
     return actionGroup
   }
