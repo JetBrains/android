@@ -30,6 +30,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -98,7 +99,7 @@ class BackgroundTaskEntriesView(
       null
     ) {
     private var selectedTag: String? = null
-
+    override fun getActionUpdateThread() = ActionUpdateThread.EDT
     override fun update(event: AnActionEvent) {
       if (selectedTag != tableView.treeModel.filterTag) {
         selectedTag = tableView.treeModel.filterTag
@@ -109,10 +110,7 @@ class BackgroundTaskEntriesView(
       if (event.presentation.isVisible != isTableActive) {
         event.presentation.isVisible = isTableActive
       }
-    }
-
-    override fun canBePerformed(context: DataContext): Boolean {
-      return tableView.treeModel.allTags.isNotEmpty()
+      event.presentation.isPerformGroup = tableView.treeModel.allTags.isNotEmpty()
     }
 
     public override fun updateActions(context: DataContext): Boolean {
@@ -128,6 +126,7 @@ class BackgroundTaskEntriesView(
   /** ToggleAction that filters works with a specific [tag]. */
   private inner class FilterWithTagToggleAction(private val tag: String?) :
     ToggleAction(tag ?: "All tags") {
+    override fun getActionUpdateThread() = ActionUpdateThread.EDT
     override fun isSelected(event: AnActionEvent): Boolean {
       return tag == tableView.treeModel.filterTag
     }
@@ -139,7 +138,7 @@ class BackgroundTaskEntriesView(
 
   private inner class TableViewAction :
     AnAction(BackgroundTaskInspectorBundle.message("action.show.list"), "", AllIcons.Graph.Grid) {
-
+    override fun getActionUpdateThread() = ActionUpdateThread.EDT
     override fun actionPerformed(e: AnActionEvent) {
       if (contentMode == Mode.GRAPH) {
         contentMode = Mode.TABLE
@@ -148,7 +147,6 @@ class BackgroundTaskEntriesView(
     }
 
     override fun update(e: AnActionEvent) {
-      super.update(e)
       e.presentation.isEnabled = contentMode == Mode.GRAPH
     }
   }
@@ -169,7 +167,6 @@ class BackgroundTaskEntriesView(
     }
 
     override fun update(e: AnActionEvent) {
-      super.update(e)
       e.presentation.isEnabled =
         contentMode == Mode.TABLE && selectionModel.selectedEntry is WorkEntry
     }

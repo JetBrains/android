@@ -77,6 +77,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     // TODO(b/215726556) Use the super constructor that takes title, description, icon after the merge of IJ2022.1.1
     super(title, true);
     Presentation presentation = getTemplatePresentation();
+    presentation.setPerformGroup(true);
     presentation.setDescription(description);
     if (icon != null) {
       presentation.setIcon(icon);
@@ -199,11 +200,6 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
    */
   protected boolean updateActions(@NotNull DataContext context) {
     return false;
-  }
-
-  @Override
-  public boolean canBePerformed(@NotNull DataContext context) {
-    return true;
   }
 
   /**

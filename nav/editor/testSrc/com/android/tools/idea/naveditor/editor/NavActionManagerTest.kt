@@ -48,7 +48,9 @@ import com.intellij.ide.actions.CutAction
 import com.intellij.ide.actions.DeleteAction
 import com.intellij.ide.actions.PasteAction
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys.COPY_PROVIDER
@@ -61,7 +63,6 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
-import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 
 /**
@@ -417,15 +418,12 @@ class NavActionManagerTest : NavTestCase() {
       .add(PASTE_PROVIDER, surfaceActionProvider)
       .add(DELETE_ELEMENT_PROVIDER, surfaceActionProvider)
       .build()
-    val event = TestActionEvent(dataContext, item)
+    val event = AnActionEvent.createFromAnAction(item, null, ActionPlaces.UNKNOWN, dataContext)
     item.update(event)
     assertInstanceOf(item, c)
     assertEquals(name, event.presentation.text)
     if (item is ActionGroup) {
-      assertEquals(!enabled,
-                   item.disableIfNoVisibleChildren() &&
-                   !item.hideIfNoVisibleChildren() &&
-                   item.getChildren(null).none { event.presentation.isVisible })
+      assertEquals(!enabled, item.getChildren(null).none { event.presentation.isVisible })
     }
     else {
       assertEquals(enabled, event.presentation.isEnabled)
