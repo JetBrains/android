@@ -216,10 +216,8 @@ public class Emulator implements AutoCloseable {
   /** A particular supported {@link Emulator} image to use. */
   public enum SystemImage {
     // Google API, userdebug builds
-    API_29("system_image_android-29_default_x86_64"),
     API_30("system_image_android-30_default_x86_64"),
     API_31("system_image_android-31_default_x86_64"),
-    API_32("system_image_android-32_default_x86_64"),
     API_33("system_image_android-33_default_x86_64"),
     // Google Play builds
     API_33_PlayStore("system_image_android-33PlayStore_default_x86_64");
