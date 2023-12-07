@@ -53,7 +53,8 @@ import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.regex.Pattern;
-import org.jetbrains.android.AndroidCommonBundle;
+
+import org.jetbrains.android.AndroidBuildCommonBundle;
 import org.jetbrains.android.sdk.MessageBuildingSdkLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -613,7 +614,7 @@ public class AndroidBuildCommonUtils {
         }
       }
       else {
-        messages.get(AndroidCompilerMessageKind.WARNING).add(messagePrefix + AndroidCommonBundle.message(
+        messages.get(AndroidCompilerMessageKind.WARNING).add(messagePrefix + AndroidBuildCommonBundle.message(
           "android.artifact.building.cannot.find.zip.align.error"));
         FileUtil.copy(tmpArtifact, artifactFile);
       }
@@ -666,7 +667,7 @@ public class AndroidBuildCommonUtils {
       KeyStore.PrivateKeyEntry entry =
         (KeyStore.PrivateKeyEntry)keyStore.getEntry(keyAlias, new KeyStore.PasswordProtection(plainKeyPassword));
       if (entry == null) {
-        messages.get(AndroidCompilerMessageKind.ERROR).add(errorPrefix + AndroidCommonBundle.message(
+        messages.get(AndroidCompilerMessageKind.ERROR).add(errorPrefix + AndroidBuildCommonBundle.message(
           "android.artifact.building.cannot.find.key.error", keyAlias));
         return null;
       }
@@ -674,7 +675,7 @@ public class AndroidBuildCommonUtils {
       PrivateKey privateKey = entry.getPrivateKey();
       Certificate certificate = entry.getCertificate();
       if (privateKey == null || certificate == null) {
-        messages.get(AndroidCompilerMessageKind.ERROR).add(errorPrefix + AndroidCommonBundle.message(
+        messages.get(AndroidCompilerMessageKind.ERROR).add(errorPrefix + AndroidBuildCommonBundle.message(
           "android.artifact.building.cannot.find.key.error", keyAlias));
         return null;
       }
