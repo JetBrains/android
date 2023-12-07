@@ -439,14 +439,12 @@ private fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguratio
 private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
   nest {
     prop("allowKotlinPackage") { compilerArguments.allowKotlinPackage.takeIf { it }?.toString() }
-    prop("allowResultReturnType") { compilerArguments.allowResultReturnType.takeIf { it }?.toString() }
     prop("apiVersion") { compilerArguments.apiVersion }
     prop("autoAdvanceApiVersion") { compilerArguments.autoAdvanceApiVersion.takeIf { it }?.toString() }
     prop("autoAdvanceLanguageVersion") { compilerArguments.autoAdvanceLanguageVersion.takeIf { it }?.toString() }
     compilerArguments.commonSources?.forEach { prop("- commonSources") { it } }
     compilerArguments.disablePhases?.forEach { prop("- disablePhases") { it } }
     prop("dumpPerf") { compilerArguments.dumpPerf }
-    prop("effectSystem") { compilerArguments.effectSystem.takeIf { it }?.toString() }
     prop("intellijPluginRoot") { compilerArguments.intellijPluginRoot }
     prop("kotlinHome") { compilerArguments.kotlinHome }
     prop("languageVersion") { compilerArguments.languageVersion }
@@ -466,8 +464,6 @@ private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
     }
     prop("profilePhases") { compilerArguments.profilePhases.takeIf { it }?.toString() }
     prop("progressiveMode") { compilerArguments.progressiveMode.takeIf { it }?.toString() }
-    prop("properIeee754Comparisons") { compilerArguments.properIeee754Comparisons.takeIf { it }?.toString() }
-    prop("readDeserializedContracts") { compilerArguments.readDeserializedContracts.takeIf { it }?.toString() }
     prop("reportOutputFiles") { compilerArguments.reportOutputFiles.takeIf { it }?.toString() }
     prop("reportPerf") { compilerArguments.reportPerf.takeIf { it }?.toString() }
     prop("skipMetadataVersionCheck") { compilerArguments.skipMetadataVersionCheck.takeIf { it }?.toString() }
