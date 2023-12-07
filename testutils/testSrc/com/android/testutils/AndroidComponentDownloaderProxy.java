@@ -61,13 +61,13 @@ abstract class AndroidComponentDownloaderProxy {
 
 class AndroidLayoutlibDownloaderProxy extends AndroidComponentDownloaderProxy {
   protected AndroidLayoutlibDownloaderProxy() {
-    super("org.jetbrains.android.download.AndroidLayoutlibDownloader");
+    super("com.android.tools.idea.downloads.AndroidLayoutlibDownloader");
   }
 }
 
 class AndroidProfilerDownloaderProxy extends AndroidComponentDownloaderProxy {
   protected AndroidProfilerDownloaderProxy() {
-    super("org.jetbrains.android.download.AndroidProfilerDownloader");
+    super("com.android.tools.idea.downloads.AndroidProfilerDownloader");
   }
 }
 

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.transport;
 
+import com.android.tools.idea.downloads.AndroidProfilerDownloader;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.util.function.Supplier;
-import org.jetbrains.android.download.AndroidProfilerDownloader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

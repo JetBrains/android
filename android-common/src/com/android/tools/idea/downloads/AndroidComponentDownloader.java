@@ -1,7 +1,8 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-package org.jetbrains.android.download;
+package com.android.tools.idea.downloads;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.bundle.AndroidCommonBundle;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -28,7 +29,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.swing.SwingUtilities;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AndroidComponentDownloader {
@@ -110,7 +110,7 @@ public abstract class AndroidComponentDownloader {
     }
     else {
       BackgroundableProcessIndicator indicator =
-        new BackgroundableProcessIndicator(null, AndroidBundle.message("downloading.android.plugin.components"),
+        new BackgroundableProcessIndicator(null, AndroidCommonBundle.message("downloading.android.plugin.components"),
                                            PerformInBackgroundOption.ALWAYS_BACKGROUND, null, null, true);
       return ProgressManager.getInstance().runProcess(downloadTask, indicator);
     }

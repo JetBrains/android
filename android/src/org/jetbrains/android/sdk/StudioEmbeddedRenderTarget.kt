@@ -16,6 +16,7 @@
 package org.jetbrains.android.sdk
 
 import com.android.sdklib.IAndroidTarget
+import com.android.tools.idea.downloads.AndroidLayoutlibDownloader
 import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.sdk.CompatibilityRenderTarget
 import com.android.tools.sdk.EmbeddedRenderTarget
@@ -27,7 +28,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFileManager
-import org.jetbrains.android.download.AndroidLayoutlibDownloader
 import java.io.File
 
 class StudioEmbeddedRenderTarget {
