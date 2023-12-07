@@ -152,11 +152,22 @@ fun productFlavorMatchingFallbackValues(project: PsProject, dimension: String?):
 private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
 fun dependencyVersionValues(model: PsDeclaredLibraryDependency): ListenableFuture<List<ValueDescriptor<String>>> =
   model.spec.group?.let { group ->
+    val name = model.spec.name
+    val currentVersion = model.spec.version
+    val filter: (Version) -> Boolean = when (group) {
+      "com.google.guava" -> when {
+        currentVersion == null -> { { true } }
+        currentVersion.endsWith("-jre") -> { { v -> v.toString().endsWith("-jre") } }
+        currentVersion.endsWith("-android") -> { { v -> v.toString().endsWith("-android") } }
+        else -> { { true } }
+      }
+      else -> { { true } }
+    }
     Futures.transform(
       model.parent.parent.repositorySearchFactory
         .create(model.parent.getArtifactRepositories())
-        .search(SearchRequest(SingleModuleSearchQuery(group, model.spec.name), MAX_ARTIFACTS_TO_REQUEST, 0)),
-      { it!!.toVersionValueDescriptors() },
+        .search(SearchRequest(SingleModuleSearchQuery(group, name), MAX_ARTIFACTS_TO_REQUEST, 0)),
+      { it!!.toVersionValueDescriptors(filter) },
       directExecutor())
   } ?: immediateFuture(listOf())
 
