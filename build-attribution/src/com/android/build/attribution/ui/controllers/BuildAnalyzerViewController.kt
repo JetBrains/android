@@ -50,6 +50,7 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectPro
 import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
 import com.google.common.base.Stopwatch
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
+import com.intellij.ide.BrowserUtil
 import com.intellij.lang.properties.IProperty
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -149,6 +150,7 @@ class BuildAnalyzerViewController(
   }
 
   override fun helpLinkClicked(linkTarget: BuildAnalyzerBrowserLinks) {
+    BrowserUtil.browse(linkTarget.urlTarget)
     val currentAnalyticsPage = analytics.getStateFromModel(model)
     analytics.helpLinkClicked(currentAnalyticsPage, linkTarget)
   }
