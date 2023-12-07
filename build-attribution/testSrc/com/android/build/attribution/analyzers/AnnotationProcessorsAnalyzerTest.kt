@@ -85,33 +85,4 @@ class AnnotationProcessorsAnalyzerTest {
       )
     }
   }
-
-  @Test
-  @Ignore("b/303118104")
-  fun testNonIncrementalAnnotationProcessorsAnalyzerWithSuppressedWarnings() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BUILD_ANALYZER_CHECK_ANALYZERS)
-
-    preparedProject.runTest {
-      BuildAttributionWarningsFilter.getInstance(project).suppressNonIncrementalAnnotationProcessorWarning(
-        "com.google.auto.value.processor.AutoAnnotationProcessor"
-      )
-      BuildAttributionWarningsFilter.getInstance(project).suppressNonIncrementalAnnotationProcessorWarning(
-        "com.google.auto.value.processor.AutoValueProcessor"
-      )
-
-      invokeTasks(":app:compileDebugJavaWithJavac")
-
-      val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
-      val results = buildAnalyzerStorageManager.getSuccessfulResult()
-
-      assertThat(
-        results.getNonIncrementalAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
-        setOf(
-          "com.google.auto.value.processor.AutoValueBuilderProcessor",
-          "com.google.auto.value.processor.AutoOneOfProcessor",
-          "com.google.auto.value.extension.memoized.processor.MemoizedValidator"
-        )
-      )
-    }
-  }
 }

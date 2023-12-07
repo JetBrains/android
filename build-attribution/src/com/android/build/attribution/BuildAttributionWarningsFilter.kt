@@ -32,47 +32,9 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnin
     }
   }
 
-  /**
-   * We identify the task that we suppress warnings for by its task class name, if not available then the task name.
-   */
-  private fun getTaskIdentifier(task: TaskData): String {
-    if (task.taskType == TaskData.UNKNOWN_TASK_TYPE) {
-      return task.taskName
-    }
-    return task.taskType
-  }
-
-  fun applyAlwaysRunTaskFilter(task: TaskData): Boolean {
-    return !suppressedWarnings.alwaysRunTasks.contains(Pair(getTaskIdentifier(task), task.originPlugin.idName))
-  }
-
-  fun applyNonIncrementalAnnotationProcessorFilter(annotationProcessorClassName: String): Boolean {
-    return !suppressedWarnings.nonIncrementalAnnotationProcessors.contains(annotationProcessorClassName)
-  }
-
   var suppressNoGCSettingWarning: Boolean
     get() = suppressedWarnings.noGCSettingWarning
     set(value) { suppressedWarnings.noGCSettingWarning = value }
-
-  fun suppressAlwaysRunTaskWarning(taskIdentifier: String, pluginDisplayName: String) {
-    suppressedWarnings.alwaysRunTasks.add(Pair(taskIdentifier, pluginDisplayName))
-  }
-
-  fun suppressNonIncrementalAnnotationProcessorWarning(annotationProcessorClassName: String) {
-    suppressedWarnings.nonIncrementalAnnotationProcessors.add(annotationProcessorClassName)
-  }
-
-  fun unsuppressAlwaysRunTaskWarning(taskName: String, pluginDisplayName: String) {
-    suppressedWarnings.alwaysRunTasks.remove(Pair(taskName, pluginDisplayName))
-  }
-
-  fun unsuppressNonIncrementalAnnotationProcessorWarning(annotationProcessorClassName: String) {
-    suppressedWarnings.nonIncrementalAnnotationProcessors.remove(annotationProcessorClassName)
-  }
-
-  fun suppressNoGCSettingWarning() {
-    suppressedWarnings.noGCSettingWarning = true
-  }
 
   override fun getState(): SuppressedWarnings? {
     return suppressedWarnings

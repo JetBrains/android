@@ -107,19 +107,4 @@ class AlwaysRunTasksAnalyzerTest {
       assertThat(alwaysRunTasks[3].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)
     }
   }
-
-  @Test
-  @Ignore("b/303117971")
-  fun testAlwaysRunTasksAnalyzerWithSuppressedWarning() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BUILD_ANALYZER_CHECK_ANALYZERS)
-
-    preparedProject.runTest {
-      BuildAttributionWarningsFilter.getInstance(project).suppressAlwaysRunTaskWarning("AlwaysRunningTask", "AlwaysRunTasksPlugin")
-
-      invokeTasks("assembleDebug")
-
-      val buildAttributionManager = project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
-      assertThat(buildAttributionManager.analyzersProxy.alwaysRunTasksAnalyzer.result.alwaysRunTasks).isEmpty()
-    }
-  }
 }
