@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 public class DefaultTimeline implements Timeline {
   private static final double DEFAULT_ZOOM_RATIO = 0.75;
   public static final double PADDING_RATIO = 0.1;
+  public static final double PAN_RATIO_PER_WHEEL_CLICK = 0.1;
 
   private final Range myDataRange = new Range();
   private final Range myViewRange = new Range();
@@ -66,25 +67,12 @@ public class DefaultTimeline implements Timeline {
 
   @Override
   public void zoomIn() {
-    double min = myViewRange.getMin();
-    double max = myViewRange.getMax();
-    double mid = min + (max - min) / 2;
-    double newMin = mid - (mid - min) * myZoomRatio;
-    double newMax = mid + (max - mid) * myZoomRatio;
-    if (newMin < newMax) {
-      // Only Zoom in when it doesn't collapse to a point or an empty range.
-      myViewRange.set(newMin, newMax);
-    }
+    zoomIn(0.5);
   }
 
   @Override
   public void zoomOut() {
-    double min = myViewRange.getMin();
-    double max = myViewRange.getMax();
-    double mid = min + (max - min) / 2;
-    double newMin = mid - (mid - min) / myZoomRatio;
-    double newMax = mid + (max - mid) / myZoomRatio;
-    myViewRange.set(new Range(newMin, newMax).getIntersection(myDataRange));
+    zoomOut(0.5);
   }
 
   @Override
@@ -93,13 +81,50 @@ public class DefaultTimeline implements Timeline {
   }
 
   @Override
-  public void zoom(double deltaUs, double ratio) {
-    myZoomHelper.zoom(deltaUs, ratio);
-  }
-
-  @Override
   public void frameViewToRange(@NotNull Range targetRange) {
     myViewRange.set(targetRange.getIntersection(myDataRange));
     myZoomHelper.updateZoomLeft(targetRange, PADDING_RATIO);
+  }
+
+  @Override
+  public void handleMouseWheelZoom(double count, double anchor) {
+    if (count < 0) {
+      while (count < 0) {
+        zoomIn(anchor);
+        count++;
+      }
+    }
+    else if (count > 0) {
+      while (count > 0) {
+        zoomOut(anchor);
+        count--;
+      }
+    }
+  }
+
+  @Override
+  public void handleMouseWheelPan(double count) {
+    panView(count * myDataRange.getLength() * PAN_RATIO_PER_WHEEL_CLICK);
+  }
+
+  private void zoomIn(double ratio) {
+    double min = myViewRange.getMin();
+    double max = myViewRange.getMax();
+    double mid = min + (max - min) * ratio;
+    double newMin = mid - (mid - min) * myZoomRatio;
+    double newMax = mid + (max - mid) * myZoomRatio;
+    if (newMin < newMax) {
+      // Only Zoom in when it doesn't collapse to a point or an empty range.
+      myViewRange.set(newMin, newMax);
+    }
+  }
+
+  private void zoomOut(double ratio) {
+    double min = myViewRange.getMin();
+    double max = myViewRange.getMax();
+    double mid = min + (max - min) * ratio;
+    double newMin = mid - (mid - min) / myZoomRatio;
+    double newMax = mid + (max - mid) / myZoomRatio;
+    myViewRange.set(new Range(newMin, newMax).getIntersection(myDataRange));
   }
 }

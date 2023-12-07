@@ -31,6 +31,16 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspect> implements Updatable, Timeline {
 
+  /**
+   * The percentage of the current view range's length to zoom per mouse wheel click.
+   */
+  private static final double VIEW_ZOOM_PER_MOUSE_WHEEL_FACTOR = 0.125f;
+
+  /**
+   * The percentage of the current view range's length to pan per mouse wheel click.
+   */
+  private static final double VIEW_PAN_PERCENTAGE_PER_MOUSE_WHEEL_FACTOR = 0.005f;
+
   public enum Aspect {
     STREAMING
   }
@@ -163,7 +173,7 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
     }
   }
 
-  public void addMouseScrollWheelEvent(Double event) {
+  private void addMouseScrollWheelEvent(Double event) {
     // Acquire the lock on modifying the mouse scroll wheel events queue.
     myScrollbarScrollWheelEventLock.lock();
     // Store the mouse wheel scroll event.
@@ -199,7 +209,7 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
   @Override
   public void update(long elapsedNs) {
     handleMouseScrollWheelEvents(); // Does not take into consideration the elapsed time
-                                    // after a timeline reset.
+    // after a timeline reset.
     if (myIsReset) {
       // If the timeline has been reset, we need to make sure the elapsed time is the duration between the current update and when reset
       // was triggered. Otherwise we would be adding extra time. e.g.
@@ -341,6 +351,14 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
     myTargetRangeMaxUs = Math.min(targetMax, myDataRangeUs.getMax());
   }
 
+  /**
+   * Calculates a zoom within the current data bounds. If a zoom extends beyond data max the left over is applied to the view minimum.
+   *
+   * @param deltaUs the amount of time request to change the view by.
+   * @param ratio a ratio between 0 and 1 that determines the focal point of the zoom. 1 applies the full delta to the min while 0 applies
+   *                the full delta to the max.
+   */
+  @VisibleForTesting
   public void zoom(double deltaUs, double ratio) {
     myZoomHelper.zoom(deltaUs, ratio);
     if (deltaUs < 0.0) {
@@ -388,10 +406,20 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
     frameViewToRange(targetRangeUs, 0.1);
   }
 
+  @Override
+  public void handleMouseWheelZoom(double count, double anchor) {
+    zoom(count * getZoomWheelDelta(), anchor);
+  }
+
+  @Override
+  public void handleMouseWheelPan(double count) {
+    addMouseScrollWheelEvent(count * getPanWheelDelta());
+  }
+
   /**
    * Zoom and pans the view range to the specified target range if the range is not point, otherwise center the view range only.
    *
-   * @param targetRangeUs target range to lerp view to.
+   * @param targetRangeUs         target range to lerp view to.
    * @param leftRightPaddingRatio how much space to leave on both sides of the range to leave as padding.
    */
   public void frameViewToRange(Range targetRangeUs, double leftRightPaddingRatio) {
@@ -466,5 +494,15 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
    */
   public long convertToRelativeTimeUs(long absoluteTimeNs) {
     return TimeUnit.NANOSECONDS.toMicros(absoluteTimeNs - myDataStartTimeNs);
+  }
+
+  @VisibleForTesting
+  public double getZoomWheelDelta() {
+    return myViewRangeUs.getLength() * VIEW_ZOOM_PER_MOUSE_WHEEL_FACTOR;
+  }
+
+  @VisibleForTesting
+  public double getPanWheelDelta() {
+    return myViewRangeUs.getLength() * VIEW_PAN_PERCENTAGE_PER_MOUSE_WHEEL_FACTOR;
   }
 }
