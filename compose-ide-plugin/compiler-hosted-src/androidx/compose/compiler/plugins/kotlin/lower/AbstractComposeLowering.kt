@@ -78,7 +78,6 @@ import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.declarations.impl.IrExternalPackageFragmentImpl
-import org.jetbrains.kotlin.ir.declarations.impl.IrTypeParameterImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
 import org.jetbrains.kotlin.ir.declarations.inlineClassRepresentation
@@ -427,15 +426,15 @@ abstract class AbstractComposeLowering(
             it.parent = this@createParameterDeclarations
         }
 
-        fun TypeParameterDescriptor.irTypeParameter() = IrTypeParameterImpl(
+        fun TypeParameterDescriptor.irTypeParameter() = context.irFactory.createTypeParameter(
             this.startOffset ?: UNDEFINED_OFFSET,
             this.endOffset ?: UNDEFINED_OFFSET,
             IrDeclarationOrigin.DEFINED,
-            IrTypeParameterSymbolImpl(this),
             this.name,
+            IrTypeParameterSymbolImpl(this),
+            this.variance,
             this.index,
             this.isReified,
-            this.variance
         ).also {
             it.parent = this@createParameterDeclarations
         }
