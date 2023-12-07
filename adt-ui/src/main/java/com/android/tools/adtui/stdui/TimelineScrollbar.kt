@@ -42,7 +42,8 @@ private const val STREAMING_POSITION_THRESHOLD_PX = 10f
 /**
  * A custom toolbar that synchronizes with the data+view ranges from the [Timeline].
  *
- * If timeline is a StreamingTimeline, this control sets it into streaming mode if users drags the thumb all the way to the right.
+ * If timeline is a StreamingTimeline, this control sets it into streaming mode if users drags the
+ * thumb all the way to the right.
  */
 class TimelineScrollbar(val timeline: Timeline, zoomPanComponent: JComponent) :
   JBScrollBar(HORIZONTAL) {
@@ -88,17 +89,23 @@ class TimelineScrollbar(val timeline: Timeline, zoomPanComponent: JComponent) :
     modelChanged()
   }
 
-
   private fun modelChanged() {
-    updating = true
-    val dataRangeUs = timeline.dataRange
-    val viewRangeUs = timeline.viewRange
-    val dataExtentMs = (dataRangeUs.length / MS_TO_US).toInt()
-    val viewExtentMs = min(dataExtentMs, (viewRangeUs.length / MS_TO_US).toInt())
-    val viewRelativeMinMs = max(0, ((viewRangeUs.min - dataRangeUs.min) / MS_TO_US).toInt())
-    setValues(viewRelativeMinMs, viewExtentMs, 0, dataExtentMs)
-    setBlockIncrement(viewExtentMs)
-    updating = false
+    try {
+      updating = true
+      val dataRangeUs = timeline.dataRange
+      if (dataRangeUs.min < dataRangeUs.max) {
+        val viewRangeUs = timeline.viewRange
+        val dataExtentMs = (dataRangeUs.length / MS_TO_US).toInt()
+        val viewExtentMs = min(dataExtentMs, (viewRangeUs.length / MS_TO_US).toInt())
+        val viewRelativeMinMs = max(0, ((viewRangeUs.min - dataRangeUs.min) / MS_TO_US).toInt())
+        setValues(viewRelativeMinMs, viewExtentMs, 0, dataExtentMs)
+        setBlockIncrement(viewExtentMs)
+      } else {
+        setValues(0, 0, 0, 0)
+      }
+    } finally {
+      updating = false
+    }
   }
 
   private fun updateModel() {

@@ -75,6 +75,16 @@ public class TimelineScrollbarTest {
   }
 
   @Test
+  public void testInitialization_emptyDefaultTimeline() {
+    TimelineScrollbar scrollbar = new TimelineScrollbar(new DefaultTimeline(), myPanel);
+
+    assertEquals(0, scrollbar.getModel().getMinimum());
+    assertEquals(0, scrollbar.getModel().getMaximum());
+    assertEquals(0, scrollbar.getModel().getValue());
+    assertEquals(0, scrollbar.getModel().getExtent());
+  }
+
+  @Test
   public void testModelChanged() {
     // Note: model units are kept in 1000th of a range unit
     assertEquals(0, myScrollbar.getModel().getMinimum());
