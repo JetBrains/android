@@ -450,6 +450,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
       else NopModuleClassLoadedDiagnostics
 
     @JvmStatic
-    fun get(): StudioModuleClassLoaderManager = ModuleClassLoaderManager.get() as StudioModuleClassLoaderManager
+    fun get(): StudioModuleClassLoaderManager =
+      ApplicationManager.getApplication().getService(ModuleClassLoaderManager::class.java) as StudioModuleClassLoaderManager
   }
 }

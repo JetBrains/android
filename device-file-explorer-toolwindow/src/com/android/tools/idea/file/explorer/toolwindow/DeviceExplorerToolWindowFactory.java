@@ -49,7 +49,7 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
     toolWindow.setToHideOnEmptyContent(true);
     toolWindow.setTitle(TOOL_WINDOW_ID);
 
-    AdbDeviceFileSystemService adbService = AdbDeviceFileSystemService.getInstance(project);
+    AdbDeviceFileSystemService adbService = project.getService(AdbDeviceFileSystemService.class);
     DeviceExplorerFileManager fileManager = project.getService(DeviceExplorerFileManager.class);
 
     DeviceExplorerModel model = new DeviceExplorerModel();

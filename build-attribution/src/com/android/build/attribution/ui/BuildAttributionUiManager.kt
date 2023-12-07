@@ -261,7 +261,7 @@ class BuildAttributionUiManagerImpl(
         Disposer.register(content, view)
         // When tab is getting closed (and disposed) we want to release the reference on the view.
         Disposer.register(content, Disposable { onContentClosed() })
-        BuildContentManager.getInstance(project).addContent(content)
+        project.getService(BuildContentManager::class.java).addContent(content)
         uiAnalytics.tabCreated()
         contentManager = content.manager
         contentManager?.addContentManagerListener(contentManagerListener)

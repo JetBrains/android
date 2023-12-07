@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.project.AndroidRunConfigurations
+import com.intellij.openapi.components.service
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.SystemIndependent
@@ -25,10 +26,10 @@ class SetUpRunConfigurationsSyncListener : GradleSyncListenerWithRoot {
   override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
     if (ExternalSystemUtil.isNoBackgroundMode()) {
       // We rely on the fact that we run in tests or headless mode, and there is no need for ProgressIndicator.
-      AndroidRunConfigurations.getInstance(project).setupRunConfigurationsBlocking()
+      project.service<AndroidRunConfigurations>().setupRunConfigurationsBlocking()
     }
     else {
-      AndroidRunConfigurations.getInstance(project).setupRunConfigurations()
+      project.service<AndroidRunConfigurations>().setupRunConfigurations()
     }
   }
 }
