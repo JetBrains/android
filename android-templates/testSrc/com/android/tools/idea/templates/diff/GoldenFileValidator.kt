@@ -37,7 +37,7 @@ import org.junit.Assert.*
  *
  * For context and instructions on running and generating golden files, see go/template-diff-tests
  */
-class BaselineValidator(
+class GoldenFileValidator(
   template: Template,
   goldenDirName: String,
   private val gradleProjectRule: AndroidGradleProjectRule

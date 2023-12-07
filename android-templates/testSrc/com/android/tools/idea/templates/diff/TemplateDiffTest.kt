@@ -67,9 +67,9 @@ class TemplateDiffTest(private val testMode: TestMode) {
      * fast.
      *
      * When we need to validate and generate the golden files however, we run the first part,
-     * VALIDATING, with Gradle sync, which calls into BaselineValidator that also builds and Lints.
-     * Then, after the template is validated, we generate the golden files WITHOUT Gradle sync, to
-     * have them be diff-able without syncing.
+     * VALIDATING, with Gradle sync, which calls into [GoldenFileValidator] that also builds and
+     * Lints. Then, after the template is validated, we generate the golden files WITHOUT Gradle
+     * sync, to have them be diff-able without syncing.
      */
     @JvmStatic
     @Parameters(name = "{0}")
@@ -159,8 +159,8 @@ class TemplateDiffTest(private val testMode: TestMode) {
         when (testMode) {
           TestMode.DIFFING -> ProjectDiffer(template, goldenDirName)
           TestMode.VALIDATING ->
-            BaselineValidator(template, goldenDirName, projectRule as AndroidGradleProjectRule)
-          TestMode.GENERATING -> BaselineGenerator(template, goldenDirName)
+            GoldenFileValidator(template, goldenDirName, projectRule as AndroidGradleProjectRule)
+          TestMode.GENERATING -> GoldenFileGenerator(template, goldenDirName)
         }
 
       // TODO: We need to check more combinations of different moduleData/template params here.

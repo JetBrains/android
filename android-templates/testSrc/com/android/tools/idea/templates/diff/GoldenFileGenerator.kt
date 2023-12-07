@@ -27,7 +27,7 @@ import java.nio.file.Paths
  *
  * For context and instructions on running and generating golden files, see go/template-diff-tests
  */
-class BaselineGenerator(template: Template, goldenDirName: String) :
+class GoldenFileGenerator(template: Template, goldenDirName: String) :
   ProjectRenderer(template, goldenDirName) {
   override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
     val outputDir = getOutputDir(moduleName)
