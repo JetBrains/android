@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class ScrollToDestinationAction(private val surface: NavDesignSurface, private val component: NlComponent): AnAction("Scroll into view") {
+class ScrollToDestinationAction(private val component: NlComponent): AnAction("Scroll into view") {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
+  override fun update(e: AnActionEvent) {
+    e.presentation.isEnabled = e.getData(DESIGN_SURFACE) is NavDesignSurface
+  }
+
   override fun actionPerformed(e: AnActionEvent) {
-    surface.scrollToCenter(listOf(component))
+    e.getRequiredData(DESIGN_SURFACE).scrollToCenter(listOf(component))
   }
 }

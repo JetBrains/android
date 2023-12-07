@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.testFramework.TestActionEvent
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
@@ -38,21 +38,22 @@ class ActivateSelectionActionTest : NavTestCase() {
     surface.model = model
 
     val spy = spy(surface)
-    val action = ActivateSelectionAction(spy)
+    val action = ActivateSelectionAction()
+    val event = TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) spy else null }
 
     surface.selectionModel.setSelection(listOf())
-    action.actionPerformed(mock(AnActionEvent::class.java))
+    action.actionPerformed(event)
     verify(spy, never()).notifyComponentActivate(any())
 
     val nested = model.find("nested")!!
     val fragment = model.find("fragment")!!
 
     surface.selectionModel.setSelection(listOf(nested, fragment))
-    action.actionPerformed(mock(AnActionEvent::class.java))
+    action.actionPerformed(event)
     verify(spy, never()).notifyComponentActivate(any())
 
     surface.selectionModel.setSelection(listOf(nested))
-    action.actionPerformed(mock(AnActionEvent::class.java))
+    action.actionPerformed(event)
     verify(spy).notifyComponentActivate(nested)
   }
 }

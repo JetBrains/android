@@ -15,26 +15,32 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.createAction
+import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
 
-class AddGlobalAction(private val mySurface: DesignSurface<*>, private val component: NlComponent) : AnAction("Global") {
+class AddGlobalAction(private val component: NlComponent) : AnAction("Global") {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
+  override fun update(e: AnActionEvent) {
+    e.presentation.isEnabled = e.getData(DESIGN_SURFACE) is NavDesignSurface
+  }
+
   override fun actionPerformed(e: AnActionEvent) {
+    val surface = e.getRequiredData(DESIGN_SURFACE)
     WriteCommandAction.runWriteCommandAction(null) {
       assert(component.parent != null)
       val action = component.parent?.createAction(component.id)
-      mySurface.selectionModel.setSelection(listOfNotNull(action))
+      surface.selectionModel.setSelection(listOfNotNull(action))
       if (action != null) {
-        NavUsageTracker.getInstance(mySurface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
+        NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)
           .withActionInfo(action)
           .withSource(NavEditorEvent.Source.CONTEXT_MENU)
           .log()

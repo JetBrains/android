@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
@@ -23,6 +24,7 @@ import com.android.tools.idea.naveditor.model.startDestinationId
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.testFramework.TestActionEvent
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
@@ -56,10 +58,11 @@ class NestedGraphToolbarActionTest : NavTestCase() {
 
     val surface = model.surface as NavDesignSurface
     surface.selectionModel.setSelection(listOf())
-    val action = NestedGraphToolbarAction(surface)
+    val action = NestedGraphToolbarAction()
+    val event = TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null }
 
     TestNavUsageTracker.create(model).use { tracker ->
-      action.actionPerformed(Mockito.mock(AnActionEvent::class.java))
+      action.actionPerformed(event)
 
       val navigation1 = model.find("navigation1")!!
       val root = model.components[0]
@@ -74,7 +77,7 @@ class NestedGraphToolbarActionTest : NavTestCase() {
       val fragment3 = model.find("fragment3")!!
       val fragment4 = model.find("fragment4")!!
       surface.selectionModel.setSelection(listOf(fragment2, fragment3))
-      action.actionPerformed(Mockito.mock(AnActionEvent::class.java))
+      action.actionPerformed(event)
 
       val newNavigation = model.find("navigation")!!
 

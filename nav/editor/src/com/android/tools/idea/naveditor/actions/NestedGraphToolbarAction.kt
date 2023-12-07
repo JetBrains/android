@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.createNestedGraph
 import com.android.tools.idea.naveditor.model.isDestination
@@ -25,15 +26,15 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 
-class NestedGraphToolbarAction(surface: NavDesignSurface) :
-  ToolbarAction(surface, "Group into nested graph", StudioIcons.NavEditor.Toolbar.NESTED_GRAPH) {
+class NestedGraphToolbarAction : ToolbarAction("Group into nested graph", StudioIcons.NavEditor.Toolbar.NESTED_GRAPH) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-  override fun isEnabled() = surface.selectionModel.selection.any {
+  override fun isEnabled(surface: NavDesignSurface) = surface.selectionModel.selection.any {
     it.isDestination && it != surface.currentNavigation
   }
 
   override fun actionPerformed(e: AnActionEvent) {
+    val surface = e.getRequiredData(DESIGN_SURFACE) as NavDesignSurface
     if (moveIntoNestedGraph(surface) { surface.currentNavigation.createNestedGraph() }) {
       NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_NESTED_GRAPH)
         .withSource(NavEditorEvent.Source.TOOLBAR)

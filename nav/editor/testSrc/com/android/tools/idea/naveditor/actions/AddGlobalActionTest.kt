@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.naveditor.NavEditorRule
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
@@ -23,10 +24,9 @@ import com.android.tools.idea.naveditor.model.isAction
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavEditorEvent
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
 class AddGlobalActionTest {
@@ -43,7 +43,7 @@ class AddGlobalActionTest {
       }
     }
     TestNavUsageTracker.create(model).use { tracker ->
-      AddGlobalAction(model.surface, model.find("f2")!!).actionPerformed(mock(AnActionEvent::class.java))
+      AddGlobalAction(model.find("f2")!!).actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) model.surface else null })
       val root = model.components[0]
       val action = root.children.first { it.isAction }
       assertThat(action.actionDestination).isEqualTo(model.find("f2"))

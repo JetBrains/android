@@ -70,12 +70,12 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   private val selectNextAction: AnAction = SelectNextAction()
   private val selectPreviousAction: AnAction = SelectPreviousAction()
   private val selectAllAction: AnAction = SelectAllAction()
-  private val addToNewGraphAction: AnAction = AddToNewGraphAction(surface)
-  private val nestedGraphToolbarAction: AnAction = NestedGraphToolbarAction(surface)
+  private val addToNewGraphAction: AnAction = AddToNewGraphAction()
+  private val nestedGraphToolbarAction: AnAction = NestedGraphToolbarAction()
   private val startDestinationToolbarAction: AnAction = StartDestinationToolbarAction.instance
   private val deepLinkToolbarAction: AnAction = DeepLinkToolbarAction.instance
   private val addActionToolbarAction: AnAction = AddActionToolbarAction.instance
-  private val activateSelectionAction: AnAction = ActivateSelectionAction(surface)
+  private val activateSelectionAction: AnAction = ActivateSelectionAction()
 
   // Open for testing only
   open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }
@@ -149,14 +149,14 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     group: DefaultActionGroup,
     component: NlComponent
   ) {
-    val activateComponentAction = ActivateComponentAction(if (component.isNavigation) "Open" else "Edit", mySurface, component)
+    val activateComponentAction = ActivateComponentAction(if (component.isNavigation) "Open" else "Edit", component)
     group.add(activateComponentAction)
 
     group.addSeparator()
     group.add(createAddActionGroup(component))
     group.add(createNestedGraphGroup(listOf(component)))
     group.add(StartDestinationAction(component))
-    group.add(ScrollToDestinationAction(mySurface, component))
+    group.add(ScrollToDestinationAction(component))
 
     group.addSeparator()
     addCutCopyPasteDeleteGroup(group)
@@ -170,7 +170,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     component: NlComponent
   ) {
     val parent = component.parent ?: throw IllegalStateException()
-    group.add(EditExistingAction(mySurface, parent, component))
+    group.add(EditExistingAction(parent, component))
 
     group.addSeparator()
     addCutCopyPasteDeleteGroup(group)
@@ -180,10 +180,10 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     val group = DefaultActionGroup("Add Action", true)
 
     if (component.supportsActions) {
-      group.add(ToDestinationAction(mySurface, component))
-      group.add(ToSelfAction(mySurface, component))
-      group.add(ReturnToSourceAction(mySurface, component))
-      group.add(AddGlobalAction(mySurface, component))
+      group.add(ToDestinationAction(component))
+      group.add(ToSelfAction(component))
+      group.add(ReturnToSourceAction(component))
+      group.add(AddGlobalAction(component))
     }
 
     return group
@@ -199,7 +199,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     if (!subnavs.isEmpty()) {
       group.addSeparator()
       for (graph in subnavs) {
-        group.add(AddToExistingGraphAction(mySurface, graph.uiName, graph))
+        group.add(AddToExistingGraphAction(graph.uiName, graph))
       }
     }
 

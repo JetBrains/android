@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -27,6 +28,7 @@ import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.testFramework.TestActionEvent
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
@@ -61,9 +63,10 @@ class AddToExistingGraphActionTest : NavTestCase() {
     surface.selectionModel.setSelection(listOf())
     val root = model.components[0]
     val navigation1 = model.find("navigation1")!!
-    val action = AddToExistingGraphAction(surface, "navigation", navigation1)
+    val action = AddToExistingGraphAction("navigation", navigation1)
+    val event = TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null }
     TestNavUsageTracker.create(model).use { tracker ->
-      action.actionPerformed(mock(AnActionEvent::class.java))
+      action.actionPerformed(event)
 
       verifyNoMoreInteractions(tracker)
       assertSameElements(navigation1.children.map { it.id }, "fragment4")
@@ -73,7 +76,7 @@ class AddToExistingGraphActionTest : NavTestCase() {
       val fragment3 = model.find("fragment3")!!
 
       surface.selectionModel.setSelection(listOf(fragment2, fragment3))
-      action.actionPerformed(mock(AnActionEvent::class.java))
+      action.actionPerformed(event)
 
       assertSameElements(navigation1.children.map { it.id }, "fragment4", "fragment2", "fragment3")
       assertSameElements(root.children.map { it.id }, "fragment1", "navigation1")
@@ -117,8 +120,8 @@ class AddToExistingGraphActionTest : NavTestCase() {
     surface.selectionModel.setSelection(listOf(model.find("f1")!!, model.find("f2")!!))
     surface.sceneManager?.save(listOf(surface.scene?.getSceneComponent("f1")!!, surface.scene?.getSceneComponent("f2")!!))
 
-    val action = AddToExistingGraphAction(surface, "existing", model.find("subnav")!!)
-    action.actionPerformed(mock(AnActionEvent::class.java))
+    val action = AddToExistingGraphAction("existing", model.find("subnav")!!)
+    action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })
     UndoManager.getInstance(project).undo(TestNavEditor(model.virtualFile, project))
     PsiDocumentManager.getInstance(project).commitAllDocuments()
     model.notifyModified(NlModel.ChangeType.EDIT)
