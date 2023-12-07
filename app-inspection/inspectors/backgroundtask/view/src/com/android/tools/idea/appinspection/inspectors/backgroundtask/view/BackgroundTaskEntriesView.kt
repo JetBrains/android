@@ -114,10 +114,7 @@ class BackgroundTaskEntriesView(
       if (event.presentation.isVisible != isTableActive) {
         event.presentation.isVisible = isTableActive
       }
-    }
-
-    override fun canBePerformed(context: DataContext): Boolean {
-      return tableView.treeModel.allTags.isNotEmpty()
+      event.presentation.isPerformGroup = tableView.treeModel.allTags.isNotEmpty()
     }
 
     public override fun updateActions(context: DataContext): Boolean {

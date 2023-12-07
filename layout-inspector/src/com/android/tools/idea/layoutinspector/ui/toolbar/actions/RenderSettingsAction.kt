@@ -23,12 +23,12 @@ import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
-import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import icons.StudioIcons
+import javax.swing.JComponent
 import kotlin.reflect.KMutableProperty1
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -83,10 +83,13 @@ class RenderSettingsAction(
 
   override fun update(e: AnActionEvent) {
     val enabled = renderModelProvider().isActive
-    e.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY)?.isEnabled = enabled
+    e.presentation.isEnabled = enabled
+    e.presentation.isPerformGroup = enabled
   }
 
-  override fun canBePerformed(context: DataContext) = renderModelProvider().isActive
+  override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
+    component.isEnabled = presentation.isEnabled
+  }
 }
 
 private class ToggleRenderSettingsAction(
