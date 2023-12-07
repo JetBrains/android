@@ -153,7 +153,7 @@ class VitalsTab(
           flow = devices,
           scope = scope,
           groupNameSupplier = { it.manufacturer },
-          nameSupplier = { it.model.substringAfter("/") },
+          nameSupplier = { it.displayName },
           secondaryGroupSupplier = { setOf(it.deviceType) },
           onSelected = projectController::selectDevices,
           secondaryTitleSupplier = {

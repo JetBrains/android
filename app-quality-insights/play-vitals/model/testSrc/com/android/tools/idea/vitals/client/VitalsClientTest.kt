@@ -287,19 +287,8 @@ class VitalsClientTest {
 
       assertThat(value.devices)
         .containsExactly(
-          WithCount(
-            3,
-            Device("samsung", "samsung/a32", "samsung a32 (Galaxy A32)", DeviceType("Phone"))
-          ),
-          WithCount(
-            2,
-            Device(
-              "samsung",
-              "samsung/greatlte",
-              "samsung greatlte (Galaxy Note8)",
-              DeviceType("Tablet")
-            )
-          )
+          WithCount(3, Device("samsung", "a32", "Galaxy A32", DeviceType("Phone"))),
+          WithCount(2, Device("samsung", "greatlte", "Galaxy Note8", DeviceType("Tablet")))
         )
 
       assertThat(value.operatingSystems)
@@ -330,7 +319,7 @@ class VitalsClientTest {
       val value = (result as LoadingState.Ready).value
 
       val deviceStats = value!!.deviceStats
-      assertThat(deviceStats.topValue).isEqualTo("samsung/a32")
+      assertThat(deviceStats.topValue).isEqualTo("a32")
       assertThat(deviceStats.groups).hasSize(1)
       assertThat(deviceStats.groups.single().groupName).isEqualTo("samsung")
       assertThat(deviceStats.groups.single().percentage).isEqualTo(100.0)

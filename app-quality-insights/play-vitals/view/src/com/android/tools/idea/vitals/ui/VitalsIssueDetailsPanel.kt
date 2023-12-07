@@ -359,7 +359,7 @@ class VitalsIssueDetailsPanel(
     }
 
   private fun updateBodySection(issue: AppInsightsIssue) {
-    deviceLabel.text = issue.sampleEvent.eventData.device.let { "${it.manufacturer} ${it.model}" }
+    deviceLabel.text = issue.sampleEvent.eventData.device.displayName
     eventIdLabel.text = "Event ${issue.sampleEvent.name.shortenEventId()}"
     affectedApiLevelsLabel.text =
       computeFullReleaseName(
