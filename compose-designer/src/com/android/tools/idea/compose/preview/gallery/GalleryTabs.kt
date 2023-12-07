@@ -72,8 +72,17 @@ class GalleryTabs<Key : TitledKey>(
   private val tabChangeListener: (DataContext, Key?) -> Unit
 ) : JPanel(BorderLayout()) {
 
+  companion object {
+    private const val MAX_TITLE_LENGTH = 50
+
+    /** Truncate title string to have [MAX_TITLE_LENGTH] maximum length. */
+    fun String.truncate(): String {
+      return if (this.length >= MAX_TITLE_LENGTH) this.take(MAX_TITLE_LENGTH) + "..." else this
+    }
+  }
+
   private inner class TabLabelAction(val key: Key) :
-    ToggleAction(key.title), CustomComponentAction {
+    ToggleAction(key.title.truncate()), CustomComponentAction {
     override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
       object :
           ActionButtonWithText(

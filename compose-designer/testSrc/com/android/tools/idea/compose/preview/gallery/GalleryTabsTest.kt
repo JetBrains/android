@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.gallery
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.compose.preview.gallery.GalleryTabs.Companion.truncate
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
@@ -312,6 +313,18 @@ class GalleryTabsTest {
       assertEquals(0, findAllActionButtons(tabs).size)
       assertNull(selected)
     }
+  }
+
+  @Test
+  fun shortTitle() {
+    val result = "shortTitle".truncate()
+    assertEquals("shortTitle", result)
+  }
+
+  @Test
+  fun longTitle() {
+    val result = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".truncate()
+    assertEquals("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX...", result)
   }
 
   private fun FakeUi.updateNestedActions() {
