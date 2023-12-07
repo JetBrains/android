@@ -19,7 +19,6 @@ import com.android.tools.idea.wizard.template.Template
 import com.android.utils.FileUtils
 import java.io.File
 import java.nio.file.Path
-import java.nio.file.Paths
 
 /**
  * Generates files from a template and performs checks on them to ensure they're valid and can be
@@ -30,29 +29,11 @@ import java.nio.file.Paths
 class GoldenFileGenerator(template: Template, goldenDirName: String) :
   ProjectRenderer(template, goldenDirName) {
   override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
-    val outputDir = getOutputDir(moduleName)
+    val outputDir = TemplateDiffTestUtils.getOutputDir("golden").resolve(moduleName)
 
     FileUtils.deleteRecursivelyIfExists(outputDir.toFile())
     FileUtils.copyDirectory(projectDir.toFile(), outputDir.toFile())
     FILES_TO_IGNORE.forEach { FileUtils.deleteRecursivelyIfExists(goldenDir.resolve(it).toFile()) }
-  }
-
-  override fun prepareProject(projectRoot: File) {
-    prepareProjectImpl(projectRoot)
-  }
-
-  /**
-   * Gets the output directory where we should put the generated golden files. Bazel places files in
-   * TEST_UNDECLARED_OUTPUTS_DIR which produces outputs.zip as a test artifact, so we can put the
-   * files there.
-   */
-  private fun getOutputDir(moduleName: String): Path {
-    val undeclaredOutputs = System.getenv("TEST_UNDECLARED_OUTPUTS_DIR")
-    checkNotNull(undeclaredOutputs) {
-      "The 'TEST_UNDECLARED_OUTPUTS_DIR' env. variable should already be set, because TemplateDiffTest#setUp checks for it"
-    }
-
-    val outputDir = Paths.get(undeclaredOutputs).resolve("golden").resolve(moduleName)
 
     println("\n----------------------------------------")
     println(
@@ -66,6 +47,9 @@ class GoldenFileGenerator(template: Template, goldenDirName: String) :
         "    \"golden/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\""
     )
     println("----------------------------------------\n")
-    return outputDir
+  }
+
+  override fun prepareProject(projectRoot: File) {
+    prepareProjectImpl(projectRoot)
   }
 }
