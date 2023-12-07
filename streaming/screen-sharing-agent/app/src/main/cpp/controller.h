@@ -115,12 +115,6 @@ private:
   void SetDarkMode(const SetDarkModeMessage& message);
   void SetFontSize(const SetFontSizeMessage& message);
 
-  // TODO: Remove the following 4 methods when b/303684492 is fixed.
-  void StartDisplayPolling();
-  void StopDisplayPolling();
-  void PollDisplays();
-  std::map<int32_t, DisplayInfo> GetDisplays();
-
   Jni jni_ = nullptr;
   int socket_fd_;  // Owned.
   Base128InputStream input_stream_;
@@ -146,10 +140,6 @@ private:
   std::vector<DisplayEvent> pending_display_events_;  // GUARDED_BY(display_events_mutex_)
 
   UiSettings ui_settings_;
-
-  // TODO: Remove the following 2 fields when b/303684492 is fixed.
-  std::map<int32_t, DisplayInfo> current_displays_;
-  std::chrono::steady_clock::time_point poll_displays_until_;
 
   DISALLOW_COPY_AND_ASSIGN(Controller);
 };
