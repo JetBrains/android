@@ -1084,6 +1084,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> RENDER_COLORS_IN_AUTOCOMPLETE_ENABLED = Flag.create(
+    EDITOR, "render.colors.in.autocomplete.enabled",
+    "Enable rendering of color resources in autocomplete popup UI",
+    "If enabled, renders color resources in the autocomplete popup UI.",
+    true
+  );
+
   public static final FlagGroup ESSENTIALS_MODE = new FlagGroup(FLAGS, "essentialsmode", "Essentials Mode");
 
 

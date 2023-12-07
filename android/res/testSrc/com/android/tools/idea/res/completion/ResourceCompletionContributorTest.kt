@@ -29,6 +29,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.ImageUtil
+import java.awt.Color
 import java.awt.image.BufferedImage
 import javax.swing.Icon
 import org.junit.Before
@@ -52,6 +53,7 @@ class ResourceCompletionContributorTest {
   @Before
   fun setUp() {
     StudioFlags.RENDER_DRAWABLES_IN_AUTOCOMPLETE_ENABLED.override(true)
+    StudioFlags.RENDER_COLORS_IN_AUTOCOMPLETE_ENABLED.override(true)
     addManifest(fixture)
     val fileName = "res/drawable/my_great_%s_icon.xml"
     // language=XML
@@ -67,11 +69,26 @@ class ResourceCompletionContributorTest {
     COLORS.forEach {
       fixture.addFileToProject(fileName.format(it.key), circle.format(it.value.rgb))
     }
+
+    val colorsXml =
+      COLORS.map { (key, value) ->
+        "<color name=\"${key}\">#${Integer.toHexString(value.rgb)}</color>"
+      }
+    val contents =
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <resources>
+        ${colorsXml.joinToString("\n        ")}
+      </resources>
+      """
+        .trimIndent()
+
+    fixture.addFileToProject("res/values/colors.xml", contents)
     projectRule.projectRule.waitForResourceRepositoryUpdates()
   }
 
   @Test
-  fun drawable_completion_java() {
+  fun drawableCompletion_java() {
     val file =
       fixture.addFileToProject(
         "/src/com/example/Foo.java",
@@ -112,7 +129,7 @@ class ResourceCompletionContributorTest {
   }
 
   @Test
-  fun drawable_completion_kotlin() {
+  fun drawableCompletion_kotlin() {
     val file =
       fixture.addFileToProject(
         "/src/com/example/Foo.kt",
@@ -152,6 +169,72 @@ class ResourceCompletionContributorTest {
     assertThat(cachedIcons.toColors()).isEqualTo(moreResults.toExpectedColors())
   }
 
+  @Test
+  fun colorCompletion_java() {
+    val file =
+      fixture.addFileToProject(
+        "/src/com/example/Foo.java",
+        // language=java
+        """
+        package com.example;
+        public class Foo {
+          public void example() {
+            int foo = R.color.${caret}
+          }
+        }
+        """
+          .trimIndent()
+      )
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val results =
+      fixture.completeBasic().filter { result ->
+        COLORS.entries.any { it.key in result.lookupString }
+      }
+    assertThat(results).hasSize(COLORS.size)
+
+    for (result in results) {
+      val expectedColor = COLORS.entries.first { it.key in result.lookupString }.value
+      with(LookupElementPresentation().also(result::renderElement)) {
+        assertThat(tailText).isEqualTo(" (${expectedColor.toHexString()})")
+        assertThat(icon?.sampleMiddlePoint()).isEqualTo(expectedColor.rgb)
+      }
+    }
+  }
+
+  @Test
+  fun colorCompletion_kotlin() {
+    val file =
+      fixture.addFileToProject(
+        "/src/com/example/Foo.kt",
+        // language=kotlin
+        """
+        package com.example
+        class Foo {
+          fun example() {
+            val foo = R.color.${caret}
+          }
+        }
+        """
+          .trimIndent()
+      )
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val results =
+      fixture.completeBasic().filter { result ->
+        COLORS.entries.any { it.key in result.lookupString }
+      }
+    assertThat(results).hasSize(COLORS.size)
+
+    for (result in results) {
+      val expectedColor = COLORS.entries.first { it.key in result.lookupString }.value
+      with(LookupElementPresentation().also(result::renderElement)) {
+        assertThat(tailText).isEqualTo(" (${expectedColor.toHexString()})")
+        assertThat(icon?.sampleMiddlePoint()).isEqualTo(expectedColor.rgb)
+      }
+    }
+  }
+
   private fun Array<LookupElement>.toExpectedColors(): List<Int> = map { elt ->
     COLORS.entries.first { elt.lookupString.contains(it.key) }.value.rgb
   }
@@ -178,4 +261,6 @@ class ResourceCompletionContributorTest {
     graphics.dispose()
     return bufferedImage.getRGB(iconWidth / 2, iconHeight / 2)
   }
+
+  private fun Color.toHexString(): String = "#${Integer.toHexString(rgb).uppercase()}"
 }

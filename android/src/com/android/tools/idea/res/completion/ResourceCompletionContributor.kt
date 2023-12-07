@@ -17,6 +17,7 @@ package com.android.tools.idea.res.completion
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceResolver
+import com.android.ide.common.resources.parseColor
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.GutterIconCache
@@ -31,21 +32,26 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.codeInsight.lookup.LookupElementRenderer
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.util.ui.ColorIcon
+import com.intellij.util.ui.JBUI
+import java.awt.Color
 import javax.swing.Icon
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.base.util.module
 
 /**
  * [CompletionContributor] for Kotlin vs. Java-agnostic transformations and filtering of resources.
  *
  * Currently, does the following:
- * * Decorates [LookupElement]s for `Drawable` resources with an [javax.swing.Icon] rendered from
- *   the `Drawable`.
+ * * Decorates [LookupElement]s for `Drawable` resources with an [Icon] rendered from the
+ *   `Drawable`.
+ * * Decorates [LookupElement]s for `Color` resources with an [Icon] of the appropriate color, and
+ *   with tail text showing the hex code of the color.
  */
 class ResourceCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(
@@ -69,48 +75,74 @@ class ResourceCompletionContributor : CompletionContributor() {
     val lookupElement = completionResult.lookupElement
 
     // If there's no PsiElement, just leave the result alone.
-    val psi = lookupElement.psiElement ?: return completionResult
+    val psi = lookupElement.psiElement as? ResourceLightField ?: return completionResult
 
-    return when {
-      shouldDecorateDrawable(psi) && StudioFlags.RENDER_DRAWABLES_IN_AUTOCOMPLETE_ENABLED.get() ->
-        completionResult.withLookupElement(decorateDrawable(psiFile, lookupElement))
+    val decorated =
+      when (psi.resourceType) {
+        ResourceType.DRAWABLE -> decorateDrawable(psi, psiFile, lookupElement)
+        ResourceType.COLOR -> decorateColor(psi, lookupElement)
+        else -> null
+      } ?: return completionResult
 
-      // No transformation needed.
-      else -> completionResult
-    }
+    return completionResult.withLookupElement(decorated)
   }
 }
 
-private fun shouldDecorateDrawable(psiElement: PsiElement) =
-  psiElement is ResourceLightField && psiElement.resourceType == ResourceType.DRAWABLE
+/** Returns a [LookupElementDecorator] for decorating the `Color` [LookupElement]. */
+private fun decorateColor(
+  resourceLightField: ResourceLightField,
+  original: LookupElement
+): LookupElement? {
+  if (!StudioFlags.RENDER_COLORS_IN_AUTOCOMPLETE_ENABLED.get()) return null
+  return computeColor(resourceLightField)?.let { ColorResourceLookupElement(original, it) }
+}
+
+/** Computes the [Color] associated with the resource represented by [resourceLightField]. */
+private fun computeColor(resourceLightField: ResourceLightField): Color? {
+  val module = ModuleUtilCore.findModuleForPsiElement(resourceLightField) ?: return null
+  return resourceLightField.getResourceItems(module)?.firstNotNullOfOrNull {
+    it.resourceValue?.value?.let(::parseColor)
+  }
+}
+
+private class ColorResourceLookupElement(
+  original: LookupElement,
+  private val color: Color,
+) : LookupElementDecorator<LookupElement>(original) {
+
+  override fun renderElement(presentation: LookupElementPresentation) {
+    super.renderElement(presentation)
+    presentation.tailText = " (#${Integer.toHexString(color.rgb).uppercase()})"
+    presentation.icon = ColorIcon(JBUI.scale(16), color, false)
+  }
+}
 
 /**
- * Returns [LookupElementDecorator] for decorating this [LookupElement].
+ * Returns a [LookupElementDecorator] for decorating the `Drawable` [LookupElement].
  *
  * If the [Icon] for the Drawable is already available, this will be a
  * [FastDrawableResourceLookupElement], otherwise it will be a [SlowDrawableResourceLookupElement]
  * that actually renders the [Icon] on a background thread via [LookupElement.getExpensiveRenderer].
  */
-private fun decorateDrawable(psiFile: PsiFile, original: LookupElement): LookupElement {
-  val resourceLightField = original.psiElement as? ResourceLightField ?: return original
-  val module = resourceLightField.module ?: return original
-  val facet = module.androidFacet ?: return original
+private fun decorateDrawable(
+  resourceLightField: ResourceLightField,
+  psiFile: PsiFile,
+  original: LookupElement
+): LookupElement? {
+  if (!StudioFlags.RENDER_DRAWABLES_IN_AUTOCOMPLETE_ENABLED.get()) return null
+  val module = ModuleUtilCore.findModuleForPsiElement(resourceLightField) ?: return null
   val file =
-    StudioResourceRepositoryManager.getInstance(module)
-      ?.appResources
-      ?.getResources(
-        ResourceNamespace.RES_AUTO,
-        resourceLightField.resourceType,
-        resourceLightField.resourceName
-      )
-      ?.firstNotNullOfOrNull { it.getSourceAsVirtualFile() } ?: return original
+    resourceLightField.getResourceItems(module)?.firstNotNullOfOrNull {
+      it.getSourceAsVirtualFile()
+    } ?: return null
   GutterIconCache.getInstance(module.project).getIconIfCached(file)?.let {
     return FastDrawableResourceLookupElement(original, it)
   }
 
+  val facet = module.androidFacet ?: return null
   val resolver =
     AndroidAnnotatorUtil.pickConfiguration(psiFile.originalFile, facet)?.resourceResolver
-      ?: return original
+      ?: return null
   return SlowDrawableResourceLookupElement(original, file, resolver, facet)
 }
 
@@ -141,3 +173,8 @@ private class SlowDrawableResourceLookupElement(
       }
     }
 }
+
+private fun ResourceLightField.getResourceItems(module: Module) =
+  StudioResourceRepositoryManager.getInstance(module)
+    ?.appResources
+    ?.getResources(ResourceNamespace.RES_AUTO, resourceType, resourceName)
