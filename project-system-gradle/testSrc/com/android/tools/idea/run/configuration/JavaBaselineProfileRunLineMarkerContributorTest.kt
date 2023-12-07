@@ -23,7 +23,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiIdentifier
-import com.intellij.psi.impl.java.stubs.JavaClassElementType
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.TestCase.assertNull
@@ -44,6 +44,7 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
   private val expectedGenerateBaselineProfileAction by lazy(LazyThreadSafetyMode.PUBLICATION) {
     ActionManager.getInstance().getAction("AndroidX.BaselineProfile.RunGenerate")
   }
+
   private val contributor by lazy(LazyThreadSafetyMode.PUBLICATION) {
     BaselineProfileRunLineMarkerContributor()
   }
@@ -78,6 +79,13 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
         content = """
           package androidx.benchmark.macro.junit4
           open class BaselineProfileRule
+      """.trimIndent()
+      ),
+      FileAndContent(
+        projectFilePath = "src/androidx/benchmark/macro/junit4/MacrobenchmarkRule.kt",
+        content = """
+          package androidx.benchmark.macro.junit4
+          open class MacrobenchmarkRule
       """.trimIndent()
       ),
       FileAndContent(
@@ -124,10 +132,16 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
 
           @Test
           public void generate() { }
+
+          public void notGenerate() { }
         }
       """.trimIndent())
 
     assertContributorInfo(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
+
+    assertTestContributorInfo(sourceFile.methodIdentifierNamed("generate"))
+
+    assertContributorInfoNull(sourceFile.methodIdentifierNamed("notGenerate"))
   }
 
   @Test
@@ -197,6 +211,42 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
     assertContributorInfo(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
   }
 
+  @Test
+  @RunsInEdt
+  fun `when Java class has MacroBenchmarkRule, it should show, it should not show contributor`() {
+    val sourceFile = addJavaBaselineProfileGeneratorToProject("""
+        package com.example.baselineprofile;
+
+        import androidx.benchmark.macro.junit4.MacrobenchmarkRule;
+        import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+        import org.junit.Rule;
+        import org.junit.Test;
+        import org.junit.runner.RunWith;
+
+        @RunWith(AndroidJUnit4.class)
+        public class StartupBenchmarks {
+
+          @Rule
+          MacrobenchmarkRule rule = new MacrobenchmarkRule();
+
+          @Test
+          public void foo() {}
+
+          public void bar() {}
+        }
+      """.trimIndent())
+
+    // Outer class
+    assertTestContributorInfo(sourceFile.classIdentifierNamed("StartupBenchmarks"))
+
+    // @Test
+    assertTestContributorInfo(sourceFile.methodIdentifierNamed("foo"))
+
+    // not @Test
+    assertContributorInfoNull(sourceFile.methodIdentifierNamed("bar"))
+  }
+
   private fun assertContributorInfo(psiElement: PsiElement) {
     val info = contributor.getInfo(psiElement)
     assertNotNull(info) {
@@ -206,12 +256,26 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
       "Unexpected number of actions for line marker contributor."
     }
     assert(info.actions[0].equals(expectedGenerateBaselineProfileAction)) {
-      "Line marker contributor should contains a single BaselineProfileAction."
+      "Line marker contributor should contain a single BaselineProfileAction."
+    }
+  }
+
+  private fun assertTestContributorInfo(psiElement: PsiElement) {
+    val info = contributor.getInfo(psiElement)
+    assertNotNull(info) {
+      "No line marker contributor was produced for psi element."
+    }
+    assert(info.actions.size == 3) {
+      "Unexpected number of actions for line marker contributor."
+    }
+    assert(!info.actions[0].equals(expectedGenerateBaselineProfileAction)) {
+      "Line marker contributor should not contain a BaselineProfileAction."
     }
   }
 
   private fun assertContributorInfoNull(psiElement: PsiElement) {
-    assertNull(contributor.getInfo(psiElement))
+    val info = contributor.getInfo(psiElement)
+    assertNull(info)
   }
 
   private fun addJavaBaselineProfileGeneratorToProject(content: String): JavaBaselineProfileGeneratorSourceFile =
@@ -224,11 +288,21 @@ class JavaBaselineProfileRunLineMarkerContributorTest {
 
   private class JavaBaselineProfileGeneratorSourceFile(private val psiFile: PsiFile) {
     fun classIdentifierNamed(name: String): PsiElement {
-      val el = PsiTreeUtil.collectElements(psiFile) { it.node.elementType is JavaClassElementType }
+      val el = PsiTreeUtil.collectElements(psiFile) { it is PsiClass }
         .toList()
         .firstOrNull { (it as PsiClass).name == name }
       assertNotNull(el) { "No class named `$name` was found." }
-      val identifier = el.collectDescendantsOfType<PsiElement> { it is PsiIdentifier }.firstOrNull()
+      val identifier = el.collectDescendantsOfType<PsiElement> { it is PsiIdentifier }.firstOrNull { it.text == name }
+      assertNotNull(identifier) { "Identifier PsiElement `$name` was not found." }
+      return identifier
+    }
+
+    fun methodIdentifierNamed(name: String): PsiElement {
+      val el = PsiTreeUtil.collectElements(psiFile) { it is PsiMethod }
+        .toList()
+        .firstOrNull { (it as PsiMethod).name == name }
+      assertNotNull(el) { "No class named `$name` was found." }
+      val identifier = el.collectDescendantsOfType<PsiElement> { it is PsiIdentifier }.firstOrNull {it.text == name }
       assertNotNull(identifier) { "Identifier PsiElement `$name` was not found." }
       return identifier
     }

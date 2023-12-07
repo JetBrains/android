@@ -21,7 +21,6 @@ import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.TestCase.assertNull
@@ -29,8 +28,8 @@ import org.jetbrains.kotlin.analysis.api.KtAnalysisApiInternals
 import org.jetbrains.kotlin.analysis.api.lifetime.KtReadActionConfinementLifetimeToken
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
-import org.jetbrains.kotlin.psi.stubs.elements.KtClassElementType
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -78,6 +77,13 @@ class KtBaselineProfileRunLineMarkerContributorTest {
         content = """
           package androidx.benchmark.macro.junit4
           open class BaselineProfileRule
+      """.trimIndent()
+      ),
+      FileAndContent(
+        projectFilePath = "src/androidx/benchmark/macro/junit4/MacrobenchmarkRule.kt",
+        content = """
+          package androidx.benchmark.macro.junit4
+          open class MacrobenchmarkRule
       """.trimIndent()
       ),
       FileAndContent(
@@ -129,8 +135,8 @@ class KtBaselineProfileRunLineMarkerContributorTest {
       """.trimIndent())
 
     assertContributorInfo(sourceFile.classIdentifierNamed("BaselineProfileGenerator"))
-    // Only class should have contributor info, but not functions
-    assertContributorInfoNull(sourceFile.funNamed("generate"))
+
+    assertTestContributorInfo(sourceFile.funNamed("generate"))
   }
 
   @Test
@@ -183,6 +189,42 @@ class KtBaselineProfileRunLineMarkerContributorTest {
     assertContributorInfoNull(sourceFile.funNamed("test"))
   }
 
+  @Test
+  @RunsInEdt
+  fun `when Java class has MacroBenchmarkRule, it should show, it should not show contributor`() {
+    val sourceFile = addKtBaselineProfileGeneratorToProject("""
+        package com.example.baselineprofile
+
+        import androidx.benchmark.macro.junit4.MacrobenchmarkRule
+        import androidx.test.ext.junit.runners.AndroidJUnit4
+
+        import org.junit.Rule
+        import org.junit.Test
+        import org.junit.runner.RunWith
+
+        @RunWith(AndroidJUnit4::class)
+        class StartupBenchmarks {
+
+          @Rule
+          val rule = MacrobenchmarkRule()
+
+          @Test
+          public fun foo() {}
+
+          public fun bar() {}
+        }
+      """.trimIndent())
+
+    // Outer class
+    assertTestContributorInfo(sourceFile.classIdentifierNamed("StartupBenchmarks"))
+
+    // @Test
+    assertTestContributorInfo(sourceFile.funNamed("foo"))
+
+    // not @Test
+    assertContributorInfoNull(sourceFile.funNamed("bar"))
+  }
+
   private fun assertContributorInfo(psiElement: PsiElement) {
     val info = contributor.getInfo(psiElement)
     assertNotNull(info) {
@@ -193,6 +235,19 @@ class KtBaselineProfileRunLineMarkerContributorTest {
     }
     assert(info.actions[0].equals(expectedGenerateBaselineProfileAction)) {
       "Line marker contributor should contains a single BaselineProfileAction."
+    }
+  }
+
+  private fun assertTestContributorInfo(psiElement: PsiElement) {
+    val info = contributor.getInfo(psiElement)
+    assertNotNull(info) {
+      "No line marker contributor was produced for psi element."
+    }
+    assert(info.actions.size == 3) {
+      "Unexpected number of actions for line marker contributor."
+    }
+    assert(!info.actions[0].equals(expectedGenerateBaselineProfileAction)) {
+      "Line marker contributor should not contain a BaselineProfileAction."
     }
   }
 
@@ -209,37 +264,30 @@ class KtBaselineProfileRunLineMarkerContributorTest {
     )
 
   private class KtBaselineProfileGeneratorSourceFile(private val psiFile: PsiFile) {
-    fun funNamed(name: String): PsiElement {
-      // Note that the parsing here works only for the pattern `fun FunctionName`.
-      // First we find a node with text `FunctionName` and then go back skipping white spaces to find the keyword `fun`.
-      val el = psiFile
-        .collectDescendantsOfType<PsiElement> { it.node.text == name }
-        .mapNotNull { it.prevSibling(skip = KtTokens.WHITE_SPACE) }
-        .firstOrNull { it.node.elementType == KtTokens.FUN_KEYWORD }
-      assertNotNull(el) { "No fun named `$name` was found." }
-      return el
-    }
-
-    fun classIdentifierNamed(name: String): PsiElement {
-      // Note that the parsing here works only for the pattern `class ClassName`.
-      // We find a node with text `ClassName` while making sure the previous node is 'class'.
-      val el = PsiTreeUtil.collectElements(psiFile) { it.node.elementType is KtClassElementType }
+     fun classIdentifierNamed(name: String): PsiElement {
+      val el = PsiTreeUtil.collectElements(psiFile) { it is KtClass }
         .toList()
         .map { it as KtClass }
         .firstOrNull { it.getClassId()?.shortClassName?.identifier == name }
       assertNotNull(el) { "No class named `$name` was found." }
-      val identifier = el.collectDescendantsOfType<PsiElement> { it.node.elementType == KtTokens.IDENTIFIER }.firstOrNull()
+      val identifier = el
+        .collectDescendantsOfType<PsiElement> { it.node.elementType == KtTokens.IDENTIFIER }
+        .firstOrNull { it.node.text == name }
       assertNotNull(identifier) { "Identifier PsiElement `$name` was not found." }
+      return identifier
+    }
+
+    fun funNamed(name: String): PsiElement {
+      val el = PsiTreeUtil.collectElements(psiFile) { it is KtNamedFunction }
+        .toList()
+        .map { it as KtNamedFunction }
+        .firstOrNull { it.name == name }
+      assertNotNull(el) { "No fun named `$name` was found."}
+      val identifier = el
+        .collectDescendantsOfType<PsiElement> { it.node.elementType == KtTokens.IDENTIFIER }
+        .firstOrNull { it.node.text == name }
+      assertNotNull(identifier) { "No fun named `$name` was found." }
       return identifier
     }
   }
 }
-
-fun PsiElement.prevSibling(skip: IElementType): PsiElement? {
-  var prev = prevSibling ?: return null
-  while (prev != null && prev.node.elementType == skip) {
-    prev = prev.prevSibling
-  }
-  return prev
-}
-
