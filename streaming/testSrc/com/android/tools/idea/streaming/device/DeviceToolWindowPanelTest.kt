@@ -187,8 +187,8 @@ class DeviceToolWindowPanelTest {
 
     // Check push button actions.
     val pushButtonCases = listOf(
-      Pair("Button 1", AKEYCODE_POWER),
-      Pair("Button 2", AKEYCODE_STEM_PRIMARY),
+      Pair("Button 1", AKEYCODE_STEM_PRIMARY),
+      Pair("Button 2", AKEYCODE_POWER),
       Pair("Back", AKEYCODE_BACK),
     )
     for (case in pushButtonCases) {

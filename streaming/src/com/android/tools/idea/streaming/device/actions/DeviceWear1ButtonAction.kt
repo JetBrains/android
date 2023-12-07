@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.streaming.device.actions
 
-import com.android.tools.idea.streaming.device.AKEYCODE_POWER
+import com.android.tools.idea.streaming.device.AKEYCODE_STEM_PRIMARY
 
 /**
  * Simulates pressing the first button on an Android Wear physical device.
  */
-internal class DeviceWear1ButtonAction : DevicePushButtonAction(AKEYCODE_POWER, configFilter = { it.isWatch })
+internal class DeviceWear1ButtonAction : DevicePushButtonAction(AKEYCODE_STEM_PRIMARY, configFilter = { it.isWatch })
