@@ -20,7 +20,7 @@ import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.compose.gradle.renderer.createRenderTaskFuture
 import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.ComposePreloadClasses
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.RenderResult
 import com.intellij.openapi.application.ApplicationManager
@@ -80,7 +80,7 @@ class SimpleComposeProjectScenarios {
                                                     SingleComposePreviewElementInstance.forTesting(
                                                       "google.simpleapplication.ComplexPreviewKt.ComplexPreview"),
                                                     privateClassLoader = true,
-                                                    classesToPreload = LayoutlibSceneManager.INTERACTIVE_CLASSES_TO_PRELOAD.toList())
+                                                    classesToPreload = ComposePreloadClasses.INTERACTIVE_CLASSES_TO_PRELOAD)
 
       // Pseudo interactive
       val frameNanos = 16000000L

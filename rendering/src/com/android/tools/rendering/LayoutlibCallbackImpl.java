@@ -118,19 +118,19 @@ import org.xmlpull.v1.XmlPullParserException;
  * Loader for Android Project class in order to use them in the layout editor.
  */
 public class LayoutlibCallbackImpl extends LayoutlibCallback {
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.LayoutlibCallback");
+  private static final Logger LOG = Logger.getInstance(LayoutlibCallback.class);
 
   /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */
   private static final int MAX_PARSER_INCLUDES = 50;
-  private static final AndroidxName CLASS_WINDOR_DECOR_ACTION_BAR =
+  private static final AndroidxName CLASS_WINDOW_DECOR_ACTION_BAR =
     new AndroidxName("android.support.v7.internal.app.WindowDecorActionBar", "androidx.appcompat.internal.app.WindowDecorActionBar");
   /** Class names that are not a view. When instantiating them, errors should be logged by LayoutLib. */
   private static final Set<String> NOT_VIEW = ImmutableSet.of(CLASS_RECYCLER_VIEW_ADAPTER.oldName(),
                                                               CLASS_RECYCLER_VIEW_ADAPTER.newName(),
                                                               CLASS_RECYCLER_VIEW_LAYOUT_MANAGER.oldName(),
                                                               CLASS_RECYCLER_VIEW_LAYOUT_MANAGER.newName(),
-                                                              CLASS_WINDOR_DECOR_ACTION_BAR.oldName(),
-                                                              CLASS_WINDOR_DECOR_ACTION_BAR.newName());
+                                                              CLASS_WINDOW_DECOR_ACTION_BAR.oldName(),
+                                                              CLASS_WINDOW_DECOR_ACTION_BAR.newName());
   /** Directory name for the bundled layoutlib installation */
   public static final String FD_LAYOUTLIB = "layoutlib";
   /** Directory name for the gradle build-cache. Exploded AARs will end up there when using build cache */
@@ -143,7 +143,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private final boolean myHasAndroidXAppCompat;
   private final boolean myShouldUseCustomInflater;
   private final ResourceNamespacing myNamespacing;
-  private final ModuleClassLoader myClassLoader;
   @NotNull private IRenderLogger myLogger;
   @NotNull private final ViewLoader myViewLoader;
   @Nullable private String myLayoutName;
@@ -195,7 +194,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myRenderModule = renderModule;
     myLogger = logger;
     myCredential = credential;
-    myClassLoader = moduleClassLoader;
     myViewLoader = new ViewLoader(myLayoutLib, renderModule, logger, credential, moduleClassLoader);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
@@ -272,7 +270,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    */
   @Override
   @Nullable
-  public Object loadView(@NotNull String className, @NotNull Class[] constructorSignature, @NotNull Object[] constructorParameters)
+  public Object loadView(@NotNull String className, @SuppressWarnings("rawtypes") @NotNull Class[] constructorSignature, @NotNull Object[] constructorParameters)
       throws ClassNotFoundException {
     myUsed = true;
     if (NOT_VIEW.contains(className)) {
@@ -282,7 +280,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   @Override
-  public Object loadClass(@NotNull String name, @Nullable Class[] constructorSignature, @Nullable Object[] constructorArgs)
+  public Object loadClass(@NotNull String name, @SuppressWarnings("rawtypes") @Nullable Class[] constructorSignature, @Nullable Object[] constructorArgs)
       throws ClassNotFoundException {
     myUsed = true;
     return myViewLoader.loadClass(name, constructorSignature, constructorArgs);
@@ -425,14 +423,13 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     ILayoutPullParser parser;
     if (!myAaptDeclaredResources.isEmpty() && layoutResource.getResourceType() == ResourceType.AAPT) {
       TagSnapshot aaptResource = myAaptDeclaredResources.get(layoutResource.getValue());
+      if (aaptResource == null) return null;
       // TODO(namespaces, b/74003372): figure out where to get the namespace from.
       parser = LayoutRenderPullParser.create(aaptResource, ResourceNamespace.TODO(), myLogger);
     }
     else {
       PathString pathString = ResourcesUtil.toFileResourcePathString(value);
-      if (pathString == null) {
-        return null;
-      }
+      if (pathString == null) return null;
       parser = getParser(layoutResource.getName(), layoutResource.getNamespace(), pathString);
     }
 
@@ -558,7 +555,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       String layoutName = SdkUtils.getLayoutName(file);
       layoutToFile.put(layoutName, file);
       try {
-        String xml = Files.toString(file, UTF_8);
+        String xml = Files.asCharSource(file, UTF_8).read();
         Document document = XmlUtils.parseDocumentSilently(xml, true);
         if (document != null) {
           NodeList includeNodeList = document.getElementsByTagName(VIEW_INCLUDE);
@@ -640,7 +637,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private static List<String> dfs(String from, Set<String> visiting, Multimap<String,String> includeMap) {
     visiting.add(from);
     Collection<String> includes = includeMap.get(from);
-    if (includes != null && !includes.isEmpty()) {
+    if (!includes.isEmpty()) {
       for (String include : includes) {
         if (visiting.contains(include)) {
           List<String> list = Lists.newLinkedList();
@@ -805,7 +802,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         // This section might access system properties or access disk but it does not leak information back to Layoutlib so it can be
         // executed in safe mode.
         AndroidModuleInfo info = myRenderModule.getInfo();
-        return info == null ? null : info.getPackageName();
+        return info.getPackageName();
       });
     }
     catch (Exception e) {

@@ -114,7 +114,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
@@ -138,133 +137,6 @@ import org.jetbrains.annotations.TestOnly;
  */
 public class LayoutlibSceneManager extends SceneManager implements InteractiveSceneManager {
   private static final SceneDecoratorFactory DECORATOR_FACTORY = new NlSceneDecoratorFactory();
-
-  @VisibleForTesting
-  public static final String[] INTERACTIVE_CLASSES_TO_PRELOAD = {
-    // As of Compose alpha12
-    // First touch event
-    "android.view.MotionEvent",
-    "androidx.compose.ui.input.pointer.PointerId",
-    "androidx.compose.ui.input.pointer.MotionEventAdapterKt",
-    "android.view.MotionEvent$PointerCoords",
-    "androidx.compose.ui.input.pointer.PointerType",
-    "androidx.compose.ui.input.pointer.PointerInputEventData",
-    "androidx.compose.ui.input.pointer.PointerInputEvent",
-    "androidx.compose.ui.input.pointer.PointerInputChangeEventProducer$PointerInputData",
-    "androidx.compose.ui.input.pointer.PointerInputChange",
-    "androidx.compose.ui.input.pointer.ConsumedData",
-    "androidx.compose.ui.input.pointer.InternalPointerEvent",
-    "androidx.compose.ui.input.pointer.PointerEventKt",
-    "androidx.compose.ui.input.pointer.Node",
-    "androidx.compose.ui.input.pointer.HitPathTracker$CustomEventDispatcherImpl",
-    "androidx.compose.ui.input.pointer.CustomEventDispatcher",
-    "androidx.compose.ui.input.pointer.NodeParent$removeDetachedPointerInputFilters$1",
-    "androidx.compose.ui.input.pointer.NodeParent$removeDetachedPointerInputFilters$2",
-    "androidx.compose.ui.input.pointer.NodeParent$removeDetachedPointerInputFilters$3",
-    "androidx.compose.ui.input.pointer.PointerEventPass",
-    "androidx.compose.ui.input.pointer.PointerEvent",
-    "androidx.compose.ui.gesture.GestureUtilsKt",
-    "androidx.compose.ui.input.pointer.PointerInputEventProcessorKt",
-    "androidx.compose.ui.input.pointer.ProcessResult",
-    // First callback execution after touch event
-    "androidx.compose.runtime.snapshots.SnapshotStateObserver$applyObserver$1$2",
-    "androidx.compose.ui.platform.AndroidComposeViewKt$sam$java_lang_Runnable$0",
-    "androidx.compose.runtime.Invalidation",
-    "androidx.compose.runtime.InvalidationResult",
-    "androidx.compose.runtime.Recomposer$runRecomposeAndApplyChanges$2$4",
-    "androidx.compose.runtime.PausableMonotonicFrameClock$withFrameNanos$1",
-    "androidx.compose.ui.platform.AndroidUiFrameClock$withFrameNanos$2$callback$1",
-    "androidx.compose.ui.platform.AndroidUiFrameClock$withFrameNanos$2$1",
-    "kotlinx.coroutines.InvokeOnCancel",
-    "androidx.compose.runtime.ComposerImpl$updateValue$2",
-    "androidx.compose.runtime.ComposerImpl$realizeOperationLocation$2",
-    "androidx.compose.runtime.ComposerImpl$realizeDowns$1",
-    "androidx.compose.runtime.ComposerImpl$realizeUps$1",
-    "androidx.compose.ui.platform.JvmActualsKt",
-    "kotlinx.coroutines.JobCancellationException",
-    "kotlinx.coroutines.CopyableThrowable",
-    "kotlinx.coroutines.DebugStringsKt",
-    // Animation
-    "androidx.compose.material.ElevationDefaults",
-    "androidx.compose.animation.core.AnimationKt",
-    "androidx.compose.animation.core.TargetBasedAnimation",
-    "androidx.compose.animation.core.Animation",
-    "androidx.compose.animation.core.VectorizedTweenSpec",
-    "androidx.compose.animation.core.VectorizedDurationBasedAnimationSpec",
-    "androidx.compose.animation.core.VectorizedFiniteAnimationSpec",
-    "androidx.compose.animation.core.VectorizedAnimationSpec",
-    "androidx.compose.animation.core.VectorizedFloatAnimationSpec",
-    "androidx.compose.animation.core.FloatTweenSpec",
-    "androidx.compose.animation.core.FloatAnimationSpec",
-    "androidx.compose.animation.core.VectorizedFloatAnimationSpec$1",
-    "androidx.compose.animation.core.Animations",
-    "androidx.compose.animation.core.VectorizedDurationBasedAnimationSpec$DefaultImpls",
-    "androidx.compose.animation.core.VectorizedFiniteAnimationSpec$DefaultImpls",
-    "androidx.compose.animation.core.VectorizedAnimationSpec$DefaultImpls",
-    "androidx.compose.animation.core.Animatable$runAnimation$2",
-    "kotlin.jvm.internal.Ref$BooleanRef",
-    "androidx.compose.animation.core.Animatable$runAnimation$2$1",
-    "androidx.compose.animation.core.SuspendAnimationKt",
-    "androidx.compose.animation.core.SuspendAnimationKt$animate$4",
-    "androidx.compose.animation.core.Animation$DefaultImpls",
-    "androidx.compose.animation.core.SuspendAnimationKt$animate$startTimeNanosSpecified$1",
-    "androidx.compose.runtime.MonotonicFrameClockKt",
-    "androidx.compose.runtime.BroadcastFrameClock$FrameAwaiter",
-    "androidx.compose.runtime.BroadcastFrameClock$withFrameNanos$2$1",
-    "androidx.compose.material.ripple.RippleAnimation",
-    "androidx.compose.material.ripple.RippleIndicationInstance$addRipple$ripple$1",
-    "androidx.compose.animation.core.AnimationVector2D",
-    "androidx.compose.material.ripple.RippleAnimation$1",
-    "kotlinx.collections.immutable.internal.ListImplementation",
-    "androidx.compose.ui.graphics.ClipOp",
-    "androidx.compose.ui.graphics.AndroidCanvas$WhenMappings",
-    "androidx.compose.ui.graphics.PointMode",
-    "android.graphics.Region$Op",
-    "androidx.compose.ui.input.pointer.NodeParent$removePointerId$2",
-    "androidx.compose.animation.core.AnimationScope",
-    "androidx.compose.animation.core.SuspendAnimationKt$animate$6",
-    "androidx.compose.animation.core.SuspendAnimationKt$animate$7",
-    "androidx.compose.material.ripple.RippleAnimation$fadeIn$2",
-    "androidx.compose.material.ripple.RippleAnimation$fadeIn$2$1",
-    "androidx.compose.material.ripple.RippleAnimation$fadeIn$2$2",
-    "androidx.compose.material.ripple.RippleAnimation$fadeIn$2$3",
-    "kotlinx.coroutines.JobSupport$ChildCompletion",
-    "androidx.compose.animation.core.AnimationSpecKt",
-    "kotlinx.coroutines.internal.StackTraceRecoveryKt",
-    "kotlin.coroutines.jvm.internal.BaseContinuationImpl",
-    "kotlinx.coroutines.internal.StackTraceRecoveryKt",
-    "kotlinx.coroutines.internal.ExceptionsConstuctorKt",
-    "kotlin.jvm.JvmClassMappingKt",
-    "kotlin.jvm.internal.ClassReference",
-    "kotlin.jvm.internal.ClassReference$Companion",
-    "kotlin.jvm.functions.Function12",
-    "kotlin.jvm.functions.Function22",
-    "java.util.concurrent.locks.ReentrantReadWriteLock",
-    "java.util.ArrayDeque",
-    "kotlin.coroutines.jvm.internal.DebugMetadataKt",
-    "kotlin.coroutines.jvm.internal.DebugMetadata",
-    "java.lang.annotation.Annotation",
-    "kotlin.annotation.Target",
-    "java.lang.annotation.Retention",
-    "java.lang.annotation.RetentionPolicy",
-    "java.lang.annotation.Target",
-    "kotlin.Metadata",
-    "java.lang.reflect.Proxy",
-    "java.lang.reflect.UndeclaredThrowableException",
-    "java.lang.NoSuchMethodError",
-    "java.lang.NoClassDefFoundError",
-    "java.lang.reflect.InvocationHandler",
-    "kotlin.annotation.Retention",
-    "kotlin.coroutines.jvm.internal.ModuleNameRetriever",
-    "kotlin.coroutines.jvm.internal.ModuleNameRetriever$Cache",
-    "java.lang.ClassLoader",
-    "java.lang.Module",
-    "java.lang.module.ModuleDescriptor",
-    "kotlinx.coroutines.TimeoutCancellationException",
-    "java.util.IdentityHashMap",
-    "androidx.compose.animation.core.AnimationEndReason",
-    "androidx.compose.animation.core.AnimationResult",
-  };
 
   @Nullable private SceneView mySecondarySceneView;
 
@@ -393,7 +265,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   private final AtomicBoolean isDisposed = new AtomicBoolean(false);
 
   /** Counter for user events during the interactive session. */
-  private AtomicInteger myInteractiveEventsCounter = new AtomicInteger(0);
+  private final AtomicInteger myInteractiveEventsCounter = new AtomicInteger(0);
 
   /**
    * If true, this {@link LayoutlibSceneManager} will retain the last successful image even if the new result is an error.
@@ -494,10 +366,15 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       scene.setAnimated(false);
       List<SceneComponent> hierarchy = sceneComponentProvider.createHierarchy(this, rootComponent);
       SceneComponent root = hierarchy.isEmpty() ? null : hierarchy.get(0);
-      updateFromComponent(root, new HashSet<>());
-      scene.setRoot(root);
-      updateTargets();
-      scene.setAnimated(previous);
+      if (root != null) {
+        updateFromComponent(root, new HashSet<>());
+        scene.setRoot(root);
+        updateTargets();
+        scene.setAnimated(previous);
+      }
+      else {
+        Logger.getInstance(LayoutlibSceneManager.class).warn("No root component");
+      }
     }
 
     model.addListener(myModelChangeListener);
@@ -511,7 +388,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   /**
    * Creates a new LayoutlibSceneManager with the default settings for running render requests, but with accessibility testing
    * framework scanner disabled.
-   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, SceneComponentHierarchyProvider, SceneUpdateListener, Supplier)}
+   * See {@link LayoutlibSceneManager#LayoutlibSceneManager(NlModel, DesignSurface, Executor, Function, SceneComponentHierarchyProvider, SceneUpdateListener, LayoutScannerConfiguration, Supplier)}
    *
    * @param model                  the {@link NlModel} to be rendered by this {@link LayoutlibSceneManager}.
    * @param designSurface          the {@link DesignSurface} user to present the result of the renders.
@@ -730,10 +607,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     if (tag != null && Objects.equals(tag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI), NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE)) {
       sceneView = ScreenView.newBuilder(getDesignSurface(), this)
         .withLayersProvider((sv) -> {
-          ColorBlindMode colorBlindMode = ColorBlindMode.NONE;
-          if (getDesignSurface().getScreenViewProvider() != null) {
-            colorBlindMode = getDesignSurface().getScreenViewProvider().getColorBlindFilter();
-          }
+          ColorBlindMode colorBlindMode = getDesignSurface().getScreenViewProvider().getColorBlindFilter();
           return ImmutableList.of(new ScreenViewLayer(sv, colorBlindMode, getDesignSurface(), getDesignSurface()::getRotateSurfaceDegree));
         })
         .withContentSizePolicy(NavigationViewSceneView.CONTENT_SIZE_POLICY)
@@ -1002,7 +876,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     }
   }
 
-  public void setRenderingTopic(RenderAsyncActionExecutor.RenderingTopic topic) {
+  public void setRenderingTopic(@NotNull RenderAsyncActionExecutor.RenderingTopic topic) {
     myRenderingTopic = topic;
   }
 
@@ -1170,7 +1044,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    * Synchronously inflates the model and updates the view hierarchy
    *
    * @param force forces the model to be re-inflated even if a previous version was already inflated
-   * @returns A {@link CompletableFuture} containing the {@link RenderResult} of the inflate operation or containing null
+   * @return A {@link CompletableFuture} containing the {@link RenderResult} of the inflate operation or containing null
    * if the model did not need to be re-inflated or could not be re-inflated (like the project been disposed).
    */
   @NotNull
@@ -1355,7 +1229,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     }
 
     if (myIsInteractive) {
-      taskBuilder.preloadClasses(Arrays.asList(INTERACTIVE_CLASSES_TO_PRELOAD));
+      taskBuilder.preloadClasses(ComposePreloadClasses.getINTERACTIVE_CLASSES_TO_PRELOAD());
     }
 
     if (!reportOutOfDateUserClasses) {
