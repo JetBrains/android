@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.downloads.AndroidProfilerDownloader;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.util.StudioPathManager;
 import com.android.tools.profilers.cpu.TracePreProcessor;
@@ -142,11 +143,13 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
         return Paths.get(PathManager.getHomePath(), "plugins", "android", "resources", "simpleperf", subDir, binaryName).toString();
       }
     } else {
-      final Path androidPluginPath = Paths.get(PathManager.getSystemPath(), "android/android-plugin-resources/231.0.1.4");
-      final Path simpleperfPath = Paths.get(androidPluginPath.toString(), "plugins", "android", "resources", "simpleperf", subDir, binaryName);
+      final String simpleperfRelativePath = "plugins/android/resources/simpleperf/" + subDir + "/" + binaryName;
+      final Path simpleperfPath = AndroidProfilerDownloader.getInstance().getHostDir(simpleperfRelativePath).toPath();
+
       if(!simpleperfPath.toFile().setExecutable(true)) {
         getLogger().error("Unable to make simpleperf executable.");
       }
+
       return simpleperfPath
         .toAbsolutePath()
         .toString();

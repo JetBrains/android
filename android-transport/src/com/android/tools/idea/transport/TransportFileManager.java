@@ -56,8 +56,8 @@ public final class TransportFileManager implements TransportFileCopier {
 
   private static class HostFiles {
     @NotNull static final DeployableFile TRANSPORT = new DeployableFile.Builder("transport")
-      .setReleaseDir(Constants.androidPluginIJDir(Constants.TRANSPORT_RELEASE_DIR))
-      .setDevDir(Constants.androidPluginIJDir(Constants.TRANSPORT_RELEASE_DIR))
+      .setReleaseDir(androidPluginDir(Constants.TRANSPORT_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.TRANSPORT_RELEASE_DIR))
       .setExecutable(true)
       .build();
 
@@ -66,29 +66,29 @@ public final class TransportFileManager implements TransportFileCopier {
     @NotNull static final DeployableFile PERFA_OKHTTP = new DeployableFile.Builder("perfa_okhttp.dex").build();
 
     @NotNull static final DeployableFile JVMTI_AGENT = new DeployableFile.Builder("libjvmtiagent.so")
-      .setReleaseDir(Constants.androidPluginIJDir(Constants.JVMTI_AGENT_RELEASE_DIR))
-      .setDevDir(Constants.androidPluginIJDir(Constants.JVMTI_AGENT_RELEASE_DIR))
+      .setReleaseDir(androidPluginDir(Constants.JVMTI_AGENT_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.JVMTI_AGENT_RELEASE_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("libjvmtiagent_%s.so") // e.g. libjvmtiagent_arm64.so
       .build();
 
     @NotNull static final DeployableFile SIMPLEPERF = new DeployableFile.Builder("simpleperf")
-      .setReleaseDir(Constants.androidPluginIJDir(Constants.SIMPLEPERF_RELEASE_DIR))
-      .setDevDir(Constants.androidPluginIJDir(Constants.SIMPLEPERF_RELEASE_DIR))
+      .setReleaseDir(androidPluginDir(Constants.SIMPLEPERF_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.SIMPLEPERF_RELEASE_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("simpleperf_%s") // e.g simpleperf_arm64
       .build();
 
     @NotNull static final DeployableFile PERFETTO = new DeployableFile.Builder("perfetto")
-      .setReleaseDir(Constants.androidPluginIJDir(Constants.PERFETTO_RELEASE_DIR))
-      .setDevDir(Constants.androidPluginIJDir(Constants.PERFETTO_RELEASE_DIR))
+      .setReleaseDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("perfetto_%s") // e.g perfetto_arm64
       .build();
 
     @NotNull static final DeployableFile PERFETTO_SO = new DeployableFile.Builder("libperfetto.so")
-      .setReleaseDir(Constants.androidPluginIJDir(Constants.PERFETTO_RELEASE_DIR))
-      .setDevDir(Constants.androidPluginIJDir(Constants.PERFETTO_RELEASE_DIR))
+      .setReleaseDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("%s/libperfetto.so") // e.g arm64/libperfetto.so
       .build();
@@ -101,18 +101,26 @@ public final class TransportFileManager implements TransportFileCopier {
       .build();
 
     @NotNull static final DeployableFile TRACED_PROBE = new DeployableFile.Builder("traced_probes")
-      .setReleaseDir(Constants.androidPluginIJDir(Constants.PERFETTO_RELEASE_DIR))
-      .setDevDir(Constants.androidPluginIJDir(Constants.PERFETTO_RELEASE_DIR))
+      .setReleaseDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("traced_probes_%s") // e.g traced_probe_arm64
       .build();
 
     @NotNull static final DeployableFile TRACEBOX = new DeployableFile.Builder("tracebox")
-      .setReleaseDir(Constants.androidPluginIJDir(Constants.TRACEBOX_RELEASE_DIR))
-      .setDevDir(Constants.androidPluginIJDir(Constants.TRACEBOX_RELEASE_DIR))
+      .setReleaseDir(androidPluginDir(Constants.TRACEBOX_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.TRACEBOX_RELEASE_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("tracebox_%s") // e.g tracebox_arm64
       .build();
+  }
+
+  private static String androidPluginDir(String childDirectory) {
+    return AndroidProfilerDownloader.getInstance()
+      .getHostDir(childDirectory)
+      .toPath()
+      .toAbsolutePath()
+      .toString();
   }
 
   private static Logger getLogger() {
