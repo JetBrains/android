@@ -21,6 +21,7 @@ import static com.android.tools.idea.ui.GuiTestingService.isInTestingMode;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.downloads.AndroidProfilerDownloader;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.util.StudioPathManager;
@@ -39,7 +40,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.android.download.AndroidProfilerDownloader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

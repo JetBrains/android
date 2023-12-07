@@ -29,6 +29,7 @@ import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.report.GenericReport
+import com.android.tools.idea.downloads.AndroidProfilerDownloader
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.util.StudioPathManager
@@ -54,7 +55,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import org.jetbrains.android.download.AndroidProfilerDownloader
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.io.EOFException
