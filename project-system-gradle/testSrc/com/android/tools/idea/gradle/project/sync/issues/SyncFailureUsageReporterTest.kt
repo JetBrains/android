@@ -27,10 +27,12 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.issue.DeprecatedGradleVersionIssue
+import org.jetbrains.plugins.gradle.issue.UnsupportedGradleVersionIssue
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -85,6 +87,23 @@ class SyncFailureUsageReporterTest {
       .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
 
     Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(ANDROID_BUILD_ISSUE_CREATED_UNKNOWN_FAILURE)
+  }
+
+  @Test
+  fun detectedInPlatformCodeUnsupportedGradleBuildIssue() {
+    val exception = BuildIssueException(
+      UnsupportedGradleVersionIssue(GradleVersion.version("2.6"), projectRule.project.basePath!!, GradleVersion.version("3.0"))
+    )
+    SyncFailureUsageReporter.getInstance().reportFailure(
+      GradleSyncStateHolder.getInstance(projectRule.project),
+      projectRule.project.basePath!!,
+      exception
+    )
+
+    val event = usageTracker.usages
+      .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+
+    Truth.assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(UNSUPPORTED_GRADLE_VERSION)
   }
 
   @Test
