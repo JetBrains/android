@@ -118,7 +118,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertEquals("En Annen", stringValue.getValue());
 
     // Change flavor order and make sure things are updated and work correctly.
-    resources.updateRoots(ImmutableList.of(res2, res1, res3));
+    resources.refreshChildren(ImmutableList.of(res2, res1, res3));
 
     // Should now be picking app_name from res2 rather than res1 since it's now first.
     assertStringIs(resources, "app_name", "Different App Name", res -> res.getConfiguration().isDefault()); // res2
@@ -131,7 +131,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertStringIs(resources, "another_unique_string", "Another Unique", res -> res.getConfiguration().isDefault()); // Overridden in res1
 
     // Hide a resource root (res2)
-    resources.updateRoots(ImmutableList.of(res1, res3));
+    resources.refreshChildren(ImmutableList.of(res1, res3));
 
     // No longer aliasing the main layout
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh")); // res3 layout1.xml
@@ -141,14 +141,14 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertStringIs(resources, "title_crossfade", "Simple Crossfade"); // No longer overridden in res2
 
     // Finally ensure that we can switch roots repeatedly (had some earlier bugs related to root unregistration).
-    resources.updateRoots(ImmutableList.of(res2, res1, res3));
-    resources.updateRoots(ImmutableList.of(res3));
-    resources.updateRoots(ImmutableList.of(res2, res1, res3));
-    resources.updateRoots(ImmutableList.of(res3));
-    resources.updateRoots(ImmutableList.of(res2, res1, res3));
-    resources.updateRoots(ImmutableList.of(res2));
-    resources.updateRoots(ImmutableList.of(res3));
-    resources.updateRoots(ImmutableList.of(res1, res2, res3));
+    resources.refreshChildren(ImmutableList.of(res2, res1, res3));
+    resources.refreshChildren(ImmutableList.of(res3));
+    resources.refreshChildren(ImmutableList.of(res2, res1, res3));
+    resources.refreshChildren(ImmutableList.of(res3));
+    resources.refreshChildren(ImmutableList.of(res2, res1, res3));
+    resources.refreshChildren(ImmutableList.of(res2));
+    resources.refreshChildren(ImmutableList.of(res3));
+    resources.refreshChildren(ImmutableList.of(res1, res2, res3));
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
 
     // Make sure I get all the resource ids (there can be multiple; these are not replaced via overlays)
@@ -388,7 +388,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     VirtualFile res3 = values3.getParent().getParent();
     assertNotSame(res1, res3);
     assertNotSame(res2, res3);
-    resources.updateRoots(ImmutableList.of(res1, res2, res3));
+    resources.refreshChildren(ImmutableList.of(res1, res2, res3));
 
     EnumSet<ResourceType> allTypes = EnumSet.copyOf(typesWithoutRes3);
     allTypes.addAll(ImmutableList.of(ResourceType.ATTR, ResourceType.INTEGER, ResourceType.STYLEABLE, ResourceType.PLURALS));

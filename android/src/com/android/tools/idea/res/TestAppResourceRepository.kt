@@ -22,44 +22,29 @@ import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.res.LocalResourceRepository
-import com.google.common.collect.ImmutableList
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 
-class TestAppResourceRepository
-private constructor(
-  facet: AndroidFacet,
-  localResources: List<LocalResourceRepository<VirtualFile>>,
-  libraryResources: Collection<AarResourceRepository>
-) : MemoryTrackingMultiResourceRepository(facet.module.name) {
+class TestAppResourceRepository private constructor(private val facet: AndroidFacet) :
+  MemoryTrackingMultiResourceRepository(facet.module.name) {
 
   init {
-    setChildren(localResources, libraryResources, ImmutableList.of())
+    setChildren(computeLocalRepositories(facet), computeLibraryRepositories(facet), emptyList())
   }
 
-  fun updateRoots(facet: AndroidFacet, moduleTestResources: LocalResourceRepository<VirtualFile>) {
+  override fun refreshChildren() {
     invalidateResourceDirs()
-    setChildren(
-      computeLocalRepositories(facet, moduleTestResources),
-      computeLibraryRepositories(facet),
-      ImmutableList.of()
-    )
+    setChildren(computeLocalRepositories(facet), computeLibraryRepositories(facet), emptyList())
   }
 
   companion object {
-    @JvmStatic
-    @Slow
-    fun create(facet: AndroidFacet, moduleTestResources: LocalResourceRepository<VirtualFile>) =
-      TestAppResourceRepository(
-        facet,
-        computeLocalRepositories(facet, moduleTestResources),
-        computeLibraryRepositories(facet)
-      )
+    @JvmStatic @Slow fun create(facet: AndroidFacet) = TestAppResourceRepository(facet)
 
     private fun computeLocalRepositories(
-      facet: AndroidFacet,
-      moduleTestResources: LocalResourceRepository<VirtualFile>
+      facet: AndroidFacet
     ): List<LocalResourceRepository<VirtualFile>> {
+      val moduleTestResources =
+        StudioResourceRepositoryManager.getInstance(facet).testModuleResources
       val localRepositories = mutableListOf(moduleTestResources)
       val androidModuleSystem = facet.getModuleSystem()
       localRepositories.addAll(

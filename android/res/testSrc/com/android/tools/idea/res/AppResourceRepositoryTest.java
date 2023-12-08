@@ -113,7 +113,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertFalse(moduleRepository.hasResources(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
 
     AarSourceResourceRepository aar1 = AarSourceResourceRepository.create(VfsUtilCore.virtualToIoFile(res3).toPath(), "aar1");
-    appResources.updateRoots(ImmutableList.of(projectResources), ImmutableList.of(aar1));
+    appResources.refreshChildren(ImmutableList.of(projectResources), ImmutableList.of(aar1));
 
     assertTrue(appResources.hasResources(RES_AUTO, ResourceType.STRING, "another_unique_string"));
     assertTrue(aar1.hasResources(RES_AUTO, ResourceType.STRING, "another_unique_string"));

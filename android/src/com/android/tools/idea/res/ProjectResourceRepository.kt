@@ -27,21 +27,20 @@ import org.jetbrains.annotations.VisibleForTesting
 class ProjectResourceRepository
 private constructor(
   private val facet: AndroidFacet,
-  localResources: List<LocalResourceRepository<VirtualFile>>
+  localResources: List<LocalResourceRepository<VirtualFile>>? = null
 ) : MemoryTrackingMultiResourceRepository(facet.module.name + " with modules") {
   init {
-    setChildren(localResources, emptyList(), emptyList())
+    setChildren(localResources ?: computeRepositories(facet), emptyList(), emptyList())
   }
 
-  fun updateRoots() {
+  override fun refreshChildren() {
     val repositories = computeRepositories(facet)
     invalidateResourceDirs()
     setChildren(repositories, emptyList(), emptyList())
   }
 
   companion object {
-    @JvmStatic
-    fun create(facet: AndroidFacet) = ProjectResourceRepository(facet, computeRepositories(facet))
+    @JvmStatic fun create(facet: AndroidFacet) = ProjectResourceRepository(facet)
 
     private fun computeRepositories(
       facet: AndroidFacet

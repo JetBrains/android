@@ -175,7 +175,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
           assertFalse("delete failed " + e, false);
         }
         ResourceFolderManager.getInstance(myFacet).checkForChanges();
-        repository.updateRoots();
+        repository.refreshChildren();
       }
     });
     // The child repositories should be the same since the module structure didn't change.

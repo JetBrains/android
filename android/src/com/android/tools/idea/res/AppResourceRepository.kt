@@ -30,8 +30,8 @@ import org.jetbrains.annotations.VisibleForTesting
 class AppResourceRepository
 private constructor(
   private val facet: AndroidFacet,
-  localResources: List<LocalResourceRepository<VirtualFile>>,
-  libraryResources: Collection<AarResourceRepository>
+  localResources: List<LocalResourceRepository<VirtualFile>>? = null,
+  libraryResources: Collection<AarResourceRepository>? = null
 ) : MemoryTrackingMultiResourceRepository(facet.module.name + " with modules and libraries") {
   private val resourceMapLock = Any()
 
@@ -49,23 +49,21 @@ private constructor(
     }
 
   init {
+    val manager = StudioResourceRepositoryManager.getInstance(facet)
     setChildren(
-      localResources,
-      libraryResources,
+      localResources ?: computeLocalRepositories(manager),
+      libraryResources ?: computeLibraryResources(manager),
       listOf(PredefinedSampleDataResourceRepository.getInstance())
     )
   }
 
-  fun updateRoots(
-    libraryResources: Collection<AarResourceRepository>,
-    sampleDataResourceRepository: LocalResourceRepository<VirtualFile>
-  ) {
-    val localResources = computeLocalRepositories(facet, sampleDataResourceRepository)
-    updateRoots(localResources, libraryResources)
+  override fun refreshChildren() {
+    val manager = StudioResourceRepositoryManager.getInstance(facet)
+    refreshChildren(computeLocalRepositories(manager), computeLibraryResources(manager))
   }
 
   @VisibleForTesting
-  fun updateRoots(
+  fun refreshChildren(
     localResources: List<LocalResourceRepository<VirtualFile>>,
     libraryResources: Collection<AarResourceRepository>
   ) {
@@ -86,30 +84,19 @@ private constructor(
 
   companion object {
     @JvmStatic
-    fun create(
-      facet: AndroidFacet,
-      libraryRepositories: Collection<AarResourceRepository>,
-      sampleDataResourceRepository: LocalResourceRepository<VirtualFile>
-    ): AppResourceRepository {
-      val repository =
-        AppResourceRepository(
-          facet,
-          computeLocalRepositories(facet, sampleDataResourceRepository),
-          libraryRepositories
-        )
+    fun create(facet: AndroidFacet): AppResourceRepository {
+      val repository = AppResourceRepository(facet)
       AndroidProjectRootListener.ensureSubscribed(facet.module.project)
 
       return repository
     }
 
-    private fun computeLocalRepositories(
-      facet: AndroidFacet,
-      sampleDataResourceRepository: LocalResourceRepository<VirtualFile>
-    ) =
-      listOf(
-        StudioResourceRepositoryManager.getProjectResources(facet),
-        sampleDataResourceRepository
-      )
+    private fun computeLocalRepositories(manager: StudioResourceRepositoryManager) =
+      listOf(manager.projectResources, manager.sampleDataResources)
+
+    private fun computeLibraryResources(
+      manager: StudioResourceRepositoryManager
+    ): Collection<AarResourceRepository> = manager.libraryResources
 
     @TestOnly
     @JvmStatic

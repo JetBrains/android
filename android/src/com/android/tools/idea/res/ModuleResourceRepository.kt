@@ -46,7 +46,7 @@ private constructor(
 
     val resourceFolderListener = ResourceFolderListener { facet, folders ->
       if (facet.module === this.facet.module) {
-        updateRoots(folders)
+        refreshChildren(folders)
       }
     }
 
@@ -55,10 +55,18 @@ private constructor(
       .subscribe(ResourceFolderManager.TOPIC, resourceFolderListener)
   }
 
+  override fun refreshChildren() {
+    // There are no current scenarios where this function will be called on
+    // ModuleResourceRepository.
+    // If such a scenario needs to be implemented in the future, it is possible to fetch the current
+    // list of folders from `ResourceFolderManager`.
+    throw NotImplementedError()
+  }
+
   @VisibleForTesting
-  fun updateRoots(resourceDirectories: List<VirtualFile>) {
+  fun refreshChildren(resourceDirectories: List<VirtualFile>) {
     ResourceUpdateTracer.logDirect {
-      "${TraceUtils.getSimpleId(this)}.updateRoots(${ResourceUpdateTracer.pathsForLogging(resourceDirectories, facet.module.project)})"
+      "${TraceUtils.getSimpleId(this)}.refreshChildren(${ResourceUpdateTracer.pathsForLogging(resourceDirectories, facet.module.project)})"
     }
 
     // Non-folder repositories to put in front of the list.

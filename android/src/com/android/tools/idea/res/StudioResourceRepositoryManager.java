@@ -309,7 +309,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           if (myFacet.isDisposed()) {
             return new EmptyRepository<>(getNamespace());
           }
-          myAppResources = AppResourceRepository.create(myFacet, getLibraryResources(), getSampleDataResources());
+          myAppResources = AppResourceRepository.create(myFacet);
           Disposer.register(this, myAppResources);
         }
         return myAppResources;
@@ -474,8 +474,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
 
   @NotNull
   private LocalResourceRepository<VirtualFile> computeTestAppResources() {
-    LocalResourceRepository<VirtualFile> moduleTestResources = getTestModuleResources();
-    return TestAppResourceRepository.create(myFacet, moduleTestResources);
+    return TestAppResourceRepository.create(myFacet);
   }
 
   @Slow
@@ -635,7 +634,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
       ProjectResourceRepository projectResources = (ProjectResourceRepository)getCachedProjectResources();
       AppResourceRepository appResources = (AppResourceRepository)getCachedAppResources();
       if (projectResources != null) {
-        projectResources.updateRoots();
+        projectResources.refreshChildren();
       }
 
       Map<ExternalAndroidLibrary, AarResourceRepository> oldLibraryResourceMap;
@@ -645,7 +644,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
         myLibraryResourceMap = null;
       }
       if (appResources != null) {
-        appResources.updateRoots(getLibraryResources(), getSampleDataResources());
+        appResources.refreshChildren();
       }
 
       // Access oldLibraryResourceMap to make sure that it is still in scope at this point.
@@ -656,7 +655,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
       }
 
       if (getCachedTestAppResources() instanceof TestAppResourceRepository testAppResources) {
-        testAppResources.updateRoots(myFacet, getTestModuleResources());
+        testAppResources.refreshChildren();
       }
     }
     catch (IllegalStateException e) {
