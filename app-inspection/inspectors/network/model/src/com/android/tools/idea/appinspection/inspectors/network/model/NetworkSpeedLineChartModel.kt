@@ -58,4 +58,10 @@ class NetworkSpeedLineChartModel(
       else event.speedEvent.txSpeed
     }
   }
+
+  fun invalidate() {
+    changed(Aspect.LINE_CHART)
+    rxSeries.invalidate()
+    txSeries.invalidate()
+  }
 }

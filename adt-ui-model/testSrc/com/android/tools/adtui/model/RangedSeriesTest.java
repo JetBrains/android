@@ -28,7 +28,7 @@ public class RangedSeriesTest {
     for (int i = 0; i < 50; i++) {
       testSeries.add(i, (long)i);
     }
-    RangedSeries rangedSeries = new RangedSeries<>(queryRange, testSeries);
+    RangedSeries<Long> rangedSeries = new RangedSeries<>(queryRange, testSeries);
 
     // Check that a first time a query is made, we always return the data from the underlying data series.
     assertThat(rangedSeries.getSeries()).hasSize(50);
@@ -51,7 +51,7 @@ public class RangedSeriesTest {
     for (int i = 0; i < 50; i++) {
       testSeries.add(i, (long)i);
     }
-    RangedSeries rangedSeries = new RangedSeries<>(queryRange, testSeries);
+    RangedSeries<Long> rangedSeries = new RangedSeries<>(queryRange, testSeries);
 
     // Check that a first time a query is made, we always return the data from the underlying data series.
     assertThat(rangedSeries.getSeries()).hasSize(50);
@@ -67,4 +67,28 @@ public class RangedSeriesTest {
     }
     assertThat(rangedSeries.getSeries()).hasSize(100);
   }
+
+  @Test
+  public void testGetSeriesIgnoreCacheWhenInvalidated() {
+    Range queryRange = new Range(0, 100);
+    DefaultDataSeries<Long> testSeries = new DefaultDataSeries<>();
+    for (int i = 0; i < 50; i++) {
+      testSeries.add(i, (long)i);
+    }
+    RangedSeries<Long> rangedSeries = new RangedSeries<>(queryRange, testSeries);
+
+    // Check that a first time a query is made, we always return the data from the underlying data series.
+    assertThat(rangedSeries.getSeries()).hasSize(50);
+
+    for (int i = 50; i < 100; i++) {
+      testSeries.add(i, (long)i);
+    }
+    // Adding data along without updating the query range should keep utilizing the cached data.
+    assertThat(rangedSeries.getSeries()).hasSize(50);
+
+    // Invalidating the series would fetch from the underlying data series again.
+    rangedSeries.invalidate();
+    assertThat(rangedSeries.getSeries()).hasSize(100);
+  }
+
 }

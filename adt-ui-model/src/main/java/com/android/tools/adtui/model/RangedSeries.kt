@@ -75,7 +75,13 @@ open class RangedSeries<E>
 
   /**
    * @param range The range to which the data will be scoped.
-   * @return A new, immutable [SeriesDataList] that allows the caller to get items in the DataStore scoped to the given range.
+   * @return A new, immutable [SeriesData] list that allows the caller to get items in the DataStore scoped to the given range.
    */
   fun getSeriesForRange(range: Range): List<SeriesData<E>> = _series.getDataForRange(range)
+
+  /** Invalidate cached query */
+  fun invalidate() {
+    lastQueriedRange = Range()
+    lastQueriedSeries = emptyList()
+  }
 }

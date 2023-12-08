@@ -24,6 +24,7 @@ import com.android.tools.adtui.model.axis.ClampedAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.CONNECTION
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkTimeline.Companion.VIEW_LENGTH_US
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModelImpl
@@ -32,6 +33,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleD
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
 import java.util.concurrent.TimeUnit
+import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.launch
@@ -111,10 +113,14 @@ class NetworkInspectorModel(
           if (timeline.dataRange.isPoint) {
             timeline.dataRange.min = timestampUs - TIMELINE_PADDING_MS
           }
-          timeline.dataRange.max = timestampUs + TIMELINE_PADDING_MS
+          // Minimum data range is VIEW_LENGTH_US (30 seconds)
+          timeline.dataRange.max =
+            max(timestampUs + TIMELINE_PADDING_MS, timeline.dataRange.min + VIEW_LENGTH_US)
           if (isLive) {
             timeline.resetZoom()
           }
+          // The data/view ranges might not have changed so force a refresh.
+          networkUsage.invalidate()
         }
       }
     }

@@ -23,8 +23,6 @@ import com.android.tools.adtui.model.updater.Updater
 import java.util.concurrent.TimeUnit
 import kotlin.math.max
 
-private val VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(30)
-
 internal class NetworkTimeline(updater: Updater) : DefaultTimeline(), Updatable {
   private val zoomLeft = Range(0.0, 0.0)
   private val zoomHelper = TimelineZoomHelper(dataRange, viewRange, zoomLeft)
@@ -56,5 +54,9 @@ internal class NetworkTimeline(updater: Updater) : DefaultTimeline(), Updatable 
   override fun frameViewToRange(targetRange: Range) {
     super.frameViewToRange(targetRange)
     zoomHelper.updateZoomLeft(targetRange, PADDING_RATIO)
+  }
+
+  companion object {
+    val VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(30)
   }
 }
