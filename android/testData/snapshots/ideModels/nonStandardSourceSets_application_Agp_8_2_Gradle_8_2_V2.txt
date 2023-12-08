@@ -775,7 +775,7 @@ MODULE                        : application
         externalSystemId              : GRADLE
 MODULE                        : application.app
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :app
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/application/app/build.gradle
@@ -796,7 +796,7 @@ MODULE                        : application.app
     RootBuildId                   : <ROOT>/application
     BuildId                       : <ROOT>/application
     ProjectPath                   : :app
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/application/app/build [-]
@@ -959,7 +959,7 @@ MODULE                        : application.app
                     BaselineProfileDirectories    : <ROOT>/application/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/application/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/application/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0 [-]
             ProguardFiles                 : <ROOT>/application/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false

@@ -2383,7 +2383,7 @@ MODULE                        : NonStandardSourceSetDependencies.aarWrapperLib
     externalProject               : :aarWrapperLib (DefaultExternalProject) (*seen*)
 MODULE                        : NonStandardSourceSetDependencies.app
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :app
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/app/build.gradle
@@ -2404,7 +2404,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -2567,7 +2567,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.2.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.2.0 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -3478,7 +3478,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop.main
 MODULE                        : NonStandardSourceSetDependencies.desktop.test
 MODULE                        : NonStandardSourceSetDependencies.feature-a
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :feature-a
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/feature-a/build.gradle
@@ -3499,7 +3499,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :feature-a
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/feature-a/build [-]
@@ -4542,7 +4542,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a.main
 MODULE                        : NonStandardSourceSetDependencies.feature-a.unitTest
 MODULE                        : NonStandardSourceSetDependencies.feature-b
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :feature-b
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/feature-b/build.gradle
@@ -4563,7 +4563,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :feature-b
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/feature-b/build [-]
@@ -5529,7 +5529,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
     externalProject               : :kmp-java:sample (DefaultExternalProject) (*seen*)
 MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample-test
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :kmp-java:sample-test
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/kmp-java/sample-test/build.gradle
@@ -5550,7 +5550,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :kmp-java:sample-test
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/kmp-java/sample-test/build [-]
@@ -5827,7 +5827,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
 MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.test
 MODULE                        : NonStandardSourceSetDependencies.lib
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :lib
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/lib/build.gradle
@@ -5848,7 +5848,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
@@ -6006,7 +6006,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     BaselineProfileDirectories    : <ROOT>/lib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.2.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.2.0 [-]
             ProguardFiles                 : <ROOT>/lib/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false

@@ -1034,7 +1034,7 @@ MODULE                        : My_First_App
         externalSystemId              : GRADLE
 MODULE                        : My_First_App.app
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :app
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/firstapp/app/build.gradle
@@ -1055,7 +1055,7 @@ MODULE                        : My_First_App.app
     RootBuildId                   : <ROOT>/firstapp
     BuildId                       : <ROOT>/firstapp
     ProjectPath                   : :app
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/firstapp/app/build [-]
@@ -1218,7 +1218,7 @@ MODULE                        : My_First_App.app
                     BaselineProfileDirectories    : <ROOT>/firstapp/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/firstapp/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.2.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/firstapp/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.2.0 [-]
             ProguardFiles                 : <ROOT>/firstapp/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -2154,7 +2154,7 @@ MODULE                        : My_First_App.app.androidTest
 MODULE                        : My_First_App.app.main
 MODULE                        : My_First_App.app.mysharedlibrary
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :app:mysharedlibrary
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/shared/mysharedlibrary/build.gradle
@@ -2175,7 +2175,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
     RootBuildId                   : <ROOT>/firstapp
     BuildId                       : <ROOT>/firstapp
     ProjectPath                   : :app:mysharedlibrary
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/shared/mysharedlibrary/build [-]
@@ -2333,7 +2333,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     BaselineProfileDirectories    : <ROOT>/shared/mysharedlibrary/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/shared/mysharedlibrary/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.2.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/shared/mysharedlibrary/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.2.0 [-]
             ProguardFiles                 : <ROOT>/shared/mysharedlibrary/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false

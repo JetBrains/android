@@ -1064,7 +1064,7 @@ MODULE                        : TestCompositeLib1
         externalSystemId              : GRADLE
 MODULE                        : TestCompositeLib1.app
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :app
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/TestCompositeLib1/app/build.gradle
@@ -1085,7 +1085,7 @@ MODULE                        : TestCompositeLib1.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib1
     ProjectPath                   : :app
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib1/app/build [-]
@@ -1248,7 +1248,7 @@ MODULE                        : TestCompositeLib1.app
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib1/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib1/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib1/app/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -2215,7 +2215,7 @@ MODULE                        : TestCompositeLib1.app.main
 MODULE                        : TestCompositeLib1.app.unitTest
 MODULE                        : TestCompositeLib1.lib
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :lib
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/TestCompositeLib1/lib/build.gradle
@@ -2236,7 +2236,7 @@ MODULE                        : TestCompositeLib1.lib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib1
     ProjectPath                   : :lib
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build [-]
@@ -2393,7 +2393,7 @@ MODULE                        : TestCompositeLib1.lib
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib1/lib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib1/lib/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -3749,7 +3749,7 @@ MODULE                        : TestCompositeLib3
         externalSystemId              : GRADLE
 MODULE                        : TestCompositeLib3.app
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :app
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/TestCompositeLib3/app/build.gradle
@@ -3770,7 +3770,7 @@ MODULE                        : TestCompositeLib3.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib3
     ProjectPath                   : :app
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib3/app/build [-]
@@ -3933,7 +3933,7 @@ MODULE                        : TestCompositeLib3.app
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib3/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib3/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib3/app/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -4876,7 +4876,7 @@ MODULE                        : TestCompositeLib3.app.main
 MODULE                        : TestCompositeLib3.app.unitTest
 MODULE                        : TestCompositeLib3.lib
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :lib
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/TestCompositeLib3/lib/build.gradle
@@ -4897,7 +4897,7 @@ MODULE                        : TestCompositeLib3.lib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib3
     ProjectPath                   : :lib
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build [-]
@@ -5054,7 +5054,7 @@ MODULE                        : TestCompositeLib3.lib
                     BaselineProfileDirectories    : <ROOT>/TestCompositeLib3/lib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib3/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib3/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib3/lib/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -6707,7 +6707,7 @@ MODULE                        : project
         externalSystemId              : GRADLE
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :app
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/app/build.gradle
@@ -6728,7 +6728,7 @@ MODULE                        : project.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -6891,7 +6891,7 @@ MODULE                        : project.app
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -7864,7 +7864,7 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.lib
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :lib
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/lib/build.gradle
@@ -7885,7 +7885,7 @@ MODULE                        : project.lib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
@@ -8042,7 +8042,7 @@ MODULE                        : project.lib
                     BaselineProfileDirectories    : <ROOT>/lib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0 [-]
             ProguardFiles                 : <ROOT>/lib/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false

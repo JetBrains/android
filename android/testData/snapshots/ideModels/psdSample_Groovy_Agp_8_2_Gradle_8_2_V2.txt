@@ -2310,7 +2310,7 @@ MODULE                        : project
         externalSystemId              : GRADLE
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :app
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/app/build.gradle
@@ -2331,7 +2331,7 @@ MODULE                        : project.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -2530,7 +2530,7 @@ MODULE                        : project.app
             Name                          : release
             ApplicationIdSuffix           : suffix
             VersionNameSuffix             : vsuffix
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.txt
             ProguardFiles                 : <ROOT>/app/proguard-rules2.txt [-]
             IsDebuggable                  : false
@@ -3803,7 +3803,7 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.dyn_feature
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :dyn_feature
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/dyn_feature/build.gradle
@@ -3824,7 +3824,7 @@ MODULE                        : project.dyn_feature
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :dyn_feature
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/dyn_feature/build [-]
@@ -4109,7 +4109,7 @@ MODULE                        : project.jav.main
 MODULE                        : project.jav.test
 MODULE                        : project.lib
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :lib
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/lib/build.gradle
@@ -4130,7 +4130,7 @@ MODULE                        : project.lib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
@@ -4286,7 +4286,7 @@ MODULE                        : project.lib
                     BaselineProfileDirectories    : <ROOT>/lib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0-beta01 [-]
+            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-8.2.0 [-]
             ProguardFiles                 : <ROOT>/lib/proguard-rules.txt
             ConsumerProguardFiles         : <ROOT>/lib/other.pro
             IsDebuggable                  : false
@@ -5119,7 +5119,7 @@ MODULE                        : project.lib.main
 MODULE                        : project.lib.unitTest
 MODULE                        : project.nested1
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :nested1
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/nested1/build.gradle
@@ -5140,7 +5140,7 @@ MODULE                        : project.nested1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :nested1
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested1/build [-]
@@ -5409,7 +5409,7 @@ MODULE                        : project.nested1
 MODULE                        : project.nested1.androidTest
 MODULE                        : project.nested1.deep
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :nested1:deep
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/nested1/deep/build.gradle
@@ -5430,7 +5430,7 @@ MODULE                        : project.nested1.deep
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :nested1:deep
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested1/deep/build [-]
@@ -5709,7 +5709,7 @@ MODULE                        : project.nested1.main
 MODULE                        : project.nested1.unitTest
 MODULE                        : project.nested2
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :nested2
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/nested2/build.gradle
@@ -5730,7 +5730,7 @@ MODULE                        : project.nested2
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :nested2
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested2/build [-]
@@ -6139,7 +6139,7 @@ MODULE                        : project.nested2
 MODULE                        : project.nested2.androidTest
 MODULE                        : project.nested2.deep
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :nested2:deep
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/nested2/deep/build.gradle
@@ -6160,7 +6160,7 @@ MODULE                        : project.nested2.deep
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :nested2:deep
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested2/deep/build [-]
@@ -6441,7 +6441,7 @@ MODULE                        : project.nested2.trans
     externalProject               : :nested2:trans (DefaultExternalProject) (*seen*)
 MODULE                        : project.nested2.trans.deep2
     GradleModuleModel
-        agpVersion                    : 8.2.0-beta01
+        agpVersion                    : 8.2.0
         gradlePath                    : :nested2:trans:deep2
         gradleVersion                 : 8.2
         buildFile                     : <ROOT>/nested2/trans/deep2/build.gradle
@@ -6462,7 +6462,7 @@ MODULE                        : project.nested2.trans.deep2
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :nested2:trans:deep2
-    ModelVersion                  : 8.2.0-beta01
+    ModelVersion                  : 8.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/nested2/trans/deep2/build [-]

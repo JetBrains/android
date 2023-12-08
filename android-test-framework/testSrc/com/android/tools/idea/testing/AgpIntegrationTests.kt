@@ -76,7 +76,7 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_74(agpVersion = "7.4.1", gradleVersion = "7.5", modelVersion = ModelVersion.V2),
   AGP_80(agpVersion = "8.0.2", gradleVersion = "8.0", modelVersion = ModelVersion.V2),
   AGP_81(agpVersion = "8.1.0", gradleVersion = "8.0", modelVersion = ModelVersion.V2),
-  AGP_82(agpVersion = "8.2.0-beta01", gradleVersion = "8.2", modelVersion = ModelVersion.V2),
+  AGP_82(agpVersion = "8.2.0", gradleVersion = "8.2", modelVersion = ModelVersion.V2),
 
   // Must be last to represent the newest version.
   AGP_LATEST(null, gradleVersion = null);
