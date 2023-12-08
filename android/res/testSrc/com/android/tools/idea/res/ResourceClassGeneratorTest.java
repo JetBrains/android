@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -40,7 +41,9 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -268,10 +271,11 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     clz = generateClass(generator, name);
     assertNotNull(clz);
     assertEquals(name, clz.getName());
-    String rAttr = Arrays.stream(clz.getDeclaredFields()).map(Field::toString).reduce((a, b) -> a + "\n" + b).orElse("");
-    assertEquals("public static final int my.test.pkg.R$attr.some_attr\n" +
-                 "public static final int my.test.pkg.R$attr.app_attr2\n" +
-                 "public static final int my.test.pkg.R$attr.app_declared_attr", rAttr);
+    List<String> rAttrFields = Arrays.stream(clz.getDeclaredFields()).map(Field::toString).collect(Collectors.toList());
+    assertThat(rAttrFields).containsExactly(
+      "public static final int my.test.pkg.R$attr.some_attr",
+      "public static final int my.test.pkg.R$attr.app_attr2",
+      "public static final int my.test.pkg.R$attr.app_declared_attr");
     assertNotNull(clz.newInstance());
   }
 

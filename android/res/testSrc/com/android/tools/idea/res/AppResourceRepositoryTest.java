@@ -70,18 +70,12 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
   }
 
   public void testStringOrder() {
-    VirtualFile res1 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
+    myFixture.copyFileToProject(VALUES, "res/values/values.xml");
+    LocalResourceRepository<VirtualFile> appResources = StudioResourceRepositoryManager.getInstance(myFacet).getAppResources();
 
-    ModuleResourceRepository moduleRepository =
-        ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res1), RES_AUTO, null);
-    ProjectResourceRepository projectResources =
-        ProjectResourceRepository.createForTest(myFacet, Collections.singletonList(moduleRepository));
-    AppResourceRepository appResources =
-        AppResourceRepository.createForTest(myFacet, Collections.singletonList(projectResources), Collections.emptyList());
-
-    assertOrderedEquals(appResources.getResources(RES_AUTO, ResourceType.STRING).keySet(),
-                        ImmutableList.of("app_name", "title_crossfade", "title_card_flip", "title_screen_slide", "title_zoom",
-                                         "title_layout_changes", "title_template_step", "ellipsis"));
+    assertThat(appResources.getResources(RES_AUTO, ResourceType.STRING).keySet()).containsExactly(
+      "app_name", "title_crossfade", "title_card_flip", "title_screen_slide", "title_zoom",
+      "title_layout_changes", "title_template_step", "ellipsis").inOrder();
   }
 
   /**
