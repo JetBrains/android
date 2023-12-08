@@ -16,39 +16,36 @@
 package com.android.tools.idea.res
 
 import com.android.tools.res.LocalResourceRepository
-import com.google.common.collect.ImmutableList
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * @see StudioResourceRepositoryManager.getProjectResources
- */
-internal class ProjectResourceRepository private constructor(
-  private val myFacet: AndroidFacet,
+/** @see StudioResourceRepositoryManager.getProjectResources */
+@VisibleForTesting
+class ProjectResourceRepository
+private constructor(
+  private val facet: AndroidFacet,
   localResources: List<LocalResourceRepository<VirtualFile>>
-) : MemoryTrackingMultiResourceRepository(
-  myFacet.module.name + " with modules"
-) {
+) : MemoryTrackingMultiResourceRepository(facet.module.name + " with modules") {
   init {
-    setChildren(localResources, ImmutableList.of(), ImmutableList.of())
+    setChildren(localResources, emptyList(), emptyList())
   }
 
   fun updateRoots() {
-    val repositories = computeRepositories(myFacet)
+    val repositories = computeRepositories(facet)
     invalidateResourceDirs()
-    setChildren(repositories, ImmutableList.of(), ImmutableList.of())
+    setChildren(repositories, emptyList(), emptyList())
   }
 
   companion object {
     @JvmStatic
-    fun create(facet: AndroidFacet): ProjectResourceRepository {
-      val resources = computeRepositories(facet)
-      return ProjectResourceRepository(facet, resources)
-    }
+    fun create(facet: AndroidFacet) = ProjectResourceRepository(facet, computeRepositories(facet))
 
-    private fun computeRepositories(facet: AndroidFacet): List<LocalResourceRepository<VirtualFile>> {
+    private fun computeRepositories(
+      facet: AndroidFacet
+    ): List<LocalResourceRepository<VirtualFile>> {
       val main = StudioResourceRepositoryManager.getModuleResources(facet)
 
       // List of module facets the given module depends on.
@@ -57,7 +54,8 @@ internal class ProjectResourceRepository private constructor(
         return listOf(main)
       }
 
-      val resources: MutableList<LocalResourceRepository<VirtualFile>> = ArrayList(dependencies.size + 1)
+      val resources: MutableList<LocalResourceRepository<VirtualFile>> =
+        ArrayList(dependencies.size + 1)
       resources.add(main)
       for (dependency in dependencies) {
         resources.add(StudioResourceRepositoryManager.getModuleResources(dependency))
@@ -67,10 +65,8 @@ internal class ProjectResourceRepository private constructor(
     }
 
     @TestOnly
-    fun createForTest(facet: AndroidFacet, modules: List<LocalResourceRepository<VirtualFile>>): ProjectResourceRepository {
-      val repository = ProjectResourceRepository(facet, modules)
-      Disposer.register(facet, repository)
-      return repository
-    }
+    @JvmStatic
+    fun createForTest(facet: AndroidFacet, modules: List<LocalResourceRepository<VirtualFile>>) =
+      ProjectResourceRepository(facet, modules).also { Disposer.register(facet, it) }
   }
 }

@@ -18,98 +18,76 @@ package com.android.tools.idea.res
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.SingleNamespaceResourceRepository
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.res.ResourceFolderRegistry.Companion.getInstance
 import com.android.tools.res.LocalResourceRepository
 import com.android.utils.TraceUtils
-import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.MoreObjects
-import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
-import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
 import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener
 import org.jetbrains.annotations.TestOnly
-import java.util.function.Consumer
+import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * @see StudioResourceRepositoryManager.getModuleResources
- */
-internal class ModuleResourceRepository private constructor(
-  private val myFacet: AndroidFacet,
-  private val myNamespace: ResourceNamespace,
+/** @see StudioResourceRepositoryManager.getModuleResources */
+@VisibleForTesting
+class ModuleResourceRepository
+private constructor(
+  private val facet: AndroidFacet,
+  private val namespace: ResourceNamespace,
   delegates: List<LocalResourceRepository<VirtualFile>>
-) : MemoryTrackingMultiResourceRepository(
-  myFacet.module.name
-), SingleNamespaceResourceRepository {
-  private val myRegistry = getInstance(myFacet.module.project)
+) : MemoryTrackingMultiResourceRepository(facet.module.name), SingleNamespaceResourceRepository {
+
+  private val registry = ResourceFolderRegistry.getInstance(facet.module.project)
 
   init {
-    setChildren(delegates, ImmutableList.of(), ImmutableList.of())
+    setChildren(delegates, emptyList(), emptyList())
 
-    val resourceFolderListener: ResourceFolderListener = object : ResourceFolderListener {
-      override fun foldersChanged(facet: AndroidFacet, folders: List<VirtualFile>) {
-        if (facet.module === myFacet.module) {
-          updateRoots(folders)
-        }
+    val resourceFolderListener = ResourceFolderListener { facet, folders ->
+      if (facet.module === this.facet.module) {
+        updateRoots(folders)
       }
     }
-    myFacet.module.project.messageBus.connect(this).subscribe(ResourceFolderManager.TOPIC, resourceFolderListener)
+
+    facet.module.project.messageBus
+      .connect(this)
+      .subscribe(ResourceFolderManager.TOPIC, resourceFolderListener)
   }
 
   @VisibleForTesting
   fun updateRoots(resourceDirectories: List<VirtualFile>) {
     ResourceUpdateTracer.logDirect {
-      TraceUtils.getSimpleId(this) + ".updateRoots(" + ResourceUpdateTracer.pathsForLogging(
-        resourceDirectories,
-        myFacet.module.project
-      ) + ")"
+      "${TraceUtils.getSimpleId(this)}.updateRoots(${ResourceUpdateTracer.pathsForLogging(resourceDirectories, facet.module.project)})"
     }
+
     // Non-folder repositories to put in front of the list.
-    var other: MutableList<LocalResourceRepository<VirtualFile?>?>? = null
+    val other: MutableList<LocalResourceRepository<VirtualFile>> = mutableListOf()
 
     // Compute current roots.
-    val map: MutableMap<VirtualFile, ResourceFolderRepository> = HashMap()
-    val children = localResources
-    for (repository in children) {
-      if (repository is ResourceFolderRepository) {
-        val folderRepository = repository
-        val resourceDir = folderRepository.resourceDir
-        map[resourceDir] = folderRepository
-      } else {
-        assert(repository is DynamicValueResourceRepository)
-        if (other == null) {
-          other = ArrayList()
-        }
-        other.add(repository)
+    val map: MutableMap<VirtualFile, ResourceFolderRepository> = mutableMapOf()
+    for (repository in localResources) {
+      when (repository) {
+        is ResourceFolderRepository -> map[repository.resourceDir] = repository
+        is DynamicValueResourceRepository -> other.add(repository)
+        else -> throw IllegalStateException("Unrecognized repository: $repository")
       }
     }
 
     // Compute new resource directories (it's possible for just the order to differ, or
     // for resource dirs to have been added and/or removed).
-    val newDirs: Set<VirtualFile> = HashSet(resourceDirectories)
-    val resources: MutableList<LocalResourceRepository<VirtualFile?>?> = ArrayList(newDirs.size + (other?.size ?: 0))
-    if (other != null) {
-      resources.addAll(other)
-    }
+    val resources: MutableList<LocalResourceRepository<VirtualFile>> =
+      ArrayList(resourceDirectories.size + other.size)
+    resources.addAll(other)
 
     for (dir in resourceDirectories) {
-      var repository = map[dir]
-      if (repository == null) {
-        repository = myRegistry[myFacet, dir]
-      } else {
-        map.remove(dir)
-      }
+      val repository = map.remove(dir) ?: registry[facet, dir]
       resources.add(repository)
     }
 
     if (resources == children) {
       // Nothing changed (including order); nothing to do
-      assert(
-        map.isEmpty() // shouldn't have created any new ones
-      )
+      assert(map.isEmpty()) // shouldn't have created any new ones
       return
     }
 
@@ -117,104 +95,123 @@ internal class ModuleResourceRepository private constructor(
       removed.removeParent(this)
     }
 
-    setChildren(resources, ImmutableList.of(), ImmutableList.of())
+    setChildren(resources, emptyList(), emptyList())
   }
 
-  override fun getNamespace(): ResourceNamespace {
-    return myNamespace
-  }
+  override fun getNamespace() = namespace
 
-  override fun getPackageName(): String? {
-    return ResourceRepositoryImplUtil.getPackageName(myNamespace, myFacet)
-  }
+  override fun getPackageName() = ResourceRepositoryImplUtil.getPackageName(namespace, facet)
 
-  override fun toString(): String {
-    return MoreObjects.toStringHelper(this)
-      .toString()
-  }
+  override fun toString() = MoreObjects.toStringHelper(this).toString()
+
+  override fun getNamespaces(): MutableSet<ResourceNamespace> =
+    super<MemoryTrackingMultiResourceRepository>.getNamespaces()
+
+  override fun getLeafResourceRepositories(): MutableCollection<SingleNamespaceResourceRepository> =
+    super<MemoryTrackingMultiResourceRepository>.getLeafResourceRepositories()
 
   companion object {
     /**
-     * Creates a new resource repository for the given module, **not** including its dependent modules.
+     * Creates a new resource repository for the given module, **not** including its dependent
+     * modules.
      *
-     *
-     * The returned repository needs to be registered with a [com.intellij.openapi.Disposable] parent.
+     * The returned repository needs to be registered with a [com.intellij.openapi.Disposable]
+     * parent.
      *
      * @param facet the facet for the module
      * @param namespace the namespace for the repository
      * @return the resource repository
      */
     @JvmStatic
-    fun forMainResources(facet: AndroidFacet, namespace: ResourceNamespace): LocalResourceRepository<VirtualFile> {
-      val resourceFolderRegistry = getInstance(facet.module.project)
-      val folderManager = getInstance(facet)
-      val resourceDirectories = folderManager.folders
+    fun forMainResources(
+      facet: AndroidFacet,
+      namespace: ResourceNamespace
+    ): LocalResourceRepository<VirtualFile> {
+      val resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.module.project)
+      val resourceDirectories = ResourceFolderManager.getInstance(facet).folders
 
       if (!AndroidModel.isRequired(facet)) {
         if (resourceDirectories.isEmpty()) {
           return EmptyRepository(namespace)
         }
-        val childRepositories: MutableList<LocalResourceRepository<VirtualFile>> = ArrayList(resourceDirectories.size)
-        addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry)
-        return ModuleResourceRepository(
+        val childRepositories: MutableList<LocalResourceRepository<VirtualFile>> =
+          ArrayList(resourceDirectories.size)
+        addRepositoriesInReverseOverlayOrder(
+          resourceDirectories,
+          childRepositories,
           facet,
-          namespace,
-          childRepositories
+          resourceFolderRegistry
         )
+        return ModuleResourceRepository(facet, namespace, childRepositories)
       }
-
 
       val dynamicResources = DynamicValueResourceRepository.create(facet, namespace)
-      val moduleRepository: ModuleResourceRepository
-
-      try {
-        val childRepositories: MutableList<LocalResourceRepository<VirtualFile>> = ArrayList(1 + resourceDirectories.size)
-        childRepositories.add(dynamicResources)
-        addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry)
-        moduleRepository = ModuleResourceRepository(facet, namespace, childRepositories)
-      } catch (t: Throwable) {
-        Disposer.dispose(dynamicResources)
-        throw t
-      }
+      val moduleRepository: ModuleResourceRepository =
+        try {
+          val childRepositories: MutableList<LocalResourceRepository<VirtualFile>> =
+            ArrayList(1 + resourceDirectories.size)
+          childRepositories.add(dynamicResources)
+          addRepositoriesInReverseOverlayOrder(
+            resourceDirectories,
+            childRepositories,
+            facet,
+            resourceFolderRegistry
+          )
+          ModuleResourceRepository(facet, namespace, childRepositories)
+        } catch (t: Throwable) {
+          Disposer.dispose(dynamicResources)
+          throw t
+        }
 
       Disposer.register(moduleRepository, dynamicResources)
       return moduleRepository
     }
 
     /**
-     * Creates a new resource repository for the given module, **not** including its dependent modules.
+     * Creates a new resource repository for the given module, **not** including its dependent
+     * modules.
      *
-     *
-     * The returned repository needs to be registered with a [com.intellij.openapi.Disposable] parent.
+     * The returned repository needs to be registered with a [com.intellij.openapi.Disposable]
+     * parent.
      *
      * @param facet the facet for the module
      * @param namespace the namespace for the repository
      * @return the resource repository
      */
     @JvmStatic
-    fun forTestResources(facet: AndroidFacet, namespace: ResourceNamespace): LocalResourceRepository<VirtualFile> {
-      val resourceFolderRegistry = getInstance(facet.module.project)
-      val folderManager = getInstance(facet)
+    fun forTestResources(
+      facet: AndroidFacet,
+      namespace: ResourceNamespace
+    ): LocalResourceRepository<VirtualFile> {
+      val resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.module.project)
+      val folderManager = ResourceFolderManager.getInstance(facet)
       val resourceDirectories = folderManager.folders
 
       if (!AndroidModel.isRequired(facet) && resourceDirectories.isEmpty()) {
         return EmptyRepository(namespace)
       }
 
-      val childRepositories: MutableList<LocalResourceRepository<VirtualFile>> = ArrayList(resourceDirectories.size)
-      addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry)
+      val childRepositories: MutableList<LocalResourceRepository<VirtualFile>> =
+        ArrayList(resourceDirectories.size)
+      addRepositoriesInReverseOverlayOrder(
+        resourceDirectories,
+        childRepositories,
+        facet,
+        resourceFolderRegistry
+      )
 
       return ModuleResourceRepository(facet, namespace, childRepositories)
     }
 
     /**
-     * Inserts repositories for the given `resourceDirectories` into `childRepositories`, in the right order.
-     *
+     * Inserts repositories for the given `resourceDirectories` into `childRepositories`, in the
+     * right order.
      *
      * `resourceDirectories` is assumed to be in the order returned from
-     * [SourceProviderManager.getCurrentSourceProviders], which is the inverse of what we need. The code in
-     * [MultiResourceRepository.getMap] gives priority to child repositories which are earlier
-     * in the list, so after creating repositories for every folder, we add them in reverse to the list.
+     * [SourceProviderManager.getCurrentSourceProviders], which is the inverse of what we need. The
+     * code in [MultiResourceRepository.getMap] gives priority to child repositories which are
+     * earlier in the list, so after creating repositories for every folder, we add them in reverse
+     * to the list.
      *
      * @param resourceDirectories directories for which repositories should be constructed
      * @param childRepositories the list of repositories to which new repositories will be added
@@ -227,39 +224,33 @@ internal class ModuleResourceRepository private constructor(
       facet: AndroidFacet,
       resourceFolderRegistry: ResourceFolderRegistry
     ) {
-      var i = resourceDirectories.size
-      while (--i >= 0) {
-        val resourceDirectory = resourceDirectories[i]
+      for (resourceDirectory in resourceDirectories.asReversed()) {
         val repository = resourceFolderRegistry[facet, resourceDirectory]
         childRepositories.add(repository)
       }
     }
 
     @TestOnly
+    @JvmStatic
     fun createForTest(
       facet: AndroidFacet,
-      resourceDirectories: Collection<VirtualFile?>,
+      resourceDirectories: Collection<VirtualFile>,
       namespace: ResourceNamespace,
       dynamicResourceValueRepository: DynamicValueResourceRepository?
     ): ModuleResourceRepository {
       assert(ApplicationManager.getApplication().isUnitTestMode)
-      val delegates: MutableList<LocalResourceRepository<VirtualFile>> =
-        ArrayList(resourceDirectories.size + (if (dynamicResourceValueRepository == null) 0 else 1))
+      val delegates: MutableList<LocalResourceRepository<VirtualFile>> = mutableListOf()
 
-      if (dynamicResourceValueRepository != null) {
-        delegates.add(dynamicResourceValueRepository)
+      if (dynamicResourceValueRepository != null) delegates.add(dynamicResourceValueRepository)
+
+      val resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.module.project)
+      for (dir in resourceDirectories) {
+        delegates.add(resourceFolderRegistry[facet, dir, namespace])
       }
 
-      val resourceFolderRegistry = getInstance(facet.module.project)
-      resourceDirectories.forEach(Consumer { dir: VirtualFile? ->
-        delegates.add(
-          resourceFolderRegistry[facet, dir!!, namespace]
-        )
-      })
-
-      val repository = ModuleResourceRepository(facet, namespace, delegates)
-      Disposer.register(facet, repository)
-      return repository
+      return ModuleResourceRepository(facet, namespace, delegates).also {
+        Disposer.register(facet, it)
+      }
     }
   }
 }

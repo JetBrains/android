@@ -16,103 +16,107 @@
 package com.android.tools.idea.res
 
 import com.android.resources.aar.AarResourceRepository
-import com.android.tools.idea.res.ResourceClassRegistry.Companion.get
-import com.android.tools.rendering.classloading.ModuleClassLoaderManager.Companion.get
+import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.res.LocalResourceRepository
-import com.android.tools.res.ids.ResourceIdManager.Companion.get
-import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.ImmutableList
+import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * @see StudioResourceRepositoryManager.getAppResources
- */
-internal class AppResourceRepository private constructor(
-  private val myFacet: AndroidFacet,
+/** @see StudioResourceRepositoryManager.getAppResources */
+@VisibleForTesting
+class AppResourceRepository
+private constructor(
+  private val facet: AndroidFacet,
   localResources: List<LocalResourceRepository<VirtualFile>>,
   libraryResources: Collection<AarResourceRepository>
-) : MemoryTrackingMultiResourceRepository(myFacet.module.name + " with modules and libraries") {
-  private val RESOURCE_MAP_LOCK = Any()
+) : MemoryTrackingMultiResourceRepository(facet.module.name + " with modules and libraries") {
+  private val resourceMapLock = Any()
 
-  /**
-   * Resource directories. Computed lazily.
-   */
-  private var myResourceDirs: Collection<VirtualFile>? = null
+  /** Resource directories. Computed lazily. */
+  private var resourceDirs: List<VirtualFile>? = null
 
   val allResourceDirs: Collection<VirtualFile>
     get() {
-      synchronized(RESOURCE_MAP_LOCK) {
-        if (myResourceDirs == null) {
-          val result = ImmutableList.builder<VirtualFile>()
-          for (resourceRepository in localResources) {
-            result.addAll(resourceRepository.resourceDirs)
-          }
-          myResourceDirs = result.build()
+      synchronized(resourceMapLock) {
+        if (resourceDirs == null) {
+          resourceDirs = localResources.flatMap { it.resourceDirs }
         }
-        return myResourceDirs!!
+        return requireNotNull(resourceDirs)
       }
     }
 
   init {
-    setChildren(localResources, libraryResources, ImmutableList.of(PredefinedSampleDataResourceRepository.getInstance()))
+    setChildren(
+      localResources,
+      libraryResources,
+      listOf(PredefinedSampleDataResourceRepository.getInstance())
+    )
   }
 
   fun updateRoots(
-    libraryResources: Collection<AarResourceRepository?>,
+    libraryResources: Collection<AarResourceRepository>,
     sampleDataResourceRepository: LocalResourceRepository<VirtualFile>
   ) {
-    val localResources = computeLocalRepositories(myFacet, sampleDataResourceRepository)
+    val localResources = computeLocalRepositories(facet, sampleDataResourceRepository)
     updateRoots(localResources, libraryResources)
   }
 
   @VisibleForTesting
   fun updateRoots(
     localResources: List<LocalResourceRepository<VirtualFile>>,
-    libraryResources: Collection<AarResourceRepository?>
+    libraryResources: Collection<AarResourceRepository>
   ) {
-    synchronized(RESOURCE_MAP_LOCK) {
-      myResourceDirs = null
-    }
+    synchronized(resourceMapLock) { resourceDirs = null }
     invalidateResourceDirs()
-    setChildren(localResources, libraryResources, ImmutableList.of(PredefinedSampleDataResourceRepository.getInstance()))
+    setChildren(
+      localResources,
+      libraryResources,
+      listOf(PredefinedSampleDataResourceRepository.getInstance())
+    )
 
     // Clear the fake R class cache and the ModuleClassLoader cache.
-    val module = myFacet.module
-    get(module).resetDynamicIds()
-    get(module.project).clearCache()
-    get().clearCache(module)
+    val module = facet.module
+    ResourceIdManager.get(module).resetDynamicIds()
+    ResourceClassRegistry.get(module.project).clearCache()
+    ModuleClassLoaderManager.get().clearCache(module)
   }
 
   companion object {
+    @JvmStatic
     fun create(
-      facet: AndroidFacet, libraryRepositories: Collection<AarResourceRepository>,
+      facet: AndroidFacet,
+      libraryRepositories: Collection<AarResourceRepository>,
       sampleDataResourceRepository: LocalResourceRepository<VirtualFile>
     ): AppResourceRepository {
       val repository =
-        AppResourceRepository(facet, computeLocalRepositories(facet, sampleDataResourceRepository), libraryRepositories)
+        AppResourceRepository(
+          facet,
+          computeLocalRepositories(facet, sampleDataResourceRepository),
+          libraryRepositories
+        )
       AndroidProjectRootListener.ensureSubscribed(facet.module.project)
 
       return repository
     }
 
     private fun computeLocalRepositories(
-      facet: AndroidFacet, sampleDataResourceRepository: LocalResourceRepository<VirtualFile>
-    ): List<LocalResourceRepository<VirtualFile>> {
-      return ImmutableList.of(StudioResourceRepositoryManager.getProjectResources(facet), sampleDataResourceRepository)
-    }
+      facet: AndroidFacet,
+      sampleDataResourceRepository: LocalResourceRepository<VirtualFile>
+    ) =
+      listOf(
+        StudioResourceRepositoryManager.getProjectResources(facet),
+        sampleDataResourceRepository
+      )
 
     @TestOnly
+    @JvmStatic
     fun createForTest(
       facet: AndroidFacet,
       modules: List<LocalResourceRepository<VirtualFile>>,
       libraries: Collection<AarResourceRepository>
-    ): AppResourceRepository {
-      val repository = AppResourceRepository(facet, modules, libraries)
-      Disposer.register(facet, repository)
-      return repository
-    }
+    ) = AppResourceRepository(facet, modules, libraries).also { Disposer.register(facet, it) }
   }
 }

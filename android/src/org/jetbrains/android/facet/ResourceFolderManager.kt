@@ -56,7 +56,7 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
   }
 
   /** Listeners for resource folder changes  */
-  interface ResourceFolderListener {
+  fun interface ResourceFolderListener {
     /** The resource folders in this project has changed  */
     fun foldersChanged(
       facet: AndroidFacet,
