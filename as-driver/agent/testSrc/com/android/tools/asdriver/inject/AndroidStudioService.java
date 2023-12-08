@@ -29,7 +29,6 @@ import com.google.common.base.Objects;
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer;
-import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -280,15 +279,6 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
         builder.setResult(ASDriver.ShowToolWindowResponse.Result.PROJECT_NOT_FOUND);
       }
     });
-    responseObserver.onNext(builder.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getThreadDump(ASDriver.ThreadDumpRequest request, StreamObserver<ASDriver.ThreadDumpResponse> responseObserver){
-    String threadDump = ThreadDumper.dumpThreadsToString();
-    ASDriver.ThreadDumpResponse.Builder builder = ASDriver.ThreadDumpResponse.newBuilder();
-    builder.setThreadDump(threadDump);
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
   }
