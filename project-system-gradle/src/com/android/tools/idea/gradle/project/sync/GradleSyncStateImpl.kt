@@ -452,7 +452,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
    * A helper project level service to keep track of external system sync related tasks and to detect and report any mismatched or
    * unexpected events.
    */
-  @Service
+  @Service(Service.Level.PROJECT)
   class SyncStateUpdaterService : Disposable {
     val runningTasks: ConcurrentMap<ExternalSystemTaskId, Pair<String, Disposable>> = ConcurrentHashMap()
 
