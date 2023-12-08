@@ -58,6 +58,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.platform.backend.observation.Observation;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -79,6 +80,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import kotlin.Unit;
+import kotlin.coroutines.EmptyCoroutineContext;
+import kotlinx.coroutines.BuildersKt;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBase {
@@ -308,6 +312,10 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       Project[] projects = ProjectManager.getInstance().getOpenProjects();
       CountDownLatch latch = new CountDownLatch(projects.length);
       for (Project p : projects) {
+        // TODO(b/315365181): waiting for smart mode is insufficient because the IDE may enter smart mode while still scanning for
+        //  files to index (see https://youtrack.jetbrains.com/issue/IJPL-50). So, we call Observation.awaitConfiguration() to wait
+        //  for file scanning to finish too. More investigated is needed to determine whether this is the right solution.
+        awaitProjectConfiguration(p);
         DumbService.getInstance(p).smartInvokeLater(latch::countDown);
       }
       latch.await();
@@ -316,6 +324,20 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     }
     responseObserver.onNext(ASDriver.WaitForIndexResponse.newBuilder().build());
     responseObserver.onCompleted();
+  }
+
+  private void awaitProjectConfiguration(Project project) throws InterruptedException {
+    // Note: Observation.awaitConfiguration() is a Kotlin suspend function, hence the strange code below to call it from Java.
+    BuildersKt.runBlocking(EmptyCoroutineContext.INSTANCE, (scope, continuation) -> {
+      return Observation.INSTANCE.awaitConfiguration(
+        project,
+        progressMessage -> {
+          System.out.println(progressMessage);
+          return Unit.INSTANCE;
+        },
+        continuation
+      );
+    });
   }
 
   private Project findProjectByName(String projectName) {
