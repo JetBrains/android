@@ -27,6 +27,7 @@ import com.intellij.openapi.components.StoragePathMacros
 import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.annotations.Tag
 import com.intellij.util.xmlb.annotations.XCollection
+import com.intellij.util.xmlb.annotations.XCollection.Style.v2
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -60,6 +61,7 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
         name = artifact.name
         stableVersion = artifact.versions.firstOrNull { !it.isPreview }?.toString()
         stableOrPreviewVersion = artifact.versions.firstOrNull()?.toString()
+        versions = artifact.versions.map { it.toString() }.toMutableList()
         repository = artifact.repositoryNames.joinToString(",")
         lastSearchTimeMillis = timestamp
       }
@@ -77,11 +79,24 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
   }
 
   fun findUpdatedVersionFor(spec: PsArtifactDependencySpec): Version? {
+    fun findUpdatedVersionForGuava(update: AvailableLibraryUpdate, version: String): Version? {
+      val versions = update.versions
+      if (versions.isEmpty()) return null
+      val parsedVersion = Version.parse(version)
+      return when {
+        version.endsWith("-jre") -> versions.firstOrNull { it.endsWith("-jre") }
+        version.endsWith("-android") -> versions.firstOrNull { it.endsWith("-android") }
+        else -> throw(IllegalStateException("version ends with neither -jre nor -android: $version"))
+      }?.let { Version.parse(it) }?.takeIf { it > parsedVersion }
+    }
     lock.withLock {
       val version = spec.version.takeUnless { it.isNullOrEmpty() } ?: return null
-      val parsedVersion = Version.parse(version)
       val key = spec.toLibraryKey()
       val update = updatesByKey[key] ?: return null
+      if (key.group == "com.google.guava" && (version.endsWith("-jre") || version.endsWith("-android"))) {
+        return findUpdatedVersionForGuava(update, version)
+      }
+      val parsedVersion = Version.parse(version)
       val stableOrPreviewVersion = update.stableOrPreviewVersion
       val infimum = parsedVersion.previewInfimum
       val supremum = parsedVersion.previewSupremum
@@ -114,6 +129,8 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
     @Tag("name") var name: String? = null,
     @Tag("stableOrPreviewVersion") var stableOrPreviewVersion: String? = null,
     @Tag("stableVersion") var stableVersion: String? = null,
+    @XCollection(propertyElementName = "versions", style = v2, elementName = "version")
+    var versions: MutableList<String> = mutableListOf(),
     @Tag("repository") var repository: String? = null,
     @Tag("last-search-timestamp") var lastSearchTimeMillis: Long = -1L
   ) {
