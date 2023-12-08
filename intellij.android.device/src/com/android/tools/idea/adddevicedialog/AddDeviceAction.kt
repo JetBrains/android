@@ -34,7 +34,7 @@ private class AddDeviceAction private constructor() : DumbAwareAction() {
 
     AndroidCoroutineScope(parent, AndroidDispatchers.workerThread).launch {
       val images = SystemImage.getSystemImages().toImmutableList()
-      withContext(AndroidDispatchers.uiThread) { AddDeviceDialog.build(images).show() }
+      withContext(AndroidDispatchers.uiThread) { AddDeviceDialog.build(images, project).show() }
     }
   }
 }

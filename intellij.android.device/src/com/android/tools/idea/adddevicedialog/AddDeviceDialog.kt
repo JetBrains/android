@@ -17,11 +17,13 @@ package com.android.tools.idea.adddevicedialog
 
 import com.android.tools.idea.wizard.ui.SimpleStudioWizardLayout
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import kotlinx.collections.immutable.ImmutableCollection
 
 internal object AddDeviceDialog {
-  internal fun build(images: ImmutableCollection<SystemImage>): DialogWrapper =
+  internal fun build(images: ImmutableCollection<SystemImage>, project: Project?): DialogWrapper =
     StudioWizardDialogBuilder(ConfigureDeviceStep(AddDeviceWizardModel(images)), "Add Device")
+      .setProject(project)
       .build(SimpleStudioWizardLayout())
 }
