@@ -49,7 +49,7 @@
     <orderEntry type="library" name="studio-plugin-toml" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
-    <orderEntry type="module" module-name="intellij.android.explainer" />
+    <orderEntry type="module" module-name="intellij.android.ml-api" />
     <orderEntry type="module" module-name="analytics" />
     <orderEntry type="module" module-name="intellij.android.server-flags" />
     <orderEntry type="module-library">

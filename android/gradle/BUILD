@@ -57,7 +57,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module, test]",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
-        "//tools/adt/idea/explainer:intellij.android.explainer[module, test]",
+        "//tools/adt/idea/ml-api:intellij.android.ml-api[module, test]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module, test]",
         "//tools/adt/idea/android/gradle:libandroid-core-proto[test]",
     ],

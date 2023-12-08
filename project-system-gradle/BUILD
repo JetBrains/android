@@ -56,7 +56,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
-        "//tools/adt/idea/explainer:intellij.android.explainer[module]",
+        "//tools/adt/idea/ml-api:intellij.android.ml-api[module]",
         "//tools/adt/idea/analytics[module]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
         "//tools/adt/idea/project-system-gradle:libandroid-core-proto",
