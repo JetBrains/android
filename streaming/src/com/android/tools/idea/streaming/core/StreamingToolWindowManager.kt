@@ -504,9 +504,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
       if (findContentByDeviceId(panel.id) != null) {
-        thisLogger().error("An attempt to add a duplicate panel ${TraceUtils.getSimpleId(content)} ${content.displayName}\n" +
-                           TraceUtils.getCurrentStack() +
-                           "Panel creation history:\n${FlightRecorder.getAndClear().joinToString("\n")}")
+        reportDuplicatePanel(content)
         return
       }
 
@@ -516,8 +514,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     else {
       val index = Arrays.binarySearch(contentManager.contents, content, TAB_COMPARATOR).inv()
       if (index < 0) {
-        thisLogger().error("An attempt to add a duplicate panel ${TraceUtils.getSimpleId(panel)} ${panel.title}\n" +
-                           FlightRecorder.getAndClear())
+        reportDuplicatePanel(content)
         return
       }
 
@@ -544,6 +541,12 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       showLiveIndicator()
       placeholderContent.removeAndDispose() // Remove the placeholder panel if it was present.
     }
+  }
+
+  private fun reportDuplicatePanel(content: Content) {
+    thisLogger().error("An attempt to add a duplicate panel ${TraceUtils.getSimpleId(content)} ${content.displayName}\n" +
+                       TraceUtils.getCurrentStack() +
+                       "Panel creation history:\n${FlightRecorder.getAndClear().joinToString("\n")}")
   }
 
   private fun removeEmulatorPanel(emulator: EmulatorController): Boolean {
