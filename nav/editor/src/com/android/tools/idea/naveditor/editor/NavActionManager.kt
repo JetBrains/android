@@ -52,6 +52,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.util.SystemInfo
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.KeyStroke
@@ -78,7 +79,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   private val activateSelectionAction: AnAction = ActivateSelectionAction()
 
   // Open for testing only
-  open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }
+  internal open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }
 
   override fun registerActionsShortcuts(component: JComponent) {
     registerAction(gotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component)

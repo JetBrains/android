@@ -55,6 +55,7 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
     ] + glob(["testData/**"]),
+    test_friends = ["//tools/adt/idea/nav/editor:intellij.android.nav.editor"],
     test_srcs = ["testSrc"],
     test_timeout = "long",
     visibility = ["//visibility:public"],

@@ -154,8 +154,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
     }
   }
 
-  @VisibleForTesting
-  data class RegularDestination @JvmOverloads constructor(
+  internal data class RegularDestination @JvmOverloads constructor(
     override val parent: NlComponent, val tag: String, private val destinationLabel: String? = null, val destinationClass: PsiClass,
     val idBase: String = destinationClass.name ?: tag, private val layoutFile: XmlFile? = null,
     override val inProject: Boolean = true, val dynamicModuleName: String? = null)

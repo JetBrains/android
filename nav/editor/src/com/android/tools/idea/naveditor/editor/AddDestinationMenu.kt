@@ -35,7 +35,6 @@ import com.android.tools.idea.npw.actions.NewAndroidFragmentAction
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.projectsystem.getToken
 import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
@@ -49,7 +48,6 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -101,7 +99,6 @@ import java.io.File
 import java.util.TreeSet
 import java.util.stream.Collectors
 import javax.swing.BorderFactory
-import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.SwingConstants
@@ -113,12 +110,9 @@ const val DESTINATION_MENU_MAIN_PANEL_NAME = "destinationMenuMainPanel"
 /**
  * "Add" popup menu in the navigation editor.
  */
-// open for testing only
-@VisibleForTesting
 open class AddDestinationMenu(surface: NavDesignSurface) :
   NavToolbarMenu(surface, "New Destination", StudioIcons.NavEditor.Toolbar.ADD_DESTINATION) {
 
-  private lateinit var button: JComponent
   private var creatingInProgress = false
   private val iconProvider: SlowResourcePreviewManager by lazy {
     val model = surface.model!!
@@ -256,7 +250,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
     result.addHierarchyListener { e ->
       if (e?.changeFlags?.and(HierarchyEvent.SHOWING_CHANGED.toLong())?.let { it > 0 } == true) {
-        if (neverShown || balloon?.wasFadedOut() == true) {
+        if (neverShown || balloonHasDisplayedAndClosed) {
           neverShown = false
           application.invokeLater { searchField.requestFocusInWindow() }
         }
@@ -352,7 +346,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   }
 
   private fun createNewDestination() {
-    balloon?.hide()
+    hideBalloon()
 
     val model = surface.model ?: return
     val module = model.module
@@ -413,7 +407,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     }
     creatingInProgress = true
 
-    balloon?.hide()
+    hideBalloon()
     lateinit var component: NlComponent
     WriteCommandAction.runWriteCommandAction(surface.project, "Add ${destination.label}", null, Runnable {
       destination.addToGraph()
@@ -435,21 +429,11 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     surface.selectionModel.setSelection(ImmutableList.of(component))
   }
 
-  override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
-    button = super.createCustomComponent(presentation, place)
-    buttonPresentation = presentation
-    return button
-  }
-
-  // open for testing only
-  open fun show() {
-    show(button)
-  }
-
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.project?.let { buttonPresentation?.isEnabled = !DumbService.isDumb(it) }
+    val project = e.project ?: return
+    e.presentation.isEnabled = !DumbService.isDumb(project)
   }
 
   private fun addDynamicDependency(destination: Destination) {

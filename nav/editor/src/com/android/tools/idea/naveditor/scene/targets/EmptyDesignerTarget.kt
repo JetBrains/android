@@ -29,6 +29,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.editor.NavActionManager
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.draw.DrawEmptyDesigner
+import com.intellij.openapi.actionSystem.ActionManager
 import icons.StudioIcons.NavEditor.Toolbar.ADD_DESTINATION
 import org.intellij.lang.annotations.JdkConstants
 
@@ -78,7 +79,14 @@ class EmptyDesignerTarget(private val surface: DesignSurface<*>) : BaseTarget() 
   }
 
   override fun mouseRelease(x: Int, y: Int, closestTargets: MutableList<Target>) {
-    val navActionManager = surface.actionManager as? NavActionManager
-    navActionManager?.addDestinationMenu?.show()
+    val navActionManager = (surface.actionManager as? NavActionManager)
+    val addDestinationMenuAction = navActionManager?.addDestinationMenu ?: return
+    ActionManager.getInstance().tryToExecute(
+      addDestinationMenuAction,
+      null,
+      surface,
+      "EmptyDesignerSurface",
+      true
+    )
   }
 }

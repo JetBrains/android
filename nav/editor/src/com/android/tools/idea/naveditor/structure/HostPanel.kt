@@ -239,8 +239,7 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
   }
 }
 
-@VisibleForTesting
-fun findReferences(psi: XmlFile, module: Module): List<XmlTag> {
+internal fun findReferences(psi: XmlFile, module: Module): List<XmlTag> {
   ProgressManager.checkCanceled()
   val result = mutableListOf<XmlTag>()
   val query: Query<PsiReference> = ReferencesSearch.search(psi)
