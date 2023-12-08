@@ -24,7 +24,12 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -72,6 +77,8 @@ class WearHealthServicesToolWindowTest : LightPlatformTestCase() {
 
   @Test
   fun `test panel screenshot matches expectation with modified state manager values`() = runBlocking {
+    stateManager.getCapabilitiesList().waitForValue(deviceManager.capabilities)
+
     stateManager.setPreset(Preset.CUSTOM)
     stateManager.setCapabilityEnabled(deviceManager.capabilities[0], true)
     stateManager.setCapabilityEnabled(deviceManager.capabilities[1], false)
@@ -98,5 +105,14 @@ class WearHealthServicesToolWindowTest : LightPlatformTestCase() {
   // The UI loads on asynchronous coroutine, we need to wait
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) = waitForCondition(10, TimeUnit.SECONDS) {
     root.findDescendant<JCheckBox> { it.text.contains(text) && it.isSelected == selected } != null
+  }
+
+  private suspend fun <T> StateFlow<T>.waitForValue(value: T, timeout: Long = 1000) {
+    val received = mutableListOf<T>()
+    try {
+      withTimeout(timeout) { takeWhile { it != value }.collect { received.add(it) } }
+    } catch (ex: TimeoutCancellationException) {
+      Assert.fail("Timed out waiting for value $value. Received values so far $received")
+    }
   }
 }
