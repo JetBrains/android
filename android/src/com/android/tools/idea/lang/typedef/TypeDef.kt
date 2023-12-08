@@ -15,27 +15,29 @@
  */
 package com.android.tools.idea.lang.typedef
 
+import com.android.tools.compose.isDeprecated
 import com.intellij.codeInsight.completion.PrioritizedLookupElement
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiDocCommentOwner
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiNamedElement
+import javax.swing.Icon
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
-import javax.swing.Icon
 
 /**
- * Represents an Android typedef (i.e. an annotation that is itself annotated with @IntDef/@LongDef/@StringDef),
- * including the possible values.
+ * Represents an Android typedef (i.e. an annotation that is itself annotated
+ * with @IntDef/@LongDef/@StringDef), including the possible values.
  *
  * Example TypeDef:
- *
  * ```kotlin
  *   @IntDef(NORTH, EAST, SOUTH, WEST)
  *   annotation class Direction {
@@ -48,11 +50,19 @@ import javax.swing.Icon
  *   }
  * ```
  */
-internal data class TypeDef(val annotation: PsiElement, val values: List<PsiElement>, val type: Type) {
+internal data class TypeDef(
+  val annotation: PsiElement,
+  val values: List<PsiElement>,
+  val type: Type
+) {
   /** Different variants of Android typedefs. */
 
   /** The type of a typedef - one of `@IntDef`, `@LongDef`, or `@StringDef` */
-  internal enum class Type(val annotationName: String, val javaTypeName: String, val kotlinTypeName: String) {
+  internal enum class Type(
+    val annotationName: String,
+    val javaTypeName: String,
+    val kotlinTypeName: String
+  ) {
     INT("IntDef", "int", "Int"),
     LONG("LongDef", "long", "Long"),
     STRING("StringDef", "String", "String");
@@ -63,15 +73,16 @@ internal data class TypeDef(val annotation: PsiElement, val values: List<PsiElem
   private val valuesSet = values.toSet()
 
   /** Returns the name of the typedef itself. e.g. `"Direction"` from the example above. */
-  private fun getName(): String? = when(annotation) {
-    is KtClass -> annotation.name
-    is PsiClass -> annotation.name
-    else -> null
-  }
+  private fun getName(): String? =
+    when (annotation) {
+      is KtClass -> annotation.name
+      is PsiClass -> annotation.name
+      else -> null
+    }
 
   /**
-   * Returns a decorated version of the given [LookupElement], or [delegate] if it does not correspond
-   * to a value of this [TypeDef] or required information is missing.
+   * Returns a decorated version of the given [LookupElement], or [delegate] if it does not
+   * correspond to a value of this [TypeDef] or required information is missing.
    */
   fun maybeDecorateAndPrioritize(delegate: LookupElement): LookupElement {
     val completionElement = delegate.psiElement?.navigationElement
@@ -80,7 +91,21 @@ internal data class TypeDef(val annotation: PsiElement, val values: List<PsiElem
     val annotationName = getName() ?: return delegate
     val lookupStrings = completionElement.getLookupStrings() ?: return delegate
     val icon = completionElement.getIcon(/* flags= */ 0)
-    val element = TypeDefLookupElementDecorator(delegate, fqName, annotationName, lookupStrings, icon)
+    val isStrikeout =
+      when (completionElement) {
+        is KtElement -> completionElement.isDeprecated()
+        is PsiDocCommentOwner -> completionElement.isDeprecated
+        else -> false
+      }
+    val element =
+      TypeDefLookupElementDecorator(
+        delegate,
+        fqName,
+        annotationName,
+        lookupStrings,
+        icon,
+        isStrikeout
+      )
     return PrioritizedLookupElement.withPriority(element, HIGH_PRIORITY)
   }
 
@@ -89,28 +114,36 @@ internal data class TypeDef(val annotation: PsiElement, val values: List<PsiElem
     private val fqName: String,
     private val annotationName: String,
     private val lookupStrings: List<String>,
-    private val icon: Icon
+    private val icon: Icon,
+    private val isStrikeout: Boolean,
   ) : LookupElementDecorator<LookupElement>(delegate) {
     override fun getLookupString() = lookupStrings.first()
+
     override fun getAllLookupStrings() = lookupStrings.toSet()
+
     override fun renderElement(presentation: LookupElementPresentation) {
       presentation.icon = icon
       presentation.itemText = lookupStrings.first()
+      presentation.isStrikeout = isStrikeout
       presentation.isItemTextBold = true
       val nameWithClasses = lookupStrings.asReversed().joinToString(".")
-      fqName.substringBeforeLast(nameWithClasses).trimEnd('.').let { presentation.tailText = " ($it)" }
+      fqName.substringBeforeLast(nameWithClasses).trimEnd('.').let {
+        presentation.tailText = " ($it)"
+      }
       presentation.typeText = "@$annotationName"
     }
   }
 
   /**
-   * Returns all the ways we might start to type this element, i.e. all the parts of its Class/Object-qualified name.
+   * Returns all the ways we might start to type this element, i.e. all the parts of its
+   * Class/Object-qualified name.
    */
-  private fun PsiNamedElement.getLookupStrings(): List<String>? = when(this) {
-    is KtProperty -> getLookupStrings()
-    is PsiField -> getLookupStrings()
-    else -> null
-  }
+  private fun PsiNamedElement.getLookupStrings(): List<String>? =
+    when (this) {
+      is KtProperty -> getLookupStrings()
+      is PsiField -> getLookupStrings()
+      else -> null
+    }
 
   private fun KtProperty.getLookupStrings(): List<String> = buildList {
     name?.let { add(it) } ?: return@buildList

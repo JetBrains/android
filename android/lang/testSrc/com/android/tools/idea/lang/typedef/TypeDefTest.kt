@@ -17,7 +17,7 @@ package com.android.tools.idea.lang.typedef
 
 import com.android.tools.idea.lang.typedef.TypeDef.Companion.ANNOTATION_FQ_NAMES
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.findParentElement
+import com.android.tools.idea.testing.getEnclosing
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.PrioritizedLookupElement
@@ -37,8 +37,7 @@ import org.junit.runners.JUnit4
 /** Tests the [TypeDef] class. */
 @RunWith(JUnit4::class)
 class TypeDefTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
 
   private val fixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
 
@@ -90,9 +89,8 @@ class TypeDefTest {
     val javaTypeDef = createJavaTypeDef()
     val lookupElement = LookupElementBuilder.create(javaTypeDef.values.last())
 
-    assertThat(javaTypeDef.maybeDecorateAndPrioritize(lookupElement)?.allLookupStrings).containsExactly(
-      "KnocksSongs", "CLASSIC"
-    )
+    assertThat(javaTypeDef.maybeDecorateAndPrioritize(lookupElement).allLookupStrings)
+      .containsExactly("KnocksSongs", "CLASSIC")
   }
 
   @Test
@@ -102,7 +100,7 @@ class TypeDefTest {
     val lookupElement = LookupElementBuilder.create(javaTypeDef.values.last())
 
     val presentation = LookupElementPresentation()
-    javaTypeDef.maybeDecorateAndPrioritize(lookupElement)?.renderElement(presentation)
+    javaTypeDef.maybeDecorateAndPrioritize(lookupElement).renderElement(presentation)
 
     with(presentation) {
       assertThat(icon).isEqualTo(javaTypeDef.values.last().getIcon(0))
@@ -110,6 +108,20 @@ class TypeDefTest {
       assertThat(isItemTextBold).isTrue()
       assertThat(typeText).isEqualTo("@KnocksSong")
     }
+  }
+
+  @Test
+  @RunsInEdt
+  fun decorateAndPrioritize_java_strikesOutDeprecated() {
+    val javaTypeDef = createJavaTypeDef()
+    val struckOut =
+      javaTypeDef.values
+        .map(LookupElementBuilder::create)
+        .map(javaTypeDef::maybeDecorateAndPrioritize)
+        .map { decorated ->
+          LookupElementPresentation().also { decorated.renderElement(it) }.isStrikeout
+        }
+    assertThat(struckOut).containsExactly(true, true, false)
   }
 
   @Test
@@ -140,9 +152,8 @@ class TypeDefTest {
     val kotlinTypeDef = createKotlinTypeDef()
     val lookupElement = LookupElementBuilder.create(kotlinTypeDef.values.first())
 
-    assertThat(kotlinTypeDef.maybeDecorateAndPrioritize(lookupElement)?.allLookupStrings).containsExactly(
-      "RegrettesSong", "Companion", "BARELY_ON_MY_MIND"
-    )
+    assertThat(kotlinTypeDef.maybeDecorateAndPrioritize(lookupElement).allLookupStrings)
+      .containsExactly("RegrettesSong", "Companion", "BARELY_ON_MY_MIND")
   }
 
   @Test
@@ -152,7 +163,7 @@ class TypeDefTest {
     val lookupElement = LookupElementBuilder.create(kotlinTypeDef.values.first())
 
     val presentation = LookupElementPresentation()
-    kotlinTypeDef.maybeDecorateAndPrioritize(lookupElement)?.renderElement(presentation)
+    kotlinTypeDef.maybeDecorateAndPrioritize(lookupElement).renderElement(presentation)
 
     with(presentation) {
       assertThat(icon).isEqualTo(kotlinTypeDef.values.last().getIcon(0))
@@ -160,6 +171,20 @@ class TypeDefTest {
       assertThat(isItemTextBold).isTrue()
       assertThat(typeText).isEqualTo("@RegrettesSong")
     }
+  }
+
+  @Test
+  @RunsInEdt
+  fun decorateAndPrioritize_kotlin_strikesOutDeprecated() {
+    val kotlinTypeDef = createKotlinTypeDef()
+    val struckOut =
+      kotlinTypeDef.values
+        .map(LookupElementBuilder::create)
+        .map(kotlinTypeDef::maybeDecorateAndPrioritize)
+        .map { decorated ->
+          LookupElementPresentation().also { decorated.renderElement(it) }.isStrikeout
+        }
+    assertThat(struckOut).containsExactly(true, false, false)
   }
 
   @Test
@@ -172,47 +197,54 @@ class TypeDefTest {
   }
 
   private fun createKotlinTypeDef(): TypeDef {
-    val file = fixture.addFileToProject(
-      "/src/com/typedef/RegrettesSong.kt",
-      // language=kotlin
-      """
+    val file =
+      fixture.addFileToProject(
+        "/src/com/typedef/RegrettesSong.kt",
+        // language=kotlin
+        """
         package src.com.typedef
         annotation class RegrettesSong {
           companion object {
+            @Deprecated("meaningless msg")
             const val BARELY_ON_MY_MIND = 0
             const val MONDAY = 1
             const val I_DARE_YOU = 2
           }
         }
-      """.trimIndent()
-    )
+        """
+          .trimIndent()
+      )
     fixture.openFileInEditor(file.virtualFile)
-    val annotation = fixture.findParentElement<KtClass>("Regrettes|Song")
-    val firstValue = fixture.findParentElement<KtProperty>("BAR|ELY")
-    val secondValue = fixture.findParentElement<KtProperty>("MON|DAY")
-    val thirdValue = fixture.findParentElement<KtProperty>("DA|RE")
+    val annotation = fixture.getEnclosing<KtClass>("RegrettesSong")
+    val firstValue = fixture.getEnclosing<KtProperty>("BARELY")
+    val secondValue = fixture.getEnclosing<KtProperty>("MONDAY")
+    val thirdValue = fixture.getEnclosing<KtProperty>("DARE")
     return TypeDef(annotation, listOf(firstValue, secondValue, thirdValue), TypeDef.Type.INT)
   }
 
   private fun createJavaTypeDef(): TypeDef {
-    val file = fixture.addFileToProject(
-      "/src/com/typedef/KnocksSongs.java",
-      // language=java
-      """
-      package src.com.typedef;
-      public class KnocksSongs {
-        public static final int SLOW_SONG = 0;
-        public static final int RIDE_OR_DIE = 1;
-        public static final int CLASSIC = 2;
-        public @interface KnocksSong {}
-      }
-      """.trimIndent()
-    )
+    val file =
+      fixture.addFileToProject(
+        "/src/com/typedef/KnocksSongs.java",
+        // language=java
+        """
+        package src.com.typedef;
+        public class KnocksSongs {
+          /** @deprecated */
+          public static final int SLOW_SONG = 0;
+          @Deprecated
+          public static final int RIDE_OR_DIE = 1;
+          public static final int CLASSIC = 2;
+          public @interface KnocksSong {}
+        }
+        """
+          .trimIndent()
+      )
     fixture.openFileInEditor(file.virtualFile)
-    val annotation = fixture.findParentElement<PsiClass>("Knocks|Song ")
-    val firstValue = fixture.findParentElement<PsiField>("SL|OW")
-    val secondValue = fixture.findParentElement<PsiField>("RI|DE")
-    val thirdValue = fixture.findParentElement<PsiField>("CLAS|SIC")
+    val annotation = fixture.getEnclosing<PsiClass>("Knocks|Song ")
+    val firstValue = fixture.getEnclosing<PsiField>("SLOW")
+    val secondValue = fixture.getEnclosing<PsiField>("RIDE")
+    val thirdValue = fixture.getEnclosing<PsiField>("CLASSIC")
     return TypeDef(annotation, listOf(firstValue, secondValue, thirdValue), TypeDef.Type.INT)
   }
 }
