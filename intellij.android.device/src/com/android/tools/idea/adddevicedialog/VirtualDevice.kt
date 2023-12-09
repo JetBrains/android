@@ -15,4 +15,9 @@
  */
 package com.android.tools.idea.adddevicedialog
 
-internal data class VirtualDevice internal constructor(internal val name: String = "")
+import androidx.compose.runtime.Immutable
+import com.android.sdklib.AndroidVersion
+
+@Immutable
+internal data class VirtualDevice
+internal constructor(internal val name: String, internal val sdkExtensionLevel: AndroidVersion)

@@ -15,15 +15,27 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.wizard.model.WizardModel
 import kotlinx.collections.immutable.ImmutableCollection
 
 internal class AddDeviceWizardModel
 internal constructor(internal val systemImages: ImmutableCollection<SystemImage>) : WizardModel() {
-  internal var device by mutableStateOf(VirtualDevice())
+  internal var device by initDevice()
+
+  private fun initDevice(): MutableState<VirtualDevice> {
+    val level =
+      systemImages //
+        .map(SystemImage::apiLevel)
+        .filterNot(AndroidVersion::isPreview)
+        .max()
+
+    return mutableStateOf(VirtualDevice("", level))
+  }
 
   override fun handleFinished() {
     VirtualDevices.add(device)
