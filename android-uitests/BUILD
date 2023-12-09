@@ -2599,6 +2599,30 @@ java_test(
 )
 
 java_test(
+    name = "DrawableResourceNavigationTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data:native_libs",
+        "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
+        "//tools/adt/idea/android/lib:sampleData",
+        "//tools/adt/idea/android/testData",
+    ] + glob([
+        "testData/DrawableResource/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.resourceexplorer.DrawableResourceNavigationTest"],
+    tags = COMMON_TAGS + [
+        "no_windows",
+        "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "JavaLibsDepTest",
     size = "large",
     data = COMMON_DATA + [
