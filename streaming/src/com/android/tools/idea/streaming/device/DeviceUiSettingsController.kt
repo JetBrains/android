@@ -31,6 +31,7 @@ internal class DeviceUiSettingsController(
     val response = deviceController.getUiSettings()
     model.inDarkMode.setFromController(response.darkMode)
     model.fontSizeInPercent.setFromController(response.fontSize)
+    model.screenDensity.setFromController(response.density)
   }
 
   override fun setDarkMode(on: Boolean) {
@@ -39,5 +40,9 @@ internal class DeviceUiSettingsController(
 
   override fun setFontSize(percent: Int) {
     deviceController.sendControlMessage(SetFontSizeMessage(percent))
+  }
+
+  override fun setScreenDensity(density: Int) {
+    deviceController.sendControlMessage(SetScreenDensityMessage(density))
   }
 }

@@ -44,7 +44,7 @@ class DeviceUiSettingsControllerTest {
   private val testRootDisposable
     get() = agentRule.disposable
 
-  private val model: UiSettingsModel by lazy { UiSettingsModel() }
+  private val model: UiSettingsModel by lazy { UiSettingsModel(Dimension(1344, 2992), 480) }
   private val device: FakeDevice by lazy { agentRule.connectDevice("Pixel 8", 34, Dimension(1080, 2280)) }
   private val agent: FakeScreenSharingAgent by lazy { device.agent }
   private val controller: DeviceUiSettingsController by lazy { createUiSettingsController() }
@@ -54,39 +54,54 @@ class DeviceUiSettingsControllerTest {
     controller.initAndWait()
     val darkMode = createAndAddListener(model.inDarkMode, true)
     val fontSize = createAndAddListener(model.fontSizeInPercent, 100)
-    checkInitialValues(changes = 1, darkMode, fontSize)
+    val density = createAndAddListener(model.screenDensity, 160)
+    checkInitialValues(changes = 1, darkMode, fontSize, density)
   }
 
   @Test
   fun testReadDefaultValueWhenAttachingBeforeInit() {
     val darkMode = createAndAddListener(model.inDarkMode, true)
     val fontSize = createAndAddListener(model.fontSizeInPercent, 100)
+    val density = createAndAddListener(model.screenDensity, 160)
     controller.initAndWait()
-    checkInitialValues(changes = 2, darkMode, fontSize)
+    checkInitialValues(changes = 2, darkMode, fontSize, density)
   }
 
-  private fun checkInitialValues(changes: Int, darkMode: ListenerState<Boolean>, fontSize: ListenerState<Int>) {
+  private fun checkInitialValues(
+    changes: Int,
+    darkMode: ListenerState<Boolean>,
+    fontSize: ListenerState<Int>,
+    density: ListenerState<Int>
+  ) {
     assertThat(model.inDarkMode.value).isFalse()
     assertThat(darkMode.changes).isEqualTo(changes)
     assertThat(darkMode.lastValue).isFalse()
     assertThat(model.fontSizeInPercent.value).isEqualTo(100)
     assertThat(fontSize.changes).isEqualTo(changes)
     assertThat(fontSize.lastValue).isEqualTo(100)
+    assertThat(model.screenDensity.value).isEqualTo(480)
+    assertThat(density.changes).isEqualTo(changes)
+    assertThat(density.lastValue).isEqualTo(480)
   }
 
   @Test
   fun testReadCustomValue() {
     agent.darkMode = true
     agent.fontSize = 85
+    agent.screenDensity = 608
     controller.initAndWait()
     val darkMode = createAndAddListener(model.inDarkMode, false)
     val fontSize = createAndAddListener(model.fontSizeInPercent, 100)
+    val density = createAndAddListener(model.screenDensity, 160)
     assertThat(model.inDarkMode.value).isTrue()
     assertThat(darkMode.changes).isEqualTo(1)
     assertThat(darkMode.lastValue).isTrue()
     assertThat(model.fontSizeInPercent.value).isEqualTo(85)
     assertThat(fontSize.changes).isEqualTo(1)
     assertThat(fontSize.lastValue).isEqualTo(85)
+    assertThat(model.screenDensity.value).isEqualTo(608)
+    assertThat(density.changes).isEqualTo(1)
+    assertThat(density.lastValue).isEqualTo(608)
   }
 
   @Test
@@ -111,6 +126,15 @@ class DeviceUiSettingsControllerTest {
     waitForCondition(10.seconds) { agent.fontSize == 85 }
     model.fontSizeIndex.setFromUi(FontSize.values().size - 1)
     waitForCondition(10.seconds) { agent.fontSize == FontSize.values().last().percent }
+  }
+
+  @Test
+  fun testSetDensity() {
+    controller.initAndWait()
+    model.screenDensityIndex.setFromUi(0)
+    waitForCondition(10.seconds) { agent.screenDensity == 408 }
+    model.screenDensityIndex.setFromUi(model.screenDensityMaxIndex.value)
+    waitForCondition(10.seconds) { agent.screenDensity == 672 }
   }
 
   private fun createUiSettingsController(): DeviceUiSettingsController =

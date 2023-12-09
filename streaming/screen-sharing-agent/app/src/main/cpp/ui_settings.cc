@@ -29,8 +29,14 @@ using namespace std;
 
 namespace {
 
+#define DIVIDER_PREFIX "-- "
 #define DARK_MODE_DIVIDER "-- Dark Mode --"
 #define FONT_SIZE_DIVIDER "-- Font Size --"
+#define DENSITY_DIVIDER "-- Density --"
+
+#define PHYSICAL_DENSITY_PATTERN "Physical density: %d"
+#define OVERRIDE_DENSITY_PATTERN "Override density: %d"
+
 
 string TrimEnd(string value) {
   while (!value.empty() && value.back() <= ' ') {
@@ -57,12 +63,39 @@ void ProcessFontSize(stringstream* stream, UiSettingsResponse* response) {
   response->set_font_size(font_size * 100.);
 }
 
+void ReadDensity(stringstream* stream, const char* pattern, int* density) {
+  string line;
+  *density = 0;
+  int line_start_position = stream->tellg();
+  if (getline(*stream, line, '\n')) {
+    if (line.rfind(DIVIDER_PREFIX, 0) == 0) { // line.startsWith(DIVIDER_PREFIX)
+      stream->seekg(line_start_position); // go back to start of line
+      return;
+    }
+    sscanf(line.c_str(), pattern, density);
+  }
+}
+
+void ProcessDensityDivider(stringstream* stream, UiSettingsResponse* response) {
+  int physical_density, override_density;
+  ReadDensity(stream, PHYSICAL_DENSITY_PATTERN, &physical_density);
+  ReadDensity(stream, OVERRIDE_DENSITY_PATTERN, &override_density);
+  if (physical_density == 0) {
+    physical_density = 160;
+  }
+  if (override_density == 0) {
+    override_density = physical_density;
+  }
+  response->set_density(override_density);
+}
+
 void ProcessAdbOutput(const string& output, UiSettingsResponse* response) {
   stringstream stream(output);
   string line;
   while (getline(stream, line, '\n')) {
     if (line == DARK_MODE_DIVIDER) ProcessDarkMode(&stream, response);
     if (line == FONT_SIZE_DIVIDER) ProcessFontSize(&stream, response);
+    if (line == DENSITY_DIVIDER) ProcessDensityDivider(&stream, response);
   }
 }
 
@@ -78,7 +111,9 @@ void UiSettings::Get(UiSettingsResponse* response) {
     "echo " DARK_MODE_DIVIDER "; "
     "cmd uimode night; "
     "echo " FONT_SIZE_DIVIDER "; "
-    "settings get system font_scale";
+    "settings get system font_scale; "
+    "echo " DENSITY_DIVIDER "; "
+    "wm density";
 
   string output = ExecuteShellCommand(command);
   ProcessAdbOutput(TrimEnd(output), response);
@@ -101,6 +136,12 @@ void UiSettings::SetFontSize(int32_t font_size) {
   last_settings_.set_font_size(font_size);
 }
 
+void UiSettings::SetScreenDensity(int32_t density) {
+  string command = StringPrintf("wm density %d", density);
+  ExecuteShellCommand(command);
+  last_settings_.set_density(density);
+}
+
 // Reset all changed settings to the initial state.
 // If the user overrides any setting on the device the original state is ignored.
 void UiSettings::Reset() {
@@ -115,6 +156,9 @@ void UiSettings::Reset() {
   }
   if (current_settings.font_size() != initial_settings_.font_size() && current_settings.font_size() == last_settings_.font_size()) {
     SetFontSize(initial_settings_.font_size());
+  }
+  if (current_settings.density() != initial_settings_.density() && current_settings.density() == last_settings_.density()) {
+    SetScreenDensity(initial_settings_.density());
   }
 }
 

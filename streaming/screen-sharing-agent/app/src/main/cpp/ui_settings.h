@@ -31,6 +31,8 @@ public:
 
   void SetFontSize(int32_t font_size);
 
+  void SetScreenDensity(int32_t density);
+
   void Reset();
 
 private:

@@ -45,7 +45,8 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = 
     val component = event.findComponentForAction(this) as? JComponent ?: emulatorView
     val project = event.project ?: return
     val serialNumber = getEmulatorController(event)?.emulatorId?.serialNumber ?: return
-    val model = UiSettingsModel()
+    val config = getEmulatorConfig(event) ?: return
+    val model = UiSettingsModel(config.displaySize, config.density)
     val controller = EmulatorUiSettingsController(project, serialNumber, model, emulatorView)
     AndroidCoroutineScope(emulatorView).launch {
       controller.populateModel()

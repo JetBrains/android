@@ -33,6 +33,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.doAnswer
+import java.awt.Dimension
 import java.awt.event.WindowFocusListener
 import javax.swing.JCheckBox
 import javax.swing.JPanel
@@ -53,10 +54,11 @@ class UiSettingsPanelTest {
 
   @Before
   fun before() {
-    model = UiSettingsModel()
+    model = UiSettingsModel(Dimension(1344, 2992), 480)
     panel = UiSettingsPanel(model, projectRule.disposable)
     model.inDarkMode.uiChangeListener = ChangeListener { lastCommand = "dark=$it" }
     model.fontSizeInPercent.uiChangeListener = ChangeListener { lastCommand = "fontSize=$it" }
+    model.screenDensity.uiChangeListener = ChangeListener { lastCommand = "density=$it" }
   }
 
   @Test
@@ -81,6 +83,19 @@ class UiSettingsPanelTest {
 
     slider.value = 0
     waitForCondition(1.seconds) { lastCommand == "fontSize=85" }
+  }
+
+  @Test
+  fun testSetDensityFromUi() {
+    val slider = AdtUiUtils.allComponents(panel).filterIsInstance<JSlider>().filter { it.name == DENSITY_TITLE }.single()
+    assertThat(slider.value).isEqualTo(1)
+
+    val densities = GoogleDensityRange.computeDensityRange(Dimension(1344, 2992), 480)
+    slider.value = densities.lastIndex
+    waitForCondition(1.seconds) { lastCommand == "density=672" }
+
+    slider.value = 0
+    waitForCondition(1.seconds) { lastCommand == "density=408" }
   }
 
   @Test

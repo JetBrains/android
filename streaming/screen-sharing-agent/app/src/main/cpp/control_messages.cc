@@ -71,6 +71,9 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case SetFontSizeMessage::TYPE:
       return unique_ptr<ControlMessage>(SetFontSizeMessage::Deserialize(stream));
 
+    case SetScreenDensityMessage::TYPE:
+      return unique_ptr<ControlMessage>(SetScreenDensityMessage::Deserialize(stream));
+
     default:
       Log::Fatal(INVALID_CONTROL_MESSAGE, "Unexpected message type %d", type);
   }
@@ -185,6 +188,11 @@ SetFontSizeMessage* SetFontSizeMessage::Deserialize(Base128InputStream& stream) 
   return new SetFontSizeMessage(font_size);
 }
 
+SetScreenDensityMessage* SetScreenDensityMessage::Deserialize(Base128InputStream& stream) {
+  int32_t density = stream.ReadInt32();
+  return new SetScreenDensityMessage(density);
+}
+
 void ErrorResponse::Serialize(Base128OutputStream& stream) const {
   CorrelatedMessage::Serialize(stream);
   stream.WriteBytes(error_message_);
@@ -235,6 +243,7 @@ void UiSettingsResponse::Serialize(Base128OutputStream& stream) const {
   CorrelatedMessage::Serialize(stream);
   stream.WriteBool(dark_mode_);
   stream.WriteInt32(font_size_);
+  stream.WriteInt32(density_);
 }
 
 void SetDarkModeMessage::Serialize(Base128OutputStream& stream) const {
@@ -245,6 +254,11 @@ void SetDarkModeMessage::Serialize(Base128OutputStream& stream) const {
 void SetFontSizeMessage::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteInt32(font_size_);
+}
+
+void SetScreenDensityMessage::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteInt32(density_);
 }
 
 }  // namespace screensharing

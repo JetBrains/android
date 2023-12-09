@@ -42,6 +42,7 @@ import javax.swing.plaf.UIResource
 private const val TITLE = "Device Settings Shortcuts"
 internal const val DARK_THEME_TITLE = "Dark Theme:"
 internal const val FONT_SIZE_TITLE = "Font Size:"
+internal const val DENSITY_TITLE = "Screen Size:"
 
 /**
  * Custom horizontal spacing between labels and controls.
@@ -73,6 +74,13 @@ internal class UiSettingsPanel(
             .bindSliderPosition(model.fontSizeIndex, parentDisposable)
             .bindSliderMaximum(model.fontSizeMaxIndex, parentDisposable)
             .apply { component.name = FONT_SIZE_TITLE }
+        }
+        row(label(DENSITY_TITLE)) {
+          slider(0, model.screenDensityIndex.value, 1, 1)
+            .noLabels()
+            .bindSliderPosition(model.screenDensityIndex, parentDisposable)
+            .bindSliderMaximum(model.screenDensityMaxIndex, parentDisposable)
+            .apply { component.name = DENSITY_TITLE }
         }
       }
     })

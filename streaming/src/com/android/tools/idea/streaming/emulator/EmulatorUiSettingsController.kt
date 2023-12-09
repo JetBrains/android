@@ -32,14 +32,21 @@ import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 
+private const val DIVIDER_PREFIX = "-- "
 private const val DARK_MODE_DIVIDER = "-- Dark Mode --"
 private const val FONT_SIZE_DIVIDER = "-- Font Size --"
+private const val DENSITY_DIVIDER = "-- Density --"
 
 internal const val POPULATE_COMMAND =
   "echo $DARK_MODE_DIVIDER; " +
   "cmd uimode night; " +
   "echo $FONT_SIZE_DIVIDER; " +
-  "settings get system font_scale"
+  "settings get system font_scale; " +
+  "echo $DENSITY_DIVIDER; " +
+  "wm density"
+
+private const val PHYSICAL_DENSITY_PATTERN = "Physical density: (\\d+)"
+private const val OVERRIDE_DENSITY_PATTERN = "Override density: (\\d+)"
 
 /**
  * A controller for the UI settings for an Emulator,
@@ -61,6 +68,7 @@ internal class EmulatorUiSettingsController(
         when (iterator.next()) {
           DARK_MODE_DIVIDER -> processDarkMode(iterator)
           FONT_SIZE_DIVIDER -> processFontSize(iterator)
+          DENSITY_DIVIDER -> processScreenDensity(iterator)
         }
       }
     }
@@ -76,6 +84,25 @@ internal class EmulatorUiSettingsController(
     model.fontSizeInPercent.setFromController((fontSize * 100f + 0.5f).toInt())
   }
 
+  private fun processScreenDensity(iterator: ListIterator<String>) {
+    val physicalDensity = readDensity(iterator, PHYSICAL_DENSITY_PATTERN) ?: 160
+    val overrideDensity = readDensity(iterator, OVERRIDE_DENSITY_PATTERN) ?: physicalDensity
+    model.screenDensity.setFromController(overrideDensity)
+  }
+
+  private fun readDensity(iterator: ListIterator<String>, pattern: String): Int? {
+    if (!iterator.hasNext()) {
+      return null
+    }
+    val density = iterator.next()
+    if (density.startsWith(DIVIDER_PREFIX)) {
+      iterator.previous()
+      return null
+    }
+    val match = Regex(pattern).find(density) ?: return null
+    return match.groupValues[1].toIntOrNull()
+  }
+
   override fun setDarkMode(on: Boolean) {
     val darkMode = if (on) "yes" else "no"
     scope.launch { executeShellCommand("cmd uimode night $darkMode") }
@@ -83,6 +110,10 @@ internal class EmulatorUiSettingsController(
 
   override fun setFontSize(percent: Int) {
     scope.launch { executeShellCommand("settings put system font_scale %s".format(decimalFormat.format(percent.toFloat() / 100f))) }
+  }
+
+  override fun setScreenDensity(density: Int) {
+    scope.launch { executeShellCommand("wm density %d".format(density)) }
   }
 
   private suspend fun executeShellCommand(command: String, commandProcessor: (lines: List<String>) -> Unit = {}) {

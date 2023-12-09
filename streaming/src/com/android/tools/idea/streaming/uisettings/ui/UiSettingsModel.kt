@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.uisettings.ui
 import com.android.tools.idea.streaming.uisettings.binding.DefaultTwoWayProperty
 import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
+import java.awt.Dimension
 import kotlin.math.abs
 
 /**
@@ -36,15 +37,26 @@ internal enum class FontSize(val percent: Int) {
 /**
  * A model for the [UiSettingsPanel] with bindable properties for getting and setting various Android settings.
  */
-internal class UiSettingsModel {
+internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int) {
+  private val densities = GoogleDensityRange.computeDensityRange(screenSize, physicalDensity)
+
   val inDarkMode: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
   val fontSizeInPercent: TwoWayProperty<Int> = DefaultTwoWayProperty(100)
   val fontSizeIndex: TwoWayProperty<Int> = fontSizeInPercent.createMappedProperty(::toFontSizeIndex, ::toFontSizeInPercent)
   val fontSizeMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(FontSize.values().size - 1)
+  val screenDensity: TwoWayProperty<Int> = DefaultTwoWayProperty(physicalDensity)
+  val screenDensityIndex: TwoWayProperty<Int> = screenDensity.createMappedProperty(::toDensityIndex, ::toDensityFromIndex)
+  val screenDensityMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(densities.size - 1)
 
   private fun toFontSizeInPercent(fontIndex: Int): Int =
     FontSize.values()[fontIndex.coerceIn(0, fontSizeMaxIndex.value)].percent
 
   private fun toFontSizeIndex(percent: Int): Int =
     FontSize.values().minBy { abs(it.percent - percent) }.ordinal
+
+  private fun toDensityFromIndex(densityIndex: Int): Int =
+    densities[densityIndex.coerceIn(0, screenDensityMaxIndex.value)]
+
+  private fun toDensityIndex(density: Int): Int =
+    densities.indexOf(densities.minBy { abs(it - density) })
 }

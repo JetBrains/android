@@ -186,6 +186,8 @@ class FakeScreenSharingAgent(
   var darkMode = false
   @Volatile
   var fontSize = 100
+  @Volatile
+  var screenDensity = 480
 
   private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
   private var startVideoStream = false
@@ -551,7 +553,7 @@ class FakeScreenSharingAgent(
   }
 
   private fun sendUiSettingsResponse(message: UiSettingsRequest) {
-    sendNotificationOrResponse(UiSettingsResponse(message.requestId, darkMode, fontSize))
+    sendNotificationOrResponse(UiSettingsResponse(message.requestId, darkMode, fontSize, screenDensity))
   }
 
   private fun setDarkMode(message: SetDarkModeMessage) {
@@ -560,6 +562,10 @@ class FakeScreenSharingAgent(
 
   private fun setFontSize(message: SetFontSizeMessage) {
     fontSize = message.fontSize
+  }
+
+  private fun setScreenDensity(message: SetScreenDensityMessage) {
+    screenDensity = message.density
   }
 
   private fun sendNotificationOrResponse(message: ControlMessage) {
@@ -893,6 +899,7 @@ class FakeScreenSharingAgent(
         is UiSettingsRequest -> sendUiSettingsResponse(message)
         is SetDarkModeMessage -> setDarkMode(message)
         is SetFontSizeMessage -> setFontSize(message)
+        is SetScreenDensityMessage -> setScreenDensity(message)
         else -> {}
       }
       commandLog.add(message)

@@ -292,6 +292,10 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       SetFontSize((const SetFontSizeMessage&) message);
       break;
 
+    case SetScreenDensityMessage::TYPE:
+      SetScreenDensity((const SetScreenDensityMessage&) message);
+      break;
+
     default:
       Log::E("Unexpected message type %d", message.type());
       break;
@@ -567,6 +571,10 @@ void Controller::SetDarkMode(const SetDarkModeMessage& message) {
 
 void Controller::SetFontSize(const SetFontSizeMessage& message) {
   ui_settings_.SetFontSize(message.font_size());
+}
+
+void Controller::SetScreenDensity(const SetScreenDensityMessage& message) {
+  ui_settings_.SetScreenDensity(message.density());
 }
 
 void Controller::OnDisplayAdded(int32_t display_id) {

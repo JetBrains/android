@@ -29,6 +29,7 @@ import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.awt.RelativePoint
 import kotlinx.coroutines.launch
+import java.awt.Dimension
 import java.awt.EventQueue
 import javax.swing.JComponent
 
@@ -38,15 +39,24 @@ private val isSettingsPickerEnabled: Boolean
 /**
  * Opens a picker with UI settings of a physical device.
  */
-internal class DeviceUiSettingsAction : AbstractDeviceAction(configFilter = { it.apiLevel >= 34 && isSettingsPickerEnabled }) {
-
+internal class DeviceUiSettingsAction : AbstractDeviceAction(
+  configFilter = {
+    it.apiLevel >= 34
+    && isSettingsPickerEnabled
+    && it.deviceProperties.resolution != null
+    && it.deviceProperties.density != null
+  }
+) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun actionPerformed(event: AnActionEvent) {
     val deviceView = event.getData(DEVICE_VIEW_KEY) ?: return
     val component = event.findComponentForAction(this) as? JComponent ?: deviceView
     val deviceController = getDeviceController(event) ?: return
-    val model = UiSettingsModel()
+    val config = getDeviceConfig(event) ?: return
+    val screenSize = config.deviceProperties.resolution?.let { Dimension(it.width, it.height) } ?: return
+    val density = config.deviceProperties.density ?: return
+    val model = UiSettingsModel(screenSize, density)
     val controller = DeviceUiSettingsController(deviceController, model)
     AndroidCoroutineScope(deviceView).launch {
       controller.populateModel()

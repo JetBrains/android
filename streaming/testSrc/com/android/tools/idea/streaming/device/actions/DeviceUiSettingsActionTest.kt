@@ -124,7 +124,7 @@ class DeviceUiSettingsActionTest {
     createTestEvent(view, project)
 
   private fun connectDeviceAndCreateView(apiLevel: Int): DeviceView {
-    val device = agentRule.connectDevice("Pixel 8", apiLevel, Dimension(1080, 2280))
+    val device = agentRule.connectDevice("Pixel 8", apiLevel, Dimension(1344, 2992), screenDensity = 480)
     val view = createDeviceView(device)
     view.setBounds(0, 0, 600, 800)
     waitForFrame(view)

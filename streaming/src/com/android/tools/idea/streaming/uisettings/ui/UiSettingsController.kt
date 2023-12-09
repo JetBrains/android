@@ -30,6 +30,7 @@ internal abstract class UiSettingsController(
   init {
     model.inDarkMode.uiChangeListener = ChangeListener(::setDarkMode)
     model.fontSizeInPercent.uiChangeListener = ChangeListener(::setFontSize)
+    model.screenDensity.uiChangeListener = ChangeListener(::setScreenDensity)
   }
 
   /**
@@ -46,4 +47,9 @@ internal abstract class UiSettingsController(
    * Changes the font size on the device/emulator.
    */
   protected abstract fun setFontSize(percent: Int)
+
+  /**
+   * Changes the screen density on the device/emulator.
+   */
+  protected abstract fun setScreenDensity(density: Int)
 }

@@ -56,13 +56,22 @@ class UiSettingsRule(emulatorPort: Int) : ExternalResource() {
   private fun configureAdbShellCommands() =
     configureUiSettings()
 
-  fun configureUiSettings(darkMode: Boolean = false, fontSize: Int = 100) {
+  fun configureUiSettings(
+    darkMode: Boolean = false,
+    fontSize: Int = 100,
+    physicalDensity: Int = 480,
+    overrideDensity: Int = 480
+  ) {
+    val overrideLine = if (physicalDensity != overrideDensity) "\nOverride density: $overrideDensity" else ""
+
     adb.configureShellCommand(deviceSelector, POPULATE_COMMAND, """
       -- Dark Mode --
       Night mode: ${if (darkMode) "yes" else "no"}
       -- Font Size --
       ${(fontSize.toFloat() / 100f)}
-    """.trimIndent())
+      -- Density --
+      Physical density: $physicalDensity
+    """.trimIndent() + overrideLine)
   }
 
   override fun apply(base: Statement, description: Description): Statement =

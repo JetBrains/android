@@ -114,6 +114,7 @@ private:
   void SendUiSettings(const UiSettingsRequest& request);
   void SetDarkMode(const SetDarkModeMessage& message);
   void SetFontSize(const SetFontSizeMessage& message);
+  void SetScreenDensity(const SetScreenDensityMessage& message);
 
   Jni jni_ = nullptr;
   int socket_fd_;  // Owned.
