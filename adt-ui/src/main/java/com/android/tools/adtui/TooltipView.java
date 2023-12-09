@@ -48,7 +48,7 @@ public abstract class TooltipView extends AspectObserver {
   private final Timeline myTimeline;
 
   @NotNull
-  private final JLabel myHeadingLabel;
+  protected final JLabel myHeadingLabel;
 
   protected final Font myFont;
 
@@ -71,7 +71,7 @@ public abstract class TooltipView extends AspectObserver {
     updateTooltip();
   }
 
-  private void updateHeader() {
+  protected void updateHeader() {
     Range tooltipRange = myTimeline.getTooltipRange();
     if (!tooltipRange.isEmpty() && tooltipRange.getMin() >= myTimeline.getDataRange().getMin()) {
       String time = TimeFormatter.getSemiSimplifiedClockString((long)(tooltipRange.getMin() - myTimeline.getDataRange().getMin()));

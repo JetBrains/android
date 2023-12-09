@@ -290,7 +290,7 @@ internal class NetworkInspectorView(
   private fun selectionChanged() {
     val timeline = model.timeline
     val selectionRange = timeline.selectionRange
-    if (selectionRange.isEmpty) {
+    if (selectionRange.isEmpty || model.timeline.dataRange.isTrivial) {
       selectionTimeLabel.icon = null
       selectionTimeLabel.text = ""
       return
@@ -346,6 +346,7 @@ internal class NetworkInspectorView(
     val timeline = model.timeline
     val selection = RangeSelectionComponent(model.rangeSelectionModel)
     selection.setCursorSetter(AdtUiUtils::setTooltipCursor)
+    selection.setRangeOcclusionTest { model.timeline.dataRange.isTrivial }
     val tooltip =
       RangeTooltipComponent(timeline, tooltipPanel, parentPane) {
         selection.shouldShowSeekComponent()

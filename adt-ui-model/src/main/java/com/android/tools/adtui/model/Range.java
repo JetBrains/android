@@ -90,6 +90,13 @@ public final class Range extends AspectModel<Range.Aspect> {
   }
 
   /**
+   * Whether the range is empty or a point
+   */
+  public boolean isTrivial() {
+    return myMin >= myMax;
+  }
+
+  /**
    * Whether a value is between the range min and max (inclusive)
    */
   public boolean contains(double value) {
