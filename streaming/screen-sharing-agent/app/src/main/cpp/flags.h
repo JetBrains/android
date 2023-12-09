@@ -20,5 +20,6 @@ namespace screensharing {
 
 constexpr int32_t START_VIDEO_STREAM = 0x01;
 constexpr int32_t TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02;
+constexpr int32_t AUTO_RESET_UI_SETTINGS = 0x04;
 
 }  // namespace screensharing

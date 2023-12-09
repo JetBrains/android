@@ -624,7 +624,7 @@ internal data class DisplayRemovedNotification(val displayId: Int) : ControlMess
 /**
  * Queries the current UI settings from a device.
  */
-internal class UiSettingsRequest private constructor (override val requestId: Int) : CorrelatedMessage(TYPE) {
+internal class UiSettingsRequest private constructor(override val requestId: Int) : CorrelatedMessage(TYPE) {
 
   constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
 

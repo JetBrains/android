@@ -18,6 +18,8 @@
 
 #include <sstream>
 
+#include "agent.h"
+#include "flags.h"
 #include "string_printf.h"
 #include "shell_command_executor.h"
 
@@ -102,7 +104,7 @@ void UiSettings::SetFontSize(int32_t font_size) {
 // Reset all changed settings to the initial state.
 // If the user overrides any setting on the device the original state is ignored.
 void UiSettings::Reset() {
-  if (!initial_settings_recorded_) {
+  if (!initial_settings_recorded_ || (Agent::flags() & AUTO_RESET_UI_SETTINGS) == 0) {
     return;
   }
 

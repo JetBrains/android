@@ -944,6 +944,10 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "video.codec", "Video Codec Used for Mirroring of Physical Devices",
     "The name of a video codec, e.g. \"vp8\" or \"vp9\"; the default is \"vp8\"",
     "");
+  public static final Flag<Boolean> DEVICE_MIRRORING_AUTO_RESET_UI_SETTINGS = Flag.create(
+    DEVICE_MIRRORING, "auto.reset", "The agent should reset all changed UI settings on disconnect",
+    "Enables the reset logic in the device agent for the UI settings picker",
+    true);
   //endregion
 
   // region Device Definition Download Service
