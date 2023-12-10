@@ -249,6 +249,7 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
       }
       compilationModelMap.remove(context.moduleDataNode.data.id)
       sourceSetDependenciesMap.remove(context.moduleDataNode.data.id)
+      sourceSetDataNodeMap = null
     }
   }
 
