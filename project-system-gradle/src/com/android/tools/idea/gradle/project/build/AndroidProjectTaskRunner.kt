@@ -18,9 +18,11 @@ import com.intellij.task.ProjectTask
 import com.intellij.task.ProjectTaskContext
 import com.intellij.task.ProjectTaskRunner
 import com.intellij.task.TaskRunnerResults
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
+import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.nio.file.Path
 
@@ -31,9 +33,14 @@ class AndroidProjectTaskRunner : ProjectTaskRunner() {
   }
 
   override fun canRun(projectTask: ProjectTask): Boolean {
-    return projectTask is ModuleBuildTask &&
-      (isAndroidStudio || projectTask.module.project.isAndroidProject) &&
+    return if (!isAndroidStudio || (projectTask is ModuleBuildTask && projectTask.module.isMultiPlatformModule)) {
+      projectTask is ModuleBuildTask && AndroidFacet.getInstance(projectTask.module) != null
+    }
+    else {
+      projectTask is ModuleBuildTask &&
+      projectTask.module.project.isAndroidProject &&
       ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, projectTask.module)
+    }
   }
 
   @Suppress("UnstableApiUsage")
