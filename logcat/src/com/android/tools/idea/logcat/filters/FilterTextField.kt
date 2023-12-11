@@ -573,7 +573,7 @@ internal class FilterTextField(
       private var hoveredFavoriteIndex: Int? = null
 
       override fun mouseReleased(event: MouseEvent) {
-        if (event.button == BUTTON1 && event.modifiersEx == 0) {
+        if (event.button == BUTTON1 && event.modifiersEx == 0 && selectedIndex >= 0) {
           val index = selectedIndex
           val item = model.getElementAt(index) as? Item ?: return
           val cellLocation = getCellBounds(index, index).location
