@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import com.android.tools.profiler.proto.Common
@@ -46,7 +47,8 @@ fun DeviceSelectionDropdown(deviceList: List<Common.Device>, selectedDevice: Com
     },
   ) {
     if (selectedDevice == Common.Device.getDefaultInstance()) {
-      Text("Please select a device", modifier = Modifier.padding(DEVICE_SELECTION_DROPDOWN_CONTENT_PADDING_DP))
+      Text("Please select a device", modifier = Modifier.padding(DEVICE_SELECTION_DROPDOWN_CONTENT_PADDING_DP), maxLines = 1,
+           overflow = TextOverflow.Ellipsis)
     }
     else {
       Row(
@@ -55,9 +57,10 @@ fun DeviceSelectionDropdown(deviceList: List<Common.Device>, selectedDevice: Com
         verticalAlignment = Alignment.Bottom
       ) {
         // TODO (b/309866927): Add Icon for respective device type here.
-        Text(text = selectedDevice.model, fontSize = TextUnit(14f, TextUnitType.Sp), lineHeight = TextUnit(18f, TextUnitType.Sp))
+        Text(text = selectedDevice.model, fontSize = TextUnit(14f, TextUnitType.Sp), lineHeight = TextUnit(18f, TextUnitType.Sp),
+             maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(text = "Android ${selectedDevice.version}, API ${selectedDevice.apiLevel}", fontSize = TextUnit(12f, TextUnitType.Sp),
-             lineHeight = TextUnit(16f, TextUnitType.Sp), color = Color.Gray)
+             lineHeight = TextUnit(16f, TextUnitType.Sp), color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
       }
     }
   }
