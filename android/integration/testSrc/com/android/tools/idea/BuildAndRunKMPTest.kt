@@ -20,11 +20,9 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
-import kotlin.time.Duration.Companion.seconds
 
 class BuildAndRunKMPTest {
   @JvmField
@@ -35,7 +33,6 @@ class BuildAndRunKMPTest {
   @Rule
   var watcher = MemoryDashboardNameProviderWatcher()
 
-  @Ignore("b/314825800")
   @Test
   fun buildAndRunKmpTest() {
     val project = AndroidProject("tools/adt/idea/android/integration/testData/kmpapp")
