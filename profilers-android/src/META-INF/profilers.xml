@@ -41,6 +41,12 @@
     </action>
     <action id="Android.StopCpuCapture" class="com.android.tools.idea.profilers.StopCpuCaptureAction">
     </action>
+    <action id="Android.StartHeapDump" class="com.android.tools.idea.profilers.StartHeapDumpAction">
+    </action>
+    <action id="Android.StartNativeAllocations" class="com.android.tools.idea.profilers.StartNativeAllocationsAction">
+    </action>
+    <action id="Android.StopNativeAllocations" class="com.android.tools.idea.profilers.StopNativeAllocationsAction">
+    </action>
   </actions>
   <extensions defaultExtensionNs="com.android.run">
     <androidLaunchTaskContributor implementation="com.android.tools.idea.profilers.AndroidProfilerLaunchTaskContributor" />

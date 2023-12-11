@@ -33,6 +33,7 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.LogUtils;
 import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StudioProfilers;
@@ -238,6 +239,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     long x = captureToSelect.x;
     if (getHeapDumpSampleDurations().getSeries().getSeriesForRange(getTimeline().getDataRange()).stream().anyMatch(s -> s.x == x)) {
       getAspect().changed(MemoryProfilerAspect.HEAP_DUMP_FINISHED);
+      LogUtils.log(getClass(), "Heap dump capture has finished");
     }
     selectCaptureDuration(captureToSelect.value, loadJoiner);
   }
@@ -384,6 +386,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   void nativeAllocationTrackingStart(@NotNull Trace.TraceStartStatus status) {
     switch (status.getStatus()) {
       case SUCCESS:
+        LogUtils.log(getClass(), "Native allocations capture start succeeded");
         myNativeAllocationTracking = true;
         setModelToRecordingNative();
         setPendingCaptureStartTime(status.getStartTimeNs());
@@ -410,6 +413,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
 
     switch (status.getStatus()) {
       case SUCCESS:
+        LogUtils.log(getClass(), "Native allocations capture stop succeeded");
         // stop allocation tracing
         myNativeAllocationTracking = false;
         setTrackingAllocations(false);
@@ -493,6 +497,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
       case SUCCESS:
         setPendingCaptureStartTime(status.getStartTime());
         getAspect().changed(MemoryProfilerAspect.HEAP_DUMP_STARTED);
+        LogUtils.log(getClass(), "Heap dump capture start succeeded");
         break;
       case IN_PROGRESS:
         getLogger().debug(String.format(Locale.getDefault(), "A heap dump for %d is already in progress.", getSessionData().getPid()));

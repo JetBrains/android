@@ -108,4 +108,16 @@ open class ProfilersTestBase {
   protected fun stopCpuCapture(studio: AndroidStudio) {
     studio.executeAction("Android.StopCpuCapture")
   }
+
+  protected fun startHeapDump(studio: AndroidStudio) {
+    studio.executeAction("Android.StartHeapDump")
+  }
+
+  protected fun startNativeAllocations(studio: AndroidStudio) {
+    studio.executeAction("Android.StartNativeAllocations")
+  }
+
+  protected fun stopNativeAllocations(studio: AndroidStudio) {
+    studio.executeAction("Android.StopNativeAllocations")
+  }
 }

@@ -17,16 +17,14 @@ package com.android.tools.idea.profilers
 
 import android.annotation.SuppressLint
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.profiler.CpuProfilerConfig
-import com.android.tools.profilers.cpu.CpuProfilerStage
-import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
+import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
-class StartSystemTraceAction : DumbAwareAction(
-  "Start System Trace",
-  "Start a system trace in the current profiling session",
+class StartNativeAllocationsAction : DumbAwareAction(
+  "Start Native Allocations",
+  "Start a native allocations in the current profiling session",
   null
 ) {
 
@@ -37,17 +35,16 @@ class StartSystemTraceAction : DumbAwareAction(
     e.presentation.isEnabled =
       StudioFlags.PROFILER_TESTING_MODE.get() &&
       project != null &&
-      AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)?.profilers?.sessionsManager?.isSessionAlive == true
+      AndroidProfilerToolWindowFactory
+        .getProfilerToolWindow(project)?.profilers?.sessionsManager?.isSessionAlive == true
   }
 
   @SuppressLint("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
     val profilers = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)!!.profilers
-    val stage = CpuProfilerStage(profilers)
-    stage.profilerConfigModel.profilingConfiguration = PerfettoSystemTraceConfiguration(CpuProfilerConfig.Technology.SYSTEM_TRACE.getName(),
-                                                                                        StudioFlags.PROFILER_TRACEBOX.get())
+    val stage = MainMemoryProfilerStage(profilers)
     profilers.stage = stage
-    stage.recordingModel.start()
+    stage.startNativeAllocationCapture()
   }
 }

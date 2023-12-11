@@ -829,6 +829,12 @@
     <option name="callstack" path="ActionManager" hit="Start Callstack Sample" />
     <option name="sample" path="ActionManager" hit="Start Callstack Sample" />
     <option name="start" path="ActionManager" hit="Start Callstack Sample" />
+    <option name="dump" path="ActionManager" hit="Start Heap Dump" />
+    <option name="heap" path="ActionManager" hit="Start Heap Dump" />
+    <option name="start" path="ActionManager" hit="Start Heap Dump" />
+    <option name="allocations" path="ActionManager" hit="Start Native Allocations" />
+    <option name="native" path="ActionManager" hit="Start Native Allocations" />
+    <option name="start" path="ActionManager" hit="Start Native Allocations" />
     <option name="start" path="ActionManager" hit="Start System Trace" />
     <option name="system" path="ActionManager" hit="Start System Trace" />
     <option name="trace" path="ActionManager" hit="Start System Trace" />
@@ -841,6 +847,24 @@
     <option name="session" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
     <option name="start" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
     <option name="the" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
+    <option name="a" path="ActionManager" hit="Start a heap dump in the current profiling session" />
+    <option name="current" path="ActionManager" hit="Start a heap dump in the current profiling session" />
+    <option name="dump" path="ActionManager" hit="Start a heap dump in the current profiling session" />
+    <option name="heap" path="ActionManager" hit="Start a heap dump in the current profiling session" />
+    <option name="in" path="ActionManager" hit="Start a heap dump in the current profiling session" />
+    <option name="profiling" path="ActionManager" hit="Start a heap dump in the current profiling session" />
+    <option name="session" path="ActionManager" hit="Start a heap dump in the current profiling session" />
+    <option name="start" path="ActionManager" hit="Start a heap dump in the current profiling session" />
+    <option name="the" path="ActionManager" hit="Start a heap dump in the current profiling session" />
+    <option name="a" path="ActionManager" hit="Start a native allocations in the current profiling session" />
+    <option name="allocations" path="ActionManager" hit="Start a native allocations in the current profiling session" />
+    <option name="current" path="ActionManager" hit="Start a native allocations in the current profiling session" />
+    <option name="in" path="ActionManager" hit="Start a native allocations in the current profiling session" />
+    <option name="native" path="ActionManager" hit="Start a native allocations in the current profiling session" />
+    <option name="profiling" path="ActionManager" hit="Start a native allocations in the current profiling session" />
+    <option name="session" path="ActionManager" hit="Start a native allocations in the current profiling session" />
+    <option name="start" path="ActionManager" hit="Start a native allocations in the current profiling session" />
+    <option name="the" path="ActionManager" hit="Start a native allocations in the current profiling session" />
     <option name="a" path="ActionManager" hit="Start a system trace in the current profiling session" />
     <option name="current" path="ActionManager" hit="Start a system trace in the current profiling session" />
     <option name="in" path="ActionManager" hit="Start a system trace in the current profiling session" />
@@ -853,6 +877,9 @@
     <option name="capture" path="ActionManager" hit="Stop CPU Capture" />
     <option name="cpu" path="ActionManager" hit="Stop CPU Capture" />
     <option name="stop" path="ActionManager" hit="Stop CPU Capture" />
+    <option name="allocations" path="ActionManager" hit="Stop Native Allocations" />
+    <option name="native" path="ActionManager" hit="Stop Native Allocations" />
+    <option name="stop" path="ActionManager" hit="Stop Native Allocations" />
     <option name="profiling" path="ActionManager" hit="Stop Profiling Session" />
     <option name="session" path="ActionManager" hit="Stop Profiling Session" />
     <option name="stop" path="ActionManager" hit="Stop Profiling Session" />
@@ -865,6 +892,15 @@
     <option name="session" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
     <option name="stop" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
     <option name="the" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
+    <option name="a" path="ActionManager" hit="Stop a native allocations in the current profiling session" />
+    <option name="allocations" path="ActionManager" hit="Stop a native allocations in the current profiling session" />
+    <option name="current" path="ActionManager" hit="Stop a native allocations in the current profiling session" />
+    <option name="in" path="ActionManager" hit="Stop a native allocations in the current profiling session" />
+    <option name="native" path="ActionManager" hit="Stop a native allocations in the current profiling session" />
+    <option name="profiling" path="ActionManager" hit="Stop a native allocations in the current profiling session" />
+    <option name="session" path="ActionManager" hit="Stop a native allocations in the current profiling session" />
+    <option name="stop" path="ActionManager" hit="Stop a native allocations in the current profiling session" />
+    <option name="the" path="ActionManager" hit="Stop a native allocations in the current profiling session" />
     <option name="current" path="ActionManager" hit="Stop the current profiling session" />
     <option name="profiling" path="ActionManager" hit="Stop the current profiling session" />
     <option name="session" path="ActionManager" hit="Stop the current profiling session" />

@@ -34,7 +34,7 @@ class StopCpuCaptureAction : DumbAwareAction(
     val project = e.project
     val profilers = project?.let { AndroidProfilerToolWindowFactory.getProfilerToolWindow(it)?.profilers }
     e.presentation.isEnabled =
-      StudioFlags.PROFILER_TESTING_MODE.get() == true &&
+      StudioFlags.PROFILER_TESTING_MODE.get() &&
       project != null &&
       profilers != null &&
       profilers.sessionsManager.isSessionAlive == true &&

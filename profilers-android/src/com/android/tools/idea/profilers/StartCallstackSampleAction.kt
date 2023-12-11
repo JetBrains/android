@@ -35,7 +35,7 @@ class StartCallstackSampleAction : DumbAwareAction(
   override fun update(e: AnActionEvent) {
     val project = e.project
     e.presentation.isEnabled =
-      StudioFlags.PROFILER_TESTING_MODE.get() == true &&
+      StudioFlags.PROFILER_TESTING_MODE.get() &&
       project != null &&
       AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)?.profilers?.sessionsManager?.isSessionAlive == true
   }
