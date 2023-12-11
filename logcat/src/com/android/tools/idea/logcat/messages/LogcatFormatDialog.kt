@@ -60,10 +60,10 @@ import javax.swing.ScrollPaneConstants
 import org.jetbrains.annotations.VisibleForTesting
 
 private const val MIN_TAG_LENGTH = 10
-private const val MAX_TAG_LENGTH = 35
+private const val MAX_TAG_LENGTH = 120
 private const val MIN_APP_NAME_LENGTH = 10
-private const val MAX_APP_NAME_LENGTH = 45
-private const val MAX_PROCESS_NAME_LENGTH = 45
+private const val MAX_APP_NAME_LENGTH = 120
+private const val MAX_PROCESS_NAME_LENGTH = 120
 private val previewZoneId = ZoneId.of("GMT")
 private val previewFormatter = MessageFormatter(LogcatColors(), previewZoneId)
 private val previewTimestamp =
