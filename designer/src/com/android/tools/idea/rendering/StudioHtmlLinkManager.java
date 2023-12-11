@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.AndroidXConstants.CLASS_V4_FRAGMENT;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_CLASS;
 import static com.android.SdkConstants.ATTR_ID;
@@ -23,7 +24,6 @@ import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.CLASS_ATTRIBUTE_SET;
 import static com.android.SdkConstants.CLASS_CONTEXT;
 import static com.android.SdkConstants.CLASS_FRAGMENT;
-import static com.android.AndroidXConstants.CLASS_V4_FRAGMENT;
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
@@ -51,7 +51,6 @@ import static com.android.tools.rendering.HtmlLinkManagerKt.URL_SYNC;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.DependencyType;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -120,8 +119,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
