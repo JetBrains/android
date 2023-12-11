@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.AspectModel
+import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangeSelectionModel
 import com.android.tools.adtui.model.StreamingTimeline
 import com.android.tools.adtui.model.Timeline
@@ -121,6 +122,7 @@ class NetworkInspectorModel(
           }
           // The data/view ranges might not have changed so force a refresh.
           networkUsage.invalidate()
+          timeline.dataRange.changed(Range.Aspect.RANGE)
         }
       }
     }
