@@ -19,7 +19,7 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2023.2.1">
+    version="2023.3.1">
   <feature
       name="What's New in Iguana">
     <tutorial
@@ -41,7 +41,7 @@
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 8/10/2023</em><br><br>
+              <br><em>Last updated 12/11/2023</em><br><br>
             ]]>
           </section>
         </stepElement>

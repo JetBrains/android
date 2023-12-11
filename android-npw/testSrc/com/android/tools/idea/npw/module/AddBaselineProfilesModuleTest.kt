@@ -37,6 +37,7 @@ import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,6 +47,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@Ignore("TODO: http://b/315835415 AGP 8.4 is not supported")
 @RunWith(Parameterized::class)
 class AddBaselineProfilesModuleTest(
   private val useGradleKtsParam: Boolean,
