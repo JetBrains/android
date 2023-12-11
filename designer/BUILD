@@ -9,6 +9,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.designer.iml"],
     javacopts = ["-XepAllErrorsAsWarnings"],
+    kotlin_use_compose = True,
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     test_srcs = ["testFramework"],
@@ -23,6 +24,7 @@ iml_module(
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
@@ -58,6 +60,7 @@ iml_module(
 iml_module(
     name = "intellij.android.designer.tests",
     iml_files = ["intellij.android.designer.tests.iml"],
+    kotlin_use_compose = True,
     split_test_targets = {
         "common": {
             "test_filter": "com.android.tools.idea.common",
@@ -115,6 +118,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module]",
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
