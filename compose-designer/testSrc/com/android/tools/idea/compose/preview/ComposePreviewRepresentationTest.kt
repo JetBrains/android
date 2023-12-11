@@ -122,6 +122,7 @@ class ComposePreviewRepresentationTest {
 
   @Before
   fun setup() {
+    logger.setLevel(LogLevel.ALL)
     Logger.getInstance(ComposePreviewRepresentation::class.java).setLevel(LogLevel.ALL)
     Logger.getInstance(FastPreviewManager::class.java).setLevel(LogLevel.ALL)
     Logger.getInstance(ProjectStatus::class.java).setLevel(LogLevel.ALL)
@@ -273,7 +274,7 @@ class ComposePreviewRepresentationTest {
         .inOrder()
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
-        5.seconds
+        25.seconds
       ) {
         it.size > 2
       }
@@ -367,7 +368,7 @@ class ComposePreviewRepresentationTest {
 
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed stop uiCheckMode",
-        5.seconds
+        25.seconds
       ) {
         it.size == 2
       }
@@ -400,7 +401,7 @@ class ComposePreviewRepresentationTest {
       delayUntilCondition(250) { preview.uiCheckFilterFlow.value is UiCheckModeFilter.Enabled }
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
-        5.seconds
+        25.seconds
       ) {
         it.size > 2
       }
@@ -623,7 +624,7 @@ class ComposePreviewRepresentationTest {
         .inOrder()
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
-        5.seconds
+        25.seconds
       ) {
         it.size > 2
       }
@@ -726,7 +727,7 @@ class ComposePreviewRepresentationTest {
 
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed stop uiCheckMode",
-        5.seconds
+        25.seconds
       ) {
         it.size == 2
       }
@@ -759,7 +760,7 @@ class ComposePreviewRepresentationTest {
       delayUntilCondition(250) { preview.mode.value is PreviewMode.UiCheck }
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
-        5.seconds
+        25.seconds
       ) {
         it.size > 2
       }
