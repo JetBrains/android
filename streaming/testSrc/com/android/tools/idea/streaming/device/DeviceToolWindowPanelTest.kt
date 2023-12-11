@@ -59,6 +59,7 @@ import com.intellij.ui.LayeredIcon
 import icons.StudioIcons
 import org.junit.Before
 import org.junit.ClassRule
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.anyInt
@@ -108,6 +109,7 @@ class DeviceToolWindowPanelTest {
   }
 
   @Test
+  @Ignore("b/315344704") // TODO: this test is flaky with IntelliJ 2023.3.
   fun testAppearanceAndToolbarActions() {
     device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     assertThat(panel.primaryDisplayView).isNull()

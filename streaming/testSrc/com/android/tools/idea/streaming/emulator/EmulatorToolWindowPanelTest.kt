@@ -75,6 +75,7 @@ import com.intellij.ui.LayeredIcon
 import icons.StudioIcons
 import org.junit.Before
 import org.junit.ClassRule
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -395,6 +396,7 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
+  @Ignore("b/315344704") // TODO: this test is flaky with IntelliJ 2023.3.
   fun testDisplayModes() {
     val avdFolder = FakeEmulator.createResizableAvd(emulatorRule.avdRoot)
     val panel = createWindowPanel(avdFolder)

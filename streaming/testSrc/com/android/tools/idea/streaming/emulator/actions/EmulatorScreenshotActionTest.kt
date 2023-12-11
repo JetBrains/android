@@ -37,6 +37,7 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.EDT
 import org.intellij.images.ui.ImageComponent
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.image.BufferedImage
@@ -69,6 +70,7 @@ class EmulatorScreenshotActionTest {
   val portableUiFontRule = PortableUiFontRule()
 
   @Test
+  @Ignore("b/315344704") // TODO: this test is flaky with IntelliJ 2023.3.
   fun testAction() {
     emulatorView = emulatorViewRule.newEmulatorView()
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
@@ -94,6 +96,7 @@ class EmulatorScreenshotActionTest {
   }
 
   @Test
+  @Ignore("b/315344704") // TODO: this test is flaky with IntelliJ 2023.3.
   fun testActionFoldableOpen() {
     emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
@@ -115,6 +118,7 @@ class EmulatorScreenshotActionTest {
   }
 
   @Test
+  @Ignore("b/315344704") // TODO: this test is flaky with IntelliJ 2023.3.
   fun testActionFoldableClosed() {
     emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
