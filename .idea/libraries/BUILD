@@ -187,8 +187,8 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "libapp-processes-proto",
-    jars = ["//tools/base/ddmlib:libapp-processes-proto.jar"],
+    name = "libadb-server-proto",
+    jars = ["//tools/base/adblib:libadb-server-proto.jar"],
     visibility = ["//visibility:public"],
 )
 

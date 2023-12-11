@@ -133,6 +133,7 @@ iml_module(
         "//tools/adt/idea/rendering:intellij.android.rendering[module]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
         "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
+        "//tools/adt/idea/.idea/libraries:libadb-server-proto",
     ],
 )
 
@@ -393,14 +394,15 @@ filegroup(
         "//tools/adt/idea/studio:required_jvm_args",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
+        "//tools/base/adblib:adb-server-proto",
         "//tools/base/bazel:studio-grpc",
         "//tools/base/bazel:studio-proto",
         "//tools/base/bazel:utp-core-proto-jarjar",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/build-system/gradle-core:common_proto",
         "//tools/base/common:version",
+        "//tools/base/ddmlib:adb-server-proto",
         "//tools/base/ddmlib:am-instrumentation-data-proto",
-        "//tools/base/ddmlib:app-processes-proto",
         "//tools/base/emulator/proto:emulator_java_proto",
         "//tools/base/game-tools/protos:game-tools-protos",
         "//tools/base/kotlin-multiplatform-models/proto:kotlin_multiplatform_android_models_proto",

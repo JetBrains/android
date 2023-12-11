@@ -127,5 +127,6 @@
     <orderEntry type="module" module-name="intellij.android.rendering" />
     <orderEntry type="module" module-name="intellij.android.preview-elements" />
     <orderEntry type="module" module-name="intellij.android.environment-services" />
+    <orderEntry type="library" name="libadb-server-proto" level="project" />
   </component>
 </module>
