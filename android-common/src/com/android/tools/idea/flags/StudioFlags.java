@@ -293,10 +293,16 @@ public final class StudioFlags {
 
   //region Resource Repository
   private static final FlagGroup RESOURCE_REPOSITORY = new FlagGroup(FLAGS, "resource.repository", "Resource Repository");
-  public static final Flag<Integer> RESOURCE_REPOSITORY_TRACE_SIZE = Flag.create(
+  public static final Flag<Integer> RESOURCE_REPOSITORY_TRACE_SIZE = new IntFlag(
     RESOURCE_REPOSITORY, "trace.size", "Maximum Size of Resource Repository Update Trace",
     "Size of the in-memory cyclic buffer used for tracing of resource repository updates",
     10000);
+
+  public static final Flag<Boolean> RESOURCE_REPOSITORY_NOTIFY_PARENT_ON_DISPOSE = new BooleanFlag(
+    RESOURCE_REPOSITORY, "notify.parent.on.dispose", "Notify parent resource repositories on disposal.",
+    "Allows a LocalResourceRepository that implements Disposable to notify its parents when it is being disposed, so that they can "
+    + "release any stale references.",
+    true);
   //endregion
 
   //region Run/Debug

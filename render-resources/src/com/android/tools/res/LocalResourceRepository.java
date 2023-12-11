@@ -23,8 +23,6 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
-import com.android.tools.res.AbstractResourceRepositoryWithLocking;
-import com.android.tools.res.CacheableResourceRepository;
 import com.google.common.collect.ListMultimap;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -182,6 +180,20 @@ public abstract class LocalResourceRepository<T> extends AbstractResourceReposit
     if (myParents != null) {
       for (MultiResourceRepository<T> parent : myParents) {
         parent.invalidateCache(repository, types);
+      }
+    }
+  }
+
+  public void notifyParentsOfDisposal() {
+    synchronized (ITEM_MAP_LOCK) {
+      if (myParents != null) {
+        // Notifying the parent of the child's disposal will cause the parent to refresh, which in turn will have the
+        // parent remove itself from this repository. Make a copy of parents to iterate over locally, since the
+        // underlying collection will change.
+        List<MultiResourceRepository<T>> parents = new ArrayList<>(myParents);
+        for (MultiResourceRepository<T> parent : parents) {
+          parent.onChildDisposed();
+        }
       }
     }
   }

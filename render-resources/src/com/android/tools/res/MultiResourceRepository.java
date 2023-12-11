@@ -153,6 +153,10 @@ public abstract class MultiResourceRepository<T> extends LocalResourceRepository
 
   abstract protected void refreshChildren();
 
+  public void onChildDisposed() {
+    refreshChildren();
+  }
+
   @GuardedBy("ITEM_MAP_LOCK")
   private static <T> void computeLeafs(@NotNull ResourceRepository repository,
                                    @NotNull ImmutableListMultimap.Builder<ResourceNamespace, SingleNamespaceResourceRepository> result) {
