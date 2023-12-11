@@ -184,7 +184,6 @@ iml_studio_test(
         "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
     module = ":intellij.android.core.integration",
-    tags = ["manual"],  # b/315491830
     tags_linux = [
         "block-network",
     ],
