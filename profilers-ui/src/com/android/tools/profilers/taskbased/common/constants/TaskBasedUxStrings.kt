@@ -25,4 +25,8 @@ object TaskBasedUxStrings {
 
   // Top bar title
   const val TOP_BAR_TITLE = "Tasks"
+
+  // Device dropdown strings
+  const val NO_SUPPORTED_DEVICES = "No supported devices"
+  const val DEVICE_SELECTION_PROMPT = "Please select a device"
 }

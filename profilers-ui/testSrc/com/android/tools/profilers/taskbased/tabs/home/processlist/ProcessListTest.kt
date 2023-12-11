@@ -18,6 +18,8 @@ package com.android.tools.profilers.com.android.tools.profilers.taskbased.tabs.h
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertHasNoClickAction
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -73,12 +75,6 @@ class ProcessListTest {
     myManager = myProfilers.sessionsManager
     processListModel = ProcessListModel(myProfilers) {}
     ideProfilerServices.enableTaskBasedUx(true)
-    assertThat(processListModel.deviceToProcesses.value).isEmpty()
-    val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
-    ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
-                                                                                         device.deviceId), myTransportService, myTimer)
-    ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
-                                                                                         device.deviceId), myTransportService, myTimer)
   }
 
   @Ignore("b/309566948")
@@ -87,6 +83,7 @@ class ProcessListTest {
     singleWindowApplication(
       title = "Testing TaskGridView",
     ) {
+      populateProcessList()
       JewelThemedComposableWrapper(isDark = false) {
         ProcessList(processListModel)
       }
@@ -99,6 +96,7 @@ class ProcessListTest {
     singleWindowApplication(
       title = "Testing TaskGridView",
     ) {
+      populateProcessList()
       JewelThemedComposableWrapper(isDark = true) {
         ProcessList(processListModel)
       }
@@ -109,6 +107,7 @@ class ProcessListTest {
   fun `device dropdown selection sets and renders the selected device's processes`() {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = true) {
+        populateProcessList()
         ProcessList(processListModel)
       }
     }
@@ -139,6 +138,7 @@ class ProcessListTest {
   fun `process selection reflects in data model`() {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = true) {
+        populateProcessList()
         ProcessList(processListModel)
       }
     }
@@ -163,5 +163,32 @@ class ProcessListTest {
 
     // Assert process selection is registered in data model.
     assertThat(processListModel.selectedProcess.value.name).isEqualTo("FakeProcess1")
+  }
+
+  @Test
+  fun `default entry shown when no online devices are available`() {
+    composeTestRule.setContent {
+      JewelThemedComposableWrapper(isDark = true) {
+        val emptyDeviceProcessListModel = ProcessListModel(myProfilers) {}
+        ProcessList(emptyDeviceProcessListModel)
+      }
+    }
+
+    // Make sure that the device list is empty.
+    assertThat(processListModel.deviceToProcesses.value).isEmpty()
+
+    // Make sure that on click of the dropdown, the un-selectable, default device selection dropdown item is shown.
+    composeTestRule.onNodeWithTag("DeviceSelectionDropdown").assertHasClickAction()
+    composeTestRule.onNodeWithTag("DeviceSelectionDropdown").performClick()
+    composeTestRule.onNodeWithTag("DefaultDeviceSelectionDropdownItem").assertExists().assertIsDisplayed().assertHasNoClickAction()
+  }
+
+  private fun populateProcessList() {
+    assertThat(processListModel.deviceList.value).isEmpty()
+    val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
+    ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
+                                                                                         device.deviceId), myTransportService, myTimer)
+    ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
+                                                                                         device.deviceId), myTransportService, myTimer)
   }
 }

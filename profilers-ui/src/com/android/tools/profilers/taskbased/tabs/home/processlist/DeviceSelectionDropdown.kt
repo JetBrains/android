@@ -29,25 +29,37 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.DEVICE_SELECTION_DROPDOWN_CONTENT_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.DEVICE_SELECTION_PROMPT
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.NO_SUPPORTED_DEVICES
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 fun DeviceSelectionDropdown(deviceList: List<Common.Device>, selectedDevice: Common.Device, onDeviceSelection: (Common.Device) -> Unit) {
   Dropdown(
-    modifier = Modifier.fillMaxWidth().padding(DEVICE_SELECTION_DROPDOWN_CONTENT_PADDING_DP).testTag("DeviceSelectionDropdown"),
+    modifier = Modifier.fillMaxWidth().padding(horizontal = DEVICE_SELECTION_DROPDOWN_CONTENT_PADDING_DP).testTag(
+      "DeviceSelectionDropdown"),
     menuContent = {
-      deviceList.forEach {
-        selectableItem(selectedDevice == it, {
-          onDeviceSelection(it)
-        }) {
-          Text(text = it.model, modifier = Modifier.testTag("DeviceSelectionDropdownItem"))
+      if (deviceList.isEmpty()) {
+        passiveItem {
+          Text(NO_SUPPORTED_DEVICES, modifier = Modifier.padding(horizontal = DEVICE_SELECTION_DROPDOWN_CONTENT_PADDING_DP).testTag(
+            "DefaultDeviceSelectionDropdownItem"))
+        }
+      }
+      else {
+        deviceList.forEach {
+          selectableItem(selectedDevice == it, {
+            onDeviceSelection(it)
+          }) {
+            Text(text = it.model, modifier = Modifier.padding(horizontal = DEVICE_SELECTION_DROPDOWN_CONTENT_PADDING_DP).testTag(
+              "DeviceSelectionDropdownItem"))
+          }
         }
       }
     },
   ) {
     if (selectedDevice == Common.Device.getDefaultInstance()) {
-      Text("Please select a device", modifier = Modifier.padding(DEVICE_SELECTION_DROPDOWN_CONTENT_PADDING_DP), maxLines = 1,
+      Text(DEVICE_SELECTION_PROMPT, modifier = Modifier.padding(DEVICE_SELECTION_DROPDOWN_CONTENT_PADDING_DP), maxLines = 1,
            overflow = TextOverflow.Ellipsis)
     }
     else {
