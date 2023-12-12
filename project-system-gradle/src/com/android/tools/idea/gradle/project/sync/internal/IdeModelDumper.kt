@@ -218,7 +218,7 @@ private val jbModelDumpers = listOf(
   },
 )
 
-const val KOTLIN_VERSION_FOR_TESTS = "1.9.20-RC"
+const val KOTLIN_VERSION_FOR_TESTS = "1.9.20"
 fun String.replaceKgpForTestVersion(): String = replace(KOTLIN_VERSION_FOR_TESTS, "<KGP_VERSION>")
 
 private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
