@@ -227,10 +227,24 @@ public final class HeapSnapshotStatistics {
                                              String.valueOf(extendedReportStatistics.rootPathTree.getNumberOfRootPathTreeNodes()));
         GoogleCrashReporter.addBodyToBuilder(builder, "Status code", statusCode.name());
 
+        GoogleCrashReporter.addBodyToBuilder(builder, "Number of duplicated class loaders",
+                                             String.valueOf(extendedReportStatistics.globalNominatedClassLoaders.size()));
+        GoogleCrashReporter.addBodyToBuilder(builder, "Number of nominated class loaders",
+                                             String.valueOf(extendedReportStatistics.componentToExceededClustersStatistics.get(
+                                               targetExceededComponent).nominatedClassLoaders.size()));
+
         GoogleCrashReporter.addBodyToBuilder(builder, "heapSummary", collectHeapSummary(targetExceededComponent));
 
-        builder.addBinaryBody("extendedMemoryReport", collectExtendedReport(targetExceededComponent).getBytes(), ContentType.TEXT_PLAIN,
+        DisposedObjectsInfo disposedObjectsInfo = new DisposedObjectsInfo();
+        builder.addBinaryBody("extendedMemoryReport", collectExtendedReport(targetExceededComponent, disposedObjectsInfo).getBytes(),
+                              ContentType.TEXT_PLAIN,
                               "extendedMemoryReport.txt");
+        GoogleCrashReporter.addBodyToBuilder(builder, "Number of disposed objects with size at least 1mb",
+                                             String.valueOf(disposedObjectsInfo.numberOfDisposedObjectsWithAtLeast1mb));
+        GoogleCrashReporter.addBodyToBuilder(builder, "Number of disposed objects with size at least 10mb",
+                                             String.valueOf(disposedObjectsInfo.numberOfDisposedObjectsWithAtLeast10mb));
+        GoogleCrashReporter.addBodyToBuilder(builder, "Number of disposed objects with size at least 100mb",
+                                             String.valueOf(disposedObjectsInfo.numberOfDisposedObjectsWithAtLeast100mb));
       }
     };
   }
@@ -277,8 +291,15 @@ public final class HeapSnapshotStatistics {
                                         stat.getOwnedClusterStat().platformRetainedObjectsStats)));
   }
 
+  static final class DisposedObjectsInfo {
+    int numberOfDisposedObjectsWithAtLeast1mb = 0;
+    int numberOfDisposedObjectsWithAtLeast10mb = 0;
+    int numberOfDisposedObjectsWithAtLeast100mb = 0;
+  }
+
   @NotNull
-  private String collectExtendedReport(@NotNull final ComponentsSet.Component targetExceededComponent) {
+  private String collectExtendedReport(@NotNull final ComponentsSet.Component targetExceededComponent,
+                                       @NotNull final DisposedObjectsInfo disposedObjectsInfo) {
     StringBuilder extendedReportBuilder = new StringBuilder();
 
     for (CategoryClusterObjectsStatistics stat : categoryComponentStats) {
@@ -310,7 +331,7 @@ public final class HeapSnapshotStatistics {
       appendLine(extendedReportBuilder,
                  HeapReportUtils.INSTANCE.sectionHeader("Exceeded cluster " + targetExceededComponent.getLabel()));
       extendedReportStatistics.printExceededClusterStatisticsIfNeeded((String s) -> appendLine(extendedReportBuilder, s),
-                                                                      targetExceededComponent);
+                                                                      targetExceededComponent, disposedObjectsInfo);
 
       appendLine(extendedReportBuilder,
                  HeapReportUtils.INSTANCE.sectionHeader("Disposer tree report"));
@@ -370,7 +391,7 @@ public final class HeapSnapshotStatistics {
       if (config.collectHistograms && extendedReportStatistics != null) {
         extendedReportStatistics.logComponentHistogram(writer, stat.getCluster());
         if (extendedReportStatistics.componentToExceededClustersStatistics.containsKey(stat.getCluster())) {
-          extendedReportStatistics.printExceededClusterStatisticsIfNeeded(writer, stat.getCluster());
+          extendedReportStatistics.printExceededClusterStatisticsIfNeeded(writer, stat.getCluster(), new DisposedObjectsInfo());
         }
       }
       if (presentationConfig.shouldLogRetainedSizes) {

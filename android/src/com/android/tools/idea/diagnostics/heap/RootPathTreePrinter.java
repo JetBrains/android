@@ -149,7 +149,7 @@ public abstract class RootPathTreePrinter {
     @NotNull
     protected final ObjectsStatistics totalNominatedTypeStatistics;
     @NotNull
-    private final Map<RootPathTreeNode, ObjectsStatistics> nominatedObjectsStatsInTheNodeSubtree = new HashMap<>();
+    protected final Map<RootPathTreeNode, ObjectsStatistics> nominatedObjectsStatsInTheNodeSubtree = new HashMap<>();
     @NotNull
     private final Comparator<RootPathTreeNode> childrenOrderingComparator;
 
@@ -246,11 +246,16 @@ public abstract class RootPathTreePrinter {
 
   static class RootPathTreeDisposedObjectsPrinter extends RootPathTreeNominatedTypePrinter {
 
+    @NotNull
+    private final HeapSnapshotStatistics.DisposedObjectsInfo disposedObjectsInfo;
+
     RootPathTreeDisposedObjectsPrinter(@NotNull final ObjectsStatistics totalNominatedTypeStatistics,
                                        @NotNull final ExtendedReportStatistics extendedReportStatistics,
-                                       @NotNull final ExceededClusterStatistics exceededClusterStatistics) {
+                                       @NotNull final ExceededClusterStatistics exceededClusterStatistics,
+                                       @NotNull final HeapSnapshotStatistics.DisposedObjectsInfo disposedObjectsInfo) {
       super(totalNominatedTypeStatistics, extendedReportStatistics, exceededClusterStatistics,
             DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE);
+      this.disposedObjectsInfo = disposedObjectsInfo;
     }
 
     @Override
@@ -260,6 +265,29 @@ public abstract class RootPathTreePrinter {
       }
       writer.accept("================= DISPOSED OBJECTS ================");
       printPathTreeForComponentAndNominatedType(writer);
+    }
+
+    @NotNull
+    @Override
+    protected String constructRootPathLine(@NotNull final RootPathTreeNode node,
+                                           @NotNull final String prefix,
+                                           boolean isOnlyChild,
+                                           boolean isLastChild,
+                                           short visitedEssentialNominatedNodeTypesMask) {
+      if (node.isDisposedButReferenced) {
+        ObjectsStatistics nominatedObjectsInTheSubtree = nominatedObjectsStatsInTheNodeSubtree.get(node);
+        if (nominatedObjectsInTheSubtree.getTotalSizeInBytes() >= 1_000_000) {
+          disposedObjectsInfo.numberOfDisposedObjectsWithAtLeast1mb++;
+        }
+        if (nominatedObjectsInTheSubtree.getTotalSizeInBytes() >= 10_000_000) {
+          disposedObjectsInfo.numberOfDisposedObjectsWithAtLeast10mb++;
+        }
+        if (nominatedObjectsInTheSubtree.getTotalSizeInBytes() >= 100_000_000) {
+          disposedObjectsInfo.numberOfDisposedObjectsWithAtLeast100mb++;
+        }
+      }
+
+      return super.constructRootPathLine(node, prefix, isOnlyChild, isLastChild, visitedEssentialNominatedNodeTypesMask);
     }
   }
 
@@ -297,7 +325,7 @@ public abstract class RootPathTreePrinter {
 
   static class RootPathTreeSummaryPrinter extends RootPathTreePrinter {
     private final Comparator<RootPathTreeNode> childrenOrderingComparator;
-    private static final long SUMMARY_SUBTREE_MAX_DEPTH = 100;
+    private static final long SUMMARY_SUBTREE_MAX_DEPTH = 50;
     private final long summaryRequiredSubtreeSize;
 
     RootPathTreeSummaryPrinter(@NotNull final ExtendedReportStatistics extendedReportStatistics,

@@ -885,6 +885,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     serializedExtendedReport = replaceNewlines(serializedExtendedReport);
     assertRequestContainsField(serializedExtendedReport, "Target exceeded cluster", "B");
     assertRequestContainsField(serializedExtendedReport, "Total used memory", "472B/23 objects");
+    assertRequestContainsField(serializedExtendedReport, "Number of duplicated class loaders", "20");
+    assertRequestContainsField(serializedExtendedReport, "Number of nominated class loaders", "0");
 
     assertExtendedMemoryReport("testExtendedReportCustomClassLoaders", serializedExtendedReport);
     assertExtendedMemoryReportSummary("testExtendedReportCustomClassLoaders", serializedExtendedReport);

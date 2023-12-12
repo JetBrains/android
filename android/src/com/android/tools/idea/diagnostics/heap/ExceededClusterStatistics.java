@@ -29,7 +29,7 @@ public class ExceededClusterStatistics {
   @NotNull
   final Object2IntMap<String> nominatedClassesEnumeration = new Object2IntOpenHashMap<>();
   @NotNull
-  private final Set<ClassLoader> nominatedClassLoaders = ContainerUtil.createWeakSet();
+  final Set<ClassLoader> nominatedClassLoaders = ContainerUtil.createWeakSet();
 
   final int exceededClusterIndex;
   public ExceededClusterStatistics(int exceededClusterIndex) {
