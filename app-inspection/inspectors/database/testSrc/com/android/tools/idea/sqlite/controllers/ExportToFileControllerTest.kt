@@ -92,8 +92,6 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createParentDirectories
 import com.intellij.util.io.delete
-import com.intellij.util.io.isDirectory
-import com.intellij.util.io.isFile
 import junit.framework.TestCase.fail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -131,6 +129,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.path.createFile
 import kotlin.io.path.exists
 import kotlin.io.path.fileSize
+import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 
 private const val nonAsciiSuffix = " ąę"

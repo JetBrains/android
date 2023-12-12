@@ -22,7 +22,6 @@ import com.android.tools.idea.appinspection.inspector.api.service.TestFileServic
 import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
-import com.intellij.util.io.createFile
 import com.intellij.util.io.createParentDirectories
 import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
