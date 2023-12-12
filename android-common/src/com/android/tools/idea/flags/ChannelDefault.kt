@@ -31,34 +31,13 @@ private constructor(default: T, private val versionProvider: (() -> String)? = n
 
   override fun get(): T = value
 
-  fun withDevOverride(override: T): ChannelDefault<T> {
-    if (IdeChannel.getChannel(versionProvider) == IdeChannel.Channel.DEV) value = override
-    return this
+  fun withOverride(override: T, channel: IdeChannel.Channel, vararg moreChannels: IdeChannel.Channel) = apply {
+    val ideChannel = IdeChannel.getChannel(versionProvider)
+    if (ideChannel == channel || ideChannel in moreChannels) value = override
   }
 
-  fun withNightlyOverride(override: T): ChannelDefault<T> {
-    if (IdeChannel.getChannel(versionProvider) == IdeChannel.Channel.NIGHTLY) value = override
-    return this
-  }
-
-  fun withCanaryOverride(override: T): ChannelDefault<T> {
-    if (IdeChannel.getChannel(versionProvider) == IdeChannel.Channel.CANARY) value = override
-    return this
-  }
-
-  fun withBetaOverride(override: T): ChannelDefault<T> {
-    if (IdeChannel.getChannel(versionProvider) == IdeChannel.Channel.BETA) value = override
-    return this
-  }
-
-  fun withRCOverride(override: T): ChannelDefault<T> {
-    if (IdeChannel.getChannel(versionProvider) == IdeChannel.Channel.RC) value = override
-    return this
-  }
-
-  fun withStableOverride(override: T): ChannelDefault<T> {
-    if (IdeChannel.getChannel(versionProvider) == IdeChannel.Channel.STABLE) value = override
-    return this
+  fun withOverride(override: T, channels: ClosedRange<IdeChannel.Channel>) = apply {
+    if (IdeChannel.getChannel(versionProvider) in channels) value = override
   }
 
   companion object {

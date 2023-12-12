@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.flags
 
+import com.android.tools.idea.IdeChannel
+import com.android.tools.idea.IdeChannel.Channel.CANARY
+import com.android.tools.idea.IdeChannel.Channel.DEV
+import com.android.tools.idea.IdeChannel.Channel.NIGHTLY
+import com.android.tools.idea.IdeChannel.Channel.RC
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,114 +27,42 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ChannelDefaultTest {
+  private lateinit var versionProvider: () -> String
+  private fun createChannelDefault() = ChannelDefault.of(1, versionProvider)
+    .withOverride(2, DEV, NIGHTLY)
+    .withOverride(3, CANARY..RC)
+
+  private fun computeDefaultValue() = createChannelDefault().get()
+
   @Test
-  fun devOverride() {
-    val versionProvider = { "Iguana | 2023.1.1 dev" }
-
-    val defaultValue =
-      ChannelDefault.of(1, versionProvider)
-        .withDevOverride(2)
-        .withNightlyOverride(3)
-        .withCanaryOverride(4)
-        .withBetaOverride(5)
-        .withRCOverride(6)
-        .withStableOverride(7)
-
-    assertThat(defaultValue.get()).isEqualTo(2)
+  fun notOverridden() {
+    versionProvider = { "Iguana | 2023.1.1" }
+    assertThat(computeDefaultValue()).isEqualTo(1)
   }
 
   @Test
-  fun nightlyOverride() {
-    val versionProvider = { "Iguana | 2023.1.1 Nightly" }
-
-    val defaultValue =
-      ChannelDefault.of(1, versionProvider)
-        .withDevOverride(2)
-        .withNightlyOverride(3)
-        .withCanaryOverride(4)
-        .withBetaOverride(5)
-        .withRCOverride(6)
-        .withStableOverride(7)
-
-    assertThat(defaultValue.get()).isEqualTo(3)
+  fun noMatch() {
+    versionProvider = { "Iguana | 2023.1.1 Fhqwhgads" }
+    assertThat(computeDefaultValue()).isEqualTo(1)
   }
 
   @Test
-  fun canaryOverride() {
-    val versionProvider = { "Iguana | 2023.1.1 Canary" }
-
-    val defaultValue =
-      ChannelDefault.of(1, versionProvider)
-        .withDevOverride(2)
-        .withNightlyOverride(3)
-        .withCanaryOverride(4)
-        .withBetaOverride(5)
-        .withRCOverride(6)
-        .withStableOverride(7)
-
-    assertThat(defaultValue.get()).isEqualTo(4)
+  fun overrideFirstParam() {
+    versionProvider = { "Iguana | 2023.1.1 dev" }
+    assertThat(computeDefaultValue()).isEqualTo(2)
   }
 
   @Test
-  fun betaOverride() {
-    val versionProvider = { "Iguana | 2023.1.1 Beta" }
-
-    val defaultValue =
-      ChannelDefault.of(1, versionProvider)
-        .withDevOverride(2)
-        .withNightlyOverride(3)
-        .withCanaryOverride(4)
-        .withBetaOverride(5)
-        .withRCOverride(6)
-        .withStableOverride(7)
-
-    assertThat(defaultValue.get()).isEqualTo(5)
+  fun overrideVarargParam() {
+    versionProvider = { "Iguana | 2023.1.1 Nightly" }
+    assertThat(computeDefaultValue()).isEqualTo(2)
   }
 
   @Test
-  fun rcOverride() {
-    val versionProvider = { "Iguana | 2023.1.1 RC" }
-
-    val defaultValue =
-      ChannelDefault.of(1, versionProvider)
-        .withDevOverride(2)
-        .withNightlyOverride(3)
-        .withCanaryOverride(4)
-        .withBetaOverride(5)
-        .withRCOverride(6)
-        .withStableOverride(7)
-
-    assertThat(defaultValue.get()).isEqualTo(6)
-  }
-
-  @Test
-  fun stableOverride() {
-    val versionProvider = { "Iguana | 2023.1.1" }
-
-    val defaultValue =
-      ChannelDefault.of(1, versionProvider)
-        .withDevOverride(2)
-        .withNightlyOverride(3)
-        .withCanaryOverride(4)
-        .withBetaOverride(5)
-        .withRCOverride(6)
-        .withStableOverride(7)
-
-    assertThat(defaultValue.get()).isEqualTo(7)
-  }
-
-  @Test
-  fun noMatchingOverride() {
-    val versionProvider = { "Iguana | 2023.1.1 Dev" }
-
-    val defaultValue =
-      ChannelDefault.of(1, versionProvider)
-        .withNightlyOverride(3)
-        .withCanaryOverride(4)
-        .withBetaOverride(5)
-        .withRCOverride(6)
-        .withStableOverride(7)
-
-    assertThat(defaultValue.get()).isEqualTo(1)
+  fun overrideRange() {
+    for (channel in listOf("Canary", "Beta", "RC")) {
+      versionProvider = { "Iguana | 2023.1.1 $channel" }
+      assertThat(computeDefaultValue()).isEqualTo(3)
+    }
   }
 }
