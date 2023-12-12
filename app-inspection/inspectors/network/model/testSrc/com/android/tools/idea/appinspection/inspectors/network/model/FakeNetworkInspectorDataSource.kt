@@ -25,6 +25,8 @@ class FakeNetworkInspectorDataSource(
   httpEventList: List<Event> = emptyList(),
   private val speedEventList: List<Event> = emptyList()
 ) : NetworkInspectorDataSource {
+  var resetCalledCount = 0
+
   private val dataHandler =
     DataHandler(StubNetworkInspectorTracker()).apply {
       httpEventList.forEach { handleHttpConnectionEvent(it) }
@@ -42,4 +44,8 @@ class FakeNetworkInspectorDataSource(
   override fun addOnExtendTimelineListener(listener: (Long) -> Unit) {}
 
   override fun start() {}
+
+  override fun reset() {
+    resetCalledCount++
+  }
 }

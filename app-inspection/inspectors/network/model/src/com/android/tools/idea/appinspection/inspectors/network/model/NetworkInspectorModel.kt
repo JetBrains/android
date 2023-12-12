@@ -46,7 +46,7 @@ private val TIMELINE_PADDING_MS = TimeUnit.SECONDS.toMicros(3)
 /** The model class for `NetworkInspectorView`. */
 class NetworkInspectorModel(
   services: NetworkInspectorServices,
-  dataSource: NetworkInspectorDataSource,
+  private val dataSource: NetworkInspectorDataSource,
   scope: CoroutineScope,
   connectionsModel: ConnectionDataModel = ConnectionDataModelImpl(dataSource),
 ) : AspectModel<NetworkInspectorAspect>() {
@@ -161,6 +161,13 @@ class NetworkInspectorModel(
     return true
   }
 
+  fun reset() {
+    dataSource.reset()
+    timeline.dataRange.clear()
+    timeline.selectionRange.clear()
+    timeline.viewRange.clear()
+    timeline.tooltipRange.clear()
+  }
   /** Returns true if the timeline in live mode. */
   private fun isLive() =
     timeline.viewRange.max < 0 || (timeline.viewRange.max == timeline.dataRange.max)

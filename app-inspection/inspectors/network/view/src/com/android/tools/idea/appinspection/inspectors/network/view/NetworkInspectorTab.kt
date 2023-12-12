@@ -59,6 +59,9 @@ import org.jetbrains.annotations.VisibleForTesting
 
 private const val ZOOM_IN = "Zoom in"
 private const val ZOOM_OUT = "Zoom out"
+private const val RESET_ZOOM = "Reset zoom"
+private const val ZOOM_TO_SELECTION = "Zoom to selection"
+private const val CLEAR_DATA = "Clear data"
 private const val ATTACH_LIVE = "Attach to live"
 private const val DETACH_LIVE = "Detach live"
 private val SHORTCUT_MODIFIER_MASK_NUMBER = if (SystemInfo.isMac) META_DOWN_MASK else CTRL_DOWN_MASK
@@ -129,7 +132,20 @@ class NetworkInspectorTab(
     toolbar.add(actionsToolBar, BorderLayout.EAST)
     actionsToolBar.border = JBUI.Borders.emptyRight(2)
 
+    val clearDataButton = CommonButton(StudioIcons.Common.DELETE)
+    clearDataButton.name = CLEAR_DATA
+    clearDataButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.DELETE)
+    clearDataButton.addActionListener { clearData() }
+    val clearDataAction =
+      DefaultContextMenuItem.Builder(CLEAR_DATA)
+        .setContainerComponent(splitter)
+        .setActionRunnable { clearDataButton.doClick(0) }
+        .build()
+    clearDataButton.toolTipText = clearDataAction.defaultToolTipText
+    actionsToolBar.add(clearDataButton)
+
     val zoomOut = CommonButton(AllIcons.General.ZoomOut)
+    zoomOut.name = ZOOM_OUT
     zoomOut.disabledIcon = IconLoader.getDisabledIcon(AllIcons.General.ZoomOut)
     zoomOut.addActionListener { model.timeline.zoomOut() }
     val zoomOutAction =
@@ -146,6 +162,7 @@ class NetworkInspectorTab(
     actionsToolBar.add(zoomOut)
 
     val zoomIn = CommonButton(AllIcons.General.ZoomIn)
+    zoomIn.name = ZOOM_IN
     zoomIn.disabledIcon = IconLoader.getDisabledIcon(AllIcons.General.ZoomIn)
     zoomIn.addActionListener { model.timeline.zoomIn() }
     val zoomInAction =
@@ -162,10 +179,11 @@ class NetworkInspectorTab(
     actionsToolBar.add(zoomIn)
 
     val resetZoom = CommonButton(StudioIcons.Common.RESET_ZOOM)
+    resetZoom.name = RESET_ZOOM
     resetZoom.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.RESET_ZOOM)
     resetZoom.addActionListener { model.timeline.resetZoom() }
     val resetZoomAction =
-      DefaultContextMenuItem.Builder("Reset zoom")
+      DefaultContextMenuItem.Builder(RESET_ZOOM)
         .setContainerComponent(splitter)
         .setActionRunnable { resetZoom.doClick(0) }
         .setKeyStrokes(
@@ -177,12 +195,13 @@ class NetworkInspectorTab(
     actionsToolBar.add(resetZoom)
 
     val zoomToSelection = CommonButton(StudioIcons.Common.ZOOM_SELECT)
+    zoomToSelection.name = ZOOM_TO_SELECTION
     zoomToSelection.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT)
     zoomToSelection.addActionListener {
       model.timeline.frameViewToRange(model.timeline.selectionRange)
     }
     val zoomToSelectionAction =
-      DefaultContextMenuItem.Builder("Zoom to Selection")
+      DefaultContextMenuItem.Builder(ZOOM_TO_SELECTION)
         .setContainerComponent(splitter)
         .setActionRunnable { zoomToSelection.doClick(0) }
         .setEnableBooleanSupplier { !model.timeline.selectionRange.isEmpty }
@@ -248,6 +267,10 @@ class NetworkInspectorTab(
     zoomIn.isEnabled = true
     resetZoom.isEnabled = true
     zoomToSelection.isEnabled = zoomToSelectionAction.isEnabled
+  }
+
+  private fun clearData() {
+    model.reset()
   }
 
   fun stopInspection() {
