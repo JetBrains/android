@@ -44,12 +44,4 @@ internal constructor(view: NetworkInspectorView, private val tooltip: NetworkTra
     )
     return legend
   }
-
-  override fun updateHeader() {
-    if (timeline.dataRange.isTrivial) {
-      myHeadingLabel.text = ""
-      return
-    }
-    super.updateHeader()
-  }
 }

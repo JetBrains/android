@@ -272,15 +272,15 @@ internal class NetworkInspectorView(
   }
 
   private fun tooltipChanged() {
-    if (activeTooltipView != null) {
-      activeTooltipView!!.dispose()
-      activeTooltipView = null
-    }
+    activeTooltipView?.dispose()
+    activeTooltipView = null
+
     tooltipPanel.removeAll()
     tooltipPanel.isVisible = false
-    if (model.tooltip != null) {
-      activeTooltipView = tooltipBinder.build(this, model.tooltip)
-      tooltipPanel.add(activeTooltipView!!.createComponent())
+    if (model.tooltip != null && !model.timeline.dataRange.isTrivial) {
+      val tooltipView = tooltipBinder.build(this, model.tooltip)
+      activeTooltipView = tooltipView
+      tooltipPanel.add(tooltipView.createComponent())
       tooltipPanel.isVisible = true
     }
     tooltipPanel.invalidate()
