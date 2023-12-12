@@ -117,7 +117,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
                                    // post-O
                                    () -> getStudioProfilers().setStage(
                                      AllocationStage.makeLiveStage(
-                                       getStudioProfilers())) :
+                                       getStudioProfilers(), getStopAction())) :
                                    // legacy
                                    () -> {
                                      if (isTrackingAllocations()) {
