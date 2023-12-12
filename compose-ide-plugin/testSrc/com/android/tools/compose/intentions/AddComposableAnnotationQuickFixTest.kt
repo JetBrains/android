@@ -622,7 +622,6 @@ class AddComposableAnnotationQuickFixTest {
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")
-    // assertQuickFixNotAvailable("val prop|erty") // TODO(b/314195067): fails with IntelliJ 2023.3
 
     invokeQuickFix("Composable|Function()  // invocation")
 
@@ -666,9 +665,50 @@ class AddComposableAnnotationQuickFixTest {
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")
-    // assertQuickFixNotAvailable("val prop|erty") // TODO(b/314195067): fails with IntelliJ 2023.3
 
     invokeQuickFix("fun|()")
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      import androidx.compose.runtime.Composable
+      @Composable fun ComposableFunction() {}
+      fun getMyClass(): Any {
+          class MyClass {
+              val property = @Composable
+              fun() {
+                  ComposableFunction()  // invocation
+              }
+          }
+          return MyClass()
+      }
+      """
+        .trimIndent()
+    )
+  }
+
+  @Test
+  fun errorInPropertyInitializerWithAnonymousFunction_invokeOnProperty() {
+    myFixture.loadNewFile(
+      "Test.kt",
+      // language=kotlin
+      """
+      import androidx.compose.runtime.Composable
+      @Composable fun ComposableFunction() {}
+      fun getMyClass(): Any {
+          class MyClass {
+              val property = fun() {
+                  ComposableFunction()  // invocation
+              }
+          }
+          return MyClass()
+      }
+      """
+        .trimIndent()
+    )
+
+    assertQuickFixNotAvailable("fun getMy|Class(): Any")
+    invokeQuickFix("prop|erty")
 
     myFixture.checkResult(
       // language=kotlin
