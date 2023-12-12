@@ -48,7 +48,7 @@ class ProcessListModel(val profilers: StudioProfilers, private val resetTaskSele
     val newDeviceToProcesses = mutableMapOf<Common.Device, List<Common.Process>>()
     profilers.deviceProcessMap.forEach { (device, processes) ->
       if (device.state != Common.Device.State.ONLINE) {
-        return
+        return@forEach
       }
       val newProcesses = mutableListOf<Common.Process>()
       for (process in processes) {
@@ -62,6 +62,12 @@ class ProcessListModel(val profilers: StudioProfilers, private val resetTaskSele
 
     _deviceToProcesses.value = newDeviceToProcesses
     _deviceList.value = newDeviceToProcesses.keys.toList()
+
+    // If the selected device is no longer found in the new device list, reset the device selection.
+    if (!isSelectedDevicePresent()) {
+      resetDeviceSelection()
+    }
+
     reorderProcessList()
   }
 
@@ -139,4 +145,8 @@ class ProcessListModel(val profilers: StudioProfilers, private val resetTaskSele
   fun getPreferredProcessName() = preferredProcessName
 
   private fun isDeviceSelected() = _selectedDevice.value != Common.Device.getDefaultInstance()
+
+  private fun isSelectedDevicePresent() = _deviceList.value.firstOrNull { it.deviceId == _selectedDevice.value.deviceId } != null
+
+  private fun resetDeviceSelection() { _selectedDevice.value = Common.Device.getDefaultInstance() }
 }

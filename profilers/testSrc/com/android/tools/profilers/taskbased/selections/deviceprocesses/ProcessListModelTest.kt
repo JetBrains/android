@@ -26,9 +26,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
-import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.addDeviceWithProcess
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createDevice
-import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createProcess
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -81,6 +79,59 @@ class ProcessListModelTest {
     addDeviceWithProcess(device, createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId), myTransportService,
                          myTimer)
     assertThat(processListModel.getSelectedDeviceProcesses()).isEmpty()
+  }
+
+  @Test
+  fun `disconnecting a device updates the device list`() {
+    assertThat(processListModel.deviceToProcesses.value).isEmpty()
+    val onlineDevice = createDevice("FakeDevice1", Common.Device.State.ONLINE)
+    addDeviceWithProcess(onlineDevice, createProcess(10, "FakeProcess1", Common.Process.State.ALIVE, onlineDevice.deviceId),
+                         myTransportService, myTimer)
+    addDeviceWithProcess(onlineDevice, createProcess(30, "FakeProcess3", Common.Process.State.ALIVE, onlineDevice.deviceId),
+                         myTransportService, myTimer)
+    val toBeDisconnectedDevice = createDevice("FakeDevice2", Common.Device.State.ONLINE)
+    addDeviceWithProcess(toBeDisconnectedDevice,
+                         createProcess(20, "FakeProcess2", Common.Process.State.ALIVE, toBeDisconnectedDevice.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(toBeDisconnectedDevice,
+                         createProcess(40, "FakeProcess4", Common.Process.State.ALIVE, toBeDisconnectedDevice.deviceId), myTransportService,
+                         myTimer)
+
+    // At this point there should be two online devices
+    assertThat(processListModel.deviceList.value.size).isEqualTo(2)
+
+    // Simulate disconnection of FakeDevice2
+    updateDeviceState("FakeDevice2", Common.Device.State.DISCONNECTED, myTransportService, myTimer)
+
+    // Because FakeDevice2 was disconnected, there should only be one online device
+    assertThat(processListModel.deviceList.value.size).isEqualTo(1)
+  }
+
+  @Test
+  fun `disconnecting a device resets the device selection`() {
+    assertThat(processListModel.deviceToProcesses.value).isEmpty()
+
+    val toBeDisconnectedDevice = createDevice("FakeDevice", Common.Device.State.ONLINE)
+    processListModel.onDeviceSelection(toBeDisconnectedDevice)
+    addDeviceWithProcess(toBeDisconnectedDevice,
+                         createProcess(10, "FakeProcess1", Common.Process.State.ALIVE, toBeDisconnectedDevice.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(toBeDisconnectedDevice,
+                         createProcess(20, "FakeProcess2", Common.Process.State.ALIVE, toBeDisconnectedDevice.deviceId), myTransportService,
+                         myTimer)
+
+    // At this point there should be one online devices
+    assertThat(processListModel.deviceList.value.size).isEqualTo(1)
+    // FakeDevice should be the selected device
+    assertThat(processListModel.selectedDevice.value).isEqualTo(toBeDisconnectedDevice)
+
+    // Simulate disconnection of FakeDevice
+    updateDeviceState("FakeDevice", Common.Device.State.DISCONNECTED, myTransportService, myTimer)
+
+    // Because FakeDevice was disconnected, there should be no online device
+    assertThat(processListModel.deviceList.value).isEmpty()
+    // Because FakeDevice was the selected device, and it has been disconnected, the device selection should be reset
+    assertThat(processListModel.selectedDevice.value).isEqualTo(Common.Device.getDefaultInstance())
   }
 
   @Test
@@ -291,5 +342,11 @@ class ProcessListModelTest {
                       deviceId: Long,
                       exposureLevel: ExposureLevel = ExposureLevel.DEBUGGABLE) = Common.Process.newBuilder().setDeviceId(deviceId).setPid(
       pid).setName(processName).setState(processState).setExposureLevel(exposureLevel).build()
+
+    private fun updateDeviceState(deviceName: String, deviceState: Common.Device.State, transportService: FakeTransportService, timer: FakeTimer) {
+      val newDevice = createDevice(deviceName, deviceState)
+      transportService.addDevice(newDevice)
+      timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    }
   }
 }
