@@ -397,7 +397,7 @@ public final class AdbService implements Disposable,
       return StudioFlags.JDWP_TRACER.get() && !JDWP_SCACHE.get();
     });
     AndroidDebugBridge.setJdwpProcessorFactory(() -> new StudioDDMLibSCache(JDWP_SCACHE.get(), new StudioSCacheLogger()));
-    StudioAdbLibSCacheJdwpSessionPipelineFactory.install(AdbLibApplicationService.getInstance().getSession(), JDWP_SCACHE::get);
+    StudioAdbLibSCacheJdwpSessionPipelineFactory.install(AdbLibApplicationService.getInstance().getSession());
 
     // Ensure ADB is terminated when there are no more open projects.
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {

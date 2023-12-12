@@ -27,6 +27,7 @@
     <orderEntry type="library" scope="TEST" name="zxing-core" level="project" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
     <orderEntry type="module" module-name="android.sdktools.adblib.tools" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.jdwptracer" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.adb" />
 </module>

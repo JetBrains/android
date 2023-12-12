@@ -64,6 +64,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:zxing-core[test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
         "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module, test]",
+        "//tools/base/jdwp-tracer:studio.android.sdktools.jdwptracer[module, test]",
     ],
 )
 
