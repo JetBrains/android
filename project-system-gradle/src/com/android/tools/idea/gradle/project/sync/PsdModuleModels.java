@@ -47,10 +47,4 @@ public class PsdModuleModels implements GradleModuleModels {
     assert modelType.isInstance(model);
     return modelType.cast(model);
   }
-
-  @Override
-  @NotNull
-  public String getModuleName() {
-    return myName;
-  }
 }

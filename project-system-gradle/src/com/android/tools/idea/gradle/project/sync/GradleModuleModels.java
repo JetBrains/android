@@ -24,11 +24,7 @@ import java.util.List;
 public interface GradleModuleModels extends Serializable {
   /**
    * Obtain the single model with given modelType.
-   * Use {@link #findModels(Class)} if there're multiple models with given type.
    */
   @Nullable
   <T> T findModel(@NotNull Class<T> modelType);
-
-  @NotNull
-  String getModuleName();
 }
