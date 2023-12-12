@@ -53,7 +53,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.navigation.getStartDestLayoutId
 import org.jetbrains.android.sdk.AndroidSdkUtils
-import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
+import java.lang.ref.WeakReference
 
 /** Studio-specific implementation of [EnvironmentContext]. */
 class StudioEnvironmentContext(private val module: Module) : EnvironmentContext {
@@ -98,7 +98,14 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
   }
 
   override fun getNavGraphResolver(resourceResolver: ResourceResolver): NavGraphResolver {
-    return NavGraphResolver { navGraph -> getStartDestLayoutId(navGraph, module.project, resourceResolver) }
+    val projectRef = WeakReference(module.project)
+    return NavGraphResolver { navGraph ->
+      val project = projectRef.get() ?: run {
+        Logger.getInstance(StudioRenderSecurityManager::class.java).warn("getNavGraphResolver for disposed project")
+        return@NavGraphResolver null
+      }
+      getStartDestLayoutId(navGraph, project, resourceResolver)
+    }
   }
 
   override fun createRenderSecurityManager(projectPath: String?, platform: AndroidPlatform?): RenderSecurityManager {
