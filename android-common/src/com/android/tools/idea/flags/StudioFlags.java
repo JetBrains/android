@@ -613,7 +613,7 @@ public final class StudioFlags {
     GRADLE_IDE, "android.sdk.ide.compatibility.rules",
     "Enable compatibility rules support between IDE version and compile SDK version",
     "Enable compatibility rules support between IDE version and compile SDK version",
-    false
+    true
   );
 
   public static final Flag<Boolean> API_OPTIMIZATION_ENABLE = Flag.create(
