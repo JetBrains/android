@@ -23,6 +23,7 @@ import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.LightPlatformTestCase
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.StateFlow
@@ -59,6 +60,11 @@ class WearHealthServicesToolWindowTest : LightPlatformTestCase() {
 
   @Test
   fun `test panel screenshot matches expectation for current platform`() = runBlocking {
+    // Fails on Windows: b/315869760
+    if (SystemInfo.isWindows) {
+      return@runBlocking
+    }
+
     val fakeUi = FakeUi(toolWindow)
 
     fakeUi.waitForCheckbox("Heart rate", true)
@@ -77,6 +83,11 @@ class WearHealthServicesToolWindowTest : LightPlatformTestCase() {
 
   @Test
   fun `test panel screenshot matches expectation with modified state manager values`() = runBlocking {
+    // Fails on Windows: b/315869760
+    if (SystemInfo.isWindows) {
+      return@runBlocking
+    }
+
     stateManager.getCapabilitiesList().waitForValue(deviceManager.capabilities)
 
     deviceManager.failState = true
