@@ -50,6 +50,7 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -458,6 +459,7 @@ public class BuildVariantView {
           background = CONFLICT_CELL_BACKGROUND;
         }
         component.setBackground(background);
+        component.setFont(StartupUiUtil.getLabelFont());
         Module module = ((BuildVariantTable)table).findModule(row);
         String toolTip = hasConflicts && module != null ? ConflictSetKt.variantConflictMessage(module, conflictFound)
                                       : variantsCellHelpTooltipText;
@@ -489,7 +491,7 @@ public class BuildVariantView {
         // Build Variant conflicts do not change the background color of ABI cells.
         Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
         component.setBackground(background);
-
+        component.setFont(StartupUiUtil.getLabelFont());
         // Build variant conflicts do not change the tooltip of ABI cells.
         component.setToolTipText(abisCellHelpTooltipText);
 
@@ -588,7 +590,7 @@ public class BuildVariantView {
         }
       }
       myModuleNameLabel.setForeground(AdtUiUtils.DEFAULT_FONT_COLOR);
-      myModuleNameLabel.setFont(table.getFont());
+      myModuleNameLabel.setFont(StartupUiUtil.getLabelFont());
       myModuleNameLabel.setText(moduleName == null ? "" : moduleName);
       myModuleNameLabel.setIcon(moduleIcon);
 
