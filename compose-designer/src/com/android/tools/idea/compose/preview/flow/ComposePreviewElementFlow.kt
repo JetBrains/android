@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.flow
 
 import com.android.tools.idea.compose.preview.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.defaultFilePreviewElementFinder
+import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.preview.ComposePreviewElement
 import com.intellij.lang.Language
@@ -81,7 +82,7 @@ private fun languageModificationFlow(project: Project, languages: Set<Language>)
 fun previewElementFlowForFile(
   psiFilePointer: SmartPsiElementPointer<PsiFile>,
   filePreviewElementProvider: () -> FilePreviewElementFinder = ::defaultFilePreviewElementFinder,
-): Flow<Set<ComposePreviewElement>> {
+): Flow<FlowableCollection<ComposePreviewElement>> {
   return channelFlow {
       coroutineScope {
         // We are tracking the language change flow instead of file change flow because
@@ -101,7 +102,7 @@ fun previewElementFlowForFile(
             filePreviewElementProvider()
               .findPreviewMethods(psiFilePointer.project, psiFilePointer.virtualFile)
               .toSet()
-          send(previews)
+          send(FlowableCollection.Present(previews))
         }
       }
     }

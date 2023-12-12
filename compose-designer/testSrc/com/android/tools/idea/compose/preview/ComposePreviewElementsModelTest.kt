@@ -17,6 +17,8 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposePreviewElementsModel
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.namedGroup
+import com.android.tools.idea.concurrency.FlowableCollection
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
@@ -63,11 +65,13 @@ class ComposePreviewElementsModelTest {
       )
     val filteredInstancesFlow =
       ComposePreviewElementsModel.filteredPreviewElementsFlow(
-        ComposePreviewElementsModel.instantiatedPreviewElementsFlow(MutableStateFlow(allPreviews)),
+        ComposePreviewElementsModel.instantiatedPreviewElementsFlow(
+          MutableStateFlow(FlowableCollection.Present(allPreviews))
+        ),
         filterFlow
       )
 
-    assertThat(filteredInstancesFlow.first().map { it.methodFqn })
+    assertThat(filteredInstancesFlow.first().asCollection().map { it.methodFqn })
       .containsExactly(
         "PreviewMethod1",
         "SeparatePreview",
@@ -83,17 +87,18 @@ class ComposePreviewElementsModelTest {
       ComposePreviewElementsModel.Filter.Single(
         allPreviews.first() as SingleComposePreviewElementInstance
       )
-    assertThat(filteredInstancesFlow.first().map { it.methodFqn }).containsExactly("PreviewMethod1")
+    assertThat(filteredInstancesFlow.first().asCollection().map { it.methodFqn })
+      .containsExactly("PreviewMethod1")
 
     // Set the group filter
     filterFlow.value = ComposePreviewElementsModel.Filter.Group(namedGroup("GroupA"))
-    assertThat(filteredInstancesFlow.first().map { it.methodFqn })
+    assertThat(filteredInstancesFlow.first().asCollection().map { it.methodFqn })
       .containsExactly("PreviewMethod1", "SeparatePreview")
       .inOrder()
 
     // Remove instance filter
     filterFlow.value = ComposePreviewElementsModel.Filter.Disabled
-    assertThat(filteredInstancesFlow.first().map { it.methodFqn })
+    assertThat(filteredInstancesFlow.first().asCollection().map { it.methodFqn })
       .containsExactly(
         "PreviewMethod1",
         "SeparatePreview",
@@ -107,7 +112,9 @@ class ComposePreviewElementsModelTest {
     // This should filter and keep the group
     filterFlow.value = ComposePreviewElementsModel.Filter.Group(namedGroup("GroupA"))
     assertThat(
-        filteredInstancesFlow.first().map { "${it.instanceId} (${it.displaySettings.group})" }
+        filteredInstancesFlow.first().asCollection().map {
+          "${it.instanceId} (${it.displaySettings.group})"
+        }
       )
       .containsExactly(
         "PreviewMethod1 (GroupA)",
@@ -134,11 +141,11 @@ class ComposePreviewElementsModelTest {
       )
     val filteredInstancesFlow =
       ComposePreviewElementsModel.filteredPreviewElementsFlow(
-        MutableStateFlow(allPreviews),
+        MutableStateFlow(FlowableCollection.Present(allPreviews)),
         filterFlow
       )
 
     filterFlow.value = ComposePreviewElementsModel.Filter.Single(previewElement)
-    assertThat(filteredInstancesFlow.first()).containsExactly(previewElement)
+    assertThat(filteredInstancesFlow.first().asCollection()).containsExactly(previewElement)
   }
 }

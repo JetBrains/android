@@ -27,6 +27,7 @@ import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
@@ -276,7 +277,7 @@ class ComposePreviewRepresentationTest {
         "Failed set uiCheckMode",
         25.seconds
       ) {
-        it.size > 2
+        it.asCollection().size > 2
       }
       assertEquals(
         """
@@ -326,7 +327,9 @@ class ComposePreviewRepresentationTest {
 
         """
           .trimIndent(),
-        preview.filteredPreviewElementsInstancesFlowForTest().value.joinToString("\n") {
+        preview.filteredPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+          "\n"
+        ) {
           val configurationDeviceSpecText =
             "${it.configuration.deviceSpec}\n".takeIf { str -> str.isNotBlank() } ?: ""
           "${it.methodFqn}\n$configurationDeviceSpecText${it.displaySettings}\n"
@@ -370,7 +373,7 @@ class ComposePreviewRepresentationTest {
         "Failed stop uiCheckMode",
         25.seconds
       ) {
-        it.size == 2
+        it.asCollection().size == 2
       }
       assertEquals(
         """
@@ -382,7 +385,9 @@ class ComposePreviewRepresentationTest {
 
         """
           .trimIndent(),
-        preview.filteredPreviewElementsInstancesFlowForTest().value.joinToString("\n") {
+        preview.filteredPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+          "\n"
+        ) {
           "${it.methodFqn}\n${it.configuration.deviceSpec}\n"
         }
       )
@@ -403,7 +408,7 @@ class ComposePreviewRepresentationTest {
         "Failed set uiCheckMode",
         25.seconds
       ) {
-        it.size > 2
+        it.asCollection().size > 2
       }
       assertEquals(
         """
@@ -453,7 +458,9 @@ class ComposePreviewRepresentationTest {
 
         """
           .trimIndent(),
-        preview.filteredPreviewElementsInstancesFlowForTest().value.joinToString("\n") {
+        preview.filteredPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+          "\n"
+        ) {
           val configurationDeviceSpecText =
             "${it.configuration.deviceSpec}\n".takeIf { str -> str.isNotBlank() } ?: ""
           "${it.methodFqn}\n$configurationDeviceSpecText${it.displaySettings}\n"
@@ -626,7 +633,7 @@ class ComposePreviewRepresentationTest {
         "Failed set uiCheckMode",
         25.seconds
       ) {
-        it.size > 2
+        it.asCollection().size > 2
       }
       assertEquals(
         """
@@ -697,7 +704,9 @@ class ComposePreviewRepresentationTest {
 
         """
           .trimIndent(),
-        preview.filteredPreviewElementsInstancesFlowForTest().value.joinToString("\n") {
+        preview.filteredPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+          "\n"
+        ) {
           val configurationDeviceSpecText =
             "${it.configuration.deviceSpec}\n".takeIf { str -> str.isNotBlank() } ?: ""
           "${it.methodFqn}\n$configurationDeviceSpecText${it.displaySettings}\n"
@@ -729,7 +738,7 @@ class ComposePreviewRepresentationTest {
         "Failed stop uiCheckMode",
         25.seconds
       ) {
-        it.size == 2
+        it.asCollection().size == 2
       }
       assertEquals(
         """
@@ -741,7 +750,9 @@ class ComposePreviewRepresentationTest {
 
         """
           .trimIndent(),
-        preview.filteredPreviewElementsInstancesFlowForTest().value.joinToString("\n") {
+        preview.filteredPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+          "\n"
+        ) {
           "${it.methodFqn}\n${it.configuration.deviceSpec}\n"
         }
       )
@@ -762,7 +773,7 @@ class ComposePreviewRepresentationTest {
         "Failed set uiCheckMode",
         25.seconds
       ) {
-        it.size > 2
+        it.asCollection().size > 2
       }
       assertEquals(
         """
@@ -833,7 +844,9 @@ class ComposePreviewRepresentationTest {
 
         """
           .trimIndent(),
-        preview.filteredPreviewElementsInstancesFlowForTest().value.joinToString("\n") {
+        preview.filteredPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
+          "\n"
+        ) {
           val configurationDeviceSpecText =
             "${it.configuration.deviceSpec}\n".takeIf { str -> str.isNotBlank() } ?: ""
           "${it.methodFqn}\n$configurationDeviceSpecText${it.displaySettings}\n"

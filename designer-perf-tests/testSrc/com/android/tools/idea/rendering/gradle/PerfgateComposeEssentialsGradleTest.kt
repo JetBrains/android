@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering.gradle
 
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.preview.getComposePreviewManagerKeyForTests
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
 import com.android.tools.perflogger.Metric
@@ -38,7 +39,7 @@ class PerfgateComposeEssentialsGradleTest: PerfgateComposeGradleTestBase() {
 
   @Test
   fun essentialsMode_5Previews() = runBlocking {
-    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.size)
+    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().size)
     setUpEssentialsMode()
     addPreviewsAndMeasure(
       4, 1, listOf(
@@ -54,7 +55,7 @@ class PerfgateComposeEssentialsGradleTest: PerfgateComposeGradleTestBase() {
 
   @Test
   fun essentialsMode_30Previews() = runBlocking {
-    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.size)
+    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().size)
     setUpEssentialsMode()
     addPreviewsAndMeasure(
       29, 1, listOf(
@@ -70,7 +71,7 @@ class PerfgateComposeEssentialsGradleTest: PerfgateComposeGradleTestBase() {
 
   @Test
   fun essentialsMode_500Previews() = runBlocking {
-    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.size)
+    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().size)
     setUpEssentialsMode()
     addPreviewsAndMeasure(
       499, 1, listOf(
@@ -93,7 +94,7 @@ class PerfgateComposeEssentialsGradleTest: PerfgateComposeGradleTestBase() {
       delayUntilCondition(500, 5.seconds) { previewView.galleryMode != null }
       previewView.galleryMode!!.triggerTabChange(MapDataContext().also {
         it.put(getComposePreviewManagerKeyForTests(), composePreviewRepresentation)
-      }, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.first())
+      }, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().first())
     }
   }
 }

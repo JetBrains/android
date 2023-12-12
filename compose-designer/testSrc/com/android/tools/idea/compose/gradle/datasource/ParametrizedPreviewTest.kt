@@ -25,6 +25,7 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.TestComposePreviewView
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.preview.PreviewElementProvider
@@ -303,6 +304,7 @@ class ParametrizedPreviewTest {
     ) {
       val stringValue =
         it
+          .asCollection()
           .filterIsInstance<ParametrizedComposePreviewElementInstance>()
           .map {
             "${it.methodFqn} provider=${it.providerClassFqn} index=${it.index} max=${it.maxIndex}"
@@ -327,7 +329,7 @@ class ParametrizedPreviewTest {
         """
           .trimIndent()
     }
-    preview.filteredPreviewElementsInstancesFlowForTest().value.forEach {
+    preview.filteredPreviewElementsInstancesFlowForTest().value.asCollection().forEach {
       assertTrue(it.displaySettings.name.endsWith("TestWithProvider (name 0)"))
     }
   }

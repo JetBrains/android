@@ -40,7 +40,9 @@ import com.android.tools.idea.compose.preview.util.isFastPreviewAvailable
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
@@ -413,9 +415,10 @@ class ComposePreviewRepresentation(
       // There is no need to switch back to Default mode as toolbar is available.
       // When exiting Essentials mode - preview will stay in Gallery mode.
     } else {
-      allPreviewElementsInFileFlow.value.firstOrNull().let {
-        previewModeManager.setMode(PreviewMode.Gallery(it))
-      }
+      (allPreviewElementsInFileFlow.value as? FlowableCollection.Present)
+        ?.collection
+        ?.firstOrNull()
+        .let { previewModeManager.setMode(PreviewMode.Gallery(it)) }
     }
     logComposePreviewLiteModeEvent(sourceEventType)
     requestRefresh()
@@ -927,17 +930,22 @@ class ComposePreviewRepresentation(
         // in a worker thread under some circumstances so we need to prevent that from happening by
         // forcing the context switch.
         withContext(uiThread) {
-          filePreviewElements
-            .find { element ->
-              element.previewBodyPsi?.psiRange.containsOffset(offset) ||
-                element.previewElementDefinitionPsi?.psiRange.containsOffset(offset)
+          when (filePreviewElements) {
+            is FlowableCollection.Uninitialized -> {}
+            is FlowableCollection.Present -> {
+              filePreviewElements.collection
+                .find { element ->
+                  element.previewBodyPsi?.psiRange.containsOffset(offset) ||
+                    element.previewElementDefinitionPsi?.psiRange.containsOffset(offset)
+                }
+                ?.let { selectedPreviewElement ->
+                  surface.models.find {
+                    previewElementModelAdapter.modelToElement(it) == selectedPreviewElement
+                  }
+                }
+                ?.let { surface.scrollToVisible(it, true) }
             }
-            ?.let { selectedPreviewElement ->
-              surface.models.find {
-                previewElementModelAdapter.modelToElement(it) == selectedPreviewElement
-              }
-            }
-            ?.let { surface.scrollToVisible(it, true) }
+          }
         }
       }
     }
@@ -1263,6 +1271,7 @@ class ComposePreviewRepresentation(
           val previewsToRender =
             withContext(workerThread) {
               composePreviewFlowManager.filteredPreviewElementsInstancesFlow.value
+                .asCollection()
                 .sortByDisplayAndSourcePosition()
             }
           composeWorkBench.hasContent =
@@ -1380,7 +1389,7 @@ class ComposePreviewRepresentation(
         ?.let {
           // If gallery mode was selected before - need to restore this type of layout.
           if (it == PREVIEW_LAYOUT_GALLERY_OPTION) {
-            allPreviewElementsInFileFlow.value.firstOrNull().let { previewElement ->
+            allPreviewElementsInFileFlow.value.asCollection().firstOrNull().let { previewElement ->
               previewModeManager.setMode(PreviewMode.Gallery(previewElement))
             }
           } else {
@@ -1493,7 +1502,10 @@ class ComposePreviewRepresentation(
   /** Waits for any preview to be populated. */
   @TestOnly
   suspend fun waitForAnyPreviewToBeAvailable() {
-    allPreviewElementsInFileFlow.filter { it.isNotEmpty() }.take(1).collect()
+    allPreviewElementsInFileFlow
+      .filter { it is FlowableCollection.Present && it.collection.isNotEmpty() }
+      .take(1)
+      .collect()
   }
 
   override fun restorePrevious() = previewModeManager.restorePrevious()

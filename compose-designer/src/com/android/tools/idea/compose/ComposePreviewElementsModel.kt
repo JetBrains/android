@@ -16,6 +16,9 @@
 package com.android.tools.idea.compose
 
 import com.android.tools.idea.compose.preview.PreviewGroup
+import com.android.tools.idea.concurrency.FlowableCollection
+import com.android.tools.idea.concurrency.filter
+import com.android.tools.idea.concurrency.flatMap
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ComposePreviewElementInstance
 import kotlinx.coroutines.flow.Flow
@@ -30,8 +33,8 @@ import kotlinx.coroutines.flow.map
 object ComposePreviewElementsModel {
   /** Instantiates all the given [ComposePreviewElement] into [ComposePreviewElementInstance]s. */
   fun instantiatedPreviewElementsFlow(
-    input: Flow<Collection<ComposePreviewElement>>,
-  ): Flow<Collection<ComposePreviewElementInstance>> =
+    input: Flow<FlowableCollection<ComposePreviewElement>>,
+  ): Flow<FlowableCollection<ComposePreviewElementInstance>> =
     input.map { inputPreviews -> inputPreviews.flatMap { it.resolve() } }
 
   /**
@@ -45,8 +48,8 @@ object ComposePreviewElementsModel {
      */
     class Group(val filterGroup: PreviewGroup.Named) : Filter() {
       override fun filter(
-        input: Collection<ComposePreviewElementInstance>
-      ): Collection<ComposePreviewElementInstance> =
+        input: FlowableCollection<ComposePreviewElementInstance>
+      ): FlowableCollection<ComposePreviewElementInstance> =
         input.filter inner@{
           PreviewGroup.namedGroup(it.displaySettings.group ?: return@inner false) == filterGroup
         }
@@ -55,28 +58,31 @@ object ComposePreviewElementsModel {
     /** Filter that selects a single element. */
     data class Single(val instance: ComposePreviewElementInstance) : Filter() {
       override fun filter(
-        input: Collection<ComposePreviewElementInstance>
-      ): Collection<ComposePreviewElementInstance> = input.filter { it == instance }
+        input: FlowableCollection<ComposePreviewElementInstance>
+      ): FlowableCollection<ComposePreviewElementInstance> = input.filter { it == instance }
     }
 
     /** Filtering disabled. */
     object Disabled : Filter() {
       override fun filter(
-        input: Collection<ComposePreviewElementInstance>
-      ): Collection<ComposePreviewElementInstance> = input
+        input: FlowableCollection<ComposePreviewElementInstance>
+      ): FlowableCollection<ComposePreviewElementInstance> = input
     }
 
     abstract fun filter(
-      input: Collection<ComposePreviewElementInstance>
-    ): Collection<ComposePreviewElementInstance>
+      input: FlowableCollection<ComposePreviewElementInstance>
+    ): FlowableCollection<ComposePreviewElementInstance>
   }
 
   /** Filters [allPreviewInstancesFlow] using the given [filterFlow]. */
   fun filteredPreviewElementsFlow(
-    allPreviewInstancesFlow: Flow<Collection<ComposePreviewElementInstance>>,
+    allPreviewInstancesFlow: Flow<FlowableCollection<ComposePreviewElementInstance>>,
     filterFlow: Flow<Filter>
-  ): Flow<Collection<ComposePreviewElementInstance>> =
+  ): Flow<FlowableCollection<ComposePreviewElementInstance>> =
     combine(allPreviewInstancesFlow, filterFlow) { allPreviewInstances, filter ->
-      filter.filter(allPreviewInstances).ifEmpty { allPreviewInstances }
+      when (allPreviewInstances) {
+        is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized
+        is FlowableCollection.Present -> filter.filter(allPreviewInstances)
+      }
     }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.flow
 
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.testing.executeAndSave
@@ -35,6 +36,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -70,11 +72,12 @@ class ComposePreviewElementFlowTest {
 
     val completed = CompletableDeferred<Unit>()
     val listenersReady = CompletableDeferred<Unit>()
-    val previousElement = AtomicReference<Set<ComposePreviewElement>>(emptySet())
+    val previousElement = AtomicReference<Collection<ComposePreviewElement>>(emptySet())
     val testJob = launch {
       val flowScope = createChildScope()
       val flow =
         previewElementFlowForFile(psiFilePointer)
+          .map { it.asCollection() }
           .onEach { newValue ->
             val previousValue = previousElement.getAndSet(newValue)
 
@@ -185,7 +188,11 @@ class ComposePreviewElementFlowTest {
       val flow = previewElementFlowForFile(psiFilePointer).stateIn(flowScope)
       assertEquals(
         "Preview1 - A,Preview1 - B",
-        flow.filter { it.size == 2 }.first().joinToString(",") { it.displaySettings.name }
+        flow
+          .map { it.asCollection() }
+          .filter { it.size == 2 }
+          .first()
+          .joinToString(",") { it.displaySettings.name }
       )
 
       // Make change
@@ -201,7 +208,11 @@ class ComposePreviewElementFlowTest {
 
       assertEquals(
         "Preview1 - A,Preview1 - B,Preview1 - C",
-        flow.filter { it.size == 3 }.first().joinToString(",") { it.displaySettings.name }
+        flow
+          .map { it.asCollection() }
+          .filter { it.size == 3 }
+          .first()
+          .joinToString(",") { it.displaySettings.name }
       )
 
       // Terminate the flow

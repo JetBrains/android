@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering.gradle
 
 import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
 import com.android.tools.perflogger.Metric
@@ -26,7 +27,7 @@ import kotlin.random.Random
 class PerfgateComposeRenderQualityGradleTest: PerfgateComposeGradleTestBase() {
   @Test
   fun renderQualityEnabled_5Previews() = projectRule.runWithRenderQualityEnabled {
-    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.size)
+    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().size)
     addPreviewsAndMeasure(4, 5, listOf(
       // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.
       ElapsedTimeMeasurement(Metric("renderQualityEnabled_5_previews_refresh_time")),
@@ -39,7 +40,7 @@ class PerfgateComposeRenderQualityGradleTest: PerfgateComposeGradleTestBase() {
 
   @Test
   fun renderQualityEnabled_30Previews() = projectRule.runWithRenderQualityEnabled {
-    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.size)
+    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().size)
     addPreviewsAndMeasure(29, 30, listOf(
       // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.
       ElapsedTimeMeasurement(Metric("renderQualityEnabled_30_previews_refresh_time")),
@@ -52,7 +53,7 @@ class PerfgateComposeRenderQualityGradleTest: PerfgateComposeGradleTestBase() {
 
   @Test
   fun renderQualityEnabled_200Previews() = projectRule.runWithRenderQualityEnabled {
-    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.size)
+    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().size)
     addPreviewsAndMeasure(199, 200, listOf(
       // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.
       ElapsedTimeMeasurement(Metric("renderQualityEnabled_200_previews_refresh_time")),

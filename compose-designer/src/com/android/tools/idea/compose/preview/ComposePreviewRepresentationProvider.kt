@@ -34,6 +34,7 @@ import com.android.tools.idea.compose.preview.actions.UiCheckDropDownAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeDefaultPreview
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInUiCheck
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
@@ -104,7 +105,8 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
                 // If turning on Gallery layout option - it should be set in preview.
                 // TODO (b/292057010) If group filtering is enabled - first element in this group
                 // should be selected.
-                val element = manager.allPreviewElementsInFileFlow.value.firstOrNull()
+                val element =
+                  manager.allPreviewElementsInFileFlow.value.asCollection().firstOrNull()
                 manager.setMode(PreviewMode.Gallery(element))
               } else if (manager.mode.value is PreviewMode.Gallery) {
                 // When switching from Gallery mode to Default layout mode - need to set back

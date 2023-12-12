@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering.gradle
 import com.android.tools.idea.compose.gradle.ComposePreviewFakeUiGradleRule
 import com.android.tools.idea.compose.gradle.preview.TestComposePreviewView
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.rendering.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.rendering.MetricMeasurement
 import com.android.tools.idea.rendering.SIMPLE_COMPOSE_PROJECT_PATH
@@ -96,7 +97,7 @@ open class PerfgateComposeGradleTestBase {
         }
       }
     }
-    Assert.assertEquals(nExpectedPreviewInstances, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.size)
+    Assert.assertEquals(nExpectedPreviewInstances, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().size)
 
     composeGradleTimeBenchmark.measureOperation(measurements, samplesCount = NUMBER_OF_SAMPLES, printSamples = true) {
       runBlocking {

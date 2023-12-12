@@ -23,6 +23,8 @@ import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.compose.preview.PreviewGroup
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.concurrency.FlowableCollection
+import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorConverter
@@ -64,8 +66,8 @@ sealed class UiCheckModeFilter {
   abstract val basePreviewInstance: ComposePreviewElementInstance?
 
   abstract fun filterPreviewInstances(
-    previewInstances: Collection<ComposePreviewElementInstance>
-  ): Collection<ComposePreviewElementInstance>
+    previewInstances: FlowableCollection<ComposePreviewElementInstance>
+  ): FlowableCollection<ComposePreviewElementInstance>
 
   abstract fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named>
 
@@ -73,8 +75,8 @@ sealed class UiCheckModeFilter {
     override val basePreviewInstance = null
 
     override fun filterPreviewInstances(
-      previewInstances: Collection<ComposePreviewElementInstance>
-    ): Collection<ComposePreviewElementInstance> = previewInstances
+      previewInstances: FlowableCollection<ComposePreviewElementInstance>
+    ): FlowableCollection<ComposePreviewElementInstance> = previewInstances
 
     override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> = groups
   }
@@ -92,9 +94,20 @@ sealed class UiCheckModeFilter {
         .toSet()
 
     override fun filterPreviewInstances(
-      previewInstances: Collection<ComposePreviewElementInstance>
-    ): Collection<ComposePreviewElementInstance> =
-      if (basePreviewInstance in previewInstances) uiCheckPreviews else emptyList()
+      previewInstances: FlowableCollection<ComposePreviewElementInstance>
+    ): FlowableCollection<ComposePreviewElementInstance> =
+      when (previewInstances) {
+        is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized
+        is FlowableCollection.Present ->
+          if (basePreviewInstance in previewInstances.asCollection())
+            FlowableCollection.Present(
+              uiCheckPreviews,
+            )
+          else
+            FlowableCollection.Present(
+              emptyList(),
+            )
+      }
 
     override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> =
       uiCheckPreviewGroups
