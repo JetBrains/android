@@ -86,6 +86,7 @@ class ProjectDumper(
     // where <version> could be 1.7.0, 1.3.1-eap-23, or 1.7.20-Beta
     Regex("(?:(?:org.jetbrains.kotlin:kotlin(?:-[0-9a-zA-Z]*)*:)|(?:kotlin(?:-[0-9a-zA-Z]+)*)-)(\\d+\\.\\d+.[0-9a-zA-Z\\-]+)")
   private val dotAndroidFolderPathPattern = Regex("^/([_/0-9a-z])+\\.android")
+  private val transformFolderPattern = Regex("/transforms-\\d/")
 
   fun File.normalizeCxxPath(variantName: String?): String {
     val cxxSegment = findCxxSegment(this) ?: return this.path
@@ -215,6 +216,7 @@ class ProjectDumper(
         else it
       }
       .removeAndroidVersionsFromPath()
+      .replace(transformFolderPattern, "/<TRANSFORMS>/")
 
   fun String.replaceAgpVersion(): String = replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
 

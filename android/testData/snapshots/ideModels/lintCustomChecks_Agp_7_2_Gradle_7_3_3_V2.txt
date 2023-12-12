@@ -1138,7 +1138,7 @@ MODULE                        : project.app
                         module                        : <ROOT>-:app-MAIN
                             module                        : <ROOT>-:library-MAIN
                         module                        : <ROOT>-:library-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
@@ -1453,7 +1453,7 @@ MODULE                        : project.library
                         module                        : <ROOT>-:library-MAIN
                     runtimeClasspath
                         module                        : <ROOT>-:library-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :library (DefaultExternalProject) (*seen*)
 MODULE                        : project.library-remote
     GradleModuleModel
@@ -1765,7 +1765,7 @@ MODULE                        : project.library-remote
                         module                        : <ROOT>-:library-remote-MAIN
                     runtimeClasspath
                         module                        : <ROOT>-:library-remote-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :library-remote (DefaultExternalProject) (*seen*)
 MODULE                        : project.library-remote.androidTest
 MODULE                        : project.library-remote.main

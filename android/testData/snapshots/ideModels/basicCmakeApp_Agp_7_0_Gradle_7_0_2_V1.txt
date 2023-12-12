@@ -501,7 +501,7 @@ MODULE                        : project.app
                         module                        : <ROOT>-:app-MAIN
                     runtimeClasspath
                         module                        : <ROOT>-:app-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     SelectedVariantName           : debug
     SelectedAbiName               : x86
     Name                          : app

@@ -637,7 +637,7 @@ MODULE                        : withGradleMetadata.app
                             javaLibrary                   : org.gradle.sample:library:1.1@jar
                         unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
                             javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
-                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : withGradleMetadata.app.androidTest
 MODULE                        : withGradleMetadata.app.main

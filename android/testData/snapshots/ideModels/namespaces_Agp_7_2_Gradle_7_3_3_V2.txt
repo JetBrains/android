@@ -793,7 +793,7 @@ MODULE                        : project.app
                         module                        : <ROOT>-:lib-MAIN
                             module                        : <ROOT>-:otherlib-MAIN
                         module                        : <ROOT>-:otherlib-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
@@ -1120,7 +1120,7 @@ MODULE                        : project.lib
                         module                        : <ROOT>-:lib-MAIN
                             module                        : <ROOT>-:otherlib-MAIN
                         module                        : <ROOT>-:otherlib-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : project.lib.androidTest
 MODULE                        : project.lib.main
@@ -1439,7 +1439,7 @@ MODULE                        : project.otherlib
                         module                        : <ROOT>-:otherlib-MAIN
                     runtimeClasspath
                         module                        : <ROOT>-:otherlib-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :otherlib (DefaultExternalProject) (*seen*)
 MODULE                        : project.otherlib.androidTest
 MODULE                        : project.otherlib.main

@@ -515,7 +515,7 @@ MODULE                        : project.app
                         module                        : <ROOT>-:app-MAIN
                     runtimeClasspath
                         module                        : <ROOT>-:app-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/<TRANSFORMS>/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/android.jar
     SelectedVariantName           : debug
     SelectedAbiName               : x86
     ModelVersion                  : 4.1.0
