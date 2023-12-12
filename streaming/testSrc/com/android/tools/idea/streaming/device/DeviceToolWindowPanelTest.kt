@@ -414,7 +414,6 @@ class DeviceToolWindowPanelTest {
                                maxPercentDifferentLinux: Double = 0.0003,
                                maxPercentDifferentMac: Double = 0.0003,
                                maxPercentDifferentWindows: Double = 0.0003) {
-    fakeUi.layoutAndDispatchEvents()
     fakeUi.updateToolbars()
     val image = fakeUi.render()
     val maxPercentDifferent = when {

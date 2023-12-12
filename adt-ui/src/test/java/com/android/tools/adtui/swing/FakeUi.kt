@@ -276,6 +276,7 @@ class FakeUi @JvmOverloads constructor(
    */
   fun updateToolbars() {
     updateToolbars(root)
+    layoutAndDispatchEvents()
   }
 
   private fun updateToolbars(component: Component) {

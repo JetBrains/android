@@ -875,7 +875,6 @@ class EmulatorToolWindowPanelTest {
                                maxPercentDifferentLinux: Double = 0.0003,
                                maxPercentDifferentMac: Double = 0.0003,
                                maxPercentDifferentWindows: Double = 0.0003) {
-    ui.layoutAndDispatchEvents()
     ui.updateToolbars()
     val image = ui.render()
     val scaledImage = ImageUtils.scale(image, 0.5)
