@@ -50,6 +50,7 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.ScreenOrientation;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.PathFileWrapper;
 import com.android.sdklib.devices.Abi;
@@ -1136,6 +1137,15 @@ public class AvdManagerConnection {
     catch (IOException ignore) {}
 
     return true;
+  }
+
+  /**
+   * Computes a reasonable display name for a newly-created AVD with the given device and version.
+   */
+  public @NotNull String getDefaultDeviceDisplayName(@NotNull Device device, @NotNull AndroidVersion version) {
+    // A device name might include the device's screen size as, e.g., 7". The " is not allowed in
+    // a display name. Ensure that the display name does not include any forbidden characters.
+    return uniquifyDisplayName(AvdNameVerifier.stripBadCharacters(device.getDisplayName()) + " API " + version.getApiStringWithExtension());
   }
 
   public String uniquifyDisplayName(@NotNull String name) {

@@ -62,6 +62,7 @@ public final class AndroidVirtualDeviceTest {
   private static Map<String, String> getReferenceMap() {
     // Expected values are defined in http://b.android.com/78945
     ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+    builder.put("avd.ini.displayname", "Pixel 3a API 23");
     builder.put("abi.type", "x86");
     builder.put("disk.dataPartition.size", "800M");
     builder.put("hw.accelerometer", "yes");

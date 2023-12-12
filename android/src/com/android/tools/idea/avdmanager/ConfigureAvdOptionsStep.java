@@ -552,14 +552,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myAvdConfigurationOptionHelpPanel.setSystemImageDescription(getModel().systemImage().getValueOrNull());
     myOrientationToggle.setSelectedElement(getModel().selectedAvdOrientation().get());
 
-    String avdDisplayName;
     if (!getModel().isInEditMode().get() && getModel().systemImage().get().isPresent() && getModel().device().get().isPresent()) {
-      // A device name might include the device's screen size as, e.g., 7". The " is not allowed in
-      // a display name. Ensure that the display name does not include any forbidden characters.
-      avdDisplayName = AvdNameVerifier.stripBadCharacters(getModel().device().getValue().getDisplayName());
-
-      getModel().avdDisplayName()
-        .set(connection.uniquifyDisplayName(String.format(Locale.getDefault(), "%1$s API %2$s", avdDisplayName, getSelectedApiString())));
+      Device device = getModel().device().getValue();
+      AndroidVersion version = getModel().systemImage().getValue().getVersion();
+      getModel().avdDisplayName().set(connection.getDefaultDeviceDisplayName(device, version));
     }
 
     myOriginalName = getModel().isInEditMode().get() ? getModel().avdDisplayName().get() : "";

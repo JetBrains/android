@@ -32,6 +32,7 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.avdmanager.AvdNameVerifier
 import com.android.tools.idea.avdmanager.AvdOptionsModel
 import com.android.tools.idea.avdmanager.AvdWizardUtils
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
@@ -89,12 +90,13 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
       ?.let { defaultHardwareSkin ->
         DeviceSkinUpdaterService.getInstance().updateSkins(defaultHardwareSkin, systemImageDescription).get()
       }
-    val displayName = connection.uniquifyDisplayName(d.displayName + " " + systemImageDescription.version + " " + systemImageDescription.abiType)
+
+    val displayName = connection.getDefaultDeviceDisplayName(d, systemImageDescription.version)
     val internalName = AvdWizardUtils.cleanAvdName(connection, displayName, true)
     val abi = Abi.getEnum(systemImageDescription.abiType)
     val useRanchu = AvdManagerConnection.doesSystemImageSupportQemu2(systemImageDescription)
     val supportsSmp = abi != null && abi.supportsMultipleCpuCores() && AvdWizardUtils.getMaxCpuCores() > 1
-    val settings = getAvdSettings(internalName, d)
+    val settings = getAvdSettings(displayName, internalName, d)
     if (useRanchu) {
       settings[AvdWizardUtils.CPU_CORES_KEY] =  "1".takeUnless { supportsSmp } ?: AvdWizardUtils.getMaxCpuCores().toString()
     }
@@ -202,7 +204,7 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
       throw WizardException("No device definition with \"$DEFAULT_DEVICE_ID\" ID found")
     }
 
-    private fun getAvdSettings(internalName: String, device: Device): MutableMap<String, String> {
+    private fun getAvdSettings(displayName: String, internalName: String, device: Device): MutableMap<String, String> {
       val result: MutableMap<String, String> = hashMapOf()
       result[AvdManager.AVD_INI_GPU_MODE] = GpuMode.AUTO.gpuSetting
       for (key in ENABLED_HARDWARE) {
@@ -220,7 +222,7 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
       result[AvdWizardUtils.AVD_INI_NETWORK_LATENCY] = EmulatedProperties.DEFAULT_NETWORK_LATENCY.asParameter
       result[AvdWizardUtils.AVD_INI_NETWORK_SPEED] = EmulatedProperties.DEFAULT_NETWORK_SPEED.asParameter
       result[AvdManager.AVD_INI_AVD_ID] = internalName
-      result[AvdManager.AVD_INI_DISPLAY_NAME] = internalName
+      result[AvdManager.AVD_INI_DISPLAY_NAME] = displayName
       result[AvdManagerConnection.AVD_INI_HW_LCD_DENSITY] = Density.XXHIGH.dpiValue.toString()
       setStorageSizeKey(result, AvdManager.AVD_INI_RAM_SIZE, DEFAULT_RAM_SIZE, true)
       setStorageSizeKey(result, AvdManager.AVD_INI_VM_HEAP_SIZE, DEFAULT_HEAP_SIZE, true)
