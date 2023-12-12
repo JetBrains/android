@@ -189,7 +189,6 @@ public class RenderTask {
   private long myTimeout;
   @NotNull private final Locale myLocale;
   @NotNull private final Object myCredential;
-  private boolean myProvideCookiesForIncludedViews = false;
   @Nullable private RenderSession myRenderSession;
   @NotNull private IImageFactory myCachingImageFactory = SIMPLE_IMAGE_FACTORY;
   @Nullable private IImageFactory myImageFactoryDelegate;
@@ -584,14 +583,6 @@ public class RenderTask {
   }
 
   /**
-   * Returns whether this parser will provide view cookies for included views.
-   */
-  public boolean getProvideCookiesForIncludedViews() {
-    return myProvideCookiesForIncludedViews;
-  }
-
-
-  /**
    * Returns the root tag for the given {@link RenderXmlFile}, if any, acquiring the read
    * lock to do so if necessary
    *
@@ -843,8 +834,6 @@ public class RenderTask {
       if (fromXmlFile != null) {
         LayoutRenderPullParser parser = LayoutRenderPullParser.create(fromXmlFile, myLogger,
                                                                       myContext.getModule().getResourceRepositoryManager());
-        // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
-        parser.setProvideViewCookies(myProvideCookiesForIncludedViews);
         topParser = parser;
       }
       else {

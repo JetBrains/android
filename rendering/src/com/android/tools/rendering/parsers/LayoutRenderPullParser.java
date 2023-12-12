@@ -566,11 +566,7 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
   @Nullable
   @Override
   public Object getViewCookie() {
-    if (myProvideViewCookies) {
-      return getCurrentNode();
-    }
-
-    return null;
+    return getCurrentNode();
   }
 
   // ------------- XmlPullParser --------
@@ -938,11 +934,6 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
         myParsingState = END_TAG;
       }
     }
-  }
-
-  /** Sets whether this parser will provide view cookies */
-  public void setProvideViewCookies(boolean provideViewCookies) {
-    myProvideViewCookies = provideViewCookies;
   }
 
   /**

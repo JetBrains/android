@@ -148,7 +148,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable private String myLayoutName;
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
   @Nullable private final ActionBarHandler myActionBarHandler;
-  @NotNull private final RenderTask myRenderTask;
+  @NotNull private final RenderContext myRenderContext;
   @NotNull private final DownloadableFontCacheService myFontCacheService;
   private boolean myUsed;
   private Set<PathString> myParserFiles;
@@ -189,7 +189,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @Nullable ILayoutPullParserFactory parserFactory,
                                @NotNull ModuleClassLoader moduleClassLoader,
                                boolean shouldUseCustomInflater) {
-    myRenderTask = renderTask;
+    myRenderContext = renderTask.getContext();
     myLayoutLib = layoutLib;
     myRenderModule = renderModule;
     myLogger = logger;
@@ -507,8 +507,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
           && (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU))) {
         RenderXmlFile xmlFile = myRenderModule.getEnvironment().getXmlFile(xml);
         if (xmlFile != null) {
-          ResourceResolver resourceResolver = myRenderTask.getContext().getConfiguration().getResourceResolver();
-          NavGraphResolver navGraphResolver = myRenderTask.getContext().getModule().getEnvironment().getNavGraphResolver(resourceResolver);
+          ResourceResolver resourceResolver = myRenderContext.getConfiguration().getResourceResolver();
+          NavGraphResolver navGraphResolver = myRenderContext.getModule().getEnvironment().getNavGraphResolver(resourceResolver);
           // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
           // layout so we already have a parent.
           LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile,
@@ -518,10 +518,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                                                         myRenderModule.getResourceRepositoryManager(),
                                                                         sampleDataCounter.getAndIncrement());
           parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);
-          if (parentName.startsWith(FD_RES_LAYOUT)) {
-            // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag.
-            parser.setProvideViewCookies(myRenderTask.getProvideCookiesForIncludedViews());
-          }
           return parser;
         }
 
