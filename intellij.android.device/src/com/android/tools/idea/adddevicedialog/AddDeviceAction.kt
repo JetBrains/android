@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import com.android.tools.idea.avdmanager.DeviceSkinUpdater
+import com.android.tools.idea.avdmanager.skincombobox.Collector
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -34,7 +36,11 @@ private class AddDeviceAction private constructor() : DumbAwareAction() {
 
     AndroidCoroutineScope(parent, AndroidDispatchers.workerThread).launch {
       val images = SystemImage.getSystemImages().toImmutableList()
-      withContext(AndroidDispatchers.uiThread) { AddDeviceDialog.build(images, project).show() }
+      val skins = Collector(DeviceSkinUpdater::updateSkin).collect().toImmutableList()
+
+      withContext(AndroidDispatchers.uiThread) {
+        AddDeviceDialog.build(images, skins, project).show()
+      }
     }
   }
 }

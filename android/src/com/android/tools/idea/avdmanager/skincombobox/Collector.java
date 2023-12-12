@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Collects the platform skins, the system image skins, and the rest; and wraps them in {@link Skin} instances
  */
-final class Collector {
+public final class Collector {
   @NotNull
   private final AndroidSdkHandler myHandler;
 
@@ -48,14 +48,14 @@ final class Collector {
   @NotNull
   private final UnaryOperator<Path> myMap;
 
-  Collector(@NotNull UnaryOperator<Path> map) {
+  public Collector(@NotNull UnaryOperator<Path> map) {
     myHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     myIndicator = new StudioLoggerProgressIndicator(Collector.class);
     myMap = map;
   }
 
   @NotNull
-  Collection<Skin> collect() {
+  public Collection<Skin> collect() {
     return Streams.concat(platformSkins(), skins(), systemImageSkins()).toList();
   }
 

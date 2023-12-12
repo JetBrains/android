@@ -20,11 +20,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.wizard.model.WizardModel
 import kotlinx.collections.immutable.ImmutableCollection
 
 internal class AddDeviceWizardModel
-internal constructor(internal val systemImages: ImmutableCollection<SystemImage>) : WizardModel() {
+internal constructor(
+  internal val systemImages: ImmutableCollection<SystemImage>,
+  private val skins: ImmutableCollection<Skin>
+) : WizardModel() {
   internal var device by initDevice()
 
   private fun initDevice(): MutableState<VirtualDevice> {
