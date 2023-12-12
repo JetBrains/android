@@ -44,15 +44,8 @@ internal class PreviewSurfaceActionManager(
   private val navigationHandler: NavigationHandler,
 ) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
 
-  private val sceneManagerProvider: () -> LayoutlibSceneManager? = {
-    // Copy the model of the current selected object (if any)
-    surface.selectionModel.primary?.model?.let { surface.getSceneManager(it) }
-      ?: surface.sceneViewAtMousePosition?.sceneManager as? LayoutlibSceneManager
-  }
-
   private val copyResultImageAction =
     CopyResultImageAction(
-      sceneManagerProvider,
       message("copy.result.image.action.title"),
       message("copy.result.image.action.done.text")
     )
