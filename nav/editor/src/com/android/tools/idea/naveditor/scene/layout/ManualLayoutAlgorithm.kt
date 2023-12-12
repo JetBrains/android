@@ -42,13 +42,14 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
+import java.lang.ref.WeakReference
 
 const val SKIP_PERSISTED_LAYOUT = "skipPersistedLayout"
 
 /**
  * [NavSceneLayoutAlgorithm] that puts screens in locations that have been specified by the user
  */
-class ManualLayoutAlgorithm(private val module: Module, private val sceneManager: NavSceneManager) : SingleComponentLayoutAlgorithm() {
+class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutAlgorithm() {
   private var _storage: Storage? = null
   private val tagPositionMap: BiMap<SmartPsiElementPointer<XmlTag>, LayoutPositions> = HashBiMap.create()
   private val filePositionMap: MutableMap<XmlFile, LayoutPositions> = mutableMapOf()
@@ -64,8 +65,8 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
     }
 
   @VisibleForTesting
-  constructor(state: LayoutPositions, module: Module, sceneManager: NavSceneManager)
-    : this(module, sceneManager) {
+  constructor(state: LayoutPositions, module: Module)
+    : this(module) {
     _storage = Storage()
     storage.rootPositions = state
   }
@@ -134,23 +135,26 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
     if (oldPoint != newPoint) {
       val model = component.nlComponent.model
       if (oldPoint != null) {
+        val sceneComponentRef = WeakReference(component)
+        val path = component.nlComponent.idPath
         WriteCommandAction.writeCommandAction(model.file).withName("Move Destination").run<Exception> {
-          val path = component.nlComponent.idPath
           val action = object : BasicUndoableAction(model.virtualFile) {
             override fun undo() {
-              component.setPosition(oldPoint.x, oldPoint.y)
+              val sceneComponent = sceneComponentRef.get() ?: return
+              sceneComponent.setPosition(oldPoint.x, oldPoint.y)
               val positions = getPositionsFromPath(path)
               positions.myPosition = oldPoint
               tagPositionMap.inverse().remove(positions)
-              sceneManager.requestRenderAsync()
+              sceneComponent.scene.sceneManager.requestRenderAsync()
             }
 
             override fun redo() {
-              component.setPosition(newPoint.x, newPoint.y)
+              val sceneComponent = sceneComponentRef.get() ?: return
+              sceneComponent.setPosition(newPoint.x, newPoint.y)
               val positions = getPositionsFromPath(path)
               positions.myPosition = newPoint
               tagPositionMap.inverse().remove(positions)
-              sceneManager.requestRenderAsync()
+              sceneComponent.scene.sceneManager.requestRenderAsync()
             }
           }
           UndoManager.getInstance(component.nlComponent.model.project).undoableActionPerformed(action)

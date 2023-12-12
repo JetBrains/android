@@ -104,7 +104,7 @@ open class NavSceneManager(
 
   private val layoutAlgorithms = listOf(
     NewDestinationLayoutAlgorithm(),
-    ManualLayoutAlgorithm(model.module, this),
+    ManualLayoutAlgorithm(model.module),
     ElkLayeredLayoutAlgorithm())
 
   private val savingLayoutAlgorithm = layoutAlgorithms.find { algorithm -> algorithm.canSave() }

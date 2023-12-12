@@ -21,7 +21,6 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.editor.NavEditor
-import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.flatten
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
@@ -29,8 +28,6 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.DocumentsEditor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.PlatformTestUtil
 
 /**
@@ -313,8 +310,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
   }
 
   private fun createAlgorithm(model: SyncNlModel, positions: ManualLayoutAlgorithm.LayoutPositions? = null): ManualLayoutAlgorithm {
-    val sceneManager = NavSceneManager(model, model.surface as NavDesignSurface)
-    return if (positions == null) ManualLayoutAlgorithm(myModule, sceneManager)
-    else ManualLayoutAlgorithm(positions, myModule, sceneManager)
+    return if (positions == null) ManualLayoutAlgorithm(myModule)
+    else ManualLayoutAlgorithm(positions, myModule)
   }
 }
