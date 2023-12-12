@@ -19,4 +19,5 @@ enum class SessionAspect {
   SELECTED_SESSION, // The currently selected session has changed.
   PROFILING_SESSION, // The currently profiling session has changed.
   SESSIONS, // The list of sessions and/or their internal data have changed.
+  ONGOING_SESSION_NEWLY_ENDED // The ongoing session has been ended.
 }

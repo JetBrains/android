@@ -19,6 +19,7 @@
     <library.toolWindow id="Android Profiler"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.ANDROID_PROFILER"
+                      canCloseContents="true"
                       librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
                       factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"
                       doNotActivateOnStart="true"/>

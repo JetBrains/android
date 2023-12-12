@@ -139,6 +139,20 @@ class LiveTaskHandlerTest {
   }
 
   @Test
+  fun `test stopTask ends the current session`() {
+    // Start the live task.
+    TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
+                                      myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.LIVE_VIEW)
+    // Make sure the session started is alive.
+    assertThat(myManager.isSessionAlive).isTrue()
+
+    // Stopping the live view task should end the current session.
+    liveTaskHandler.stopTask()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(myManager.isSessionAlive).isFalse()
+  }
+
+  @Test
   fun `test supportsArtifact when its SessionItem`() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
     assertThat(liveTaskHandler.supportsArtifact(createSessionItem(myProfilers, selectedSession, 1, listOf()))).isTrue()

@@ -300,12 +300,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         Common.Session session = sessionItem.getSession().toBuilder().setEndTimestamp(group.getEvents(1).getTimestamp()).build();
         sessionItem.setSession(session);
         sessionNewlyEnded = true;
-
-        // (b/326497871) In session-based UI, importing file shouldn't reset the session with defaultInstance because doing so would
-        // disable the stop profiling session button.
-        if (myProfilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
-          setProfilingSession(Common.Session.getDefaultInstance());
-        }
         LogUtils.log(this.getClass(), "Session stopped (" + sessionItem.getName() + "), support level =" +
                                       myProfilers.getSupportLevelForSession(sessionItem.getSession()));
       }
@@ -317,6 +311,10 @@ public class SessionsManager extends AspectModel<SessionAspect> {
           setProfilingSession(sessionItem.getSession());
         }
         setSessionInternal(sessionItem.getSession());
+      }
+
+      if (!newSessionFound && sessionNewlyEnded) {
+        changed(SessionAspect.ONGOING_SESSION_NEWLY_ENDED);
       }
 
       final SessionItem item = sessionItem;
@@ -482,6 +480,10 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
     myProfilingSession = session;
     changed(SessionAspect.PROFILING_SESSION);
+  }
+
+  public void resetSessionSelection() {
+    setSession(Common.Session.getDefaultInstance());
   }
 
   public void setCurrentTaskType(ProfilerTaskType taskType) {

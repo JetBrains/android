@@ -28,7 +28,11 @@ import kotlin.random.Random
 /**
  * This class implements a stage tracking allocations, either live or finished
  */
-class AllocationStage private constructor(profilers: StudioProfilers, loader: CaptureObjectLoader, initMinUs: Double, initMaxUs: Double)
+class AllocationStage private constructor(profilers: StudioProfilers,
+                                          loader: CaptureObjectLoader,
+                                          initMinUs: Double,
+                                          initMaxUs: Double,
+                                          val stopTask: () -> Unit = {})
   : BaseStreamingMemoryProfilerStage(profilers, loader) {
 
   // The boundaries of the allocation tracking period.
@@ -261,6 +265,13 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
     @JvmStatic @JvmOverloads
     fun makeLiveStage(profilers: StudioProfilers, loader: CaptureObjectLoader = CaptureObjectLoader()) =
       AllocationStage(profilers, loader, NEGATIVE_INFINITY, POSITIVE_INFINITY)
+
+    /**
+     * Constructor for live AllocationStage utilized for the Java/Kotlin Allocations task.
+     */
+    @JvmStatic
+    fun makeLiveStage(profilers: StudioProfilers, stopTask: Runnable) =
+      AllocationStage(profilers, CaptureObjectLoader(), NEGATIVE_INFINITY, POSITIVE_INFINITY) { stopTask.run() }
 
     @JvmStatic @JvmOverloads
     fun makeStaticStage(profilers: StudioProfilers, loader: CaptureObjectLoader = CaptureObjectLoader(),
