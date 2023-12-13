@@ -6,6 +6,7 @@ import static com.android.tools.idea.testing.ThreadingAgentTestUtilKt.maybeCheck
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.SdkConstants;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
@@ -47,6 +48,7 @@ import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.common.ThreadLeakTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -114,6 +116,13 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     AndroidModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(AndroidModuleFixtureBuilder.class);
     initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, myFixture.getTempDirPath());
     setUpThreadingChecks();
+
+    // Initialize ApplicationManager.
+    // We need to do this now, because the calls to EmbeddedDistributionPaths.getInstance() and
+    // WriteAction.runAndWait() below require the application manager to be initialized. Ordinarily,
+    // this is handled by JavaCodeInsightTestFixture#setUp(), but TestApplicationManager will only
+    // be initialized once, so putting in this early initialize call won't cause any harm later.
+    TestApplicationManager.getInstance();
 
     AdtTestProjectDescriptor descriptor;
     if (myProjectDescriptor == null) {

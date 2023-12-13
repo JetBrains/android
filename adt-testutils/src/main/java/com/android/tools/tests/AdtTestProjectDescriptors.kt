@@ -174,14 +174,5 @@ object AdtTestProjectDescriptors {
    */
   @JvmStatic
   @JvmName("defaultDescriptor")  // default is a reserved word in Java
-  fun default(): AdtTestProjectDescriptor {
-    // b/294248298: Tests using K2 Analysis API need Kotlin stdlib to be available, or analysis crashes.
-    // Therefore, for tests with the K2 plugin, we default to a Kotlin descriptor that will load the stdlib.
-    //
-    // The isK2Plugin() function depends on application-level service lookup, which requires that the IJ
-    // application is loaded. Therefore, we need to load TestApplicationManager here, since project descriptor
-    // selection happens very early on, and the application might not otherwise be ready.
-    TestApplicationManager.getInstance()
-    return if (isK2Plugin()) kotlin() else java()
-  }
+  fun default(): AdtTestProjectDescriptor = java()
 }

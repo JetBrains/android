@@ -510,7 +510,7 @@ class LintIdeTest : UsefulTestCase() {
     LintModuleFixtureBuilder<ModuleFixtureImpl> {
 
     init {
-      AdtTestProjectDescriptors.default().configureFixture(this)
+      AdtTestProjectDescriptors.kotlin().configureFixture(this)
     }
 
     private var myModuleRoot: File? = null

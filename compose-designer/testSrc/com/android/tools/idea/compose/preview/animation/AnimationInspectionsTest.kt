@@ -61,7 +61,7 @@ private object DescriptionCorrespondence : Correspondence<HighlightInfo, String>
 
 class AnimationInspectionsTest {
 
-  @get:Rule val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory().withKotlin()
   private val fixture
     get() = projectRule.fixture
 

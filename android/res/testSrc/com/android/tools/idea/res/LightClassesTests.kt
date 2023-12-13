@@ -36,7 +36,6 @@ import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.AndroidProjectStubBuilder
-import com.android.tools.idea.testing.JavaLibraryDependency
 import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
 import com.android.tools.idea.testing.buildAgpProjectFlagsStub
 import com.android.tools.idea.testing.caret
@@ -50,7 +49,6 @@ import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.updatePrimaryManifest
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.android.tools.idea.util.androidFacet
-import com.android.tools.tests.AdtTestKotlinArtifacts
 import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElement
@@ -777,11 +775,6 @@ abstract class AppAndLibModulesLightClassesTestBase {
           "p1.p2"
         )
         .withAndroidModuleDependencyList { _ -> listOf(AndroidModuleDependency(":mylib", "debug")) }
-        // TODO(b/300170256): Remove this once 2023.3 merges and we no longer need kotlin-stdlib for
-        // every Kotlin test.
-        .withJavaLibraryDependencyList {
-          listOf(JavaLibraryDependency.forJar(AdtTestKotlinArtifacts.kotlinStdlib))
-        }
         .withAgpProjectFlags { getAgpProjectFlags(this) },
     )
 

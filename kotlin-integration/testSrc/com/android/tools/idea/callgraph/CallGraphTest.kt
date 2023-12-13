@@ -25,6 +25,7 @@ import com.android.tools.lint.detector.api.interprocedural.IntraproceduralDispat
 import com.android.tools.lint.detector.api.interprocedural.buildContextualCallGraph
 import com.android.tools.lint.detector.api.interprocedural.searchForPaths
 import com.android.tools.lint.detector.api.interprocedural.shortName
+import com.android.tools.tests.AdtTestProjectDescriptors
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
@@ -54,6 +55,11 @@ fun buildInterproceduralAnalysesForTest(
 }
 
 class CallGraphTest : AndroidTestCase() {
+
+  override fun setUp() {
+    myProjectDescriptor = AdtTestProjectDescriptors.kotlin()
+    super.setUp()
+  }
 
   fun testJavaCallGraph() = doTest(".java")
 

@@ -20,6 +20,7 @@ import com.android.tools.lint.detector.api.DefaultPosition
 import com.android.tools.lint.detector.api.Incident
 import com.android.tools.lint.detector.api.LintFix
 import com.android.tools.lint.detector.api.Location
+import com.android.tools.tests.AdtTestProjectDescriptors
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiDocumentManager
@@ -33,6 +34,8 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
   init {
     LintClient.clientName = LintClient.CLIENT_UNIT_TESTS
   }
+
+  override fun getProjectDescriptor() = AdtTestProjectDescriptors.kotlin()
 
   fun testKotlinAnnotationArgs() {
     check(

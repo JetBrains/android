@@ -24,6 +24,7 @@ import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.MlProjectTestUtil;
+import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -53,7 +54,7 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
 
   private VirtualFile setupProject(String mlSourceFile, String mlTargetFile) {
     VirtualFile result = myFixture.copyFileToProject(mlSourceFile, mlTargetFile);
-    MlProjectTestUtil.setupTestMlProject(myFixture, "4.2.0-alpha08", 28);
+    MlProjectTestUtil.setupTestMlProject(myFixture, "4.2.0-alpha08", 28, ImmutableList.of());
     return result;
   }
 

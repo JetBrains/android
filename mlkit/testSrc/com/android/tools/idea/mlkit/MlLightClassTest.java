@@ -30,6 +30,10 @@ import com.android.tools.idea.mlkit.viewer.TfliteModelFileType;
 import com.android.tools.idea.project.DefaultModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidTestUtils;
+import com.android.tools.idea.testing.JavaLibraryDependency;
+import com.android.tools.tests.AdtTestKotlinArtifacts;
+import com.android.tools.tests.AdtTestProjectDescriptors;
+import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -86,7 +90,13 @@ public class MlLightClassTest extends AndroidTestCase {
   }
 
   private void setupProject(String version) {
-    myFixture = setupTestMlProject(myFixture, version, 28);
+    myFixture = setupTestMlProject(myFixture, version, 28, ImmutableList.of());
+  }
+
+  private void setupProjectWithKotlin(String version) {
+    JavaLibraryDependency kotlinStdlib =
+      JavaLibraryDependency.Companion.forJar(AdtTestKotlinArtifacts.INSTANCE.getKotlinStdlib());
+    myFixture = setupTestMlProject(myFixture, version, 28, ImmutableList.of(kotlinStdlib));
   }
 
   @Override
@@ -385,7 +395,7 @@ public class MlLightClassTest extends AndroidTestCase {
   }
 
   public void testHighlighting_kotlin() {
-    setupProject(AGP_VERSION_SUPPORTING_ML);
+    setupProjectWithKotlin(AGP_VERSION_SUPPORTING_ML);
     myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "ml/mobilenet_model.tflite");
     myFixture.copyFileToProject("style_transfer_quant_metadata.tflite", "ml/style_transfer_model.tflite");
     myFixture.copyFileToProject("ssd_mobilenet_odt_metadata_v1.2.tflite", "ml/ssd_model_v2.tflite");
@@ -463,7 +473,7 @@ public class MlLightClassTest extends AndroidTestCase {
   }
 
   public void testHighlighting_modelWithoutMetadata_kotlin() {
-    setupProject(AGP_VERSION_SUPPORTING_ML);
+    setupProjectWithKotlin(AGP_VERSION_SUPPORTING_ML);
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "ml/my_plain_model.tflite");
 
     PsiFile activityFile = myFixture.addFileToProject(
