@@ -100,9 +100,7 @@ class InspectorClientLaunchMonitor(
 
   private suspend fun debuggerCheck() {
     while (true) {
-      println("debugger check 1")
       delay(DEBUGGER_CHECK_SECONDS.seconds)
-      println("debugger check 2 checking debug state")
 
       val adb = adbClient
       val currentClient = synchronized(clientLock) { client } ?: return
@@ -125,9 +123,7 @@ class InspectorClientLaunchMonitor(
   }
 
   private suspend fun timeoutCheck() {
-    println("timeout check 1")
     delay(CONNECT_TIMEOUT_SECONDS.seconds)
-    println("timeout check 2: starting")
 
     synchronized(clientLock) {
       if (client == null || currentProgress == CONNECTED_STATE) {
