@@ -1509,7 +1509,7 @@ public final class StudioFlags {
       "direct.access.settings.page",
       "Device Streaming Settings Page",
       "Show Device Streaming Settings Page",
-      true);
+      false);
 
   public static final Flag<Boolean> DIRECT_ACCESS_ADD_DEVICE =
     Flag.create(
