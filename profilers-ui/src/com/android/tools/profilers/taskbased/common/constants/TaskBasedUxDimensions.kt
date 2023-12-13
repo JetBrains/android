@@ -18,8 +18,6 @@ package com.android.tools.profilers.taskbased.common.constants
 import androidx.compose.ui.unit.dp
 
 object TaskBasedUxDimensions {
-  // Divider thickness for all top-level dividers used in the toolwindow.
-  val PROFILER_TOOLWINDOW_DIVIDER_THICKNESS_DP = 1.dp
   // Selection panel (process and recording list) minimum and maximum ratio in horizontal split divider component.
   const val SELECTION_PANEL_MIN_RATIO_FLOAT = 0.35f
   const val SELECTION_PANEL_MAX_RATIO_FLOAT = 0.5f

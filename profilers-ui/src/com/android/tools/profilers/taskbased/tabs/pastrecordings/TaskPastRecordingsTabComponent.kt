@@ -25,7 +25,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.android.tools.profilers.IdeProfilerComponents
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.SELECTION_PANEL_MAX_RATIO_FLOAT
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.SELECTION_PANEL_MIN_RATIO_FLOAT
 import com.android.tools.profilers.taskbased.pastrecordings.PastRecordingsTabModel
@@ -49,7 +48,6 @@ fun TaskPastRecordingsTab(pastRecordingsTabModel: PastRecordingsTabModel, idePro
     HorizontalSplitLayout(
       minRatio = SELECTION_PANEL_MIN_RATIO_FLOAT,
       maxRatio = SELECTION_PANEL_MAX_RATIO_FLOAT,
-      dividerThickness = TaskBasedUxDimensions.PROFILER_TOOLWINDOW_DIVIDER_THICKNESS_DP,
       first = {
         RecordingList(recordingListModel, ideProfilerComponents, it)
       },

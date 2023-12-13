@@ -18,12 +18,10 @@ package com.android.tools.profilers.taskbased.common.dividers
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 
 @Composable
 fun ToolWindowHorizontalDivider() {
-  Divider(thickness = TaskBasedUxDimensions.PROFILER_TOOLWINDOW_DIVIDER_THICKNESS_DP, modifier = Modifier.fillMaxWidth(),
-          orientation = Orientation.Horizontal)
+  Divider(modifier = Modifier.fillMaxWidth(), orientation = Orientation.Horizontal)
 }
