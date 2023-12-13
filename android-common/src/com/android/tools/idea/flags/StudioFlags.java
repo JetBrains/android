@@ -1454,7 +1454,7 @@ public final class StudioFlags {
     NETWORK_INSPECTOR, "copy.as.curl",
     "Copy as a cURL command",
     "Copy as a cURL command",
-    false
+    true
   );
   // endregion
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view.connectionsview
 
-import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.stdui.TimelineTable
@@ -44,7 +43,6 @@ import com.android.tools.idea.appinspection.inspectors.network.view.connectionsv
 import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn.TIME
 import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn.TIMELINE
 import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn.TYPE
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -86,15 +84,7 @@ class ConnectionsViewTest {
   private val disposableRule = DisposableRule()
   private val popupRule = JBPopupRule()
 
-  @get:Rule
-  val rule =
-    RuleChain(
-      projectRule,
-      FlagRule(StudioFlags.NETWORK_INSPECTOR_COPY_AS_CURL, true),
-      edtRule,
-      popupRule,
-      disposableRule
-    )
+  @get:Rule val rule = RuleChain(projectRule, edtRule, popupRule, disposableRule)
 
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
