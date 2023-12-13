@@ -48,6 +48,7 @@ MODULE                        : gradle_project
                         api                           : <empty>
                         archives                      : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
                         debugAndroidTestCompileClasspath        : <empty>
@@ -58,6 +59,7 @@ MODULE                        : gradle_project
                         debugApiElements              : <empty>
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugReverseMetadataValues    : <empty>
                         debugRuntimeClasspath         : <empty>
@@ -78,6 +80,7 @@ MODULE                        : gradle_project
                         releaseApiElements            : <empty>
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
                         releaseReverseMetadataValues  : <empty>
                         releaseRuntimeClasspath       : <empty>
@@ -99,9 +102,11 @@ MODULE                        : gradle_project
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
                         testFixturesDebugWearApp      : <empty>
@@ -109,6 +114,7 @@ MODULE                        : gradle_project
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
                         testFixturesReleaseWearApp    : <empty>

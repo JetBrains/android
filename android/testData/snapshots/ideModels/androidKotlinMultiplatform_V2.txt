@@ -258,10 +258,12 @@ MODULE                        : Kotlin_Multiplatform
                         api                           : <empty>
                         archives                      : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAnnotationProcessor      : <empty>
                         debugApi                      : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeOnly              : <empty>
                         debugWearApp                  : <empty>
@@ -272,18 +274,21 @@ MODULE                        : Kotlin_Multiplatform
                         modeoneAnnotationProcessor    : <empty>
                         modeoneApi                    : <empty>
                         modeoneCompileOnly            : <empty>
+                        modeoneCompileOnlyApi         : <empty>
                         modeoneImplementation         : <empty>
                         modeoneRuntimeOnly            : <empty>
                         modeoneWearApp                : <empty>
                         modetwoAnnotationProcessor    : <empty>
                         modetwoApi                    : <empty>
                         modetwoCompileOnly            : <empty>
+                        modetwoCompileOnlyApi         : <empty>
                         modetwoImplementation         : <empty>
                         modetwoRuntimeOnly            : <empty>
                         modetwoWearApp                : <empty>
                         releaseAnnotationProcessor    : <empty>
                         releaseApi                    : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
                         releaseRuntimeOnly            : <empty>
                         releaseWearApp                : <empty>
@@ -298,9 +303,11 @@ MODULE                        : Kotlin_Multiplatform
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
                         testFixturesDebugWearApp      : <empty>
@@ -308,18 +315,21 @@ MODULE                        : Kotlin_Multiplatform
                         testFixturesModeoneAnnotationProcessor  : <empty>
                         testFixturesModeoneApi        : <empty>
                         testFixturesModeoneCompileOnly          : <empty>
+                        testFixturesModeoneCompileOnlyApi       : <empty>
                         testFixturesModeoneImplementation       : <empty>
                         testFixturesModeoneRuntimeOnly          : <empty>
                         testFixturesModeoneWearApp    : <empty>
                         testFixturesModetwoAnnotationProcessor  : <empty>
                         testFixturesModetwoApi        : <empty>
                         testFixturesModetwoCompileOnly          : <empty>
+                        testFixturesModetwoCompileOnlyApi       : <empty>
                         testFixturesModetwoImplementation       : <empty>
                         testFixturesModetwoRuntimeOnly          : <empty>
                         testFixturesModetwoWearApp    : <empty>
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
                         testFixturesReleaseWearApp    : <empty>
@@ -327,12 +337,14 @@ MODULE                        : Kotlin_Multiplatform
                         testFixturesTypeoneAnnotationProcessor  : <empty>
                         testFixturesTypeoneApi        : <empty>
                         testFixturesTypeoneCompileOnly          : <empty>
+                        testFixturesTypeoneCompileOnlyApi       : <empty>
                         testFixturesTypeoneImplementation       : <empty>
                         testFixturesTypeoneRuntimeOnly          : <empty>
                         testFixturesTypeoneWearApp    : <empty>
                         testFixturesTypetwoAnnotationProcessor  : <empty>
                         testFixturesTypetwoApi        : <empty>
                         testFixturesTypetwoCompileOnly          : <empty>
+                        testFixturesTypetwoCompileOnlyApi       : <empty>
                         testFixturesTypetwoImplementation       : <empty>
                         testFixturesTypetwoRuntimeOnly          : <empty>
                         testFixturesTypetwoWearApp    : <empty>
@@ -428,10 +440,12 @@ MODULE                        : Kotlin_Multiplatform
                         typeoneAnnotationProcessor    : <empty>
                         typeoneApi                    : <empty>
                         typeoneCompileOnly            : <empty>
+                        typeoneCompileOnlyApi         : <empty>
                         typeoneImplementation         : <empty>
                         typeoneModeoneAnnotationProcessor       : <empty>
                         typeoneModeoneApi             : <empty>
                         typeoneModeoneCompileOnly     : <empty>
+                        typeoneModeoneCompileOnlyApi  : <empty>
                         typeoneModeoneDebugAndroidTestAnnotationProcessorClasspath  : <empty>
                         typeoneModeoneDebugAndroidTestCompileClasspath    : <empty>
                         typeoneModeoneDebugAndroidTestRuntimeClasspath    : <empty>
@@ -441,6 +455,7 @@ MODULE                        : Kotlin_Multiplatform
                         typeoneModeoneDebugApiElements          : <empty>
                         typeoneModeoneDebugCompileClasspath     : <empty>
                         typeoneModeoneDebugCompileOnly          : <empty>
+                        typeoneModeoneDebugCompileOnlyApi       : <empty>
                         typeoneModeoneDebugImplementation       : <empty>
                         typeoneModeoneDebugRuntimeClasspath     : <empty>
                         typeoneModeoneDebugRuntimeElements      : <empty>
@@ -456,6 +471,7 @@ MODULE                        : Kotlin_Multiplatform
                         typeoneModeoneReleaseApiElements        : <empty>
                         typeoneModeoneReleaseCompileClasspath   : <empty>
                         typeoneModeoneReleaseCompileOnly        : <empty>
+                        typeoneModeoneReleaseCompileOnlyApi     : <empty>
                         typeoneModeoneReleaseImplementation     : <empty>
                         typeoneModeoneReleaseRuntimeClasspath   : <empty>
                         typeoneModeoneReleaseRuntimeElements    : <empty>
@@ -469,6 +485,7 @@ MODULE                        : Kotlin_Multiplatform
                         typeoneModetwoAnnotationProcessor       : <empty>
                         typeoneModetwoApi             : <empty>
                         typeoneModetwoCompileOnly     : <empty>
+                        typeoneModetwoCompileOnlyApi  : <empty>
                         typeoneModetwoDebugAndroidTestAnnotationProcessorClasspath  : <empty>
                         typeoneModetwoDebugAndroidTestCompileClasspath    : <empty>
                         typeoneModetwoDebugAndroidTestRuntimeClasspath    : <empty>
@@ -478,6 +495,7 @@ MODULE                        : Kotlin_Multiplatform
                         typeoneModetwoDebugApiElements          : <empty>
                         typeoneModetwoDebugCompileClasspath     : <empty>
                         typeoneModetwoDebugCompileOnly          : <empty>
+                        typeoneModetwoDebugCompileOnlyApi       : <empty>
                         typeoneModetwoDebugImplementation       : <empty>
                         typeoneModetwoDebugRuntimeClasspath     : <empty>
                         typeoneModetwoDebugRuntimeElements      : <empty>
@@ -493,6 +511,7 @@ MODULE                        : Kotlin_Multiplatform
                         typeoneModetwoReleaseApiElements        : <empty>
                         typeoneModetwoReleaseCompileClasspath   : <empty>
                         typeoneModetwoReleaseCompileOnly        : <empty>
+                        typeoneModetwoReleaseCompileOnlyApi     : <empty>
                         typeoneModetwoReleaseImplementation     : <empty>
                         typeoneModetwoReleaseRuntimeClasspath   : <empty>
                         typeoneModetwoReleaseRuntimeElements    : <empty>
@@ -508,10 +527,12 @@ MODULE                        : Kotlin_Multiplatform
                         typetwoAnnotationProcessor    : <empty>
                         typetwoApi                    : <empty>
                         typetwoCompileOnly            : <empty>
+                        typetwoCompileOnlyApi         : <empty>
                         typetwoImplementation         : <empty>
                         typetwoModeoneAnnotationProcessor       : <empty>
                         typetwoModeoneApi             : <empty>
                         typetwoModeoneCompileOnly     : <empty>
+                        typetwoModeoneCompileOnlyApi  : <empty>
                         typetwoModeoneDebugAndroidTestAnnotationProcessorClasspath  : <empty>
                         typetwoModeoneDebugAndroidTestCompileClasspath    : <empty>
                         typetwoModeoneDebugAndroidTestRuntimeClasspath    : <empty>
@@ -521,6 +542,7 @@ MODULE                        : Kotlin_Multiplatform
                         typetwoModeoneDebugApiElements          : <empty>
                         typetwoModeoneDebugCompileClasspath     : <empty>
                         typetwoModeoneDebugCompileOnly          : <empty>
+                        typetwoModeoneDebugCompileOnlyApi       : <empty>
                         typetwoModeoneDebugImplementation       : <empty>
                         typetwoModeoneDebugRuntimeClasspath     : <empty>
                         typetwoModeoneDebugRuntimeElements      : <empty>
@@ -536,6 +558,7 @@ MODULE                        : Kotlin_Multiplatform
                         typetwoModeoneReleaseApiElements        : <empty>
                         typetwoModeoneReleaseCompileClasspath   : <empty>
                         typetwoModeoneReleaseCompileOnly        : <empty>
+                        typetwoModeoneReleaseCompileOnlyApi     : <empty>
                         typetwoModeoneReleaseImplementation     : <empty>
                         typetwoModeoneReleaseRuntimeClasspath   : <empty>
                         typetwoModeoneReleaseRuntimeElements    : <empty>
@@ -549,6 +572,7 @@ MODULE                        : Kotlin_Multiplatform
                         typetwoModetwoAnnotationProcessor       : <empty>
                         typetwoModetwoApi             : <empty>
                         typetwoModetwoCompileOnly     : <empty>
+                        typetwoModetwoCompileOnlyApi  : <empty>
                         typetwoModetwoDebugAndroidTestAnnotationProcessorClasspath  : <empty>
                         typetwoModetwoDebugAndroidTestCompileClasspath    : <empty>
                         typetwoModetwoDebugAndroidTestRuntimeClasspath    : <empty>
@@ -558,6 +582,7 @@ MODULE                        : Kotlin_Multiplatform
                         typetwoModetwoDebugApiElements          : <empty>
                         typetwoModetwoDebugCompileClasspath     : <empty>
                         typetwoModetwoDebugCompileOnly          : <empty>
+                        typetwoModetwoDebugCompileOnlyApi       : <empty>
                         typetwoModetwoDebugImplementation       : <empty>
                         typetwoModetwoDebugRuntimeClasspath     : <empty>
                         typetwoModetwoDebugRuntimeElements      : <empty>
@@ -573,6 +598,7 @@ MODULE                        : Kotlin_Multiplatform
                         typetwoModetwoReleaseApiElements        : <empty>
                         typetwoModetwoReleaseCompileClasspath   : <empty>
                         typetwoModetwoReleaseCompileOnly        : <empty>
+                        typetwoModetwoReleaseCompileOnlyApi     : <empty>
                         typetwoModetwoReleaseImplementation     : <empty>
                         typetwoModetwoReleaseRuntimeClasspath   : <empty>
                         typetwoModetwoReleaseRuntimeElements    : <empty>
@@ -628,6 +654,7 @@ MODULE                        : Kotlin_Multiplatform
                         api                           : <empty>
                         archives                      : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
                         debugAndroidTestCompileClasspath        : <empty>
@@ -638,6 +665,7 @@ MODULE                        : Kotlin_Multiplatform
                         debugApiElements              : <empty>
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugReverseMetadataValues    : <empty>
                         debugRuntimeClasspath         : <empty>
@@ -658,6 +686,7 @@ MODULE                        : Kotlin_Multiplatform
                         releaseApiElements            : <empty>
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
                         releaseReverseMetadataValues  : <empty>
                         releaseRuntimeClasspath       : <empty>
@@ -679,9 +708,11 @@ MODULE                        : Kotlin_Multiplatform
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
                         testFixturesDebugWearApp      : <empty>
@@ -689,6 +720,7 @@ MODULE                        : Kotlin_Multiplatform
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
                         testFixturesReleaseWearApp    : <empty>

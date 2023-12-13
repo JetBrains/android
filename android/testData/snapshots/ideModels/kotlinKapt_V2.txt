@@ -838,12 +838,14 @@ MODULE                        : MainActivity
                         apiDependenciesMetadata       : <empty>
                         archives                      : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         compileOnlyDependenciesMetadata         : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAnnotationProcessor      : <empty>
                         debugApi                      : <empty>
                         debugApiDependenciesMetadata  : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugCompileOnlyDependenciesMetadata    : <empty>
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
@@ -916,6 +918,7 @@ MODULE                        : MainActivity
                         localApi                      : <empty>
                         localApiDependenciesMetadata  : <empty>
                         localCompileOnly              : <empty>
+                        localCompileOnlyApi           : <empty>
                         localCompileOnlyDependenciesMetadata    : <empty>
                         localDebugAndroidTestAnnotationProcessorClasspath : <empty>
                         localDebugAndroidTestApi      : <empty>
@@ -943,6 +946,7 @@ MODULE                        : MainActivity
                         localDebugCompilationRuntimeOnly        : <empty>
                         localDebugCompileClasspath    : <empty>
                         localDebugCompileOnly         : <empty>
+                        localDebugCompileOnlyApi      : <empty>
                         localDebugCompileOnlyDependenciesMetadata         : <empty>
                         localDebugImplementation      : <empty>
                         localDebugImplementationDependenciesMetadata      : <empty>
@@ -982,6 +986,7 @@ MODULE                        : MainActivity
                         localReleaseCompilationRuntimeOnly      : <empty>
                         localReleaseCompileClasspath  : <empty>
                         localReleaseCompileOnly       : <empty>
+                        localReleaseCompileOnlyApi    : <empty>
                         localReleaseCompileOnlyDependenciesMetadata       : <empty>
                         localReleaseImplementation    : <empty>
                         localReleaseImplementationDependenciesMetadata    : <empty>
@@ -1013,6 +1018,7 @@ MODULE                        : MainActivity
                         releaseApi                    : <empty>
                         releaseApiDependenciesMetadata          : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseCompileOnlyDependenciesMetadata  : <empty>
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
@@ -1023,6 +1029,7 @@ MODULE                        : MainActivity
                         remoteApi                     : <empty>
                         remoteApiDependenciesMetadata : <empty>
                         remoteCompileOnly             : <empty>
+                        remoteCompileOnlyApi          : <empty>
                         remoteCompileOnlyDependenciesMetadata   : <empty>
                         remoteDebugAndroidTestAnnotationProcessorClasspath          : <empty>
                         remoteDebugAndroidTestApi     : <empty>
@@ -1050,6 +1057,7 @@ MODULE                        : MainActivity
                         remoteDebugCompilationRuntimeOnly       : <empty>
                         remoteDebugCompileClasspath   : <empty>
                         remoteDebugCompileOnly        : <empty>
+                        remoteDebugCompileOnlyApi     : <empty>
                         remoteDebugCompileOnlyDependenciesMetadata        : <empty>
                         remoteDebugImplementation     : <empty>
                         remoteDebugImplementationDependenciesMetadata     : <empty>
@@ -1089,6 +1097,7 @@ MODULE                        : MainActivity
                         remoteReleaseCompilationRuntimeOnly     : <empty>
                         remoteReleaseCompileClasspath : <empty>
                         remoteReleaseCompileOnly      : <empty>
+                        remoteReleaseCompileOnlyApi   : <empty>
                         remoteReleaseCompileOnlyDependenciesMetadata      : <empty>
                         remoteReleaseImplementation   : <empty>
                         remoteReleaseImplementationDependenciesMetadata   : <empty>
@@ -1136,11 +1145,13 @@ MODULE                        : MainActivity
                         testFixturesApi               : <empty>
                         testFixturesApiDependenciesMetadata     : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesCompileOnlyDependenciesMetadata       : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugApiDependenciesMetadata          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugCompileOnlyDependenciesMetadata  : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugImplementationDependenciesMetadata         : <empty>
@@ -1154,6 +1165,7 @@ MODULE                        : MainActivity
                         testFixturesLocalApi          : <empty>
                         testFixturesLocalApiDependenciesMetadata          : <empty>
                         testFixturesLocalCompileOnly  : <empty>
+                        testFixturesLocalCompileOnlyApi         : <empty>
                         testFixturesLocalCompileOnlyDependenciesMetadata  : <empty>
                         testFixturesLocalImplementation         : <empty>
                         testFixturesLocalImplementationDependenciesMetadata         : <empty>
@@ -1164,6 +1176,7 @@ MODULE                        : MainActivity
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseApiDependenciesMetadata        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseCompileOnlyDependenciesMetadata          : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseImplementationDependenciesMetadata       : <empty>
@@ -1174,6 +1187,7 @@ MODULE                        : MainActivity
                         testFixturesRemoteApi         : <empty>
                         testFixturesRemoteApiDependenciesMetadata         : <empty>
                         testFixturesRemoteCompileOnly : <empty>
+                        testFixturesRemoteCompileOnlyApi        : <empty>
                         testFixturesRemoteCompileOnlyDependenciesMetadata : <empty>
                         testFixturesRemoteImplementation        : <empty>
                         testFixturesRemoteImplementationDependenciesMetadata        : <empty>
@@ -1458,6 +1472,7 @@ MODULE                        : MainActivity
                         - archives                    : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - archives                    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         compileOnlyDependenciesMetadata         : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
@@ -1488,6 +1503,7 @@ MODULE                        : MainActivity
                         debugCompilationRuntimeOnly   : <empty>
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugCompileOnlyDependenciesMetadata    : <empty>
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
@@ -1543,6 +1559,7 @@ MODULE                        : MainActivity
                         releaseCompilationRuntimeOnly : <empty>
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseCompileOnlyDependenciesMetadata  : <empty>
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
@@ -1589,11 +1606,13 @@ MODULE                        : MainActivity
                         testFixturesApi               : <empty>
                         testFixturesApiDependenciesMetadata     : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesCompileOnlyDependenciesMetadata       : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugApiDependenciesMetadata          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugCompileOnlyDependenciesMetadata  : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugImplementationDependenciesMetadata         : <empty>
@@ -1607,6 +1626,7 @@ MODULE                        : MainActivity
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseApiDependenciesMetadata        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseCompileOnlyDependenciesMetadata          : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseImplementationDependenciesMetadata       : <empty>

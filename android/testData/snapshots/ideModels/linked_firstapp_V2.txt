@@ -639,6 +639,7 @@ MODULE                        : My_First_App
                                 - archives                    : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
                                 - archives                    : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
                                 compileOnly                   : <empty>
+                                compileOnlyApi                : <empty>
                                 compileOnlyDependenciesMetadata         : <empty>
                                 coreLibraryDesugaring         : <empty>
                                 debugAndroidTestAnnotationProcessorClasspath      : <empty>
@@ -669,6 +670,7 @@ MODULE                        : My_First_App
                                 debugCompilationRuntimeOnly   : <empty>
                                 debugCompileClasspath         : <empty>
                                 debugCompileOnly              : <empty>
+                                debugCompileOnlyApi           : <empty>
                                 debugCompileOnlyDependenciesMetadata    : <empty>
                                 debugImplementation           : <empty>
                                 debugImplementationDependenciesMetadata : <empty>
@@ -724,6 +726,7 @@ MODULE                        : My_First_App
                                 releaseCompilationRuntimeOnly : <empty>
                                 releaseCompileClasspath       : <empty>
                                 releaseCompileOnly            : <empty>
+                                releaseCompileOnlyApi         : <empty>
                                 releaseCompileOnlyDependenciesMetadata  : <empty>
                                 releaseImplementation         : <empty>
                                 releaseImplementationDependenciesMetadata         : <empty>
@@ -770,11 +773,13 @@ MODULE                        : My_First_App
                                 testFixturesApi               : <empty>
                                 testFixturesApiDependenciesMetadata     : <empty>
                                 testFixturesCompileOnly       : <empty>
+                                testFixturesCompileOnlyApi    : <empty>
                                 testFixturesCompileOnlyDependenciesMetadata       : <empty>
                                 testFixturesDebugAnnotationProcessor    : <empty>
                                 testFixturesDebugApi          : <empty>
                                 testFixturesDebugApiDependenciesMetadata          : <empty>
                                 testFixturesDebugCompileOnly  : <empty>
+                                testFixturesDebugCompileOnlyApi         : <empty>
                                 testFixturesDebugCompileOnlyDependenciesMetadata  : <empty>
                                 testFixturesDebugImplementation         : <empty>
                                 testFixturesDebugImplementationDependenciesMetadata         : <empty>
@@ -788,6 +793,7 @@ MODULE                        : My_First_App
                                 testFixturesReleaseApi        : <empty>
                                 testFixturesReleaseApiDependenciesMetadata        : <empty>
                                 testFixturesReleaseCompileOnly          : <empty>
+                                testFixturesReleaseCompileOnlyApi       : <empty>
                                 testFixturesReleaseCompileOnlyDependenciesMetadata          : <empty>
                                 testFixturesReleaseImplementation       : <empty>
                                 testFixturesReleaseImplementationDependenciesMetadata       : <empty>
@@ -863,6 +869,7 @@ MODULE                        : My_First_App
                         apiDependenciesMetadata       : <empty>
                         archives                      : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         compileOnlyDependenciesMetadata         : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
@@ -891,6 +898,7 @@ MODULE                        : My_First_App
                         debugCompilationRuntimeOnly   : <empty>
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugCompileOnlyDependenciesMetadata    : <empty>
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
@@ -943,6 +951,7 @@ MODULE                        : My_First_App
                         releaseCompilationRuntimeOnly : <empty>
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseCompileOnlyDependenciesMetadata  : <empty>
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
@@ -988,11 +997,13 @@ MODULE                        : My_First_App
                         testFixturesApi               : <empty>
                         testFixturesApiDependenciesMetadata     : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesCompileOnlyDependenciesMetadata       : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugApiDependenciesMetadata          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugCompileOnlyDependenciesMetadata  : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugImplementationDependenciesMetadata         : <empty>
@@ -1006,6 +1017,7 @@ MODULE                        : My_First_App
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseApiDependenciesMetadata        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseCompileOnlyDependenciesMetadata          : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseImplementationDependenciesMetadata       : <empty>

@@ -688,10 +688,12 @@ MODULE                        : MultiFlavor
                         api                           : <empty>
                         archives                      : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAnnotationProcessor      : <empty>
                         debugApi                      : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeOnly              : <empty>
                         debugWearApp                  : <empty>
@@ -699,11 +701,13 @@ MODULE                        : MultiFlavor
                         firstAbcAnnotationProcessor   : <empty>
                         firstAbcApi                   : <empty>
                         firstAbcCompileOnly           : <empty>
+                        firstAbcCompileOnlyApi        : <empty>
                         firstAbcImplementation        : <empty>
                         firstAbcRuntimeOnly           : <empty>
                         firstAbcSecondAbcAnnotationProcessor    : <empty>
                         firstAbcSecondAbcApi          : <empty>
                         firstAbcSecondAbcCompileOnly  : <empty>
+                        firstAbcSecondAbcCompileOnlyApi         : <empty>
                         firstAbcSecondAbcDebugAndroidTestAnnotationProcessorClasspath         : <empty>
                         firstAbcSecondAbcDebugAndroidTestCompileClasspath : <empty>
                         firstAbcSecondAbcDebugAndroidTestRuntimeClasspath : <empty>
@@ -713,6 +717,7 @@ MODULE                        : MultiFlavor
                         firstAbcSecondAbcDebugApiElements       : <empty>
                         firstAbcSecondAbcDebugCompileClasspath  : <empty>
                         firstAbcSecondAbcDebugCompileOnly       : <empty>
+                        firstAbcSecondAbcDebugCompileOnlyApi    : <empty>
                         firstAbcSecondAbcDebugImplementation    : <empty>
                         firstAbcSecondAbcDebugReverseMetadataValues       : <empty>
                         firstAbcSecondAbcDebugRuntimeClasspath  : <empty>
@@ -730,6 +735,7 @@ MODULE                        : MultiFlavor
                         firstAbcSecondAbcReleaseApiElements     : <empty>
                         firstAbcSecondAbcReleaseCompileClasspath          : <empty>
                         firstAbcSecondAbcReleaseCompileOnly     : <empty>
+                        firstAbcSecondAbcReleaseCompileOnlyApi  : <empty>
                         firstAbcSecondAbcReleaseImplementation  : <empty>
                         firstAbcSecondAbcReleaseReverseMetadataValues     : <empty>
                         firstAbcSecondAbcReleaseRuntimeClasspath          : <empty>
@@ -745,6 +751,7 @@ MODULE                        : MultiFlavor
                         firstAbcSecondXyzAnnotationProcessor    : <empty>
                         firstAbcSecondXyzApi          : <empty>
                         firstAbcSecondXyzCompileOnly  : <empty>
+                        firstAbcSecondXyzCompileOnlyApi         : <empty>
                         firstAbcSecondXyzDebugAndroidTestAnnotationProcessorClasspath         : <empty>
                         firstAbcSecondXyzDebugAndroidTestCompileClasspath : <empty>
                         firstAbcSecondXyzDebugAndroidTestRuntimeClasspath : <empty>
@@ -754,6 +761,7 @@ MODULE                        : MultiFlavor
                         firstAbcSecondXyzDebugApiElements       : <empty>
                         firstAbcSecondXyzDebugCompileClasspath  : <empty>
                         firstAbcSecondXyzDebugCompileOnly       : <empty>
+                        firstAbcSecondXyzDebugCompileOnlyApi    : <empty>
                         firstAbcSecondXyzDebugImplementation    : <empty>
                         firstAbcSecondXyzDebugReverseMetadataValues       : <empty>
                         firstAbcSecondXyzDebugRuntimeClasspath  : <empty>
@@ -771,6 +779,7 @@ MODULE                        : MultiFlavor
                         firstAbcSecondXyzReleaseApiElements     : <empty>
                         firstAbcSecondXyzReleaseCompileClasspath          : <empty>
                         firstAbcSecondXyzReleaseCompileOnly     : <empty>
+                        firstAbcSecondXyzReleaseCompileOnlyApi  : <empty>
                         firstAbcSecondXyzReleaseImplementation  : <empty>
                         firstAbcSecondXyzReleaseReverseMetadataValues     : <empty>
                         firstAbcSecondXyzReleaseRuntimeClasspath          : <empty>
@@ -787,11 +796,13 @@ MODULE                        : MultiFlavor
                         firstXyzAnnotationProcessor   : <empty>
                         firstXyzApi                   : <empty>
                         firstXyzCompileOnly           : <empty>
+                        firstXyzCompileOnlyApi        : <empty>
                         firstXyzImplementation        : <empty>
                         firstXyzRuntimeOnly           : <empty>
                         firstXyzSecondAbcAnnotationProcessor    : <empty>
                         firstXyzSecondAbcApi          : <empty>
                         firstXyzSecondAbcCompileOnly  : <empty>
+                        firstXyzSecondAbcCompileOnlyApi         : <empty>
                         firstXyzSecondAbcDebugAndroidTestAnnotationProcessorClasspath         : <empty>
                         firstXyzSecondAbcDebugAndroidTestCompileClasspath : <empty>
                         firstXyzSecondAbcDebugAndroidTestRuntimeClasspath : <empty>
@@ -801,6 +812,7 @@ MODULE                        : MultiFlavor
                         firstXyzSecondAbcDebugApiElements       : <empty>
                         firstXyzSecondAbcDebugCompileClasspath  : <empty>
                         firstXyzSecondAbcDebugCompileOnly       : <empty>
+                        firstXyzSecondAbcDebugCompileOnlyApi    : <empty>
                         firstXyzSecondAbcDebugImplementation    : <empty>
                         firstXyzSecondAbcDebugReverseMetadataValues       : <empty>
                         firstXyzSecondAbcDebugRuntimeClasspath  : <empty>
@@ -818,6 +830,7 @@ MODULE                        : MultiFlavor
                         firstXyzSecondAbcReleaseApiElements     : <empty>
                         firstXyzSecondAbcReleaseCompileClasspath          : <empty>
                         firstXyzSecondAbcReleaseCompileOnly     : <empty>
+                        firstXyzSecondAbcReleaseCompileOnlyApi  : <empty>
                         firstXyzSecondAbcReleaseImplementation  : <empty>
                         firstXyzSecondAbcReleaseReverseMetadataValues     : <empty>
                         firstXyzSecondAbcReleaseRuntimeClasspath          : <empty>
@@ -833,6 +846,7 @@ MODULE                        : MultiFlavor
                         firstXyzSecondXyzAnnotationProcessor    : <empty>
                         firstXyzSecondXyzApi          : <empty>
                         firstXyzSecondXyzCompileOnly  : <empty>
+                        firstXyzSecondXyzCompileOnlyApi         : <empty>
                         firstXyzSecondXyzDebugAndroidTestAnnotationProcessorClasspath         : <empty>
                         firstXyzSecondXyzDebugAndroidTestCompileClasspath : <empty>
                         firstXyzSecondXyzDebugAndroidTestRuntimeClasspath : <empty>
@@ -842,6 +856,7 @@ MODULE                        : MultiFlavor
                         firstXyzSecondXyzDebugApiElements       : <empty>
                         firstXyzSecondXyzDebugCompileClasspath  : <empty>
                         firstXyzSecondXyzDebugCompileOnly       : <empty>
+                        firstXyzSecondXyzDebugCompileOnlyApi    : <empty>
                         firstXyzSecondXyzDebugImplementation    : <empty>
                         firstXyzSecondXyzDebugReverseMetadataValues       : <empty>
                         firstXyzSecondXyzDebugRuntimeClasspath  : <empty>
@@ -859,6 +874,7 @@ MODULE                        : MultiFlavor
                         firstXyzSecondXyzReleaseApiElements     : <empty>
                         firstXyzSecondXyzReleaseCompileClasspath          : <empty>
                         firstXyzSecondXyzReleaseCompileOnly     : <empty>
+                        firstXyzSecondXyzReleaseCompileOnlyApi  : <empty>
                         firstXyzSecondXyzReleaseImplementation  : <empty>
                         firstXyzSecondXyzReleaseReverseMetadataValues     : <empty>
                         firstXyzSecondXyzReleaseRuntimeClasspath          : <empty>
@@ -878,6 +894,7 @@ MODULE                        : MultiFlavor
                         releaseAnnotationProcessor    : <empty>
                         releaseApi                    : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
                         releaseRuntimeOnly            : <empty>
                         releaseWearApp                : <empty>
@@ -885,12 +902,14 @@ MODULE                        : MultiFlavor
                         secondAbcAnnotationProcessor  : <empty>
                         secondAbcApi                  : <empty>
                         secondAbcCompileOnly          : <empty>
+                        secondAbcCompileOnlyApi       : <empty>
                         secondAbcImplementation       : <empty>
                         secondAbcRuntimeOnly          : <empty>
                         secondAbcWearApp              : <empty>
                         secondXyzAnnotationProcessor  : <empty>
                         secondXyzApi                  : <empty>
                         secondXyzCompileOnly          : <empty>
+                        secondXyzCompileOnlyApi       : <empty>
                         secondXyzImplementation       : <empty>
                         secondXyzRuntimeOnly          : <empty>
                         secondXyzWearApp              : <empty>
@@ -974,21 +993,25 @@ MODULE                        : MultiFlavor
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
                         testFixturesDebugWearApp      : <empty>
                         testFixturesFirstAbcAnnotationProcessor : <empty>
                         testFixturesFirstAbcApi       : <empty>
                         testFixturesFirstAbcCompileOnly         : <empty>
+                        testFixturesFirstAbcCompileOnlyApi      : <empty>
                         testFixturesFirstAbcImplementation      : <empty>
                         testFixturesFirstAbcRuntimeOnly         : <empty>
                         testFixturesFirstAbcWearApp   : <empty>
                         testFixturesFirstXyzAnnotationProcessor : <empty>
                         testFixturesFirstXyzApi       : <empty>
                         testFixturesFirstXyzCompileOnly         : <empty>
+                        testFixturesFirstXyzCompileOnlyApi      : <empty>
                         testFixturesFirstXyzImplementation      : <empty>
                         testFixturesFirstXyzRuntimeOnly         : <empty>
                         testFixturesFirstXyzWearApp   : <empty>
@@ -996,6 +1019,7 @@ MODULE                        : MultiFlavor
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
                         testFixturesReleaseWearApp    : <empty>
@@ -1003,12 +1027,14 @@ MODULE                        : MultiFlavor
                         testFixturesSecondAbcAnnotationProcessor          : <empty>
                         testFixturesSecondAbcApi      : <empty>
                         testFixturesSecondAbcCompileOnly        : <empty>
+                        testFixturesSecondAbcCompileOnlyApi     : <empty>
                         testFixturesSecondAbcImplementation     : <empty>
                         testFixturesSecondAbcRuntimeOnly        : <empty>
                         testFixturesSecondAbcWearApp  : <empty>
                         testFixturesSecondXyzAnnotationProcessor          : <empty>
                         testFixturesSecondXyzApi      : <empty>
                         testFixturesSecondXyzCompileOnly        : <empty>
+                        testFixturesSecondXyzCompileOnlyApi     : <empty>
                         testFixturesSecondXyzImplementation     : <empty>
                         testFixturesSecondXyzRuntimeOnly        : <empty>
                         testFixturesSecondXyzWearApp  : <empty>

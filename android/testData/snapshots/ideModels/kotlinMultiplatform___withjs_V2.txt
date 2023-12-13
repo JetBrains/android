@@ -648,6 +648,7 @@
                             apiDependenciesMetadata       : <empty>
                             archives                      : <empty>
                             compileOnly                   : <empty>
+                            compileOnlyApi                : <empty>
                             compileOnlyDependenciesMetadata         : <empty>
                             coreLibraryDesugaring         : <empty>
                             debugAndroidTestAnnotationProcessorClasspath      : <empty>
@@ -676,6 +677,7 @@
                             debugCompilationRuntimeOnly   : <empty>
                             debugCompileClasspath         : <empty>
                             debugCompileOnly              : <empty>
+                            debugCompileOnlyApi           : <empty>
                             debugCompileOnlyDependenciesMetadata    : <empty>
                             debugImplementation           : <empty>
                             debugImplementationDependenciesMetadata : <empty>
@@ -728,6 +730,7 @@
                             releaseCompilationRuntimeOnly : <empty>
                             releaseCompileClasspath       : <empty>
                             releaseCompileOnly            : <empty>
+                            releaseCompileOnlyApi         : <empty>
                             releaseCompileOnlyDependenciesMetadata  : <empty>
                             releaseImplementation         : <empty>
                             releaseImplementationDependenciesMetadata         : <empty>
@@ -773,11 +776,13 @@
                             testFixturesApi               : <empty>
                             testFixturesApiDependenciesMetadata     : <empty>
                             testFixturesCompileOnly       : <empty>
+                            testFixturesCompileOnlyApi    : <empty>
                             testFixturesCompileOnlyDependenciesMetadata       : <empty>
                             testFixturesDebugAnnotationProcessor    : <empty>
                             testFixturesDebugApi          : <empty>
                             testFixturesDebugApiDependenciesMetadata          : <empty>
                             testFixturesDebugCompileOnly  : <empty>
+                            testFixturesDebugCompileOnlyApi         : <empty>
                             testFixturesDebugCompileOnlyDependenciesMetadata  : <empty>
                             testFixturesDebugImplementation         : <empty>
                             testFixturesDebugImplementationDependenciesMetadata         : <empty>
@@ -791,6 +796,7 @@
                             testFixturesReleaseApi        : <empty>
                             testFixturesReleaseApiDependenciesMetadata        : <empty>
                             testFixturesReleaseCompileOnly          : <empty>
+                            testFixturesReleaseCompileOnlyApi       : <empty>
                             testFixturesReleaseCompileOnlyDependenciesMetadata          : <empty>
                             testFixturesReleaseImplementation       : <empty>
                             testFixturesReleaseImplementationDependenciesMetadata       : <empty>
@@ -1051,6 +1057,7 @@
                             commonTestResolvableDependenciesMetadata          : <empty>
                             commonTestRuntimeOnly         : <empty>
                             compileOnly                   : <empty>
+                            compileOnlyApi                : <empty>
                             coreLibraryDesugaring         : <empty>
                             debugAndroidTestAnnotationProcessorClasspath      : <empty>
                             debugAndroidTestCompileClasspath        : <empty>
@@ -1061,6 +1068,7 @@
                             debugApiElements              : <empty>
                             debugCompileClasspath         : <empty>
                             debugCompileOnly              : <empty>
+                            debugCompileOnlyApi           : <empty>
                             debugImplementation           : <empty>
                             debugRuntimeClasspath         : <empty>
                             debugRuntimeElements          : <empty>
@@ -1098,6 +1106,7 @@
                             releaseApiElements            : <empty>
                             releaseCompileClasspath       : <empty>
                             releaseCompileOnly            : <empty>
+                            releaseCompileOnlyApi         : <empty>
                             releaseImplementation         : <empty>
                             releaseRuntimeClasspath       : <empty>
                             releaseRuntimeElements        : <empty>
@@ -1118,9 +1127,11 @@
                             testFixturesAnnotationProcessor         : <empty>
                             testFixturesApi               : <empty>
                             testFixturesCompileOnly       : <empty>
+                            testFixturesCompileOnlyApi    : <empty>
                             testFixturesDebugAnnotationProcessor    : <empty>
                             testFixturesDebugApi          : <empty>
                             testFixturesDebugCompileOnly  : <empty>
+                            testFixturesDebugCompileOnlyApi         : <empty>
                             testFixturesDebugImplementation         : <empty>
                             testFixturesDebugRuntimeOnly  : <empty>
                             testFixturesDebugWearApp      : <empty>
@@ -1128,6 +1139,7 @@
                             testFixturesReleaseAnnotationProcessor  : <empty>
                             testFixturesReleaseApi        : <empty>
                             testFixturesReleaseCompileOnly          : <empty>
+                            testFixturesReleaseCompileOnlyApi       : <empty>
                             testFixturesReleaseImplementation       : <empty>
                             testFixturesReleaseRuntimeOnly          : <empty>
                             testFixturesReleaseWearApp    : <empty>

@@ -661,6 +661,7 @@ MODULE                        : TestCompositeLib1
                         apiDependenciesMetadata       : <empty>
                         archives                      : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         compileOnlyDependenciesMetadata         : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
@@ -689,6 +690,7 @@ MODULE                        : TestCompositeLib1
                         debugCompilationRuntimeOnly   : <empty>
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugCompileOnlyDependenciesMetadata    : <empty>
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
@@ -741,6 +743,7 @@ MODULE                        : TestCompositeLib1
                         releaseCompilationRuntimeOnly : <empty>
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseCompileOnlyDependenciesMetadata  : <empty>
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
@@ -786,11 +789,13 @@ MODULE                        : TestCompositeLib1
                         testFixturesApi               : <empty>
                         testFixturesApiDependenciesMetadata     : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesCompileOnlyDependenciesMetadata       : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugApiDependenciesMetadata          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugCompileOnlyDependenciesMetadata  : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugImplementationDependenciesMetadata         : <empty>
@@ -804,6 +809,7 @@ MODULE                        : TestCompositeLib1
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseApiDependenciesMetadata        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseCompileOnlyDependenciesMetadata          : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseImplementationDependenciesMetadata       : <empty>
@@ -887,6 +893,7 @@ MODULE                        : TestCompositeLib1
                         - archives                    : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-debug.aar [-]
                         - archives                    : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/lib-release.aar [-]
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         compileOnlyDependenciesMetadata         : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
@@ -917,6 +924,7 @@ MODULE                        : TestCompositeLib1
                         debugCompilationRuntimeOnly   : <empty>
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugCompileOnlyDependenciesMetadata    : <empty>
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
@@ -972,6 +980,7 @@ MODULE                        : TestCompositeLib1
                         releaseCompilationRuntimeOnly : <empty>
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseCompileOnlyDependenciesMetadata  : <empty>
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
@@ -1018,11 +1027,13 @@ MODULE                        : TestCompositeLib1
                         testFixturesApi               : <empty>
                         testFixturesApiDependenciesMetadata     : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesCompileOnlyDependenciesMetadata       : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugApiDependenciesMetadata          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugCompileOnlyDependenciesMetadata  : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugImplementationDependenciesMetadata         : <empty>
@@ -1036,6 +1047,7 @@ MODULE                        : TestCompositeLib1
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseApiDependenciesMetadata        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseCompileOnlyDependenciesMetadata          : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseImplementationDependenciesMetadata       : <empty>
@@ -3460,6 +3472,7 @@ MODULE                        : TestCompositeLib3
                         apiDependenciesMetadata       : <empty>
                         archives                      : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         compileOnlyDependenciesMetadata         : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
@@ -3488,6 +3501,7 @@ MODULE                        : TestCompositeLib3
                         debugCompilationRuntimeOnly   : <empty>
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugCompileOnlyDependenciesMetadata    : <empty>
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
@@ -3540,6 +3554,7 @@ MODULE                        : TestCompositeLib3
                         releaseCompilationRuntimeOnly : <empty>
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseCompileOnlyDependenciesMetadata  : <empty>
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
@@ -3585,11 +3600,13 @@ MODULE                        : TestCompositeLib3
                         testFixturesApi               : <empty>
                         testFixturesApiDependenciesMetadata     : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesCompileOnlyDependenciesMetadata       : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugApiDependenciesMetadata          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugCompileOnlyDependenciesMetadata  : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugImplementationDependenciesMetadata         : <empty>
@@ -3603,6 +3620,7 @@ MODULE                        : TestCompositeLib3
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseApiDependenciesMetadata        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseCompileOnlyDependenciesMetadata          : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseImplementationDependenciesMetadata       : <empty>
@@ -3669,6 +3687,7 @@ MODULE                        : TestCompositeLib3
                         api                           : <empty>
                         archives                      : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
                         debugAndroidTestCompileClasspath        : <empty>
@@ -3679,6 +3698,7 @@ MODULE                        : TestCompositeLib3
                         debugApiElements              : <empty>
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
@@ -3697,6 +3717,7 @@ MODULE                        : TestCompositeLib3
                         releaseApiElements            : <empty>
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
@@ -3716,9 +3737,11 @@ MODULE                        : TestCompositeLib3
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
                         testFixturesDebugWearApp      : <empty>
@@ -3726,6 +3749,7 @@ MODULE                        : TestCompositeLib3
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
                         testFixturesReleaseWearApp    : <empty>
@@ -6299,6 +6323,7 @@ MODULE                        : project
                         apiDependenciesMetadata       : <empty>
                         archives                      : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         compileOnlyDependenciesMetadata         : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
@@ -6327,6 +6352,7 @@ MODULE                        : project
                         debugCompilationRuntimeOnly   : <empty>
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugCompileOnlyDependenciesMetadata    : <empty>
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
@@ -6379,6 +6405,7 @@ MODULE                        : project
                         releaseCompilationRuntimeOnly : <empty>
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseCompileOnlyDependenciesMetadata  : <empty>
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
@@ -6424,11 +6451,13 @@ MODULE                        : project
                         testFixturesApi               : <empty>
                         testFixturesApiDependenciesMetadata     : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesCompileOnlyDependenciesMetadata       : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugApiDependenciesMetadata          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugCompileOnlyDependenciesMetadata  : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugImplementationDependenciesMetadata         : <empty>
@@ -6442,6 +6471,7 @@ MODULE                        : project
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseApiDependenciesMetadata        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseCompileOnlyDependenciesMetadata          : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseImplementationDependenciesMetadata       : <empty>
@@ -6528,6 +6558,7 @@ MODULE                        : project
                         - archives                    : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         - archives                    : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         compileOnlyDependenciesMetadata         : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
@@ -6558,6 +6589,7 @@ MODULE                        : project
                         debugCompilationRuntimeOnly   : <empty>
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugCompileOnlyDependenciesMetadata    : <empty>
                         debugImplementation           : <empty>
                         debugImplementationDependenciesMetadata : <empty>
@@ -6613,6 +6645,7 @@ MODULE                        : project
                         releaseCompilationRuntimeOnly : <empty>
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseCompileOnlyDependenciesMetadata  : <empty>
                         releaseImplementation         : <empty>
                         releaseImplementationDependenciesMetadata         : <empty>
@@ -6659,11 +6692,13 @@ MODULE                        : project
                         testFixturesApi               : <empty>
                         testFixturesApiDependenciesMetadata     : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesCompileOnlyDependenciesMetadata       : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugApiDependenciesMetadata          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugCompileOnlyDependenciesMetadata  : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugImplementationDependenciesMetadata         : <empty>
@@ -6677,6 +6712,7 @@ MODULE                        : project
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseApiDependenciesMetadata        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseCompileOnlyDependenciesMetadata          : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseImplementationDependenciesMetadata       : <empty>

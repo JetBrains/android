@@ -683,6 +683,7 @@ MODULE                        : project
                         benchmarkApiElements          : <empty>
                         benchmarkCompileClasspath     : <empty>
                         benchmarkCompileOnly          : <empty>
+                        benchmarkCompileOnlyApi       : <empty>
                         benchmarkImplementation       : <empty>
                         benchmarkReverseMetadataValues          : <empty>
                         benchmarkRuntimeClasspath     : <empty>
@@ -694,6 +695,7 @@ MODULE                        : project
                         benchmarkWearApp              : <empty>
                         benchmarkWearBundling         : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAndroidTestAnnotationProcessorClasspath      : <empty>
                         debugAndroidTestCompileClasspath        : <empty>
@@ -704,6 +706,7 @@ MODULE                        : project
                         debugApiElements              : <empty>
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugReverseMetadataValues    : <empty>
                         debugRuntimeClasspath         : <empty>
@@ -724,6 +727,7 @@ MODULE                        : project
                         releaseApiElements            : <empty>
                         releaseCompileClasspath       : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
                         releaseReverseMetadataValues  : <empty>
                         releaseRuntimeClasspath       : <empty>
@@ -752,13 +756,16 @@ MODULE                        : project
                         testFixturesBenchmarkAnnotationProcessor          : <empty>
                         testFixturesBenchmarkApi      : <empty>
                         testFixturesBenchmarkCompileOnly        : <empty>
+                        testFixturesBenchmarkCompileOnlyApi     : <empty>
                         testFixturesBenchmarkImplementation     : <empty>
                         testFixturesBenchmarkRuntimeOnly        : <empty>
                         testFixturesBenchmarkWearApp  : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
                         testFixturesDebugWearApp      : <empty>
@@ -766,6 +773,7 @@ MODULE                        : project
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
                         testFixturesReleaseWearApp    : <empty>
@@ -806,16 +814,19 @@ MODULE                        : project
                         benchmarkApi                  : <empty>
                         benchmarkCompileClasspath     : <empty>
                         benchmarkCompileOnly          : <empty>
+                        benchmarkCompileOnlyApi       : <empty>
                         benchmarkImplementation       : <empty>
                         benchmarkRuntimeClasspath     : <empty>
                         benchmarkRuntimeOnly          : <empty>
                         benchmarkTestedApks           : <empty>
                         benchmarkWearApp              : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAnnotationProcessor      : <empty>
                         debugApi                      : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeOnly              : <empty>
                         debugWearApp                  : <empty>
@@ -848,12 +859,14 @@ MODULE                        : project
                         api                           : <empty>
                         archives                      : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAnnotationProcessor      : <empty>
                         debugAnnotationProcessorClasspath       : <empty>
                         debugApi                      : <empty>
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeOnly              : <empty>
@@ -888,12 +901,14 @@ MODULE                        : project
                         api                           : <empty>
                         archives                      : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAnnotationProcessor      : <empty>
                         debugAnnotationProcessorClasspath       : <empty>
                         debugApi                      : <empty>
                         debugCompileClasspath         : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeOnly              : <empty>

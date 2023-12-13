@@ -702,10 +702,12 @@ MODULE                        : project
                         api                           : <empty>
                         archives                      : <empty>
                         compileOnly                   : <empty>
+                        compileOnlyApi                : <empty>
                         coreLibraryDesugaring         : <empty>
                         debugAnnotationProcessor      : <empty>
                         debugApi                      : <empty>
                         debugCompileOnly              : <empty>
+                        debugCompileOnlyApi           : <empty>
                         debugImplementation           : <empty>
                         debugRuntimeOnly              : <empty>
                         debugWearApp                  : <empty>
@@ -713,6 +715,7 @@ MODULE                        : project
                         exampleAnnotationProcessor    : <empty>
                         exampleApi                    : <empty>
                         exampleCompileOnly            : <empty>
+                        exampleCompileOnlyApi         : <empty>
                         exampleDebugAndroidTestAnnotationProcessorClasspath         : <empty>
                         exampleDebugAndroidTestCompileClasspath : <empty>
                         exampleDebugAndroidTestRuntimeClasspath : <empty>
@@ -722,6 +725,7 @@ MODULE                        : project
                         exampleDebugApiElements       : <empty>
                         exampleDebugCompileClasspath  : <empty>
                         exampleDebugCompileOnly       : <empty>
+                        exampleDebugCompileOnlyApi    : <empty>
                         exampleDebugImplementation    : <empty>
                         exampleDebugReverseMetadataValues       : <empty>
                         exampleDebugRuntimeClasspath  : <empty>
@@ -739,6 +743,7 @@ MODULE                        : project
                         exampleReleaseApiElements     : <empty>
                         exampleReleaseCompileClasspath          : <empty>
                         exampleReleaseCompileOnly     : <empty>
+                        exampleReleaseCompileOnlyApi  : <empty>
                         exampleReleaseImplementation  : <empty>
                         exampleReleaseReverseMetadataValues     : <empty>
                         exampleReleaseRuntimeClasspath          : <empty>
@@ -757,6 +762,7 @@ MODULE                        : project
                         releaseAnnotationProcessor    : <empty>
                         releaseApi                    : <empty>
                         releaseCompileOnly            : <empty>
+                        releaseCompileOnlyApi         : <empty>
                         releaseImplementation         : <empty>
                         releaseRuntimeOnly            : <empty>
                         releaseWearApp                : <empty>
@@ -786,15 +792,18 @@ MODULE                        : project
                         testFixturesAnnotationProcessor         : <empty>
                         testFixturesApi               : <empty>
                         testFixturesCompileOnly       : <empty>
+                        testFixturesCompileOnlyApi    : <empty>
                         testFixturesDebugAnnotationProcessor    : <empty>
                         testFixturesDebugApi          : <empty>
                         testFixturesDebugCompileOnly  : <empty>
+                        testFixturesDebugCompileOnlyApi         : <empty>
                         testFixturesDebugImplementation         : <empty>
                         testFixturesDebugRuntimeOnly  : <empty>
                         testFixturesDebugWearApp      : <empty>
                         testFixturesExampleAnnotationProcessor  : <empty>
                         testFixturesExampleApi        : <empty>
                         testFixturesExampleCompileOnly          : <empty>
+                        testFixturesExampleCompileOnlyApi       : <empty>
                         testFixturesExampleImplementation       : <empty>
                         testFixturesExampleRuntimeOnly          : <empty>
                         testFixturesExampleWearApp    : <empty>
@@ -802,6 +811,7 @@ MODULE                        : project
                         testFixturesReleaseAnnotationProcessor  : <empty>
                         testFixturesReleaseApi        : <empty>
                         testFixturesReleaseCompileOnly          : <empty>
+                        testFixturesReleaseCompileOnlyApi       : <empty>
                         testFixturesReleaseImplementation       : <empty>
                         testFixturesReleaseRuntimeOnly          : <empty>
                         testFixturesReleaseWearApp    : <empty>
