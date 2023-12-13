@@ -23,6 +23,7 @@ import com.android.tools.res.apk.forEveryResource
 import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.res.ids.ResourceIdManagerBase
 import com.android.tools.res.ids.ResourceIdManagerModelModule
+import com.android.tools.res.ids.SingleNamespaceIdMapping
 import gnu.trove.TObjectIntHashMap
 import java.util.function.Consumer
 
