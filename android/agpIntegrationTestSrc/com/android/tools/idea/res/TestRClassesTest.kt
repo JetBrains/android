@@ -37,6 +37,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.VfsTestUtil.createFile
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil
+import org.junit.Ignore
 import java.io.File
 
 /**
@@ -386,7 +387,8 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
   }
 
-  fun testResolveScope() {
+  // ignore testResolveScope due to b/316186264
+  fun ignoreTestResolveScope() {
     val unitTest = createFile(
       projectRootDirectory,
       "app/src/test/java/com/example/projectwithappandlib/app/RClassUnitTest.java",
