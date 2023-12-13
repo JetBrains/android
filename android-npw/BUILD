@@ -79,6 +79,9 @@ iml_module(
             # b/309976473 may be flaky on Windows
             "tags": ["no_windows"],
         },
+        "GenerateBaselineProfileModuleTest": {
+            "test_filter": "com.android.tools.idea.npw.module.GenerateBaselineProfileModuleTest",
+        },
         "other": {},
     },
     test_class = "com.android.tools.idea.npw.NewProjectWizardTestSuite",
