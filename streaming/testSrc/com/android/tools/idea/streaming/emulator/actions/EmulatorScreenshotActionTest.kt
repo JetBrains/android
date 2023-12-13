@@ -31,19 +31,22 @@ import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.EDT
-import org.intellij.images.ui.ImageComponent
-import org.junit.Ignore
+import org.intellij.images.editor.ImageFileEditor
 import org.junit.Rule
 import org.junit.Test
 import java.awt.image.BufferedImage
+import java.io.IOException
 import java.nio.file.Path
-import java.util.concurrent.TimeUnit.SECONDS
+import javax.imageio.ImageIO
 import javax.swing.JComboBox
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests for [EmulatorScreenshotAction].
@@ -70,40 +73,34 @@ class EmulatorScreenshotActionTest {
   val portableUiFontRule = PortableUiFontRule()
 
   @Test
-  @Ignore("b/315344704") // TODO: this test is flaky with IntelliJ 2023.3.
   fun testAction() {
     emulatorView = emulatorViewRule.newEmulatorView()
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
-    waitForCondition(500, SECONDS) { findScreenshotViewer() != null }
+    waitForCondition(2.seconds) { findScreenshotViewer() != null }
     val screenshotViewer = findScreenshotViewer()!!
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
     val clipComboBox = ui.getComponent<JComboBox<*>>()
 
+    screenshotViewer.waitForUpdateAndGetImage()
     clipComboBox.selectFirstMatch("Display Shape")
-    EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    var image = ui.getComponent<ImageComponent>().document.value
-    assertAppearance(image, "WithoutFrame")
+    assertAppearance(screenshotViewer.waitForUpdateAndGetImage(), "WithoutFrame")
+
     clipComboBox.selectFirstMatch("Show Device Frame")
-    EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    image = ui.getComponent<ImageComponent>().document.value
-    assertAppearance(image, "WithFrame")
+    assertAppearance(screenshotViewer.waitForUpdateAndGetImage(), "WithFrame")
   }
 
   @Test
-  @Ignore("b/315344704") // TODO: this test is flaky with IntelliJ 2023.3.
   fun testActionFoldableOpen() {
     emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
-    waitForCondition(500, SECONDS) { findScreenshotViewer() != null }
+    waitForCondition(2.seconds) { findScreenshotViewer() != null }
     val screenshotViewer = findScreenshotViewer()!!
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
@@ -111,14 +108,10 @@ class EmulatorScreenshotActionTest {
     val clipComboBox = ui.getComponent<JComboBox<*>>()
     assertThat(clipComboBox.optionsAsString()).contains("Show Device Frame")
 
-    EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    val image = ui.getComponent<ImageComponent>().document.value
-    assertAppearance(image, "FoldableOpen")
+    assertAppearance(screenshotViewer.waitForUpdateAndGetImage(), "FoldableOpen")
   }
 
   @Test
-  @Ignore("b/315344704") // TODO: this test is flaky with IntelliJ 2023.3.
   fun testActionFoldableClosed() {
     emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
@@ -126,7 +119,7 @@ class EmulatorScreenshotActionTest {
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
-    waitForCondition(500, SECONDS) { findScreenshotViewer() != null }
+    waitForCondition(2.seconds) { findScreenshotViewer() != null }
     val screenshotViewer = findScreenshotViewer()!!
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
@@ -134,10 +127,7 @@ class EmulatorScreenshotActionTest {
     val clipComboBox = ui.getComponent<JComboBox<*>>()
     assertThat(clipComboBox.optionsAsString()).contains("Show Device Frame")
 
-    EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    val image = ui.getComponent<ImageComponent>().document.value
-    assertAppearance(image, "FoldableClosed")
+    assertAppearance(screenshotViewer.waitForUpdateAndGetImage(), "FoldableClosed")
   }
 
   @Test
@@ -147,7 +137,7 @@ class EmulatorScreenshotActionTest {
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
-    waitForCondition(500, SECONDS) { findScreenshotViewer() != null }
+    waitForCondition(2.seconds) { findScreenshotViewer() != null }
     val screenshotViewer = findScreenshotViewer()!!
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
@@ -171,6 +161,43 @@ class EmulatorScreenshotActionTest {
   @Suppress("SameParameterValue")
   private fun getGoldenFile(name: String): Path {
     return TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
+  }
+}
+
+private fun ScreenshotViewer.waitForUpdateAndGetImage(): BufferedImage {
+  EDT.dispatchAllInvocationEvents()
+  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  val fileEditor = fileEditor()
+  waitForCondition(2.seconds) { fileEditor.imageEditor.document.value?.isSame(fileEditor.file.readImage()) == true }
+  return fileEditor.imageEditor.document.value
+}
+
+private fun BufferedImage.isSame(other: BufferedImage?): Boolean {
+  if (other == null) {
+    return false
+  }
+  if (width != other.width || height != other.height) {
+    return false
+  }
+  for (y in 0 until height) {
+    for (x in 0 until width) {
+      if (getRGB(x, y) != other.getRGB(x, y)) {
+        return false
+      }
+    }
+  }
+  return true
+}
+
+private fun ScreenshotViewer.fileEditor(): ImageFileEditor =
+    PlatformCoreDataKeys.FILE_EDITOR.getData(this) as ImageFileEditor
+
+private fun VirtualFile.readImage(): BufferedImage? {
+  return try {
+    ImageIO.read(inputStream)
+  }
+  catch (e: IOException) {
+    null
   }
 }
 
