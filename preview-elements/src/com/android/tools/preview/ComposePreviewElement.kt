@@ -394,7 +394,7 @@ class SingleComposePreviewElementInstance(
 class
 ParametrizedComposePreviewElementInstance(
   private val basePreviewElement: ComposePreviewElement,
-  parameterName: String,
+  parameterName: String?,
   val providerClassFqn: String,
   val index: Int,
   val maxIndex: Int,
@@ -403,11 +403,7 @@ ParametrizedComposePreviewElementInstance(
 
   override val displaySettings: PreviewDisplaySettings =
     PreviewDisplaySettings(
-      "${basePreviewElement.displaySettings.name} ($parameterName ${
-        // Make all index numbers to use the same number of digits,
-        // so that they can be properly sorted later.
-        index.toString().padStart(maxIndex.toString().length, '0')
-      })",
+      getDisplayName(parameterName),
       basePreviewElement.displaySettings.group,
       basePreviewElement.displaySettings.showDecoration,
       basePreviewElement.displaySettings.showBackground,
@@ -420,6 +416,20 @@ ParametrizedComposePreviewElementInstance(
       .toolsAttribute("parameterProviderIndex", index.toString())
       // The FQN of the ParameterProvider class
       .toolsAttribute("parameterProviderClass", providerClassFqn)
+  }
+
+  private fun getDisplayName(parameterName: String?): String {
+    return if (parameterName == null) {
+      // This case corresponds to the parameter already having been added to the display name,
+      // so it should not be added again.
+      basePreviewElement.displaySettings.name
+    } else {
+      "${basePreviewElement.displaySettings.name} ($parameterName ${
+        // Make all index numbers to use the same number of digits,
+        // so that they can be properly sorted later.
+        index.toString().padStart(maxIndex.toString().length, '0')
+      })"
+    }
   }
 }
 

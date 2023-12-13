@@ -327,6 +327,9 @@ class ParametrizedPreviewTest {
         """
           .trimIndent()
     }
+    preview.filteredPreviewElementsInstancesFlowForTest().value.forEach {
+      assertTrue(it.displaySettings.name.endsWith("TestWithProvider (name 0)"))
+    }
   }
 
   private suspend fun PreviewElementProvider<ComposePreviewElement>.resolve() =

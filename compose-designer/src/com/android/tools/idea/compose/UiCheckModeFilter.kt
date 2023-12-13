@@ -215,7 +215,7 @@ private fun ComposePreviewElementInstance.createDerivedInstance(
   return if (this is ParametrizedComposePreviewElementInstance) {
     ParametrizedComposePreviewElementInstance(
       singleInstance,
-      "",
+      null,
       providerClassFqn,
       index,
       maxIndex,
