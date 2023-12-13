@@ -707,7 +707,6 @@ android_studio(
     platform = "//prebuilts/studio/intellij-sdk:studio-sdk",
     plugins = [
         ":org.jetbrains.android",
-        ":com.android.tools.studiobot",
         ":com.android.tools.apk",
         ":com.android.tools.ndk",
         ":com.android.tools.design",

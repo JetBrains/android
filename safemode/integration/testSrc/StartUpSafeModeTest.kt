@@ -101,7 +101,6 @@ class StartUpSafeModeTest {
       "Properties",
       "Shell Script",
       "Smali Support",
-      "Studio Bot",
       "Subversion",
       "Task Management",
       "Terminal",
