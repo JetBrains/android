@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import java.awt.Toolkit
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
+import java.util.Base64
 
 /** Creates a cURL command representing an [HttpData] and puts it in the clipboard */
 @Suppress("DialogTitleCapitalization")
@@ -44,7 +45,13 @@ internal class CopyAsCurlAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
+    val payload = data.requestPayload
+    val isBinaryRequestData = !payload.isValidUtf8
     val curlCommand = buildString {
+      if (isBinaryRequestData) {
+        val encoder = Base64.getEncoder()
+        append("echo -n ${encoder.encodeToString(payload.toByteArray())} | base64 -d | ")
+      }
       append("curl '${data.url}'")
       if (data.method != "GET") {
         appendLine("-X '${data.method}'")
@@ -52,9 +59,12 @@ internal class CopyAsCurlAction(
       data.requestHeaders.forEach { header ->
         appendLine("-H '${header.key}: ${header.value.joinToString { it }}'")
       }
-      if (!data.requestPayload.isEmpty) {
-        // TODO(aalbert): Handle different types of data properly )binary, form-data etc
-        appendLine("--data-raw '${data.requestPayload.toStringUtf8()}'")
+      if (!payload.isEmpty) {
+        if (payload.isValidUtf8) {
+          appendLine("--data-raw '${payload.toStringUtf8()}'")
+        } else {
+          appendLine("--data-binary @-")
+        }
       }
       appendLine("--compressed")
     }
