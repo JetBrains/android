@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
@@ -24,8 +23,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
-import com.intellij.openapi.project.Project
 import com.jetbrains.rd.util.concurrentMapOf
+import groovy.lang.MissingMethodException
+import groovy.lang.MissingPropertyException
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.issue.UnsupportedGradleVersionIssue
 
@@ -76,6 +76,11 @@ class SyncFailureUsageReporter {
     }
   }
   else {
-    GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
+    when {
+      error?.message?.startsWith("Could not find method ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
+      error?.message?.startsWith("Could not get unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
+      error?.message?.startsWith("Could not set unknown property ") == true -> GradleSyncFailure.DSL_METHOD_NOT_FOUND
+      else -> GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
+    }
   }
 }
