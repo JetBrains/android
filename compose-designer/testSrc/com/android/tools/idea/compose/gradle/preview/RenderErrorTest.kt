@@ -141,6 +141,7 @@ class RenderErrorTest {
     }
   }
 
+  @Ignore("b/314295523")
   @Test
   fun testSceneViewWithRenderErrors() =
     runBlocking(workerThread) {
