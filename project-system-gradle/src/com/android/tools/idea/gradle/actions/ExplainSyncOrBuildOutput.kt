@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.actions
 
 import com.android.tools.idea.explainer.IssueExplainer
 import com.intellij.build.ExecutionNode
+import com.intellij.build.events.EventResult
+import com.intellij.build.events.FailureResult
+import com.intellij.build.events.MessageEventResult
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
@@ -24,7 +27,11 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.tree.TreeUtil
+import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.tree.TreePath
+
+private val ASK_STUDIO_BOT_UNTIL_EOL = Regex(">> Ask Studio Bot:[^\n]*")
+private const val ASK_STUDIO_BOT_LINK_TEXT = "<a href=\"explain.issue\">>> Ask Studio Bot</a>"
 
 class ExplainSyncOrBuildOutput : DumbAwareAction(
   service<IssueExplainer>().getShortLabel(), service<IssueExplainer>().getShortLabel(),
@@ -38,7 +45,8 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
     val rowNumber = tree?.selectionRows?.singleOrNull()
     if (rowNumber == null) {
       e.presentation.isEnabled = false
-    } else {
+    }
+    else {
       // treePath could be null when running on BGT
       val treePath = tree.getPathForRow(rowNumber) ?: return
       // skip "Download info" node with rowNumber == 1
@@ -51,8 +59,9 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
     val tree = component as? Tree ?: return
     val selectedNodes = getSelectedNodes(tree)
     if (selectedNodes.isEmpty()) return
-    val text = selectedNodes[0].name
-    service<IssueExplainer>().explain(e.project!!, text, IssueExplainer.RequestKind.BUILD_ISSUE)
+    val node = selectedNodes[0]
+    val shortDescription = getErrorShortDescription(node.result) ?: node.name
+    service<IssueExplainer>().explain(e.project!!, shortDescription, IssueExplainer.RequestKind.BUILD_ISSUE)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
@@ -65,4 +74,24 @@ private fun getSelectedNodes(myTree: Tree): List<ExecutionNode> {
   return TreeUtil.collectSelectedObjects<ExecutionNode?>(myTree) { path: TreePath? ->
     TreeUtil.getLastUserObject(ExecutionNode::class.java, path)
   }
+}
+
+private fun String.trimMessagesWithLongStacktrace(n: Int = 25) = split("\n").take(n).joinToString("\n")
+
+@VisibleForTesting
+fun getErrorShortDescription(result: EventResult?): String? {
+  return when (result) {
+           is FailureResult -> {
+             result.failures?.mapNotNull { it.error }?.joinToString("\n")
+           }
+
+           is MessageEventResult -> {
+             result.details
+           }
+
+           else -> null
+         }
+           ?.trimMessagesWithLongStacktrace()
+           ?.replace(ASK_STUDIO_BOT_UNTIL_EOL, "")
+           ?.replace(ASK_STUDIO_BOT_LINK_TEXT, "")
 }

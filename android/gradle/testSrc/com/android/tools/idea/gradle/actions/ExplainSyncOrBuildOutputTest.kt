@@ -19,6 +19,8 @@ import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.disposable
 import com.intellij.build.ExecutionNode
+import com.intellij.build.events.MessageEvent
+import com.intellij.build.events.MessageEventResult
 import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -106,6 +108,50 @@ class ExplainSyncOrBuildOutputTest {
   @Test
   fun testActionUpdateThread() {
     assertEquals(ExplainSyncOrBuildOutput().actionUpdateThread, ActionUpdateThread.EDT)
+  }
+
+  @Test
+  fun testGetErrorDescription() {
+    val event = object : MessageEventResult {
+      override fun getKind() = MessageEvent.Kind.INFO
+
+      override fun getDetails(): String = """
+      We recommend using a newer Android Gradle plugin to use compileSdk = 34456
+
+      This Android Gradle plugin (8.1.2) was tested up to compileSdk = 34.
+
+      You are strongly encouraged to update your project to use a newer
+      Android Gradle plugin that has been tested with compileSdk = 34456.
+
+      If you are already using the latest version of the Android Gradle plugin,
+      you may need to wait until a newer version with support for compileSdk = 34456 is available.
+
+      To suppress this warning, add/update
+          android.suppressUnsupportedCompileSdk=34456
+      to this project's gradle.properties.
+      <a href="android.suppressUnsupportedCompileSdk">Update Gradle property to suppress warning</a>
+      Affected Modules: <a href="openFile:/Users/baskakov/AndroidStudioProjects/MyApplicationHedgehog/app/build.gradle.kts">app</a>
+      <a href="explain.issue">>> Ask Studio Bot</a>
+    """.trimIndent()
+    }
+    assertEquals("""
+      We recommend using a newer Android Gradle plugin to use compileSdk = 34456
+
+      This Android Gradle plugin (8.1.2) was tested up to compileSdk = 34.
+
+      You are strongly encouraged to update your project to use a newer
+      Android Gradle plugin that has been tested with compileSdk = 34456.
+
+      If you are already using the latest version of the Android Gradle plugin,
+      you may need to wait until a newer version with support for compileSdk = 34456 is available.
+
+      To suppress this warning, add/update
+          android.suppressUnsupportedCompileSdk=34456
+      to this project's gradle.properties.
+      <a href="android.suppressUnsupportedCompileSdk">Update Gradle property to suppress warning</a>
+      Affected Modules: <a href="openFile:/Users/baskakov/AndroidStudioProjects/MyApplicationHedgehog/app/build.gradle.kts">app</a>
+      
+      """.trimIndent(), getErrorShortDescription(event))
   }
 
 
