@@ -40,22 +40,8 @@ class GroupedListSurfaceLayoutManager(
   @SwingCoordinate private val canvasTopPadding: Int,
   @SwingCoordinate private val canvasLeftPadding: Int,
   @SwingCoordinate private val previewFramePaddingProvider: (scale: Double) -> Int,
-  private val transform: (Collection<PositionableContent>) -> List<PositionableGroup>
-) : SurfaceLayoutManager {
-
-  override fun getPreferredSize(
-    content: Collection<PositionableContent>,
-    @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int,
-    @SwingCoordinate dimension: Dimension?
-  ) = getSize(content, PositionableContent::contentSize, { 1.0 }, dimension)
-
-  override fun getRequiredSize(
-    content: Collection<PositionableContent>,
-    @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int,
-    @SwingCoordinate dimension: Dimension?
-  ) = getSize(content, PositionableContent::scaledContentSize, { scale }, dimension)
+  override val transform: (Collection<PositionableContent>) -> List<PositionableGroup>
+) : GroupedSurfaceLayoutManager(previewFramePaddingProvider) {
 
   @SurfaceScale
   override fun getFitIntoScale(
@@ -106,11 +92,11 @@ class GroupedListSurfaceLayoutManager(
     }
     if (max - min <= SCALE_UNIT) {
       // Last attempt.
-      val dim = getSize(content, { contentSize.scaleBy(max) }, { max }, cache)
+      val dim = getSize(content, { contentSize.scaleBy(max) }, { max }, 0, cache)
       return if (dim.width <= width && dim.height <= height) max else min
     }
     val scale = (min + max) / 2
-    val dim = getSize(content, { contentSize.scaleBy(scale) }, { scale }, cache)
+    val dim = getSize(content, { contentSize.scaleBy(scale) }, { scale }, 0, cache)
     return if (dim.width <= width && dim.height <= height) {
       getMaxZoomToFitScale(content, scale, max, width, height, cache, depth + 1)
     } else {
@@ -118,10 +104,11 @@ class GroupedListSurfaceLayoutManager(
     }
   }
 
-  private fun getSize(
+  override fun getSize(
     content: Collection<PositionableContent>,
     sizeFunc: PositionableContent.() -> Dimension,
     scaleFunc: PositionableContent.() -> Double,
+    availableWidth: Int,
     dimension: Dimension?
   ): Dimension {
     val dim = dimension ?: Dimension()
@@ -198,38 +185,5 @@ class GroupedListSurfaceLayoutManager(
     val shiftedX = x + margin.left
     val shiftedY = y + margin.top
     put(content, Point(shiftedX, shiftedY))
-  }
-
-  @SwingCoordinate
-  private fun getSingleContentPosition(
-    content: PositionableContent,
-    @SwingCoordinate availableWidth: Int,
-    @SwingCoordinate availableHeight: Int
-  ): Point {
-    val size = content.scaledContentSize
-    val margin = content.margin
-    val frameWidth = size.width + margin.horizontal
-    val frameHeight = size.height + margin.vertical
-
-    val framePadding = previewFramePaddingProvider(content.scale)
-
-    // Try to centralize the content.
-    val x = maxOf((availableWidth - frameWidth) / 2, framePadding)
-    val y = maxOf((availableHeight - frameHeight) / 2, framePadding)
-    return getContentPosition(content, x, y)
-  }
-
-  /** Get the actual position should be set to the given [PositionableContent] */
-  @SwingCoordinate
-  private fun getContentPosition(
-    content: PositionableContent,
-    @SwingCoordinate previewX: Int,
-    @SwingCoordinate previewY: Int
-  ): Point {
-    // The new compose layout consider the toolbar size as the anchor of location.
-    val margin = content.margin
-    val shiftedX = previewX + margin.left
-    val shiftedY = previewY + margin.top
-    return Point(shiftedX, shiftedY)
   }
 }
