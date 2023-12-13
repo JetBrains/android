@@ -29,7 +29,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class IssuePanelStartupActivityTest {
+class IssuePanelProjectActivityTest {
   @JvmField @Rule val rule = AndroidProjectRule.withAndroidModel().onEdt()
   private lateinit var toolWindow: ToolWindow
 
@@ -63,7 +63,7 @@ class IssuePanelStartupActivityTest {
     // tab.
     assertEquals(1, toolWindow.contentManager.contentCount)
 
-    IssuePanelStartupActivity().setupIssuePanel(rule.project)
+    IssuePanelProjectActivity().setupIssuePanel(rule.project)
 
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
     rule.fixture.openFileInEditor(layoutFile.virtualFile)
