@@ -42,5 +42,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
     ],
 )
