@@ -17,11 +17,16 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.Blames
 import com.android.tools.idea.insights.EventPage
+import com.android.tools.idea.insights.ExceptionStack
+import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Permission
+import com.android.tools.idea.insights.Stacktrace
+import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.waitForCondition
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
@@ -88,6 +93,116 @@ class StackTraceConsoleTest {
             Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found 
                 com.android.org.conscrypt.TrustManagerImpl.verifyChain(TrustManagerImpl.java:677)
                 okhttp3.internal.connection.RealConnection.connectTls(RealConnection.java:320)
+          """
+            .trimIndent()
+        )
+    }
+  }
+
+  @Test
+  fun `when anr is selected, thread dump is printed`() = executeWithErrorProcessor {
+    runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
+      val anr =
+        ISSUE2.sampleEvent.copy(
+          stacktraceGroup =
+            StacktraceGroup(
+              exceptions =
+                listOf(
+                  ExceptionStack(
+                    rawExceptionMessage = "main",
+                    stacktrace =
+                      Stacktrace(
+                        blames = Blames.BLAMED,
+                        frames =
+                          listOf(
+                            Frame(
+                              symbol = "syscall",
+                              offset = 28,
+                              address = 319324,
+                              library = "libc.so",
+                              rawSymbol = "#00 pc 0x04DF5C libc.so (syscall + 28)",
+                              blame = Blames.NOT_BLAMED
+                            ),
+                            Frame(
+                              symbol = "android.widget.TextView.setText",
+                              file = "TextView.java",
+                              line = 6406,
+                              offset = 6406,
+                              library = "dev.firebase.appdistribution",
+                              rawSymbol = "android.widget.TextView.setText(TextView.java:6406)",
+                              blame = Blames.NOT_BLAMED
+                            ),
+                            Frame(
+                              symbol =
+                                "dev.firebase.appdistribution.app_detail.adapter.ReleaseDataBinder.bind",
+                              file = "ReleaseDataBinder.kt",
+                              line = 196,
+                              offset = 196,
+                              library = "dev.firebase.appdistribution",
+                              blame = Blames.BLAMED,
+                              rawSymbol =
+                                "dev.firebase.appdistribution.app_detail.adapter.ReleaseDataBinder.bind(ReleaseDataBinder.kt:196)"
+                            ),
+                            Frame(
+                              symbol =
+                                "dev.firebase.appdistribution.app_detail.adapter.AppDetailRecyclerViewAdapter.onBindViewHolder",
+                              file = "AppDetailRecyclerViewAdapter.kt",
+                              line = 124,
+                              offset = 124,
+                              library = "dev.firebase.appdistribution",
+                              rawSymbol =
+                                "dev.firebase.appdistribution.app_detail.adapter.AppDetailRecyclerViewAdapter.onBindViewHolder(AppDetailRecyclerViewAdapter.kt:124)",
+                              blame = Blames.NOT_BLAMED
+                            )
+                          )
+                      )
+                  ),
+                  ExceptionStack(
+                    rawExceptionMessage = "WifiManagerThread",
+                    stacktrace =
+                      Stacktrace(
+                        blames = Blames.NOT_BLAMED,
+                        frames =
+                          listOf(
+                            Frame(
+                              symbol = "__epoll_pwait",
+                              offset = 8,
+                              address = 889432,
+                              library = "libc.so",
+                              rawSymbol = "#00 pc 0xd9258 libc.so (__epoll_pwait + 8)"
+                            ),
+                            Frame(
+                              symbol = "android::Looper::pollInner(int)",
+                              line = 104944,
+                              offset = 184,
+                              library = "libutils.so",
+                              rawSymbol =
+                                "#01 pc 0x199f0 libutils.so (android::Looper::pollInner(int) + 184)"
+                            )
+                          )
+                      )
+                  )
+                )
+            )
+        )
+      controllerRule.consumeInitialState(
+        fetchState,
+        eventsState = LoadingState.Ready(EventPage(listOf(anr), ""))
+      )
+      WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
+      stackTraceConsole.consoleView.waitAllRequests()
+
+      assertThat(stackTraceConsole.consoleView.editor.document.text.trim())
+        .isEqualTo(
+          """
+            main
+                #00 pc 0x04DF5C libc.so (syscall + 28)
+                android.widget.TextView.setText(TextView.java:6406)
+                dev.firebase.appdistribution.app_detail.adapter.ReleaseDataBinder.bind(ReleaseDataBinder.kt:196)
+                dev.firebase.appdistribution.app_detail.adapter.AppDetailRecyclerViewAdapter.onBindViewHolder(AppDetailRecyclerViewAdapter.kt:124)
+            WifiManagerThread
+                #00 pc 0xd9258 libc.so (__epoll_pwait + 8)
+                #01 pc 0x199f0 libutils.so (android::Looper::pollInner(int) + 184)
           """
             .trimIndent()
         )

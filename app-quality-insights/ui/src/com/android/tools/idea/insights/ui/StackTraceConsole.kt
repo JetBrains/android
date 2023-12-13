@@ -24,6 +24,7 @@ import com.android.tools.idea.insights.Blames
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.Event
+import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.vcs.CONNECTION_OF_SELECTED_CRASH
 import com.android.tools.idea.insights.ui.vcs.InsightsAttachInlayDiffLinkFilter
@@ -94,7 +95,7 @@ class StackTraceConsole(
     Disposer.register(this, consoleView)
     stackTraceConsoleState
       .filterNot { it.issue == null || it.event == null }
-      .onEach { printStack(it.event!!, it.connection, consoleView) }
+      .onEach { printStack(it.issue!!, it.event!!, it.connection, consoleView) }
       .flowOn(AndroidDispatchers.uiThread)
       .launchIn(scope)
 
@@ -114,10 +115,16 @@ class StackTraceConsole(
     }
   }
 
-  private fun printStack(event: Event, connection: Connection?, consoleView: ConsoleViewImpl) {
+  private fun printStack(
+    issue: AppInsightsIssue,
+    event: Event,
+    connection: Connection?,
+    consoleView: ConsoleViewImpl
+  ) {
     if (event == currentEvent) {
       return
     }
+    var startOfOtherThreads = 0
     synchronized(CONSOLE_LOCK) {
       currentEvent = null
       consoleView.clear()
@@ -140,6 +147,9 @@ class StackTraceConsole(
         }
         val endOffset = consoleView.contentSize - 1 // TODO: -2 on windows?
         currentEvent = event
+        if (stack.stacktrace.blames == Blames.BLAMED) {
+          startOfOtherThreads = consoleView.contentSize
+        }
 
         consoleView.performWhenNoDeferredOutput {
           consoleView.editor.foldingModel.runBatchFoldingOperation {
@@ -161,6 +171,26 @@ class StackTraceConsole(
         }
       }
     }
+
+    if (issue.issueDetails.fatality == FailureType.ANR) {
+      consoleView.performWhenNoDeferredOutput {
+        consoleView.editor.foldingModel.runBatchFoldingOperation {
+          synchronized(CONSOLE_LOCK) {
+            if (event != currentEvent) {
+              return@synchronized
+            }
+            val region =
+              consoleView.editor.foldingModel.addFoldRegion(
+                startOfOtherThreads,
+                consoleView.contentSize,
+                "    Show all ${event.stacktraceGroup.exceptions.size} threads"
+              )
+            region?.isExpanded = false
+          }
+        }
+      }
+    }
+
     // TODO: ensure the editor component always resizes correctly after update.
     consoleView.performWhenNoDeferredOutput {
       synchronized(CONSOLE_LOCK) {

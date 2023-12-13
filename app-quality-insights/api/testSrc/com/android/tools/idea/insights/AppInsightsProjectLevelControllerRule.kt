@@ -308,6 +308,7 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
     issueId: IssueId,
     variantId: String?,
     request: IssueRequest,
+    failureType: FailureType,
     token: String?
   ): LoadingState.Done<EventPage> = listEventsCall.initiateCall()
 

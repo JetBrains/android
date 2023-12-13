@@ -144,7 +144,7 @@ class AppInsightsSettingsTest {
         assertThat(timeIntervalDays).isEqualTo(TimeIntervalFilter.NINETY_DAYS.name)
         assertThat(visibilityType).isEqualTo(VisibilityType.USER_PERCEIVED.name)
         assertThat(signal).isEqualTo(SignalType.SIGNAL_REGRESSED.name)
-        assertThat(failureTypes).containsExactly(FailureType.NON_FATAL.name)
+        assertThat(failureTypes).containsExactly(FailureType.NON_FATAL.name, FailureType.ANR.name)
         assertThat(versions).containsExactly(version.value.toSetting())
         assertThat(devices).containsExactly(device.value.toSetting())
         assertThat(operatingSystems).containsExactly(operatingSystem.value.toSetting())

@@ -330,7 +330,13 @@ class ActionDispatcher(
             )
           } else {
             EventsChanged(
-              appInsightsClient.listEvents(action.id, action.variantId, issueRequest, action.token)
+              appInsightsClient.listEvents(
+                action.id,
+                action.variantId,
+                issueRequest,
+                state.selectedIssue!!.issueDetails.fatality,
+                action.token
+              )
             )
           }
         )

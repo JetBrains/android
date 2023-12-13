@@ -40,7 +40,7 @@ private val TestTimeIntervals =
     TimeIntervalFilter.SIXTY_DAYS,
     TimeIntervalFilter.NINETY_DAYS
   )
-private val TestFailureTypes = listOf(FailureType.FATAL, FailureType.NON_FATAL)
+private val TestFailureTypes = listOf(FailureType.FATAL, FailureType.ANR, FailureType.NON_FATAL)
 
 val TEST_FILTERS =
   Filters(

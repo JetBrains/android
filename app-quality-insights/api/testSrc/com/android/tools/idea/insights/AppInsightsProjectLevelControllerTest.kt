@@ -707,6 +707,8 @@ class AppInsightsProjectLevelControllerTest {
     controllerRule.toggleFatality(FailureType.FATAL)
     controllerRule.consumeNext()
     controllerRule.toggleFatality(FailureType.NON_FATAL)
+    controllerRule.consumeNext()
+    controllerRule.toggleFatality(FailureType.ANR)
     assertThat(controllerRule.consumeNext().issues)
       .isEqualTo(LoadingState.UnknownFailure(null, NoTypesSelectedException))
     controllerRule.selectVersions(emptySet())
@@ -825,7 +827,6 @@ class AppInsightsProjectLevelControllerTest {
     return@runBlocking
   }
 
-  // TODO(b/228076042): Add test scenario for ANRs when it's added back
   @Test
   fun `when fatality is toggled it propagates to the model`() =
     runBlocking<Unit> {
@@ -843,14 +844,15 @@ class AppInsightsProjectLevelControllerTest {
 
       controllerRule.toggleFatality(FailureType.FATAL)
       assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected)
-        .containsExactly(FailureType.NON_FATAL)
+        .containsExactly(FailureType.ANR, FailureType.NON_FATAL)
       client.completeIssuesCallWith(issuesResponse)
       assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected)
-        .containsExactly(FailureType.NON_FATAL)
+        .containsExactly(FailureType.ANR, FailureType.NON_FATAL)
       verify(client)
         .listTopOpenIssues(
           argThat {
-            it.filters.eventTypes.size == 1 && it.filters.eventTypes.contains(FailureType.NON_FATAL)
+            it.filters.eventTypes.size == 2 &&
+              it.filters.eventTypes.containsAll(listOf(FailureType.ANR, FailureType.NON_FATAL))
           },
           any(),
           any(),
@@ -858,6 +860,11 @@ class AppInsightsProjectLevelControllerTest {
         )
 
       controllerRule.toggleFatality(FailureType.NON_FATAL)
+      client.completeIssuesCallWith(issuesResponse)
+      assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected)
+        .containsExactly(FailureType.ANR)
+
+      controllerRule.toggleFatality(FailureType.ANR)
       assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected).isEmpty()
       verify(client, never())
         .listTopOpenIssues(argThat { it.filters.eventTypes.isEmpty() }, any(), any(), any())

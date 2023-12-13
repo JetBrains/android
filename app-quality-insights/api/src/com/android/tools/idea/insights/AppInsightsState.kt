@@ -13,11 +13,6 @@ data class Filters(
   val versions: MultiSelection<WithCount<Version>>,
   /** Selection of [TimeIntervalFilter]s. */
   val timeInterval: Selection<TimeIntervalFilter>,
-  /**
-   * A list of [Fatality] toggles.
-   *
-   * TODO(b/228076042): add ANR back in the toggle list
-   */
   val failureTypeToggles: MultiSelection<FailureType>,
   val devices: MultiSelection<WithCount<Device>> = MultiSelection.emptySelection(),
   val operatingSystems: MultiSelection<WithCount<OperatingSystemInfo>> =

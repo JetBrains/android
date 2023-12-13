@@ -71,6 +71,8 @@ class AppInsightsTrackerTest {
     controllerRule.consumeInitialState(ISSUE_RESPONSE)
     controllerRule.toggleFatality(FailureType.NON_FATAL)
     consumeAndCompleteIssuesCall()
+    controllerRule.toggleFatality(FailureType.ANR)
+    consumeAndCompleteIssuesCall()
     controllerRule.selectVisibilityType(VisibilityType.USER_PERCEIVED)
     consumeAndCompleteIssuesCall()
     controllerRule.selectTimeInterval(TimeIntervalFilter.SIXTY_DAYS)

@@ -22,6 +22,7 @@ import com.android.tools.idea.insights.DetailedIssueStats
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventPage
+import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.IssueVariant
@@ -182,6 +183,7 @@ class VitalsClient(
     issueId: IssueId,
     variantId: String?,
     request: IssueRequest,
+    failureType: FailureType,
     token: String?
   ): LoadingState.Done<EventPage> = LoadingState.Ready(EventPage.EMPTY)
 
