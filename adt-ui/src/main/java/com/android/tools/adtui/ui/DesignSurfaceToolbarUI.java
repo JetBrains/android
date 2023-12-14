@@ -69,11 +69,18 @@ public class DesignSurfaceToolbarUI extends BasicPanelUI {
     c.setBackground(JBColor.white);
   }
 
-  public static JPanel createPanel(JComponent c){
-    JPanel container = new JPanel(){
+  public static JPanel createPanel(JComponent c) {
+    JPanel container = new JPanel() {
       @Override
       public void updateUI() {
         setUI(new DesignSurfaceToolbarUI());
+      }
+
+      @Override
+      public Dimension getPreferredSize() {
+        Dimension size = c.getPreferredSize();
+        Insets insets = getInsets();
+        return new Dimension(size.width + insets.left + insets.right, size.height + insets.top + insets.bottom);
       }
     };
     container.setOpaque(true);
