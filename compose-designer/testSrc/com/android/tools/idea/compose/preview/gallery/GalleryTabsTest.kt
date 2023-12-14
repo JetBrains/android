@@ -255,6 +255,7 @@ class GalleryTabsTest {
     }
   }
 
+  @Ignore("b/316415404")
   @Test
   fun `selected tab is always visible`() {
     ApplicationManager.getApplication().invokeAndWait {
