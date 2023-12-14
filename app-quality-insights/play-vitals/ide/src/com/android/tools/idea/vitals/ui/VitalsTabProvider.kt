@@ -127,7 +127,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
             null
           )
           appendLine("Log in", SimpleTextAttributes.LINK_ATTRIBUTES) {
-            GoogleLogin.instance.logIn()
+            GoogleLogin.instance.logIn(null, null)
           }
           appendText(" to Android Studio to connect to your Play Console account.")
           appendLine("")
