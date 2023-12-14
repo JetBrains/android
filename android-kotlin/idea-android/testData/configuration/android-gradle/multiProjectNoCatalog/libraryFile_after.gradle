@@ -1,0 +1,33 @@
+plugins {
+    id 'org.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    target = 'android-16'
+    sourceSets {
+        main {
+            manifest {
+                srcFile 'AndroidManifest.xml'
+            }
+            java {
+                srcDir 'src'
+            }
+            res {
+                srcDir 'res'
+            }
+            assets {
+                srcDir 'assets'
+            }
+            resources {
+                srcDir 'src'
+            }
+            aidl {
+                srcDir 'src'
+            }
+        }
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}

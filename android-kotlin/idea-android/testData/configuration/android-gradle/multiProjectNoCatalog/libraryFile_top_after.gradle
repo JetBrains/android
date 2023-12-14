@@ -1,0 +1,18 @@
+buildscript {
+    ext {
+        kotlin_version = '2.0.0-Beta1'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+plugins {
+    id 'org.android.library' apply false
+}
+
+repositories {
+    mavenCentral()
+}

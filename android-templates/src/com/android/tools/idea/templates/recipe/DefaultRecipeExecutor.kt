@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
+import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
@@ -161,25 +162,23 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       return
     }
 
-    // applyFlag is either of false or null in this context because the gradle dsl [PluginsModel#applyPlugin]
-    // takes a nullable Boolean that means:
-    //  - The flag being false means "apply false" is appended at the end of the plugin declaration
-    //  - The flag being null means nothing is appended
-    val (pluginsBlockToModify, applyFlag) = maybeGetPluginsFromSettings()?.let { Pair(it, null) }
-                                            ?: maybeGetPluginsFromProject()?.let { Pair(it, false) }
-                                            ?: Pair(null, false)
-    if (pluginsBlockToModify == null) {
-      // When the revision is specified, but plugins block isn't defined in the settings nor the project level build file,
-      // just apply the plugin without a revision.
-      dependenciesHelper.addPlugin(plugin, buildModel)
-      return
-    }
-
     val pluginCoordinate = "$plugin:$plugin.gradle.plugin:$revision"
     val component = repositoryUrlManager.resolveDependency(Dependency.parse(pluginCoordinate), null, null)
     val resolvedVersion = component?.version?.toString() ?: minRev ?: revision
 
-    dependenciesHelper.addPlugin(plugin, resolvedVersion, applyFlag, pluginsBlockToModify, buildModel)
+    // applyFlag is either of false or null in this context because the gradle dsl [PluginsModel#applyPlugin]
+    // takes a nullable Boolean that means:
+    //  - The flag being false means "apply false" is appended at the end of the plugin declaration
+    //  - The flag being null means nothing is appended
+    maybeGetPluginsFromSettings()?.let {
+      dependenciesHelper.addPlugin(plugin, resolvedVersion, null, it, buildModel)
+    } ?: maybeGetPluginsFromProject()?.let {
+      dependenciesHelper.addPlugin(plugin, resolvedVersion, false, it, buildModel)
+    } ?: run {
+      // When the revision is specified, but plugins block isn't defined in the settings nor the project level build file,
+      // just apply the plugin without a revision.
+      dependenciesHelper.addPlugin(plugin, buildModel)
+    }
   }
 
   override fun addClasspathDependency(mavenCoordinate: String, minRev: String?, forceAdding: Boolean) {
@@ -209,11 +208,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
   }
 
-  private fun maybeGetPluginsFromSettings(): PluginsModel? {
+  private fun maybeGetPluginsFromSettings(): PluginsBlockModel? {
     return projectSettingsModel?.pluginManagement()?.plugins()?.takeIf { it.psiElement != null }
   }
 
-  private fun maybeGetPluginsFromProject(): PluginsModel? {
+  private fun maybeGetPluginsFromProject(): GradleBuildModel? {
     return projectGradleBuildModel?.takeIf { it.pluginsPsiElement != null }
   }
 

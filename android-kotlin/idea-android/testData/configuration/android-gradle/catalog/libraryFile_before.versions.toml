@@ -1,0 +1,2 @@
+[plugins]
+androidLibrary = { id = "com.android.library", version = "+" }

@@ -1,0 +1,14 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+    }
+}
+plugins {
+    alias(libs.plugins.androidApplication) apply false
+}
+
+repositories {
+    mavenCentral()
+}

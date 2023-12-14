@@ -1,0 +1,14 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+    }
+}
+plugins {
+    id 'org.android.library' apply false
+}
+
+repositories {
+    mavenCentral()
+}

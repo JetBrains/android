@@ -83,17 +83,20 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
    * Adds a repository by method name if it is not already in the list of repositories.
    *
    * @param methodName Name of method to call.
+   * @return true if model was updated
    */
   @Override
-  public void addRepositoryByMethodName(@NotNull String methodName) {
+  public boolean addRepositoryByMethodName(@NotNull String methodName) {
     // Check if it is already there
     if (containsMethodCall(methodName)) {
-      return;
+      return false;
     }
     PropertiesElementDescription description = myDslElement.getChildPropertiesElementDescription(methodName);
     if (description != null) {
       myDslElement.setNewElement(description.constructor.construct(myDslElement, GradleNameElement.fake(methodName)));
+      return true;
     }
+    return false;
   }
 
   /**
