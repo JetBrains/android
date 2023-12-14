@@ -250,6 +250,7 @@ studio_plugin(
             "//tools/adt/idea/execution/common:intellij.android.execution.common",
             "//tools/base/environment-services:studio.intellij.android.environment-services",
             "//tools/base/kotlin-multiplatform-models:studio.android.kotlin-multiplatform-models",
+            "//tools/adt/idea/safemode:intellij.android.safemode",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",

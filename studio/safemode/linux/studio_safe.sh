@@ -84,7 +84,7 @@ VM_OPTIONS_FILE=""
 USER_VM_OPTIONS_FILE=""
 
 STUDIO_BIN="${IDE_BIN_HOME}/studio.sh"
-STUDIO_VERSION=$(cat ../product-info.json | grep AndroidStudio | awk '{ print $2}' | sed 's/"//' | sed 's/"//' | sed 's/,//')
+STUDIO_VERSION=$(cat "${IDE_HOME}/product-info.json" | grep AndroidStudio | awk '{ print $2}' | sed 's/"//' | sed 's/"//' | sed 's/,//')
 STUDIO_CONFIG_DIR=${CONFIG_HOME}/Google/${STUDIO_VERSION}
 if [ ! -d "${STUDIO_CONFIG_DIR}" ]; then
   # Android Studio config is not set up

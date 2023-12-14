@@ -134,6 +134,7 @@ iml_module(
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
         "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
         "//tools/adt/idea/.idea/libraries:libadb-server-proto",
+        "//tools/adt/idea/safemode:intellij.android.safemode[module]",
     ],
 )
 
