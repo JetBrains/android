@@ -17,7 +17,12 @@ package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.runtime.Immutable
 import com.android.sdklib.AndroidVersion
+import java.nio.file.Path
 
 @Immutable
 internal data class VirtualDevice
-internal constructor(internal val name: String, internal val sdkExtensionLevel: AndroidVersion)
+internal constructor(
+  internal val name: String,
+  internal val sdkExtensionLevel: AndroidVersion,
+  private val skin: Path
+)

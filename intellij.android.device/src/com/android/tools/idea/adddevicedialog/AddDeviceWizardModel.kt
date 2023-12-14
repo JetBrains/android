@@ -21,7 +21,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.wizard.model.WizardModel
+import java.nio.file.Path
 import kotlinx.collections.immutable.ImmutableCollection
 
 internal class AddDeviceWizardModel
@@ -32,13 +34,16 @@ internal constructor(
   internal var device by initDevice()
 
   private fun initDevice(): MutableState<VirtualDevice> {
-    val level =
-      systemImages //
-        .map(SystemImage::apiLevel)
-        .filterNot(AndroidVersion::isPreview)
-        .max()
+    // TODO Stop hard coding these defaults and use the values from the selected device definition
+    val sdk = AndroidSdks.getInstance().tryToChooseSdkHandler().location.toString()
 
-    return mutableStateOf(VirtualDevice("", level))
+    return mutableStateOf(
+      VirtualDevice(
+        "Pixel 7 API 34",
+        AndroidVersion(34, null, 7, true),
+        Path.of(sdk, "skins", "pixel_7")
+      )
+    )
   }
 
   override fun handleFinished() {
