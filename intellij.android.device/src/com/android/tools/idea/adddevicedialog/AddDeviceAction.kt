@@ -17,10 +17,14 @@ package com.android.tools.idea.adddevicedialog
 
 import com.android.tools.idea.avdmanager.DeviceSkinUpdater
 import com.android.tools.idea.avdmanager.skincombobox.Collector
+import com.android.tools.idea.avdmanager.skincombobox.NoSkin
+import com.android.tools.idea.avdmanager.skincombobox.Skin
+import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
+import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -36,11 +40,16 @@ private class AddDeviceAction private constructor() : DumbAwareAction() {
 
     AndroidCoroutineScope(parent, AndroidDispatchers.workerThread).launch {
       val images = SystemImage.getSystemImages().toImmutableList()
-      val skins = Collector(DeviceSkinUpdater::updateSkin).collect().toImmutableList()
+      val skins = mergeSkins()
 
       withContext(AndroidDispatchers.uiThread) {
         AddDeviceDialog.build(images, skins, project).show()
       }
     }
   }
+}
+
+private fun mergeSkins(): ImmutableCollection<Skin> {
+  val skins = Collector(DeviceSkinUpdater::updateSkin).collect()
+  return SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), skins).toImmutableList()
 }
