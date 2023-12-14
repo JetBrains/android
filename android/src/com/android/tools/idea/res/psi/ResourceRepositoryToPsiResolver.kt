@@ -33,7 +33,7 @@ import com.android.tools.idea.res.getDeclaringAttributeValue
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.res.isIdDefinition
 import com.android.tools.idea.res.resolve
-import com.android.utils.TraceUtils
+import com.android.utils.TraceUtils.simpleId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementResolveResult
@@ -173,7 +173,7 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   private fun ResourceRepository.traceHasResources(resourceReference: ResourceReference) {
     if (this !is SingleNamespaceResourceRepository || resourceReference.namespace == namespace) {
       ResourceUpdateTracer.log {
-        TraceUtils.getSimpleId(this) +
+        simpleId +
           ".hasResources(" +
           resourceReference.namespace +
           ", " +

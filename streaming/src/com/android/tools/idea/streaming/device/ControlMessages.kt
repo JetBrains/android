@@ -79,7 +79,7 @@ sealed class ControlMessage(val type: Int) {
         SetScreenDensityMessage.TYPE -> SetScreenDensityMessage.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
       }
-      FlightRecorder.log { "${TraceUtils.currentTime()} deserialize: message = $message" }
+      FlightRecorder.log { "${TraceUtils.currentTime} deserialize: message = $message" }
       return message
     }
   }

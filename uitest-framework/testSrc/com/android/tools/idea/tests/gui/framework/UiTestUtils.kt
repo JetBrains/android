@@ -178,7 +178,7 @@ private fun oneFullSync(
     }
     while (shouldContinue())
     if (!done) {
-      println("Awaited event has not been received within $SYNC_KEY_TIMEOUT_SEC sec. Giving up...\n\n${TraceUtils.getCurrentStack()}");
+      println("Awaited event has not been received within $SYNC_KEY_TIMEOUT_SEC sec. Giving up...\n\n${TraceUtils.currentStack}");
     }
   }
 

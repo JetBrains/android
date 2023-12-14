@@ -199,6 +199,6 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
     if (!DEBUG) {
       return ""
     }
-    return "\n" + TraceUtils.getCurrentStack(1)
+    return "\n" + TraceUtils.currentStack
   }
 }

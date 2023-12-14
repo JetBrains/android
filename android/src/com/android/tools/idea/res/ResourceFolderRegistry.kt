@@ -20,7 +20,7 @@ import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.res.ResourceUpdateTracer.pathForLogging
 import com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging
-import com.android.utils.TraceUtils
+import com.android.utils.TraceUtils.simpleId
 import com.android.utils.concurrency.getAndUnwrap
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
@@ -101,7 +101,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   }
 
   fun reset(facet: AndroidFacet) {
-    ResourceUpdateTracer.logDirect { "${TraceUtils.getSimpleId(this)}.reset()" }
+    ResourceUpdateTracer.logDirect { "$simpleId.reset()" }
     reset(myNamespacedCache, facet)
     reset(myNonNamespacedCache, facet)
   }
@@ -109,7 +109,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   private fun reset(cache: Cache<VirtualFile, ResourceFolderRepository>, facet: AndroidFacet) {
     val cacheAsMap = cache.asMap()
     if (cacheAsMap.isEmpty()) {
-      ResourceUpdateTracer.logDirect { TraceUtils.getSimpleId(this) + ".reset: cache is empty" }
+      ResourceUpdateTracer.logDirect { "$simpleId.reset: cache is empty" }
       return
     }
 
@@ -124,7 +124,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   private fun removeStaleEntries() {
     // TODO(namespaces): listen to changes in modules' namespacing modes and dispose repositories
     // which are no longer needed.
-    ResourceUpdateTracer.logDirect { "${TraceUtils.getSimpleId(this)}.removeStaleEntries()" }
+    ResourceUpdateTracer.logDirect { "$simpleId.removeStaleEntries()" }
     removeStaleEntries(myNamespacedCache)
     removeStaleEntries(myNonNamespacedCache)
   }
@@ -132,9 +132,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   private fun removeStaleEntries(cache: Cache<VirtualFile, ResourceFolderRepository>) {
     val cacheAsMap = cache.asMap()
     if (cacheAsMap.isEmpty()) {
-      ResourceUpdateTracer.logDirect {
-        TraceUtils.getSimpleId(this) + ".removeStaleEntries: cache is empty"
-      }
+      ResourceUpdateTracer.logDirect { "$simpleId.removeStaleEntries: cache is empty" }
       return
     }
     val facets: MutableSet<AndroidFacet> = Sets.newHashSetWithExpectedSize(cacheAsMap.size)
@@ -148,7 +146,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
       }
     }
     ResourceUpdateTracer.logDirect {
-      "${TraceUtils.getSimpleId(this)}.removeStaleEntries retained ${pathsForLogging(newResourceFolders, project)}"
+      "$simpleId.removeStaleEntries retained ${pathsForLogging(newResourceFolders, project)}"
     }
     cacheAsMap.keys.retainAll(newResourceFolders)
   }

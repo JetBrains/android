@@ -54,7 +54,8 @@ import com.android.tools.idea.streaming.emulator.EmulatorId
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.utils.FlightRecorder
-import com.android.utils.TraceUtils
+import com.android.utils.TraceUtils.currentStack
+import com.android.utils.TraceUtils.simpleId
 import com.google.common.cache.CacheBuilder
 import com.intellij.collaboration.async.disposingScope
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -522,8 +523,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       contentManager.addContent(content, index)
     }
 
-    FlightRecorder.log { "${TraceUtils.getSimpleId(this)}: added panel ${TraceUtils.getSimpleId(content)} ${content.displayName}\n" +
-                         TraceUtils.getCurrentStack() }
+    FlightRecorder.log {
+      "$simpleId: added panel ${content.simpleId} ${content.displayName}\n" +
+      currentStack }
 
     if (!content.isSelected) {
       // Activate the newly added panel if it corresponds to a recently launched or used Emulator.
@@ -544,8 +546,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun reportDuplicatePanel(content: Content) {
-    thisLogger().error("An attempt to add a duplicate panel ${TraceUtils.getSimpleId(content)} ${content.displayName}\n" +
-                       TraceUtils.getCurrentStack() +
+    thisLogger().error("An attempt to add a duplicate panel ${content.simpleId} ${content.displayName}\n" +
+                       currentStack +
                        "Panel creation history:\n${FlightRecorder.getAndClear().joinToString("\n")}")
   }
 
@@ -1231,7 +1233,7 @@ private fun Content.select() {
 }
 
 private fun Content.removeAndDispose() {
-  FlightRecorder.log { "${TraceUtils.getSimpleId(this)}.removeAndDispose()\n${TraceUtils.getCurrentStack()}" }
+  FlightRecorder.log { "$simpleId.removeAndDispose()\n$currentStack" }
   manager?.removeContent(this, true)
 }
 

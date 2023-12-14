@@ -80,14 +80,14 @@ public class ResourceUpdateTracer {
 
   public static void log(@NotNull Supplier<?> lazyRecord) {
     if (enabled) {
-      FlightRecorder.log(() -> TraceUtils.currentTime() + ' ' + lazyRecord.get());
+      FlightRecorder.log(() -> TraceUtils.getCurrentTime() + ' ' + lazyRecord.get());
     }
   }
 
   public static void logDirect(@NotNull Supplier<?> lazyRecord) {
     if (enabled) {
       String message = lazyRecord.get().toString();
-      FlightRecorder.log(() -> TraceUtils.currentTime() + ' ' + message);
+      FlightRecorder.log(() -> TraceUtils.getCurrentTime() + ' ' + message);
       LOG.info(message);
     }
   }

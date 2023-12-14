@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.SingleNamespaceResourceRepository
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.res.LocalResourceRepository
-import com.android.utils.TraceUtils
+import com.android.utils.TraceUtils.simpleId
 import com.google.common.base.MoreObjects
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
@@ -66,7 +66,7 @@ private constructor(
   @VisibleForTesting
   fun refreshChildren(resourceDirectories: List<VirtualFile>) {
     ResourceUpdateTracer.logDirect {
-      "${TraceUtils.getSimpleId(this)}.refreshChildren(${ResourceUpdateTracer.pathsForLogging(resourceDirectories, facet.module.project)})"
+      "$simpleId.refreshChildren(${ResourceUpdateTracer.pathsForLogging(resourceDirectories, facet.module.project)})"
     }
 
     // Non-folder repositories to put in front of the list.
