@@ -132,7 +132,6 @@ class FakeUi @JvmOverloads constructor(
    * Renders the given component and returns the image reflecting its appearance.
    */
   fun render(component: Component): BufferedImage {
-    @Suppress("UndesirableClassUsage")
     val image =
         BufferedImage((component.width * screenScale).toInt(), (component.height * screenScale).toInt(), BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
@@ -327,7 +326,6 @@ class FakeUi @JvmOverloads constructor(
     private val capabilities: ImageCapabilities?,
   ) : VolatileImage() {
 
-    @Suppress("UndesirableClassUsage")
     private val bufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
 
     override fun getWidth(): Int = width
