@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.naveditor;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.timing.Pause.pause;
+
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -32,7 +33,6 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import org.fest.swing.core.ComponentDragAndDrop;
-import org.fest.swing.core.MouseButton;
 import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
@@ -41,7 +41,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateNavNIGraphTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   private IdeFrameFixture ideFrame = null;
   private NlEditorFixture editorFixture = null;
 

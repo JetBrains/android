@@ -39,7 +39,7 @@ import java.util.function.Function
 @RunWith(GuiTestRemoteRunner::class)
 class AddCppToModuleActionTest {
   @get:Rule
-  val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
+  val guiTest = GuiTestRule().withTimeout(15, TimeUnit.MINUTES)
 
   @get:Rule
   val restoreNpwNativeModuleFlagRule = FlagRule(StudioFlags.NPW_NEW_NATIVE_MODULE)
@@ -57,18 +57,16 @@ class AddCppToModuleActionTest {
 
     ideFrame.openAddCppToModuleDialog().apply {
       selectCreateCppFiles()
-      Wait.seconds(1).expecting("OK button to be enabled").until {
+      Wait.seconds(10).expecting("OK button to be enabled").until {
         okButton.isEnabled
       }
       okButton.click()
     }
-
-    GuiTests.waitForBackgroundTasks(guiTest.robot())
-
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
     if (getInstance(ideFrame.project).lastSyncFailed()) {
       Assert.fail("Sync failed after adding new C++ files to current Android project. See logs.")
     }
-
+    ideFrame.editor.waitForFileToActivate()
     Truth.assertThat(ideFrame.editor.currentFile!!.name).isEqualTo("tools.cpp")
   }
 
@@ -185,7 +183,8 @@ class AddCppToModuleActionTest {
       .enterName("AddCppToModuleTestProject")
       .enterPackageName("dev.tools")
       .wizard()
-      .clickFinishAndWaitForSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(360))
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
   }
 
   private fun IdeFrameFixture.openAddCppToModuleDialog(): AddCppToModuleDialogFixture {

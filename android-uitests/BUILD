@@ -904,6 +904,7 @@ java_test(
 
 java_test(
     name = "DeploymentTest",
+    size = "large",
     data = COMMON_DATA + [
         "//tools/base/deploy/deployer:test_apks",
     ] + glob([

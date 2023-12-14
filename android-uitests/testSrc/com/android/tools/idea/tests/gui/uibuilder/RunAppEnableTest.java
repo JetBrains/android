@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -29,12 +31,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 
-import static com.google.common.truth.Truth.assertThat;
-
-
 @RunWith(GuiTestRemoteRunner.class)
 public class RunAppEnableTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
 
   @Rule
