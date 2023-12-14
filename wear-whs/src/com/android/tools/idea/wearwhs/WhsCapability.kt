@@ -17,13 +17,27 @@ package com.android.tools.idea.wearwhs
 
 import org.jetbrains.annotations.PropertyKey
 
+enum class WhsDataType() {
+  DATA_TYPE_UNKNOWN,
+  STEPS,
+  DISTANCE,
+  TOTAL_CALORIES,
+  ELEVATION_GAIN,
+  ABSOLUTE_ELEVATION,
+  LOCATION,
+  HEART_RATE_BPM,
+  SPEED,
+}
+
 /**
- * Data class representing WHS capabilities such as Heart Rate, Location. [labelKey] is the user
- * displayed label of the capability, [isOverrideable] means the value of the sensor can be
- * changed via adb commands, and [unitKey] specifies the unit of the sensor.
+ * Data class representing WHS capabilities such as Heart Rate, Location. [key] is the
+ * key for this data type in WHS, [label] is the user displayed label of the capability,
+ * [isOverrideable] means the value of the sensor can be changed via adb commands, and
+ * [unit] specifies the unit of the sensor.
  */
-data class WhsCapability(@PropertyKey(resourceBundle = BUNDLE_NAME) val labelKey: String,
-                         @PropertyKey(resourceBundle = BUNDLE_NAME) val unitKey: String,
+data class WhsCapability(val key: WhsDataType,
+                         @PropertyKey(resourceBundle = BUNDLE_NAME) val label: String,
+                         @PropertyKey(resourceBundle = BUNDLE_NAME) val unit: String,
                          val isOverrideable: Boolean,
                          val isStandardCapability: Boolean)
 
@@ -32,48 +46,56 @@ data class WhsCapability(@PropertyKey(resourceBundle = BUNDLE_NAME) val labelKey
  */
 val WHS_CAPABILITIES = listOf(
   WhsCapability(
+    WhsDataType.HEART_RATE_BPM,
     "wear.whs.capability.heart.rate.label",
     "wear.whs.capability.heart.rate.unit",
     isOverrideable = true,
     isStandardCapability = true,
   ),
   WhsCapability(
+    WhsDataType.LOCATION,
     "wear.whs.capability.location.label",
     "wear.whs.capability.unit.none",
     isOverrideable = false,
     isStandardCapability = true,
   ),
   WhsCapability(
+    WhsDataType.STEPS,
     "wear.whs.capability.steps.label",
     "wear.whs.capability.steps.unit",
     isOverrideable = true,
     isStandardCapability = true,
   ),
   WhsCapability(
+    WhsDataType.DISTANCE,
     "wear.whs.capability.distance.label",
     "wear.whs.capability.distance.unit",
     isOverrideable = true,
     isStandardCapability = true,
   ),
   WhsCapability(
+    WhsDataType.SPEED,
     "wear.whs.capability.speed.label",
     "wear.whs.capability.speed.unit",
     isOverrideable = true,
     isStandardCapability = true,
   ),
   WhsCapability(
+    WhsDataType.ELEVATION_GAIN,
     "wear.whs.capability.elevation.gain.label",
     "wear.whs.capability.elevation.gain.unit",
     isOverrideable = true,
     isStandardCapability = false,
   ),
   WhsCapability(
+    WhsDataType.TOTAL_CALORIES,
     "wear.whs.capability.total.calories.label",
     "wear.whs.capability.total.calories.unit",
     isOverrideable = true,
     isStandardCapability = false,
   ),
   WhsCapability(
+    WhsDataType.ABSOLUTE_ELEVATION,
     "wear.whs.capability.absolute.elevation.label",
     "wear.whs.capability.unit.none",
     isOverrideable = false,

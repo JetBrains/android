@@ -114,7 +114,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
             }
 
             is WhsStateManagerStatus.Syncing -> {
-              text = message(it.capability.labelKey)
+              text = message(it.capability.label)
             }
 
             is WhsStateManagerStatus.ConnectionLost -> {
@@ -179,7 +179,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
       capabilities.forEach { capability ->
         add(JPanel(BorderLayout()).apply {
           preferredSize = Dimension(0, 35)
-          val checkBox = JCheckBox(message(capability.labelKey)).also { checkBox ->
+          val checkBox = JCheckBox(message(capability.label)).also { checkBox ->
             val plainFont = checkBox.font.deriveFont(Font.PLAIN)
             val italicFont = checkBox.font.deriveFont(Font.ITALIC)
             stateManager.getState(capability).map { it.enabled }.onEach { enabled ->
@@ -188,11 +188,11 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
             stateManager.getState(capability).map { it.synced }.onEach { synced ->
               if (!synced) {
                 checkBox.font = italicFont
-                checkBox.text = "${message(capability.labelKey)}*"
+                checkBox.text = "${message(capability.label)}*"
               }
               else {
                 checkBox.font = plainFont
-                checkBox.text = message(capability.labelKey)
+                checkBox.text = message(capability.label)
               }
             }.launchIn(uiScope)
             checkBox.addActionListener {
@@ -229,7 +229,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
               }
               textField.isVisible = capability.isOverrideable
             })
-            add(JLabel(message(capability.unitKey)).also { label ->
+            add(JLabel(message(capability.unit)).also { label ->
               label.isVisible = capability.isOverrideable
               label.preferredSize = Dimension(JBUI.scale(50), JBUI.scale(20))
             })

@@ -17,6 +17,7 @@ package com.android.tools.idea.wearwhs.view
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.WhsCapability
+import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.android.tools.idea.wearwhs.communication.OnDeviceCapabilityState
 import com.google.common.truth.Truth.assertThat
@@ -33,16 +34,19 @@ import kotlinx.coroutines.withTimeout
 import org.junit.Assert
 
 private val capabilities = listOf(WhsCapability(
+  WhsDataType.HEART_RATE_BPM,
   "wear.whs.capability.heart.rate.label",
   "wear.whs.capability.heart.rate.unit",
   isOverrideable = true,
   isStandardCapability = true,
 ), WhsCapability(
+  WhsDataType.LOCATION,
   "wear.whs.capability.location.label",
   "wear.whs.capability.unit.none",
   isOverrideable = false,
   isStandardCapability = true,
 ), WhsCapability(
+  WhsDataType.STEPS,
   "wear.whs.capability.steps.label",
   "wear.whs.capability.steps.unit",
   isOverrideable = true,
