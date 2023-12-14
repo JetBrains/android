@@ -39,5 +39,5 @@ class RecentProcess(val deviceSerialNumber: String, val packageName: String) {
   }
 
   fun matches(process: ProcessDescriptor): Boolean =
-    process.device.serial == deviceSerialNumber && process.name == packageName
+    process.device.serial == deviceSerialNumber && process.packageName == packageName
 }

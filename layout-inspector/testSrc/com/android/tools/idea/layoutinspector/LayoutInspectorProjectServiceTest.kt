@@ -124,13 +124,14 @@ class LayoutInspectorProjectServiceTest {
 
 private fun createProcessDescriptor(
   processName: String,
-  deviceDescriptor: DeviceDescriptor
+  deviceDescriptor: DeviceDescriptor,
+  packageName: String = processName,
 ): ProcessDescriptor {
   return object : ProcessDescriptor {
     override val device = deviceDescriptor
     override val abiCpuArch = "arch"
     override val name = processName
-    override val packageName = "package"
+    override val packageName = packageName
     override val isRunning = true
     override val pid = 123
     override val streamId = 123L
