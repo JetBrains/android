@@ -241,6 +241,7 @@ public final class GradleApkProvider implements ApkProvider {
             }
           }
 
+          apkList.add(new ApkInfo(apkFileList, pkgName, getBaselineProfiles(variant.getMainArtifact(), myFacet)));
           break;
 
         case AppBundleOutputModel:
