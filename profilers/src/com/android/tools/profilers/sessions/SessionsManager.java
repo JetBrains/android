@@ -303,19 +303,22 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         LogUtils.log(this.getClass(), "Session stopped (" + sessionItem.getName() + "), support level =" +
                                       myProfilers.getSupportLevelForSession(sessionItem.getSession()));
       }
-      if (sessionStateChanged) {
-        boolean isTaskBasedUXEnabled = myProfilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
+
+      boolean shouldSetSession = sessionStateChanged;
+      boolean isTaskBasedUXEnabled = myProfilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
+      if (isTaskBasedUXEnabled) {
         // Do not auto-select the imported session (pid == 0) if Task-Based UX is enabled.
-        if (!isTaskBasedUXEnabled || !isSessionImported(sessionItem.getSession())) {
-          setSessionInternal(sessionItem.getSession());
-        }
+        shouldSetSession = sessionStateChanged && !isSessionImported(sessionItem.getSession());
+      }
+
+      if (shouldSetSession) {
+        setSessionInternal(sessionItem.getSession());
         if (sessionItem.isOngoing()) {
           setProfilingSession(sessionItem.getSession());
         }
-        if (!isTaskBasedUXEnabled || !isSessionImported(sessionItem.getSession())) {
-          setSessionInternal(sessionItem.getSession());
-        }
+        setSessionInternal(sessionItem.getSession());
       }
+
       final SessionItem item = sessionItem;
       sessionArtifacts.add(item);
       List<SessionArtifact<?>> artifacts = new ArrayList<>();
