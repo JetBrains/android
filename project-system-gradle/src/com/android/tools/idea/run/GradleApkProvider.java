@@ -241,7 +241,7 @@ public final class GradleApkProvider implements ApkProvider {
             }
           }
 
-          apkList.add(new ApkInfo(apkFileList, pkgName, getBaselineProfiles(variant.getMainArtifact(), myFacet)));
+          apkList.add(new ApkInfo(apkFileList, pkgName));
           break;
 
         case AppBundleOutputModel:
@@ -311,44 +311,9 @@ public final class GradleApkProvider implements ApkProvider {
       for (ApkFileUnit file : info.getFiles()) {
         logger.info(String.format("    apk from %s : %s", file.getModuleName(), file.getApkFile()));
       }
-      for (BaselineProfileDetails bps: info.getBaselineProfiles()) {
-        logger.info("    baseline prof: api ["+ bps.getMinApi()+","+bps.getMaxApi()+"]");
-        for (File f: bps.getBaselineProfiles()) {
-          logger.info("        md : '" + f.getName() + "'");
-        }
-      }
     }
 
     return apkList;
-  }
-
-  @NotNull
-  private List<BaselineProfileDetails> getBaselineProfiles(IdeAndroidArtifact artifact, AndroidFacet facet) {
-    GradleAndroidModel androidModel = GradleAndroidModel.get(facet);
-    if (androidModel == null) {
-      return emptyList();
-    }
-
-    if (!androidModel.getFeatures().isBuildOutputFileSupported()) {
-      return emptyList();
-    }
-
-    String outputFile = getOutputListingFile(artifact.getBuildInformation(), OutputType.Apk);
-    if (outputFile == null) {
-        return emptyList();
-    }
-
-    GenericBuiltArtifacts builtArtifacts = GenericBuiltArtifactsLoader.loadFromFile(new File(outputFile), new LogWrapper(getLogger()));
-    if (builtArtifacts == null) {
-        return emptyList();
-    }
-
-    List<BaselineProfileDetails> bp = builtArtifacts.getBaselineProfiles();
-    if (bp == null) {
-      return emptyList();
-    }
-
-    return bp;
   }
 
   @NotNull
