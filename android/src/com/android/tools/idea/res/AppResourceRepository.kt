@@ -19,7 +19,7 @@ import com.android.resources.aar.AarResourceRepository
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.res.LocalResourceRepository
 import com.android.tools.res.ids.ResourceIdManager
-import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
@@ -30,9 +30,14 @@ import org.jetbrains.annotations.VisibleForTesting
 class AppResourceRepository
 private constructor(
   private val facet: AndroidFacet,
+  parentDisposable: Disposable,
   localResources: List<LocalResourceRepository<VirtualFile>>? = null,
   libraryResources: Collection<AarResourceRepository>? = null
-) : MemoryTrackingMultiResourceRepository(facet.module.name + " with modules and libraries") {
+) :
+  MemoryTrackingMultiResourceRepository(
+    parentDisposable,
+    facet.module.name + " with modules and libraries"
+  ) {
   private val resourceMapLock = Any()
 
   /** Resource directories. Computed lazily. */
@@ -84,8 +89,8 @@ private constructor(
 
   companion object {
     @JvmStatic
-    fun create(facet: AndroidFacet): AppResourceRepository {
-      val repository = AppResourceRepository(facet)
+    fun create(facet: AndroidFacet, parentDisposable: Disposable): AppResourceRepository {
+      val repository = AppResourceRepository(facet, parentDisposable)
       AndroidProjectRootListener.ensureSubscribed(facet.module.project)
 
       return repository
@@ -104,6 +109,6 @@ private constructor(
       facet: AndroidFacet,
       modules: List<LocalResourceRepository<VirtualFile>>,
       libraries: Collection<AarResourceRepository>
-    ) = AppResourceRepository(facet, modules, libraries).also { Disposer.register(facet, it) }
+    ) = AppResourceRepository(facet, parentDisposable = facet, modules, libraries)
   }
 }

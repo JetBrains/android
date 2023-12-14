@@ -21,6 +21,7 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.res.LocalResourceRepository
 import com.android.utils.TraceUtils.simpleId
 import com.google.common.base.MoreObjects
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -35,9 +36,12 @@ import org.jetbrains.annotations.VisibleForTesting
 class ModuleResourceRepository
 private constructor(
   private val facet: AndroidFacet,
+  parentDisposable: Disposable,
   private val namespace: ResourceNamespace,
   delegates: List<LocalResourceRepository<VirtualFile>>
-) : MemoryTrackingMultiResourceRepository(facet.module.name), SingleNamespaceResourceRepository {
+) :
+  MemoryTrackingMultiResourceRepository(parentDisposable, facet.module.name),
+  SingleNamespaceResourceRepository {
 
   private val registry = ResourceFolderRegistry.getInstance(facet.module.project)
 
@@ -133,6 +137,7 @@ private constructor(
     @JvmStatic
     fun forMainResources(
       facet: AndroidFacet,
+      parentDisposable: Disposable,
       namespace: ResourceNamespace
     ): LocalResourceRepository<VirtualFile> {
       val resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.module.project)
@@ -150,7 +155,7 @@ private constructor(
           facet,
           resourceFolderRegistry
         )
-        return ModuleResourceRepository(facet, namespace, childRepositories)
+        return ModuleResourceRepository(facet, parentDisposable, namespace, childRepositories)
       }
 
       val dynamicResources = DynamicValueResourceRepository.create(facet, namespace)
@@ -165,7 +170,7 @@ private constructor(
             facet,
             resourceFolderRegistry
           )
-          ModuleResourceRepository(facet, namespace, childRepositories)
+          ModuleResourceRepository(facet, parentDisposable, namespace, childRepositories)
         } catch (t: Throwable) {
           Disposer.dispose(dynamicResources)
           throw t
@@ -189,6 +194,7 @@ private constructor(
     @JvmStatic
     fun forTestResources(
       facet: AndroidFacet,
+      parentDisposable: Disposable,
       namespace: ResourceNamespace
     ): LocalResourceRepository<VirtualFile> {
       val resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.module.project)
@@ -208,7 +214,7 @@ private constructor(
         resourceFolderRegistry
       )
 
-      return ModuleResourceRepository(facet, namespace, childRepositories)
+      return ModuleResourceRepository(facet, parentDisposable, namespace, childRepositories)
     }
 
     /**
@@ -256,9 +262,7 @@ private constructor(
         delegates.add(resourceFolderRegistry[facet, dir, namespace])
       }
 
-      return ModuleResourceRepository(facet, namespace, delegates).also {
-        Disposer.register(facet, it)
-      }
+      return ModuleResourceRepository(facet, parentDisposable = facet, namespace, delegates)
     }
   }
 }

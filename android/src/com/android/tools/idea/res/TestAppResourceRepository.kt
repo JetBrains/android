@@ -22,11 +22,13 @@ import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.res.LocalResourceRepository
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 
-class TestAppResourceRepository private constructor(private val facet: AndroidFacet) :
-  MemoryTrackingMultiResourceRepository(facet.module.name) {
+class TestAppResourceRepository
+private constructor(private val facet: AndroidFacet, parentDisposable: Disposable) :
+  MemoryTrackingMultiResourceRepository(parentDisposable, facet.module.name) {
 
   init {
     setChildren(computeLocalRepositories(facet), computeLibraryRepositories(facet), emptyList())
@@ -38,7 +40,10 @@ class TestAppResourceRepository private constructor(private val facet: AndroidFa
   }
 
   companion object {
-    @JvmStatic @Slow fun create(facet: AndroidFacet) = TestAppResourceRepository(facet)
+    @JvmStatic
+    @Slow
+    fun create(facet: AndroidFacet, parentDisposable: Disposable) =
+      TestAppResourceRepository(facet, parentDisposable)
 
     private fun computeLocalRepositories(
       facet: AndroidFacet

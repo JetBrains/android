@@ -74,10 +74,7 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
     AndroidFacet androidTestFacet = AndroidFacet.getInstance(androidTestModule);
     assertThat(androidTestFacet).isNotNull();
 
-    ResourceRepository repository = ModuleResourceRepository.forTestResources(androidTestFacet, RES_AUTO);
-    if (repository instanceof Disposable) {
-      Disposer.register(myAndroidFacet, (Disposable)repository);
-    }
+    ResourceRepository repository = ModuleResourceRepository.forTestResources(androidTestFacet, myAndroidFacet, RES_AUTO);
 
     assertThat(repository.getAllResources()).isEmpty();
 

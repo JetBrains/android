@@ -16,7 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.tools.res.LocalResourceRepository
-import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
@@ -27,8 +27,9 @@ import org.jetbrains.annotations.VisibleForTesting
 class ProjectResourceRepository
 private constructor(
   private val facet: AndroidFacet,
+  parentDisposable: Disposable,
   localResources: List<LocalResourceRepository<VirtualFile>>? = null
-) : MemoryTrackingMultiResourceRepository(facet.module.name + " with modules") {
+) : MemoryTrackingMultiResourceRepository(parentDisposable, facet.module.name + " with modules") {
   init {
     setChildren(localResources ?: computeRepositories(facet), emptyList(), emptyList())
   }
@@ -40,7 +41,9 @@ private constructor(
   }
 
   companion object {
-    @JvmStatic fun create(facet: AndroidFacet) = ProjectResourceRepository(facet)
+    @JvmStatic
+    fun create(facet: AndroidFacet, parentDisposable: Disposable) =
+      ProjectResourceRepository(facet, parentDisposable)
 
     private fun computeRepositories(
       facet: AndroidFacet
@@ -66,6 +69,6 @@ private constructor(
     @TestOnly
     @JvmStatic
     fun createForTest(facet: AndroidFacet, modules: List<LocalResourceRepository<VirtualFile>>) =
-      ProjectResourceRepository(facet, modules).also { Disposer.register(facet, it) }
+      ProjectResourceRepository(facet, parentDisposable = facet, modules)
   }
 }

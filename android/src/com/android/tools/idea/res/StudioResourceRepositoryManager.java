@@ -312,8 +312,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           if (myFacet.isDisposed()) {
             return new EmptyRepository<>(getNamespace());
           }
-          myAppResources = AppResourceRepository.create(myFacet);
-          Disposer.register(this, myAppResources);
+          myAppResources = AppResourceRepository.create(myFacet, this);
         }
         return myAppResources;
       }
@@ -361,8 +360,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           if (myFacet.isDisposed()) {
             return new EmptyRepository<>(getNamespace());
           }
-          myProjectResources = ProjectResourceRepository.create(myFacet);
-          Disposer.register(this, myProjectResources);
+          myProjectResources = ProjectResourceRepository.create(myFacet, this);
         }
         return myProjectResources;
       }
@@ -408,8 +406,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           if (myFacet.isDisposed()) {
             return new EmptyRepository<VirtualFile>(getNamespace());
           }
-          myModuleResources = ModuleResourceRepository.forMainResources(myFacet, getNamespace());
-          registerIfDisposable(this, myModuleResources);
+          myModuleResources = ModuleResourceRepository.forMainResources(myFacet, this, getNamespace());
         }
         return myModuleResources;
       }
@@ -441,8 +438,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           if (myFacet.isDisposed()) {
             return new EmptyRepository<>(getTestNamespace());
           }
-          myTestAppResources = computeTestAppResources();
-          registerIfDisposable(this, myTestAppResources);
+          myTestAppResources = TestAppResourceRepository.create(myFacet, this);
         }
         return myTestAppResources;
       }
@@ -467,17 +463,11 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           if (myFacet.isDisposed()) {
             return new EmptyRepository<>(getTestNamespace());
           }
-          myTestModuleResources = ModuleResourceRepository.forTestResources(myFacet, getTestNamespace());
-          registerIfDisposable(this, myTestModuleResources);
+          myTestModuleResources = ModuleResourceRepository.forTestResources(myFacet, this, getTestNamespace());
         }
         return myTestModuleResources;
       }
     });
-  }
-
-  @NotNull
-  private LocalResourceRepository<VirtualFile> computeTestAppResources() {
-    return TestAppResourceRepository.create(myFacet);
   }
 
   @Slow
@@ -612,12 +602,6 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
       if (repository instanceof Disposable disposable) {
         Disposer.dispose(disposable);
       }
-    }
-  }
-
-  private static void registerIfDisposable(@NotNull Disposable parent, @NotNull Object object) {
-    if (object instanceof Disposable) {
-      Disposer.register(parent, (Disposable)object);
     }
   }
 

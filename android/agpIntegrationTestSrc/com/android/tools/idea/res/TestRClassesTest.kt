@@ -387,8 +387,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
   }
 
-  // ignore testResolveScope due to b/316186264
-  fun ignoreTestResolveScope() {
+  fun testResolveScope() {
     val unitTest = createFile(
       projectRootDirectory,
       "app/src/test/java/com/example/projectwithappandlib/app/RClassUnitTest.java",

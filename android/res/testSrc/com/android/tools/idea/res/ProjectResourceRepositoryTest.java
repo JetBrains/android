@@ -132,8 +132,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertEquals(2, libraries.size());
     ModuleRootModificationUtil.addDependency(libraries.get(0).getModule(), libraries.get(1).getModule());
 
-    ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
-    Disposer.register(getTestRootDisposable(), repository);
+    ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet, getTestRootDisposable());
     assertEquals(3, repository.getChildren().size());
     Collection<String> items = repository.getResources(RES_AUTO, ResourceType.STRING).keySet();
     assertTrue(items.isEmpty());
@@ -154,8 +153,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   public void testGetResourceDirsAndUpdateRoots() {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
     List<VirtualFile> flavorDirs = Lists.newArrayList(ResourceFolderManager.getInstance(myFacet).getFolders());
-    ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
-    Disposer.register(getTestRootDisposable(), repository);
+    ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet, getTestRootDisposable());
     List<LocalResourceRepository<VirtualFile>> originalChildren = repository.getLocalResources();
     // Should have a bunch repository directories from the various flavors.
     Set<VirtualFile> resourceDirs = repository.getResourceDirs();
