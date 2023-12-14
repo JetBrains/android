@@ -23,8 +23,10 @@ import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.takeWhile
@@ -32,6 +34,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
@@ -39,10 +42,13 @@ import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import javax.swing.JCheckBox
 
-
-class WearHealthServicesToolWindowTest : LightPlatformTestCase() {
+@RunsInEdt
+class WearHealthServicesToolWindowTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   private val testDataPath: Path
     get() = TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/wear-whs/testData")
@@ -52,10 +58,9 @@ class WearHealthServicesToolWindowTest : LightPlatformTestCase() {
   private val toolWindow by lazy { WearHealthServicesToolWindow(stateManager) }
 
   @Before
-  public override fun setUp() {
-    super.setUp()
-    disposeOnTearDown(stateManager)
-    disposeOnTearDown(toolWindow)
+  fun setUp() {
+    Disposer.register(projectRule.testRootDisposable, stateManager)
+    Disposer.register(projectRule.testRootDisposable, toolWindow)
   }
 
   @Test

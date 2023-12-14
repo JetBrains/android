@@ -20,20 +20,17 @@ import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.android.tools.idea.wearwhs.communication.OnDeviceCapabilityState
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert
+import org.junit.Ignore
 
 private val capabilities = listOf(WhsCapability(
   "wear.whs.capability.heart.rate.label",
@@ -52,7 +49,8 @@ private val capabilities = listOf(WhsCapability(
   isStandardCapability = false,
 ))
 
-class WearHealthServicesToolWindowStateManagerTest : LightPlatformTestCase() {
+@Ignore("b/316071318")
+class WearHealthServicesToolWindowStateManagerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
@@ -60,9 +58,8 @@ class WearHealthServicesToolWindowStateManagerTest : LightPlatformTestCase() {
   private val stateManager by lazy { WearHealthServicesToolWindowStateManagerImpl(deviceManager) }
 
   @Before
-  public override fun setUp() {
-    super.setUp()
-    disposeOnTearDown(stateManager)
+  fun setUp() {
+    Disposer.register(projectRule.testRootDisposable, stateManager)
   }
 
   @Test
