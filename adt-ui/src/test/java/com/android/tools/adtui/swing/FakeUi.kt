@@ -97,11 +97,7 @@ class FakeUi @JvmOverloads constructor(
     if (!root.isPreferredSizeSet) {
       root.preferredSize = root.size
     }
-    layout()
-    if (SwingUtilities.isEventDispatchThread()) {
-      // Allow resizing events to propagate.
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
+    updateToolbars()
   }
 
   /**
@@ -276,7 +272,14 @@ class FakeUi @JvmOverloads constructor(
    */
   fun updateToolbars() {
     updateToolbars(root)
-    layoutAndDispatchEvents()
+    if (SwingUtilities.isEventDispatchThread()) {
+      UIUtil.dispatchAllInvocationEvents()
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      layoutAndDispatchEvents()
+    }
+    else {
+      layout()
+    }
   }
 
   private fun updateToolbars(component: Component) {

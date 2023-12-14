@@ -59,7 +59,6 @@ import com.intellij.ui.LayeredIcon
 import icons.StudioIcons
 import org.junit.Before
 import org.junit.ClassRule
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.anyInt
@@ -94,7 +93,8 @@ class DeviceToolWindowPanelTest {
 
   private lateinit var device: FakeDevice
   private val panel: DeviceToolWindowPanel by lazy { createToolWindowPanel() }
-  private val fakeUi: FakeUi by lazy { FakeUi(panel, createFakeWindow = true) } // Fake window is necessary for the toolbars to be rendered.
+  // Fake window is necessary for the toolbars to be rendered.
+  private val fakeUi: FakeUi by lazy { FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable) }
   private val project get() = agentRule.project
   private val testRootDisposable get() = agentRule.disposable
   private val agent: FakeScreenSharingAgent get() = device.agent
@@ -109,7 +109,6 @@ class DeviceToolWindowPanelTest {
   }
 
   @Test
-  @Ignore("b/315344704") // TODO: this test is flaky with IntelliJ 2023.3.
   fun testAppearanceAndToolbarActions() {
     device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     assertThat(panel.primaryDisplayView).isNull()
@@ -122,7 +121,6 @@ class DeviceToolWindowPanelTest {
     waitForCondition(5, SECONDS) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
-    fakeUi.updateToolbars()
     waitForFrame()
     assertAppearance("AppearanceAndToolbarActions1", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.primaryDisplayView)
@@ -181,8 +179,6 @@ class DeviceToolWindowPanelTest {
     waitForCondition(5, SECONDS) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
-    fakeUi.updateToolbars()
-    fakeUi.layoutAndDispatchEvents()
     waitForFrame()
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.primaryDisplayView)
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR)
@@ -245,7 +241,6 @@ class DeviceToolWindowPanelTest {
     waitForCondition(5, SECONDS) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
-    fakeUi.updateToolbars()
     waitForFrame()
 
     val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
@@ -291,8 +286,6 @@ class DeviceToolWindowPanelTest {
     fakeUi.layoutAndDispatchEvents()
     waitForCondition(10, SECONDS) { agent.isRunning && panel.isConnected }
 
-    fakeUi.updateToolbars()
-    fakeUi.layoutAndDispatchEvents()
     waitForFrame()
 
     val externalDisplayId = 1
@@ -324,8 +317,6 @@ class DeviceToolWindowPanelTest {
     fakeUi.layoutAndDispatchEvents()
     waitForCondition(10, SECONDS) { agent.isRunning && panel.isConnected }
 
-    fakeUi.updateToolbars()
-    fakeUi.layoutAndDispatchEvents()
     waitForFrame()
 
     var deviceView = panel.primaryDisplayView!!
