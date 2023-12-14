@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.wearwhs.widget
 
+import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
+import com.android.tools.idea.wearwhs.communication.ContentProviderDeviceManager
 import com.android.tools.idea.wearwhs.view.WearHealthServicesToolWindow
 import com.android.tools.idea.wearwhs.view.WearHealthServicesToolWindowStateManagerImpl
 import com.intellij.openapi.project.DumbAware
@@ -52,7 +54,8 @@ class WearHealthServicesToolWindowFactory : DumbAware, ToolWindowFactory {
  */
 private fun ToolWindow.displayWearHealthServices() {
   contentManager.removeAllContents(true)
-  val stateManager = WearHealthServicesToolWindowStateManagerImpl()
+  val deviceManager = ContentProviderDeviceManager(AdbLibService.getSession(project))
+  val stateManager = WearHealthServicesToolWindowStateManagerImpl(deviceManager)
   val view = WearHealthServicesToolWindow(stateManager)
 
   Disposer.register(disposable, stateManager)

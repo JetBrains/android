@@ -21,5 +21,9 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.adblib" />
+    <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
+    <orderEntry type="module" module-name="intellij.android.adb" />
+    <orderEntry type="module" module-name="intellij.android.core" />
   </component>
 </module>

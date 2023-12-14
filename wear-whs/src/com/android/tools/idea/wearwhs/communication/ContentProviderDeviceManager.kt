@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.wearwhs.communication
 
+import com.android.adblib.AdbSession
+import com.android.adblib.DeviceSelector
+import com.android.adblib.shellAsText
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsCapability
+
+const val whsUri: String = "content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config"
 
 /**
  * Content provider implementation of [WearHealthServicesDeviceManager].
@@ -24,7 +29,7 @@ import com.android.tools.idea.wearwhs.WhsCapability
  * This class uses the content provider for the synthetic HAL in WHS to sync the current state
  * of the UI to the selected Wear OS device.
  */
-internal class ContentProviderDeviceManager(private var capabilities: List<WhsCapability> = WHS_CAPABILITIES) : WearHealthServicesDeviceManager {
+internal class ContentProviderDeviceManager(private val adbSession: AdbSession, private var capabilities: List<WhsCapability> = WHS_CAPABILITIES) : WearHealthServicesDeviceManager {
   private var serialNumber: String? = null
 
   // TODO(b/309608749): Implement loadCapabilities method
@@ -42,8 +47,18 @@ internal class ContentProviderDeviceManager(private var capabilities: List<WhsCa
   // TODO(b/305924111) Implement loadOngoingExercise method
   override suspend fun loadOngoingExercise() = false
 
-  // TODO(b/305917691): Implement enable/disable methods
-  override suspend fun enableCapability(capability: WhsCapability) {}
+  private fun contentUpdateCapability(key: String, value: Boolean): String {
+    return "content update --uri $whsUri --bind $key:b:$value --where \"$key\""
+  }
+
+  override suspend fun enableCapability(capability: WhsCapability) {
+    if (serialNumber == null) {
+      // TODO: Log this error
+      return
+    }
+
+    adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber!!), contentUpdateCapability(capability.key.name, true))
+  }
 
   // TODO(b/305917691): Implement enable/disable methods
   override suspend fun disableCapability(capability: WhsCapability) {}

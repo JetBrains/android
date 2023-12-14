@@ -15,20 +15,23 @@
  */
 package com.android.tools.idea.wearwhs.view
 
+import com.android.adblib.AdbSession
+import com.android.adblib.AdbSessionHost
+import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.communication.ConnectionLostException
 import com.android.tools.idea.wearwhs.communication.ContentProviderDeviceManager
 import com.android.tools.idea.wearwhs.communication.WearHealthServicesDeviceManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-internal class WearHealthServicesToolWindowStateManagerImpl(
-  private val deviceManager: WearHealthServicesDeviceManager = ContentProviderDeviceManager(), )
+internal class WearHealthServicesToolWindowStateManagerImpl(private val deviceManager: WearHealthServicesDeviceManager)
   : WearHealthServicesToolWindowStateManager, Disposable {
   private val currentPreset = MutableStateFlow(Preset.ALL)
   private val capabilitiesList = MutableStateFlow(emptyList<WhsCapability>())

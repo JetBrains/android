@@ -24,5 +24,9 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module]",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
     ],
 )
