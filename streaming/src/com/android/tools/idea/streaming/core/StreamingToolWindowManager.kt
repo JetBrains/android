@@ -950,7 +950,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     override fun update(event: AnActionEvent) {
       super.update(event)
       event.presentation.isEnabledAndVisible =
-          findContent { (it.component as? EmulatorToolWindowPanel)?.emulator?.emulatorConfig?.skinFolder != null } != null
+          findContent {
+            (it.component as? EmulatorToolWindowPanel).let { it?.emulator?.emulatorConfig?.skinFolder != null && it.hasContent }
+          } != null
     }
 
     override fun isSelected(event: AnActionEvent): Boolean {
