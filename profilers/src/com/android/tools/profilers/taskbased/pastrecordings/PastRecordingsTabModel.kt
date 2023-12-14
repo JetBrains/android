@@ -48,7 +48,7 @@ class PastRecordingsTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(
 
     // Update the currently selected task type used to launch the recording with before setting the session. This guarantees that the
     // most up-to-date Profiler task will be used to handle the set session's data.
-    profilers.sessionsManager.setSessionProfilerTaskType(selectedSession.sessionId, selectedTaskType)
+    profilers.sessionsManager.currentTaskType = selectedTaskType
     profilers.sessionsManager.setSession(selectedSession)
   }
 }

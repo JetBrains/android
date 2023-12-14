@@ -722,7 +722,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // ProfilerAspect.AGENT aspect is done purposefully; these two synchronous operations serve as setup for the tasks to record new data
     // or load past recording (non-imported) data successfully.
     if (getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
-      ProfilerTaskType selectedTaskType = mySessionsManager.getSelectedSessionProfilerTaskType();
+      ProfilerTaskType selectedTaskType = mySessionsManager.getCurrentTaskType();
       Map<Long, SessionItem> sessionIdToSessionItems = mySessionsManager.getSessionIdToSessionItems();
       ProfilerTaskLauncher.launchProfilerTask(selectedTaskType, getTaskHandlers(), getSession(), sessionIdToSessionItems, myCreateTaskTab);
     }

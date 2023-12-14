@@ -54,8 +54,7 @@ object TaskHandlerUtils {
       val childArtifacts = it.getChildArtifacts()
 
       // If no child artifact and its live view task then parent session artifact is returned.
-      if (childArtifacts.isEmpty() &&
-          it.profilers.sessionsManager.selectedSessionProfilerTaskType == TaskTypeMappingUtils.convertTaskType(
+      if (childArtifacts.isEmpty() && it.profilers.sessionsManager.currentTaskType == TaskTypeMappingUtils.convertTaskType(
           ProfilerTaskType.LIVE_VIEW)) {
         it
       }

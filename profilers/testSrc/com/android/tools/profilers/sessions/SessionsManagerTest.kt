@@ -107,9 +107,9 @@ class SessionsManagerTest {
     assertThat(myManager.profilingSession).isEqualTo(session)
     assertThat(myManager.isSessionAlive).isTrue()
 
-    // The selectedSessionProfilerTaskType is updated with the task type from the event data received for a newly started session.
+    // The currentTaskType is updated with the task type from the event data received for a newly started session.
     // Here we check if the correct task type was populated with the UNSPECIFIED_TASK type as task type was not provided.
-    val taskType = myManager.selectedSessionProfilerTaskType
+    val taskType = myManager.currentTaskType
     assertThat(taskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
 
     val sessionItems = myManager.sessionArtifacts
@@ -135,9 +135,9 @@ class SessionsManagerTest {
     assertThat(myManager.profilingSession).isEqualTo(session)
     assertThat(myManager.isSessionAlive).isTrue()
 
-    // The selectedSessionProfilerTaskType is updated with the task type from the event data received for a newly started session.
+    // The currentTaskType is updated with the task type from the event data received for a newly started session.
     // Here we check if the correct task type was populated.
-    val taskType = myManager.selectedSessionProfilerTaskType
+    val taskType = myManager.currentTaskType
     assertThat(taskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
 
     val sessionItems = myManager.sessionArtifacts

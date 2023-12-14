@@ -102,11 +102,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   @NotNull private Map<Long, Common.SessionMetaData> mySessionMetaDatas;
 
   /**
-   * A map of Session's Id -> {@link ProfilerTaskType}
-   */
-  @NotNull private final Map<Long, ProfilerTaskType> mySessionIdToProfilerTaskType;
-
-  /**
    * A list of session-related items for display in the Sessions panel.
    */
   @NotNull private List<SessionArtifact> mySessionArtifacts;
@@ -126,6 +121,12 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * the one that is currently selected (e.g. Users can profile in the background while exploring other sessions history).
    */
   @NotNull private Common.Session myProfilingSession;
+
+  /**
+   * The type of task actively being used by the user. Note that there can only be one current task type at a time, as the user is either
+   * starting or loading one task at any given time.
+   */
+  private ProfilerTaskType myCurrentTaskType = ProfilerTaskType.UNSPECIFIED;
 
   /**
    * A cache of the view ranges that were used by each session before it was unselected. Note that the key represents a Session's id.
@@ -153,10 +154,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
     mySessionItems = new HashMap<>();
     mySessionMetaDatas = new HashMap<>();
-    mySessionIdToProfilerTaskType = new HashMap<>();
     // Always return the SessionMetaData default instance for a Session default instance.
     mySessionMetaDatas.put(Common.Session.getDefaultInstance().getSessionId(), Common.SessionMetaData.getDefaultInstance());
-    mySessionIdToProfilerTaskType.put(Common.Session.getDefaultInstance().getSessionId(), ProfilerTaskType.UNSPECIFIED);
     mySessionArtifacts = new ArrayList<>();
     mySessionViewRangeMap = new HashMap<>();
 
@@ -205,12 +204,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     return mySessionMetaDatas.get(mySelectedSession.getSessionId());
   }
 
-  /**
-   * Return the task type of the current selected session
-   */
-  @NotNull
-  public ProfilerTaskType getSelectedSessionProfilerTaskType() {
-    return mySessionIdToProfilerTaskType.get(mySelectedSession.getSessionId());
+  public ProfilerTaskType getCurrentTaskType() {
+    return myCurrentTaskType;
   }
 
   @NotNull
@@ -404,7 +399,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     SessionItem sessionItem = new SessionItem(myProfilers, session, metadata);
     mySessionItems.put(session.getSessionId(), sessionItem);
     mySessionMetaDatas.put(session.getSessionId(), metadata);
-    mySessionIdToProfilerTaskType.put(session.getSessionId(), TaskTypeMappingUtils.convertTaskType(sessionData.getTaskType()));
+    myCurrentTaskType = TaskTypeMappingUtils.convertTaskType(sessionData.getTaskType());
     return sessionItem;
   }
 
@@ -458,11 +453,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     changed(SessionAspect.PROFILING_SESSION);
   }
 
-  /**
-   * Inserts or updates a mapping from session id to a task type
-   */
-  public void setSessionProfilerTaskType(Long sessionId, ProfilerTaskType taskType) {
-    mySessionIdToProfilerTaskType.put(sessionId, taskType);
+  public void setCurrentTaskType(ProfilerTaskType taskType) {
+    myCurrentTaskType = taskType;
   }
 
   public void registerSelectedArtifactProto(GeneratedMessageV3 selectedArtifactProto) {
