@@ -78,6 +78,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.project.ProjectKt;
+import com.intellij.testFramework.OpenProjectTaskBuilder;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.io.PathKt;
 import java.io.File;
@@ -311,6 +312,13 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     else {
       throw new IllegalStateException("Unrecognized language name:" + myLanguageName);
     }
+  }
+
+  @Override
+  protected @NotNull OpenProjectTaskBuilder getOpenProjectOptions() {
+    // Implementors of this test class tend to produce a lot of short-lived projects; disabling post-startup activities
+    // means that we don't have to wait for those activities to finish before ending each test case.
+    return super.getOpenProjectOptions().runPostStartUpActivities(false);
   }
 
   @Override
