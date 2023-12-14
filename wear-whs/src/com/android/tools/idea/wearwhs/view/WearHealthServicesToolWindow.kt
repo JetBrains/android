@@ -17,6 +17,7 @@ package com.android.tools.idea.wearwhs.view
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.intellij.openapi.Disposable
@@ -30,7 +31,9 @@ import com.intellij.ui.layout.selected
 import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -50,6 +53,7 @@ private val horizontalBorders = JBUI.Borders.empty(0, PADDING)
 internal class WearHealthServicesToolWindow(private val stateManager: WearHealthServicesToolWindowStateManager) : SimpleToolWindowPanel(
   true, true), Disposable {
   private val uiScope: CoroutineScope = AndroidCoroutineScope(this, uiThread)
+  private val workerScope: CoroutineScope = AndroidCoroutineScope(this, workerThread)
 
   private fun getLogger() = Logger.getInstance(this::class.java)
 
@@ -60,7 +64,9 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
         model = DefaultComboBoxModel(Preset.values())
       }
       capabilitiesComboBox.addActionListener {
-        stateManager.setPreset(capabilitiesComboBox.selectedItem as Preset)
+        workerScope.launch {
+          stateManager.setPreset(capabilitiesComboBox.selectedItem as Preset)
+        }
       }
       stateManager.getPreset().onEach {
         capabilitiesComboBox.selectedItem = it
@@ -101,12 +107,16 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
       })
       add(JButton(message("wear.whs.panel.reset")).apply {
         addActionListener {
-          stateManager.reset()
+          workerScope.launch {
+            stateManager.reset()
+          }
         }
       })
       add(JButton(message("wear.whs.panel.apply")).apply {
         addActionListener {
-          stateManager.applyChanges()
+          workerScope.launch {
+            stateManager.applyChanges()
+          }
         }
       })
     }
@@ -140,10 +150,10 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
           val checkBox = JCheckBox(message(capability.labelKey)).also { checkBox ->
             val plainFont = checkBox.font.deriveFont(Font.PLAIN)
             val italicFont = checkBox.font.deriveFont(Font.ITALIC)
-            stateManager.getCapabilityEnabled(capability).onEach { enabled ->
+            stateManager.getState(capability).map { it.enabled }.onEach { enabled ->
               checkBox.isSelected = enabled
             }.launchIn(uiScope)
-            stateManager.getSynced(capability).onEach { synced ->
+            stateManager.getState(capability).map { it.synced }.onEach { synced ->
               if (!synced) {
                 checkBox.font = italicFont
                 checkBox.text = "${message(capability.labelKey)}*"
@@ -154,8 +164,10 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
               }
             }.launchIn(uiScope)
             checkBox.addActionListener {
-              stateManager.setCapabilityEnabled(capability, checkBox.isSelected)
-              stateManager.setPreset(Preset.CUSTOM)
+              workerScope.launch {
+                stateManager.setCapabilityEnabled(capability, checkBox.isSelected)
+                stateManager.setPreset(Preset.CUSTOM)
+              }
             }
           }
           add(checkBox, BorderLayout.CENTER)
@@ -163,15 +175,17 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
             add(JTextField().also { textField ->
               textField.document.addDocumentListener(object : DocumentAdapter() {
                 override fun textChanged(e: DocumentEvent) {
-                  try {
-                    stateManager.setOverrideValue(capability, textField.text.toFloat())
-                  }
-                  catch (exception: NumberFormatException) { // TODO(b/309931192): Show a tooltip to the user that the value is not a float
-                    getLogger().warn("String is not a float")
+                  workerScope.launch {
+                    try {
+                      stateManager.setOverrideValue(capability, textField.text.toFloat())
+                    }
+                    catch (exception: NumberFormatException) { // TODO(b/309931192): Show a tooltip to the user that the value is not a float
+                      getLogger().warn("String is not a float")
+                    }
                   }
                 }
               })
-              stateManager.getOverrideValue(capability).onEach {
+              stateManager.getState(capability).map { it.overrideValue }.onEach {
                 if (!textField.isFocusOwner) {
                   textField.text = it?.toString() ?: ""
                 }

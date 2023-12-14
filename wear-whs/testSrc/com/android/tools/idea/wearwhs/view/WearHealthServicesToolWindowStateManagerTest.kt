@@ -27,10 +27,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert
-import org.junit.Ignore
 
 private val capabilities = listOf(WhsCapability(
   "wear.whs.capability.heart.rate.label",
@@ -49,7 +49,6 @@ private val capabilities = listOf(WhsCapability(
   isStandardCapability = false,
 ))
 
-@Ignore("b/316071318")
 class WearHealthServicesToolWindowStateManagerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
@@ -73,9 +72,9 @@ class WearHealthServicesToolWindowStateManagerTest {
 
     stateManager.setPreset(Preset.STANDARD)
 
-    stateManager.getCapabilityEnabled(capabilities[0]).waitForValue(true)
-    stateManager.getCapabilityEnabled(capabilities[1]).waitForValue(true)
-    stateManager.getCapabilityEnabled(capabilities[2]).waitForValue(false)
+    stateManager.getState(capabilities[0]).map { it.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[1]).map { it.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[2]).map { it.enabled }.waitForValue(false)
   }
 
   @Test
@@ -84,9 +83,9 @@ class WearHealthServicesToolWindowStateManagerTest {
 
     stateManager.setPreset(Preset.ALL)
 
-    stateManager.getCapabilityEnabled(capabilities[0]).waitForValue(true)
-    stateManager.getCapabilityEnabled(capabilities[1]).waitForValue(true)
-    stateManager.getCapabilityEnabled(capabilities[2]).waitForValue(true)
+    stateManager.getState(capabilities[0]).map { it.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[1]).map { it.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[2]).map { it.enabled }.waitForValue(true)
   }
 
   @Test
@@ -94,7 +93,7 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.getCapabilitiesList().waitForValue(capabilities)
 
     stateManager.setCapabilityEnabled(capabilities[0], false)
-    stateManager.getCapabilityEnabled(capabilities[0]).waitForValue(false)
+    stateManager.getState(capabilities[0]).map { it.enabled }.waitForValue(false)
   }
 
   @Test
@@ -103,7 +102,7 @@ class WearHealthServicesToolWindowStateManagerTest {
 
     stateManager.setOverrideValue(capabilities[1], 3f)
 
-    stateManager.getOverrideValue(capabilities[1]).waitForValue(3f)
+    stateManager.getState(capabilities[1]).map { it.overrideValue }.waitForValue(3f)
   }
 
   @Test
@@ -117,8 +116,8 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.reset()
 
     stateManager.getPreset().waitForValue(Preset.STANDARD)
-    stateManager.getCapabilityEnabled(capabilities[2]).waitForValue(false)
-    stateManager.getOverrideValue(capabilities[1]).waitForValue(null)
+    stateManager.getState(capabilities[2]).map { it.enabled }.waitForValue(false)
+    stateManager.getState(capabilities[1]).map { it.overrideValue }.waitForValue(null)
   }
 
   @Test
@@ -130,17 +129,17 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.setOverrideValue(capabilities[1], 3f)
     stateManager.setCapabilityEnabled(capabilities[2], true)
 
-    stateManager.getSynced(capabilities[0]).waitForValue(false)
-    stateManager.getSynced(capabilities[1]).waitForValue(false)
-    stateManager.getSynced(capabilities[2]).waitForValue(false)
+    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(false)
+    stateManager.getState(capabilities[1]).map { it.synced }.waitForValue(false)
+    stateManager.getState(capabilities[2]).map { it.synced }.waitForValue(false)
 
     stateManager.applyChanges()
 
     stateManager.getStatus().waitForValue(WhsStateManagerStatus.Idle)
 
-    stateManager.getSynced(capabilities[0]).waitForValue(true)
-    stateManager.getSynced(capabilities[1]).waitForValue(true)
-    stateManager.getSynced(capabilities[2]).waitForValue(true)
+    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
+    stateManager.getState(capabilities[1]).map { it.synced }.waitForValue(true)
+    stateManager.getState(capabilities[2]).map { it.synced }.waitForValue(true)
 
     assertThat(deviceManager.loadCurrentCapabilityStates()).containsExactly(
       capabilities[0], OnDeviceCapabilityState(false, null),
@@ -178,7 +177,7 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.getStatus().waitForValue(WhsStateManagerStatus.Idle)
   }
 
-  private suspend fun <T> StateFlow<T>.waitForValue(value: T, timeout: Long = 1000) {
+  private suspend fun <T> Flow<T>.waitForValue(value: T, timeout: Long = 1000) {
     val received = mutableListOf<T>()
     try {
       withTimeout(timeout) { takeWhile { it != value }.collect { received.add(it) } }

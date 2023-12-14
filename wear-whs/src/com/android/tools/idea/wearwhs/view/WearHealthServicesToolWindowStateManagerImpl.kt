@@ -16,41 +16,39 @@
 package com.android.tools.idea.wearwhs.view
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.scopeDisposable
 import com.android.tools.idea.wearwhs.WhsCapability
-import com.android.tools.idea.wearwhs.communication.ContentProviderDeviceManager
 import com.android.tools.idea.wearwhs.communication.ConnectionLostException
+import com.android.tools.idea.wearwhs.communication.ContentProviderDeviceManager
 import com.android.tools.idea.wearwhs.communication.WearHealthServicesDeviceManager
+import com.intellij.collaboration.async.mapState
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
+import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 internal class WearHealthServicesToolWindowStateManagerImpl(
   private val deviceManager: WearHealthServicesDeviceManager = ContentProviderDeviceManager())
   : WearHealthServicesToolWindowStateManager, Disposable {
-  private val scope = AndroidCoroutineScope(this)
-
-  private var currentPreset = MutableStateFlow(Preset.STANDARD)
-  private var capabilitiesList = MutableStateFlow(emptyList<WhsCapability>())
-  private var capabilityToState = mapOf<WhsCapability, CapabilityState>()
-  private var progress: MutableStateFlow<WhsStateManagerStatus> = MutableStateFlow(WhsStateManagerStatus.Idle)
+  private val currentPreset = MutableStateFlow(Preset.STANDARD)
+  private val capabilitiesList = MutableStateFlow(emptyList<WhsCapability>())
+  private val capabilityToState = ConcurrentMap<WhsCapability, MutableStateFlow<CapabilityState>>()
+  private val progress = MutableStateFlow<WhsStateManagerStatus>(WhsStateManagerStatus.Idle)
 
   init {
-    Disposer.register(this, scope.scopeDisposable())
-    scope.launch {
+    AndroidCoroutineScope(this).launch {
       setCapabilities(deviceManager.loadCapabilities())
     }
   }
 
-  private fun setCapabilities(whsCapabilities: List<WhsCapability>) {
-    capabilityToState = whsCapabilities.associateWith { CapabilityState() }
+  private suspend fun setCapabilities(whsCapabilities: List<WhsCapability>) {
+    capabilityToState.clear()
+    capabilityToState.putAll(whsCapabilities.associateWith { MutableStateFlow(CapabilityState()) })
     setPreset(currentPreset.value)
-    scope.launch {
-      capabilitiesList.emit(whsCapabilities)
-    }
+    capabilitiesList.emit(whsCapabilities)
   }
 
   override fun getStatus(): StateFlow<WhsStateManagerStatus> = progress.asStateFlow()
@@ -59,94 +57,79 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
 
   override fun getPreset(): StateFlow<Preset> = currentPreset.asStateFlow()
 
-  override fun setPreset(preset: Preset) {
-    scope.launch {
-      when (preset) {
-        Preset.STANDARD -> for (capability in capabilityToState.keys) {
-          setCapabilityEnabled(capability, capability.isStandardCapability)
-        }
-
-        Preset.ALL -> for (capability in capabilityToState.keys) {
-          setCapabilityEnabled(capability, true)
-        }
-
-        Preset.CUSTOM -> {}
+  override suspend fun setPreset(preset: Preset) {
+    when (preset) {
+      Preset.STANDARD -> for (capability in capabilityToState.keys) {
+        setCapabilityEnabled(capability, capability.isStandardCapability)
       }
-      currentPreset.emit(preset)
-    }
-  }
 
-  override fun getCapabilityEnabled(capability: WhsCapability): StateFlow<Boolean> =
-    capabilityToState[capability]?.enabled?.asStateFlow() ?: throw IllegalArgumentException()
-
-  override fun setCapabilityEnabled(capability: WhsCapability, enabled: Boolean) {
-    val state = capabilityToState[capability] ?: return
-    scope.launch {
-      state.enabled.emit(enabled)
-      state.synced.emit(false)
-    }
-  }
-
-  override fun getOverrideValue(capability: WhsCapability): StateFlow<Float?> =
-    capabilityToState[capability]?.overrideValue?.asStateFlow() ?: throw IllegalArgumentException()
-
-  override fun setOverrideValue(capability: WhsCapability, value: Float?) {
-    val state = capabilityToState[capability] ?: return
-    scope.launch {
-      state.overrideValue.emit(value)
-      state.synced.emit(false)
-    }
-  }
-
-  override fun getSynced(capability: WhsCapability) =
-    capabilityToState[capability]?.synced?.asStateFlow() ?: throw IllegalArgumentException()
-
-  override fun applyChanges() {
-    scope.launch {
-      for (entry in capabilityToState.entries.iterator()) {
-        val capability = entry.key
-        val state = entry.value
-        if (state.synced.value) {
-          continue
-        }
-        progress.emit(WhsStateManagerStatus.Syncing(capability))
-        try {
-          if (state.enabled.value) {
-            deviceManager.enableCapability(capability)
-          }
-          else {
-            deviceManager.disableCapability(capability)
-          }
-          if (state.overrideValue.value != 0f && state.overrideValue.value != null) {
-            deviceManager.overrideValue(capability, state.overrideValue.value!!)
-          }
-        }
-        catch (exception: ConnectionLostException) {
-          progress.emit(WhsStateManagerStatus.ConnectionLost)
-          return@launch
-        }
-        state.synced.emit(true)
+      Preset.ALL -> for (capability in capabilityToState.keys) {
+        setCapabilityEnabled(capability, true)
       }
+
+      Preset.CUSTOM -> {}
+    }
+    currentPreset.emit(preset)
+  }
+
+  override fun getState(capability: WhsCapability): StateFlow<CapabilityState> =
+    capabilityToState[capability]?.asStateFlow() ?: throw IllegalArgumentException()
+
+  override suspend fun setCapabilityEnabled(capability: WhsCapability, enabled: Boolean) {
+    val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
+    val newState = stateFlow.value.copy(enabled = enabled)
+    stateFlow.emit(newState)
+  }
+
+  override suspend fun setOverrideValue(capability: WhsCapability, value: Float?) {
+    val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
+    val newState = stateFlow.value.copy(overrideValue = value)
+    stateFlow.emit(newState)
+  }
+
+  override suspend fun applyChanges() {
+    for (entry in capabilityToState.entries.iterator()) {
+      val capability = entry.key
+      val stateFlow = entry.value
+      val state = stateFlow.value
+      if (state.synced) {
+        continue
+      }
+      progress.emit(WhsStateManagerStatus.Syncing(capability))
+      try {
+        if (state.enabled) {
+          deviceManager.enableCapability(capability)
+        }
+        else {
+          deviceManager.disableCapability(capability)
+        }
+        if (state.overrideValue != 0f && state.overrideValue != null) {
+          deviceManager.overrideValue(capability, state.overrideValue)
+        }
+      }
+      catch (exception: ConnectionLostException) {
+        progress.emit(WhsStateManagerStatus.ConnectionLost)
+        return
+      }
+      stateFlow.emit(state.copy(synced = true))
       progress.emit(WhsStateManagerStatus.Idle)
     }
   }
 
-  override fun reset() {
-    scope.launch {
-      setPreset(Preset.STANDARD)
-      for (entry in capabilityToState.keys) {
-        setOverrideValue(entry, null)
-      }
+  override suspend fun reset() {
+    setPreset(Preset.STANDARD)
+    for (entry in capabilityToState.keys) {
+      setOverrideValue(entry, null)
     }
   }
 
   override fun dispose() { // Clear all callbacks to avoid memory leaks
-    capabilityToState = mapOf()
+    capabilityToState.clear()
   }
 }
 
 internal data class CapabilityState(
-  val enabled: MutableStateFlow<Boolean> = MutableStateFlow(false),
-  val overrideValue: MutableStateFlow<Float?> = MutableStateFlow(null),
-  val synced: MutableStateFlow<Boolean> = MutableStateFlow(false),
+  val enabled: Boolean = false,
+  val overrideValue: Float? = null,
+  val synced: Boolean = false,
 )
