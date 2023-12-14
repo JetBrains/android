@@ -62,12 +62,6 @@ val WHS_CAPABILITIES = listOf(
     isStandardCapability = true,
   ),
   WhsCapability(
-    "wear.whs.capability.duration.label",
-    "wear.whs.capability.duration.unit",
-    isOverrideable = true,
-    isStandardCapability = true,
-  ),
-  WhsCapability(
     "wear.whs.capability.elevation.gain.label",
     "wear.whs.capability.elevation.gain.unit",
     isOverrideable = true,
