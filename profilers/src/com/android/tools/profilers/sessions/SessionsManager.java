@@ -272,7 +272,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       .thenComparingLong(g -> g.getEventsCount() > 0 ? g.getEvents(0).getSession().getSessionStarted().getStartTimestampEpochMs() : 0));
     sortedGroups.forEach(group -> {
       SessionItem sessionItem = mySessionItems.get(group.getGroupId());
-      boolean sessionStateChanged = false;
+      boolean newSessionFound = false;
+      boolean sessionNewlyEnded = false;
       Common.Event startEvent = group.getEvents(0);
       // For non-full sessions (e.g. import), we expect to receive both the BEGIN_SESSION and END_SESSION events first before
       // processing them, otherwiser the profiler model might think that it is an ongoing session for a brief moment if all the events
@@ -285,7 +286,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       // We found a new session we process it and update our internal state.
       if (sessionItem == null) {
         sessionItem = processSessionStarted(startEvent);
-        sessionStateChanged = true;
+        newSessionFound = true;
         LogUtils.log(this.getClass(), "Session started (" + sessionItem.getName() + "), support level =" +
                                       myProfilers.getSupportLevelForSession(sessionItem.getSession()));
       }
@@ -293,19 +294,13 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       if (group.getEventsCount() == 2 && sessionItem.isOngoing()) {
         Common.Session session = sessionItem.getSession().toBuilder().setEndTimestamp(group.getEvents(1).getTimestamp()).build();
         sessionItem.setSession(session);
-        sessionStateChanged = true;
+        sessionNewlyEnded = true;
         setProfilingSession(Common.Session.getDefaultInstance());
         LogUtils.log(this.getClass(), "Session stopped (" + sessionItem.getName() + "), support level =" +
                                       myProfilers.getSupportLevelForSession(sessionItem.getSession()));
       }
 
-      boolean shouldSetSession = sessionStateChanged;
-      boolean isTaskBasedUXEnabled = myProfilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
-      if (isTaskBasedUXEnabled) {
-        // Do not auto-select the imported session (pid == 0) if Task-Based UX is enabled.
-        shouldSetSession = sessionStateChanged && !isSessionImported(sessionItem.getSession());
-      }
-
+      boolean shouldSetSession = shouldAutoSelectSession(newSessionFound, sessionNewlyEnded, sessionItem.getSession());
       if (shouldSetSession) {
         setSessionInternal(sessionItem.getSession());
         if (sessionItem.isOngoing()) {
@@ -335,6 +330,30 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
       registerImplicitlySelectedArtifactProto(mySessionArtifacts, previousArtifactProtos);
     }
+  }
+
+  /**
+   * Determines whether each session being processed in updateSessionItemsByGroup should be selected or not.
+   */
+  private boolean shouldAutoSelectSession(boolean newSessionFound, boolean sessionNewlyEnded, Common.Session session) {
+    // If Task-Based UX is disabled, then if either a new session was found, or an existing one has completed, selection of the processed
+    // session should be made.
+    boolean shouldSetSession = newSessionFound || sessionNewlyEnded;
+
+    // If Task-Based UX is enabled, then there are two specific instances where selection of the session should be made:
+    // (1) A new session was found, and it is ongoing.
+    // (2) An existing session was found, and it has completed.
+    // Both cases (1) and (2) require that there be a non-UNSPECIFIED `currentTaskType` set and that the session was not imported.
+    //
+    // Note: A newly found and complete session is not auto-selected to prevent Studio from auto-selecting a task recording after soft
+    // restarting Studio.
+    boolean isTaskBasedUXEnabled = myProfilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
+    if (isTaskBasedUXEnabled) {
+      shouldSetSession = !isSessionImported(session) &&
+                         myCurrentTaskType != ProfilerTaskType.UNSPECIFIED &&
+                         ((newSessionFound && !sessionNewlyEnded) || (!newSessionFound && sessionNewlyEnded));
+    }
+    return shouldSetSession;
   }
 
   /**

@@ -118,6 +118,19 @@ public final class ProfilersTestData {
   public static final String FAKE_SYSTEM_NATIVE_MODULE = "/system/lib64/libnativewindow.so";
   // Used for testing JNI reference tracking: difference between object tag and JNI reference value.
   public static final long JNI_REF_BASE = 0x50000000;
+  @NotNull
+  public static Common.Event.Builder generateSessionStartEvent(long streamId,
+                                                               long sessionId,
+                                                               long timestampNs,
+                                                               Common.SessionData.SessionStarted.SessionType sessionType,
+                                                               Common.ProfilerTaskType taskType,
+                                                               long startTimestampEpochMs,
+                                                               int pid) {
+    return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(sessionId).setKind(Common.Event.Kind.SESSION).setSession(
+      Common.SessionData.newBuilder().setSessionStarted(
+        Common.SessionData.SessionStarted.newBuilder().setStreamId(streamId).setSessionId(sessionId).setType(sessionType)
+          .setTaskType(taskType).setStartTimestampEpochMs(startTimestampEpochMs).setPid(pid)));
+  }
 
   @NotNull
   public static Common.Event.Builder generateSessionStartEvent(long streamId,
@@ -125,12 +138,9 @@ public final class ProfilersTestData {
                                                                long timestampNs,
                                                                Common.SessionData.SessionStarted.SessionType type,
                                                                long startTimestampEpochMs) {
-    return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(sessionId).setKind(Common.Event.Kind.SESSION)
-      .setSession(Common.SessionData.newBuilder().setSessionStarted(
-        Common.SessionData.SessionStarted.newBuilder().setStreamId(streamId).setSessionId(sessionId).setType(type)
-          .setStartTimestampEpochMs(startTimestampEpochMs)));
+    return generateSessionStartEvent(streamId, sessionId, timestampNs, type, Common.ProfilerTaskType.UNSPECIFIED_TASK,
+                                     startTimestampEpochMs, 0);
   }
-
   @NotNull
   public static Common.Event.Builder generateSessionEndEvent(long streamId, long sessionId, long timestampNs) {
     return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(sessionId).setKind(Common.Event.Kind.SESSION).setIsEnded(true);
