@@ -732,6 +732,9 @@
           "profiler-low-overhead.svg": "studio/icons/shell/toolbar/profiler-low-overhead.svg"
         }
       },
+      "studio-bot": {
+        "ask.svg": "studio/icons/studio-bot/ask.svg"
+      },
       "test": {
         "record-espresso-test.svg": "studio/icons/test/record-espresso-test.svg",
         "rich-test-result-error.svg": "studio/icons/test/rich-test-result-error.svg",

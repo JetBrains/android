@@ -885,6 +885,10 @@ public final class StudioIcons {
     }
   }
 
+  public static final class StudioBot {
+    /** 16x16 */ public static final @NotNull Icon ASK = load("studio/icons/studio-bot/ask.svg", 2079862580, 2);
+  }
+
   public static final class Test {
     /** 16x16 */ public static final @NotNull Icon RECORD_ESPRESSO_TEST = load("studio/icons/test/record-espresso-test.svg", 1255885346, 2);
     /** 16x16 */ public static final @NotNull Icon RICH_TEST_RESULT_ERROR = load("studio/icons/test/rich-test-result-error.svg", 1461138506, 2);
