@@ -11,15 +11,15 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
       <library name="libstudio.android-test-plugin-result-listener-gradle-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libstudio.android-test-plugin-result-listener-gradle-proto:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libstudio.android-test-plugin-result-listener-gradle-proto:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-result-listener-gradle-proto/231.0.1.4/libstudio.android-test-plugin-result-listener-gradle-proto-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-result-listener-gradle-proto/231.0.26.0/libstudio.android-test-plugin-result-listener-gradle-proto-231.0.26.0.jar">
               <sha256sum>66ef739fbba469adaf5a156521ad31299f409e536fe45a19f6b4b48a015e9a43</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-result-listener-gradle-proto/231.0.1.4/libstudio.android-test-plugin-result-listener-gradle-proto-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-result-listener-gradle-proto/231.0.26.0/libstudio.android-test-plugin-result-listener-gradle-proto-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

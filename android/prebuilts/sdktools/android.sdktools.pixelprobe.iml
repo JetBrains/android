@@ -7,37 +7,37 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-pixelprobe" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.pixelprobe:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.pixelprobe:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe/231.0.1.4/studio.android.sdktools.pixelprobe-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe/231.0.26.0/studio.android.sdktools.pixelprobe-231.0.26.0.jar">
               <sha256sum>aa879ff4482de9f41c25081598c1000bb551de587a611caec82cae2e5be89182</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe/231.0.1.4/studio.android.sdktools.pixelprobe-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe/231.0.26.0/studio.android.sdktools.pixelprobe-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe/231.0.1.4/studio.android.sdktools.pixelprobe-231.0.1.4-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe/231.0.26.0/studio.android.sdktools.pixelprobe-231.0.26.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-pixelprobe-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.pixelprobe_test:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.pixelprobe_test:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe_test/231.0.1.4/studio.android.sdktools.pixelprobe_test-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe_test/231.0.26.0/studio.android.sdktools.pixelprobe_test-231.0.26.0.jar">
               <sha256sum>6255807e8284beccd3dfb31d82f76f4092a449a9d7965b258fff2918e8473313</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe_test/231.0.1.4/studio.android.sdktools.pixelprobe_test-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe_test/231.0.26.0/studio.android.sdktools.pixelprobe_test-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe_test/231.0.1.4/studio.android.sdktools.pixelprobe_test-231.0.1.4-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe_test/231.0.26.0/studio.android.sdktools.pixelprobe_test-231.0.26.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
