@@ -18,7 +18,6 @@ package com.android.tools.sdk;
 
 import static com.intellij.openapi.util.io.FileUtil.pathHashCode;
 import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.ProgressIndicator;
@@ -28,6 +27,7 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.google.common.collect.Maps;
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -53,13 +53,23 @@ public class AndroidSdkData {
   }
 
   @NotNull
-  public static AndroidSdkData getSdkDataWithoutValidityCheck(@NotNull File sdkLocation, boolean forceReparse) {
-    return Objects.requireNonNull(getSdkData(sdkLocation, forceReparse, false));
+  public static AndroidSdkData getSdkDataWithoutValidityCheck(@NotNull File sdkLocation) {
+    return Objects.requireNonNull(getSdkData(sdkLocation, false, false));
   }
 
   @Nullable
   private static AndroidSdkData getSdkData(@NotNull File sdkLocation, boolean forceReparse, boolean checkValidity) {
-    String canonicalPath = toCanonicalPath(sdkLocation.getPath());
+    String canonicalPath;
+    try {
+      canonicalPath = sdkLocation.getCanonicalPath();
+    } catch (IOException ignore) {
+      if (checkValidity) {
+        return null;
+      } else {
+        // We do not care about whether sdk exists or not, we are using the path as a key
+        canonicalPath = sdkLocation.getPath();
+      }
+    }
 
     // Try to use cached data.
     if (!forceReparse) {
