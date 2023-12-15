@@ -3435,6 +3435,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
             disambiguationClassifier      : jvm
             jar                           : KotlinTargetJarImpl
                 archiveFile                   : <ROOT>/common/build/libs/common-jvm.jar [-]
+                - compilations                : main (KotlinCompilationImpl) (*seen*)
             platform                      : JVM
             presetName                    : jvm
             - testRunTasks                : KotlinTestRunTaskImpl
@@ -5593,6 +5594,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
             disambiguationClassifier      : jvm
             jar                           : KotlinTargetJarImpl
                 archiveFile                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
+                - compilations                : main (KotlinCompilationImpl) (*seen*)
             platform                      : JVM
             presetName                    : jvm
             - testRunTasks                : KotlinTestRunTaskImpl

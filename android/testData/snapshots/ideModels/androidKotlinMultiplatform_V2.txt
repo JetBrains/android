@@ -2683,9 +2683,6 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
             jar                           : KotlinTargetJarImpl
                 archiveFile                   : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib.jar [-]
             platform                      : JVM
-            - testRunTasks                : KotlinTestRunTaskImpl
-                compilationName               : test
-                taskName                      : testAndroidUnitTest
         sourceSets
             androidInstrumentedTest       : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
             androidMain                   : androidMain (KotlinSourceSetImpl) (*seen*)
@@ -2881,6 +2878,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
             disambiguationClassifier      : jvm
             jar                           : KotlinTargetJarImpl
                 archiveFile                   : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
+                - compilations                : main (KotlinCompilationImpl) (*seen*)
             platform                      : JVM
             presetName                    : jvm
             - testRunTasks                : KotlinTestRunTaskImpl
@@ -3014,7 +3012,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             commonMain
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>:commonMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:commonMain:1.9.20
             commonTest
                 - dependency                  : :kmpSecondLib/commonMain
                 - dependency                  : :kmpSecondLib/jvmMain
@@ -3243,6 +3241,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
             disambiguationClassifier      : jvm
             jar                           : KotlinTargetJarImpl
                 archiveFile                   : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
+                - compilations                : main (KotlinCompilationImpl) (*seen*)
             platform                      : JVM
             presetName                    : jvm
             - testRunTasks                : KotlinTestRunTaskImpl

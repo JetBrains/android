@@ -249,15 +249,15 @@ PROJECT                       : My Application
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY
+        LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY
+            LIBRARY                       : Gradle:
                 *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
-        LIBRARY
+        LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY
+            LIBRARY                       : Gradle:
                 *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
         Classes
             -                             : file://<PROJECT>/lib/build/classes/java/main
@@ -300,15 +300,15 @@ PROJECT                       : My Application
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY
+        LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY
+            LIBRARY                       : Gradle:
                 *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
-        LIBRARY
+        LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY
+            LIBRARY                       : Gradle:
                 *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
         ORDER_ENTRY                   : My_Application.lib.main
         BUILD_TASKS
