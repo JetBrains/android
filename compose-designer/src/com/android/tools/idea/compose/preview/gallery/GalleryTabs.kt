@@ -49,6 +49,7 @@ import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 /** A key for each tab in [GalleryTabs]. */
 interface TitledKey {
@@ -65,7 +66,7 @@ interface TitledKey {
  * @param tabChangeListener is called when new [Key] is selected. [GalleryTabs] insures
  *   [tabChangeListener] is not called twice if same [Key] set twice.
  */
-class GalleryTabs<Key : TitledKey>(
+internal class GalleryTabs<Key : TitledKey>(
   private val root: JComponent,
   private val selectedProvider: (DataContext) -> Key?,
   private val keysProvider: (DataContext) -> Set<Key>,
@@ -76,6 +77,7 @@ class GalleryTabs<Key : TitledKey>(
     private const val MAX_TITLE_LENGTH = 50
 
     /** Truncate title string to have [MAX_TITLE_LENGTH] maximum length. */
+    @VisibleForTesting
     fun String.truncate(): String {
       return if (this.length >= MAX_TITLE_LENGTH) this.take(MAX_TITLE_LENGTH) + "..." else this
     }
