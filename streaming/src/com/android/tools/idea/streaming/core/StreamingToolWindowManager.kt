@@ -561,12 +561,12 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun removePhysicalDevicePanel(serialNumber: String) {
-    val content = findContentBySerialNumberOfPhysicalDevice(serialNumber) ?: return
-    savedUiState.remove(ID_KEY.get(content))
     deviceClients.remove(serialNumber)?.let {
       Disposer.dispose(it)
       updateMirroringHandlesFlow()
     }
+    val content = findContentBySerialNumberOfPhysicalDevice(serialNumber) ?: return
+    savedUiState.remove(ID_KEY.get(content))
     content.removeAndDispose()
   }
 
@@ -999,14 +999,17 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     private fun onlineDevicesChanged() {
       val removedExcluded = devicesExcludedFromMirroring.keys.retainAll(onlineDevices.keys)
       val removed = deviceClients.keys.minus(onlineDevices.keys)
-      if (contentShown) {
-        for (device in removed) {
-          removePhysicalDevicePanel(device)
+      if (removed.isNotEmpty()) {
+        if (contentShown) {
+          for (device in removed) {
+            removePhysicalDevicePanel(device)
+          }
+        }
+        else {
+          deviceClients.keys.removeAll(removed)
         }
       }
-      else {
-        deviceClients.keys.removeAll(removed)
-      }
+
       if (removedExcluded || removed.isNotEmpty()) {
         updateMirroringHandlesFlow()
       }
