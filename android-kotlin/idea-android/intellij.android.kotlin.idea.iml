@@ -19,15 +19,15 @@
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module-library">
       <library name="jb-r8" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-r8:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-r8:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-r8/231.0.1.4/jb-r8-231.0.1.4.jar">
-              <sha256sum>7a52240858c47ef9c7e13b3c63770bf4aaa729d7e22751fa94ec847aa62bb4b1</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-r8/231.0.26.0/jb-r8-231.0.26.0.jar">
+              <sha256sum>bf1d40d82531f7689a5ff30995ac209da2d11b5ab23964f610fe479b4a306262</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-r8/231.0.1.4/jb-r8-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-r8/231.0.26.0/jb-r8-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

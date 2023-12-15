@@ -13,37 +13,37 @@
     <orderEntry type="library" name="layoutinspector-skia-proto" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-dynamic-layout-inspector.common" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.dynamic-layout-inspector.common:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.dynamic-layout-inspector.common:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common/231.0.1.4/studio.dynamic-layout-inspector.common-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common/231.0.26.0/studio.dynamic-layout-inspector.common-231.0.26.0.jar">
               <sha256sum>fab5a82b1824b89a63cf1def08bf0592dda765e0b4ea91f41b933361b194d3bb</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common/231.0.1.4/studio.dynamic-layout-inspector.common-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common/231.0.26.0/studio.dynamic-layout-inspector.common-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common/231.0.1.4/studio.dynamic-layout-inspector.common-231.0.1.4-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common/231.0.26.0/studio.dynamic-layout-inspector.common-231.0.26.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-dynamic-layout-inspector.common-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.dynamic-layout-inspector.common_test:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.dynamic-layout-inspector.common_test:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common_test/231.0.1.4/studio.dynamic-layout-inspector.common_test-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common_test/231.0.26.0/studio.dynamic-layout-inspector.common_test-231.0.26.0.jar">
               <sha256sum>db16c3349b959c8f7252192c80d4f71e4ad789da7c10f1d092b331f7220d974c</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common_test/231.0.1.4/studio.dynamic-layout-inspector.common_test-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common_test/231.0.26.0/studio.dynamic-layout-inspector.common_test-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common_test/231.0.1.4/studio.dynamic-layout-inspector.common_test-231.0.1.4-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common_test/231.0.26.0/studio.dynamic-layout-inspector.common_test-231.0.26.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

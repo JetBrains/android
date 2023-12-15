@@ -15,15 +15,15 @@
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-lint-cli" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint.cli:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint.cli:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.cli/231.0.1.4/studio.android.sdktools.lint.cli-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.cli/231.0.26.0/studio.android.sdktools.lint.cli-231.0.26.0.jar">
               <sha256sum>cfc91839e93534c69057ac997f97f1c4b1a688e152218fc27dba9249050da01a</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.cli/231.0.1.4/studio.android.sdktools.lint.cli-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.cli/231.0.26.0/studio.android.sdktools.lint.cli-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -31,15 +31,15 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-lint-cli-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint.cli_test:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint.cli_test:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.cli_test/231.0.1.4/studio.android.sdktools.lint.cli_test-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.cli_test/231.0.26.0/studio.android.sdktools.lint.cli_test-231.0.26.0.jar">
               <sha256sum>c4ed2e61a0d749743fcd7c647714f0ec3f2c948e2c681bdfe663628e8db09638</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.cli_test/231.0.1.4/studio.android.sdktools.lint.cli_test-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.cli_test/231.0.26.0/studio.android.sdktools.lint.cli_test-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

@@ -79,15 +79,15 @@
     <orderEntry type="library" name="android-test-plugin-host-device-info-proto" level="project" />
     <orderEntry type="module-library">
       <library name="libandroid-core-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libandroid-core-proto:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libandroid-core-proto:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto/231.0.1.4/libandroid-core-proto-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto/231.0.26.0/libandroid-core-proto-231.0.26.0.jar">
               <sha256sum>439e763303b0ce4fc315aa0f3bc4214bfc6e73f9994e790d1b0f754f396234d4</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto/231.0.1.4/libandroid-core-proto-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto/231.0.26.0/libandroid-core-proto-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -95,15 +95,15 @@
     </orderEntry>
     <orderEntry type="module-library" scope="TEST">
       <library name="libandroid-core-proto-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libandroid-core-proto-test:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libandroid-core-proto-test:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto-test/231.0.1.4/libandroid-core-proto-test-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto-test/231.0.26.0/libandroid-core-proto-test-231.0.26.0.jar">
               <sha256sum>0fcb7d4212ea7581921e640297fa17d0f3bfa25cd511c49e1246041ccfa12ad8</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto-test/231.0.1.4/libandroid-core-proto-test-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto-test/231.0.26.0/libandroid-core-proto-test-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -112,15 +112,15 @@
     <orderEntry type="module" module-name="intellij.android.server-flags" />
     <orderEntry type="module-library">
       <library name="libstudio.android-test-plugin-host-retention-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libstudio.android-test-plugin-host-retention-proto:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libstudio.android-test-plugin-host-retention-proto:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-retention-proto/231.0.1.4/libstudio.android-test-plugin-host-retention-proto-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-retention-proto/231.0.26.0/libstudio.android-test-plugin-host-retention-proto-231.0.26.0.jar">
               <sha256sum>787fa80e8668b468e7372edf252333cd2d909383b1b43596339be4701f396e33</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-retention-proto/231.0.1.4/libstudio.android-test-plugin-host-retention-proto-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-retention-proto/231.0.26.0/libstudio.android-test-plugin-host-retention-proto-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

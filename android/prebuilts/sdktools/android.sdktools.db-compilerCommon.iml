@@ -4,37 +4,37 @@
     <exclude-output />
     <orderEntry type="module-library">
       <library name="compilerCommon.antlr_runtime.shaded" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compilerCommon.antlr_runtime.shaded_jar:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compilerCommon.antlr_runtime.shaded_jar:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr_runtime.shaded_jar/231.0.1.4/compilerCommon.antlr_runtime.shaded_jar-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr_runtime.shaded_jar/231.0.26.0/compilerCommon.antlr_runtime.shaded_jar-231.0.26.0.jar">
               <sha256sum>f4d89fb56ed9582984e5323802ca4891795577542c8d0c03ec75bfea5378bc36</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr_runtime.shaded_jar/231.0.1.4/compilerCommon.antlr_runtime.shaded_jar-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr_runtime.shaded_jar/231.0.26.0/compilerCommon.antlr_runtime.shaded_jar-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr_runtime.shaded_jar/231.0.1.4/compilerCommon.antlr_runtime.shaded_jar-231.0.1.4-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr_runtime.shaded_jar/231.0.26.0/compilerCommon.antlr_runtime.shaded_jar-231.0.26.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library name="compilerCommon.antlr.shaded" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compilerCommon.antlr.shaded_jar:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compilerCommon.antlr.shaded_jar:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr.shaded_jar/231.0.1.4/compilerCommon.antlr.shaded_jar-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr.shaded_jar/231.0.26.0/compilerCommon.antlr.shaded_jar-231.0.26.0.jar">
               <sha256sum>aef79cb486e1960725923d36409b3c19f71a842fd949e73cf420c8762a9c415a</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr.shaded_jar/231.0.1.4/compilerCommon.antlr.shaded_jar-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr.shaded_jar/231.0.26.0/compilerCommon.antlr.shaded_jar-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr.shaded_jar/231.0.1.4/compilerCommon.antlr.shaded_jar-231.0.1.4-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr.shaded_jar/231.0.26.0/compilerCommon.antlr.shaded_jar-231.0.26.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
@@ -97,37 +97,37 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-db-compilerCommon" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compilerCommon:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compilerCommon:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon/231.0.1.4/studio.compilerCommon-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon/231.0.26.0/studio.compilerCommon-231.0.26.0.jar">
               <sha256sum>2f1e3ede2344287f708bfa6e009b5cb3d025979bd550ece755fefbe45faf5503</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon/231.0.1.4/studio.compilerCommon-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon/231.0.26.0/studio.compilerCommon-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon/231.0.1.4/studio.compilerCommon-231.0.1.4-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon/231.0.26.0/studio.compilerCommon-231.0.26.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-db-compilerCommon-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compilerCommon_test:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compilerCommon_test:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon_test/231.0.1.4/studio.compilerCommon_test-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon_test/231.0.26.0/studio.compilerCommon_test-231.0.26.0.jar">
               <sha256sum>88a6c7b8c419d036ae84751a1488204364b84a3962287d934ad5de1ff533ad89</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon_test/231.0.1.4/studio.compilerCommon_test-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon_test/231.0.26.0/studio.compilerCommon_test-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon_test/231.0.1.4/studio.compilerCommon_test-231.0.1.4-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon_test/231.0.26.0/studio.compilerCommon_test-231.0.26.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

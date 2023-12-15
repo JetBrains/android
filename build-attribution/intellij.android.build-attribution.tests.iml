@@ -31,15 +31,15 @@
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module-library">
       <library name="build-analysis-results-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:build-analysis-results-proto:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:build-analysis-results-proto:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/build-analysis-results-proto/231.0.1.4/build-analysis-results-proto-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/build-analysis-results-proto/231.0.26.0/build-analysis-results-proto-231.0.26.0.jar">
               <sha256sum>99bb80fcc279a81838095ffe321d106316d1bf2f18086cfa8b31d0f55846f2e6</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/build-analysis-results-proto/231.0.1.4/build-analysis-results-proto-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/build-analysis-results-proto/231.0.26.0/build-analysis-results-proto-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
