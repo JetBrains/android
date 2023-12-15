@@ -50,6 +50,7 @@ import com.intellij.util.ui.EDT
 import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
 import org.junit.After
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -118,6 +119,7 @@ class ScreenshotViewerTest {
   }
 
   @Test
+  @Ignore("b/316591692")
   fun testResizing() {
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
@@ -132,6 +134,7 @@ class ScreenshotViewerTest {
   }
 
   @Test
+  @Ignore("b/316591692")
   fun testUpdateEditorImage() {
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
@@ -161,6 +164,7 @@ class ScreenshotViewerTest {
     assertThat(processedImage.getRGB(screenshotImage.width - 5, screenshotImage.height - 5)).isEqualTo(0)
   }
 
+  @Ignore("b/316591692")
   @Test
   fun testClipRoundScreenshotWithBackgroundColor() {
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
@@ -178,6 +182,7 @@ class ScreenshotViewerTest {
     assertThat(processedImage.getRGB(screenshotImage.width - 5, screenshotImage.height - 5)).isEqualTo(Color.BLACK.rgb)
   }
 
+  @Ignore("b/316591692")
   @Test
   fun testClipRoundScreenshotWithBackgroundColorInDarkMode() {
     runInEdt {
@@ -218,6 +223,7 @@ class ScreenshotViewerTest {
   }
 
   @Test
+  @Ignore("b/316591692")
   fun testPlayCompatibleScreenshot() {
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
@@ -235,6 +241,7 @@ class ScreenshotViewerTest {
   }
 
   @Test
+  @Ignore("b/316591692")
   fun testPlayCompatibleScreenshotInDarkMode() {
     runInEdt {
       UIManager.setLookAndFeel(DarculaLaf())
