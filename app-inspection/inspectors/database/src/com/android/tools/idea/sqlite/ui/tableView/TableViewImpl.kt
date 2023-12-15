@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
@@ -70,8 +71,9 @@ import javax.swing.KeyStroke
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
-import org.apache.commons.lang.StringUtils
 import org.jetbrains.annotations.TestOnly
+
+private const val MAX_CELL_TEXT = 200
 
 /** Abstraction on the UI component used to display tables. */
 class TableViewImpl : TableView {
@@ -103,7 +105,7 @@ class TableViewImpl : TableView {
 
   private val exportButton = CommonButton(AllIcons.ToolbarDecorator.Export)
 
-  private val table = JBTable()
+  private val table = MyTable()
   private val tableScrollPane = JBScrollPane(table)
 
   private val progressBar = JProgressBar()
@@ -251,7 +253,7 @@ class TableViewImpl : TableView {
     progressBarPanel.add(progressBar, BorderLayout.NORTH)
     progressBarPanel.isOpaque = false
 
-    // add the table first, otherwise the "resise column" is not shown when hovering the table's
+    // add the table first, otherwise the "resize column" is not shown when hovering the table's
     // header
     layeredPane.add(tablePanel)
     layeredPane.add(progressBarPanel)
@@ -556,7 +558,7 @@ class TableViewImpl : TableView {
       } else {
         val columns = (table.model as MyTableModel).columns
         val inPk = columns[viewColumnIndex - 1].inPrimaryKey
-        if (inPk != null && inPk) {
+        if (inPk) {
           columnNameLabel.icon = StudioIcons.DatabaseInspector.PRIMARY_KEY
           columnNameLabel.iconTextGap = 8
         } else {
@@ -585,6 +587,17 @@ class TableViewImpl : TableView {
     }
   }
 
+  private class MyTable : JBTable() {
+    override fun getToolTipText(event: MouseEvent): String? {
+      val row = rowAtPoint(event.point)
+      val col = columnAtPoint(event.point)
+      return when {
+        row < 0 || col < 0 -> null
+        else -> getValueAt(row, col)?.toString()?.takeIf { it.length > MAX_CELL_TEXT }
+      }
+    }
+  }
+
   private class MyColoredTableCellRenderer : ColoredTableCellRenderer() {
     override fun customizeCellRenderer(
       table: JTable,
@@ -597,7 +610,7 @@ class TableViewImpl : TableView {
       if (value == null) {
         append("NULL", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
       } else {
-        append(StringUtils.abbreviate(value as String, 200))
+        append(StringUtil.shortenPathWithEllipsis(value.toString(), MAX_CELL_TEXT))
       }
     }
   }
