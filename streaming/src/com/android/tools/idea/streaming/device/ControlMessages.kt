@@ -75,6 +75,8 @@ sealed class ControlMessage(val type: Int) {
         UiSettingsRequest.TYPE -> UiSettingsRequest.deserialize(stream)
         UiSettingsResponse.TYPE -> UiSettingsResponse.deserialize(stream)
         SetDarkModeMessage.TYPE -> SetDarkModeMessage.deserialize(stream)
+        SetTalkBackMessage.TYPE -> SetTalkBackMessage.deserialize(stream)
+        SetSelectToSpeakMessage.TYPE -> SetSelectToSpeakMessage.deserialize(stream)
         SetFontSizeMessage.TYPE -> SetFontSizeMessage.deserialize(stream)
         SetScreenDensityMessage.TYPE -> SetScreenDensityMessage.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
@@ -648,6 +650,9 @@ internal class UiSettingsRequest private constructor(override val requestId: Int
 internal data class UiSettingsResponse(
   override val requestId: Int,
   val darkMode: Boolean,
+  val tackBackInstalled: Boolean,
+  val talkBackOn: Boolean,
+  val selectToSpeakOn: Boolean,
   val fontSize: Int,
   val density: Int
 ) : CorrelatedMessage(TYPE) {
@@ -655,6 +660,9 @@ internal data class UiSettingsResponse(
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
     stream.writeBoolean(darkMode)
+    stream.writeBoolean(tackBackInstalled)
+    stream.writeBoolean(talkBackOn)
+    stream.writeBoolean(selectToSpeakOn)
     stream.writeInt(fontSize)
     stream.writeInt(density)
   }
@@ -663,6 +671,9 @@ internal data class UiSettingsResponse(
     "UiSettingsResponse(" +
     "requestId=$requestId, " +
     "darkMode=$darkMode, " +
+    "tackBackInstalled=$tackBackInstalled, " +
+    "talkBackOn=$talkBackOn, " +
+    "selectToSpeakOn=$selectToSpeakOn, " +
     "fontSize=$fontSize, " +
     "density=$density)"
 
@@ -672,11 +683,17 @@ internal data class UiSettingsResponse(
     override fun deserialize(stream: Base128InputStream): UiSettingsResponse {
       val requestId = stream.readInt()
       val darkMode = stream.readBoolean()
+      val tackBackInstalled = stream.readBoolean()
+      val talkBackOn = stream.readBoolean()
+      val selectToSpeakOn = stream.readBoolean()
       val fontSize = stream.readInt()
       val density = stream.readInt()
       return UiSettingsResponse(
         requestId,
         darkMode,
+        tackBackInstalled,
+        talkBackOn,
+        selectToSpeakOn,
         fontSize,
         density
       )
@@ -752,6 +769,52 @@ internal data class SetScreenDensityMessage(val density: Int) : ControlMessage(T
     override fun deserialize(stream: Base128InputStream): SetScreenDensityMessage {
       val density = stream.readInt()
       return SetScreenDensityMessage(density)
+    }
+  }
+}
+
+/**
+ * Turns TalkBack on or off.
+ */
+internal data class SetTalkBackMessage(val on: Boolean) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeBoolean(on)
+  }
+
+  override fun toString(): String =
+    "SetTalkBackMessage(on=$on)"
+
+  companion object : Deserializer {
+    const val TYPE = 24
+
+    override fun deserialize(stream: Base128InputStream): SetTalkBackMessage {
+      val on = stream.readBoolean()
+      return SetTalkBackMessage(on)
+    }
+  }
+}
+
+/**
+ * Turns TalkBack on or off.
+ */
+internal data class SetSelectToSpeakMessage(val on: Boolean) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeBoolean(on)
+  }
+
+  override fun toString(): String =
+    "SetSelectToSpeakMessage(on=$on)"
+
+  companion object : Deserializer {
+    const val TYPE = 25
+
+    override fun deserialize(stream: Base128InputStream): SetSelectToSpeakMessage {
+      val on = stream.readBoolean()
+      return SetSelectToSpeakMessage(on)
     }
   }
 }

@@ -29,6 +29,10 @@ public:
 
   void SetDarkMode(bool dark_mode);
 
+  void SetTalkBack(bool on);
+
+  void SetSelectToSpeak(bool on);
+
   void SetFontSize(int32_t font_size);
 
   void SetScreenDensity(int32_t density);

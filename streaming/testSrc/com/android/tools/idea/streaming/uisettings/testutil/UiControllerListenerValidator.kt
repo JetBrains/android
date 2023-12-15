@@ -34,6 +34,9 @@ import com.intellij.openapi.Disposable
  */
 internal class UiControllerListenerValidator(private val model: UiSettingsModel, customValues: Boolean, parentDisposable: Disposable) {
   val darkMode = createAndAddListener(model.inDarkMode, customValues, parentDisposable)
+  val talkBackInstalled = createAndAddListener(model.talkBackInstalled, customValues, parentDisposable)
+  val talkBackOn = createAndAddListener(model.talkBackOn, customValues, parentDisposable)
+  val selectToSpeakOn = createAndAddListener(model.selectToSpeakOn, customValues, parentDisposable)
   val fontSize = createAndAddListener(model.fontSizeInPercent, if (customValues) CUSTOM_FONT_SIZE else DEFAULT_FONT_SIZE, parentDisposable)
   val density = createAndAddListener(model.screenDensity, if (customValues) CUSTOM_DENSITY else DEFAULT_DENSITY, parentDisposable)
 
@@ -48,6 +51,15 @@ internal class UiControllerListenerValidator(private val model: UiSettingsModel,
     assertThat(model.inDarkMode.value).isEqualTo(expectedCustomValues)
     assertThat(darkMode.changes).isEqualTo(expectedChanges)
     assertThat(darkMode.lastValue).isEqualTo(expectedCustomValues)
+    assertThat(model.talkBackInstalled.value).isEqualTo(expectedCustomValues)
+    assertThat(talkBackInstalled.changes).isEqualTo(expectedChanges)
+    assertThat(talkBackInstalled.lastValue).isEqualTo(expectedCustomValues)
+    assertThat(model.talkBackOn.value).isEqualTo(expectedCustomValues)
+    assertThat(talkBackOn.changes).isEqualTo(expectedChanges)
+    assertThat(talkBackOn.lastValue).isEqualTo(expectedCustomValues)
+    assertThat(model.selectToSpeakOn.value).isEqualTo(expectedCustomValues)
+    assertThat(selectToSpeakOn.changes).isEqualTo(expectedChanges)
+    assertThat(selectToSpeakOn.lastValue).isEqualTo(expectedCustomValues)
     assertThat(model.fontSizeInPercent.value).isEqualTo(if (expectedCustomValues) CUSTOM_FONT_SIZE else DEFAULT_FONT_SIZE)
     assertThat(fontSize.changes).isEqualTo(expectedChanges)
     assertThat(fontSize.lastValue).isEqualTo(if (expectedCustomValues) CUSTOM_FONT_SIZE else DEFAULT_FONT_SIZE)

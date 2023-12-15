@@ -74,6 +74,12 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case SetScreenDensityMessage::TYPE:
       return unique_ptr<ControlMessage>(SetScreenDensityMessage::Deserialize(stream));
 
+    case SetTalkBackMessage::TYPE:
+      return unique_ptr<ControlMessage>(SetTalkBackMessage::Deserialize(stream));
+
+    case SetSelectToSpeakMessage::TYPE:
+      return unique_ptr<ControlMessage>(SetSelectToSpeakMessage::Deserialize(stream));
+
     default:
       Log::Fatal(INVALID_CONTROL_MESSAGE, "Unexpected message type %d", type);
   }
@@ -193,6 +199,16 @@ SetScreenDensityMessage* SetScreenDensityMessage::Deserialize(Base128InputStream
   return new SetScreenDensityMessage(density);
 }
 
+SetTalkBackMessage* SetTalkBackMessage::Deserialize(Base128InputStream& stream) {
+  bool on = stream.ReadBool();
+  return new SetTalkBackMessage(on);
+}
+
+SetSelectToSpeakMessage* SetSelectToSpeakMessage::Deserialize(Base128InputStream& stream) {
+  bool on = stream.ReadBool();
+  return new SetSelectToSpeakMessage(on);
+}
+
 void ErrorResponse::Serialize(Base128OutputStream& stream) const {
   CorrelatedMessage::Serialize(stream);
   stream.WriteBytes(error_message_);
@@ -242,6 +258,9 @@ void UiSettingsRequest::Serialize(Base128OutputStream& stream) const {
 void UiSettingsResponse::Serialize(Base128OutputStream& stream) const {
   CorrelatedMessage::Serialize(stream);
   stream.WriteBool(dark_mode_);
+  stream.WriteBool(talkback_installed_);
+  stream.WriteBool(talkback_on_);
+  stream.WriteBool(select_to_speak_on_);
   stream.WriteInt32(font_size_);
   stream.WriteInt32(density_);
 }
@@ -259,6 +278,16 @@ void SetFontSizeMessage::Serialize(Base128OutputStream& stream) const {
 void SetScreenDensityMessage::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteInt32(density_);
+}
+
+void SetTalkBackMessage::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteBool(talkback_on_);
+}
+
+void SetSelectToSpeakMessage::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteBool(select_to_speak_on_);
 }
 
 }  // namespace screensharing

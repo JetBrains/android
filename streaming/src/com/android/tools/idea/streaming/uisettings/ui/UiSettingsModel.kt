@@ -41,6 +41,9 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int) {
   private val densities = GoogleDensityRange.computeDensityRange(screenSize, physicalDensity)
 
   val inDarkMode: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
+  val talkBackInstalled: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)
+  val talkBackOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
+  val selectToSpeakOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
   val fontSizeInPercent: TwoWayProperty<Int> = DefaultTwoWayProperty(100)
   val fontSizeIndex: TwoWayProperty<Int> = fontSizeInPercent.createMappedProperty(::toFontSizeIndex, ::toFontSizeInPercent)
   val fontSizeMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(FontSize.values().size - 1)

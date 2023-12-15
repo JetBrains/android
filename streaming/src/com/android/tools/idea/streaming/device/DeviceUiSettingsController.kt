@@ -30,12 +30,23 @@ internal class DeviceUiSettingsController(
   override suspend fun populateModel() {
     val response = deviceController.getUiSettings()
     model.inDarkMode.setFromController(response.darkMode)
+    model.talkBackInstalled.setFromController(response.tackBackInstalled)
+    model.talkBackOn.setFromController(response.talkBackOn)
+    model.selectToSpeakOn.setFromController(response.selectToSpeakOn)
     model.fontSizeInPercent.setFromController(response.fontSize)
     model.screenDensity.setFromController(response.density)
   }
 
   override fun setDarkMode(on: Boolean) {
     deviceController.sendControlMessage(SetDarkModeMessage(on))
+  }
+
+  override fun setTalkBack(on: Boolean) {
+    deviceController.sendControlMessage(SetTalkBackMessage(on))
+  }
+
+  override fun setSelectToSpeak(on: Boolean) {
+    deviceController.sendControlMessage(SetSelectToSpeakMessage(on))
   }
 
   override fun setFontSize(percent: Int) {

@@ -296,6 +296,14 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       SetScreenDensity((const SetScreenDensityMessage&) message);
       break;
 
+    case SetTalkBackMessage::TYPE:
+      SetTalkBack((const SetTalkBackMessage&) message);
+      break;
+
+    case SetSelectToSpeakMessage::TYPE:
+      SetSelectToSpeak((const SetSelectToSpeakMessage&) message);
+      break;
+
     default:
       Log::E("Unexpected message type %d", message.type());
       break;
@@ -567,6 +575,14 @@ void Controller::SendUiSettings(const UiSettingsRequest& message) {
 
 void Controller::SetDarkMode(const SetDarkModeMessage& message) {
   ui_settings_.SetDarkMode(message.dark_mode());
+}
+
+void Controller::SetTalkBack(const SetTalkBackMessage& message) {
+  ui_settings_.SetTalkBack(message.talkback_on());
+}
+
+void Controller::SetSelectToSpeak(const SetSelectToSpeakMessage& message) {
+  ui_settings_.SetSelectToSpeak(message.select_to_speak_on());
 }
 
 void Controller::SetFontSize(const SetFontSizeMessage& message) {

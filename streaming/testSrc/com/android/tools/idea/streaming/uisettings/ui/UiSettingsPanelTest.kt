@@ -57,6 +57,8 @@ class UiSettingsPanelTest {
     model = UiSettingsModel(Dimension(1344, 2992), 480)
     panel = UiSettingsPanel(model, projectRule.disposable)
     model.inDarkMode.uiChangeListener = ChangeListener { lastCommand = "dark=$it" }
+    model.talkBackOn.uiChangeListener = ChangeListener { lastCommand = "talkBackOn=$it" }
+    model.selectToSpeakOn.uiChangeListener = ChangeListener { lastCommand = "selectToSpeakOn=$it" }
     model.fontSizeInPercent.uiChangeListener = ChangeListener { lastCommand = "fontSize=$it" }
     model.screenDensity.uiChangeListener = ChangeListener { lastCommand = "density=$it" }
   }
@@ -71,6 +73,38 @@ class UiSettingsPanelTest {
 
     checkBox.doClick()
     waitForCondition(1.seconds) { lastCommand == "dark=false" }
+  }
+
+  @Test
+  fun testSetTalkBackFromUi() {
+    val checkBox = AdtUiUtils.allComponents(panel).filterIsInstance<JCheckBox>().filter { it.name == TALKBACK_TITLE }.single()
+    assertThat(checkBox.isVisible).isFalse()
+    model.talkBackInstalled.setFromController(true)
+    assertThat(checkBox.isVisible).isTrue()
+
+    assertThat(checkBox.isSelected).isFalse()
+
+    checkBox.doClick()
+    waitForCondition(1.seconds) { lastCommand == "talkBackOn=true" }
+
+    checkBox.doClick()
+    waitForCondition(1.seconds) { lastCommand == "talkBackOn=false" }
+  }
+
+  @Test
+  fun testSetSelectToSpeakFromUi() {
+    val checkBox = AdtUiUtils.allComponents(panel).filterIsInstance<JCheckBox>().filter { it.name == SELECT_TO_SPEAK_TITLE }.single()
+    assertThat(checkBox.isVisible).isFalse()
+    model.talkBackInstalled.setFromController(true)
+    assertThat(checkBox.isVisible).isTrue()
+
+    assertThat(checkBox.isSelected).isFalse()
+
+    checkBox.doClick()
+    waitForCondition(1.seconds) { lastCommand == "selectToSpeakOn=true" }
+
+    checkBox.doClick()
+    waitForCondition(1.seconds) { lastCommand == "selectToSpeakOn=false" }
   }
 
   @Test

@@ -592,6 +592,9 @@ public:
 
   void copy(UiSettingsResponse* result) {
     result->set_dark_mode(dark_mode_);
+    result->set_talkback_installed(talkback_installed_);
+    result->set_talkback_on(talkback_on_);
+    result->set_select_to_speak_on(select_to_speak_on_);
     result->set_font_size(font_size_);
     result->set_density(density_);
   }
@@ -602,6 +605,30 @@ public:
 
   bool dark_mode() {
     return dark_mode_;
+  }
+
+  void set_talkback_installed(bool installed) {
+    talkback_installed_ = installed;
+  }
+
+  bool talkback_installed() {
+    return talkback_installed_;
+  }
+
+  void set_talkback_on(bool on) {
+    talkback_on_ = on;
+  }
+
+  bool talkback_on() {
+    return talkback_on_;
+  }
+
+  void set_select_to_speak_on(bool on) {
+    select_to_speak_on_ = on;
+  }
+
+  bool select_to_speak_on() {
+    return select_to_speak_on_;
   }
 
   void set_font_size(int32_t font_size) {
@@ -626,6 +653,9 @@ private:
   friend class ControlMessage;
 
   bool dark_mode_;
+  bool talkback_installed_;
+  bool talkback_on_;
+  bool select_to_speak_on_;
   int32_t font_size_;
   int32_t density_;
 
@@ -713,6 +743,60 @@ private:
   int32_t density_;
 
   DISALLOW_COPY_AND_ASSIGN(SetScreenDensityMessage);
+};
+
+// Turns TalkBack on or off on the device.
+class SetTalkBackMessage : ControlMessage {
+public:
+  SetTalkBackMessage(bool on)
+      : ControlMessage(TYPE),
+        talkback_on_(on) {
+  }
+  virtual ~SetTalkBackMessage() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  bool talkback_on() const {
+    return talkback_on_;
+  }
+
+  static constexpr int TYPE = 24;
+
+private:
+  friend class ControlMessage;
+
+  static SetTalkBackMessage* Deserialize(Base128InputStream& stream);
+
+  bool talkback_on_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetTalkBackMessage);
+};
+
+// Turns Select to Speak on or off on the device.
+class SetSelectToSpeakMessage : ControlMessage {
+public:
+  SetSelectToSpeakMessage(bool on)
+      : ControlMessage(TYPE),
+        select_to_speak_on_(on) {
+  }
+  virtual ~SetSelectToSpeakMessage() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  bool select_to_speak_on() const {
+    return select_to_speak_on_;
+  }
+
+  static constexpr int TYPE = 25;
+
+private:
+  friend class ControlMessage;
+
+  static SetSelectToSpeakMessage* Deserialize(Base128InputStream& stream);
+
+  bool select_to_speak_on_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetSelectToSpeakMessage);
 };
 
 }  // namespace screensharing

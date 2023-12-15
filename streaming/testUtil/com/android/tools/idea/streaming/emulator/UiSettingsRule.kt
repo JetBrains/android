@@ -63,6 +63,9 @@ class UiSettingsRule(emulatorPort: Int) : ExternalResource() {
 
   fun configureUiSettings(
     darkMode: Boolean = false,
+    talkBackInstalled: Boolean = false,
+    talkBackOn: Boolean = false,
+    selectToSpeakOn: Boolean = false,
     fontSize: Int = DEFAULT_FONT_SIZE,
     physicalDensity: Int = DEFAULT_DENSITY,
     overrideDensity: Int = DEFAULT_DENSITY
@@ -72,11 +75,31 @@ class UiSettingsRule(emulatorPort: Int) : ExternalResource() {
     adb.configureShellCommand(deviceSelector, POPULATE_COMMAND, """
       -- Dark Mode --
       Night mode: ${if (darkMode) "yes" else "no"}
+      -- List Packages --
+      package:com.google.some.package1
+      ${if (talkBackInstalled) "package:com.google.android.marvin.talkback" else "package:com.google.some.package2"}
+      package:com.google.some.package3
+      -- Accessibility Services --
+      ${formatAccessibilityServices(talkBackOn, selectToSpeakOn)}
+      -- Accessibility Button Targets --
+      ${formatAccessibilityServices(talkBackOn = false, selectToSpeakOn)}
       -- Font Size --
       ${(fontSize.toFloat() / 100f)}
       -- Density --
       Physical density: $physicalDensity
     """.trimIndent() + overrideLine)
+
+    adb.configureShellCommand(deviceSelector, "settings get secure $ENABLED_ACCESSIBILITY_SERVICES",
+                              formatAccessibilityServices(talkBackOn, selectToSpeakOn))
+    adb.configureShellCommand(deviceSelector, "settings get secure $ACCESSIBILITY_BUTTON_TARGETS",
+                              formatAccessibilityServices(talkBackOn = false, selectToSpeakOn))
+  }
+
+  private fun formatAccessibilityServices(talkBackOn: Boolean, selectToSpeakOn: Boolean): String = when {
+    talkBackOn && selectToSpeakOn -> "$TALK_BACK_SERVICE_NAME:$SELECT_TO_SPEAK_SERVICE_NAME"
+    talkBackOn && !selectToSpeakOn -> TALK_BACK_SERVICE_NAME
+    !talkBackOn && selectToSpeakOn -> SELECT_TO_SPEAK_SERVICE_NAME
+    else -> "null"
   }
 
   override fun apply(base: Statement, description: Description): Statement =

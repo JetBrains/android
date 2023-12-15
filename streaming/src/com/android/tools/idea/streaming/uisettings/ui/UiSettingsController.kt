@@ -29,6 +29,8 @@ internal abstract class UiSettingsController(
 
   init {
     model.inDarkMode.uiChangeListener = ChangeListener(::setDarkMode)
+    model.talkBackOn.uiChangeListener = ChangeListener(::setTalkBack)
+    model.selectToSpeakOn.uiChangeListener = ChangeListener(::setSelectToSpeak)
     model.fontSizeInPercent.uiChangeListener = ChangeListener(::setFontSize)
     model.screenDensity.uiChangeListener = ChangeListener(::setScreenDensity)
   }
@@ -42,6 +44,16 @@ internal abstract class UiSettingsController(
    * Changes the dark mode on the device/emulator.
    */
   protected abstract fun setDarkMode(on: Boolean)
+
+  /**
+   * Turns TackBack on or off.
+   */
+  protected abstract fun setTalkBack(on: Boolean)
+
+  /**
+   * Turns Select to Speak on or off.
+   */
+  protected abstract fun setSelectToSpeak(on: Boolean)
 
   /**
    * Changes the font size on the device/emulator.

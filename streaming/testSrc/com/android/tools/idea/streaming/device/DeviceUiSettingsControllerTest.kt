@@ -67,6 +67,9 @@ class DeviceUiSettingsControllerTest {
   @Test
   fun testReadCustomValue() {
     agent.darkMode = true
+    agent.talkBackInstalled = true
+    agent.talkBackOn = true
+    agent.selectToSpeakOn = true
     agent.fontSize = CUSTOM_FONT_SIZE
     agent.screenDensity = CUSTOM_DENSITY
     controller.initAndWait()
@@ -87,6 +90,40 @@ class DeviceUiSettingsControllerTest {
     controller.initAndWait()
     model.inDarkMode.setFromUi(false)
     waitForCondition(10.seconds) { !agent.darkMode }
+  }
+
+  @Test
+  fun testSetTalkBackOn() {
+    agent.talkBackInstalled = true
+    controller.initAndWait()
+    model.talkBackOn.setFromUi(true)
+    waitForCondition(10.seconds) { agent.talkBackOn }
+  }
+
+  @Test
+  fun testSetTalkBackOff() {
+    agent.talkBackInstalled = true
+    agent.talkBackOn = true
+    controller.initAndWait()
+    model.talkBackOn.setFromUi(false)
+    waitForCondition(10.seconds) { !agent.talkBackOn }
+  }
+
+  @Test
+  fun testSetSelectToSpeakOn() {
+    agent.talkBackInstalled = true
+    controller.initAndWait()
+    model.selectToSpeakOn.setFromUi(true)
+    waitForCondition(10.seconds) { agent.selectToSpeakOn }
+  }
+
+  @Test
+  fun testSetSelectToSpeakOff() {
+    agent.talkBackInstalled = true
+    agent.selectToSpeakOn = true
+    controller.initAndWait()
+    model.selectToSpeakOn.setFromUi(false)
+    waitForCondition(10.seconds) { !agent.selectToSpeakOn }
   }
 
   @Test

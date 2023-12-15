@@ -39,7 +39,10 @@ class EmulatorUiSettingsControllerTest {
     get() = rule.adb
 
   private val lastIssuedChangeCommand: String?
-    get() = rule.issuedChangeCommands.lastOrNull { it != "cmd uimode night" }
+    get() = rule.issuedChangeCommands.lastOrNull()
+
+  private val antepenultimateChangeCommand: String?
+    get() = rule.issuedChangeCommands.let { if (it.size > 2) it[it.size - 3] else null }
 
   private val model: UiSettingsModel by lazy { UiSettingsModel(Dimension(1344, 2992), DEFAULT_DENSITY) } // Pixel 8 Pro
   private val controller: EmulatorUiSettingsController by lazy { createController() }
@@ -53,6 +56,15 @@ class EmulatorUiSettingsControllerTest {
     adb.configureShellCommand(rule.deviceSelector, "wm density 408", "Physical density: 480\nOverride density: 408")
     adb.configureShellCommand(rule.deviceSelector, "wm density 480", "Physical density: 480")
     adb.configureShellCommand(rule.deviceSelector, "wm density 544", "Physical density: 480\nOverride density: 544")
+    adb.configureShellCommand(rule.deviceSelector, "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME", "")
+    adb.configureShellCommand(rule.deviceSelector, "settings delete secure enabled_accessibility_services", "")
+    adb.configureShellCommand(rule.deviceSelector, "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME", "")
+    adb.configureShellCommand(rule.deviceSelector, "settings put secure accessibility_button_targets ${SELECT_TO_SPEAK_SERVICE_NAME}", "")
+    adb.configureShellCommand(rule.deviceSelector, "settings delete secure accessibility_button_targets", "")
+    adb.configureShellCommand(rule.deviceSelector, "settings put secure enabled_accessibility_services " +
+                                                   "$TALK_BACK_SERVICE_NAME:$SELECT_TO_SPEAK_SERVICE_NAME", "")
+    adb.configureShellCommand(rule.deviceSelector, "settings put secure enabled_accessibility_services " +
+                                                   "$SELECT_TO_SPEAK_SERVICE_NAME:$TALK_BACK_SERVICE_NAME", "")
   }
 
   @Test
@@ -71,7 +83,15 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testReadCustomValue() {
-    rule.configureUiSettings(darkMode = true, fontSize = CUSTOM_FONT_SIZE, overrideDensity = CUSTOM_DENSITY)
+    rule.configureUiSettings(
+      darkMode = true,
+      talkBackInstalled = true,
+      talkBackOn = true,
+      selectToSpeakOn = true,
+      fontSize = CUSTOM_FONT_SIZE,
+      physicalDensity = DEFAULT_DENSITY,
+      overrideDensity = CUSTOM_DENSITY
+    )
     controller.initAndWait()
     val listeners = UiControllerListenerValidator(model, customValues = false, testRootDisposable)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = true)
@@ -89,7 +109,88 @@ class EmulatorUiSettingsControllerTest {
     rule.configureUiSettings(darkMode = true)
     controller.initAndWait()
     model.inDarkMode.setFromUi(false)
-    waitForCondition(120.seconds) { lastIssuedChangeCommand == "cmd uimode night no" }
+    waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd uimode night no" }
+  }
+
+  @Test
+  fun testSetTalkBackOn() {
+    rule.configureUiSettings(talkBackInstalled = true)
+    controller.initAndWait()
+    model.talkBackOn.setFromUi(true)
+    waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME" }
+  }
+
+  @Test
+  fun testSetTalkBackOff() {
+    rule.configureUiSettings(talkBackInstalled = true, talkBackOn = true)
+    controller.initAndWait()
+    model.talkBackOn.setFromUi(false)
+    waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings delete secure enabled_accessibility_services" }
+  }
+
+  @Test
+  fun testSetTalkBackOnWithSelectToSpeakOn() {
+    rule.configureUiSettings(talkBackInstalled = true, selectToSpeakOn = true)
+    controller.initAndWait()
+    model.talkBackOn.setFromUi(true)
+    waitForCondition(10.seconds) {
+      lastIssuedChangeCommand == "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME:$TALK_BACK_SERVICE_NAME"
+    }
+  }
+
+  @Test
+  fun testSetTalkBackOffWithSelectToSpeakOn() {
+    rule.configureUiSettings(talkBackInstalled = true, talkBackOn = true, selectToSpeakOn = true)
+    controller.initAndWait()
+    model.talkBackOn.setFromUi(false)
+    waitForCondition(10.seconds) {
+      lastIssuedChangeCommand == "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME"
+    }
+  }
+
+  @Test
+  fun testSetSelectToSpeakOn() {
+    rule.configureUiSettings(talkBackInstalled = true)
+    controller.initAndWait()
+    model.selectToSpeakOn.setFromUi(true)
+    waitForCondition(10.seconds) {
+      antepenultimateChangeCommand == "settings put secure enabled_accessibility_services $SELECT_TO_SPEAK_SERVICE_NAME" &&
+      lastIssuedChangeCommand == "settings put secure accessibility_button_targets $SELECT_TO_SPEAK_SERVICE_NAME"
+    }
+  }
+
+  @Test
+  fun testSetSelectToSpeakOff() {
+    rule.configureUiSettings(talkBackInstalled = true, selectToSpeakOn = true)
+    controller.initAndWait()
+    model.selectToSpeakOn.setFromUi(false)
+    waitForCondition(10.seconds) {
+      antepenultimateChangeCommand == "settings delete secure enabled_accessibility_services" &&
+      lastIssuedChangeCommand == "settings delete secure accessibility_button_targets"
+    }
+  }
+
+  @Test
+  fun testSetSelectToSpeakOnWithTalkBackOn() {
+    rule.configureUiSettings(talkBackInstalled = true, talkBackOn = true)
+    controller.initAndWait()
+    model.selectToSpeakOn.setFromUi(true)
+    waitForCondition(10.seconds) {
+      antepenultimateChangeCommand == "settings put secure enabled_accessibility_services " +
+                                      "$TALK_BACK_SERVICE_NAME:$SELECT_TO_SPEAK_SERVICE_NAME" &&
+      lastIssuedChangeCommand == "settings put secure accessibility_button_targets $SELECT_TO_SPEAK_SERVICE_NAME"
+    }
+  }
+
+  @Test
+  fun testSetSelectToSpeakOffWithTalkBackOn() {
+    rule.configureUiSettings(talkBackInstalled = true, talkBackOn = true, selectToSpeakOn = true)
+    controller.initAndWait()
+    model.selectToSpeakOn.setFromUi(false)
+    waitForCondition(10.seconds) {
+      antepenultimateChangeCommand == "settings put secure enabled_accessibility_services $TALK_BACK_SERVICE_NAME" &&
+      lastIssuedChangeCommand == "settings delete secure accessibility_button_targets"
+    }
   }
 
   @Test

@@ -26,6 +26,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.IntelliJSpacingConfiguration
+import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.actionListener
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.UIUtil
@@ -41,6 +42,8 @@ import javax.swing.plaf.UIResource
 
 private const val TITLE = "Device Settings Shortcuts"
 internal const val DARK_THEME_TITLE = "Dark Theme:"
+internal const val TALKBACK_TITLE = "TalkBack:"
+internal const val SELECT_TO_SPEAK_TITLE = "Select to Speak:"
 internal const val FONT_SIZE_TITLE = "Font Size:"
 internal const val DENSITY_TITLE = "Screen Size:"
 
@@ -63,11 +66,25 @@ internal class UiSettingsPanel(
       customizeSpacingConfiguration(SPACING) {
         row(title(TITLE)) {}
         separator()
+
         row(label(DARK_THEME_TITLE)) {
           checkBox("")
             .bind(model.inDarkMode, parentDisposable)
             .apply { component.name = DARK_THEME_TITLE }
         }
+
+        row(label(TALKBACK_TITLE)) {
+          checkBox("")
+            .bind(model.talkBackOn, parentDisposable)
+            .apply { component.name = TALKBACK_TITLE }
+        }.visibleIf(model.talkBackInstalled, parentDisposable)
+
+        row(label(SELECT_TO_SPEAK_TITLE)) {
+          checkBox("")
+            .bind(model.selectToSpeakOn, parentDisposable)
+            .apply { component.name = SELECT_TO_SPEAK_TITLE }
+        }.visibleIf(model.talkBackInstalled, parentDisposable)
+
         row(label(FONT_SIZE_TITLE)) {
           slider(0, model.fontSizeMaxIndex.value, 1, 1)
             .noLabels()
@@ -75,6 +92,7 @@ internal class UiSettingsPanel(
             .bindSliderMaximum(model.fontSizeMaxIndex, parentDisposable)
             .apply { component.name = FONT_SIZE_TITLE }
         }
+
         row(label(DENSITY_TITLE)) {
           slider(0, model.screenDensityIndex.value, 1, 1)
             .noLabels()
@@ -133,19 +151,27 @@ internal class UiSettingsPanel(
     return actionListener { _, c -> predicate.setFromUi(c.isSelected) }
   }
 
-  private fun Cell<JSlider>.noLabels(): Cell<JSlider> = apply {
+  private fun Cell<JSlider>.noLabels(): Cell<JSlider> {
     component.paintLabels = false
+    return this
   }
 
-  private fun Cell<JSlider>.bindSliderPosition(property: TwoWayProperty<Int>, disposable: Disposable): Cell<JSlider> = apply {
+  private fun Cell<JSlider>.bindSliderPosition(property: TwoWayProperty<Int>, disposable: Disposable): Cell<JSlider> {
     property.addControllerListener(disposable) { component.value = it }
     component.value = property.value
     component.addChangeListener { if (!component.valueIsAdjusting) property.setFromUi(component.value) }
+    return this
   }
 
   private fun Cell<JSlider>.bindSliderMaximum(property: ReadOnlyProperty<Int>, disposable: Disposable): Cell<JSlider> = apply {
     property.addControllerListener(disposable) { component.maximum = it }
     component.maximum = property.value
+  }
+
+  private fun Row.visibleIf(predicate: ReadOnlyProperty<Boolean>, disposable: Disposable): Row {
+    visible(predicate.value)
+    predicate.addControllerListener(disposable) { visible(it) }
+    return this
   }
 
   /**
