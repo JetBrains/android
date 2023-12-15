@@ -2,10 +2,10 @@
   "SPDXID" : "SPDXRef-DOCUMENT",
   "spdxVersion" : "SPDX-2.3",
   "creationInfo" : {
-    "created" : "2023-08-08T18:37:56Z",
+    "created" : "2023-12-21T18:37:56Z",
     "creators" : [
       "Organization: Google LLC",
-      "Person: alyukhan@google.com" ]
+      "Person: baskakov@google.com" ]
   },
   "name" : "Compose compiler",
   "dataLicense" : "CC0-1.0",
@@ -18,54 +18,30 @@
     "SPDXID" : "SPDXRef-PREBUILT-compose-compiler-hosted",
     "checksums" : [ {
       "algorithm" : "SHA256",
-      "checksumValue" : "439ae0e8afb4af520120561502644753b71b8fb7b3a292cc8e7ec13db72970c5"
+      "checksumValue" : "c924a86e7d9a549168c15bdecb9b2edbb48a36c0"
     }, {
       "algorithm" : "SHA1",
-      "checksumValue" : "d6a8e48a9156b8074babe7eac2357ab6b66a5d1e"
+      "checksumValue" : "ebeaab6f1a2044dddb6ab0d8aaee319b1ff654769a0c43912afec1ea7fc73c47"
     } ],
     "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "NONE",
+    "downloadLocation" : "https://androidx.dev/storage/compose-compiler/repository/androidx/compose/compiler/compiler-hosted/1.5.6-dev-k1.9.21-3eed341308a/compiler-hosted-1.5.6-dev-k1.9.21-3eed341308a.jar",
     "filesAnalyzed" : false,
     "licenseConcluded" : "NOASSERTION",
     "licenseDeclared" : "NOASSERTION",
     "name" : "Patched Compose Compiler",
     "packageFileName" : "compiler-hosted.jar",
     "supplier" : "Organization: Google LLC",
-    "versionInfo" : "1.5.1-20230809",
-    "sourceInfo" : "Obtained by applying compatibility-fixups-for-kotlinc-1.9.20-dev-5606.patch to SSPDXRef-SOURCE-AOSP-androidx-compiler-hosted. Built at ab/P60918369"
-  }, {
-    "SPDXID" : "SPDXRef-SOURCE-AOSP-androidx-compiler-hosted-patch",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "9260428910a2a4a0b50d09e329d35171a1ae642afa5cd22fc3002633a5afb5cd"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "ffb2a8870bc7a3c9ac7d9fa3ceb8c263b1874094"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "NONE",
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "NOASSERTION",
-    "name" : "A patch for compose compiler-hosted to make it compatible with 1.9.20-dev-5606",
-    "supplier" : "Organization: Google LLC",
-    "packageFileName" : "compatibility-fixups-for-kotlinc-1.9.20-dev-5606.patch",
-    "versionInfo" : "1.0"
+    "versionInfo" : "1.5.6-dev-k1.9.21-3eed341308a"
   }, {
     "SPDXID" : "SPDXRef-SOURCE-AOSP-androidx-compiler-hosted",
     "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "git+android.googlesource.com/platform/frameworks/support@ed5efa3ce81b267da6a43962d680240b0534a33e#compose/compiler/compiler-hosted",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:generic/androidx?vcs_url=git%2Bhttps://android.googlesource.com/platform/frameworks/support%40ed5efa3ce81b267da6a43962d680240b0534a33e",
-      "referenceType" : "purl"
-    } ],
+    "downloadLocation" : "https://androidx.dev/storage/compose-compiler/repository/androidx/compose/compiler/compiler-hosted/1.5.6-dev-k1.9.21-3eed341308a/compiler-hosted-1.5.6-dev-k1.9.21-3eed341308a-sources.jar",
     "filesAnalyzed" : false,
     "licenseConcluded" : "NOASSERTION",
     "licenseDeclared" : "LicenseRef-SPDXRef-SOURCE-AOSP-androidx",
     "name" : "Compose Compiler",
     "supplier" : "Organization: Google LLC",
-    "versionInfo" : "1.5.1-SNAPSHOT"
+    "versionInfo" : "1.5.6-dev-k1.9.21-3eed341308a"
   } ],
   "relationships" : [ {
     "spdxElementId" : "SPDXRef-DOCUMENT",
@@ -80,9 +56,5 @@
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "NOASSERTION",
     "comment" : "Dependencies are not analyzed."
-  }, {
-    "spdxElementId" : "SPDXRef-PREBUILT-compose-compiler-hosted",
-    "relationshipType" : "GENERATED_FROM",
-    "relatedSpdxElement" : "SPDXRef-SOURCE-AOSP-androidx-compiler-hosted-patch"
   } ]
 }
