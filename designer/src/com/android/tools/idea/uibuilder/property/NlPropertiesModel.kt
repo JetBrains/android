@@ -48,6 +48,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.pom.Navigatable
@@ -186,7 +187,10 @@ open class NlPropertiesModel(
   open fun getPropertyTag(property: NlPropertyItem): XmlTag? = property.firstTag
 
   open fun getPropertyValue(property: NlPropertyItem): String? {
-    ApplicationManager.getApplication().assertReadAccessAllowed()
+    return runReadAction { readPropertyValue(property) }
+  }
+
+  private fun readPropertyValue(property: NlPropertyItem): String? {
     var prev: String? = null
     for (component in property.components) {
       val value = component.getLiveAttribute(property.namespace, property.name) ?: return null
