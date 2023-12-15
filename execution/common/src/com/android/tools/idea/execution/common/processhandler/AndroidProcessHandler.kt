@@ -25,6 +25,7 @@ import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -163,6 +164,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
     AppExecutorUtil.getAppExecutorService().submit {
       myMonitorManager.close()
       notifyProcessTerminated(0)
+      ActivityTracker.getInstance().inc()
     }
   }
 
@@ -179,6 +181,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
     AppExecutorUtil.getAppExecutorService().submit {
       myMonitorManager.detachAndClose()
       notifyProcessDetached()
+      ActivityTracker.getInstance().inc()
     }
   }
 
