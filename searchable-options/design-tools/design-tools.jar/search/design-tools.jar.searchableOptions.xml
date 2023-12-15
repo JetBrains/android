@@ -217,7 +217,6 @@
     <option name="files" hit="Compose files without previews:" />
     <option name="previews" hit="Compose files without previews:" />
     <option name="without" hit="Compose files without previews:" />
-    <option name="default" hit="Default" />
     <option name="default" hit="Default Editor Mode" />
     <option name="editor" hit="Default Editor Mode" />
     <option name="mode" hit="Default Editor Mode" />
@@ -228,7 +227,6 @@
     <option name="enable" hit="Enable live updates" />
     <option name="live" hit="Enable live updates" />
     <option name="updates" hit="Enable live updates" />
-    <option name="essentials" hit="Essentials" />
     <option name="files" hit="Other Kotlin files:" />
     <option name="kotlin" hit="Other Kotlin files:" />
     <option name="other" hit="Other Kotlin files:" />
@@ -239,8 +237,6 @@
     <option name="navigation" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
     <option name="other" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
     <option name="resources" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
-    <option name="resource" hit="Resource Usage:" />
-    <option name="usage" hit="Resource Usage:" />
     <option name="split" hit="Split" />
   </configurable>
 </options>
