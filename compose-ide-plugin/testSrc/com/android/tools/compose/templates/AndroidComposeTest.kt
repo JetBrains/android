@@ -39,8 +39,61 @@ class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
     """
         .trimIndent()
     )
+    myFixture.addFileToProject(
+      "src/androidx/compose/runtime/Composable.kt",
+      // language=kotlin
+      """
+    package androidx.compose.runtime
+
+    annotation class Composable
+    """
+        .trimIndent()
+    )
+    myFixture.addFileToProject(
+      "src/androidx/compose/ui/Modifier.kt",
+      // language=kotlin
+      """
+    package androidx.compose.ui
+
+    interface Modifier {
+      companion object : Modifier {}
+    }
+    """
+        .trimIndent()
+    )
     LiveTemplateCompletionContributor.setShowTemplatesInTests(true, myFixture.testRootDisposable)
     TemplateManagerImpl.setTemplateTesting(myFixture.testRootDisposable)
+  }
+
+  fun testCompTemplate() {
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      <caret>
+      """
+        .trimIndent()
+    )
+
+    val template = TemplateSettings.getInstance().getTemplate("comp", "AndroidCompose")
+    InvokeTemplateAction(template, myFixture.editor, project, HashSet()).perform()
+
+    myFixture.checkResult(
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.Modifier
+
+      @Composable
+      fun (modifier: Modifier = Modifier) {
+          
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testBoxTemplate() {
@@ -193,11 +246,12 @@ class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
       package com.example
 
       import androidx.compose.runtime.Composable
+      import androidx.compose.ui.Modifier
 
       @Composable
       fun NewsStory() {
           Text(
-            modifier = androidx.compose.ui.Modifier.padding(.dp)
+            modifier = Modifier.padding(.dp)
             "A day in Shark Fin Cove")
           Text("Davenport, California")
       }
@@ -235,11 +289,12 @@ class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
       package com.example
 
       import androidx.compose.runtime.Composable
+      import androidx.compose.ui.Modifier
 
       @Composable
       fun NewsStory() {
           Text(
-            modifier = androidx.compose.ui.Modifier.weight()
+            modifier = Modifier.weight()
             "A day in Shark Fin Cove")
           Text("Davenport, California")
       }
