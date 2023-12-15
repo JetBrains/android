@@ -75,6 +75,8 @@ public class CreateNavGraphTest {
       .clickOk();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
+    ideFrame.requestFocusIfLost();
+
     String contents = ideFrame.getEditor()
       .open("app/build.gradle")
       .getCurrentFileContents();

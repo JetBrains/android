@@ -1715,6 +1715,7 @@ java_test(
 
 java_test(
     name = "CreateNavGraphTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
