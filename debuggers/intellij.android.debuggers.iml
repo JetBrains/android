@@ -13,15 +13,15 @@
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module-library">
       <library name="libjava_sites" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libjava_sites:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libjava_sites:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_sites/231.0.1.4/libjava_sites-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_sites/231.0.26.0/libjava_sites-231.0.26.0.jar">
               <sha256sum>13b71bbf5023496373c78235f720324a6f304c95605bdecbec672d73a8bfcd2e</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_sites/231.0.1.4/libjava_sites-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_sites/231.0.26.0/libjava_sites-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

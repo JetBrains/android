@@ -8,37 +8,37 @@
     <orderEntry type="module" module-name="android.sdktools.jdwppacket" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-jdwpscache" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwpscache:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwpscache:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwpscache/231.0.1.4/studio.android.sdktools.jdwpscache-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwpscache/231.0.26.0/studio.android.sdktools.jdwpscache-231.0.26.0.jar">
               <sha256sum>12f0ac17d82a030103e6237200bc66e6179a5bfca5838cea9d2c82b6b632a1d0</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwpscache/231.0.1.4/studio.android.sdktools.jdwpscache-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwpscache/231.0.26.0/studio.android.sdktools.jdwpscache-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwpscache/231.0.1.4/studio.android.sdktools.jdwpscache-231.0.1.4-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwpscache/231.0.26.0/studio.android.sdktools.jdwpscache-231.0.26.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-jdwpscache-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwpscache_test:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwpscache_test:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwpscache_test/231.0.1.4/studio.android.sdktools.jdwpscache_test-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwpscache_test/231.0.26.0/studio.android.sdktools.jdwpscache_test-231.0.26.0.jar">
               <sha256sum>90dbafe868543983c70de3498cc2fcd30fff9bf317e93f5362e09f0628b7eab9</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwpscache_test/231.0.1.4/studio.android.sdktools.jdwpscache_test-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwpscache_test/231.0.26.0/studio.android.sdktools.jdwpscache_test-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwpscache_test/231.0.1.4/studio.android.sdktools.jdwpscache_test-231.0.1.4-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwpscache_test/231.0.26.0/studio.android.sdktools.jdwpscache_test-231.0.26.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

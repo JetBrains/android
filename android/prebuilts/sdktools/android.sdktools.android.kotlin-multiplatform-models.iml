@@ -8,15 +8,15 @@
     <orderEntry type="library" exported="" name="kotlin-multiplatform-android-models-proto" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-kotlin-multiplatform-models" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.kotlin-multiplatform-models:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.kotlin-multiplatform-models:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.kotlin-multiplatform-models/231.0.1.4/studio.android.kotlin-multiplatform-models-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.kotlin-multiplatform-models/231.0.26.0/studio.android.kotlin-multiplatform-models-231.0.26.0.jar">
               <sha256sum>769b8f5d0153f6750b9c59c70b22227b518c45a16ec8247fc9dc37f2b8972538</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.kotlin-multiplatform-models/231.0.1.4/studio.android.kotlin-multiplatform-models-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.kotlin-multiplatform-models/231.0.26.0/studio.android.kotlin-multiplatform-models-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -24,15 +24,15 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-kotlin-multiplatform-models-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.kotlin-multiplatform-models_test:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.kotlin-multiplatform-models_test:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.kotlin-multiplatform-models_test/231.0.1.4/studio.android.kotlin-multiplatform-models_test-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.kotlin-multiplatform-models_test/231.0.26.0/studio.android.kotlin-multiplatform-models_test-231.0.26.0.jar">
               <sha256sum>c4ed2e61a0d749743fcd7c647714f0ec3f2c948e2c681bdfe663628e8db09638</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.kotlin-multiplatform-models_test/231.0.1.4/studio.android.kotlin-multiplatform-models_test-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.kotlin-multiplatform-models_test/231.0.26.0/studio.android.kotlin-multiplatform-models_test-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

@@ -35,15 +35,15 @@
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module-library" scope="TEST">
       <library name="libstudio.android-test-plugin-host-retention-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libstudio.android-test-plugin-host-retention-proto:231.0.1.4">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libstudio.android-test-plugin-host-retention-proto:231.0.26.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-retention-proto/231.0.1.4/libstudio.android-test-plugin-host-retention-proto-231.0.1.4.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-retention-proto/231.0.26.0/libstudio.android-test-plugin-host-retention-proto-231.0.26.0.jar">
               <sha256sum>787fa80e8668b468e7372edf252333cd2d909383b1b43596339be4701f396e33</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-retention-proto/231.0.1.4/libstudio.android-test-plugin-host-retention-proto-231.0.1.4.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-retention-proto/231.0.26.0/libstudio.android-test-plugin-host-retention-proto-231.0.26.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
