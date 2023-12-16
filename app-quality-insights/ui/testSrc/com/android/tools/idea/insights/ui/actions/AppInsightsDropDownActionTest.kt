@@ -116,7 +116,6 @@ class AppInsightsDropDownActionTest {
         targetComponent = panel
       }
     panel.add(toolbar.component, BorderLayout.CENTER)
-    toolbar.updateActionsImmediately()
     fakeUi.updateToolbars()
     return fakeUi
   }

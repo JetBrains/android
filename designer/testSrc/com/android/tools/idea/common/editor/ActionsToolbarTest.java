@@ -30,6 +30,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.actionSystem.impl.PresentationFactory;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.lang.reflect.Field;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -41,23 +42,23 @@ public class ActionsToolbarTest extends LayoutTestCase {
     ActionsToolbar toolbar = createToolbar();
     ActionToolbarImpl centerToolBar = toolbar.getCenterToolbar();
     Map<?, ?> cache = getPresentationCache(centerToolBar);
-    centerToolBar.updateActionsImmediately();
+    PlatformTestUtil.waitForFuture(centerToolBar.updateActionsAsync());
     int initialSize = cache.size();
 
     toolbar.updateActions();
-    centerToolBar.updateActionsImmediately();
+    PlatformTestUtil.waitForFuture(centerToolBar.updateActionsAsync());
     assertThat(cache.size()).isAtMost(initialSize);
 
     toolbar.updateActions();
-    centerToolBar.updateActionsImmediately();
+    PlatformTestUtil.waitForFuture(centerToolBar.updateActionsAsync());
     assertThat(cache.size()).isAtMost(initialSize);
 
     toolbar.updateActions();
-    centerToolBar.updateActionsImmediately();
+    PlatformTestUtil.waitForFuture(centerToolBar.updateActionsAsync());
     assertThat(cache.size()).isAtMost(initialSize);
 
     toolbar.updateActions();
-    centerToolBar.updateActionsImmediately();
+    PlatformTestUtil.waitForFuture(centerToolBar.updateActionsAsync());
     assertThat(cache.size()).isAtMost(initialSize);
   }
 

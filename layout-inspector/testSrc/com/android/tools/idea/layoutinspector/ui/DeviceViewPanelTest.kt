@@ -93,11 +93,13 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
@@ -184,7 +186,10 @@ class DeviceViewPanelWithFullInspectorTest {
     val renderModel =
       panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().renderModel
     delegateDataProvider(panel)
-    panel.flatten(false).filterIsInstance<ActionToolbar>().forEach { it.updateActionsImmediately() }
+    panel.flatten(false).filterIsInstance<ActionToolbar>().forEach { toolbar ->
+      check(toolbar is ActionToolbarImpl) // Downcast needed until we get IntelliJ commit 2c2720e223 in 2024.1.
+      PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
+    }
     val toggle =
       panel.flatten(false).filterIsInstance<ActionButton>().single { it.action is Toggle3dAction }
     (toggle.action as Toggle3dAction).executorFactory = { scheduler }
