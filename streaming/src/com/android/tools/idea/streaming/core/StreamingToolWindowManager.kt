@@ -513,10 +513,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       contentManager.addContent(content)
     }
     else {
-      val index = Arrays.binarySearch(contentManager.contents, content, TAB_COMPARATOR).inv()
+      var index = Arrays.binarySearch(contentManager.contents, content, TAB_COMPARATOR).inv()
       if (index < 0) {
-        reportDuplicatePanel(content)
-        return
+        index = index.inv()
+        if (panel.id == ID_KEY.get(contentManager.contents[index])) {
+          reportDuplicatePanel(content)
+          return
+        }
       }
 
       // Insert panel in alphabetical order of the title.
