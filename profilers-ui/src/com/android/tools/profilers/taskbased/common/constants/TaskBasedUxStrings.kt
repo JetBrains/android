@@ -29,4 +29,9 @@ object TaskBasedUxStrings {
   // Device dropdown strings
   const val NO_SUPPORTED_DEVICES = "No supported devices"
   const val DEVICE_SELECTION_PROMPT = "Please select a device"
+
+  // Export and import strings
+  const val IMPORT_RECORDING_DESC = "Import recording"
+  const val EXPORT_RECORDING_DESC = "Export recording"
+  const val EXPORT_RECORDING_DISABLED_TOOLTIP = "Recording is not exportable"
 }

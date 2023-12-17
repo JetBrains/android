@@ -62,12 +62,11 @@ object TaskBasedUxIcons {
   // The settings icon is used as a button to invoke the task configuration dialog.
   val TASK_CONFIG_ICON = TaskBasedUxIcon("studio/icons/common/settings.svg", StudioIcons::class.java, StudioIcons.Common.SETTINGS)
 
-  // The arrow down and arrow up icons are used for the import and export button respectively button.
-  val IMPORT_RECORDING_ICON = TaskBasedUxIcon("studio/icons/layout-editor/toolbar/arrow-down.svg", StudioIcons::class.java,
-                                              StudioIcons.LayoutEditor.Toolbar.ARROW_UP)
-  val EXPORT_RECORDING_ICON = TaskBasedUxIcon("studio/icons/layout-editor/toolbar/arrow-up.svg", StudioIcons::class.java,
-                                              StudioIcons.LayoutEditor.Toolbar.ARROW_DOWN)
-
   /** The following are the AllIcons used in the Task-Based UX Profiler. **/
   val RESTART_ICON = TaskBasedUxIcon("actions/restart.svg", AllIcons::class.java, AllIcons.Actions.Restart)
+
+  val IMPORT_RECORDING_ICON = TaskBasedUxIcon("toolbarDecorator/import.svg", AllIcons::class.java,
+                                              AllIcons.ToolbarDecorator.Import)
+  val EXPORT_RECORDING_ICON = TaskBasedUxIcon("toolbarDecorator/export.svg", AllIcons::class.java,
+                                              AllIcons.ToolbarDecorator.Export)
 }
