@@ -51,6 +51,9 @@ class BindingXmlIndexEntriesTest {
   private val project
     get() = projectRule.project
 
+  private val module
+    get() = projectRule.module
+
   private val fixture
     get() = projectRule.fixture
 
@@ -222,7 +225,7 @@ class BindingXmlIndexEntriesTest {
 
   /** Returns the index entry that corresponds to the single layout declared for this test. */
   private fun getIndexEntry(): BindingXmlIndex.Entry {
-    return BindingXmlIndex.getEntriesForLayout(project, "layout_with_data_binding").first()
+    return BindingXmlIndex.getEntriesForLayout(module, "layout_with_data_binding").first()
   }
 
   private fun getVariableTag(name: String): XmlTag {

@@ -131,7 +131,7 @@ object LayoutBindingTypeUtil {
     if (resourceUrl == null || resourceUrl.type != ResourceType.LAYOUT) {
       return null
     }
-    val indexEntry = BindingXmlIndex.getEntriesForLayout(facet.module.project, resourceUrl.name).firstOrNull() ?: return null
+    val indexEntry = BindingXmlIndex.getEntriesForLayout(facet.module, resourceUrl.name).firstOrNull() ?: return null
     // Note: The resource might exist in a different module than the one passed into this method;
     // e.g. if "activity_main.xml" includes a layout from a library, `facet` will be tied to "app"
     // while `resourceFacet` would be tied to the library.

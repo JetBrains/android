@@ -81,8 +81,6 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
         getDataForFile(file, project)?.let { data -> Entry(file, data) }
       }
 
-    @JvmStatic
-    fun getEntriesForLayout(project: Project, layoutName: String) = getEntriesForLayout(project, layoutName, project.projectScope())
     fun getEntriesForLayout(module: Module, layoutName: String) = getEntriesForLayout(module.project, layoutName,
                                                                                       module.moduleContentWithDependenciesScope)
   }

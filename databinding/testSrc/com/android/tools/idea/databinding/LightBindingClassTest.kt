@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding
 
 import com.android.resources.ResourceUrl
+import com.android.testutils.TestUtils
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
@@ -23,8 +24,14 @@ import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.databinding.utils.assertExpected
 import com.android.tools.idea.databinding.viewbinding.LightViewBindingClassTest
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.idea.testing.AndroidModuleDependency
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.findClass
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
@@ -46,13 +53,17 @@ import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
 /** Tests that verify that navigating between data binding components. */
 @RunsInEdt
+@RunWith(JUnit4::class)
 class LightBindingClassTest {
   private val projectRule = AndroidProjectRule.onDisk()
 
@@ -1347,5 +1358,153 @@ class LightBindingClassTest {
     // It's ugly, but this is what the variable looks like after stripping é and í before
     // capitalizing parts
     assertThat(mainLayout.fields.first().name).isEqualTo("tStD")
+  }
+}
+
+@RunsInEdt
+@RunWith(JUnit4::class)
+class LightBindingClassMultiModuleTest {
+  private val projectRule =
+    AndroidProjectRule.withAndroidModels(
+        ::createSourceRoots,
+        JavaModuleModelBuilder(":", buildable = false),
+        AndroidModuleModelBuilder(
+          ":app",
+          "debug",
+          createAndroidProjectBuilderForDefaultTestProjectStructure(
+              IdeAndroidProjectType.PROJECT_TYPE_APP,
+              "p1.p2"
+            )
+            .withAndroidModuleDependencyList {
+              listOf(":lib1", ":lib2").map { AndroidModuleDependency(it, "debug") }
+            }
+            .withViewBindingOptions { IdeViewBindingOptionsImpl(enabled = true) }
+        ),
+        AndroidModuleModelBuilder(
+          ":lib1",
+          "debug",
+          createAndroidProjectBuilderForDefaultTestProjectStructure(
+              IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
+              "p1.p2.lib1"
+            )
+            .withProjectType { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }
+            .withViewBindingOptions { IdeViewBindingOptionsImpl(enabled = true) }
+        ),
+        AndroidModuleModelBuilder(
+          ":lib2",
+          "debug",
+          createAndroidProjectBuilderForDefaultTestProjectStructure(
+              IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
+              "p1.p2.lib2"
+            )
+            .withProjectType { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }
+            .withViewBindingOptions { IdeViewBindingOptionsImpl(enabled = true) }
+        )
+      )
+      .initAndroid(true)
+
+  private fun createSourceRoots(dir: File) {
+    assertThat(File(dir, "app/src").mkdirs()).isTrue()
+    assertThat(File(dir, "app/res").mkdirs()).isTrue()
+    assertThat(File(dir, "lib1/src").mkdirs()).isTrue()
+    assertThat(File(dir, "lib1/res").mkdirs()).isTrue()
+    assertThat(File(dir, "lib2/src").mkdirs()).isTrue()
+    assertThat(File(dir, "lib2/res").mkdirs()).isTrue()
+  }
+
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+
+  private val fixture by lazy { projectRule.fixture }
+
+  @Before
+  fun setup() {
+    fixture.setTestDataPath(
+      TestUtils.resolveWorkspacePath("tools/adt/idea/databinding/testData").toString()
+    )
+
+    fixture.copyFileToProject("databinding/AndroidManifest.xml", "app/AndroidManifest.xml")
+    fixture.copyFileToProject("databinding/AndroidManifest.xml", "lib1/AndroidManifest.xml")
+    fixture.copyFileToProject("databinding/AndroidManifest.xml", "lib2/AndroidManifest.xml")
+
+    fixture.addFileToProject(
+      "app/src/android/viewbinding/ViewBinding.java",
+      // language=java
+      """
+        package android.viewbinding;
+
+        public interface ViewBinding {}
+      """
+        .trimIndent()
+    )
+  }
+
+  @Test
+  fun duplicateNamedBindingsFromLibsAreAvailable() {
+    // Regression test for b/316308496
+    val sectionXml =
+      // language=XML
+      """
+      <LinearLayout android:id="@+id/section"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          xmlns:tools="http://schemas.android.com/tools"
+          android:orientation="horizontal">
+          <include layout="@layout/fields"
+              android:id="@+id/fields"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"/>
+      </LinearLayout>
+      """
+        .trimIndent()
+    val fieldsXml =
+      // language=XML
+      """
+      <LinearLayout android:id="@+id/fields"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          android:orientation="vertical">
+          <TextView
+              android:id="@+id/field1"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="field 1"
+              />
+      </LinearLayout>
+       """
+        .trimIndent()
+
+    fixture.addFileToProject("lib1/res/layout/section.xml", sectionXml)
+    fixture.addFileToProject("lib2/res/layout/section.xml", sectionXml)
+
+    fixture.addFileToProject("lib1/res/layout/fields.xml", fieldsXml)
+    fixture.addFileToProject("lib2/res/layout/fields.xml", fieldsXml)
+
+    val usageFile =
+      fixture.addFileToProject(
+        "app/src/p1/p2/Usage.kt",
+        // language=kotlin
+        """
+        package p1.p2
+
+        import android.content.Context
+        import android.view.LayoutInflater
+        import android.view.ViewGroup
+
+        fun doInflate(inflater: LayoutInflater, parent: ViewGroup) {
+          val section1 = p1.p2.lib1.databinding.SectionBinding.inflate(inflater, parent, false)
+          val section2 = p1.p2.lib2.databinding.SectionBinding.inflate(inflater, parent, false)
+          section1.fields.field1.text = "section1 field1"
+          section2.fields.field1.text = "section2 field1"
+        }
+        """
+          .trimIndent()
+      )
+
+    fixture.configureFromExistingVirtualFile(usageFile.virtualFile)
+    fixture.checkHighlighting()
   }
 }
