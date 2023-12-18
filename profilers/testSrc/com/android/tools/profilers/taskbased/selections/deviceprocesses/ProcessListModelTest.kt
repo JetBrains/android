@@ -61,7 +61,6 @@ class ProcessListModelTest {
   fun `online device with alive processes show in device process list`() {
     assertThat(processListModel.deviceToProcesses.value).isEmpty()
     val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
-    processListModel.onDeviceSelection(device)
     addDeviceWithProcess(device, createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId), myTransportService,
                          myTimer)
     addDeviceWithProcess(device, createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId), myTransportService,
@@ -73,7 +72,6 @@ class ProcessListModelTest {
   fun `offline device with alive processes do not show in device process list`() {
     assertThat(processListModel.deviceToProcesses.value).isEmpty()
     val device = createDevice("FakeDevice", Common.Device.State.OFFLINE)
-    processListModel.onDeviceSelection(device)
     addDeviceWithProcess(device, createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId), myTransportService,
                          myTimer)
     addDeviceWithProcess(device, createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId), myTransportService,
@@ -112,7 +110,6 @@ class ProcessListModelTest {
     assertThat(processListModel.deviceToProcesses.value).isEmpty()
 
     val toBeDisconnectedDevice = createDevice("FakeDevice", Common.Device.State.ONLINE)
-    processListModel.onDeviceSelection(toBeDisconnectedDevice)
     addDeviceWithProcess(toBeDisconnectedDevice,
                          createProcess(10, "FakeProcess1", Common.Process.State.ALIVE, toBeDisconnectedDevice.deviceId), myTransportService,
                          myTimer)
@@ -138,7 +135,6 @@ class ProcessListModelTest {
   fun `online device with dead processes do not show in device process list`() {
     assertThat(processListModel.deviceToProcesses.value).isEmpty()
     val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
-    processListModel.onDeviceSelection(device)
     addDeviceWithProcess(device, createProcess(20, "FakeProcess1", Common.Process.State.DEAD, device.deviceId), myTransportService, myTimer)
     addDeviceWithProcess(device, createProcess(40, "FakeProcess2", Common.Process.State.DEAD, device.deviceId), myTransportService, myTimer)
     assertThat(processListModel.getSelectedDeviceProcesses()).isEmpty()
@@ -157,13 +153,15 @@ class ProcessListModelTest {
     // Make sure there are two entries in the device to process list mapping.
     assertThat(processListModel.deviceToProcesses.value.size).isEqualTo(2)
 
-    // Select device1 and make sure that the selected device processes are correct.
-    processListModel.onDeviceSelection(device1)
+    // The device1 was the first device added and is thus already selected.
+    assertThat(processListModel.selectedDevice.value).isEqualTo(device1)
+    // Make sure that the selected device processes are correct.
     assertThat(processListModel.getSelectedDeviceProcesses().size).isEqualTo(1)
     assertThat(processListModel.getSelectedDeviceProcesses().first().name).isEqualTo("FakeProcess1")
 
-    // Select device2 and make sure that the selected device processes are correct.
+    // Select device2 and make sure that the selected device and corresponding processes are correct.
     processListModel.onDeviceSelection(device2)
+    assertThat(processListModel.selectedDevice.value).isEqualTo(device2)
     assertThat(processListModel.getSelectedDeviceProcesses().size).isEqualTo(1)
     assertThat(processListModel.getSelectedDeviceProcesses().first().name).isEqualTo("FakeProcess2")
   }
@@ -173,7 +171,6 @@ class ProcessListModelTest {
     assertThat(processListModel.deviceToProcesses.value).isEmpty()
 
     val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
-    processListModel.onDeviceSelection(device)
 
     val process1 = createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId)
     addDeviceWithProcess(device, process1, myTransportService, myTimer)
@@ -206,7 +203,6 @@ class ProcessListModelTest {
     assertThat(processListModel.deviceToProcesses.value).isEmpty()
 
     val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
-    processListModel.onDeviceSelection(device)
 
     addDeviceWithProcess(device, createProcess(10, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId), myTransportService,
                          myTimer)
@@ -259,7 +255,6 @@ class ProcessListModelTest {
     assertThat(processListModel.deviceToProcesses.value).isEmpty()
 
     val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
-    processListModel.onDeviceSelection(device)
 
     addDeviceWithProcess(device, createProcess(10, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId), myTransportService,
                          myTimer)
@@ -290,7 +285,7 @@ class ProcessListModelTest {
   }
 
   @Test
-  fun `test device selection triggers reorder of process list`() {
+  fun `updating device and processes triggers reorder of process list using the preferred process`() {
     assertThat(processListModel.deviceToProcesses.value).isEmpty()
 
     val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
@@ -303,13 +298,10 @@ class ProcessListModelTest {
     val process2 = createProcess(20, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId)
     val process3 = createProcess(30, "FakeProcess3", Common.Process.State.ALIVE, device.deviceId)
 
+    // Once the added device is detected, it is auto-selected.
     addDeviceWithProcess(device, process1, myTransportService, myTimer)
     addDeviceWithProcess(device, process2, myTransportService, myTimer)
     addDeviceWithProcess(device, process3, myTransportService, myTimer)
-
-    // As stated above, because no device selection was made, no process list was reordered using the preferred process name. The explicit
-    // selection of the device, however, should trigger a proper reordering.
-    processListModel.onDeviceSelection(device)
 
     assertThat(processListModel.getPreferredProcessName()).isEqualTo("FakeProcess3")
     assertThat(processListModel.deviceToProcesses.value).isNotEmpty()

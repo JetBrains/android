@@ -23,6 +23,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onParent
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
@@ -83,7 +84,7 @@ class ProcessListTest {
     singleWindowApplication(
       title = "Testing TaskGridView",
     ) {
-      populateProcessList()
+      populateVisualTestData()
       JewelThemedComposableWrapper(isDark = false) {
         ProcessList(processListModel)
       }
@@ -96,7 +97,20 @@ class ProcessListTest {
     singleWindowApplication(
       title = "Testing TaskGridView",
     ) {
-      populateProcessList()
+      val device1 = ProcessListModelTest.createDevice("FakeDevice1", Common.Device.State.ONLINE, "12", 24)
+      ProcessListModelTest.addDeviceWithProcess(device1, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
+                                                                                            device1.deviceId), myTransportService, myTimer)
+
+      // Assert FakeDevice1 was auto-selected.
+      assertThat(processListModel.selectedDevice.value).isEqualTo(device1)
+
+      val device2 = ProcessListModelTest.createDevice("FakeDevice2", Common.Device.State.ONLINE, "12", 24)
+      ProcessListModelTest.addDeviceWithProcess(device2, ProcessListModelTest.createProcess(20, "FakeProcess2", Common.Process.State.ALIVE,
+                                                                                            device2.deviceId), myTransportService, myTimer)
+      ProcessListModelTest.addDeviceWithProcess(device2, ProcessListModelTest.createProcess(40, "FakeProcess3", Common.Process.State.ALIVE,
+                                                                                            device2.deviceId), myTransportService, myTimer)
+
+
       JewelThemedComposableWrapper(isDark = true) {
         ProcessList(processListModel)
       }
@@ -107,7 +121,6 @@ class ProcessListTest {
   fun `device dropdown selection sets and renders the selected device's processes`() {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = true) {
-        populateProcessList()
         ProcessList(processListModel)
       }
     }
@@ -119,38 +132,54 @@ class ProcessListTest {
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(0)
     assertThat(processListModel.getSelectedDeviceProcesses()).hasSize(0)
 
-    // Select the device. We must use parent as `selectableItem` api does not allow us to append a test tag to the Modifier.
+    // FakeDevice1 is added first and will this be auto-selected.
+    val device1 = ProcessListModelTest.createDevice("FakeDevice1", Common.Device.State.ONLINE, "12", 24)
+    ProcessListModelTest.addDeviceWithProcess(device1, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
+                                                                                         device1.deviceId), myTransportService, myTimer)
+
+    // Selecting FakeDevice1 should populate the process list with 1 processes both in UI and in data model.
+    composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(1)
+    assertThat(processListModel.getSelectedDeviceProcesses()).hasSize(1)
+
+    // Assert FakeDevice1 was auto-selected.
+    assertThat(processListModel.selectedDevice.value).isEqualTo(device1)
+
+    val device2 = ProcessListModelTest.createDevice("FakeDevice2", Common.Device.State.ONLINE, "12", 24)
+    ProcessListModelTest.addDeviceWithProcess(device2, ProcessListModelTest.createProcess(20, "FakeProcess2", Common.Process.State.ALIVE,
+                                                                                          device2.deviceId), myTransportService, myTimer)
+    ProcessListModelTest.addDeviceWithProcess(device2, ProcessListModelTest.createProcess(40, "FakeProcess3", Common.Process.State.ALIVE,
+                                                                                          device2.deviceId), myTransportService, myTimer)
+
+
+    // Select FakeDevice2. We must use parent as `selectableItem` api does not allow us to append a test tag to the Modifier.
     composeTestRule.onNodeWithTag("DeviceSelectionDropdown").assertHasClickAction()
     composeTestRule.onNodeWithTag("DeviceSelectionDropdown").performClick()
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdownItem", useUnmergedTree = true).onParent().assertExists()
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdownItem", useUnmergedTree = true).onParent().assertHasClickAction()
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdownItem", useUnmergedTree = true).onParent().performClick()
+    composeTestRule.onNodeWithText("FakeDevice2", useUnmergedTree = true).onParent().assertExists()
+    composeTestRule.onNodeWithText("FakeDevice2", useUnmergedTree = true).onParent().assertHasClickAction()
+    composeTestRule.onNodeWithText("FakeDevice2", useUnmergedTree = true).onParent().performClick()
 
-    // Selecting the FakeDevice should populate the process list with 2 processes both in UI and in data model.
+    // Selecting FakeDevice2 should populate the process list with 2 processes both in UI and in data model.
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(2)
     assertThat(processListModel.getSelectedDeviceProcesses()).hasSize(2)
 
     // Make sure device selection is also registered in data model.
-    assertThat(processListModel.selectedDevice.value.model).isEqualTo("FakeDevice")
+    assertThat(processListModel.selectedDevice.value.model).isEqualTo("FakeDevice2")
   }
 
   @Test
   fun `process selection reflects in data model`() {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = true) {
-        populateProcessList()
+        val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
+        ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
+                                                                                             device.deviceId), myTransportService, myTimer)
+        ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
+                                                                                             device.deviceId), myTransportService, myTimer)
         ProcessList(processListModel)
       }
     }
 
-    // Select the device.
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdown").assertHasClickAction()
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdown").performClick()
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdownItem", useUnmergedTree = true).onParent().assertExists()
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdownItem", useUnmergedTree = true).onParent().assertHasClickAction()
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdownItem", useUnmergedTree = true).onParent().performClick()
-
-    // Selecting the FakeDevice should populate the process list with 2 processes both in UI and in data model.
+    // Auto-selection of FakeDevice should populate the process list with 2 processes both in UI and in data model.
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(2)
     assertThat(processListModel.getSelectedDeviceProcesses()).hasSize(2)
 
@@ -183,7 +212,7 @@ class ProcessListTest {
     composeTestRule.onNodeWithTag("DefaultDeviceSelectionDropdownItem").assertExists().assertIsDisplayed().assertHasNoClickAction()
   }
 
-  private fun populateProcessList() {
+  private fun populateVisualTestData() {
     assertThat(processListModel.deviceList.value).isEmpty()
     val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
     ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,

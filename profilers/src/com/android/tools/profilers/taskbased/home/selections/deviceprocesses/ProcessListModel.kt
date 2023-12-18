@@ -68,6 +68,12 @@ class ProcessListModel(val profilers: StudioProfilers, private val resetTaskSele
       resetDeviceSelection()
     }
 
+    // If there is no device selected and there is only one online device, this single device is auto-selected.
+    val updatedDevices = _deviceList.value;
+    if (!isDeviceSelected() && updatedDevices.size == 1) {
+      onDeviceSelection(updatedDevices.first())
+    }
+
     reorderProcessList()
   }
 

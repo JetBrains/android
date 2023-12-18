@@ -119,24 +119,14 @@ class TaskHomeTabTest {
       }
     }
 
-    // Populate the device and process selections.
+    // Populate the device and process selections. Device will be auto-selected as it is the first and only online device available.
     val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
     ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
                                                                                          device.deviceId), myTransportService, myTimer)
     ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
                                                                                          device.deviceId), myTransportService, myTimer)
 
-    // Assert that no processes are present for the selected device.
-    composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(0)
-
-    // Select the device. We must use parent as `selectableItem` api does not allow us to append a test tag to the Modifier.
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdown").assertHasClickAction()
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdown").performClick()
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdownItem", useUnmergedTree = true).onParent().assertExists()
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdownItem", useUnmergedTree = true).onParent().assertHasClickAction()
-    composeTestRule.onNodeWithTag("DeviceSelectionDropdownItem", useUnmergedTree = true).onParent().performClick()
-
-    // Selecting the FakeDevice should populate the process list with 2 processes.
+    // Auto-selection of the FakeDevice should populate the process list with 2 processes.
     composeTestRule.onAllNodesWithTag("ProcessListRow").assertCountEquals(2)
     assertThat(taskHomeTabModel.processListModel.getSelectedDeviceProcesses()).hasSize(2)
 
