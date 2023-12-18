@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.testTag
 import com.android.tools.profilers.ExportArtifactUtils
 import com.android.tools.profilers.ExportableArtifact
@@ -28,6 +29,8 @@ import com.android.tools.profilers.sessions.SessionsView.Companion.getImportActi
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.RECORDING_LIST_ACTIONS_BAR_CONTENT_PADDING_DP
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons.DISABLED_ICON_ALPHA
+import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons.ENABLED_ICON_ALPHA
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons.EXPORT_RECORDING_ICON
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxIcons.IMPORT_RECORDING_ICON
 import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.EXPORT_RECORDING_DESC
@@ -72,7 +75,8 @@ fun RecordingListActionsBar(artifact: SessionArtifact<*>?,
             resource = EXPORT_RECORDING_ICON.path,
             contentDescription = EXPORT_RECORDING_DESC,
             iconClass = EXPORT_RECORDING_ICON.iconClass,
-            modifier = Modifier.padding(RECORDING_LIST_ACTIONS_BAR_CONTENT_PADDING_DP),
+            modifier = Modifier.padding(RECORDING_LIST_ACTIONS_BAR_CONTENT_PADDING_DP).alpha(
+              if (isRecordingExportable) ENABLED_ICON_ALPHA else DISABLED_ICON_ALPHA),
           )
         }
       }

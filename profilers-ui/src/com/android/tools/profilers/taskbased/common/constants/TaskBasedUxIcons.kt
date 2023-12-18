@@ -69,4 +69,8 @@ object TaskBasedUxIcons {
                                               AllIcons.ToolbarDecorator.Import)
   val EXPORT_RECORDING_ICON = TaskBasedUxIcon("toolbarDecorator/export.svg", AllIcons::class.java,
                                               AllIcons.ToolbarDecorator.Export)
+
+  /** The following are values used for enabled and disabled icon buttons. **/
+  const val ENABLED_ICON_ALPHA = 1.0f
+  const val DISABLED_ICON_ALPHA = 0.5f
 }
