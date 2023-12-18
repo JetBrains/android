@@ -33,8 +33,6 @@ import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import java.lang.ref.WeakReference;
@@ -50,8 +48,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidDependenciesCache implements Disposable {
-  private static final Key<AndroidDependenciesCache> KEY = Key.create(AndroidDependenciesCache.class.getName());
-
   private final Module myModule;
   private final AtomicReference<List<WeakReference<AndroidFacet>>> myAllDependencies = new AtomicReference<>();
   private final AtomicReference<List<WeakReference<AndroidFacet>>> myAllLibraryDependencies = new AtomicReference<>();
@@ -108,14 +104,7 @@ public class AndroidDependenciesCache implements Disposable {
 
   @NotNull
   public static synchronized AndroidDependenciesCache getInstance(@NotNull Module module) {
-    AndroidDependenciesCache cache = module.getUserData(KEY);
-
-    if (cache == null) {
-      cache = new AndroidDependenciesCache(module);
-      Disposer.register(module, cache);
-      module.putUserData(KEY, cache);
-    }
-    return cache;
+    return module.getService(AndroidDependenciesCache.class);
   }
 
   @NotNull
