@@ -18,6 +18,7 @@ package com.android.tools.compose
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.k1.codeinsight.inspections.FunctionNameInspection as FunctionNameInspectionForK1
 import org.jetbrains.kotlin.idea.k2.codeinsight.inspections.FunctionNameInspection
 
 /** Test for [ComposeSuppressor]. */
@@ -28,7 +29,7 @@ class ComposeSuppressorTest : JavaCodeInsightFixtureTestCase() {
       if (isK2Plugin()) {
         enableInspections(FunctionNameInspection::class.java)
       } else {
-        enableInspections(org.jetbrains.kotlin.idea.k1.codeinsight.inspections.FunctionNameInspection::class.java)
+        enableInspections(FunctionNameInspectionForK1::class.java)
       }
       stubComposableAnnotation()
 
