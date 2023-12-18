@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.res
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.res.MultiResourceRepository
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.LowMemoryWatcher
@@ -32,10 +31,5 @@ abstract class MemoryTrackingMultiResourceRepository protected constructor(displ
 
   override fun dispose() {
     super.release()
-
-    if (StudioFlags.RESOURCE_REPOSITORY_NOTIFY_PARENT_ON_DISPOSE.get()) {
-      // Notifying parents is flagged in case this new change has any unexpected side effects.
-      notifyParentsOfDisposal()
-    }
   }
 }

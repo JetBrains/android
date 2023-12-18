@@ -27,6 +27,7 @@ import com.android.resources.aar.AarResourceRepository;
 import com.android.tools.concurrency.AndroidIoManager;
 import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.res.CacheableResourceRepository;
@@ -548,7 +549,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
 
   @SuppressWarnings("Duplicates") // No way to refactor this without something like Variable Handles.
   public void resetResources() {
-    List<Disposable> objectsToDispose = new ArrayList<>(6);
+    List<LocalResourceRepository<VirtualFile>> removedRepositories = new ArrayList<>(6);
 
     synchronized (myLibraryLock) {
       myLibraryResourceMap = null;
@@ -556,14 +557,14 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
 
     synchronized (MODULE_RESOURCES_LOCK) {
       if (myModuleResources != null) {
-        addIfDisposable(objectsToDispose, myModuleResources);
+        removedRepositories.add(myModuleResources);
         myModuleResources = null;
       }
     }
 
     synchronized (PROJECT_RESOURCES_LOCK) {
       if (myProjectResources != null) {
-        addIfDisposable(objectsToDispose, myProjectResources);
+        removedRepositories.add(myProjectResources);
         myProjectResources = null;
         myLocalesAndLanguages = null;
       }
@@ -572,36 +573,45 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     synchronized (APP_RESOURCES_LOCK) {
       synchronized (mySampleDataLock) {
         if (mySampleDataResources != null) {
-          addIfDisposable(objectsToDispose, mySampleDataResources);
+          removedRepositories.add(mySampleDataResources);
           mySampleDataResources = null;
         }
       }
 
       if (myAppResources != null) {
-        addIfDisposable(objectsToDispose, myAppResources);
+        removedRepositories.add(myAppResources);
         myAppResources = null;
       }
     }
 
     synchronized (TEST_RESOURCES_LOCK) {
       if (myTestAppResources != null) {
-        addIfDisposable(objectsToDispose, myTestAppResources);
+        removedRepositories.add(myTestAppResources);
         myTestAppResources = null;
       }
       if (myTestModuleResources != null) {
-        addIfDisposable(objectsToDispose, myTestModuleResources);
+        removedRepositories.add(myTestModuleResources);
         myTestModuleResources = null;
       }
     }
 
-    for (Disposable disposable : objectsToDispose) {
-      Disposer.dispose(disposable);
-    }
-  }
+    for (LocalResourceRepository<VirtualFile> repository : removedRepositories) {
+      // Reset is done separately from disposal, since reset isn't needed in all disposal scenarios. Specifically,
+      // there are ways these repositories can be disposed:
+      //  1. This reset method.
+      //  2. When the owning facet is disposed.
+      // In the second case, a "roots updated" notification will be sent to any dependent modules, which will cause
+      // them to recalculate their children and remove any outdated references. So only the first case (this reset
+      // method) requires explicitly notifying those same parent repositories that their children are out of date and
+      // need to be refreshed.
+      if (StudioFlags.RESOURCE_REPOSITORY_NOTIFY_PARENT_ON_DISPOSE.get()) {
+        // Notifying parents is flagged in case this new change has any unexpected side effects.
+        repository.notifyParentsOfReset();
+      }
 
-  private static void addIfDisposable(@NotNull List<Disposable> disposables, @NotNull Object object) {
-    if (object instanceof Disposable disposable) {
-      disposables.add(disposable);
+      if (repository instanceof Disposable disposable) {
+        Disposer.dispose(disposable);
+      }
     }
   }
 
