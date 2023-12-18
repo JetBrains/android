@@ -26,10 +26,9 @@ import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.progress.runBackgroundableTask
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.TitledSeparator
-import com.intellij.ui.layout.CCFlags
-import com.intellij.ui.layout.panel
-import javax.swing.BoxLayout
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.panel
+import org.jetbrains.android.util.AndroidBundle
 
 class AndroidComplicationConfigurationEditor(private val project: Project, configuration: AndroidComplicationConfiguration) :
   AndroidWearConfigurationEditor<AndroidComplicationConfiguration>(project, configuration) {
@@ -38,20 +37,13 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
   private var allAvailableSlots: List<ComplicationSlot> = emptyList()
 
   override fun createEditor() = panel {
-    row {
-      getModuleChooser()
-    }
-    row {
-      component(TitledSeparator("Complication Launch Options")).constraints(CCFlags.growX)
-    }
-    row {
+    getModuleChooser()
+    group(AndroidBundle.message("wearos.complication.slot.launch.options"), indent = false) {
       getComponentComboBox()
       getInstallFlagsTextField()
     }
     row {
-      component(slotsPanel.apply {
-        layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      }).constraints(CCFlags.growX)
+      cell(slotsPanel).align(AlignX.FILL)
     }
   }
 
@@ -92,7 +84,7 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
     // showing a dialog. In our case, we want to update the UI on the EDT thread when the dialog is open.
     // When using ModalityState.any(), we ensure the event is pushed to the secondary queue and executed while the dialog is open.
     val modalityState = ModalityState.any()
-    runBackgroundableTask("Updating slots", project) {
+    runBackgroundableTask(AndroidBundle.message("wearos.complication.progress.updating.slots"), project) {
       val supportedTypes = getSupportedTypes(componentName)
       runInEdt(modalityState) {
         if (project.isDisposed) return@runInEdt

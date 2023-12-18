@@ -20,13 +20,13 @@ import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.ui.JBColor
 import com.intellij.ui.SimpleListCellRenderer
-import com.intellij.ui.TitledSeparator
-import com.intellij.ui.layout.CCFlags
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI
+import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.annotations.Nls
 import java.awt.BorderLayout
-import java.awt.Color
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Graphics
@@ -42,8 +42,6 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 
-private const val NO_SUPPORTED_TYPE = "No type is supported by this slot"
-
 /** A panel that manages complication slots selected by the user and stores them as a ComplicationsModel object. */
 class SlotsPanel : JPanel(FlowLayout(FlowLayout.LEFT)) {
   @VisibleForTesting
@@ -55,17 +53,14 @@ class SlotsPanel : JPanel(FlowLayout(FlowLayout.LEFT)) {
   }
   private val boxWithSlotList : Box
   private val imageBox : Box
+  @Nls private val noSupportedTypeLabelText = AndroidBundle.message("wearos.complication.no.type.supported")
+
   init {
     add(
       panel {
-        row {
-          component(TitledSeparator("Complication Slots")).constraints(CCFlags.growX)
-        }
-        row {
-          label("The selected complications will run in a debug watch face installed on the device.")
-        }
-        row {
-          slotsUiPanel = component(Box.createVerticalBox()).component
+        group(AndroidBundle.message("wearos.complication.slots.title"), indent = false) {
+          row { label(AndroidBundle.message("wearos.selected.complications.will.run.in.debug")) }
+          row { slotsUiPanel = cell(Box.createVerticalBox()).component }
         }
       }
     )
@@ -121,7 +116,7 @@ class SlotsPanel : JPanel(FlowLayout(FlowLayout.LEFT)) {
   private fun typesSupportedBySlot(slotId: Int) = currentModel.allAvailableSlots.first { it.slotId == slotId }.supportedTypes
 
   private fun getSlotTypeCompoBox(chosenSlot: AndroidComplicationConfiguration.ChosenSlot): ComboBox<ComplicationType> {
-    val options = typesSupportedBySlot(chosenSlot.id).intersect(currentModel.supportedTypes).toTypedArray()
+    val options = typesSupportedBySlot(chosenSlot.id).intersect(currentModel.supportedTypes.toSet()).toTypedArray()
     if (chosenSlot.type !in options) {
       chosenSlot.type = options.firstOrNull()
     }
@@ -132,11 +127,11 @@ class SlotsPanel : JPanel(FlowLayout(FlowLayout.LEFT)) {
                                index: Int,
                                selected: Boolean,
                                hasFocus: Boolean) {
-          text = value?.name ?: NO_SUPPORTED_TYPE
+          text = value?.name ?: noSupportedTypeLabelText
         }
       }
       if (chosenSlot.type == null) {
-        border = BorderFactory.createLineBorder(Color.ORANGE)
+        border = BorderFactory.createLineBorder(JBColor.ORANGE)
       }
       preferredSize = Dimension(240, preferredSize.height)
       item = chosenSlot.type
@@ -149,7 +144,7 @@ class SlotsPanel : JPanel(FlowLayout(FlowLayout.LEFT)) {
   }
 
   private fun createSlot(chosenSlot: AndroidComplicationConfiguration.ChosenSlot): JPanel {
-    val isSelected = chosenSlot.id in currentModel.currentChosenSlots.map{it.id}
+    val isSelected = chosenSlot.id in currentModel.currentChosenSlots.map { it.id }
     val hasSupportedType = typesSupportedBySlot(chosenSlot.id).intersect(currentModel.supportedTypes.toSet()).isNotEmpty()
     val isBackgroundImageSlot = typesSupportedBySlot(chosenSlot.id).contentEquals(arrayOf(ComplicationType.LARGE_IMAGE))
     if (isBackgroundImageSlot) {
@@ -208,7 +203,7 @@ class SlotsPanel : JPanel(FlowLayout(FlowLayout.LEFT)) {
       }
 
       if (!hasSupportedType) {
-        toolTipText = NO_SUPPORTED_TYPE
+        toolTipText = noSupportedTypeLabelText
       }
       // prevent stretching
       maximumSize = Dimension(maximumSize.width, preferredSize.height)
@@ -271,7 +266,7 @@ class SlotsPanel : JPanel(FlowLayout(FlowLayout.LEFT)) {
         super.paintComponent(g)
       }
       g?.drawImage(watchFacePicture.getScaledInstance(sizePx, sizePx, Image.SCALE_DEFAULT), 0, 0, null)
-      g?.color = Color.red
+      g?.color = JBColor.RED
       // We first draw the LARGE_IMAGE complication, as other complications will overlap with it.
       val largeImageSlot = currentModel.currentChosenSlots.firstOrNull { it.type == ComplicationType.LARGE_IMAGE }
       if (largeImageSlot != null) {
@@ -289,8 +284,8 @@ class SlotsPanel : JPanel(FlowLayout(FlowLayout.LEFT)) {
       val width = typeToIcon[type]?.width ?: 0
       val height = typeToIcon[type]?.height ?: 0
       g?.drawImage(typeToIcon[type],
-                   slotCoordinates[slotNumber]!!.first - width / 2,
-                   slotCoordinates[slotNumber]!!.second - height / 2,
+                   slotCoordinates[slotNumber].first - width / 2,
+                   slotCoordinates[slotNumber].second - height / 2,
                    null)
     }
   }
