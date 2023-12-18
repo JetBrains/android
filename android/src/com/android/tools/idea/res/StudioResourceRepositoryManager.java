@@ -131,12 +131,13 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     }
 
     if (instance == null) {
-      StudioResourceRepositoryManager manager = new StudioResourceRepositoryManager(facet, namespacing);
+      StudioResourceRepositoryManager manager = new StudioResourceRepositoryManager(facet, namespacing, facet);
       instance = facet.putUserDataIfAbsent(KEY, manager);
       if (instance == manager) {
         // Our object ended up stored in the facet.
-        Disposer.register(facet, instance);
         AndroidProjectRootListener.ensureSubscribed(manager.getProject());
+      } else {
+        Disposer.dispose(manager);
       }
     }
 
@@ -261,7 +262,10 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     };
   }
 
-  private StudioResourceRepositoryManager(@NotNull AndroidFacet facet, @NotNull ResourceNamespacing namespacing) {
+  private StudioResourceRepositoryManager(@NotNull AndroidFacet facet,
+                                          @NotNull ResourceNamespacing namespacing,
+                                          @NotNull Disposable parentDisposable) {
+    Disposer.register(parentDisposable, this);
     myFacet = facet;
     myNamespacing = namespacing;
   }
