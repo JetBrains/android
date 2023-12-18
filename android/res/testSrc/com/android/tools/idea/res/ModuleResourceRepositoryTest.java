@@ -81,7 +81,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertNotSame(res3, res1);
 
     ModuleResourceRepository resources =
-        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO, null);
+        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO);
 
     // Check that values are handled correctly. First a plain value (not overridden anywhere).
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
@@ -171,7 +171,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     VirtualFile res3 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
     myFixture.copyFileToProject(VALUES_OVERLAY2_NO, "res1/values-no/values.xml");
     ModuleResourceRepository resources =
-        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO, null);
+        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO);
     assertStringIs(resources, "title_layout_changes", "Layout Changes"); // sanity check
 
     // Layout resource check:
@@ -245,7 +245,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     VirtualFile res2 = values2.getParent().getParent();
     VirtualFile res3 = values3.getParent().getParent();
     ModuleResourceRepository resources =
-        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO, null);
+        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO);
     PsiFile psiValues1 = PsiManager.getInstance(getProject()).findFile(values1);
     assertNotNull(psiValues1);
     PsiFile psiValues1No = PsiManager.getInstance(getProject()).findFile(values1No);
@@ -378,7 +378,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     VirtualFile res2 = myFixture.copyFileToProject(VALUES_OVERLAY1, "res2/values/values.xml").getParent().getParent();
 
     assertNotSame(res1, res2);
-    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO, null);
+    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO);
     Set<ResourceType> typesWithoutRes3 = EnumSet.of(ResourceType.ARRAY, ResourceType.ID, ResourceType.LAYOUT,
                                                     ResourceType.STRING, ResourceType.STYLE);
 
@@ -422,7 +422,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertNull(fileManager.getCachedDirectory(res2));
     assertNull(fileManager.getCachedPsiFile(layout2));
 
-    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO, null);
+    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO);
 
     assertNotNull(fileManager.getCachedDirectory(res2));
 
@@ -479,7 +479,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
   public void testAllowEmpty() {
     assertTrue(Lint.assertionsEnabled()); // This test should be run with assertions enabled!
-    CacheableResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.emptyList(), RES_AUTO, null);
+    CacheableResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.emptyList(), RES_AUTO);
     repository.getModificationCount();
     assertEmpty(repository.getResources(RES_AUTO, ResourceType.ID).keySet());
   }

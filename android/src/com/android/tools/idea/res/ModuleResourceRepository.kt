@@ -245,12 +245,13 @@ private constructor(
     }
 
     @TestOnly
+    @JvmOverloads
     @JvmStatic
     fun createForTest(
       facet: AndroidFacet,
       resourceDirectories: Collection<VirtualFile>,
       namespace: ResourceNamespace,
-      dynamicResourceValueRepository: DynamicValueResourceRepository?
+      dynamicResourceValueRepository: DynamicValueResourceRepository? = null
     ): ModuleResourceRepository {
       assert(ApplicationManager.getApplication().isUnitTestMode)
       val delegates: MutableList<LocalResourceRepository<VirtualFile>> = mutableListOf()

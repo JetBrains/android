@@ -96,7 +96,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
     // res3 is not used as an overlay here; instead we use it to simulate an AAR library below
     ModuleResourceRepository moduleRepository =
-        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO, null);
+        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO);
     ProjectResourceRepository projectResources = ProjectResourceRepository.createForTest(
         myFacet, Collections.singletonList(moduleRepository));
 
@@ -164,9 +164,9 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
     // res2 is not used as an overlay here; instead we use it to simulate an AAR library below
     ModuleResourceRepository moduleRepository1 =
-        ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res1), RES_AUTO, null);
+        ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res1), RES_AUTO);
     ModuleResourceRepository moduleRepository2 =
-        ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res2), RES_AUTO, null);
+        ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res2), RES_AUTO);
     ProjectResourceRepository projectResources =
         ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(moduleRepository1, moduleRepository2));
     AppResourceRepository appResources =
@@ -178,7 +178,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
   public void testGetItemsOfTypeIdIncludeAar() {
     VirtualFile res1 = myFixture.copyFileToProject(LAYOUT, "res/layout/some_layout.xml").getParent().getParent();
-    LocalResourceRepository<VirtualFile> moduleRepository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1), RES_AUTO, null);
+    LocalResourceRepository<VirtualFile> moduleRepository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1), RES_AUTO);
     LocalResourceRepository<VirtualFile> projectResources = ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(moduleRepository));
 
     AarSourceResourceRepository aar = AarTestUtils.getTestAarRepositoryFromExplodedAar();

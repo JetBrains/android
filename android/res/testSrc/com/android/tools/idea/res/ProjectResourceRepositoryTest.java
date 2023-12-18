@@ -95,7 +95,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     // module we just get a module repository, not a module set repository.
     LocalResourceRepository<VirtualFile> other = new TestLocalResourceRepository(RES_AUTO);
 
-    ModuleResourceRepository module = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO, null);
+    ModuleResourceRepository module = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO);
     ProjectResourceRepository resources = ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(module, other));
 
     PsiFile layoutPsiFile = PsiManager.getInstance(getProject()).findFile(layoutFile);
@@ -209,8 +209,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertNotSame(res1, res3);
     assertNotSame(res2, res3);
     // Test having some overlap between the modules.
-    LocalResourceRepository<VirtualFile> module1 = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO, null);
-    LocalResourceRepository<VirtualFile> module2 = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res2, res3), RES_AUTO, null);
+    LocalResourceRepository<VirtualFile> module1 = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO);
+    LocalResourceRepository<VirtualFile> module2 = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res2, res3), RES_AUTO);
     ProjectResourceRepository resources = ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(module1, module2));
 
     // Create a repo with res1, res2, res3 and check types.
