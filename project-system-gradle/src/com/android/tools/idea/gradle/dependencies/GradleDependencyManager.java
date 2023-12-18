@@ -275,11 +275,8 @@ public class GradleDependencyManager {
                                                                           @NotNull List<Dependency> dependencies) {
     List<Pair<String, Dependency>> addedCoordinates = new ArrayList<>();
 
-    GradleVersionCatalogLibraries libraries = catalogModel.libraryDeclarations();
-    Set<String> names = libraries.getAllAliases();
     for (Dependency dependency : dependencies) {
       String alias = DependenciesHelper.addCatalogLibrary(catalogModel, dependency);
-      names.add(alias);
       addedCoordinates.add(new Pair<>(alias, dependency));
     }
     return addedCoordinates;
