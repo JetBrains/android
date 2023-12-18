@@ -25,20 +25,23 @@ import com.android.resources.ResourceFolderType
 import com.android.support.FragmentTagUtil.isFragmentTag
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.common.secondaryPanelBackground
-import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.GeneralSettings
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiReference
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
@@ -55,6 +58,7 @@ import com.intellij.util.Query
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import kotlinx.coroutines.launch
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription.Companion.isFileInResourceFolderType
 import org.jetbrains.android.dom.navigation.isNavHostFragment
 import java.awt.BorderLayout
@@ -89,7 +93,10 @@ private const val SPACING_TOTAL = SPACING_1 + SPACING_2
 
 class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardLayout()) {
 
+  private val scope = AndroidCoroutineScope(surface)
+
   private val asyncIcon = AsyncProcessIcon("find NavHostFragments")
+
   @VisibleForTesting
   val list = JBList<SmartPsiElementPointer<XmlTag>>(DefaultListModel())
   private val cardLayout = layout as CardLayout
@@ -197,29 +204,40 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
   }
 
   private fun startLoading() {
-    ApplicationManager.getApplication().executeOnPooledThread {
-      val model = surface.model
+    scope.launch(workerThread) {
+      val model = surface.models.singleOrNull()
       if (model == null) {
-        cardLayout.show(this, "ERROR")
-        return@executeOnPooledThread
+        cardLayout.show(this@HostPanel, "ERROR")
+        return@launch
       }
+      val project = model.project
+      val virtualFile = model.virtualFile
 
-      val psi = AndroidPsiUtils.getPsiFileSafely(model.project, model.virtualFile) as? XmlFile ?: return@executeOnPooledThread
-      surface.model?.project?.let { project ->
-        (list.model as DefaultListModel).clear()
-        DumbService.getInstance(project).waitForSmartMode()
-        doLoad(psi)
-      }
+      val psi = readAction {
+        if (project.isDisposed) return@readAction null
+
+        if (model.virtualFile.isValid)
+          PsiManager.getInstance(project).findFile(virtualFile)
+        else null
+      } as? XmlFile ?: return@launch
+
+      (list.model as DefaultListModel).clear()
+      doLoad(psi)
     }
   }
 
-  private fun doLoad(psiFile: XmlFile) {
-    val cancellableAction = {
+  private suspend fun doLoad(psiFile: XmlFile) {
+    val project = psiFile.project
+    val module = surface.models.singleOrNull()?.module
+    smartReadAction(project) {
       val listModel = list.model as DefaultListModel
       listModel.clear()
-      val module = surface.model?.module
       if (module != null) {
-        val newReferences = findReferences(psiFile, module).map { SmartPointerManager.createPointer(it) }
+        val newReferences = ProgressManager.getInstance().runProcess(
+          Computable {
+            findReferences(psiFile, module).map { SmartPointerManager.createPointer(it) }
+          }, EmptyProgressIndicator())
+
         listModel.addAll(newReferences)
       }
       val name = if (list.model.size == 0) {
@@ -229,12 +247,6 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
         "LIST"
       }
       cardLayout.show(this, name)
-    }
-    repeat(1000) {
-      if (ProgressManager.getInstance().runInReadActionWithWriteActionPriority(cancellableAction, EmptyProgressIndicator())) {
-        return
-      }
-      Thread.sleep(10)
     }
   }
 }
