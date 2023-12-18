@@ -27,6 +27,11 @@ import org.junit.rules.ExternalResource
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
+const val DEFAULT_FONT_SIZE = 100
+const val CUSTOM_FONT_SIZE = 130
+const val DEFAULT_DENSITY = 480
+const val CUSTOM_DENSITY = 560
+
 /**
  * Supplies fakes for UI settings tests
  */
@@ -58,9 +63,9 @@ class UiSettingsRule(emulatorPort: Int) : ExternalResource() {
 
   fun configureUiSettings(
     darkMode: Boolean = false,
-    fontSize: Int = 100,
-    physicalDensity: Int = 480,
-    overrideDensity: Int = 480
+    fontSize: Int = DEFAULT_FONT_SIZE,
+    physicalDensity: Int = DEFAULT_DENSITY,
+    overrideDensity: Int = DEFAULT_DENSITY
   ) {
     val overrideLine = if (physicalDensity != overrideDensity) "\nOverride density: $overrideDensity" else ""
 

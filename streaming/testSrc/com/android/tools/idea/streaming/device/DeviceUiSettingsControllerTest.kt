@@ -19,10 +19,11 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
-import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
+import com.android.tools.idea.streaming.emulator.CUSTOM_DENSITY
+import com.android.tools.idea.streaming.emulator.CUSTOM_FONT_SIZE
+import com.android.tools.idea.streaming.uisettings.testutil.UiControllerListenerValidator
 import com.android.tools.idea.streaming.uisettings.ui.FontSize
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
-import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import kotlinx.coroutines.runBlocking
@@ -52,56 +53,25 @@ class DeviceUiSettingsControllerTest {
   @Test
   fun testReadDefaultValueWhenAttachingAfterInit() {
     controller.initAndWait()
-    val darkMode = createAndAddListener(model.inDarkMode, true)
-    val fontSize = createAndAddListener(model.fontSizeInPercent, 100)
-    val density = createAndAddListener(model.screenDensity, 160)
-    checkInitialValues(changes = 1, darkMode, fontSize, density)
+    val listeners = UiControllerListenerValidator(model, customValues = true, testRootDisposable)
+    listeners.checkValues(expectedChanges = 1, expectedCustomValues = false)
   }
 
   @Test
   fun testReadDefaultValueWhenAttachingBeforeInit() {
-    val darkMode = createAndAddListener(model.inDarkMode, true)
-    val fontSize = createAndAddListener(model.fontSizeInPercent, 100)
-    val density = createAndAddListener(model.screenDensity, 160)
+    val listeners = UiControllerListenerValidator(model, customValues = true, testRootDisposable)
     controller.initAndWait()
-    checkInitialValues(changes = 2, darkMode, fontSize, density)
-  }
-
-  private fun checkInitialValues(
-    changes: Int,
-    darkMode: ListenerState<Boolean>,
-    fontSize: ListenerState<Int>,
-    density: ListenerState<Int>
-  ) {
-    assertThat(model.inDarkMode.value).isFalse()
-    assertThat(darkMode.changes).isEqualTo(changes)
-    assertThat(darkMode.lastValue).isFalse()
-    assertThat(model.fontSizeInPercent.value).isEqualTo(100)
-    assertThat(fontSize.changes).isEqualTo(changes)
-    assertThat(fontSize.lastValue).isEqualTo(100)
-    assertThat(model.screenDensity.value).isEqualTo(480)
-    assertThat(density.changes).isEqualTo(changes)
-    assertThat(density.lastValue).isEqualTo(480)
+    listeners.checkValues(expectedChanges = 2, expectedCustomValues = false)
   }
 
   @Test
   fun testReadCustomValue() {
     agent.darkMode = true
-    agent.fontSize = 85
-    agent.screenDensity = 608
+    agent.fontSize = CUSTOM_FONT_SIZE
+    agent.screenDensity = CUSTOM_DENSITY
     controller.initAndWait()
-    val darkMode = createAndAddListener(model.inDarkMode, false)
-    val fontSize = createAndAddListener(model.fontSizeInPercent, 100)
-    val density = createAndAddListener(model.screenDensity, 160)
-    assertThat(model.inDarkMode.value).isTrue()
-    assertThat(darkMode.changes).isEqualTo(1)
-    assertThat(darkMode.lastValue).isTrue()
-    assertThat(model.fontSizeInPercent.value).isEqualTo(85)
-    assertThat(fontSize.changes).isEqualTo(1)
-    assertThat(fontSize.lastValue).isEqualTo(85)
-    assertThat(model.screenDensity.value).isEqualTo(608)
-    assertThat(density.changes).isEqualTo(1)
-    assertThat(density.lastValue).isEqualTo(608)
+    val listeners = UiControllerListenerValidator(model, customValues = false, testRootDisposable)
+    listeners.checkValues(expectedChanges = 1, expectedCustomValues = true)
   }
 
   @Test
@@ -153,17 +123,6 @@ class DeviceUiSettingsControllerTest {
       deviceClient.decrementReferenceCount()
     }
     return DeviceView(deviceClient, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project)
-  }
-
-  private data class ListenerState<T>(var changes: Int, var lastValue: T)
-
-  private fun <T> createAndAddListener(property: TwoWayProperty<T>, initialValue: T): ListenerState<T> {
-    val state = ListenerState(0, initialValue)
-    property.addControllerListener(testRootDisposable) { newValue ->
-      state.changes++
-      state.lastValue = newValue
-    }
-    return state
   }
 
   private fun DeviceUiSettingsController.initAndWait() = runBlocking {
