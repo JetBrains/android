@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.stripPrefixFromId
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
@@ -27,6 +28,7 @@ import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
@@ -110,5 +112,12 @@ object ComponentUtil {
         ?.attributeDefinitions
         ?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
     return NlPropertyItem(attrNamespace, attrName, type, definition, "", "", model, components)
+      .also {
+        runBlocking {
+          // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
+          // asynchronously.
+          delayUntilCondition(10) { it.resolver != null }
+        }
+      }
   }
 }

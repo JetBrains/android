@@ -27,6 +27,7 @@ import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.delayUntilCondition
 import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
@@ -52,6 +53,7 @@ import java.util.Arrays
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.function.Predicate
+import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
@@ -86,7 +88,7 @@ private constructor(
     facet,
     fixture,
     createComponents(facet, fixture, activityName, parentTag, resourceFolder, fileName, *tags)
-      .toMutableList()
+      .toMutableList(),
   )
 
   private constructor(
@@ -96,7 +98,7 @@ private constructor(
   ) : this(
     facet,
     fixture,
-    createComponent(facet, fixture, FD_RES_LAYOUT, DEFAULT_FILENAME, component).toMutableList()
+    createComponent(facet, fixture, FD_RES_LAYOUT, DEFAULT_FILENAME, component).toMutableList(),
   )
 
   constructor(
@@ -113,7 +115,7 @@ private constructor(
     parentTag = parentTag,
     resourceFolder = resourceFolder,
     fileName = fileName,
-    activityName = activityName
+    activityName = activityName,
   )
 
   constructor(
@@ -131,7 +133,7 @@ private constructor(
         override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
           updates++
         }
-      }
+      },
     )
     model.surface = (nlModel as? SyncNlModel)?.surface
   }
@@ -151,7 +153,12 @@ private constructor(
     }
   }
 
-  fun makeProperty(namespace: String, name: String, type: NlPropertyType): NlPropertyItem {
+  fun makeProperty(
+    namespace: String,
+    name: String,
+    type: NlPropertyType,
+    initializeResolver: Boolean = true
+  ): NlPropertyItem {
     val definition = findDefinition(namespace, name)
     return when {
       definition == null -> NlPropertyItem(namespace, name, type, null, "", "", model, components)
@@ -164,9 +171,17 @@ private constructor(
           "",
           "",
           model,
-          components
+          components,
         )
       else -> makeProperty(namespace, definition, type)
+    }.also {
+      if (initializeResolver) {
+        runBlocking {
+          // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
+          // asynchronously.
+          delayUntilCondition(10) { it.resolver != null }
+        }
+      }
     }
   }
 
@@ -187,7 +202,7 @@ private constructor(
       "",
       "",
       model,
-      components
+      components,
     )
   }
 
@@ -247,7 +262,7 @@ private constructor(
       level,
       mock(),
       mock(),
-      mock()
+      mock(),
     )
   }
 

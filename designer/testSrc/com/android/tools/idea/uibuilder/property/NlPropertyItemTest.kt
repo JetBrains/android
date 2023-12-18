@@ -53,6 +53,7 @@ import com.android.SdkConstants.TOOLS_URI
 import com.android.SdkConstants.VIEW_MERGE
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.WARNING
@@ -84,11 +85,13 @@ import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.ColorsIcon
 import icons.StudioIcons
 import java.awt.Color
-import java.util.concurrent.CountDownLatch
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.ComponentStack
 import org.junit.After
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -214,7 +217,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testColorPropertyWithColorStateList() {
+  fun testColorPropertyWithColorStateList() = runBlocking {
     val util =
       SupportTestUtil(projectRule, createTextViewWithTextColor("@android:color/primary_text_dark"))
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
@@ -228,11 +231,15 @@ class NlPropertyItemTest {
     }
     val colorIcon = ColorsIcon(16, Color(0xFFFFFF), Color(0x000000))
     val colorButton = property.colorButton!!
-    val updatedPropertiesCountDownLatch = CountDownLatch(1)
+    val updatedPropertiesDeferrable = CompletableDeferred<Unit>()
+
+    // Wait for the resolver to be loaded
+    delayUntilCondition(100L) { property.resolver != null }
+
     property.model.addListener(
       object : PropertiesModelListener<NlPropertyItem> {
         override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
-          updatedPropertiesCountDownLatch.countDown()
+          updatedPropertiesDeferrable.complete(Unit)
         }
       }
     )
@@ -240,7 +247,7 @@ class NlPropertyItemTest {
     // The first check will trigger the update of the cache and a property values changed
     // trigger once the icon is available.
     val actionIcon = runReadAction { colorButton.actionIcon }
-    updatedPropertiesCountDownLatch.await()
+    updatedPropertiesDeferrable.await()
     assertThat(runReadAction { colorButton.actionIcon }).isNotEqualTo(actionIcon)
     assertThat(runReadAction { colorButton.actionIcon }).isEqualTo(colorIcon)
     val browseButton = property.browseButton!!
@@ -803,6 +810,18 @@ class NlPropertyItemTest {
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     property.value = HELLO_WORLD
     assertThat(property.value).isEqualTo("@string/demo")
+  }
+
+  @Test
+  fun testLazyResolverLoading() = runBlocking {
+    val util =
+      SupportTestUtil(projectRule, createTextViewWithTextColor("@android:color/primary_text_dark"))
+    val property =
+      util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST, false)
+    assertNull(property.resolver)
+
+    // Wait for the resolver to be loaded
+    delayUntilCondition(100L) { property.resolver != null }
   }
 
   private fun createTextView(): ComponentDescriptor =

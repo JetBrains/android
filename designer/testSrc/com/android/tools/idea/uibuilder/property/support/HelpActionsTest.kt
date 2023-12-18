@@ -34,6 +34,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlPropertyDocumentationTarget
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
@@ -50,6 +51,8 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jetbrains.concurrency.resolvedPromise
 import org.junit.Rule
 import org.junit.Test
@@ -68,12 +71,26 @@ class HelpActionsTest {
 
   @get:Rule val chain = RuleChain.outerRule(projectRule).around(popupRule).around(EdtRule())!!
 
-  @RunsInEdt
   @Test
-  fun testHelpForCustomPropertyWithoutDocumentation() {
+  fun testHelpForCustomPropertyWithoutDocumentation() = runBlocking {
     val property =
-      NlPropertyItem(AUTO_URI, "legend", NlPropertyType.BOOLEAN, null, "", "", mock(), mock())
-    assertThat(helpTextInPopup(property)).isEqualTo(EXPECTED_CUSTOM_PROPERTY_DOCUMENTATION)
+      NlPropertyItem(
+        AUTO_URI,
+        "legend",
+        NlPropertyType.BOOLEAN,
+        null,
+        "",
+        "",
+        mock(),
+        mock(),
+        null,
+        null,
+        supervisorScope = this,
+      )
+
+    withContext(uiThread) {
+      assertThat(helpTextInPopup(property)).isEqualTo(EXPECTED_CUSTOM_PROPERTY_DOCUMENTATION)
+    }
   }
 
   @RunsInEdt
@@ -91,7 +108,7 @@ class HelpActionsTest {
         .add(CommonDataKeys.PROJECT, projectRule.project)
         .add(
           DOCUMENTATION_TARGETS,
-          listOf(NlPropertyDocumentationTarget(property.model) { resolvedPromise(property) })
+          listOf(NlPropertyDocumentationTarget(property.model) { resolvedPromise(property) }),
         )
         .build()
     val event = AnActionEvent.createFromDataContext("", null, context)
@@ -116,32 +133,32 @@ class HelpActionsTest {
   fun testToHelpUrl() {
     assertThat(toHelpUrl(FQCN_IMAGE_VIEW, ATTR_SRC))
       .isEqualTo(
-        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/widget/ImageView.html#attr_android:src"
+        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/widget/ImageView.html#attr_android:src",
       )
 
     assertThat(toHelpUrl(FQCN_TEXT_VIEW, ATTR_FONT_FAMILY))
       .isEqualTo(
-        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/widget/TextView.html#attr_android:fontFamily"
+        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/widget/TextView.html#attr_android:fontFamily",
       )
 
     assertThat(toHelpUrl(CLASS_VIEWGROUP, ATTR_LAYOUT_HEIGHT))
       .isEqualTo(
-        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/view/ViewGroup.LayoutParams.html#attr_android:layout_height"
+        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/view/ViewGroup.LayoutParams.html#attr_android:layout_height",
       )
 
     assertThat(toHelpUrl(CLASS_VIEWGROUP, ATTR_LAYOUT_MARGIN_BOTTOM))
       .isEqualTo(
-        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/view/ViewGroup.MarginLayoutParams.html#attr_android:layout_marginBottom"
+        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/view/ViewGroup.MarginLayoutParams.html#attr_android:layout_marginBottom",
       )
 
     assertThat(toHelpUrl(CONSTRAINT_LAYOUT.oldName(), ATTR_LAYOUT_TO_END_OF))
       .isEqualTo(
-        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/support/constraint/ConstraintLayout.LayoutParams.html"
+        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/support/constraint/ConstraintLayout.LayoutParams.html",
       )
 
     assertThat(toHelpUrl(CONSTRAINT_LAYOUT.newName(), ATTR_LAYOUT_TO_END_OF))
       .isEqualTo(
-        "${DEFAULT_ANDROID_REFERENCE_PREFIX}androidx/constraintlayout/widget/ConstraintLayout.LayoutParams.html"
+        "${DEFAULT_ANDROID_REFERENCE_PREFIX}androidx/constraintlayout/widget/ConstraintLayout.LayoutParams.html",
       )
 
     assertThat(toHelpUrl("com.company.MyView", "my_attribute")).isNull()

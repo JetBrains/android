@@ -94,6 +94,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
+    test_friends = ["//tools/adt/idea/designer:intellij.android.designer"],
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",

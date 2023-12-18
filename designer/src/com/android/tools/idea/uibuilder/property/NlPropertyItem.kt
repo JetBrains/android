@@ -23,6 +23,7 @@ import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.NULL_RESOURCE
 import com.android.SdkConstants.TOOLS_URI
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
@@ -79,9 +80,12 @@ import icons.StudioIcons
 import java.awt.Color
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.Icon
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.dom.AndroidDomUtil
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * [PropertyItem] for Nele layouts, menus, preferences.
@@ -97,7 +101,9 @@ import org.jetbrains.android.dom.AndroidDomUtil
  * The [componentName] if present is the name of the View component that this property was defined
  * on. If it is not present the origin of the property is unknown.
  */
-open class NlPropertyItem(
+open class NlPropertyItem
+@VisibleForTesting
+internal constructor(
   override val namespace: String,
   override val name: String,
   open val type: NlPropertyType,
@@ -106,9 +112,34 @@ open class NlPropertyItem(
   open val libraryName: String,
   val model: NlPropertiesModel,
   open val components: List<NlComponent>,
-  val optionalValue1: Any? = null,
-  val optionalValue2: Any? = null
+  val optionalValue1: Any?,
+  val optionalValue2: Any?,
+  val supervisorScope: CoroutineScope
 ) : PropertyItem {
+  constructor(
+    namespace: String,
+    name: String,
+    type: NlPropertyType,
+    definition: AttributeDefinition?,
+    componentName: String,
+    libraryName: String,
+    model: NlPropertiesModel,
+    components: List<NlComponent>,
+    optionalValue1: Any? = null,
+    optionalValue2: Any? = null,
+  ) : this(
+    namespace,
+    name,
+    type,
+    definition,
+    componentName,
+    libraryName,
+    model,
+    components,
+    optionalValue1,
+    optionalValue2,
+    model.supervisorScope
+  )
 
   override fun toString(): String {
     return "$namespace:$name=\"$value\""
@@ -336,8 +367,21 @@ open class NlPropertyItem(
       .toString()
   }
 
+  private var cachedResolver: LazyCachedValue<ResourceResolver?> =
+    LazyCachedValue(
+      supervisorScope,
+      loader = { runInterruptible(workerThread) { getResourceResolver() } },
+      onValueLoaded = { _ ->
+        withContext(uiThread) {
+          // Trigger refresh of all properties due to the resolver being available
+          model.firePropertyValueChanged()
+        }
+      },
+      null
+    )
+
   val resolver: ResourceResolver?
-    get() = nlModel?.configuration?.resourceResolver
+    get() = cachedResolver.getCachedValueOrUpdate()
 
   val tagName: String
     get() {
@@ -361,6 +405,9 @@ open class NlPropertyItem(
 
   private val nlModel: NlModel?
     get() = firstComponent?.model
+
+  @Slow
+  private fun getResourceResolver(): ResourceResolver? = nlModel?.configuration?.resourceResolver
 
   private fun computeDefaultNamespace(): ResourceNamespace =
     ReadAction.compute<ResourceNamespace, RuntimeException> {
@@ -640,8 +687,8 @@ open class NlPropertyItem(
       cachedIcon.set(null)
       val rawValueToCalculate = rawValue
       if (rawValueToCalculate != null) {
-        model.supervisorScope.launch(workerThread) {
-          val icon = resolver?.resolveAsIcon(resValue, model.facet)
+        supervisorScope.launch(workerThread) {
+          val icon = cachedResolver.getValue()?.resolveAsIcon(resValue, model.facet)
           if (icon != null) {
             val currentRawValue = readAction { rawValue }
             cachedIcon.updateAndGet { previous ->

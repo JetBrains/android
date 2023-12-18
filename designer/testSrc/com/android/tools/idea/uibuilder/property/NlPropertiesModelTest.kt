@@ -26,6 +26,7 @@ import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.testutils.delayUntilCondition
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.res.ResourceNotificationManager
@@ -43,6 +44,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.update.MergingUpdateQueue
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
@@ -218,6 +220,11 @@ class NlPropertiesModelTest {
         model,
         listOf(textView)
       )
+    runBlocking {
+      // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
+      // asynchronously.
+      delayUntilCondition(10) { property.resolver != null }
+    }
     manager.putDefaultPropertyValue(
       textView,
       ResourceNamespace.ANDROID,
@@ -253,6 +260,11 @@ class NlPropertiesModelTest {
         model,
         listOf(textView)
       )
+    runBlocking {
+      // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
+      // asynchronously.
+      delayUntilCondition(10) { property.resolver != null }
+    }
     manager.putDefaultPropertyValue(
       textView,
       ResourceNamespace.ANDROID,
