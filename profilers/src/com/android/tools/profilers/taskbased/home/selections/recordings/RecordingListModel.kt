@@ -35,7 +35,8 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class RecordingListModel(val profilers: StudioProfilers,
                          private val taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
-                         private val resetTaskSelection: () -> Unit) : AspectObserver() {
+                         private val resetTaskSelection: () -> Unit,
+                         private val setTaskSelection: (ProfilerTaskType) -> Unit = {}) : AspectObserver() {
   private val _recordingList = MutableStateFlow(listOf<SessionItem>())
   val recordingList = _recordingList.asStateFlow()
   private val _selectedRecording = MutableStateFlow<SessionItem?>(null)
@@ -46,22 +47,16 @@ class RecordingListModel(val profilers: StudioProfilers,
       .onChange(SessionAspect.SESSIONS) { sessionItemsUpdated() }
   }
 
+  val exportableArtifact get() = if (isSelectedRecordingExportable()) selectedRecording.value!!.getChildArtifacts().first() else null
+
   fun onRecordingSelection(newRecording: SessionItem?) {
     resetTaskSelection()
     _selectedRecording.value = newRecording
+    updateTaskSelection()
   }
 
   fun isSelectedRecordingExportable() = selectedRecording.value.let {
     it != null && it.containsExactlyOneArtifact() && (it.getChildArtifacts().firstOrNull()?.canExport ?: false)
-  }
-
-  val exportableArtifact get() = if (isSelectedRecordingExportable()) selectedRecording.value!!.getChildArtifacts().first() else null
-
-  private fun sessionItemsUpdated() {
-    val sessionItems = profilers.sessionsManager.sessionArtifacts.filterIsInstance<SessionItem>().filter { !it.isOngoing }
-    val newRecordingList = mutableListOf<SessionItem>()
-    newRecordingList.addAll(sessionItems)
-    _recordingList.value = newRecordingList
   }
 
   /**
@@ -73,6 +68,22 @@ class RecordingListModel(val profilers: StudioProfilers,
     }.keys
 
     return if (supportedTaskTypes.isEmpty()) "No tasks available" else supportedTaskTypes.joinToString(separator = ", ") { it.description }
+  }
+
+  private fun updateTaskSelection() {
+    // If only one task is supported after the recording is selected, that task is auto-selected.
+    val supportedTasks = taskHandlers.entries.toList().filter {
+      _selectedRecording.value != null && TaskSupportUtils.isTaskSupportedByRecording(it.key, it.value, _selectedRecording.value!!) }
+    if (supportedTasks.size == 1) {
+      setTaskSelection(supportedTasks.first().key)
+    }
+  }
+
+  private fun sessionItemsUpdated() {
+    val sessionItems = profilers.sessionsManager.sessionArtifacts.filterIsInstance<SessionItem>().filter { !it.isOngoing }
+    val newRecordingList = mutableListOf<SessionItem>()
+    newRecordingList.addAll(sessionItems)
+    _recordingList.value = newRecordingList
   }
 
   @VisibleForTesting

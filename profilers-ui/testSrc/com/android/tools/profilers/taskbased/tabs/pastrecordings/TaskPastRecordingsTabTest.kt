@@ -29,6 +29,8 @@ import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
@@ -114,9 +116,12 @@ class TaskPastRecordingsTabTest {
       }
     }
 
-    // Populate recording list with a fake recording.
-    pastRecordingsTabModel.recordingListModel.setRecordingList(
-      listOf(SessionArtifactUtils.createSessionItemWithSystemTraceArtifact("Recording 1", 1L, 1L, myProfilers)))
+    val session = Common.Session.getDefaultInstance()
+    val artConfig = Trace.TraceConfiguration.newBuilder().setArtOptions(Trace.ArtOptions.getDefaultInstance()).build()
+    val artTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, session, 1L, 1L, artConfig)
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, "Recording 1", listOf(artTraceArtifact))
+    // Populate recording list with a fake recording. The ART recording has two supported tasks.
+    pastRecordingsTabModel.recordingListModel.setRecordingList(listOf(sessionItem))
 
     // Assert both the data model and the UI reflect the past recording entry.
     assertThat(pastRecordingsTabModel.recordingListModel.recordingList.value).hasSize(1)
@@ -137,11 +142,15 @@ class TaskPastRecordingsTabTest {
     composeTestRule.onNodeWithTag("EnterTaskButton").assertIsNotEnabled()
 
     // Make task selection.
-    composeTestRule.onNodeWithTag("TaskGridItem").assertIsDisplayed().assertIsEnabled().assertHasClickAction()
-    composeTestRule.onNodeWithTag("TaskGridItem").performClick()
+    composeTestRule.onAllNodesWithTag("TaskGridItem").assertCountEquals(2)
+    composeTestRule.onAllNodesWithTag("TaskGridItem")[0].assertIsDisplayed().assertIsEnabled().assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("TaskGridItem")[1].assertIsDisplayed().assertIsEnabled().assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("TaskGridItem")[0].performClick()
 
-    // Make sure task selection was registered in data model.
-    assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
+    // Make sure task selection was registered in data model. To make the task selected by this test is agnostic of task grid item order,
+    // the selected task type is checked against all supported tasks that could have been selected.
+    assertThat(pastRecordingsTabModel.selectedTaskType).isAnyOf(ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE,
+                                                                ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE)
 
     // Make sure at this point, the start profiler task button is now enabled as device, process, and task selections were all valid.
     composeTestRule.onNodeWithTag("EnterTaskButton").assertIsEnabled()

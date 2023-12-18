@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils
@@ -26,10 +27,12 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.google.common.truth.Truth
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import perfetto.protos.PerfettoConfig.TraceConfig
 
 class PastRecordingsTabModelTest {
   private val myTimer = FakeTimer()
@@ -49,6 +52,8 @@ class PastRecordingsTabModelTest {
     myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideProfilerServices, myTimer)
     myManager = myProfilers.sessionsManager
     pastRecordingsTabModel = PastRecordingsTabModel(myProfilers)
+    val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)
+    taskHandlers.forEach{ (type, handler)  -> myProfilers.addTaskHandler(type, handler) }
     ideProfilerServices.enableTaskBasedUx(true)
   }
 
@@ -100,6 +105,30 @@ class PastRecordingsTabModelTest {
     val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, listOf(systemTraceArtifact))
     pastRecordingsTabModel.recordingListModel.onRecordingSelection(sessionItem)
 
+    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
+  }
+
+  @Test
+  fun `test task is auto-selected if it is the only supported task for a selected recording`() {
+    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
+    val session = Common.Session.getDefaultInstance()
+    val perfettoConfig = Trace.TraceConfiguration.newBuilder().setPerfettoOptions(TraceConfig.getDefaultInstance()).build()
+    val systemTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, session, 1L, 1L, perfettoConfig)
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, listOf(systemTraceArtifact))
+    pastRecordingsTabModel.recordingListModel.onRecordingSelection(sessionItem)
+    // System trace recordings have only one supported task, and thus the task gets auto-selected on recording selection.
+    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
+  }
+
+  @Test
+  fun `test no task is auto-selected if there are more than one supported task for a selected recording`() {
+    Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
+    val session = Common.Session.getDefaultInstance()
+    val artConfig = Trace.TraceConfiguration.newBuilder().setArtOptions(Trace.ArtOptions.getDefaultInstance()).build()
+    val artTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, session, 1L, 1L, artConfig)
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, listOf(artTraceArtifact))
+    pastRecordingsTabModel.recordingListModel.onRecordingSelection(sessionItem)
+    // ART-based recordings have multiple supported tasks.
     Truth.assertThat(pastRecordingsTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
   }
 }

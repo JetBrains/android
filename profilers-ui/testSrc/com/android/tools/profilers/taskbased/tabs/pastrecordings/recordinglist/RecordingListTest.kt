@@ -76,7 +76,7 @@ class RecordingListTest {
     myManager = myProfilers.sessionsManager
     val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)
     taskHandlers.forEach {  myProfilers.addTaskHandler(it.key, it.value)  }
-    recordingListModel = RecordingListModel(myProfilers, taskHandlers) {}
+    recordingListModel = RecordingListModel(myProfilers, taskHandlers, {}) {}
     ideProfilerServices.enableTaskBasedUx(true)
   }
 
