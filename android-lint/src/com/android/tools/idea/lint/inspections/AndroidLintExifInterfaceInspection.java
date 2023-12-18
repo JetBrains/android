@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.lint.inspections;
 
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
-
 import com.android.ide.common.gradle.Component;
 import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.support.AndroidxName;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.projectsystem.DependencyType;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.lint.checks.ExifInterfaceDetector;
@@ -43,7 +42,6 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiClass;
@@ -92,30 +90,17 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
           return;
         }
 
-        String libraryCoordinate = getExifLibraryCoordinate();
+        GradleCoordinate libraryCoordinate = getExifLibraryCoordinate();
         boolean useAndroidx =
-          libraryCoordinate != null && libraryCoordinate.startsWith(GoogleMavenArtifactId.ANDROIDX_EXIF_INTERFACE.getMavenGroupId());
-        // Add dependency first
-        GradleBuildModel buildModel = GradleBuildModel.get(module);
+          libraryCoordinate != null && libraryCoordinate.toString().startsWith(GoogleMavenArtifactId.ANDROIDX_EXIF_INTERFACE.getMavenGroupId());
         try {
-          if (buildModel == null) {
-            replaceReferences(getName(), startElement, null, useAndroidx);
-          }
-          else {
-            WriteCommandAction.writeCommandAction(module.getProject()).withName(getName()).run(() -> {
-              if (libraryCoordinate != null) {
-                ModuleRootModificationUtil.updateModel(module, model -> {
-                  GradleBuildModel buildModel2 = GradleBuildModel.get(module);
-                  if (buildModel2 != null) {
-                    buildModel2.dependencies().addArtifact(IMPLEMENTATION, libraryCoordinate);
-                    buildModel2.applyChanges();
-                  }
-                });
-              }
+          WriteCommandAction.writeCommandAction(module.getProject()).withName(getName()).run(() -> {
+            if (libraryCoordinate != null) {
+              ProjectSystemUtil.getModuleSystem(module).registerDependency(libraryCoordinate, DependencyType.IMPLEMENTATION);
+            }
 
-              syncAndReplaceReferences(project, startElement, useAndroidx);
-            });
-          }
+            syncAndReplaceReferences(project, startElement, useAndroidx);
+          });
         }
         finally {
           action.finish();
@@ -144,7 +129,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
       }, MoreExecutors.directExecutor());
     }
 
-    private static String getExifLibraryCoordinate() {
+    private static GradleCoordinate getExifLibraryCoordinate() {
       RepositoryUrlManager manager = RepositoryUrlManager.get();
       Component component = manager.getArtifactComponent(GoogleMavenArtifactId.ANDROIDX_EXIF_INTERFACE, true);
       String libraryComponentIdentifier = null;
@@ -152,7 +137,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
         libraryComponentIdentifier = component.toIdentifier();
       }
       if (libraryComponentIdentifier != null) {
-        return libraryComponentIdentifier;
+        return GradleCoordinate.parseCoordinateString(libraryComponentIdentifier);
       }
 
       component = manager.getArtifactComponent(GoogleMavenArtifactId.EXIF_INTERFACE, true);
@@ -169,7 +154,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
         }
       }
 
-      return libraryComponentIdentifier;
+      return GradleCoordinate.parseCoordinateString(libraryComponentIdentifier);
     }
 
     /**
