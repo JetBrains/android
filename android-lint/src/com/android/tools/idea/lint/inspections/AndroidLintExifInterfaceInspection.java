@@ -146,16 +146,23 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
 
     private static String getExifLibraryCoordinate() {
       RepositoryUrlManager manager = RepositoryUrlManager.get();
-      String libraryComponentIdentifier = manager.getArtifactComponentIdentifier(GoogleMavenArtifactId.ANDROIDX_EXIF_INTERFACE, true);
+      Component component = manager.getArtifactComponent(GoogleMavenArtifactId.ANDROIDX_EXIF_INTERFACE, true);
+      String libraryComponentIdentifier = null;
+      if (component != null) {
+        libraryComponentIdentifier = component.toIdentifier();
+      }
       if (libraryComponentIdentifier != null) {
         return libraryComponentIdentifier;
       }
 
-      libraryComponentIdentifier = manager.getArtifactComponentIdentifier(GoogleMavenArtifactId.EXIF_INTERFACE, true);
+      component = manager.getArtifactComponent(GoogleMavenArtifactId.EXIF_INTERFACE, true);
+      if (component != null) {
+        libraryComponentIdentifier = component.toIdentifier();
+      }
       if (libraryComponentIdentifier == null) {
         return null;
       }
-      Component component = Component.Companion.tryParse(libraryComponentIdentifier);
+
       if (component != null) {
         if (component.getVersion().compareTo(Version.Companion.parse("25.1.0")) < 0) {
           libraryComponentIdentifier = GoogleMavenArtifactId.EXIF_INTERFACE.getComponent("25.1.0").toIdentifier();

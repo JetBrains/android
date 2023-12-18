@@ -56,14 +56,14 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   internal constructor() : this(IdeGoogleMavenRepository,
                                 OfflineIdeGoogleMavenRepository, false)
 
-  fun getArtifactComponentIdentifier(artifactId: GoogleMavenArtifactId, preview: Boolean): String? =
-    getArtifactComponentIdentifier(artifactId, null, preview)
+  fun getArtifactComponent(artifactId: GoogleMavenArtifactId, preview: Boolean): Component? =
+    getArtifactComponent(artifactId, null, preview)
 
-  fun getArtifactComponentIdentifier(artifactId: GoogleMavenArtifactId, filter: Predicate<Version>?, preview: Boolean): String? {
+  fun getArtifactComponent(artifactId: GoogleMavenArtifactId, filter: Predicate<Version>?, preview: Boolean): Component? {
     val revision = getLibraryRevision(
       artifactId.mavenGroupId, artifactId.mavenArtifactId, filter, preview, FileSystems.getDefault()
     ) ?: return null
-    return artifactId.getComponent(revision).toIdentifier()
+    return artifactId.getComponent(revision)
   }
 
   /**

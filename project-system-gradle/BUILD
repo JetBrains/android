@@ -60,6 +60,7 @@ iml_module(
         "//tools/adt/idea/analytics[module]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
         "//tools/adt/idea/project-system-gradle:libandroid-core-proto",
+        "//tools/base/sdk-common/gradle:studio.android.sdktools.sdk-common.gradle[module]",
     ],
 )
 

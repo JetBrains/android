@@ -42,7 +42,6 @@ import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeDependencies;
 import com.android.tools.idea.gradle.model.IdeJavaLibrary;
-import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency;
 import com.android.tools.idea.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -260,12 +259,9 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         Predicate<Version> filter =
           descriptor.getMinVersion() == null ? null : (v -> v.toString().startsWith(descriptor.getMinVersion()));
 
-        String componentIdentifier = RepositoryUrlManager.get().getArtifactComponentIdentifier(library, filter, false);
-        if (componentIdentifier != null) {
-          Component component = Component.Companion.tryParse(componentIdentifier);
-          if (component != null) {
-            version = component.getVersion().toString();
-          }
+        Component component = RepositoryUrlManager.get().getArtifactComponent(library, filter, false);
+        if (component != null) {
+          version = component.getVersion().toString();
         }
       }
     }
