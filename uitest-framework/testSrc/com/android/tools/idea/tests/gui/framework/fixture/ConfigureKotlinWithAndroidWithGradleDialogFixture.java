@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import static junit.framework.Assert.assertTrue;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import java.util.Arrays;
@@ -35,11 +34,18 @@ import org.fest.swing.timing.Wait;
 public class ConfigureKotlinWithAndroidWithGradleDialogFixture{
   @NotNull private final IdeFrameFixture myIdeFrame;
   @NotNull private final JDialog myDialog;
-  @NotNull static final String TITLE = "Configure Kotlin with Android with Gradle";
+  @NotNull static final String TITLE = ""; //Title is not appearing after IDEA 2023.3 merge. b/316416680
+  @NotNull static final String DIALOG_CONTAINS = "Kotlin compiler and runtime version:";
 
   public static ConfigureKotlinWithAndroidWithGradleDialogFixture find(IdeFrameFixture ideFrame) {
-    JDialog dialog = GuiTests.waitUntilShowing(ideFrame.robot(),
-                                               Matchers.byTitle(JDialog.class, TITLE));
+    JLabel jLabel = ideFrame.robot().finder().find(Matchers.byText(JLabel.class, DIALOG_CONTAINS));
+
+    //Finding the dialog based on the content
+    Collection<JDialog> allDialogFound = ideFrame.robot().finder().findAll(
+      jLabel.getParent().getParent().getParent().getParent().getParent().getParent().getParent(),
+      Matchers.byTitle(JDialog.class, TITLE));
+    JDialog dialog = allDialogFound.iterator().next();
+
     assertTrue(dialog.isVisible());
     return new ConfigureKotlinWithAndroidWithGradleDialogFixture(ideFrame, dialog);
   }
