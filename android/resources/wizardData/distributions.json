@@ -40,7 +40,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: December 1, 2023"
       }
     ]
   },
@@ -105,7 +105,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: December 1, 2023"
       }
     ]
   },
@@ -113,7 +113,7 @@
     "name": "Lollipop",
     "version": "5.1",
     "apiLevel": 22,
-    "distributionPercentage": 0.013,
+    "distributionPercentage": 0.011,
     "url": "https://developer.android.com/about/versions/android-5.1.html",
     "descriptionBlocks": [
       {
@@ -126,7 +126,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: December 1, 2023"
       }
     ]
   },
@@ -134,7 +134,7 @@
     "name": "Marshmallow",
     "version": "6",
     "apiLevel": 23,
-    "distributionPercentage": 0.02,
+    "distributionPercentage": 0.018,
     "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
     "descriptionBlocks": [
       {
@@ -167,7 +167,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: December 1, 2023"
       }
     ]
   },
@@ -175,7 +175,7 @@
     "name": "Nougat",
     "version": "7",
     "apiLevel": 24,
-    "distributionPercentage": 0.013,
+    "distributionPercentage": 0.012,
     "url": "https://developer.android.com/about/versions/nougat/android-7.0.html",
     "descriptionBlocks": [
       {
@@ -224,7 +224,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: December 1, 2023"
       }
     ]
   },
@@ -232,7 +232,7 @@
     "name": "Nougat",
     "version": "7.1",
     "apiLevel": 25,
-    "distributionPercentage": 0.014,
+    "distributionPercentage": 0.012,
     "url": "https://developer.android.com/about/versions/nougat/android-7.1.html",
     "descriptionBlocks": [
       {
@@ -261,7 +261,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: December 1, 2023"
       }
     ]
   },
@@ -269,7 +269,7 @@
     "name": "Oreo",
     "version": "8",
     "apiLevel": 26,
-    "distributionPercentage": 0.02,
+    "distributionPercentage": 0.018,
     "url": "https://developer.android.com/about/versions/oreo/android-8.0",
     "descriptionBlocks": [
       {
@@ -298,7 +298,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: December 1, 2023"
       }
     ]
   },
@@ -306,7 +306,7 @@
     "name": "Oreo",
     "version": "8.1",
     "apiLevel": 27,
-    "distributionPercentage": 0.055,
+    "distributionPercentage": 0.05,
     "url": "https://developer.android.com/about/versions/oreo/android-8.1",
     "descriptionBlocks": [
       {
@@ -327,7 +327,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: December 1, 2023"
       }
     ]
   },
@@ -335,7 +335,7 @@
     "name": "Pie",
     "version": "9",
     "apiLevel": 28,
-    "distributionPercentage": 0.108,
+    "distributionPercentage": 0.099,
     "url": "https://developer.android.com/about/versions/pie/android-9.0",
     "descriptionBlocks": [
       {
@@ -360,7 +360,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: December 1, 2023"
       }
     ]
   },
@@ -368,7 +368,7 @@
     "name": "Q",
     "version": "10",
     "apiLevel": 29,
-    "distributionPercentage": 0.166,
+    "distributionPercentage": 0.154,
     "url": "https://developer.android.com/about/versions/10",
     "descriptionBlocks": [
       {
@@ -389,7 +389,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: December 1, 2023"
       }
     ]
   },
@@ -397,7 +397,7 @@
     "name": "R",
     "version": "11",
     "apiLevel": 30,
-    "distributionPercentage": 0.22,
+    "distributionPercentage": 0.208,
     "url": "https://developer.android.com/about/versions/11",
     "descriptionBlocks": [
       {
@@ -414,7 +414,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: December 1, 2023"
       }
     ]
   },
@@ -422,7 +422,7 @@
     "name": "S",
     "version": "12",
     "apiLevel": 31,
-    "distributionPercentage": 0.159,
+    "distributionPercentage": 0.157,
     "url": "https://developer.android.com/about/versions/12",
     "descriptionBlocks": [
       {
@@ -443,7 +443,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: December 1, 2023"
       }
     ]
   },
@@ -451,7 +451,7 @@
     "name": "T",
     "version": "13",
     "apiLevel": 33,
-    "distributionPercentage": 0.204,
+    "distributionPercentage": 0.248,
     "url": "https://developer.android.com/about/versions/13",
     "descriptionBlocks": [
       {
@@ -468,7 +468,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: September 1, 2023"
+        "body": "Last updated: December 1, 2023"
       }
     ]
   }
