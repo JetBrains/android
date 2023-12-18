@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Collects the platform skins, the system image skins, and the rest; and wraps them in {@link Skin} instances
  */
-public final class Collector {
+public final class SkinCollector {
   @NotNull
   private final AndroidSdkHandler myHandler;
 
@@ -48,14 +48,27 @@ public final class Collector {
   @NotNull
   private final UnaryOperator<Path> myMap;
 
-  public Collector(@NotNull UnaryOperator<Path> map) {
+  private SkinCollector(@NotNull UnaryOperator<@NotNull Path> map) {
     myHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    myIndicator = new StudioLoggerProgressIndicator(Collector.class);
+    myIndicator = new StudioLoggerProgressIndicator(SkinCollector.class);
     myMap = map;
   }
 
-  @NotNull
-  public Collection<Skin> collect() {
+  /**
+   * Collects all the skins. Maps the platform and system image skins to the outputs of DeviceSkinUpdater::updateSkin in the process.
+   */
+  public static @NotNull Collection<@NotNull Skin> updateAndCollect() {
+    return new SkinCollector(DeviceSkinUpdater::updateSkin).collect();
+  }
+
+  /**
+   * Collects all the skins. Maps the platform and system image skin paths to their filenames in the process.
+   */
+  public static @NotNull Collection<@NotNull Skin> getFilenamesAndCollect() {
+    return new SkinCollector(Path::getFileName).collect();
+  }
+
+  private @NotNull Collection<@NotNull Skin> collect() {
     return Streams.concat(platformSkins(), skins(), systemImageSkins()).toList();
   }
 

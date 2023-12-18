@@ -23,6 +23,7 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.Validator.Result;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.avdmanager.skincombobox.SkinCollector;
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBox;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -44,7 +45,6 @@ import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.BrowserLink;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBDimension;
-import java.nio.file.Path;
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -239,7 +239,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   }
 
   private void createDefaultSkinComboBox() {
-    myCustomSkinPath = new SkinComboBox(null, Path::getFileName);
+    myCustomSkinPath = new SkinComboBox(null, SkinCollector::getFilenamesAndCollect);
 
     // HACK I'm constraining the sizes to something closer to the old SkinChooser. I prefer to let children be the sizes they want to be at
     // and tweak the parent containers instead but that was too difficult.
