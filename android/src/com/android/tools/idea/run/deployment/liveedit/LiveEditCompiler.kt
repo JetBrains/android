@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
-import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
@@ -27,6 +26,7 @@ import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugar
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarRequest
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse
 import com.android.tools.idea.run.deployment.liveedit.desugaring.MinApiLevel
+import com.android.tools.idea.run.deployment.liveedit.k2.LiveEditCompilerForK2
 import com.google.common.collect.HashMultimap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -34,29 +34,20 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.containingPackage
-import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil.getFileClassInfoNoResolve
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
-import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.util.module
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
 import java.util.Optional
 
 class LiveEditCompiler(val project: Project,
@@ -104,7 +95,11 @@ class LiveEditCompiler(val project: Project,
       for ((file, input) in changedFiles.asMap()) {
         try {
           // Compiler pass
-          compileKtFile(file, input, psiValidator, outputBuilder)
+          if (isK2Plugin()) {
+            LiveEditCompilerForK2(inlineCandidateCache, irClassCache, psiValidator, this.outputBuilder).compile(file, input, outputBuilder)
+          } else {
+            compileKtFile(file, input, psiValidator, outputBuilder)
+          }
           val outputs = outputBuilder.build()
           logger.dumpCompilerOutputs(outputs.classes)
 
@@ -292,25 +287,12 @@ class LiveEditCompiler(val project: Project,
     }
 
     for ((internalClassName, inputFile) in selectedClasses) {
-      getCompiledClasses(internalClassName, inputFile, compilerOutput, output)
+      getCompiledClasses(internalClassName, inputFile, compilerOutput, output, inlineCandidateCache)
     }
   }
 
   private fun getClassForMethod(targetFunction: KtFunction, desc: SimpleFunctionDescriptor): Pair<String, KtFile> {
-    var elem: PsiElement = targetFunction
-    while (elem.getKotlinFqName() == null || elem !is KtNamedFunction) {
-      if (elem.parent == null) {
-        // Suppose you are editing:
-        // val direct = @Composable{Text(text = "hi")}
-        //
-        // We would not be able to find a named function with the current implementation. What we need to do is figure out the name
-        // of the function in the .class that is changed. This can only be done with something like a class differ.
-        throw internalError("Unsupported edit of unnamed function", elem.containingFile);
-      }
-      elem = elem.parent
-    }
-
-    val function: KtNamedFunction = elem
+    val function: KtNamedFunction = targetFunction.getNamedFunctionParent()
 
     // Class name can be either the class containing the function fragment or a KtFile
     var className = KtNamedDeclarationUtil.getParentFqName(function).toString()
@@ -322,118 +304,13 @@ class LiveEditCompiler(val project: Project,
     checkNonPrivateInline(desc, function.containingFile)
 
     val internalClassName = getInternalClassName(desc.containingPackage(), className, function.containingFile)
-    return internalClassName to elem.containingFile as KtFile
+    return internalClassName to function.containingKtFile
   }
 
   private inline fun checkNonPrivateInline(desc: SimpleFunctionDescriptor, file: PsiFile) {
     if (desc.isInline && desc.visibility != DescriptorVisibilities.PRIVATE) {
       throw nonPrivateInlineFunctionFailure(file)
     }
-  }
-
-  private fun getCompiledClasses(internalClassName: String, input: KtFile, compilerOutput: List<OutputFile>,
-                                 liveEditOutput : LiveEditCompilerOutput.Builder) {
-    // TODO: Remove all these println once we are more stable.
-    println("Lived edit classes summary start")
-    for (c in compilerOutput) {
-
-      // We get things like folder path an
-      if (!c.relativePath.endsWith(".class")) {
-        println("   Skipping output: ${c.relativePath}")
-        continue
-      }
-
-      if (isKeyMetaClass(c)) {
-        println("   Skipping MetaKey: ${c.relativePath}")
-        continue
-      }
-
-      // Query kotlin compiler via getFileClassInfoNoResolve to handle file level annotations that changes output filenames.
-      // For example: "@file:JvmName("CustomJvmName")" or "@file:JvmMultifileClass"
-      val classInfo = getFileClassInfoNoResolve(input)
-      if (c.relativePath == "$internalClassName.class" ||
-          c.relativePath == "${classInfo.fileClassFqName.toString().replace(".", "/")}.class" ||
-          c.relativePath == "${classInfo.facadeClassFqName.toString().replace(".", "/")}.class") {
-        var primaryClass = c.asByteArray()
-        var name = c.relativePath.substringBefore(".class")
-        println("   Primary class: ${c.relativePath}")
-        inlineCandidateCache.computeIfAbsent(name) {
-          SourceInlineCandidate(input, it)
-        }.setByteCode(primaryClass)
-        liveEditOutput.addClass(LiveEditCompiledClass(name, primaryClass, input.module, LiveEditClassType.NORMAL_CLASS))
-        continue
-      }
-
-      // Lambdas and compose classes are proxied in the interpreted on device.
-      val reader = ClassReader(c.asByteArray());
-      if (isProxiable(reader)) {
-        println("   Proxiable class: ${c.relativePath}")
-        val name = c.relativePath.substringBefore(".class")
-        val supportClass = c.asByteArray()
-        inlineCandidateCache.computeIfAbsent(name) {
-          SourceInlineCandidate(input, it)
-        }.setByteCode(supportClass)
-        liveEditOutput.addClass(LiveEditCompiledClass(name, supportClass, input.module, LiveEditClassType.SUPPORT_CLASS))
-        continue
-      }
-
-      println("   Ignored class: ${c.relativePath}")
-      // TODO: New classes (or existing unmodified classes) are not handled here. We should let the user know here.
-    }
-    println("Lived edit classes summary end")
-  }
-
-  private fun isProxiable(clazzFile: ClassReader): Boolean {
-    if (clazzFile.superName == "kotlin/jvm/internal/Lambda" ||
-        clazzFile.superName == "kotlin/coroutines/jvm/internal/SuspendLambda" ||
-        clazzFile.superName == "kotlin/coroutines/jvm/internal/RestrictedSuspendLambda" ||
-        clazzFile.className.contains("ComposableSingletons\$")) {
-      return true
-    }
-
-    // Checking for SAM (single abstract method) interfaces; these aren't specifically tagged in bytecode, so we need a heuristic.
-    // All the following should be true:
-    //   - inner classes (classes with '$' in the name)
-    //   - that implement a single interface
-    //   - that implement exactly one public method
-    if (!clazzFile.className.contains('$') || clazzFile.interfaces.size != 1) {
-      return false
-    }
-
-    var publicMethodCount = 0
-    clazzFile.accept(object : ClassVisitor(Opcodes.ASM5) {
-      override fun visitMethod(access: Int,
-                               name: String?,
-                               descriptor: String?,
-                               signature: String?,
-                               exceptions: Array<out String>?): MethodVisitor? {
-        if (access and Opcodes.ACC_PUBLIC != 0 &&
-            access and Opcodes.ACC_STATIC == 0 &&
-            name != SpecialNames.INIT.asString()) {
-          publicMethodCount++
-        }
-
-        // visitMethod return
-        return null
-      }
-    }, 0)
-
-    return publicMethodCount == 1
-  }
-
-  // The PSI returns the class name in the same format it would be used in an import statement: com.package.Class.InnerClass; however,
-  // java's internal name format requires the same class name to be formatted as com/package/Class$InnerClass. This method takes a package
-  // and class name in "import" format and returns the same class name in "internal" format.
-  private fun getInternalClassName(packageName : FqName?, className : String, file: PsiFile) : String {
-    var packagePrefix = ""
-    if (packageName != null && !packageName.isRoot) {
-      packagePrefix = "$packageName."
-    }
-    if (!className.contains(packagePrefix)) {
-      throw internalError("Expected package prefix '$packagePrefix' not found in class name '$className'")
-    }
-    val classSuffix = className.substringAfter(packagePrefix)
-    return packagePrefix.replace(".", "/") + classSuffix.replace(".", "$")
   }
 
   fun resetState() {
@@ -446,6 +323,4 @@ class LiveEditCompiler(val project: Project,
       desugarer = LiveEditDesugar()
     }
   }
-
-
 }
