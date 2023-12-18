@@ -760,18 +760,6 @@ MODULE                        : MainActivity
                         _agp_internal_javaPreCompileRemoteDebug_kaptClasspath       : <empty>
                         _agp_internal_javaPreCompileRemoteReleaseUnitTest_kaptClasspath       : <empty>
                         _agp_internal_javaPreCompileRemoteRelease_kaptClasspath     : <empty>
-                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
-                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                        _internal-unified-test-platform-android-test-plugin         : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
-                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                        _internal-unified-test-platform-core    : <empty>
-                        _internal-unified-test-platform-launcher          : <empty>
                         androidApis                   : <empty>
                         androidJacocoAnt              : <empty>
                         androidJdkImage               : <empty>
@@ -1440,18 +1428,6 @@ MODULE                        : MainActivity
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
-                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                        _internal-unified-test-platform-android-test-plugin         : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
-                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                        _internal-unified-test-platform-core    : <empty>
-                        _internal-unified-test-platform-launcher          : <empty>
                         androidApis                   : <empty>
                         androidJacocoAnt              : <empty>
                         androidJdkImage               : <empty>
@@ -2095,6 +2071,7 @@ MODULE                        : MainActivity.app
                     KotlinDirectories             : <ROOT>/app/src/localDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/localDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/localDebug/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/localDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/localDebug/rs [-]
                     ResDirectories                : <ROOT>/app/src/localDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/localDebug/assets [-]
@@ -2213,6 +2190,7 @@ MODULE                        : MainActivity.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestLocalDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestLocalDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestLocalDebug/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTestLocalDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestLocalDebug/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTestLocalDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestLocalDebug/assets [-]

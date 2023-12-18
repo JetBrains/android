@@ -774,18 +774,6 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
-                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                        _internal-unified-test-platform-android-test-plugin         : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
-                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                        _internal-unified-test-platform-core    : <empty>
-                        _internal-unified-test-platform-launcher          : <empty>
                         androidApis                   : <empty>
                         androidJacocoAnt              : <empty>
                         androidJdkImage               : <empty>
@@ -1546,18 +1534,6 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
-                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                        _internal-unified-test-platform-android-test-plugin         : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
-                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                        _internal-unified-test-platform-core    : <empty>
-                        _internal-unified-test-platform-launcher          : <empty>
                         androidApis                   : <empty>
                         androidJacocoAnt              : <empty>
                         androidJdkImage               : <empty>
@@ -1688,18 +1664,6 @@ MODULE                        : project
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             configurationArtifacts
-                                _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                                _internal-unified-test-platform-android-device-provider-gradle        : <empty>
-                                _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                                _internal-unified-test-platform-android-test-plugin         : <empty>
-                                _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                                _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                                _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                                _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                                _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
-                                _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                                _internal-unified-test-platform-core    : <empty>
-                                _internal-unified-test-platform-launcher          : <empty>
                                 androidApis                   : <empty>
                                 androidJacocoAnt              : <empty>
                                 androidJdkImage               : <empty>
@@ -1815,18 +1779,6 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
-                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                        _internal-unified-test-platform-android-test-plugin         : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
-                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                        _internal-unified-test-platform-core    : <empty>
-                        _internal-unified-test-platform-launcher          : <empty>
                         androidApis                   : <empty>
                         androidJacocoAnt              : <empty>
                         androidJdkImage               : <empty>
@@ -1957,18 +1909,6 @@ MODULE                        : project
                             sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             configurationArtifacts
-                                _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                                _internal-unified-test-platform-android-device-provider-gradle        : <empty>
-                                _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                                _internal-unified-test-platform-android-test-plugin         : <empty>
-                                _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                                _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                                _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                                _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                                _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
-                                _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                                _internal-unified-test-platform-core    : <empty>
-                                _internal-unified-test-platform-launcher          : <empty>
                                 androidApis                   : <empty>
                                 androidJacocoAnt              : <empty>
                                 androidJdkImage               : <empty>
@@ -2099,18 +2039,6 @@ MODULE                        : project
                                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                                     configurationArtifacts
-                                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
-                                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                                        _internal-unified-test-platform-android-test-plugin         : <empty>
-                                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
-                                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                                        _internal-unified-test-platform-core    : <empty>
-                                        _internal-unified-test-platform-launcher          : <empty>
                                         androidApis                   : <empty>
                                         androidJacocoAnt              : <empty>
                                         androidJdkImage               : <empty>
@@ -2235,18 +2163,6 @@ MODULE                        : project
                     sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
-                        _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
-                        _internal-unified-test-platform-android-driver-instrumentation        : <empty>
-                        _internal-unified-test-platform-android-test-plugin         : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-coverage     : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-device-info  : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-logcat       : <empty>
-                        _internal-unified-test-platform-android-test-plugin-host-retention    : <empty>
-                        _internal-unified-test-platform-android-test-plugin-result-listener-gradle      : <empty>
-                        _internal-unified-test-platform-core    : <empty>
-                        _internal-unified-test-platform-launcher          : <empty>
                         androidApis                   : <empty>
                         androidJacocoAnt              : <empty>
                         androidJdkImage               : <empty>
@@ -3160,6 +3076,7 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/basicBarDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/basicBarDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/basicBarDebug/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/basicBarDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/basicBarDebug/rs [-]
                     ResDirectories                : <ROOT>/app/src/basicBarDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/basicBarDebug/assets [-]
@@ -3468,6 +3385,7 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestBasicBarDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestBasicBarDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestBasicBarDebug/resources [-]
+                    AidlDirectories               : <ROOT>/app/src/androidTestBasicBarDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestBasicBarDebug/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTestBasicBarDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestBasicBarDebug/assets [-]
@@ -6343,6 +6261,8 @@ MODULE                        : project.nested2
                     KotlinDirectories             : <ROOT>/nested2/src/basicDebug/java [-]
                     KotlinDirectories             : <ROOT>/nested2/src/basicDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/basicDebug/resources [-]
+                    AidlDirectories               : <ROOT>/nested2/src/basicDebug/aidl [-]
+                    RenderscriptDirectories       : <ROOT>/nested2/src/basicDebug/rs [-]
                     ResDirectories                : <ROOT>/nested2/src/basicDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/basicDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/basicDebug/jniLibs [-]
@@ -6376,6 +6296,7 @@ MODULE                        : project.nested2
                     KotlinDirectories             : <ROOT>/nested2/src/androidTestBasicDebug/java [-]
                     KotlinDirectories             : <ROOT>/nested2/src/androidTestBasicDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/androidTestBasicDebug/resources [-]
+                    AidlDirectories               : <ROOT>/nested2/src/androidTestBasicDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/src/androidTestBasicDebug/rs [-]
                     ResDirectories                : <ROOT>/nested2/src/androidTestBasicDebug/res [-]
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestBasicDebug/assets [-]
