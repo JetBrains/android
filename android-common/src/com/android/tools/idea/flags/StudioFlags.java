@@ -1191,12 +1191,6 @@ public final class StudioFlags {
     "If enabled, Compose Preview Essentials Mode will be enabled.",
     ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_DOUBLE_RENDER = Flag.create(
-    COMPOSE, "preview.double.render", "Enable the Compose double render mode",
-    "If enabled, preview components will be rendered twice so components depending on a recompose (like tableDecoration) " +
-    "render correctly.",
-    false);
-
   public static final Flag<Boolean> COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE = Flag.create(
     COMPOSE, "preview.scroll.on.caret.move", "Enable the Compose Preview scrolling when the caret moves",
     "If enabled, when moving the caret in the text editor, the Preview will show the preview currently under the cursor.",
