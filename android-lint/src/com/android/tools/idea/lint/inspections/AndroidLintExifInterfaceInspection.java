@@ -57,7 +57,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBase {
-  private static final AndroidxName NEW_EXIT_INTERFACE = new AndroidxName("android.support.media.ExifInterface", "androidx.exifinterface.media.ExifInterface");
+  private static final AndroidxName
+    NEW_EXIF_INTERFACE = new AndroidxName("android.support.media.ExifInterface", "androidx.exifinterface.media.ExifInterface");
 
   public AndroidLintExifInterfaceInspection() {
     super(AndroidLintBundle.message("android.lint.inspections.exif.interface"), ExifInterfaceDetector.ISSUE);
@@ -82,9 +83,9 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
       if (module != null) {
         LocalHistoryAction action = LocalHistory.getInstance().startAction(getName());
         Project project = module.getProject();
-        PsiClass cls = JavaPsiFacade.getInstance(project).findClass(NEW_EXIT_INTERFACE.newName(), GlobalSearchScope.allScope(project));
+        PsiClass cls = JavaPsiFacade.getInstance(project).findClass(NEW_EXIF_INTERFACE.newName(), GlobalSearchScope.allScope(project));
         if (cls == null) {
-          cls = JavaPsiFacade.getInstance(project).findClass(NEW_EXIT_INTERFACE.oldName(), GlobalSearchScope.allScope(project));
+          cls = JavaPsiFacade.getInstance(project).findClass(NEW_EXIF_INTERFACE.oldName(), GlobalSearchScope.allScope(project));
         }
         if (cls != null) {
           replaceReferences(getName(), startElement, cls, false);
@@ -195,7 +196,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
                 }
                 else {
                   expression.replace(
-                    factory.createReferenceFromText(useAndroidx ? NEW_EXIT_INTERFACE.newName() : NEW_EXIT_INTERFACE.oldName(), context));
+                    factory.createReferenceFromText(useAndroidx ? NEW_EXIF_INTERFACE.newName() : NEW_EXIF_INTERFACE.oldName(), context));
                   return;
                 }
               }
