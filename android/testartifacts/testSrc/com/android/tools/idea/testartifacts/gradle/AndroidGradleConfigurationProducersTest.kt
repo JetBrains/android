@@ -245,9 +245,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
 
     val runner = CoverageRunner.getInstance(IDEACoverageRunner::class.java)
     val fileProvider = DefaultCoverageFileProvider(filePsiElement.containingFile.virtualFile.toIoFile())
-    val suite =
-      JavaCoverageEngine.getInstance().createCoverageSuite(
-        runner, "Simple", fileProvider, null, -1, null, false, false, false, project)
+    val suite = JavaCoverageEngine.getInstance().createCoverageSuite("Simple", project, runner, fileProvider, -1)
     val bundle = CoverageSuitesBundle(suite)
 
     val coverageEngine = JavaCoverageEngine()
