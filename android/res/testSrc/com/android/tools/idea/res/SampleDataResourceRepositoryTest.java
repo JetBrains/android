@@ -136,7 +136,7 @@ public class SampleDataResourceRepositoryTest {
                                                 "Insert image here 3\n");
     myProjectRule.getFixture().addFileToProject("sampledata/root_image.png",
                                                 "Insert image here 3\n");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
 
     assertEquals(3, getResources(repo).size());
     assertEquals(1, getResources(repo, "strings").size());
@@ -323,7 +323,7 @@ public class SampleDataResourceRepositoryTest {
                                                 "      \"name\": \"Name1\",\n" +
                                                 "      \"surname\": \"Surname1\"\n" +
                                                 "    },\n");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
     assertEquals(3, getResources(repo).size());
@@ -337,7 +337,7 @@ public class SampleDataResourceRepositoryTest {
                                                 "Name1,Surname1\n" +
                                                 "Name2,Surname2\n" +
                                                 "Name3,Surname3,555-00000");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
     assertEquals(3, getResources(repo).size());
@@ -432,7 +432,7 @@ public class SampleDataResourceRepositoryTest {
                                                 "TransitiveName1,TransitiveSurname1\n" +
                                                 "TransitiveName2,TransitiveSurname2\n" +
                                                 "TransitiveName3,TransitiveSurname3,555-00000");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
     assertEquals(6, getResources(repo).size());
@@ -464,7 +464,7 @@ public class SampleDataResourceRepositoryTest {
                                                 "TransitiveName1,TransitiveSurname1\n" +
                                                 "TransitiveName2,TransitiveSurname2\n" +
                                                 "TransitiveName3,TransitiveSurname3,555-00000");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet, myProjectRule.getTestRootDisposable());
 
     PsiFile layout = addLayoutFile();
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone

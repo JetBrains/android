@@ -484,8 +484,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           if (myFacet.isDisposed()) {
             return new EmptyRepository<>(getNamespace());
           }
-          mySampleDataResources = new SampleDataResourceRepository(myFacet);
-          Disposer.register(this, mySampleDataResources);
+          mySampleDataResources = new SampleDataResourceRepository(myFacet, this);
         }
         return mySampleDataResources;
       }

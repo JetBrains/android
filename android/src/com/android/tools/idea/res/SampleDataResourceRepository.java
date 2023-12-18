@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.psi.PsiManager;
@@ -68,8 +69,9 @@ final class SampleDataResourceRepository extends LocalResourceRepository<Virtual
   @NotNull private final ResourceNamespace myNamespace;
   @NotNull private final Map<ResourceType, ListMultimap<String, ResourceItem>> myResourceTable = new EnumMap<>(ResourceType.class);
 
-  public SampleDataResourceRepository(@NotNull AndroidFacet androidFacet) {
+  public SampleDataResourceRepository(@NotNull AndroidFacet androidFacet, @NotNull Disposable parentDisposable) {
     super("Sample Data");
+    Disposer.register(parentDisposable, this);
     myAndroidFacet = androidFacet;
 
     StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(androidFacet);
