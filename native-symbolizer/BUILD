@@ -26,7 +26,6 @@ iml_module(
     ],
     test_resources = ["testData"],
     test_srcs = ["testSrc"],
-    test_timeout = "short",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
