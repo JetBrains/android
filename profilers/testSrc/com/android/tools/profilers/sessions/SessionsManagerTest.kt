@@ -788,6 +788,40 @@ class SessionsManagerTest {
   }
 
   @Test
+  fun testDeleteSelectedSessionInTaskBasedUX() {
+    ideProfilerServices.enableTaskBasedUx(true)
+    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, SystemTraceTaskHandler(myManager, false))
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process = debuggableProcess { pid = 10; deviceId = 1 }
+    myTransportService.addDevice(device)
+    myTransportService.addProcess(device, process)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    myProfilers.setProcess(device, process, Common.ProfilerTaskType.SYSTEM_TRACE, false)
+    myManager.update()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    // Create a finished session and a ongoing profiling session.
+    endSessionHelper()
+    myManager.update()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    val session = myManager.selectedSession
+    assertThat(myManager.selectedSession).isEqualTo(session)
+    assertThat(myManager.isSessionAlive).isFalse()
+    assertThat(myProfilers.device).isEqualTo(device)
+    assertThat(myProfilers.process).isEqualTo(process)
+
+    myManager.deleteSession(session)
+    myManager.update()
+    // Although deleted, the session remains selected.
+    assertThat(myManager.selectedSession).isEqualTo(session)
+    assertThat(myManager.isSessionAlive).isFalse()
+    assertThat(myProfilers.device).isEqualTo(device)
+    assertThat(myProfilers.process).isEqualTo(process)
+    assertThat(myManager.sessionArtifacts.size).isEqualTo(0)
+  }
+
+  @Test
   fun `new ongoing FULL session with non-UNSPECIFIED task type is auto-selected as profiling and selected session in task-based ux`() {
     ideProfilerServices.enableTaskBasedUx(true)
     myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, SystemTraceTaskHandler(myManager, false))

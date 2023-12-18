@@ -27,8 +27,11 @@ import com.android.tools.profilers.taskbased.home.selections.recordings.Recordin
 fun RecordingList(recordingListModel: RecordingListModel, ideProfilerComponents: IdeProfilerComponents, modifier: Modifier = Modifier) {
   Column(modifier = modifier) {
     val isRecordingExportable = recordingListModel.isSelectedRecordingExportable()
+    val isRecordingSelected = recordingListModel.isRecordingSelected()
     val selectedRecording by recordingListModel.selectedRecording.collectAsState()
     RecordingListActionsBar(artifact = recordingListModel.exportableArtifact, isRecordingExportable = isRecordingExportable,
+                            isRecordingSelected = isRecordingSelected,
+                            doDeleteSelectedRecording = recordingListModel::doDeleteSelectedRecording,
                             profilers = recordingListModel.profilers, ideProfilerComponents = ideProfilerComponents)
 
     val recordingList by recordingListModel.recordingList.collectAsState()

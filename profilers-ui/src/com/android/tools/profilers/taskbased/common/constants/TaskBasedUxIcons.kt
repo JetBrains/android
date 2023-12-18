@@ -62,6 +62,9 @@ object TaskBasedUxIcons {
   // The settings icon is used as a button to invoke the task configuration dialog.
   val TASK_CONFIG_ICON = TaskBasedUxIcon("studio/icons/common/settings.svg", StudioIcons::class.java, StudioIcons.Common.SETTINGS)
 
+  // The garbage icon is used for the delete recording button.
+  val DELETE_RECORDING_ICON = TaskBasedUxIcon("studio/icons/common/delete.svg", StudioIcons::class.java, StudioIcons.Common.DELETE)
+
   /** The following are the AllIcons used in the Task-Based UX Profiler. **/
   val RESTART_ICON = TaskBasedUxIcon("actions/restart.svg", AllIcons::class.java, AllIcons.Actions.Restart)
 

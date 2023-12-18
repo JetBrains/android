@@ -34,4 +34,8 @@ object TaskBasedUxStrings {
   const val IMPORT_RECORDING_DESC = "Import recording"
   const val EXPORT_RECORDING_DESC = "Export recording"
   const val EXPORT_RECORDING_DISABLED_TOOLTIP = "Recording is not exportable"
+
+  // Delete recording strings
+  const val DELETE_RECORDING_DESC = "Delete recording"
+  const val DELETE_RECORDING_DISABLED_TOOLTIP = "Recording is not deletable"
 }

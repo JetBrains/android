@@ -47,16 +47,29 @@ class RecordingListModel(val profilers: StudioProfilers,
       .onChange(SessionAspect.SESSIONS) { sessionItemsUpdated() }
   }
 
-  val exportableArtifact get() = if (isSelectedRecordingExportable()) selectedRecording.value!!.getChildArtifacts().first() else null
-
   fun onRecordingSelection(newRecording: SessionItem?) {
     resetTaskSelection()
     _selectedRecording.value = newRecording
     updateTaskSelection()
   }
 
-  fun isSelectedRecordingExportable() = selectedRecording.value.let {
+  fun isSelectedRecordingExportable() = _selectedRecording.value.let {
     it != null && it.containsExactlyOneArtifact() && (it.getChildArtifacts().firstOrNull()?.canExport ?: false)
+  }
+
+  val exportableArtifact get() = if (isSelectedRecordingExportable()) selectedRecording.value!!.getChildArtifacts().first() else null
+
+  fun isRecordingSelected() = _selectedRecording.value != null
+
+  fun doDeleteSelectedRecording() {
+    assert(isRecordingSelected())
+    _selectedRecording.value!!.deleteSession()
+    resetTaskSelection()
+    resetRecordingSelection()
+  }
+
+  private fun resetRecordingSelection() {
+    _selectedRecording.value = null
   }
 
   /**

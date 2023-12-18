@@ -580,7 +580,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     }
 
     // When deleting a currently selected session, set the session back to default so the profilers will go to the null stage.
-    if (sessionIsSelectedSession) {
+    // In the Task-Based UX, however, the selected session/task remains selected even if it is deleted.
+    if (sessionIsSelectedSession && !myProfilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
       setSessionInternal(Common.Session.getDefaultInstance());
     }
 

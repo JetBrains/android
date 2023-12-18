@@ -18,6 +18,7 @@ package com.android.tools.profilers.com.android.tools.profilers.taskbased.tabs.p
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -28,17 +29,22 @@ import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils.createSessionItemWithSystemTraceArtifact
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.Utils
 import com.android.tools.profilers.com.android.tools.profilers.JewelThemedComposableWrapper
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel
+import com.android.tools.profilers.taskbased.selections.recordings.RecordingListModelTest
 import com.android.tools.profilers.taskbased.tabs.pastrecordings.recordinglist.RecordingList
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
+import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemTraceTaskHandler
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Ignore
@@ -133,5 +139,64 @@ class RecordingListTest {
 
     // Assert export button is enabled as a selection of an exportable artifact is made.
     composeTestRule.onNodeWithTag("ExportRecordingButton").assertIsEnabled()
+  }
+
+  @Test
+  fun `test selection of deletable recording enables delete recording button click action`() {
+    composeTestRule.setContent {
+      JewelThemedComposableWrapper(isDark = true) {
+        RecordingList(recordingListModel, myComponents)
+      }
+    }
+
+    // Non-null session item is deletable.
+    recordingListModel.setRecordingList(listOf(createSessionItemWithSystemTraceArtifact("Recording 1", 1L, 1L, myProfilers)))
+
+    // Assert both the data model and the UI reflect the past recording entry.
+    assertThat(recordingListModel.recordingList.value).hasSize(1)
+    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
+
+    // Assert delete button is disabled as no selection is made.
+    assertThat(recordingListModel.selectedRecording.value).isEqualTo(null)
+    composeTestRule.onNodeWithTag("DeleteRecordingButton").assertIsNotEnabled()
+
+    // Select the recording.
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
+
+    // Assert delete button is enabled as a selection of a deletable recording is made.
+    composeTestRule.onNodeWithTag("DeleteRecordingButton").assertIsEnabled()
+  }
+
+  @Test
+  fun `test deletion of selected recording updates rendered list`() {
+    composeTestRule.setContent {
+      JewelThemedComposableWrapper(isDark = true) {
+        RecordingList(recordingListModel, myComponents)
+      }
+    }
+
+    // Create a finished session/recording. To invoke the delete session functionality, a real session must be started and finished.
+    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, SystemTraceTaskHandler(myManager, false))
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process = Utils.debuggableProcess { pid = 10; deviceId = 1 }
+    RecordingListModelTest.startAndStopSession(device, process, Common.ProfilerTaskType.SYSTEM_TRACE, myManager)
+
+    // Assert both the data model and the UI reflect the past recording entry.
+    assertThat(recordingListModel.recordingList.value).hasSize(1)
+    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
+
+    // Select Recording 1.
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].assertHasClickAction()
+    composeTestRule.onAllNodesWithTag("RecordingListRow")[0].performClick()
+
+    // Invoke delete button is enabled as a selection of a deletable recording is made.
+    composeTestRule.onNodeWithTag("DeleteRecordingButton").assertIsEnabled().assertHasClickAction()
+    composeTestRule.onNodeWithTag("DeleteRecordingButton").performClick()
+
+    // Assert both the data model and the UI reflect the deletion of Recording 1.
+    assertThat(recordingListModel.recordingList.value).hasSize(0)
+    composeTestRule.onAllNodesWithTag("RecordingListRow").assertCountEquals(1)
+    composeTestRule.onNodeWithTag("RecordingListRow").assertIsNotDisplayed()
   }
 }
