@@ -60,8 +60,14 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
     adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber!!), contentUpdateCapability(capability.key.name, true))
   }
 
-  // TODO(b/305917691): Implement enable/disable methods
-  override suspend fun disableCapability(capability: WhsCapability) {}
+  override suspend fun disableCapability(capability: WhsCapability) {
+    if (serialNumber == null) {
+      // TODO: Log this error
+      return
+    }
+
+    adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber!!), contentUpdateCapability(capability.key.name, false))
+  }
 
   // TODO(b/305924073): Implement override methods
   override suspend fun overrideValue(capability: WhsCapability, value: Float?) {}
