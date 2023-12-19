@@ -17,18 +17,21 @@ package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.ui.awt.ComposePanel
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import javax.swing.JComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
-import javax.swing.JComponent
 
-internal class ConfigureDeviceStep internal constructor(model: AddDeviceWizardModel) : ModelWizardStep<AddDeviceWizardModel>(model, "") {
+internal class ConfigureDeviceStep internal constructor(model: AddDeviceWizardModel) :
+  ModelWizardStep<AddDeviceWizardModel>(model, "") {
   private val component = initComponent()
 
   private fun initComponent(): JComponent {
     @OptIn(ExperimentalJewelApi::class) enableNewSwingCompositing()
-
     val component = ComposePanel()
-    component.setContent { ConfigureDevicePanel(model.device, model.systemImages) { model.device = it } }
+
+    component.setContent {
+      ConfigureDevicePanel(model.device, model.systemImages, model.skins) { model.device = it }
+    }
 
     return component
   }

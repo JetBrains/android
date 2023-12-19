@@ -15,10 +15,41 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
+import com.android.tools.idea.avdmanager.skincombobox.Skin
+import kotlinx.collections.immutable.ImmutableCollection
+import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
-internal fun AdditionalSettingsPanel() {
-  Text("AdditionalSettingsPanel")
+internal fun AdditionalSettingsPanel(
+  selectedSkin: Skin,
+  skins: ImmutableCollection<Skin>,
+  onSelectedSkinChange: (Skin) -> Unit
+) {
+  Row {
+    Text("Device skin")
+    DeviceSkinDropdown(selectedSkin, skins, onSelectedSkinChange)
+  }
+}
+
+@Composable
+private fun DeviceSkinDropdown(
+  selectedSkin: Skin,
+  skins: ImmutableCollection<Skin>,
+  onSelectedSkinChange: (Skin) -> Unit
+) {
+  Dropdown(
+    menuContent = {
+      skins.forEach {
+        selectableItem(
+          selectedSkin == it,
+          { onSelectedSkinChange(it) },
+          content = { Text(it.toString()) }
+        )
+      }
+    },
+    content = { Text(selectedSkin.toString()) }
+  )
 }

@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.android.tools.idea.avdmanager.skincombobox.Skin
 import kotlinx.collections.immutable.ImmutableCollection
 import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
@@ -32,6 +33,7 @@ import org.jetbrains.jewel.ui.component.Text
 internal fun ConfigureDevicePanel(
   device: VirtualDevice,
   images: ImmutableCollection<SystemImage>,
+  skins: ImmutableCollection<Skin>,
   onDeviceChange: (VirtualDevice) -> Unit
 ) {
   @OptIn(ExperimentalJewelApi::class)
@@ -39,7 +41,7 @@ internal fun ConfigureDevicePanel(
     Column {
       Text("Configure device")
       Text("Add a device to device manager")
-      Tabs(device, images, onDeviceChange)
+      Tabs(device, images, skins, onDeviceChange)
     }
   }
 }
@@ -48,6 +50,7 @@ internal fun ConfigureDevicePanel(
 private fun Tabs(
   device: VirtualDevice,
   images: ImmutableCollection<SystemImage>,
+  skins: ImmutableCollection<Skin>,
   onDeviceChange: (VirtualDevice) -> Unit
 ) {
   var selectedTab by remember { mutableStateOf(Tab.DEVICE_AND_API) }
@@ -60,7 +63,8 @@ private fun Tabs(
 
   when (selectedTab) {
     Tab.DEVICE_AND_API -> DeviceAndApiPanel(device, images, onDeviceChange)
-    Tab.ADDITIONAL_SETTINGS -> AdditionalSettingsPanel()
+    Tab.ADDITIONAL_SETTINGS ->
+      AdditionalSettingsPanel(device.skin, skins) { onDeviceChange(device.copy(skin = it)) }
   }
 }
 

@@ -29,19 +29,20 @@ import kotlinx.collections.immutable.ImmutableCollection
 internal class AddDeviceWizardModel
 internal constructor(
   internal val systemImages: ImmutableCollection<SystemImage>,
-  private val skins: ImmutableCollection<Skin>
+  internal val skins: ImmutableCollection<Skin>
 ) : WizardModel() {
   internal var device by initDevice()
 
   private fun initDevice(): MutableState<VirtualDevice> {
     // TODO Stop hard coding these defaults and use the values from the selected device definition
     val sdk = AndroidSdks.getInstance().tryToChooseSdkHandler().location.toString()
+    val skin = Path.of(sdk, "skins", "pixel_7")
 
     return mutableStateOf(
       VirtualDevice(
         "Pixel 7 API 34",
         AndroidVersion(34, null, 7, true),
-        Path.of(sdk, "skins", "pixel_7")
+        skins.find { it.path() == skin }!!
       )
     )
   }
