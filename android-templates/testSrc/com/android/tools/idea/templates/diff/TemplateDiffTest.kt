@@ -85,10 +85,19 @@ class TemplateDiffTest(private val testMode: TestMode) {
      * Gets the system property for whether to generate and overwrite the golden files. This can be
      * run from Bazel with the option: --test_env=GENERATE_GOLDEN=true
      *
-     * Or from IDEA by setting the environment variable: GENERATE_GOLDEN=true
+     * If GENERATE_LINT_BASELINE=true, then this is also assumed to be true.
      */
     private fun shouldGenerateGolden(): Boolean {
-      return System.getenv("GENERATE_GOLDEN")?.equals("true") ?: false
+      return shouldGenerateLintBaseline() || System.getenv("GENERATE_GOLDEN")?.equals("true") ?: false
+    }
+
+    /**
+     * Gets the system property for whether to generate and overwrite the Lint baseline files while
+     * running template validation. This can be run from Bazel with the option:
+     * --test_env=GENERATE_LINT_BASELINE=true
+     */
+    private fun shouldGenerateLintBaseline(): Boolean {
+      return System.getenv("GENERATE_LINT_BASELINE")?.equals("true") ?: false
     }
   }
 
@@ -159,7 +168,12 @@ class TemplateDiffTest(private val testMode: TestMode) {
         when (testMode) {
           TestMode.DIFFING -> ProjectDiffer(template, goldenDirName)
           TestMode.VALIDATING ->
-            GoldenFileValidator(template, goldenDirName, projectRule as AndroidGradleProjectRule)
+            GoldenFileValidator(
+              template,
+              goldenDirName,
+              shouldGenerateLintBaseline(),
+              projectRule as AndroidGradleProjectRule
+            )
           TestMode.GENERATING -> GoldenFileGenerator(template, goldenDirName)
         }
 

@@ -40,6 +40,7 @@ import org.junit.Assert.*
 class GoldenFileValidator(
   template: Template,
   goldenDirName: String,
+  generateLintBaseline: Boolean,
   private val gradleProjectRule: AndroidGradleProjectRule
 ) : ProjectRenderer(template, goldenDirName) {
   override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
