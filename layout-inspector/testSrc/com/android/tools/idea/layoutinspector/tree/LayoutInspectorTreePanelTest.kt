@@ -98,7 +98,6 @@ import javax.swing.tree.TreeModel
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsCommand
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -946,16 +945,24 @@ class LayoutInspectorTreePanelTest {
     assertThat(columnModel.getColumn(2).maxWidth).isEqualTo(0)
   }
 
-  @Ignore("311270338")
   @Test
   fun testResetRecompositionCounts() {
     val tree = runInEdtAndGet { LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable) }
+    val treeModel = tree.componentTreeModel as TreeModel
     val inspector = inspectorRule.inspector
     val model = inspector.inspectorModel
     val compose1 = model[COMPOSE1] as ComposeViewNode
     val compose2 = model[COMPOSE2] as ComposeViewNode
     var selectionUpdate = 0
     model.addSelectionListener { _, _, _ -> selectionUpdate++ }
+    var columnDataChanged = 0
+    treeModel.addTreeModelListener(
+      object : TreeTableModelImplAdapter() {
+        override fun columnDataChanged() {
+          columnDataChanged++
+        }
+      }
+    )
 
     assertThat(compose1.recompositions.count).isEqualTo(7)
     assertThat(compose1.recompositions.skips).isEqualTo(14)
@@ -963,9 +970,10 @@ class LayoutInspectorTreePanelTest {
     assertThat(compose2.recompositions.skips).isEqualTo(33)
 
     setToolContext(tree, inspector)
+    assertThat(columnDataChanged).isEqualTo(1)
     UIUtil.pump()
     val table = tree.focusComponent as JTable
-    val component = tree.component
+    val component = tree.component as RootPanel
 
     // connect to a process to add the tree to the UI.
     inspectorRule.launchSynchronously = false
@@ -974,29 +982,19 @@ class LayoutInspectorTreePanelTest {
       MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
     inspectorRule.awaitLaunch()
 
-    waitForCondition(1, TimeUnit.SECONDS) {
-      (component as RootPanel).uiState == RootPanel.UiState.SHOW_TREE
-    }
+    waitForCondition(1, TimeUnit.SECONDS) { component.uiState == RootPanel.UiState.SHOW_TREE }
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { columnDataChanged == 2 }
 
     component.size = Dimension(800, 1000)
     val ui = FakeUi(component, createFakeWindow = true)
     val treeColumnWidth = table.columnModel.getColumn(0).width
-    val treeModel = tree.componentTreeModel as TreeModel
     updateSettingsLatch = ReportingCountDownLatch(1)
-    var columnDataChanged = false
-    treeModel.addTreeModelListener(
-      object : TreeTableModelImplAdapter() {
-        override fun columnDataChanged() {
-          columnDataChanged = true
-        }
-      }
-    )
 
     // Click on the reset recomposition counts button in the table header:
     ui.mouse.click(treeColumnWidth - 8, 8)
 
     // Wait for a Tree column data changed event:
-    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { columnDataChanged }
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { columnDataChanged == 3 }
     // Wait for the update settings event
     updateSettingsLatch?.await(TIMEOUT, TIMEOUT_UNIT)
 
