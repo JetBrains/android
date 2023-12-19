@@ -23,7 +23,6 @@ import com.android.utils.TraceUtils.simpleId
 import com.google.common.base.MoreObjects
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
@@ -38,7 +37,8 @@ private constructor(
   private val facet: AndroidFacet,
   parentDisposable: Disposable,
   private val namespace: ResourceNamespace,
-  delegates: List<LocalResourceRepository<VirtualFile>>
+  addDynamicResources: Boolean,
+  delegates: List<LocalResourceRepository<VirtualFile>>? = null
 ) :
   MemoryTrackingMultiResourceRepository(parentDisposable, facet.module.name),
   SingleNamespaceResourceRepository {
@@ -46,7 +46,16 @@ private constructor(
   private val registry = ResourceFolderRegistry.getInstance(facet.module.project)
 
   init {
-    setChildren(delegates, emptyList(), emptyList())
+    val childRepositories = delegates ?: computeChildRepositories()
+
+    val dynamicResources: List<LocalResourceRepository<VirtualFile>> =
+      if (addDynamicResources) {
+        listOf(DynamicValueResourceRepository.create(facet, this, namespace))
+      } else {
+        emptyList()
+      }
+
+    setChildren(dynamicResources + childRepositories, emptyList(), emptyList())
 
     val resourceFolderListener = ResourceFolderListener { facet, folders ->
       if (facet.module === this.facet.module) {
@@ -58,6 +67,20 @@ private constructor(
       .connect(this)
       .subscribe(ResourceFolderManager.TOPIC, resourceFolderListener)
   }
+
+  /**
+   * Returns repositories for the resource directories in the given `facet` in the right order.
+   *
+   * Resource directories are fetched from [ResourceFolderManager] and are assumed to be in the
+   * order returned from [SourceProviderManager.getCurrentSourceProviders], which is the inverse of
+   * what we need. The code in [MultiResourceRepository.getMap] gives priority to child repositories
+   * which are earlier in the list, so after creating repositories for every folder, we add them in
+   * reverse to the list.
+   *
+   * @param facet [AndroidFacet] that repositories will correspond to
+   */
+  private fun computeChildRepositories() =
+    ResourceFolderManager.getInstance(facet).folders.asReversed().map { registry[facet, it] }
 
   override fun refreshChildren() {
     // There are no current scenarios where this function will be called on
@@ -139,46 +162,13 @@ private constructor(
       facet: AndroidFacet,
       parentDisposable: Disposable,
       namespace: ResourceNamespace
-    ): LocalResourceRepository<VirtualFile> {
-      val resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.module.project)
-      val resourceDirectories = ResourceFolderManager.getInstance(facet).folders
-
-      if (!AndroidModel.isRequired(facet)) {
-        if (resourceDirectories.isEmpty()) {
-          return EmptyRepository(namespace)
-        }
-        val childRepositories: MutableList<LocalResourceRepository<VirtualFile>> =
-          ArrayList(resourceDirectories.size)
-        addRepositoriesInReverseOverlayOrder(
-          resourceDirectories,
-          childRepositories,
-          facet,
-          resourceFolderRegistry
-        )
-        return ModuleResourceRepository(facet, parentDisposable, namespace, childRepositories)
-      }
-
-      val dynamicResources = DynamicValueResourceRepository.create(facet, namespace)
-      val moduleRepository: ModuleResourceRepository =
-        try {
-          val childRepositories: MutableList<LocalResourceRepository<VirtualFile>> =
-            ArrayList(1 + resourceDirectories.size)
-          childRepositories.add(dynamicResources)
-          addRepositoriesInReverseOverlayOrder(
-            resourceDirectories,
-            childRepositories,
-            facet,
-            resourceFolderRegistry
-          )
-          ModuleResourceRepository(facet, parentDisposable, namespace, childRepositories)
-        } catch (t: Throwable) {
-          Disposer.dispose(dynamicResources)
-          throw t
-        }
-
-      Disposer.register(moduleRepository, dynamicResources)
-      return moduleRepository
-    }
+    ) =
+      createIfNotEmpty(
+        facet,
+        parentDisposable,
+        namespace,
+        addDynamicResources = AndroidModel.isRequired(facet)
+      )
 
     /**
      * Creates a new resource repository for the given module, **not** including its dependent
@@ -196,53 +186,20 @@ private constructor(
       facet: AndroidFacet,
       parentDisposable: Disposable,
       namespace: ResourceNamespace
-    ): LocalResourceRepository<VirtualFile> {
-      val resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.module.project)
-      val folderManager = ResourceFolderManager.getInstance(facet)
-      val resourceDirectories = folderManager.folders
+    ) = createIfNotEmpty(facet, parentDisposable, namespace, addDynamicResources = false)
 
-      if (!AndroidModel.isRequired(facet) && resourceDirectories.isEmpty()) {
-        return EmptyRepository(namespace)
-      }
-
-      val childRepositories: MutableList<LocalResourceRepository<VirtualFile>> =
-        ArrayList(resourceDirectories.size)
-      addRepositoriesInReverseOverlayOrder(
-        resourceDirectories,
-        childRepositories,
-        facet,
-        resourceFolderRegistry
-      )
-
-      return ModuleResourceRepository(facet, parentDisposable, namespace, childRepositories)
-    }
-
-    /**
-     * Inserts repositories for the given `resourceDirectories` into `childRepositories`, in the
-     * right order.
-     *
-     * `resourceDirectories` is assumed to be in the order returned from
-     * [SourceProviderManager.getCurrentSourceProviders], which is the inverse of what we need. The
-     * code in [MultiResourceRepository.getMap] gives priority to child repositories which are
-     * earlier in the list, so after creating repositories for every folder, we add them in reverse
-     * to the list.
-     *
-     * @param resourceDirectories directories for which repositories should be constructed
-     * @param childRepositories the list of repositories to which new repositories will be added
-     * @param facet [AndroidFacet] that repositories will correspond to
-     * @param resourceFolderRegistry [ResourceFolderRegistry] used to construct the repositories
-     */
-    private fun addRepositoriesInReverseOverlayOrder(
-      resourceDirectories: List<VirtualFile>,
-      childRepositories: MutableList<LocalResourceRepository<VirtualFile>>,
+    private fun createIfNotEmpty(
       facet: AndroidFacet,
-      resourceFolderRegistry: ResourceFolderRegistry
-    ) {
-      for (resourceDirectory in resourceDirectories.asReversed()) {
-        val repository = resourceFolderRegistry[facet, resourceDirectory]
-        childRepositories.add(repository)
-      }
-    }
+      parentDisposable: Disposable,
+      namespace: ResourceNamespace,
+      addDynamicResources: Boolean
+    ): LocalResourceRepository<VirtualFile> =
+      if (
+        !AndroidModel.isRequired(facet) &&
+          ResourceFolderManager.getInstance(facet).folders.isEmpty()
+      )
+        EmptyRepository(namespace)
+      else ModuleResourceRepository(facet, parentDisposable, namespace, addDynamicResources)
 
     @TestOnly
     @JvmOverloads
@@ -263,7 +220,13 @@ private constructor(
         delegates.add(resourceFolderRegistry[facet, dir, namespace])
       }
 
-      return ModuleResourceRepository(facet, parentDisposable = facet, namespace, delegates)
+      return ModuleResourceRepository(
+        facet,
+        parentDisposable = facet,
+        namespace,
+        addDynamicResources = false,
+        delegates
+      )
     }
   }
 }

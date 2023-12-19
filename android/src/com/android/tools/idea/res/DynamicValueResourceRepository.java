@@ -58,8 +58,11 @@ public class DynamicValueResourceRepository extends LocalResourceRepository<Virt
   @GuardedBy("ITEM_MAP_LOCK")
   @NotNull private final Map<ResourceType, ListMultimap<String, ResourceItem>> myResourceTable = new EnumMap<>(ResourceType.class);
 
-  private DynamicValueResourceRepository(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
+  private DynamicValueResourceRepository(@NotNull AndroidFacet facet,
+                                         @NotNull Disposable parentDisposable,
+                                         @NotNull ResourceNamespace namespace) {
     super("Gradle Dynamic");
+    Disposer.register(parentDisposable, this);
     myFacet = facet;
     myNamespace = namespace;
     assert AndroidModel.isRequired(facet);
@@ -87,15 +90,11 @@ public class DynamicValueResourceRepository extends LocalResourceRepository<Virt
    * up to date. The returned repository needs to be registered with a {@link Disposable} parent.
    */
   @NotNull
-  public static DynamicValueResourceRepository create(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
-    DynamicValueResourceRepository repository = new DynamicValueResourceRepository(facet, namespace);
-    try {
-      repository.registerListeners();
-    }
-    catch (Throwable t) {
-      Disposer.dispose(repository);
-      throw t;
-    }
+  public static DynamicValueResourceRepository create(@NotNull AndroidFacet facet,
+                                                      @NotNull Disposable parentDisposable,
+                                                      @NotNull ResourceNamespace namespace) {
+    DynamicValueResourceRepository repository = new DynamicValueResourceRepository(facet, parentDisposable, namespace);
+    repository.registerListeners();
     return repository;
   }
 
@@ -107,11 +106,10 @@ public class DynamicValueResourceRepository extends LocalResourceRepository<Virt
   public static DynamicValueResourceRepository createForTest(@NotNull AndroidFacet facet,
                                                              @NotNull ResourceNamespace namespace,
                                                              @NotNull Map<String, DynamicResourceValue> values) {
-    DynamicValueResourceRepository repository = new DynamicValueResourceRepository(facet, namespace);
+    DynamicValueResourceRepository repository = new DynamicValueResourceRepository(facet, facet, namespace);
     synchronized (ITEM_MAP_LOCK) {
       repository.addValues(values);
     }
-    Disposer.register(facet, repository);
     return repository;
   }
 
