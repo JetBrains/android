@@ -23,21 +23,17 @@ class PsAnalyzerDaemonKtTest {
                                private val nonCompliant: Boolean,
                                private val outdated: Boolean,
                                private val critical: Boolean,
-                               private val expectedMessage: String?) {
+                               private val expectedMessages: List<String>) {
 
     @Test
     fun `Expected issue`() {
       val sdkIndex = TestGooglePlaySdkIndex(blocking, nonCompliant, outdated, critical)
       sdkIndex.prepareForTest()
-      val issue = getSdkIndexIssueFor(PsArtifactDependencySpec.Companion.create(LIBRARY_GROUP, LIBRARY_ARTIFACT, LIBRARY_VERSION),
+      val issues = getSdkIndexIssueFor(PsArtifactDependencySpec.Companion.create(LIBRARY_GROUP, LIBRARY_ARTIFACT, LIBRARY_VERSION),
                                       TestPath("testPath"), parentModuleRootDir = null, sdkIndex = sdkIndex)
-      if (expectedMessage == null) {
-        assertThat(issue).isNull()
-      }
-      else {
-        assertThat(issue).isNotNull()
-        val unwrappedText = issue!!.text.replace("\n<br>", " ")
-        assertThat(unwrappedText).endsWith(expectedMessage)
+      assertThat(issues).hasSize(expectedMessages.size)
+      issues.forEachIndexed {index, issue ->
+        assertThat(issue.text.replace("\n<br>", " ")).endsWith(expectedMessages[index])
       }
     }
 
@@ -58,27 +54,27 @@ class PsAnalyzerDaemonKtTest {
       @Parameterized.Parameters(name = "{index}: blocking={0}, nonComplaint={1}, outdated={2}, critical={3}, message={4}")
       fun data() = listOf(
         // No issues
-        arrayOf(false, false, false, false, null),
+        arrayOf(false, false, false, false, emptyList<String>()),
         // Policy
-        arrayOf(false, true, false, false, MESSAGE_POLICY),
+        arrayOf(false, true, false, false, listOf(MESSAGE_POLICY)),
         // Outdated
-        arrayOf(false, false, true, false, MESSAGE_OUTDATED),
+        arrayOf(false, false, true, false, listOf(MESSAGE_OUTDATED)),
         // Critical
-        arrayOf(false, false, false, true, MESSAGE_CRITICAL),
+        arrayOf(false, false, false, true, listOf(MESSAGE_CRITICAL)),
         // Two types
-        arrayOf(false, true, true, false, MESSAGE_MULTIPLE_ISSUES),
+        arrayOf(false, true, true, false, listOf(MESSAGE_POLICY, MESSAGE_OUTDATED)),
         // Three types
-        arrayOf(false, true, true, true, MESSAGE_MULTIPLE_ISSUES),
+        arrayOf(false, true, true, true, listOf(MESSAGE_POLICY, MESSAGE_OUTDATED, MESSAGE_CRITICAL)),
         // Policy BLOCKING
-        arrayOf(true, true, false, false, MESSAGE_POLICY_BLOCKING),
+        arrayOf(true, true, false, false, listOf(MESSAGE_POLICY_BLOCKING)),
         // Outdated BLOCKING
-        arrayOf(true, false, true, false, MESSAGE_OUTDATED_BLOCKING),
+        arrayOf(true, false, true, false, listOf(MESSAGE_OUTDATED_BLOCKING)),
         // Critical BLOCKING
-        arrayOf(true, false, false, true, MESSAGE_CRITICAL_BLOCKING),
+        arrayOf(true, false, false, true, listOf(MESSAGE_CRITICAL_BLOCKING)),
         // Two types BLOCKING
-        arrayOf(true, true, true, false, MESSAGE_MULTIPLE_ISSUES_BLOCKING),
+        arrayOf(true, true, true, false, listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
         // Three types BLOCKING
-        arrayOf(true, true, true, true, MESSAGE_MULTIPLE_ISSUES_BLOCKING),
+        arrayOf(true, true, true, true, listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
       )
     }
 

@@ -26,8 +26,9 @@ class SdkIndexPsdTest : SdkIndexTestBase() {
         openAndClosePSD(studio)
       },
       beforeClose = {
-        // One error and two warnings should appear:
+        // Two errors and two warnings should appear:
         //   - com.startapp:inapp-sdk:3.9.1 blocking critical
+        //   - com.startapp:inapp-sdk:3.9.1 blocking outdated
         //   - com.stripe:stripe-android:9.3.2 warning (policy issues, not blocking)
         //   - com.mopub:mopub-sdk:4.16.0 warning (outdated)
         verifyPsdIssues(numWarnings = 2)
