@@ -395,6 +395,13 @@ public final class StudioFlags {
     "Enables and shows the ADB connection status widget in the status bar",
     false);
 
+  public static final Flag<Boolean> ALERT_UPON_DEVICE_SUBOPTIMAL_SPEED = new BooleanFlag(
+    RUNDEBUG,
+    "device.connect.detect.speed",
+    "Alert when USB device negotiated speed is below maximum",
+    "Poor USB cables can drop USB negotiated speed below maximum capable speed. Alert user when this is the case.",
+    false);
+
   public static final Flag<Boolean> DEPLOYMENT_TARGET_DEVICE_PROVISIONER_MIGRATION = new BooleanFlag(
     RUNDEBUG,
     "deployment.target.deviceprovisioner",
