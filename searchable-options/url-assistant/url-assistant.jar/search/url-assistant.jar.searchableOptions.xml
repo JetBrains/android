@@ -8,4 +8,21 @@
     <option name="links" path="ActionManager" hit="Open App Links Assistant" />
     <option name="open" path="ActionManager" hit="Open App Links Assistant" />
   </configurable>
+  <configurable id="com.google.urlassistant.datalayer.db.AppLinksAssistantSettingsConfigurable" configurable_name="App Links Assistant">
+    <option name="app" hit="App Links Assistant" />
+    <option name="assistant" hit="App Links Assistant" />
+    <option name="links" hit="App Links Assistant" />
+    <option name="consent" hit="I consent to sharing this information with Google for this project (Default (Template) Project)." />
+    <option name="default" hit="I consent to sharing this information with Google for this project (Default (Template) Project)." />
+    <option name="for" hit="I consent to sharing this information with Google for this project (Default (Template) Project)." />
+    <option name="google" hit="I consent to sharing this information with Google for this project (Default (Template) Project)." />
+    <option name="i" hit="I consent to sharing this information with Google for this project (Default (Template) Project)." />
+    <option name="information" hit="I consent to sharing this information with Google for this project (Default (Template) Project)." />
+    <option name="project" hit="I consent to sharing this information with Google for this project (Default (Template) Project)." />
+    <option name="sharing" hit="I consent to sharing this information with Google for this project (Default (Template) Project)." />
+    <option name="template" hit="I consent to sharing this information with Google for this project (Default (Template) Project)." />
+    <option name="this" hit="I consent to sharing this information with Google for this project (Default (Template) Project)." />
+    <option name="to" hit="I consent to sharing this information with Google for this project (Default (Template) Project)." />
+    <option name="with" hit="I consent to sharing this information with Google for this project (Default (Template) Project)." />
+  </configurable>
 </options>
