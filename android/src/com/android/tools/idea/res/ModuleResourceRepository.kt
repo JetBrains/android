@@ -250,7 +250,7 @@ private constructor(
     fun createForTest(
       facet: AndroidFacet,
       resourceDirectories: Collection<VirtualFile>,
-      namespace: ResourceNamespace,
+      namespace: ResourceNamespace = ResourceNamespace.RES_AUTO,
       dynamicResourceValueRepository: DynamicValueResourceRepository? = null
     ): ModuleResourceRepository {
       assert(ApplicationManager.getApplication().isUnitTestMode)

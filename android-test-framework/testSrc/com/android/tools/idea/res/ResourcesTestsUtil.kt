@@ -50,22 +50,12 @@ import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 
 fun createTestAppResourceRepository(facet: AndroidFacet): LocalResourceRepository<VirtualFile> {
-  val moduleResources = createTestModuleRepository(facet, emptyList())
+  val moduleResources = ModuleResourceRepository.createForTest(facet, emptyList())
   val projectResources = ProjectResourceRepository.createForTest(facet, listOf(moduleResources))
   val appResources = AppResourceRepository.createForTest(facet, listOf(projectResources), emptyList())
   val aar = getTestAarRepositoryFromExplodedAar()
   appResources.refreshChildren(listOf(projectResources), listOf(aar))
   return appResources
-}
-
-@JvmOverloads
-fun createTestModuleRepository(
-  facet: AndroidFacet,
-  resourceDirectories: Collection<VirtualFile>,
-  namespace: ResourceNamespace = ResourceNamespace.RES_AUTO,
-  dynamicRepo: DynamicValueResourceRepository? = null
-): LocalResourceRepository<VirtualFile> {
-  return ModuleResourceRepository.createForTest(facet, resourceDirectories, namespace, dynamicRepo)
 }
 
 /**

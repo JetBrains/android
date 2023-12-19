@@ -92,7 +92,8 @@ class StringResourceWriterTest {
     facet = AndroidFacet.getInstance(projectRule.module)!!
 
     resourceDirectory = projectRule.fixture.copyDirectoryToProject("stringsEditor/base/res", "res")
-    localResourceRepository = createTestModuleRepository(facet, listOf(resourceDirectory))
+    localResourceRepository =
+      ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory))
   }
 
   @After
