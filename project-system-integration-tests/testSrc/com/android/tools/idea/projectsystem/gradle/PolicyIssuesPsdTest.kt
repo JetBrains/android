@@ -28,8 +28,9 @@ class PolicyIssuesPsdTest : SdkIndexTestBase() {
         openAndClosePSD(studio)
       },
       beforeClose = {
-        // An error and one warning should be shown:
+        // Two errors and one warning should be shown:
         //   - com.startapp:inapp-sdk:3.9.1 error (blocking critical)
+        //   - com.startapp:inapp-sdk:3.9.1 error (blocking outdated)
         //   - com.mopub:mopub-sdk:4.16.0 warning (outdated)
         verifyPsdIssues(numWarnings = 1)
       },
