@@ -93,11 +93,13 @@ class DeviceManagerTest {
     job.join()
   }
 
-  private fun `Changing capability sends expected adb command`(capability: WhsCapability, newValue: Boolean, expectedAdbCommand: String) = runTest {
+  private fun assertCapabilitySendsAdbCommand(capability: WhsCapability, newValue: Boolean, expectedAdbCommand: String) = runTest {
     adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), expectedAdbCommand,"")
 
     val deviceManager = ContentProviderDeviceManager(adbSession)
     deviceManager.setSerialNumber(serialNumber)
+
+    val previousCount = adbSession.deviceServices.shellV2Requests.size
 
     val job = launch {
       if (newValue) {
@@ -108,7 +110,10 @@ class DeviceManagerTest {
     }
     job.join()
 
-    assertEquals(1, adbSession.deviceServices.shellV2Requests.size)
+    val currentCount = adbSession.deviceServices.shellV2Requests.size
+    val newRequestsCount = currentCount - previousCount
+
+    assertEquals(1, newRequestsCount)
 
     val shellRequest = adbSession.deviceServices.shellV2Requests.last
 
@@ -117,315 +122,170 @@ class DeviceManagerTest {
   }
 
   @Test
-  fun `Enable steps`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.STEPS,
-        "wear.whs.capability.steps.label",
-        "wear.whs.capability.steps.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), true, adbCommandEnableSteps
+  fun `Enable and disable steps`() {
+    val capability = WhsCapability(
+      WhsDataType.STEPS,
+      "wear.whs.capability.steps.label",
+      "wear.whs.capability.steps.unit",
+      isOverrideable = true,
+      isStandardCapability = true,
     )
+
+    assertCapabilitySendsAdbCommand(capability, true, adbCommandEnableSteps)
+    assertCapabilitySendsAdbCommand(capability, false, adbCommandDisableSteps)
   }
 
   @Test
-  fun `Disable steps`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.STEPS,
-        "wear.whs.capability.steps.label",
-        "wear.whs.capability.steps.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), false, adbCommandDisableSteps
+  fun `Enable and disable distance`() {
+    val capability = WhsCapability(
+      WhsDataType.DISTANCE,
+      "wear.whs.capability.distance.label",
+      "wear.whs.capability.distance.unit",
+      isOverrideable = true,
+      isStandardCapability = true,
     )
+
+    assertCapabilitySendsAdbCommand(capability, true, adbCommandEnableDistance)
+    assertCapabilitySendsAdbCommand(capability, false, adbCommandDisableDistance)
   }
 
   @Test
-  fun `Enable distance`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.DISTANCE,
-        "wear.whs.capability.distance.label",
-        "wear.whs.capability.distance.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), true, adbCommandEnableDistance
+  fun `Enable and disable total calories`() {
+    val capability = WhsCapability(
+      WhsDataType.TOTAL_CALORIES,
+      "wear.whs.capability.total.calories.label",
+      "wear.whs.capability.total.calories.unit",
+      isOverrideable = true,
+      isStandardCapability = true,
     )
+
+    assertCapabilitySendsAdbCommand(capability, true, adbCommandEnableTotalCalories)
+    assertCapabilitySendsAdbCommand(capability, false, adbCommandDisableTotalCalories)
   }
 
   @Test
-  fun `Disable distance`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.DISTANCE,
-        "wear.whs.capability.distance.label",
-        "wear.whs.capability.distance.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), false, adbCommandDisableDistance
+  fun `Enable and disable floors`() {
+    val capability = WhsCapability(
+      WhsDataType.FLOORS,
+      "wear.whs.capability.floors.label",
+      "wear.whs.capability.unit.none",
+      isOverrideable = true,
+      isStandardCapability = true,
     )
+
+    assertCapabilitySendsAdbCommand(capability, true, adbCommandEnableFloors)
+    assertCapabilitySendsAdbCommand(capability, false, adbCommandDisableFloors)
   }
 
   @Test
-  fun `Enable total calories`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.TOTAL_CALORIES,
-        "wear.whs.capability.total.calories.label",
-        "wear.whs.capability.total.calories.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), true, adbCommandEnableTotalCalories
+  fun `Enable and disable elevation gain`() {
+    val capability = WhsCapability(
+      WhsDataType.ELEVATION_GAIN,
+      "wear.whs.capability.elevation.gain.label",
+      "wear.whs.capability.elevation.gain.unit",
+      isOverrideable = true,
+      isStandardCapability = true,
     )
+
+    assertCapabilitySendsAdbCommand(capability, true, adbCommandEnableElevationGain)
+    assertCapabilitySendsAdbCommand(capability, false, adbCommandDisableElevationGain)
   }
 
   @Test
-  fun `Disable total calories`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.TOTAL_CALORIES,
-        "wear.whs.capability.total.calories.label",
-        "wear.whs.capability.total.calories.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), false, adbCommandDisableTotalCalories
+  fun `Enable and disable elevation loss`() {
+    val capability = WhsCapability(
+      WhsDataType.ELEVATION_LOSS,
+      "wear.whs.capability.elevation.loss.label",
+      "wear.whs.capability.elevation.loss.unit",
+      isOverrideable = true,
+      isStandardCapability = true,
     )
+
+    assertCapabilitySendsAdbCommand(capability, true, adbCommandEnableElevationLoss)
+    assertCapabilitySendsAdbCommand(capability, false, adbCommandDisableElevationLoss)
   }
 
   @Test
-  fun `Enable floors`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.FLOORS,
-        "wear.whs.capability.floors.label",
-        "wear.whs.capability.unit.none",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), true, adbCommandEnableFloors
+  fun `Enable and disable absolute elevation`() {
+    val capability = WhsCapability(
+      WhsDataType.ABSOLUTE_ELEVATION,
+      "wear.whs.capability.absolute.elevation.label",
+      "wear.whs.capability.unit.none",
+      isOverrideable = true,
+      isStandardCapability = true,
     )
+
+    assertCapabilitySendsAdbCommand(capability, true, adbCommandEnableAbsoluteElevation)
+    assertCapabilitySendsAdbCommand(capability, false, adbCommandDisableAbsoluteElevation)
   }
 
   @Test
-  fun `Disable floors`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.FLOORS,
-        "wear.whs.capability.floors.label",
-        "wear.whs.capability.unit.none",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), false, adbCommandDisableFloors
+  fun `Enable and disable location`() {
+    val capability = WhsCapability(
+      WhsDataType.LOCATION,
+      "wear.whs.capability.location.label",
+      "wear.whs.capability.unit.none",
+      isOverrideable = true,
+      isStandardCapability = true,
     )
+
+    assertCapabilitySendsAdbCommand(capability, true, adbCommandEnableLocation)
+    assertCapabilitySendsAdbCommand(capability, false, adbCommandDisableLocation)
   }
 
   @Test
-  fun `Enable elevation gain`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.ELEVATION_GAIN,
-        "wear.whs.capability.elevation.gain.label",
-        "wear.whs.capability.elevation.gain.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), true, adbCommandEnableElevationGain
+  fun `Enable and disable heart rate bpm`() {
+    val capability = WhsCapability(
+      WhsDataType.HEART_RATE_BPM,
+      "wear.whs.capability.heart.rate.label",
+      "wear.whs.capability.heart.rate.unit",
+      isOverrideable = true,
+      isStandardCapability = true,
     )
+
+    assertCapabilitySendsAdbCommand(capability, true, adbCommandEnableHeartRateBpm)
+    assertCapabilitySendsAdbCommand(capability, false, adbCommandDisableHeartRateBpm)
   }
 
   @Test
-  fun `Disable elevation gain`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.ELEVATION_GAIN,
-        "wear.whs.capability.elevation.gain.label",
-        "wear.whs.capability.elevation.gain.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), false, adbCommandDisableElevationGain
+  fun `Enable and disable speed`() {
+    val capability = WhsCapability(
+      WhsDataType.SPEED,
+      "wear.whs.capability.speed.label",
+      "wear.whs.capability.speed.unit",
+      isOverrideable = true,
+      isStandardCapability = true,
     )
+
+    assertCapabilitySendsAdbCommand(capability, true, adbCommandEnableSpeed)
+    assertCapabilitySendsAdbCommand(capability, false, adbCommandDisableSpeed)
   }
 
   @Test
-  fun `Enable elevation loss`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.ELEVATION_LOSS,
-        "wear.whs.capability.elevation.loss.label",
-        "wear.whs.capability.elevation.loss.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), true, adbCommandEnableElevationLoss
+  fun `Enable and disable pace`() {
+    val capability = WhsCapability(
+      WhsDataType.PACE,
+      "wear.whs.capability.pace.label",
+      "wear.whs.capability.pace.unit",
+      isOverrideable = true,
+      isStandardCapability = true,
     )
+
+    assertCapabilitySendsAdbCommand(capability, true, adbCommandEnablePace)
+    assertCapabilitySendsAdbCommand(capability, false, adbCommandDisablePace)
   }
 
   @Test
-  fun `Disable elevation loss`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.ELEVATION_LOSS,
-        "wear.whs.capability.elevation.loss.label",
-        "wear.whs.capability.elevation.loss.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), false, adbCommandDisableElevationLoss
+  fun `Enable and disable steps per minute`() {
+    val capability = WhsCapability(
+      WhsDataType.STEPS_PER_MINUTE,
+      "wear.whs.capability.steps.per.minute.label",
+      "wear.whs.capability.unit.none",
+      isOverrideable = true,
+      isStandardCapability = true,
     )
-  }
 
-  @Test
-  fun `Enable absolute elevation`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.ABSOLUTE_ELEVATION,
-        "wear.whs.capability.absolute.elevation.label",
-        "wear.whs.capability.unit.none",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), true, adbCommandEnableAbsoluteElevation
-    )
-  }
-
-  @Test
-  fun `Disable absolute elevation`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.ABSOLUTE_ELEVATION,
-        "wear.whs.capability.absolute.elevation.label",
-        "wear.whs.capability.unit.none",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), false, adbCommandDisableAbsoluteElevation
-    )
-  }
-
-
-  @Test
-  fun `Enable location`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.LOCATION,
-        "wear.whs.capability.location.label",
-        "wear.whs.capability.unit.none",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), true, adbCommandEnableLocation
-    )
-  }
-
-  @Test
-  fun `Disable location`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.LOCATION,
-        "wear.whs.capability.location.label",
-        "wear.whs.capability.unit.none",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), false, adbCommandDisableLocation
-    )
-  }
-
-  @Test
-  fun `Enable heart rate bpm`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.HEART_RATE_BPM,
-        "wear.whs.capability.heart.rate.label",
-        "wear.whs.capability.heart.rate.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), true, adbCommandEnableHeartRateBpm
-    )
-  }
-
-  @Test
-  fun `Disable heart rate bpm`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.HEART_RATE_BPM,
-        "wear.whs.capability.heart.rate.label",
-        "wear.whs.capability.heart.rate.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), false, adbCommandDisableHeartRateBpm
-    )
-  }
-
-  @Test
-  fun `Enable speed`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.SPEED,
-        "wear.whs.capability.speed.label",
-        "wear.whs.capability.speed.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), true, adbCommandEnableSpeed
-    )
-  }
-
-  @Test
-  fun `Disable speed`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.SPEED,
-        "wear.whs.capability.speed.label",
-        "wear.whs.capability.speed.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), false, adbCommandDisableSpeed
-    )
-  }
-
-  @Test
-  fun `Enable pace`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.PACE,
-        "wear.whs.capability.pace.label",
-        "wear.whs.capability.pace.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), true, adbCommandEnablePace
-    )
-  }
-
-  @Test
-  fun `Disable pace`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.PACE,
-        "wear.whs.capability.pace.label",
-        "wear.whs.capability.pace.unit",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), false, adbCommandDisablePace
-    )
-  }
-
-  @Test
-  fun `Enable steps per minute`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.STEPS_PER_MINUTE,
-        "wear.whs.capability.steps.per.minute.label",
-        "wear.whs.capability.unit.none",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), true, adbCommandEnableStepsPerMinute
-    )
-  }
-
-  @Test
-  fun `Disable steps per minute`() {
-    `Changing capability sends expected adb command`(
-      WhsCapability(
-        WhsDataType.STEPS_PER_MINUTE,
-        "wear.whs.capability.steps.per.minute.label",
-        "wear.whs.capability.unit.none",
-        isOverrideable = true,
-        isStandardCapability = true,
-      ), false, adbCommandDisableStepsPerMinute
-    )
+    assertCapabilitySendsAdbCommand(capability, true, adbCommandEnableStepsPerMinute)
+    assertCapabilitySendsAdbCommand(capability, false, adbCommandDisableStepsPerMinute)
   }
 }

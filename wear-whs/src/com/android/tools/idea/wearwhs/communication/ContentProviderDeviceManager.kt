@@ -51,22 +51,23 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
     return "content update --uri $whsUri --bind $key:b:$value --where \"$key\""
   }
 
-  override suspend fun enableCapability(capability: WhsCapability) {
+  private suspend fun setCapability(capability: WhsCapability, newValue: Boolean) {
     if (serialNumber == null) {
       // TODO: Log this error
       return
     }
 
-    adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber!!), contentUpdateCapability(capability.key.name, true))
+    val device = DeviceSelector.fromSerialNumber(serialNumber!!)
+    val contentUpdateCommand = contentUpdateCapability(capability.key.name, newValue)
+    adbSession.deviceServices.shellAsText(device, contentUpdateCommand)
+  }
+
+  override suspend fun enableCapability(capability: WhsCapability) {
+    setCapability(capability, true)
   }
 
   override suspend fun disableCapability(capability: WhsCapability) {
-    if (serialNumber == null) {
-      // TODO: Log this error
-      return
-    }
-
-    adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber!!), contentUpdateCapability(capability.key.name, false))
+    setCapability(capability, false)
   }
 
   // TODO(b/305924073): Implement override methods
