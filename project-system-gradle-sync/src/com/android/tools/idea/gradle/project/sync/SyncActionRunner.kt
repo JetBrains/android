@@ -211,6 +211,7 @@ class SyncActionRunner private constructor(
   private val ActionToRun<*>.canRunInParallel
     get() =
       parallelActionsSupported &&
+      !fetchesV1Models &&
       (!fetchesV2Models || canFetchV2ModelsInParallel) &&
       (!fetchesKotlinModels || canFetchKotlinModelsInParallel)
 

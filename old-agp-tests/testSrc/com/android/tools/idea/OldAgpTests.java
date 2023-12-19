@@ -17,7 +17,6 @@ package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.junit4.OldAgpSuite;
-import com.android.tools.idea.gradle.project.psd.OldAgpResolvedDependenciesTreeRootNodeTest;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_33Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_35Test;
 import com.android.tools.idea.gradle.project.sync.SyncProject_AGP_40Test;
@@ -62,8 +61,6 @@ import org.junit.runner.RunWith;
   SyncProject_AGP_80Test.class,
   SyncProject_AGP_81Test.class,
   SyncProject_AGP_82Test.class,
-  // TODO(b/316023359): Enable once the root cause the timeouts is fixed
-  OldAgpResolvedDependenciesTreeRootNodeTest.class,
 })
 public class OldAgpTests extends IdeaTestSuiteBase {
 
