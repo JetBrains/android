@@ -15,6 +15,7 @@
  */
 package com.android.tools.res.apk
 
+import com.android.ide.common.rendering.api.ArrayResourceValue
 import com.android.ide.common.rendering.api.AttrResourceValue
 import com.android.ide.common.rendering.api.PluralsResourceValue
 import com.android.ide.common.rendering.api.ResourceNamespace
@@ -115,5 +116,44 @@ class ApkResourceRepositoryTest {
     assertEquals("one", pluralsItem.getQuantity(0))
     assertEquals("%d new notifications", pluralsItem.getValue(1))
     assertEquals("other", pluralsItem.getQuantity(1))
+  }
+
+  @Test
+  fun testAllResources() {
+    val path = TestUtils.resolveWorkspacePath(TEST_DATA_DIR + "apk-all-resources.ap_")
+    val idManager = ApkResourceIdManager().apply { this.loadApkResources(path.toString()) }
+    val apkRes = ApkResourceRepository(path.toString()) { idManager.findById(it) }
+
+    val pluralsRes = apkRes.getResources(
+      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.PLURALS, "numberOfSongsAvailable")
+    )[0]
+
+    val pluralsItem = pluralsRes.resourceValue as PluralsResourceValue
+    assertEquals(2, pluralsItem.pluralsCount)
+    assertEquals("%d song found.", pluralsItem.getValue(0))
+    assertEquals("one", pluralsItem.getQuantity(0))
+    assertEquals("%d songs found.", pluralsItem.getValue(1))
+    assertEquals("other", pluralsItem.getQuantity(1))
+
+    val planetsArrayRes = apkRes.getResources(
+      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ARRAY, "planets_array")
+    )[0]
+
+    val planetsArrayItem = planetsArrayRes.resourceValue as ArrayResourceValue
+    assertEquals(4, planetsArrayItem.elementCount)
+    assertEquals("Mercury", planetsArrayItem.getElement(0))
+    assertEquals("Venus", planetsArrayItem.getElement(1))
+    assertEquals("Earth", planetsArrayItem.getElement(2))
+    assertEquals("Mars", planetsArrayItem.getElement(3))
+
+    val colorsArrayRes = apkRes.getResources(
+      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ARRAY, "colors")
+    )[0]
+
+    val colorsArrayItem = colorsArrayRes.resourceValue as ArrayResourceValue
+    assertEquals(3, colorsArrayItem.elementCount)
+    assertEquals("#FFFF0000", colorsArrayItem.getElement(0))
+    assertEquals("#FF00FF00", colorsArrayItem.getElement(1))
+    assertEquals("#FF0000FF", colorsArrayItem.getElement(2))
   }
 }

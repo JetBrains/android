@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="textview_height">25dp</dimen>
+    <dimen name="textview_width">150dp</dimen>
+    <dimen name="ball_radius">30dp</dimen>
+    <dimen name="font_size">16sp</dimen>
+
+    <dimen name="dimen_pt">16pt</dimen>
+    <dimen name="dimen_px">16px</dimen>
+    <dimen name="dimen_mm">16mm</dimen>
+    <dimen name="dimen_in">1.5in</dimen>
+</resources>

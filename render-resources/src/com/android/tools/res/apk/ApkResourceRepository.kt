@@ -16,6 +16,7 @@
 
 package com.android.tools.res.apk
 
+import com.android.ide.common.rendering.api.ArrayResourceValueImpl
 import com.android.ide.common.rendering.api.AttrResourceValueImpl
 import com.android.ide.common.rendering.api.PluralsResourceValueImpl
 import com.android.ide.common.rendering.api.ResourceNamespace
@@ -161,6 +162,17 @@ private fun TypeChunk.Entry.createResValue(
         pluralsValue.addPlural(itemQuantity, itemVal)
       }
       pluralsValue
+    }
+    ResourceType.ARRAY -> {
+      if (this.value() != null) {
+        throw IllegalArgumentException("Unexpected [${this.value()}] value for ARRAY")
+      }
+      val arrayValue = ArrayResourceValueImpl(resRef, null)
+      this.values().forEach { (i, v) ->
+        val itemVal = formatVal(v, stringPool, resLookUp)
+        arrayValue.addElement(itemVal)
+      }
+      arrayValue
     }
     else -> {
       val binResVal = this.value() ?: throw IllegalArgumentException("Unexpected null value for ${resRef.resourceType}")
