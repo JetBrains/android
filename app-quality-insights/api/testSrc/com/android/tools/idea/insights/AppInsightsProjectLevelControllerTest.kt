@@ -861,6 +861,7 @@ class AppInsightsProjectLevelControllerTest {
 
       controllerRule.toggleFatality(FailureType.NON_FATAL)
       client.completeIssuesCallWith(issuesResponse)
+      controllerRule.consumeNext()
       assertThat(controllerRule.consumeNext().filters.failureTypeToggles.selected)
         .containsExactly(FailureType.ANR)
 
