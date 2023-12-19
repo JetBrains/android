@@ -22,12 +22,9 @@ import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.SystemImageDescription
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
-import java.nio.file.Path
 
 internal object VirtualDevices {
   internal fun add(device: VirtualDevice) {
-    val handler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-
     val connection = AvdManagerConnection.getDefaultAvdManagerConnection()
     val id = AvdWizardUtils.cleanAvdName(connection, device.name, /* uniquify= */ true)
 
@@ -37,12 +34,13 @@ internal object VirtualDevices {
       }
 
     val image =
-      handler
+      AndroidSdks.getInstance()
+        .tryToChooseSdkHandler()
         .getSystemImageManager(StudioLoggerProgressIndicator(VirtualDevices::class.java))
         .images
         .first { it.`package`.path == "system-images;android-34;google_apis_playstore;x86_64" }
 
-    val skin = Path.of(handler.location.toString(), "skins", "pixel_7")
+    val skin = device.skin.path()
 
     val properties =
       mapOf(
