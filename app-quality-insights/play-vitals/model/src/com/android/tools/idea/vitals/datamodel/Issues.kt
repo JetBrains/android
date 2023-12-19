@@ -27,6 +27,7 @@ import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.client.toJavaInstant
 import com.google.play.developer.reporting.ErrorIssue
 import com.google.play.developer.reporting.ErrorReport
+import com.google.play.developer.reporting.ErrorType
 
 internal fun ErrorIssue.toIssueDetails(): IssueDetails {
   return IssueDetails(
@@ -57,7 +58,9 @@ internal fun ErrorReport.toSampleEvent(): Event {
         operatingSystemInfo = OperatingSystemInfo.fromProto(osVersion),
         eventTime = eventTime.toJavaInstant()
       ),
-    stacktraceGroup = reportText.extract(),
+    stacktraceGroup =
+      if (type == ErrorType.APPLICATION_NOT_RESPONDING) reportText.extractThreadDump()
+      else reportText.extractException(),
     appVcsInfo =
       if (StudioFlags.PLAY_VITALS_VCS_INTEGRATION_ENABLED.get())
         AppVcsInfo.fromProto(vcsInformation)

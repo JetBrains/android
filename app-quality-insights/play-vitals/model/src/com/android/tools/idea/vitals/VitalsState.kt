@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.vitals
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.Filters
@@ -54,7 +55,8 @@ fun createVitalsFilters(
   Filters(
     versions,
     timeInterval,
-    failureTypeToggles,
+    if (StudioFlags.CRASHLYTICS_J_UI.get()) failureTypeToggles.toggle(FailureType.ANR)
+    else failureTypeToggles,
     devices,
     operatingSystems,
     signal,

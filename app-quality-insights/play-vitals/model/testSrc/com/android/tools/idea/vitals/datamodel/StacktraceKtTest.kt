@@ -67,10 +67,24 @@ private val NATIVE_CRASH =
 """
     .trimIndent()
 
+private val THREAD_DUMP =
+  """
+"main" tid=1 Native
+  #00  pc 0x000000000009a5a8  /apex/com.android.runtime/lib/bionic/libc.so (__epoll_pwait+20)
+  #01  pc 0x000000000006be19  /apex/com.android.runtime/lib/bionic/libc.so (epoll_wait+16)
+  at android.os.MessageQueue.nativePollOnce (Native method)
+  at android.os.MessageQueue.next (MessageQueue.java:335)
+
+"FinalizerDaemon" tid=12 Runnable
+  at android.os.Looper.getMainLooper (Looper.java:141)
+  at java.lang.DaemonsFinalizerDaemon.doFinalize (Daemons.java:291)
+  """
+    .trimIndent()
+
 class StacktraceKtTest {
   @Test
   fun `extract native crash from string blob`() {
-    val extracted = NATIVE_CRASH.extract()
+    val extracted = NATIVE_CRASH.extractException()
     assertThat(extracted.exceptions.size).isEqualTo(1)
     assertThat(extracted.exceptions)
       .containsExactly(
@@ -116,7 +130,7 @@ class StacktraceKtTest {
 
   @Test
   fun `multiple trace groups without AT identifier from string blob`() {
-    val extracted = MULTIPLE_TRACE_GROUPS_NO_AT_IDENTIFIER.extract()
+    val extracted = MULTIPLE_TRACE_GROUPS_NO_AT_IDENTIFIER.extractException()
     assertThat(extracted.exceptions.size).isEqualTo(2)
     assertThat(extracted.exceptions)
       .containsExactly(
@@ -187,7 +201,7 @@ class StacktraceKtTest {
 
   @Test
   fun `multiple trace groups from string blob`() {
-    val extracted = MULTIPLE_TRACE_GROUPS.extract()
+    val extracted = MULTIPLE_TRACE_GROUPS.extractException()
     assertThat(extracted.exceptions.size).isEqualTo(2)
     assertThat(extracted.exceptions)
       .containsExactly(
@@ -258,7 +272,7 @@ class StacktraceKtTest {
 
   @Test
   fun `single trace group from string blob`() {
-    val extracted = SINGLE_TRACE_GROUP.extract()
+    val extracted = SINGLE_TRACE_GROUP.extractException()
     assertThat(extracted.exceptions.size).isEqualTo(1)
     assertThat(extracted.exceptions.first())
       .isEqualTo(
@@ -385,5 +399,104 @@ class StacktraceKtTest {
           rawExceptionMessage = "Exception java.lang.OutOfMemoryError:"
         )
       )
+  }
+
+  @Test
+  fun `thread dump from string blob`() {
+    val extracted = THREAD_DUMP.extractThreadDump()
+    assertThat(extracted.exceptions)
+      .containsExactly(
+        ExceptionStack(
+          stacktrace =
+            Stacktrace(
+              caption = Caption(title = "\"main\" tid=1 Native", subtitle = ""),
+              blames = Blames.BLAMED,
+              frames =
+                listOf(
+                  Frame(
+                    line = 0,
+                    file = "",
+                    rawSymbol =
+                      "#00  pc 0x000000000009a5a8  /apex/com.android.runtime/lib/bionic/libc.so (__epoll_pwait+20)",
+                    symbol =
+                      "#00  pc 0x000000000009a5a8  /apex/com.android.runtime/lib/bionic/libc.so (__epoll_pwait+20)",
+                    offset = 0,
+                    address = 0,
+                    library = "",
+                    blame = Blames.UNKNOWN_BLAMED
+                  ),
+                  Frame(
+                    line = 0,
+                    file = "",
+                    rawSymbol =
+                      "#01  pc 0x000000000006be19  /apex/com.android.runtime/lib/bionic/libc.so (epoll_wait+16)",
+                    symbol =
+                      "#01  pc 0x000000000006be19  /apex/com.android.runtime/lib/bionic/libc.so (epoll_wait+16)",
+                    offset = 0,
+                    address = 0,
+                    library = "",
+                    blame = Blames.UNKNOWN_BLAMED
+                  ),
+                  Frame(
+                    line = 0,
+                    file = "",
+                    rawSymbol = "at android.os.MessageQueue.nativePollOnce (Native method)",
+                    symbol = "at android.os.MessageQueue.nativePollOnce (Native method)",
+                    offset = 0,
+                    address = 0,
+                    library = "",
+                    blame = Blames.UNKNOWN_BLAMED
+                  ),
+                  Frame(
+                    line = 335,
+                    file = "MessageQueue.java",
+                    rawSymbol = "at android.os.MessageQueue.next (MessageQueue.java:335)",
+                    symbol = "android.os.MessageQueue.next",
+                    offset = 0,
+                    address = 0,
+                    library = "",
+                    blame = Blames.UNKNOWN_BLAMED
+                  )
+                )
+            ),
+          type = "\"main\" tid=1 Native",
+          exceptionMessage = "",
+          rawExceptionMessage = "\"main\" tid=1 Native"
+        ),
+        ExceptionStack(
+          stacktrace =
+            Stacktrace(
+              caption = Caption(title = "\"FinalizerDaemon\" tid=12 Runnable", subtitle = ""),
+              blames = Blames.NOT_BLAMED,
+              frames =
+                listOf(
+                  Frame(
+                    line = 141,
+                    file = "Looper.java",
+                    rawSymbol = "at android.os.Looper.getMainLooper (Looper.java:141)",
+                    symbol = "android.os.Looper.getMainLooper",
+                    offset = 0,
+                    address = 0,
+                    library = "",
+                    blame = Blames.UNKNOWN_BLAMED
+                  ),
+                  Frame(
+                    line = 291,
+                    file = "Daemons.java",
+                    rawSymbol = "at java.lang.DaemonsFinalizerDaemon.doFinalize (Daemons.java:291)",
+                    symbol = "java.lang.DaemonsFinalizerDaemon.doFinalize",
+                    offset = 0,
+                    address = 0,
+                    library = "",
+                    blame = Blames.UNKNOWN_BLAMED
+                  )
+                )
+            ),
+          type = "\"FinalizerDaemon\" tid=12 Runnable",
+          exceptionMessage = "",
+          rawExceptionMessage = "\"FinalizerDaemon\" tid=12 Runnable"
+        )
+      )
+      .inOrder()
   }
 }

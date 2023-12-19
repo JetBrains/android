@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.vitals.client
 
+import com.android.flags.junit.FlagRule
 import com.android.testutils.time.FakeClock
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_ISSUE1
-import com.android.tools.idea.vitals.client.grpc.CRASH
 import com.android.tools.idea.vitals.client.grpc.DISTINCT_USERS
 import com.android.tools.idea.vitals.client.grpc.ERROR_REPORT_COUNT
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClientImpl
@@ -50,6 +51,8 @@ class VitalsClientRequestProtoTest {
 
   @get:Rule val grpcRule = VitalsGrpcConnectionRule(TEST_CONNECTION_1)
 
+  @get:Rule val flagRule = FlagRule(StudioFlags.CRASHLYTICS_J_UI, true)
+
   private val clock = FakeClock()
 
   init {
@@ -77,7 +80,8 @@ class VitalsClientRequestProtoTest {
       assertThat(errorIssueRequest.parent).isEqualTo(TEST_CONNECTION_1.clientId)
       assertThat(errorIssueRequest.interval)
         .isEqualTo(request.filters.interval.toProtoDateTime(TimeGranularity.HOURLY))
-      assertThat(errorIssueRequest.filter).isEqualTo("(errorIssueType = CRASH)")
+      assertThat(errorIssueRequest.filter)
+        .isEqualTo("(errorIssueType = ANR OR errorIssueType = CRASH)")
 
       val errorReportRequest = events.filterIsInstance<SearchErrorReportsRequest>().single()
       assertThat(errorReportRequest.interval)
@@ -201,6 +205,8 @@ class VitalsClientRequestProtoTest {
     }
     assertThat(request.metricsList).containsExactly(expectedMetric)
     assertThat(request.filter)
-      .isEqualTo("${issueId?.let { "(issueId = ${issueId}) AND " } ?: "" }(reportType = $CRASH)")
+      .isEqualTo(
+        "${issueId?.let { "(issueId = ${issueId}) AND " } ?: "" }(reportType = ANR OR reportType = CRASH)"
+      )
   }
 }

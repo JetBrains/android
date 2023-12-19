@@ -18,8 +18,10 @@ package com.android.tools.idea.vitals.ui
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.ConnectionMode
+import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -29,6 +31,7 @@ import com.android.tools.idea.insights.ui.OfflineBalloonMaker
 import com.android.tools.idea.insights.ui.Timestamp
 import com.android.tools.idea.insights.ui.actions.AppInsightsDisplayRefreshTimestampAction
 import com.android.tools.idea.insights.ui.actions.AppInsightsDropDownAction
+import com.android.tools.idea.insights.ui.actions.AppInsightsToggleAction
 import com.android.tools.idea.insights.ui.actions.TreeDropDownAction
 import com.android.tools.idea.insights.ui.toTimestamp
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
@@ -60,7 +63,7 @@ import kotlinx.coroutines.launch
 class VitalsTab(
   private val projectController: AppInsightsProjectLevelController,
   private val project: Project,
-  private val clock: Clock,
+  clock: Clock,
   tracker: AppInsightsTracker
 ) : JPanel(BorderLayout()), Disposable {
   private val scope = AndroidCoroutineScope(this)
@@ -94,6 +97,13 @@ class VitalsTab(
 
   private val timestampAction = AppInsightsDisplayRefreshTimestampAction(timestamp, clock, scope)
 
+  private val failureTypeFlow =
+    projectController.state
+      .map { state -> state.filters.failureTypeToggles.selected }
+      .distinctUntilChanged()
+  private val crashToggle = failureTypeFlow.map { it.contains(FailureType.FATAL) }
+  private val anrToggle = failureTypeFlow.map { it.contains(FailureType.ANR) }
+
   init {
     add(createToolbar().component, BorderLayout.NORTH)
     add(VitalsContentContainerPanel(projectController, project, tracker, this))
@@ -110,6 +120,30 @@ class VitalsTab(
         )
       )
       addSeparator()
+      if (StudioFlags.CRASHLYTICS_J_UI.get()) {
+        add(
+          AppInsightsToggleAction(
+            "Crash",
+            null,
+            StudioIcons.AppQualityInsights.FATAL,
+            crashToggle,
+            scope
+          ) {
+            projectController.toggleFailureType(FailureType.FATAL)
+          }
+        )
+        add(
+          AppInsightsToggleAction(
+            "ANR",
+            null,
+            StudioIcons.AppQualityInsights.ANR,
+            anrToggle,
+            scope
+          ) {
+            projectController.toggleFailureType(FailureType.ANR)
+          }
+        )
+      }
       add(
         AppInsightsDropDownAction(
           "Interval",
