@@ -236,6 +236,9 @@ iml_studio_test(
     data = layout_editor_data,
     module = ":intellij.android.designer.integration",
     tags_linux = ["block-network"],
-    tags_windows = ["block-network"],
+    tags_windows = [
+        "block-network",
+        "manual",  # http://b/317124114
+    ],
     test_class = "com.android.tools.idea.designer.VisualLintTest",
 )
