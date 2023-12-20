@@ -53,7 +53,11 @@ class WearHealthServicesToolWindowTest {
 
   private val deviceManager by lazy { FakeDeviceManager() }
   private val stateManager by lazy { WearHealthServicesToolWindowStateManagerImpl(deviceManager) }
-  private val toolWindow by lazy { WearHealthServicesToolWindow(stateManager) }
+  private val toolWindow by lazy {
+    WearHealthServicesToolWindow(stateManager).apply {
+      setSerialNumber("test")
+    }
+  }
 
   @Before
   fun setUp() {
@@ -120,7 +124,8 @@ class WearHealthServicesToolWindowTest {
     val received = mutableListOf<T>()
     try {
       withTimeout(timeout) { takeWhile { it != value }.collect { received.add(it) } }
-    } catch (ex: TimeoutCancellationException) {
+    }
+    catch (ex: TimeoutCancellationException) {
       Assert.fail("Timed out waiting for value $value. Received values so far $received")
     }
   }

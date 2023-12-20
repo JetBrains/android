@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearwhs.view
 
+import com.android.tools.adtui.stdui.StandardColors
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -29,6 +30,7 @@ import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.layout.selected
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.JBUI.Borders
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -38,6 +40,8 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
+import javax.swing.Box
+import javax.swing.BoxLayout
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JButton
 import javax.swing.JCheckBox
@@ -48,20 +52,36 @@ import javax.swing.event.DocumentEvent
 
 private const val PADDING = 15
 
-private val horizontalBorders = JBUI.Borders.empty(0, PADDING)
+private val horizontalBorders = Borders.empty(0, PADDING)
 
 internal class WearHealthServicesToolWindow(private val stateManager: WearHealthServicesToolWindowStateManager) : SimpleToolWindowPanel(
   true, true), Disposable {
   private val uiScope: CoroutineScope = AndroidCoroutineScope(this, uiThread)
   private val workerScope: CoroutineScope = AndroidCoroutineScope(this, workerThread)
 
+  private var serialNumber: String? = null
+
   fun setSerialNumber(serialNumber: String) {
     stateManager.serialNumber = serialNumber
+    this.serialNumber = serialNumber
+    removeAll()
+    add(createContentPanel())
   }
 
   private fun getLogger() = Logger.getInstance(this::class.java)
 
   private fun createContentPanel(): JPanel {
+    if (serialNumber == null) {
+      return JPanel().apply {
+        layout = BoxLayout(this, BoxLayout.Y_AXIS)
+        border = Borders.empty(JBUI.scale(20))
+        add(Box.createVerticalGlue())
+        add(JLabel("<html><center>" + message("wear.whs.panel.launch.from.emulator") + "</center></html>", JLabel.CENTER).apply {
+          foreground = StandardColors.PLACEHOLDER_TEXT_COLOR
+        })
+        add(Box.createVerticalGlue())
+      }
+    }
     val header = JPanel(BorderLayout()).apply {
       border = horizontalBorders
       val capabilitiesComboBox = ComboBox<Preset>().apply {
