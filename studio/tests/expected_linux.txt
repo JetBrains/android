@@ -441,7 +441,7 @@ android-studio/lib/ant/lib/libraries.properties
 android-studio/lib/ant/src.zip
 android-studio/lib/app.jar
 android-studio/lib/bouncy-castle.jar
-android-studio/lib/build-marker-AI-233.11799.241.2331.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-233.13135.103.2331.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/error-prone-annotations.jar
@@ -2786,6 +2786,7 @@ android-studio/plugins/java-ide-customization/lib/java-ide-customization.jar
 android-studio/plugins/java/lib/aether-dependency-resolver.jar
 android-studio/plugins/java/lib/debugger-memory-agent.jar
 android-studio/plugins/java/lib/ecj/eclipse.jar
+android-studio/plugins/java/lib/java-frontback.jar
 android-studio/plugins/java/lib/java-impl.jar
 android-studio/plugins/java/lib/javac2.jar
 android-studio/plugins/java/lib/jb-jdi.jar

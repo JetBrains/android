@@ -2799,6 +2799,7 @@ Android Studio Preview.app/Contents/plugins/java-ide-customization/lib/java-ide-
 Android Studio Preview.app/Contents/plugins/java/lib/aether-dependency-resolver.jar
 Android Studio Preview.app/Contents/plugins/java/lib/debugger-memory-agent.jar
 Android Studio Preview.app/Contents/plugins/java/lib/ecj/eclipse.jar
+Android Studio Preview.app/Contents/plugins/java/lib/java-frontback.jar
 Android Studio Preview.app/Contents/plugins/java/lib/java-impl.jar
 Android Studio Preview.app/Contents/plugins/java/lib/javac2.jar
 Android Studio Preview.app/Contents/plugins/java/lib/jb-jdi.jar
