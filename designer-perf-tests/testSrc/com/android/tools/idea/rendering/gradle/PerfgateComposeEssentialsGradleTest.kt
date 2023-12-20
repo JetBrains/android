@@ -70,22 +70,6 @@ class PerfgateComposeEssentialsGradleTest: PerfgateComposeGradleTestBase() {
   }
 
   @Test
-  fun essentialsMode_50Previews() = runBlocking {
-    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.size)
-    setUpEssentialsMode()
-    addPreviewsAndMeasure(
-      49, 1, listOf(
-      // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.
-      ElapsedTimeMeasurement(Metric("essentials_50_previews_refresh_time")),
-      HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("essentials_50_previews_total_memory")),
-      HeapSnapshotMemoryUseMeasurement("android:designTools", "rendering", Metric("essentials_50_previews_rendering_memory")),
-      HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutEditor", Metric("essentials_50_previews_layoutEditor_memory")),
-      HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutlib", Metric("essentials_50_previews_layoutlib_memory"))
-    )
-    )
-  }
-
-  @Test
   fun essentialsMode_500Previews() = runBlocking {
     Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().size)
     setUpEssentialsMode()

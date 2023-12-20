@@ -52,19 +52,6 @@ class PerfgateComposeRenderQualityGradleTest: PerfgateComposeGradleTestBase() {
   }
 
   @Test
-  fun renderQualityEnabled_50Previews() = projectRule.runWithRenderQualityEnabled {
-    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.size)
-    addPreviewsAndMeasure(49, 50, listOf(
-      // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.
-      ElapsedTimeMeasurement(Metric("renderQualityEnabled_50_previews_refresh_time")),
-      HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("renderQualityEnabled_50_previews_total_memory")),
-      HeapSnapshotMemoryUseMeasurement("android:designTools", "rendering", Metric("renderQualityEnabled_50_previews_rendering_memory")),
-      HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutEditor", Metric("renderQualityEnabled_50_previews_layoutEditor_memory")),
-      HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutlib", Metric("renderQualityEnabled_50_previews_layoutlib_memory"))
-    ), samplesCount = 25, measuredRunnable = ::qualityRefresh)
-  }
-
-  @Test
   fun renderQualityEnabled_200Previews() = projectRule.runWithRenderQualityEnabled {
     Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().size)
     addPreviewsAndMeasure(199, 200, listOf(

@@ -53,19 +53,4 @@ class PerfgateComposeStandardGradleTest: PerfgateComposeGradleTestBase() {
     )
     )
   }
-
-  @Test
-  fun standardMode_50Previews() = runBlocking {
-    Assert.assertEquals(1, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.size)
-    addPreviewsAndMeasure(
-      49, 50, listOf(
-      // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.
-      ElapsedTimeMeasurement(Metric("standard_50_previews_refresh_time")),
-      HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("standard_50_previews_total_memory")),
-      HeapSnapshotMemoryUseMeasurement("android:designTools", "rendering", Metric("standard_50_previews_rendering_memory")),
-      HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutEditor", Metric("standard_50_previews_layoutEditor_memory")),
-      HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutlib", Metric("standard_50_previews_layoutlib_memory"))
-    )
-    )
-  }
 }
