@@ -11,6 +11,13 @@
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
 
+  <change-notes><![CDATA[
+  This release contains updates from Android Studio Hedgehog Stable.
+
+  For detailed information, please refer to the release notes available at: [Android Studio Hedgehog 2023.11](https://androidstudio.googleblog.com/2023/11/android-studio-hedgehog-202311-now.html)
+  ]]>
+  </change-notes>
+
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-kotlin-extensions.xml" xpointer="xpointer(/idea-plugin/*)" includeUnless="idea.kotlin.plugin.use.k2"/>
