@@ -43,6 +43,7 @@ import com.android.SdkConstants.PreferenceClasses.CLASS_PREFERENCE
 import com.android.SdkConstants.STYLE_RESOURCE_PREFIX
 import com.android.SdkConstants.TAG_ITEM
 import com.android.SdkConstants.TAG_SELECTOR
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
@@ -57,7 +58,9 @@ import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.ResourceRepository
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.ide.common.resources.escape.string.StringResourceEscaper
+import com.android.ide.common.resources.getLocales
 import com.android.ide.common.resources.parseColor
 import com.android.ide.common.resources.toFileResourcePathString
 import com.android.ide.common.util.PathString
@@ -2343,3 +2346,12 @@ data class ReferredResourceFieldInfo(
   val namespace: ResourceNamespace,
   val isFromManifest: Boolean
 )
+
+@Slow
+fun getLocaleConfig(facet: AndroidFacet): Set<LocaleQualifier> {
+  val locales = mutableSetOf<LocaleQualifier>()
+  val resourceRepository = StudioResourceRepositoryManager.getAppResources(facet)
+  return resourceRepository.leafResourceRepositories
+    .filterIsInstance<ResourceFolderRepository>()
+    .flatMapTo(locales) { it.getLocales() }
+}

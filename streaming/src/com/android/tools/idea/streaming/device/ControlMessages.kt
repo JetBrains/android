@@ -79,6 +79,7 @@ sealed class ControlMessage(val type: Int) {
         SetSelectToSpeakMessage.TYPE -> SetSelectToSpeakMessage.deserialize(stream)
         SetFontSizeMessage.TYPE -> SetFontSizeMessage.deserialize(stream)
         SetScreenDensityMessage.TYPE -> SetScreenDensityMessage.deserialize(stream)
+        SetAppLanguageMessage.TYPE -> SetAppLanguageMessage.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
       }
       FlightRecorder.log { "${TraceUtils.currentTime} deserialize: message = $message" }
@@ -627,19 +628,33 @@ internal data class DisplayRemovedNotification(val displayId: Int) : ControlMess
 /**
  * Queries the current UI settings from a device.
  */
-internal class UiSettingsRequest private constructor(override val requestId: Int) : CorrelatedMessage(TYPE) {
+internal class UiSettingsRequest private constructor(
+  override val requestId: Int,
+  val applicationIds: List<String>
+) : CorrelatedMessage(TYPE) {
 
-  constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
+  constructor(requestIdGenerator: () -> Int, applicationIds: List<String>) : this(requestIdGenerator(), applicationIds)
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(applicationIds.size)
+    applicationIds.forEach { stream.writeBytes(it.toByteArray(UTF_8)) }
+  }
 
   override fun toString(): String =
-    "UiSettingsRequest(requestId=$requestId)"
+    "UiSettingsRequest(requestId=$requestId, applicationIds=\"${applicationIds.joinToString(",")}\")"
 
   companion object : Deserializer {
     const val TYPE = 19
 
     override fun deserialize(stream: Base128InputStream): UiSettingsRequest {
       val requestId = stream.readInt()
-      return UiSettingsRequest(requestId)
+      val count = stream.readInt()
+      val applicationIds = mutableListOf<String>()
+      for (i in 1..count) {
+        applicationIds.add(stream.readBytes().toString(UTF_8))
+      }
+      return UiSettingsRequest(requestId, applicationIds)
     }
   }
 }
@@ -650,6 +665,7 @@ internal class UiSettingsRequest private constructor(override val requestId: Int
 internal data class UiSettingsResponse(
   override val requestId: Int,
   val darkMode: Boolean,
+  val appLocales: Map<String, String>,
   val tackBackInstalled: Boolean,
   val talkBackOn: Boolean,
   val selectToSpeakOn: Boolean,
@@ -660,6 +676,11 @@ internal data class UiSettingsResponse(
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
     stream.writeBoolean(darkMode)
+    stream.writeInt(appLocales.size)
+    appLocales.forEach { entry ->
+      stream.writeBytes(entry.key.toByteArray(UTF_8))
+      stream.writeBytes(entry.value.toByteArray(UTF_8))
+    }
     stream.writeBoolean(tackBackInstalled)
     stream.writeBoolean(talkBackOn)
     stream.writeBoolean(selectToSpeakOn)
@@ -671,6 +692,7 @@ internal data class UiSettingsResponse(
     "UiSettingsResponse(" +
     "requestId=$requestId, " +
     "darkMode=$darkMode, " +
+    "locales=\"[${appLocales.map { "(${it.key}, ${it.value})" }.joinToString(", ")}]\", " +
     "tackBackInstalled=$tackBackInstalled, " +
     "talkBackOn=$talkBackOn, " +
     "selectToSpeakOn=$selectToSpeakOn, " +
@@ -683,6 +705,13 @@ internal data class UiSettingsResponse(
     override fun deserialize(stream: Base128InputStream): UiSettingsResponse {
       val requestId = stream.readInt()
       val darkMode = stream.readBoolean()
+      val count = stream.readInt()
+      val appLocales = mutableMapOf<String, String>()
+      for (i in 1..count) {
+        val applicationId = stream.readBytes().toString(UTF_8)
+        val locale = stream.readBytes().toString(UTF_8)
+        appLocales[applicationId] = locale
+      }
       val tackBackInstalled = stream.readBoolean()
       val talkBackOn = stream.readBoolean()
       val selectToSpeakOn = stream.readBoolean()
@@ -691,6 +720,7 @@ internal data class UiSettingsResponse(
       return UiSettingsResponse(
         requestId,
         darkMode,
+        appLocales,
         tackBackInstalled,
         talkBackOn,
         selectToSpeakOn,
@@ -815,6 +845,31 @@ internal data class SetSelectToSpeakMessage(val on: Boolean) : ControlMessage(TY
     override fun deserialize(stream: Base128InputStream): SetSelectToSpeakMessage {
       val on = stream.readBoolean()
       return SetSelectToSpeakMessage(on)
+    }
+  }
+}
+
+/**
+ * Changes the [locale] of the application identified by [applicationId].
+ */
+internal data class SetAppLanguageMessage(val applicationId: String, val locale: String) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeBytes(applicationId.toByteArray(UTF_8))
+    stream.writeBytes(locale.toByteArray(UTF_8))
+  }
+
+  override fun toString(): String =
+    "SetAppLanguageMessage(applicationId=\"$applicationId\", locale=\"$locale\")"
+
+  companion object : Deserializer {
+    const val TYPE = 26
+
+    override fun deserialize(stream: Base128InputStream): SetAppLanguageMessage {
+      val applicationId = stream.readBytes().toString(UTF_8)
+      val locale = stream.readBytes().toString(UTF_8)
+      return SetAppLanguageMessage(applicationId, locale)
     }
   }
 }

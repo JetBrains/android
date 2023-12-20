@@ -15,18 +15,24 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.res.AppLanguageInfo
+import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
+import com.android.tools.idea.streaming.emulator.APPLICATION_ID1
+import com.android.tools.idea.streaming.emulator.APPLICATION_ID2
 import com.android.tools.idea.streaming.emulator.CUSTOM_DENSITY
 import com.android.tools.idea.streaming.emulator.CUSTOM_FONT_SIZE
 import com.android.tools.idea.streaming.uisettings.testutil.UiControllerListenerValidator
 import com.android.tools.idea.streaming.uisettings.ui.FontSize
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import kotlinx.coroutines.runBlocking
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
@@ -35,9 +41,6 @@ import kotlin.time.Duration.Companion.seconds
 class DeviceUiSettingsControllerTest {
   @get:Rule
   val agentRule = FakeScreenSharingAgentRule()
-
-  @get:Rule
-  val edtRule = EdtRule()
 
   private val project
     get() = agentRule.project
@@ -49,6 +52,16 @@ class DeviceUiSettingsControllerTest {
   private val device: FakeDevice by lazy { agentRule.connectDevice("Pixel 8", 34, Dimension(1080, 2280)) }
   private val agent: FakeScreenSharingAgent by lazy { device.agent }
   private val controller: DeviceUiSettingsController by lazy { createUiSettingsController() }
+
+  @Before
+  fun before() {
+    agent.appLocales = mutableMapOf(APPLICATION_ID1 to "", APPLICATION_ID2 to "")
+    val appLanguageServices = AppLanguageService { listOf(
+      AppLanguageInfo(APPLICATION_ID1, setOf(LocaleQualifier("da"), LocaleQualifier("es"))),
+      AppLanguageInfo(APPLICATION_ID2, setOf(LocaleQualifier("ru"))))
+    }
+    project.registerOrReplaceServiceInstance(AppLanguageService::class.java, appLanguageServices, testRootDisposable)
+  }
 
   @Test
   fun testReadDefaultValueWhenAttachingAfterInit() {
@@ -67,6 +80,7 @@ class DeviceUiSettingsControllerTest {
   @Test
   fun testReadCustomValue() {
     agent.darkMode = true
+    agent.appLocales = mutableMapOf(APPLICATION_ID1 to "da", APPLICATION_ID2 to "ru")
     agent.talkBackInstalled = true
     agent.talkBackOn = true
     agent.selectToSpeakOn = true
@@ -90,6 +104,21 @@ class DeviceUiSettingsControllerTest {
     controller.initAndWait()
     model.inDarkMode.setFromUi(false)
     waitForCondition(10.seconds) { !agent.darkMode }
+  }
+
+  @Test
+  fun testAppSetLanguage() {
+    controller.initAndWait()
+    val language1 = model.appLanguage[APPLICATION_ID1]!!
+    val language2 = model.appLanguage[APPLICATION_ID2]!!
+    language1.selection.setFromUi(language1.getElementAt(1))
+    waitForCondition(10.seconds) { agent.appLocales[APPLICATION_ID1] == "da"}
+    language2.selection.setFromUi(language2.getElementAt(1))
+    waitForCondition(10.seconds) { agent.appLocales[APPLICATION_ID2] == "ru"}
+    language1.selection.setFromUi(language1.getElementAt(0))
+    waitForCondition(10.seconds) { agent.appLocales[APPLICATION_ID1] == ""}
+    language2.selection.setFromUi(language2.getElementAt(0))
+    waitForCondition(10.seconds) { agent.appLocales[APPLICATION_ID2] == ""}
   }
 
   @Test
@@ -145,7 +174,7 @@ class DeviceUiSettingsControllerTest {
   }
 
   private fun createUiSettingsController(): DeviceUiSettingsController =
-    DeviceUiSettingsController(createDeviceController(device), model)
+    DeviceUiSettingsController(createDeviceController(device), project, model)
 
   private fun createDeviceController(device: FakeDevice): DeviceController {
     val view = createDeviceView(device)

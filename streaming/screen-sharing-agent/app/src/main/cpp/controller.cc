@@ -304,6 +304,10 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       SetSelectToSpeak((const SetSelectToSpeakMessage&) message);
       break;
 
+    case SetAppLanguageMessage::TYPE:
+      SetAppLanguage((const SetAppLanguageMessage&) message);
+      break;
+
     default:
       Log::E("Unexpected message type %d", message.type());
       break;
@@ -568,13 +572,17 @@ void Controller::SendDisplayConfigurations(const DisplayConfigurationRequest& re
 
 void Controller::SendUiSettings(const UiSettingsRequest& message) {
   UiSettingsResponse response(message.request_id());
-  ui_settings_.Get(&response);
+  ui_settings_.Get(message, &response);
   response.Serialize(output_stream_);
   output_stream_.Flush();
 }
 
 void Controller::SetDarkMode(const SetDarkModeMessage& message) {
   ui_settings_.SetDarkMode(message.dark_mode());
+}
+
+void Controller::SetAppLanguage(const SetAppLanguageMessage& message) {
+  ui_settings_.SetAppLanguage(message.application_id(), message.locale());
 }
 
 void Controller::SetTalkBack(const SetTalkBackMessage& message) {

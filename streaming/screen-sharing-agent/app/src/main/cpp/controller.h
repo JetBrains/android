@@ -113,6 +113,7 @@ private:
 
   void SendUiSettings(const UiSettingsRequest& request);
   void SetDarkMode(const SetDarkModeMessage& message);
+  void SetAppLanguage(const SetAppLanguageMessage& message);
   void SetTalkBack(const SetTalkBackMessage& message);
   void SetSelectToSpeak(const SetSelectToSpeakMessage& message);
   void SetFontSize(const SetFontSizeMessage& message);

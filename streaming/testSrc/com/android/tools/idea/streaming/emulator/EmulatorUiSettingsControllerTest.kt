@@ -51,6 +51,8 @@ class EmulatorUiSettingsControllerTest {
   fun before() {
     adb.configureShellCommand(rule.deviceSelector, "cmd uimode night yes", "Night mode: yes")
     adb.configureShellCommand(rule.deviceSelector, "cmd uimode night no", "Night mode: no")
+    adb.configureShellCommand(rule.deviceSelector, "cmd locale set-app-locales com.example.test.process --locales da", "")
+    adb.configureShellCommand(rule.deviceSelector, "cmd locale set-app-locales com.example.test.process --locales ", "")
     adb.configureShellCommand(rule.deviceSelector, "settings put system font_scale 2", "")
     adb.configureShellCommand(rule.deviceSelector, "settings put system font_scale 0.75", "")
     adb.configureShellCommand(rule.deviceSelector, "wm density 408", "Physical density: 480\nOverride density: 408")
@@ -85,6 +87,7 @@ class EmulatorUiSettingsControllerTest {
   fun testReadCustomValue() {
     rule.configureUiSettings(
       darkMode = true,
+      appLocales = mapOf(APPLICATION_ID1 to "da", APPLICATION_ID2 to "ru"),
       talkBackInstalled = true,
       talkBackOn = true,
       selectToSpeakOn = true,
@@ -110,6 +113,21 @@ class EmulatorUiSettingsControllerTest {
     controller.initAndWait()
     model.inDarkMode.setFromUi(false)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd uimode night no" }
+  }
+
+  @Test
+  fun testSetAppLanguage() {
+    controller.initAndWait()
+    val language1 = model.appLanguage[APPLICATION_ID1]!!
+    val language2 = model.appLanguage[APPLICATION_ID2]!!
+    language1.selection.setFromUi(language1.getElementAt(1))
+    waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID1 --locales da" }
+    language2.selection.setFromUi(language2.getElementAt(1))
+    waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID2 --locales ru" }
+    language1.selection.setFromUi(language1.getElementAt(0))
+    waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID1 --locales " }
+    language2.selection.setFromUi(language2.getElementAt(0))
+    waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID2 --locales " }
   }
 
   @Test

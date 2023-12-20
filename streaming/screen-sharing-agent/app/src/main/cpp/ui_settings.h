@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <map>
+
 #include "control_messages.h"
 
 namespace screensharing {
@@ -25,9 +27,11 @@ class UiSettings {
 public:
   UiSettings();
 
-  void Get(UiSettingsResponse* response);
+  void Get(const UiSettingsRequest& request, UiSettingsResponse* response);
 
   void SetDarkMode(bool dark_mode);
+
+  void SetAppLanguage(const std::string& application_id, const std::string& locale);
 
   void SetTalkBack(bool on);
 
@@ -43,6 +47,8 @@ private:
   bool initial_settings_recorded_ = false;
   UiSettingsResponse initial_settings_;
   UiSettingsResponse last_settings_;
+
+  void StoreInitialSettings(const UiSettingsResponse& response);
 
   DISALLOW_COPY_AND_ASSIGN(UiSettings);
 };

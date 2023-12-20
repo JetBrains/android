@@ -99,8 +99,8 @@ internal class DeviceController(
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
-  suspend fun getUiSettings(): UiSettingsResponse {
-    val request = UiSettingsRequest(requestIdGenerator)
+  suspend fun getUiSettings(applicationIds: List<String>): UiSettingsResponse {
+    val request = UiSettingsRequest(requestIdGenerator, applicationIds)
     return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsResponse
            ?: throw RuntimeException("Unexpected response")
   }

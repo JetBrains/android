@@ -50,12 +50,13 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
   override fun actionPerformed(event: AnActionEvent) {
     val deviceView = event.getData(DEVICE_VIEW_KEY) ?: return
     val component = event.findComponentForAction(this) as? JComponent ?: deviceView
+    val project = event.project ?: return
     val deviceController = getDeviceController(event) ?: return
     val config = getDeviceConfig(event) ?: return
     val screenSize = config.deviceProperties.resolution?.let { Dimension(it.width, it.height) } ?: return
     val density = config.deviceProperties.density ?: return
     val model = UiSettingsModel(screenSize, density)
-    val controller = DeviceUiSettingsController(deviceController, model)
+    val controller = DeviceUiSettingsController(deviceController, project, model)
     AndroidCoroutineScope(deviceView).launch {
       controller.populateModel()
       EventQueue.invokeLater {

@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.streaming.uisettings.ui
 
+import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.tools.idea.streaming.uisettings.binding.ChangeListener
+import com.android.tools.idea.streaming.uisettings.data.AppLanguage
+import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
+import com.android.tools.idea.streaming.uisettings.data.convertFromLocaleConfig
 
 /**
  * A controller for the [UiSettingsPanel] that populates the model and reacts to changes to the model initiated by the UI.
@@ -40,10 +44,28 @@ internal abstract class UiSettingsController(
    */
   abstract suspend fun populateModel()
 
+  fun addLanguage(applicationId: String, localeConfig: Set<LocaleQualifier>, selectedLocaleTag: String): Boolean {
+    val languages = convertFromLocaleConfig(localeConfig)
+    if (applicationId.isEmpty() || languages.size < 2) {
+      return false
+    }
+    val languageModel = model.addLanguageModel(applicationId)
+    languageModel.addAll(languages)
+    languageModel.selection.setFromController(languages.find { it.tag == selectedLocaleTag } ?: DEFAULT_LANGUAGE)
+    languageModel.selection.uiChangeListener = ChangeListener { setAppLanguage(applicationId, it) }
+    return true
+  }
+
   /**
    * Changes the dark mode on the device/emulator.
    */
   protected abstract fun setDarkMode(on: Boolean)
+
+  /**
+   * Changes the application language of the project application on the device/emulator.
+   * A null language means the same as the default AppLanguage.
+   */
+  protected abstract fun setAppLanguage(applicationId: String, language: AppLanguage?)
 
   /**
    * Turns TackBack on or off.

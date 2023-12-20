@@ -17,13 +17,14 @@
 #include "ui_settings.h"
 
 #include <numeric>
+#include <regex>
 #include <set>
 #include <sstream>
 
 #include "agent.h"
 #include "flags.h"
-#include "string_printf.h"
 #include "shell_command_executor.h"
+#include "string_printf.h"
 
 namespace screensharing {
 
@@ -38,6 +39,7 @@ namespace {
 #define ACCESSIBILITY_BUTTON_TARGETS_DIVIDER "-- Accessibility Button Targets --"
 #define FONT_SIZE_DIVIDER "-- Font Size --"
 #define DENSITY_DIVIDER "-- Density --"
+#define APP_LANGUAGE_DIVIDER "-- App Language --"
 
 #define ENABLED_ACCESSIBILITY_SERVICES "enabled_accessibility_services"
 #define ACCESSIBILITY_BUTTON_TARGETS "accessibility_button_targets"
@@ -94,7 +96,6 @@ void GetAccessibilityServices(string accessibility_line, set<string>* services) 
 
 void ProcessAccessibilityServices(stringstream* stream, set<string>* services) {
   string line;
-  bool talkback_on = false;
   if (getline(*stream, line, '\n')) {
     GetAccessibilityServices(line, services);
   }
@@ -122,7 +123,7 @@ void ReadDensity(stringstream* stream, const char* pattern, int* density) {
   }
 }
 
-void ProcessDensityDivider(stringstream* stream, UiSettingsResponse* response) {
+void ProcessDensity(stringstream* stream, UiSettingsResponse* response) {
   int physical_density, override_density;
   ReadDensity(stream, PHYSICAL_DENSITY_PATTERN, &physical_density);
   ReadDensity(stream, OVERRIDE_DENSITY_PATTERN, &override_density);
@@ -133,6 +134,41 @@ void ProcessDensityDivider(stringstream* stream, UiSettingsResponse* response) {
     override_density = physical_density;
   }
   response->set_density(override_density);
+}
+
+// Example: "Locales for com.example.process for user 0 are [es-CL,es]"
+bool ParseAppLanguageLine(const string& line, string* application_id, string* locales) {
+  regex app_locale_pattern("Locales for (.+) for user \\d+ are \\[(.*)\\]");
+  smatch match;
+  try {
+    if (!regex_match(line, match, app_locale_pattern) || match.size() != 3) {
+      return false;
+    }
+  } catch (const std::regex_error& e) {
+    return false;
+  }
+  *application_id = match[1];
+  *locales = match[2];
+  return true;
+}
+
+void ProcessAppLanguage(stringstream* stream, UiSettingsResponse* response) {
+  string line;
+  string locale;
+  string application_id;
+  int line_start_position = stream->tellg();
+  if (getline(*stream, line, '\n')) {
+    if (line.rfind(DIVIDER_PREFIX, 0) == 0) { // line.startsWith(DIVIDER_PREFIX)
+      stream->seekg(line_start_position); // Go back to start of line
+      return;
+    }
+    string locales;
+    if (ParseAppLanguageLine(line, &application_id, &locales)) {
+      stringstream ss(locales);
+      getline(ss, locale, ',');  // Read the first locale, ignore the rest
+      response->add_app_locale(application_id, locale);
+    }
+  }
 }
 
 void ProcessAccessibility(const set<string>& enabled, const set<string>& buttons, UiSettingsResponse* response) {
@@ -156,7 +192,8 @@ void ProcessAdbOutput(const string& output, UiSettingsResponse* response) {
     if (line == ACCESSIBILITY_SERVICES_DIVIDER) ProcessAccessibilityServices(&stream, &enabled);
     if (line == ACCESSIBILITY_BUTTON_TARGETS_DIVIDER) ProcessAccessibilityServices(&stream, &buttons);
     if (line == FONT_SIZE_DIVIDER) ProcessFontSize(&stream, response);
-    if (line == DENSITY_DIVIDER) ProcessDensityDivider(&stream, response);
+    if (line == DENSITY_DIVIDER) ProcessDensity(&stream, response);
+    if (line == APP_LANGUAGE_DIVIDER) ProcessAppLanguage(&stream, response);
   }
   ProcessAccessibility(enabled, buttons, response);
 }
@@ -193,7 +230,7 @@ UiSettings::UiSettings()
     last_settings_(-1) {
 }
 
-void UiSettings::Get(UiSettingsResponse* response) {
+void UiSettings::Get(const UiSettingsRequest& request, UiSettingsResponse* response) {
   string command =
     "echo " DARK_MODE_DIVIDER "; "
     "cmd uimode night; "
@@ -206,14 +243,32 @@ void UiSettings::Get(UiSettingsResponse* response) {
     "echo " FONT_SIZE_DIVIDER "; "
     "settings get system font_scale; "
     "echo " DENSITY_DIVIDER "; "
-    "wm density";
+    "wm density; ";
 
-  string output = ExecuteShellCommand(command);
+  for (auto it = begin(request.application_ids()); it != end(request.application_ids()); it++) {
+    command += "echo " APP_LANGUAGE_DIVIDER "; ";
+    command += "cmd locale get-app-locales ";
+    command += *it;
+    command += "; ";
+  }
+
+  string output = ExecuteShellCommand(command.c_str());
   ProcessAdbOutput(TrimEnd(output), response);
+  StoreInitialSettings(*response);
+}
+
+void UiSettings::StoreInitialSettings(const UiSettingsResponse& response) {
   if (!initial_settings_recorded_) {
     initial_settings_recorded_ = true;
-    response->copy(&initial_settings_);
-    response->copy(&last_settings_);
+    response.copy(&initial_settings_);
+    response.copy(&last_settings_);
+  }
+  // Add any application_ids not seen yet if applicable:
+  for (map<string, string>::const_iterator it = response.app_locales().begin(); it != response.app_locales().end(); it++) {
+    if (initial_settings_.app_locales().count(it->first) == 0) {
+      initial_settings_.add_app_locale(it->first, it->second);
+      last_settings_.add_app_locale(it->first, it->second);
+    }
   }
 }
 
@@ -221,6 +276,12 @@ void UiSettings::SetDarkMode(bool dark_mode) {
   string command = string("cmd uimode night ") + (dark_mode ? "yes" : "no");
   ExecuteShellCommand(command);
   last_settings_.set_dark_mode(dark_mode);
+}
+
+void UiSettings::SetAppLanguage(const string& application_id, const string& locale) {
+  string command = StringPrintf("cmd locale set-app-locales %s --locales %s", application_id.c_str(), locale.c_str());
+  ExecuteShellCommand(command);
+  last_settings_.add_app_locale(application_id, locale);
 }
 
 void UiSettings::SetTalkBack(bool on) {
@@ -253,11 +314,26 @@ void UiSettings::Reset() {
     return;
   }
 
+  vector<string> application_ids;
+  for (map<string, string>::const_iterator it = initial_settings_.app_locales().begin(); it != initial_settings_.app_locales().end(); it++) {
+    application_ids.push_back(it->first);
+  }
+
+  UiSettingsRequest request(-1, application_ids);
   UiSettingsResponse current_settings(-1);
-  Get(&current_settings);
+  Get(request, &current_settings);
+
   if (current_settings.dark_mode() != initial_settings_.dark_mode() &&
       current_settings.dark_mode() == last_settings_.dark_mode()) {
     SetDarkMode(initial_settings_.dark_mode());
+  }
+  const map<string, string>& initial_locales = initial_settings_.app_locales();
+  const map<string, string>& last_locales = last_settings_.app_locales();
+  for (map<string, string>::const_iterator it = current_settings.app_locales().begin(); it != current_settings.app_locales().end(); it++) {
+    if (initial_locales.count(it->first) > 0 && it->second != initial_locales.at(it->first) &&
+        last_locales.count(it->first) > 0 && it->second == last_locales.at(it->first)) {
+      SetAppLanguage(it->first, initial_locales.at(it->first));
+    }
   }
   if (current_settings.talkback_on() != initial_settings_.talkback_on() &&
       current_settings.talkback_on() == last_settings_.talkback_on()) {

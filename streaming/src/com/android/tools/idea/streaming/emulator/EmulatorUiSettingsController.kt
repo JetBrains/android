@@ -20,6 +20,9 @@ import com.android.adblib.ShellCommandOutputElement
 import com.android.adblib.shellAsLines
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.res.AppLanguageInfo
+import com.android.tools.idea.res.AppLanguageService
+import com.android.tools.idea.streaming.uisettings.data.AppLanguage
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsController
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.intellij.openapi.Disposable
@@ -39,6 +42,7 @@ private const val ACCESSIBILITY_SERVICES_DIVIDER = "-- Accessibility Services --
 private const val ACCESSIBILITY_BUTTON_TARGETS_DIVIDER = "-- Accessibility Button Targets --"
 private const val FONT_SIZE_DIVIDER = "-- Font Size --"
 private const val DENSITY_DIVIDER = "-- Density --"
+private const val APP_LANGUAGE_DIVIDER = "-- App Language --"
 
 internal const val ENABLED_ACCESSIBILITY_SERVICES = "enabled_accessibility_services"
 internal const val ACCESSIBILITY_BUTTON_TARGETS = "accessibility_button_targets"
@@ -49,6 +53,7 @@ private const val SELECT_TO_SPEAK_SERVICE_CLASS = "com.google.android.accessibil
 internal const val SELECT_TO_SPEAK_SERVICE_NAME = "$TALKBACK_PACKAGE_NAME/$SELECT_TO_SPEAK_SERVICE_CLASS"
 private const val PHYSICAL_DENSITY_PATTERN = "Physical density: (\\d+)"
 private const val OVERRIDE_DENSITY_PATTERN = "Override density: (\\d+)"
+private const val APP_LANGUAGE_PATTERN = "Locales for (.+) for user \\d+ are \\[(.*)]"
 
 internal const val POPULATE_COMMAND =
   "echo $DARK_MODE_DIVIDER; " +
@@ -62,7 +67,11 @@ internal const val POPULATE_COMMAND =
   "echo $FONT_SIZE_DIVIDER; " +
   "settings get system font_scale; " +
   "echo $DENSITY_DIVIDER; " +
-  "wm density"
+  "wm density; "
+
+internal const val POPULATE_LANGUAGE_COMMAND =
+  "echo $APP_LANGUAGE_DIVIDER; " +
+  "cmd locale get-app-locales %s; "  // Parameter: applicationId
 
 /**
  * A controller for the UI settings for an Emulator,
@@ -72,27 +81,35 @@ internal class EmulatorUiSettingsController(
   private val project: Project,
   private val deviceSerialNumber: String,
   model: UiSettingsModel,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
 ) : UiSettingsController(model) {
   private val scope = AndroidCoroutineScope(parentDisposable)
   private val decimalFormat = DecimalFormat("#.##", DecimalFormatSymbols.getInstance(Locale.US))
 
   override suspend fun populateModel() {
-    executeShellCommand(POPULATE_COMMAND) {
-      val iterator = it.listIterator()
-      val enabled = AccessibilityData()
-      val buttons = AccessibilityData()
-      while (iterator.hasNext()) {
-        when (iterator.next()) {
-          DARK_MODE_DIVIDER -> processDarkMode(iterator)
-          LIST_PACKAGES_DIVIDER -> processListPackages(iterator)
-          ACCESSIBILITY_SERVICES_DIVIDER -> processAccessibilityServices(iterator, enabled)
-          ACCESSIBILITY_BUTTON_TARGETS_DIVIDER -> processAccessibilityServices(iterator, buttons)
-          FONT_SIZE_DIVIDER -> processFontSize(iterator)
-          DENSITY_DIVIDER -> processScreenDensity(iterator)
-        }
+    val languageInfo = AppLanguageService.getInstance(project).getAppLanguageInfo().associateBy { it.applicationId }
+    var command = POPULATE_COMMAND
+    languageInfo.keys.forEach { applicationId -> command += POPULATE_LANGUAGE_COMMAND.format(applicationId) }
+    var lines: List<String> = emptyList()
+    executeShellCommand(command) { lines = it }
+    val iterator = lines.listIterator()
+    val enabled = AccessibilityData()
+    val buttons = AccessibilityData()
+    val addedAppIds = mutableListOf<String>()
+    while (iterator.hasNext()) {
+      when (iterator.next()) {
+        DARK_MODE_DIVIDER -> processDarkMode(iterator)
+        LIST_PACKAGES_DIVIDER -> processListPackages(iterator)
+        ACCESSIBILITY_SERVICES_DIVIDER -> processAccessibilityServices(iterator, enabled)
+        ACCESSIBILITY_BUTTON_TARGETS_DIVIDER -> processAccessibilityServices(iterator, buttons)
+        FONT_SIZE_DIVIDER -> processFontSize(iterator)
+        DENSITY_DIVIDER -> processScreenDensity(iterator)
+        APP_LANGUAGE_DIVIDER -> processAppLanguage(iterator, languageInfo, addedAppIds)
       }
-      processAccessibility(enabled, buttons)
+    }
+    processAccessibility(enabled, buttons)
+    if (model.appIds.size > 0) {
+      model.appIds.selection.setFromController(model.appIds.getElementAt(0))
     }
   }
 
@@ -126,6 +143,21 @@ internal class EmulatorUiSettingsController(
     model.screenDensity.setFromController(overrideDensity)
   }
 
+  private fun processAppLanguage(iterator: ListIterator<String>, info: Map<String, AppLanguageInfo>, addedAppIds: MutableList<String>) {
+    val appLanguageLine = (if (iterator.hasNext()) iterator.next() else "")
+    if (appLanguageLine.startsWith(DIVIDER_PREFIX)) {
+      iterator.previous()
+      return
+    }
+    val match = Regex(APP_LANGUAGE_PATTERN).find(appLanguageLine) ?: return
+    val applicationId = match.groupValues[1]
+    val localeTag = match.groupValues[2].split(",").firstOrNull() ?: ""
+    val localeConfig = info[applicationId]?.localeConfig ?: return
+    if (addLanguage(applicationId, localeConfig, localeTag)) {
+      addedAppIds.add(applicationId)
+    }
+  }
+
   private fun readDensity(iterator: ListIterator<String>, pattern: String): Int? {
     if (!iterator.hasNext()) {
       return null
@@ -152,6 +184,12 @@ internal class EmulatorUiSettingsController(
   override fun setDarkMode(on: Boolean) {
     val darkMode = if (on) "yes" else "no"
     scope.launch { executeShellCommand("cmd uimode night $darkMode") }
+  }
+
+  override fun setAppLanguage(applicationId: String, language: AppLanguage?) {
+    if (applicationId.isNotEmpty()) {
+      scope.launch { executeShellCommand("cmd locale set-app-locales %s --locales %s".format(applicationId, language?.tag)) }
+    }
   }
 
   override fun setTalkBack(on: Boolean) {

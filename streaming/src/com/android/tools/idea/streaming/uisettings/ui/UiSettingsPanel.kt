@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
@@ -42,6 +43,8 @@ import javax.swing.plaf.UIResource
 
 private const val TITLE = "Device Settings Shortcuts"
 internal const val DARK_THEME_TITLE = "Dark Theme:"
+internal const val APP_ID = "Application Id:"
+internal const val APP_LANGUAGE_TITLE = "App Language:"
 internal const val TALKBACK_TITLE = "TalkBack:"
 internal const val SELECT_TO_SPEAK_TITLE = "Select to Speak:"
 internal const val FONT_SIZE_TITLE = "Font Size:"
@@ -68,6 +71,20 @@ internal class UiSettingsPanel(private val model: UiSettingsModel) : BorderLayou
           checkBox("")
             .bind(model.inDarkMode)
             .apply { component.name = DARK_THEME_TITLE }
+        }
+
+        row(label(APP_ID)) {
+          comboBox(model.appIds)
+            .bindItem(model.appIds.selection)
+            .apply { component.name = APP_ID }
+        }.visibleIf(model.appIds.sizeIsAtLeast(2))
+
+        model.appLanguage.forEach { entry ->
+          row(label(APP_LANGUAGE_TITLE)) {
+            comboBox(entry.value)
+              .bindItem(entry.value.selection)
+              .apply { component.name = "$APP_LANGUAGE_TITLE (${entry.key})"}
+          }.visibleIf(model.appIds.isSelected(entry.key))
         }
 
         row(label(TALKBACK_TITLE)) {
@@ -146,6 +163,13 @@ internal class UiSettingsPanel(private val model: UiSettingsModel) : BorderLayou
     predicate.addControllerListener { selected -> component.isSelected = selected }
     component.isSelected = predicate.value
     return actionListener { _, c -> predicate.setFromUi(c.isSelected) }
+  }
+
+  private fun <T> Cell<ComboBox<T>>.bindItem(property: TwoWayProperty<T?>): Cell<ComboBox<T>> {
+    property.addControllerListener { selected -> component.selectedItem = selected }
+    component.selectedItem = property.value
+    component.addActionListener { property.setFromUi(component.selectedItem as? T) }
+    return this
   }
 
   private fun Cell<JSlider>.noLabels(): Cell<JSlider> {

@@ -80,6 +80,9 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case SetSelectToSpeakMessage::TYPE:
       return unique_ptr<ControlMessage>(SetSelectToSpeakMessage::Deserialize(stream));
 
+    case SetAppLanguageMessage::TYPE:
+      return unique_ptr<ControlMessage>(SetAppLanguageMessage::Deserialize(stream));
+
     default:
       Log::Fatal(INVALID_CONTROL_MESSAGE, "Unexpected message type %d", type);
   }
@@ -181,7 +184,12 @@ DisplayConfigurationRequest* DisplayConfigurationRequest::Deserialize(Base128Inp
 
 UiSettingsRequest* UiSettingsRequest::Deserialize(Base128InputStream& stream) {
   int32_t request_id = stream.ReadInt32();
-  return new UiSettingsRequest(request_id);
+  int32_t count = stream.ReadInt32();
+  vector<string> application_ids;
+  for (auto i = 0; i < count; i++) {
+    application_ids.push_back(stream.ReadBytes());
+  }
+  return new UiSettingsRequest(request_id, application_ids);
 }
 
 SetDarkModeMessage* SetDarkModeMessage::Deserialize(Base128InputStream& stream) {
@@ -207,6 +215,12 @@ SetTalkBackMessage* SetTalkBackMessage::Deserialize(Base128InputStream& stream) 
 SetSelectToSpeakMessage* SetSelectToSpeakMessage::Deserialize(Base128InputStream& stream) {
   bool on = stream.ReadBool();
   return new SetSelectToSpeakMessage(on);
+}
+
+SetAppLanguageMessage* SetAppLanguageMessage::Deserialize(Base128InputStream& stream) {
+  string application_id = stream.ReadBytes();
+  string locale = stream.ReadBytes();
+  return new SetAppLanguageMessage(application_id, locale);
 }
 
 void ErrorResponse::Serialize(Base128OutputStream& stream) const {
@@ -253,11 +267,20 @@ void DisplayRemovedNotification::Serialize(Base128OutputStream& stream) const {
 
 void UiSettingsRequest::Serialize(Base128OutputStream& stream) const {
   CorrelatedMessage::Serialize(stream);
+  stream.WriteInt32(application_ids_.size());
+  for (auto i = 0; i < application_ids_.size(); i++) {
+    stream.WriteBytes(application_ids_[i]);
+  }
 }
 
 void UiSettingsResponse::Serialize(Base128OutputStream& stream) const {
   CorrelatedMessage::Serialize(stream);
   stream.WriteBool(dark_mode_);
+  stream.WriteInt32(app_locales_.size());
+  for (std::map<string, string>::const_iterator it = app_locales_.begin(); it != app_locales_.end(); ++it) {
+    stream.WriteBytes(it->first);
+    stream.WriteBytes(it->second);
+  }
   stream.WriteBool(talkback_installed_);
   stream.WriteBool(talkback_on_);
   stream.WriteBool(select_to_speak_on_);
@@ -288,6 +311,12 @@ void SetTalkBackMessage::Serialize(Base128OutputStream& stream) const {
 void SetSelectToSpeakMessage::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteBool(select_to_speak_on_);
+}
+
+void SetAppLanguageMessage::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteBytes(application_id_);
+  stream.WriteBytes(locale_);
 }
 
 }  // namespace screensharing

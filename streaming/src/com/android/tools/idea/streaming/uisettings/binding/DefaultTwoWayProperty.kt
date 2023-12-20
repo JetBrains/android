@@ -20,7 +20,7 @@ import com.android.tools.idea.util.ListenerCollection
 /**
  * Standard implementation of a [TwoWayProperty].
  */
-internal class DefaultTwoWayProperty<T>(initialValue: T) : TwoWayProperty<T> {
+internal open class DefaultTwoWayProperty<T>(initialValue: T) : TwoWayProperty<T> {
   private val listeners = ListenerCollection.createWithDirectExecutor<ChangeListener<T>>()
   private var actualValue = initialValue
   private val emptyChangeListener = ChangeListener<T> {}

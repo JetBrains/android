@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.tools.idea.res.AppLanguageService
+import com.android.tools.idea.streaming.uisettings.data.AppLanguage
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsController
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
+import com.intellij.openapi.project.Project
 
 /**
  * A controller for the UI settings for a physical device,
@@ -24,21 +27,35 @@ import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
  */
 internal class DeviceUiSettingsController(
   private val deviceController: DeviceController,
+  private val project: Project,
   model: UiSettingsModel
 ) : UiSettingsController(model) {
 
   override suspend fun populateModel() {
-    val response = deviceController.getUiSettings()
+    val languageInfo = AppLanguageService.getInstance(project).getAppLanguageInfo().associateBy { it.applicationId }
+    val response = deviceController.getUiSettings(languageInfo.keys.toList())
     model.inDarkMode.setFromController(response.darkMode)
     model.talkBackInstalled.setFromController(response.tackBackInstalled)
     model.talkBackOn.setFromController(response.talkBackOn)
     model.selectToSpeakOn.setFromController(response.selectToSpeakOn)
     model.fontSizeInPercent.setFromController(response.fontSize)
     model.screenDensity.setFromController(response.density)
+    for (appLocale in response.appLocales) {
+      val applicationId = appLocale.key
+      val config = languageInfo[applicationId]?.localeConfig
+      if (config != null) {
+        addLanguage(applicationId, config, appLocale.value)
+      }
+    }
+    response.appLocales.keys.firstOrNull()?.let { model.appIds.selection.setFromController(it) }
   }
 
   override fun setDarkMode(on: Boolean) {
     deviceController.sendControlMessage(SetDarkModeMessage(on))
+  }
+
+  override fun setAppLanguage(applicationId: String, language: AppLanguage?) {
+    deviceController.sendControlMessage(SetAppLanguageMessage(applicationId, language?.tag ?: ""))
   }
 
   override fun setTalkBack(on: Boolean) {

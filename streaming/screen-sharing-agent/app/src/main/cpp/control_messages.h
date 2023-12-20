@@ -563,17 +563,22 @@ private:
 // Queries the current UI settings from the device.
 class UiSettingsRequest : public CorrelatedMessage {
 public:
-  UiSettingsRequest(int32_t request_id)
-      : CorrelatedMessage(TYPE, request_id) {
+  UiSettingsRequest(int32_t request_id, const std::vector<std::string>& application_ids)
+      : CorrelatedMessage(TYPE, request_id),
+        application_ids_(application_ids) {
   }
   virtual ~UiSettingsRequest() = default;
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
+  const std::vector<std::string>& application_ids() const { return application_ids_; }
+
   static constexpr int TYPE = 19;
 
 private:
   friend class ControlMessage;
+
+  std::vector<std::string> application_ids_;
 
   static UiSettingsRequest* Deserialize(Base128InputStream& stream);
 
@@ -590,8 +595,9 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  void copy(UiSettingsResponse* result) {
+  void copy(UiSettingsResponse* result) const {
     result->set_dark_mode(dark_mode_);
+    result->set_app_locales(app_locales_);
     result->set_talkback_installed(talkback_installed_);
     result->set_talkback_on(talkback_on_);
     result->set_select_to_speak_on(select_to_speak_on_);
@@ -605,6 +611,18 @@ public:
 
   bool dark_mode() {
     return dark_mode_;
+  }
+
+  void set_app_locales(const std::map<std::string, std::string>& app_locales) {
+    app_locales_ = app_locales;
+  }
+
+  const std::map<std::string, std::string>& app_locales() const {
+    return app_locales_;
+  }
+
+  void add_app_locale(const std::string& application_id, const std::string& locale) {
+    app_locales_[application_id] = locale;
   }
 
   void set_talkback_installed(bool installed) {
@@ -653,6 +671,7 @@ private:
   friend class ControlMessage;
 
   bool dark_mode_;
+  std::map<std::string, std::string> app_locales_;
   bool talkback_installed_;
   bool talkback_on_;
   bool select_to_speak_on_;
@@ -797,6 +816,39 @@ private:
   bool select_to_speak_on_;
 
   DISALLOW_COPY_AND_ASSIGN(SetSelectToSpeakMessage);
+};
+
+// Changes the locale of the application identified by application_id.
+class SetAppLanguageMessage : ControlMessage {
+public:
+  SetAppLanguageMessage(const std::string& application_id, const std::string& locale)
+      : ControlMessage(TYPE),
+        application_id_(application_id),
+        locale_(locale) {
+  }
+  virtual ~SetAppLanguageMessage() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  const std::string& application_id() const {
+    return application_id_;
+  }
+
+  const std::string& locale() const {
+    return locale_;
+  }
+
+  static constexpr int TYPE = 26;
+
+private:
+  friend class ControlMessage;
+
+  static SetAppLanguageMessage* Deserialize(Base128InputStream& stream);
+
+  std::string application_id_;
+  std::string locale_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetAppLanguageMessage);
 };
 
 }  // namespace screensharing

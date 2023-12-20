@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.uisettings.ui
 import com.android.tools.idea.streaming.uisettings.binding.DefaultTwoWayProperty
 import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
+import com.android.tools.idea.streaming.uisettings.data.AppLanguage
 import java.awt.Dimension
 import kotlin.math.abs
 
@@ -41,6 +42,8 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int) {
   private val densities = GoogleDensityRange.computeDensityRange(screenSize, physicalDensity)
 
   val inDarkMode: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
+  val appIds = UiComboBoxModel<String>()
+  val appLanguage = mutableMapOf<String, UiComboBoxModel<AppLanguage>>()
   val talkBackInstalled: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)
   val talkBackOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
   val selectToSpeakOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
@@ -50,6 +53,13 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int) {
   val screenDensity: TwoWayProperty<Int> = DefaultTwoWayProperty(physicalDensity)
   val screenDensityIndex: TwoWayProperty<Int> = screenDensity.createMappedProperty(::toDensityIndex, ::toDensityFromIndex)
   val screenDensityMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(densities.size - 1)
+
+  fun addLanguageModel(applicationId: String): UiComboBoxModel<AppLanguage> {
+    val languageModel = UiComboBoxModel<AppLanguage>()
+    appIds.addElement(applicationId)
+    appLanguage[applicationId] = languageModel
+    return languageModel
+  }
 
   private fun toFontSizeInPercent(fontIndex: Int): Int =
     FontSize.values()[fontIndex.coerceIn(0, fontSizeMaxIndex.value)].percent

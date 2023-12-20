@@ -15,15 +15,22 @@
  */
 package com.android.tools.idea.streaming.uisettings.testutil
 
+import com.android.tools.idea.streaming.emulator.APPLICATION_ID1
+import com.android.tools.idea.streaming.emulator.APPLICATION_ID2
 import com.android.tools.idea.streaming.emulator.CUSTOM_DENSITY
 import com.android.tools.idea.streaming.emulator.CUSTOM_FONT_SIZE
 import com.android.tools.idea.streaming.emulator.DEFAULT_DENSITY
 import com.android.tools.idea.streaming.emulator.DEFAULT_FONT_SIZE
 import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
+import com.android.tools.idea.streaming.uisettings.data.AppLanguage
+import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.UiControllerListenerValidator.ListenerState
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.Disposable
+
+internal val DANISH_LANGUAGE = AppLanguage("da", "Danish")
+internal val SPANISH_LANGUAGE = AppLanguage("es", "Spanish")
+internal val RUSSIAN_LANGUAGE = AppLanguage("ru", "Russian")
 
 /**
  * Sets up model property listeners in order to validate listeners in the device and emulator controller tests.
@@ -33,7 +40,10 @@ import com.intellij.openapi.Disposable
  * - a predefined custom value different from the default value if customValues is true
  */
 internal class UiControllerListenerValidator(private val model: UiSettingsModel, customValues: Boolean) {
+  var localesInitialized = false
   val darkMode = createAndAddListener(model.inDarkMode, customValues)
+  val locales = mutableMapOf<String, ListenerState<AppLanguage?>>()
+  val appId = createAppIdAddListener(model.appIds.selection, if (customValues) APPLICATION_ID2 else APPLICATION_ID1, customValues)
   val talkBackInstalled = createAndAddListener(model.talkBackInstalled, customValues)
   val talkBackOn = createAndAddListener(model.talkBackOn, customValues)
   val selectToSpeakOn = createAndAddListener(model.selectToSpeakOn, customValues)
@@ -51,6 +61,27 @@ internal class UiControllerListenerValidator(private val model: UiSettingsModel,
     assertThat(model.inDarkMode.value).isEqualTo(expectedCustomValues)
     assertThat(darkMode.changes).isEqualTo(expectedChanges)
     assertThat(darkMode.lastValue).isEqualTo(expectedCustomValues)
+    assertThat(model.appIds.size).isEqualTo(2)
+    assertThat(model.appIds.getElementAt(0)).isEqualTo(APPLICATION_ID1)
+    assertThat(model.appIds.getElementAt(1)).isEqualTo(APPLICATION_ID2)
+    assertThat(model.appIds.selection.value).isEqualTo(APPLICATION_ID1)
+    assertThat(appId.changes).isEqualTo(expectedChanges)
+    assertThat(appId.lastValue).isEqualTo(APPLICATION_ID1)
+    assertThat(localesInitialized).isTrue()
+    assertThat(model.appLanguage.keys).containsExactly(APPLICATION_ID1, APPLICATION_ID2)
+    assertThat(model.appLanguage[APPLICATION_ID1]!!.size).isEqualTo(3)
+    assertThat(model.appLanguage[APPLICATION_ID1]!!.getElementAt(0)).isEqualTo(DEFAULT_LANGUAGE)
+    assertThat(model.appLanguage[APPLICATION_ID1]!!.getElementAt(1)).isEqualTo(DANISH_LANGUAGE)
+    assertThat(model.appLanguage[APPLICATION_ID1]!!.getElementAt(2)).isEqualTo(SPANISH_LANGUAGE)
+    assertThat(model.appLanguage[APPLICATION_ID2]!!.size).isEqualTo(2)
+    assertThat(model.appLanguage[APPLICATION_ID2]!!.getElementAt(0)).isEqualTo(DEFAULT_LANGUAGE)
+    assertThat(model.appLanguage[APPLICATION_ID2]!!.getElementAt(1)).isEqualTo(RUSSIAN_LANGUAGE)
+    assertThat(model.appLanguage[APPLICATION_ID1]!!.selection.value).isEqualTo(if (expectedCustomValues) DANISH_LANGUAGE else DEFAULT_LANGUAGE)
+    assertThat(model.appLanguage[APPLICATION_ID2]!!.selection.value).isEqualTo(if (expectedCustomValues) RUSSIAN_LANGUAGE else DEFAULT_LANGUAGE)
+    assertThat(locales[APPLICATION_ID1]!!.changes).isEqualTo(expectedChanges)
+    assertThat(locales[APPLICATION_ID2]!!.changes).isEqualTo(expectedChanges)
+    assertThat(locales[APPLICATION_ID1]!!.lastValue).isEqualTo(if (expectedCustomValues) DANISH_LANGUAGE else DEFAULT_LANGUAGE)
+    assertThat(locales[APPLICATION_ID2]!!.lastValue).isEqualTo(if (expectedCustomValues) RUSSIAN_LANGUAGE else DEFAULT_LANGUAGE)
     assertThat(model.talkBackInstalled.value).isEqualTo(expectedCustomValues)
     assertThat(talkBackInstalled.changes).isEqualTo(expectedChanges)
     assertThat(talkBackInstalled.lastValue).isEqualTo(expectedCustomValues)
@@ -75,6 +106,30 @@ internal class UiControllerListenerValidator(private val model: UiSettingsModel,
       state.lastValue = newValue
     }
     return state
+  }
+
+  private fun <T> createAppIdAddListener(property: ReadOnlyProperty<T>, initialValue: T, customValues: Boolean): ListenerState<T> {
+    val listener = createAndAddListener(property, initialValue)
+    addLanguageListeners(customValues, changesDuringInit = 0)
+    property.addControllerListener { _ ->
+      addLanguageListeners(customValues, changesDuringInit = 1)
+    }
+    return listener
+  }
+
+  private fun addLanguageListeners(customValues: Boolean, changesDuringInit: Int) {
+    if (model.appLanguage.isEmpty() || localesInitialized) {
+      return
+    }
+    localesInitialized = true
+    model.appLanguage.forEach { (applicationId, localeModel) ->
+      val initialLanguage: AppLanguage = when(applicationId) {
+        APPLICATION_ID1 -> if (customValues) DANISH_LANGUAGE else DEFAULT_LANGUAGE
+        APPLICATION_ID2 -> if (customValues) RUSSIAN_LANGUAGE else DEFAULT_LANGUAGE
+        else -> error("Missing test setup")
+      }
+      locales[applicationId] = createAndAddListener(localeModel.selection, initialLanguage).apply { changes += changesDuringInit }
+    }
   }
 
   /**
