@@ -83,7 +83,6 @@ open class PerfgateComposeGradleTestBase {
     nPreviewsToAdd: Int,
     nExpectedPreviewInstances: Int,
     measurements: List<MetricMeasurement<Unit>>,
-    samplesCount: Int = NUMBER_OF_SAMPLES,
     measuredRunnable: suspend () -> Unit = { fullRefresh(maxOf(15, nExpectedPreviewInstances).seconds) }
   ) = runBlocking {
     projectRule.runAndWaitForRefresh(allRefreshesFinishTimeout = maxOf(15, nExpectedPreviewInstances).seconds) {
@@ -100,7 +99,7 @@ open class PerfgateComposeGradleTestBase {
     }
     Assert.assertEquals(nExpectedPreviewInstances, composePreviewRepresentation.filteredPreviewElementsInstancesFlowForTest().value.asCollection().size)
 
-    composeGradleTimeBenchmark.measureOperation(measurements, samplesCount = samplesCount, printSamples = true) {
+    composeGradleTimeBenchmark.measureOperation(measurements, samplesCount = NUMBER_OF_SAMPLES, printSamples = true) {
       runBlocking {
         measuredRunnable()
       }

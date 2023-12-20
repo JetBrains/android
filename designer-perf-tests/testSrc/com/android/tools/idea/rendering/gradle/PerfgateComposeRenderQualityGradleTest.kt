@@ -35,7 +35,7 @@ class PerfgateComposeRenderQualityGradleTest: PerfgateComposeGradleTestBase() {
       HeapSnapshotMemoryUseMeasurement("android:designTools", "rendering", Metric("renderQualityEnabled_5_previews_rendering_memory")),
       HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutEditor", Metric("renderQualityEnabled_5_previews_layoutEditor_memory")),
       HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutlib", Metric("renderQualityEnabled_5_previews_layoutlib_memory"))
-    ), samplesCount = 25, measuredRunnable = ::qualityRefresh)
+    ), measuredRunnable = ::qualityRefresh)
   }
 
   @Test
@@ -48,7 +48,7 @@ class PerfgateComposeRenderQualityGradleTest: PerfgateComposeGradleTestBase() {
       HeapSnapshotMemoryUseMeasurement("android:designTools", "rendering", Metric("renderQualityEnabled_30_previews_rendering_memory")),
       HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutEditor", Metric("renderQualityEnabled_30_previews_layoutEditor_memory")),
       HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutlib", Metric("renderQualityEnabled_30_previews_layoutlib_memory"))
-    ), samplesCount = 25, measuredRunnable = ::qualityRefresh)
+    ), measuredRunnable = ::qualityRefresh)
   }
 
   @Test
@@ -61,7 +61,7 @@ class PerfgateComposeRenderQualityGradleTest: PerfgateComposeGradleTestBase() {
       HeapSnapshotMemoryUseMeasurement("android:designTools", "rendering", Metric("renderQualityEnabled_200_previews_rendering_memory")),
       HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutEditor", Metric("renderQualityEnabled_200_previews_layoutEditor_memory")),
       HeapSnapshotMemoryUseMeasurement("android:designTools", "layoutlib", Metric("renderQualityEnabled_200_previews_layoutlib_memory"))
-    ), samplesCount = 25, measuredRunnable = ::qualityRefresh)
+    ), measuredRunnable = ::qualityRefresh)
   }
 
   private suspend fun qualityRefresh() {
