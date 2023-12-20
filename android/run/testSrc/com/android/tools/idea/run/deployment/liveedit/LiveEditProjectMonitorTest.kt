@@ -18,9 +18,15 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.waitForCondition
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.deployer.AdbClient
+import com.android.tools.deployer.Installer
+import com.android.tools.deployer.TestLogger
+import com.android.tools.deployer.tasks.LiveUpdateDeployer
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.LiveEditEvent
@@ -28,13 +34,16 @@ import com.intellij.openapi.project.Project
 import junit.framework.Assert
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.io.IOException
+import java.util.concurrent.CountDownLatch
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 @RunWith(JUnit4::class)
 class LiveEditProjectMonitorTest {
@@ -158,5 +167,34 @@ class LiveEditProjectMonitorTest {
     event.unsupportedPsiEvents.add(UnsupportedPsiEvent.NON_KOTLIN)
     monitor.processChanges(myProject, listOf(event), LiveEditEvent.Mode.AUTO)
     Assert.assertTrue(hasMetricStatus(LiveEditEvent.Status.NON_KOTLIN))
+  }
+
+  @Test
+  fun recomposition() {
+    val taskFinished = CountDownLatch(1)
+    var monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject);
+    val device: IDevice = MockitoKt.mock()
+    MockitoKt.whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+
+    val installer: Installer = LiveEditProjectMonitor.newInstaller(device)
+    val adb = AdbClient(device, TestLogger())
+    val deployer: LiveUpdateDeployer = MockitoKt.mock()
+
+    MockitoKt.whenever(deployer.retrieveComposeStatus(any(), any(), any())).then {
+      taskFinished.countDown()
+      throw IOException("Fake IO Exception")
+    }
+
+    // Fake Deployment
+    monitor.notifyAppDeploy("some.app", device, LiveEditApp(emptySet(), 32), { true })
+    monitor.liveEditDevices.update(LiveEditStatus.UpToDate)
+    monitor.scheduleErrorPolling(deployer, installer, adb, "some.app")
+    taskFinished.await()
+
+    // scheduleErrorPolling() fire off the first check 2 seconds after and continue in 2 seconds intervals.
+    waitForCondition(2.toDuration(DurationUnit.SECONDS)) {
+      val status = monitor.status(device)
+      status.description.contains("IOException")
+    }
   }
 }

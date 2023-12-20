@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment.liveedit;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.android.tools.idea.run.deployment.liveedit.ErrorReporterKt.errorMessage;
 import static com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.createRecomposeErrorStatus;
+import static com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.createRecomposeRetrievalErrorStatus;
 import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.PrebuildChecks;
 
 import com.android.annotations.Nullable;
@@ -30,7 +31,6 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass;
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse;
 import com.android.tools.analytics.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiDocumentManager;
@@ -58,6 +58,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -593,13 +594,19 @@ public class LiveEditProjectMonitor implements Disposable {
     }
   }
 
-  private void scheduleErrorPolling(LiveUpdateDeployer deployer, Installer installer, AdbClient adb, String packageName) {
+  @VisibleForTesting
+  void scheduleErrorPolling(LiveUpdateDeployer deployer, Installer installer, AdbClient adb, String packageName) {
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
     ScheduledFuture<?> statusPolling = scheduler.scheduleWithFixedDelay(() -> {
-      List<Deploy.ComposeException> errors = deployer.retrieveComposeStatus(installer, adb, packageName);
-      if (!errors.isEmpty()) {
-        Deploy.ComposeException error = errors.get(0);
-        updateEditableStatus(createRecomposeErrorStatus(error.getExceptionClassName(), error.getMessage(), error.getRecoverable()));
+      try {
+        List<Deploy.ComposeException> errors = deployer.retrieveComposeStatus(installer, adb, packageName);
+        if (!errors.isEmpty()) {
+          Deploy.ComposeException error = errors.get(0);
+          updateEditableStatus(createRecomposeErrorStatus(error.getExceptionClassName(), error.getMessage(), error.getRecoverable()));
+        }
+      } catch (IOException e) {
+        updateEditableStatus(createRecomposeRetrievalErrorStatus(e));
+        LOGGER.warning(e.toString());
       }
     }, 2, 2, TimeUnit.SECONDS);
     // Schedule a cancel after 10 seconds.
@@ -674,10 +681,11 @@ public class LiveEditProjectMonitor implements Disposable {
         liveEditDevices.getInfo(device).getStatus() != LiveEditStatus.NoMultiDeploy.INSTANCE);
   }
 
-  private static Installer newInstaller(IDevice device) {
+  @VisibleForTesting
+  static Installer newInstaller(IDevice device) {
     MetricsRecorder metrics = new MetricsRecorder();
     AdbClient adb = new AdbClient(device, LOGGER);
-    return  new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
+    return new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
   }
 
   private LiveUpdateDeployer.UpdateLiveEditResult pushUpdatesToDevice(

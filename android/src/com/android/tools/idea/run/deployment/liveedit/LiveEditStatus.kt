@@ -28,6 +28,7 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.P
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.UNRECOVERABLE_ERROR
 import com.intellij.icons.AllIcons
 import com.intellij.ui.AnimatedIcon
+import java.lang.Exception
 import javax.swing.Icon
 
 open class LiveEditStatus(
@@ -97,6 +98,20 @@ open class LiveEditStatus(
           name, if (message.length > 120) message.substring(0, 120) + "..." else message
         ),
         if (recoverable) RECOVERABLE_ERROR else UNRECOVERABLE_ERROR,
+        redeployMode = RedeployMode.RERUN,
+        actionId = SHOW_LOGCAT_ACTION_ID
+      )
+    }
+
+    @JvmStatic
+    fun createRecomposeRetrievalErrorStatus(exception: Exception): LiveEditStatus {
+      return LiveEditStatus(
+        null,
+        message("le.status.error.recompose.title"),
+        String.format(
+          "%s during recomposition status retrieval.", exception.javaClass.name
+        ),
+        RECOVERABLE_ERROR,
         redeployMode = RedeployMode.RERUN,
         actionId = SHOW_LOGCAT_ACTION_ID
       )
