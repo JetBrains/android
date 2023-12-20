@@ -118,8 +118,16 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
       })
       add(JButton(message("wear.whs.panel.apply")).apply {
         addActionListener {
+          isEnabled = false
           workerScope.launch {
-            stateManager.applyChanges()
+            try {
+              stateManager.applyChanges()
+            }
+            finally {
+              uiScope.launch {
+                isEnabled = true
+              }
+            }
           }
         }
       })
