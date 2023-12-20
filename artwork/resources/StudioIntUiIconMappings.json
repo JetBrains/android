@@ -38,9 +38,11 @@
         "pair-over-wifi.svg": "studio/icons/avd/pair-over-wifi.svg",
         "run.svg": "studio/icons/avd/run.svg",
         "stop.svg": "studio/icons/avd/stop.svg",
+        "start-mirror.svg": "studio/icons/avd/start-mirror.svg",
         "start-reservation.svg": "studio/icons/avd/start-reservation.svg",
         "status-available-low.svg": "studio/icons/avd/status-available-low.svg",
-        "status-available-moderate.svg": "studio/icons/avd/status-available-moderate.svg"
+        "status-available-moderate.svg": "studio/icons/avd/status-available-moderate.svg",
+        "stop-mirror.svg": "studio/icons/avd/stop-mirror.svg"
       },
       "common": {
         "add.svg": "studio/icons/common/add.svg",
@@ -140,6 +142,11 @@
       "device-explorer": {
         "database-folder.svg": "studio/icons/device-explorer/database-folder.svg",
         "device-paired.svg": "studio/icons/device-explorer/device-paired.svg",
+        "firebase-device-car.svg": "studio/icons/device-explorer/firebase-device-car.svg",
+        "firebase-device-desktop.svg": "studio/icons/device-explorer/firebase-device-desktop.svg",
+        "firebase-device-phone.svg": "studio/icons/device-explorer/firebase-device-phone.svg",
+        "firebase-device-tv.svg": "studio/icons/device-explorer/firebase-device-tv.svg",
+        "firebase-device-wear.svg": "studio/icons/device-explorer/firebase-device-wear.svg",
         "multiple-devices.svg": "studio/icons/device-explorer/multiple-devices.svg",
         "physical-device-car.svg": "studio/icons/device-explorer/physical-device-car.svg",
         "physical-device-phone.svg": "studio/icons/device-explorer/physical-device-phone.svg",
