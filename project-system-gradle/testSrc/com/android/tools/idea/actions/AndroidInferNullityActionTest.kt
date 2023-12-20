@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.getTextForFile
 import com.google.common.truth.Truth
@@ -63,14 +63,16 @@ public class TestNullity {
   }
 
   fun testSupportLibAnnotations() {
-    myModule.getModuleSystem().registerDependency(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS.getCoordinate("1.1"))
+    (myModule.getModuleSystem() as DefaultModuleSystem).useAndroidX = false
+
     runInferNullityAction()
     Truth.assertThat(myNullityManager.defaultNullable).isEqualTo("android.support.annotation.Nullable")
     Truth.assertThat(myNullityManager.defaultNotNull).isEqualTo("android.support.annotation.NonNull")
   }
 
   fun testAndroidxAnnotations() {
-    myModule.getModuleSystem().registerDependency(GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS.getCoordinate("1.1"))
+    (myModule.getModuleSystem() as DefaultModuleSystem).useAndroidX = true
+    
     runInferNullityAction()
     Truth.assertThat(myNullityManager.defaultNullable).isEqualTo("androidx.annotation.Nullable")
     Truth.assertThat(myNullityManager.defaultNotNull).isEqualTo("androidx.annotation.NonNull")
@@ -156,8 +158,8 @@ public class TestNullity {
     action.analyze(project, scope)
 
     val javaClass = project.getTextForFile("src/TestNullity.java")
-    Truth.assertThat(javaClass).contains("@android.support.annotation.Nullable")
-    Truth.assertThat(javaClass).contains("@android.support.annotation.NonNull")
+    Truth.assertThat(javaClass).contains("@androidx.annotation.Nullable")
+    Truth.assertThat(javaClass).contains("@androidx.annotation.NonNull")
   }
 
   fun testAddAnnotationNoCatalogFull() {
@@ -177,8 +179,8 @@ public class TestNullity {
     }
 
     val javaClass = project.getTextForFile("src/TestNullity.java")
-    Truth.assertThat(javaClass).contains("@android.support.annotation.NonNull")
-    Truth.assertThat(javaClass).contains("@android.support.annotation.Nullable")
+    Truth.assertThat(javaClass).contains("@androidx.annotation.NonNull")
+    Truth.assertThat(javaClass).contains("@androidx.annotation.Nullable")
   }
 
   /**

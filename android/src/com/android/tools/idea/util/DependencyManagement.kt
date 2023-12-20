@@ -69,7 +69,7 @@ fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
 /**
  * Returns whether this module depends on the new support library artifacts (androidx).
  */
-fun Module.dependsOnAndroidx(): Boolean = this.getModuleSystem().moduleDependencies.dependsOnAndroidx()
+fun Module.dependsOnAndroidx(): Boolean = getModuleSystem().useAndroidX
 
 /**
  * Returns whether this module depends on the old support library artifacts (com.android.support).
