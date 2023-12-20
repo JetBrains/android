@@ -23,10 +23,12 @@ import com.android.tools.idea.common.surface.SceneViewErrorsPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
+import com.android.tools.idea.compose.gradle.waitForRender
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.util.previewElement
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -61,6 +63,7 @@ import javax.swing.JPanel
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.utils.alwaysTrue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -142,7 +145,6 @@ class RenderErrorTest {
     }
   }
 
-  @Ignore("b/314295523")
   @Test
   fun testSceneViewWithRenderErrors() =
     runBlocking(workerThread) {
@@ -205,7 +207,6 @@ class RenderErrorTest {
       }
     }
 
-  @Ignore("b/314295523")
   @Test
   fun testSceneViewWithoutRenderErrors() =
     runBlocking(workerThread) {
@@ -351,6 +352,15 @@ class RenderErrorTest {
       ),
     )
     onRefreshCompletable.join()
+
+    // Once we enable Ui Check we need to render again since we are now showing the selected preview
+    // with the different analyzers of Ui Check (for example screen sizes, colorblind check etc).
+    withContext(uiThread) {
+      composePreviewRepresentation.waitForRender(
+        fakeUi.findAllComponents<SceneViewPeerPanel>().toSet(),
+      )
+      fakeUi.root.validate()
+    }
   }
 
   private suspend fun stopUiCheck() {

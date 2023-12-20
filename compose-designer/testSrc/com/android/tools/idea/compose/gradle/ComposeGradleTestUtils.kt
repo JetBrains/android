@@ -104,7 +104,7 @@ suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
     )
   }
 
-private suspend fun ComposePreviewRepresentation.waitForRender(
+suspend fun ComposePreviewRepresentation.waitForRender(
   sceneViewPeerPanels: Set<SceneViewPeerPanel>
 ) =
   withTimeout(timeout = 30.seconds) {
