@@ -56,7 +56,6 @@ import com.intellij.util.TimeoutUtil.sleep
 import com.intellij.util.ui.UIUtil
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -674,7 +673,6 @@ class AndroidTestSuiteViewTest {
     view.onTestCaseFinished(device, suite, testcase)
   }
 
-  @Ignore("http://b/316017353")
   @Test
   fun actionButtonsAreFocusable() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
