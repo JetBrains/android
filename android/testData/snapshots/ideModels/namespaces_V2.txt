@@ -56,7 +56,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/app
-                buildDir                      : <ROOT>/app/build
+                buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
                 tasks
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -173,7 +173,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/lib
-                buildDir                      : <ROOT>/lib/build
+                buildDir                      : <ROOT>/lib/build [-]
                 buildFile                     : <ROOT>/lib/build.gradle
                 tasks
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -286,7 +286,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/otherlib
-                buildDir                      : <ROOT>/otherlib/build
+                buildDir                      : <ROOT>/otherlib/build [-]
                 buildFile                     : <ROOT>/otherlib/build.gradle
                 tasks
                     testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
@@ -422,7 +422,7 @@ MODULE                        : project.app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
-    BuildFolder                   : <ROOT>/app/build
+    BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
     GroupId                       : project
@@ -750,7 +750,7 @@ MODULE                        : project.lib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
-    BuildFolder                   : <ROOT>/lib/build
+    BuildFolder                   : <ROOT>/lib/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
     GroupId                       : project
@@ -1062,7 +1062,7 @@ MODULE                        : project.otherlib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
-    BuildFolder                   : <ROOT>/otherlib/build
+    BuildFolder                   : <ROOT>/otherlib/build [-]
     buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
     GroupId                       : project

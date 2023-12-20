@@ -43,7 +43,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/aarWrapperLib
             EXCLUDE_FOLDER                : file://<PROJECT>/aarWrapperLib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/aarWrapperLib/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/aarWrapperLib/build [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -3710,9 +3710,9 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: <PROJECT>/jarWrapperLib/JarWrappedLib.jar
             *CLASSES                      : jar://<PROJECT>/jarWrapperLib/JarWrappedLib.jar!/
         LIBRARY                       : Gradle: __wrapped_aars__::aarWrapperLib:unspecified@aar
-            *CLASSES                      : file://<PROJECT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib/AndroidManifest.xml
-            *CLASSES                      : file://<PROJECT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib/res
-            *CLASSES                      : jar://<PROJECT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib/res
+            *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar
             *CLASSES                      : file://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.3/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/<TRANSFORMS>/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.3/jars/classes.jar!/

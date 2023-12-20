@@ -1965,7 +1965,6 @@ MODULE                        : project.app
                         module                        : <ROOT>-:lib-TEST_FIXTURES
                             javaLibrary                   : com.google.truth:truth:0.44@jar
                             module                        : <ROOT>-:lib-MAIN
-                            module                        : <ROOT>-:lib-MAIN
                     runtimeClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
                             javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
@@ -2134,7 +2133,6 @@ MODULE                        : project.app
                             javaLibrary                   : commons-io:commons-io:2.4@jar
                         module                        : <ROOT>-:lib-TEST_FIXTURES
                             javaLibrary                   : com.google.truth:truth:0.44@jar
-                            module                        : <ROOT>-:lib-MAIN
                             module                        : <ROOT>-:lib-MAIN
                             javaLibrary                   : com.google.code.gson:gson:2.2.4@jar
                 RuntimeOnlyClasses
@@ -2502,7 +2500,6 @@ MODULE                        : project.lib
                         module                        : <ROOT>-:lib-TEST_FIXTURES
                             javaLibrary                   : com.google.truth:truth:0.44@jar
                             module                        : <ROOT>-:lib-MAIN
-                            module                        : <ROOT>-:lib-MAIN
                         module                        : <ROOT>-:lib-MAIN
                             javaLibrary                   : commons-io:commons-io:2.4@jar
                     runtimeClasspath
@@ -2561,7 +2558,6 @@ MODULE                        : project.lib
                         javaLibrary                   : com.google.code.gson:gson:2.2.4@jar
                         module                        : <ROOT>-:lib-TEST_FIXTURES
                             javaLibrary                   : com.google.truth:truth:0.44@jar
-                            module                        : <ROOT>-:lib-MAIN
                             module                        : <ROOT>-:lib-MAIN
                             javaLibrary                   : com.google.code.gson:gson:2.2.4@jar
                         module                        : <ROOT>-:lib-MAIN
@@ -2623,7 +2619,6 @@ MODULE                        : project.lib
                         module                        : <ROOT>-:lib-TEST_FIXTURES
                             javaLibrary                   : com.google.truth:truth:0.44@jar
                             module                        : <ROOT>-:lib-MAIN
-                            module                        : <ROOT>-:lib-MAIN
                         module                        : <ROOT>-:lib-MAIN
                             javaLibrary                   : commons-io:commons-io:2.4@jar
                     runtimeClasspath
@@ -2658,7 +2653,6 @@ MODULE                        : project.lib
                         javaLibrary                   : com.google.code.gson:gson:2.2.4@jar
                         module                        : <ROOT>-:lib-TEST_FIXTURES
                             javaLibrary                   : com.google.truth:truth:0.44@jar
-                            module                        : <ROOT>-:lib-MAIN
                             module                        : <ROOT>-:lib-MAIN
                             javaLibrary                   : com.google.code.gson:gson:2.2.4@jar
                         module                        : <ROOT>-:lib-MAIN
