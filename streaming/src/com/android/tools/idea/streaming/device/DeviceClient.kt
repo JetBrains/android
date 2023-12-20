@@ -68,7 +68,6 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.IntFunction
 import kotlin.math.min
@@ -133,7 +132,6 @@ internal class DeviceClient(
   val streamingSessionTracker: DeviceStreamingSessionTracker = DeviceStreamingSessionTracker(deviceConfig)
   private val clientScope = AndroidCoroutineScope(this)
   private val connectionState = AtomicReference<CompletableDeferred<Unit>>()
-  private val refCount = AtomicInteger(1)
   private val agentTerminationListeners = createLockFreeCopyOnWriteList<AgentTerminationListener>()
   /**
    * Contains entries for all active video streams. Keyed by display IDs. The values represent
@@ -257,19 +255,6 @@ internal class DeviceClient(
     synchronized(videoStreams) {
       videoStreams[displayId]?.setMaxVideoResolution(requester, maxOutputSize)
     }
-  }
-
-  /** Increments the reference count and returns the new value. */
-  fun incrementReferenceCount(): Int =
-      refCount.incrementAndGet()
-
-  /** Decrements the reference count and returns the new value. Disposes the object if the reference count becomes zero. */
-  fun decrementReferenceCount(): Int {
-    val count = refCount.decrementAndGet()
-    if (count <= 0) {
-      Disposer.dispose(this)
-    }
-    return count
   }
 
   private suspend fun connectChannels(serverSocketChannel: SuspendingServerSocketChannel): Channels {
