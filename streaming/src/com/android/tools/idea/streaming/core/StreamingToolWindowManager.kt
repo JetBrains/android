@@ -526,9 +526,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       contentManager.addContent(content, index)
     }
 
-    FlightRecorder.log {
-      "$simpleId: added panel ${content.simpleId} ${content.displayName}\n" +
-      currentStack }
+    FlightRecorder.log { "$simpleId: added panel ${content.simpleId} ${content.displayName}\n$currentStack" }
 
     if (!content.isSelected) {
       // Activate the newly added panel if it corresponds to a recently launched or used Emulator.

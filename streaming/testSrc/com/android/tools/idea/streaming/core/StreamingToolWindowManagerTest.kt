@@ -92,7 +92,6 @@ import com.intellij.util.ConcurrencyUtil.awaitQuiescence
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.android.UndisposedAndroidObjectsCheckerRule
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -123,11 +122,7 @@ class StreamingToolWindowManagerTest {
                             EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule)
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
-  private var nullableToolWindow: TestToolWindow? = null
-  private val toolWindow: TestToolWindow
-    get() {
-      return nullableToolWindow ?: createToolWindow().also { nullableToolWindow = it }
-    }
+  private val toolWindow: TestToolWindow by lazy { createToolWindow() }
   private val contentManager: ContentManager by lazy { toolWindow.contentManager }
 
   private val deviceMirroringSettings: DeviceMirroringSettings by lazy { DeviceMirroringSettings.getInstance() }
@@ -241,7 +236,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testEmulatorCrash() {
-
     val tempFolder = emulatorRule.avdRoot
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
