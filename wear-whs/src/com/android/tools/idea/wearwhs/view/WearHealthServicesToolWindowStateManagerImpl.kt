@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 internal class WearHealthServicesToolWindowStateManagerImpl(
   private val deviceManager: WearHealthServicesDeviceManager = ContentProviderDeviceManager(), )
   : WearHealthServicesToolWindowStateManager, Disposable {
-  private val currentPreset = MutableStateFlow(Preset.STANDARD)
+  private val currentPreset = MutableStateFlow(Preset.ALL)
   private val capabilitiesList = MutableStateFlow(emptyList<WhsCapability>())
   private val capabilityToState = ConcurrentMap<WhsCapability, MutableStateFlow<CapabilityState>>()
   private val progress = MutableStateFlow<WhsStateManagerStatus>(WhsStateManagerStatus.Idle)
@@ -123,7 +123,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   }
 
   override suspend fun reset() {
-    setPreset(Preset.STANDARD)
+    setPreset(Preset.ALL)
     for (entry in capabilityToState.keys) {
       setOverrideValue(entry, null)
     }

@@ -110,17 +110,17 @@ class WearHealthServicesToolWindowStateManagerTest {
   }
 
   @Test
-  fun `test reset sets the preset to standard and removes overrides`() = runBlocking {
+  fun `test reset sets the preset to all and removes overrides`() = runBlocking {
     stateManager.getCapabilitiesList().waitForValue(capabilities)
 
-    stateManager.setPreset(Preset.ALL)
+    stateManager.setPreset(Preset.STANDARD)
 
     stateManager.setOverrideValue(capabilities[1], 3f)
 
     stateManager.reset()
 
-    stateManager.getPreset().waitForValue(Preset.STANDARD)
-    stateManager.getState(capabilities[2]).map { it.enabled }.waitForValue(false)
+    stateManager.getPreset().waitForValue(Preset.ALL)
+    stateManager.getState(capabilities[2]).map { it.enabled }.waitForValue(true)
     stateManager.getState(capabilities[1]).map { it.overrideValue }.waitForValue(null)
   }
 
