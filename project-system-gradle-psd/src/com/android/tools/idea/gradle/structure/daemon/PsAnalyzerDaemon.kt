@@ -267,8 +267,9 @@ fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec,
   val foundIssues: MutableList<PsGeneralIssue> = mutableListOf()
   if (isBlocking) {
     if (isNonCompliant) {
-      val message = sdkIndex.generateBlockingPolicyMessage(groupId, artifactId, versionString)
-      foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex))
+      sdkIndex.generateBlockingPolicyMessages(groupId, artifactId, versionString).forEach { message->
+        foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex))
+      }
     }
     if (isCritical) {
       val message = sdkIndex.generateBlockingCriticalMessage(groupId, artifactId, versionString)
@@ -281,8 +282,9 @@ fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec,
   }
   else {
     if (isNonCompliant) {
-      val message = sdkIndex.generatePolicyMessage(groupId, artifactId, versionString)
-      foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, WARNING, sdkIndex))
+      sdkIndex.generatePolicyMessages(groupId, artifactId, versionString).forEach { message->
+        foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, WARNING, sdkIndex))
+      }
     }
     if (isOutdated) {
       val message = sdkIndex.generateOutdatedMessage(groupId, artifactId, versionString)
