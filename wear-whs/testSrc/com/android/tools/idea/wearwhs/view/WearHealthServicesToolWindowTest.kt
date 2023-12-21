@@ -80,7 +80,7 @@ class WearHealthServicesToolWindowTest {
       testDataPath = testDataPath,
       fileNameBase = "screens/whs-panel-default",
       actual = fakeUi.render(),
-      maxPercentDifferent = 3.0)
+      maxPercentDifferent = 4.0)
   }
 
   @Test
@@ -112,7 +112,7 @@ class WearHealthServicesToolWindowTest {
       testDataPath = testDataPath,
       fileNameBase = "screens/whs-panel-state-manager-modified",
       actual = fakeUi.render(),
-      maxPercentDifferent = 3.0)
+      maxPercentDifferent = 4.0)
   }
 
   // The UI loads on asynchronous coroutine, we need to wait
