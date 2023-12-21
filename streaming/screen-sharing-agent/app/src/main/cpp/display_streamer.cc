@@ -42,6 +42,7 @@ constexpr int MAX_SUBSEQUENT_ERRORS = 5;
 constexpr int MIN_VIDEO_RESOLUTION = 128;
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface.
 constexpr int MAX_FRAME_RATE = 60;
+constexpr int REDUCED_FRAME_RATE = 30;  // Frame rate used for watches.
 constexpr int DEFAULT_BIT_RATE = 10000000;
 constexpr int MIN_BIT_RATE = 100000;
 constexpr int I_FRAME_INTERVAL_SECONDS = 10;
@@ -135,7 +136,8 @@ Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_vi
   Size video_size = ComputeVideoSize(display_info.logical_size, codec_info, max_video_resolution);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_WIDTH, video_size.width);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_HEIGHT, video_size.height);
-  AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_FRAME_RATE, min(codec_info.max_frame_rate, MAX_FRAME_RATE));
+  AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_FRAME_RATE,
+                        min(codec_info.max_frame_rate, Agent::IsWatch() ? REDUCED_FRAME_RATE : MAX_FRAME_RATE));
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_BIT_RATE, bit_rate);
   media_status_t status = AMediaCodec_configure(codec, media_format, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
   if (status != AMEDIA_OK) {

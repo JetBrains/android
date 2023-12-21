@@ -20,6 +20,7 @@
 #include <netinet/tcp.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <sys/system_properties.h>
 
 #include <cassert>
 #include <chrono>
@@ -110,11 +111,19 @@ void WriteChannelHeader(const string& codec_name, int socket_fd) {
 
 int GetFeatureLevel() {
   int api_level = android_get_device_api_level();
-  char codename[92] = {0 };
+  char codename[PROP_VALUE_MAX] = { 0 };
   if (__system_property_get("ro.build.version.codename", codename) < 1) {
     return api_level;
   }
   return *codename == '\0' || strcmp(codename, "REL") == 0 ? api_level : api_level + 1;
+}
+
+string GetBuildCharacteristics() {
+  char result[PROP_VALUE_MAX] = { 0 };
+  if (__system_property_get("ro.build.characteristics", result) < 1) {
+    return "";
+  }
+  return result;
 }
 
 }  // namespace
@@ -296,6 +305,32 @@ int64_t Agent::GetLastTouchEventTime() {
 
 void Agent::RecordTouchEvent() {
   last_touch_time_millis_ = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+}
+
+bool Agent::HasBuildCharacteristic(const char* characteristic) {
+  string characteristics = GetBuildCharacteristics();
+  auto len = strlen(characteristic);
+  string::size_type p = 0;
+  while (true) {
+    if (characteristics.compare(p, len, characteristic) == 0) {
+      auto end = p + len;
+      if (characteristics.length() == end || characteristics[end] == ',') {
+        Log::D("Agent::HasBuildCharacteristic(\"%s\") returned true", characteristic);
+        return true;
+      }
+    }
+    p = characteristics.find(',', p);
+    if (p == string::npos) {
+      break;
+    }
+    ++p;
+  }
+  Log::D("Agent::HasBuildCharacteristic(\"%s\") returned false", characteristic);
+  return false;
+}
+
+bool Agent::IsWatch() {
+  return HasBuildCharacteristic("watch");
 }
 
 int32_t Agent::feature_level_(0);

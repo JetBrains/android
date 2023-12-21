@@ -60,6 +60,11 @@ public:
 
   static bool IsShuttingDown() { return shutting_down_; }
 
+  // Checks if the "ro.build.characteristics" system property contains the given string.
+  static bool HasBuildCharacteristic(const char* characteristic);
+
+  static bool IsWatch();
+
   static int32_t flags() { return flags_; }
 
   inline static int32_t feature_level() { return feature_level_; }
