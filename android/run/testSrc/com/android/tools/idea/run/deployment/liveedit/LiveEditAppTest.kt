@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.testutils.TestResources
 import com.google.common.truth.Truth
+import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -37,6 +38,26 @@ class LiveEditAppTest {
     val actualApkDesugaredMinApi = 24
     val liveEditApp = LiveEditApp(setOf(TestResources.getFile("/WearableTestApk.apk").toPath()), minApiDevice)
     Truth.assertThat(liveEditApp.minAPI).isEqualTo(actualApkDesugaredMinApi)
+  }
+
+  @Test
+  fun testMinAPIRetrievalWithBuildSystemSupport() {
+    val minApiDevice = -1
+    val dexMinApi = 24
+
+    var liveEditApp = LiveEditApp(setOf(TestResources.getFile("/WearableTestApk.apk").toPath()), minApiDevice, mutableSetOf())
+    Truth.assertThat(liveEditApp.minAPI).isEqualTo(dexMinApi)
+
+    liveEditApp = LiveEditApp(setOf(TestResources.getFile("/WearableTestApk.apk").toPath()), minApiDevice, mutableSetOf(99))
+    Truth.assertThat(liveEditApp.minAPI).isEqualTo(99)
+
+    try {
+      liveEditApp = LiveEditApp(setOf(TestResources.getFile("/WearableTestApk.apk").toPath()), minApiDevice, mutableSetOf(89, 99))
+      liveEditApp.minAPI
+      Assert.fail("Expecting LiveEditUpdateException")
+    } catch (e: LiveEditUpdateException) {
+      // expected.
+    }
   }
 
   @Test

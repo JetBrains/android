@@ -16,8 +16,6 @@
 package com.android.tools.idea.run
 
 import com.android.AndroidProjectTypes
-import com.android.ddmlib.ClientData
-import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.DeployerException
@@ -32,13 +30,11 @@ import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.RunConfigurationNotifier
-import com.android.tools.idea.execution.common.adb.shell.tasks.getCommandStopSdkSandbox
 import com.android.tools.idea.execution.common.adb.shell.tasks.launchSandboxSdk
 import com.android.tools.idea.execution.common.attachDebuggerToSandboxSdk
 import com.android.tools.idea.execution.common.clearAppStorage
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
-import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.execution.common.deploy.deployAndHandleError
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
@@ -137,7 +133,7 @@ class AndroidRunConfigurationExecutor(
             val mainApp = deployResults.find { it.app.appId == applicationId }
               ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")
             if (launch(mainApp.app, device, console, isDebug = false)) {
-              notifyLiveEditService(device, applicationId)
+              notifyLiveEditService(device, apks, applicationId)
             }
           }
         }
@@ -172,9 +168,9 @@ class AndroidRunConfigurationExecutor(
     return facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP || configuration.DEPLOY_AS_INSTANT
   }
 
-  private fun notifyLiveEditService(device: IDevice, applicationId: String) {
+  private fun notifyLiveEditService(device: IDevice, apkInfos: MutableCollection<ApkInfo>, applicationId: String) {
     try {
-      LiveEditHelper().invokeLiveEdit(liveEditService, env, applicationId, apkProvider, device)
+      LiveEditHelper().invokeLiveEdit(liveEditService, env, applicationId, apkInfos, device)
     } catch (e: Exception) {
 
       // Monitoring should always start successfully.
@@ -240,7 +236,7 @@ class AndroidRunConfigurationExecutor(
         val deployResults =
           deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) } })
 
-        notifyLiveEditService(device, applicationId)
+        notifyLiveEditService(device, apks, applicationId)
 
         val mainApp = deployResults.find { it.app.appId == applicationId }
           ?: throw RuntimeException("No app installed matching applicationId provided by ApplicationIdProvider")

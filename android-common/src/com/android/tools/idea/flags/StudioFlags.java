@@ -1244,6 +1244,13 @@ public final class StudioFlags {
    false
   );
 
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_BUILD_SYSTEM_MIN_SDK_VERSION_FOR_DEXING = Flag.create(
+    COMPOSE, "deploy.live.edit.build.system.min.sdk.version.for.dexing",
+    "LiveEdit: Use Min SDK for Dexing from the build system",
+    "If enabled, Live Edit uses the Min SDK information from the build system. Otherwise, use the information from the DEX marker",
+    false
+  );
+
   public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = Flag.create(
     COMPOSE, "preview.debug.bounds",
     "Enable the debug bounds switch controls",

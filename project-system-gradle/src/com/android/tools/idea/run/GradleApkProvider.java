@@ -241,7 +241,8 @@ public final class GradleApkProvider implements ApkProvider {
             }
           }
 
-          apkList.add(new ApkInfo(apkFileList, pkgName, getBaselineProfiles(variant.getMainArtifact(), myFacet)));
+          @Nullable GenericBuiltArtifacts builtArtifacts = getGenericBuiltArtifacts(variant.getMainArtifact(), myFacet);
+          apkList.add(new ApkInfo(apkFileList, pkgName, getBaselineProfiles(builtArtifacts), getMinSdkVersionForDexing(builtArtifacts)));
           break;
 
         case AppBundleOutputModel:
@@ -323,22 +324,7 @@ public final class GradleApkProvider implements ApkProvider {
   }
 
   @NotNull
-  private List<BaselineProfileDetails> getBaselineProfiles(IdeAndroidArtifact artifact, AndroidFacet facet) {
-    GradleAndroidModel androidModel = GradleAndroidModel.get(facet);
-    if (androidModel == null) {
-      return emptyList();
-    }
-
-    if (!androidModel.getFeatures().isBuildOutputFileSupported()) {
-      return emptyList();
-    }
-
-    String outputFile = getOutputListingFile(artifact.getBuildInformation(), OutputType.Apk);
-    if (outputFile == null) {
-        return emptyList();
-    }
-
-    GenericBuiltArtifacts builtArtifacts = GenericBuiltArtifactsLoader.loadFromFile(new File(outputFile), new LogWrapper(getLogger()));
+  private List<BaselineProfileDetails> getBaselineProfiles(GenericBuiltArtifacts builtArtifacts) {
     if (builtArtifacts == null) {
         return emptyList();
     }
@@ -349,6 +335,34 @@ public final class GradleApkProvider implements ApkProvider {
     }
 
     return bp;
+  }
+
+  @Nullable
+  private Integer getMinSdkVersionForDexing(GenericBuiltArtifacts builtArtifacts) {
+    if (builtArtifacts == null) {
+      return null;
+    } else {
+      return builtArtifacts.getMinSdkVersionForDexing();
+    }
+  }
+
+  @Nullable
+  private GenericBuiltArtifacts getGenericBuiltArtifacts(IdeAndroidArtifact artifact, AndroidFacet facet) {
+    GradleAndroidModel androidModel = GradleAndroidModel.get(facet);
+    if (androidModel == null) {
+      return null;
+    }
+
+    if (!androidModel.getFeatures().isBuildOutputFileSupported()) {
+      return null;
+    }
+
+    String outputFile = getOutputListingFile(artifact.getBuildInformation(), OutputType.Apk);
+    if (outputFile == null) {
+      return null;
+    }
+
+    return GenericBuiltArtifactsLoader.loadFromFile(new File(outputFile), new LogWrapper(getLogger()));
   }
 
   @NotNull
