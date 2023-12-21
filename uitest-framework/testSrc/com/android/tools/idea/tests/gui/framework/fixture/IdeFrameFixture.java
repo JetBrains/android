@@ -84,6 +84,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JProgressBar;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.WindowAncestorFinder;
@@ -855,5 +856,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    */
   public FindToolWindowFixture.ContentFixture getFindToolWindow(){
     return new FindToolWindowFixture.ContentFixture(this);
+  }
+
+  /**
+   * Wait until progress bar stopped showing in IDE
+   */
+  public void waitUntilProgressBarNotDisplayed() {
+    GuiTests.waitUntilGone(robot(), target(),
+                           Matchers.byType(JProgressBar.class).andIsShowing(),
+                           30);
   }
 }

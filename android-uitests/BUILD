@@ -2217,6 +2217,22 @@ java_test(
 )
 
 java_test(
+    name = "WarningsCheckInNewCPPProjectTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/debugger/CLionNdkHelloJni/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.WarningsCheckInNewCPPProjectTest"],
+    tags = COMMON_TAGS + [
+        "no_mac",
+        "no_windows",
+        "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "OpenExistingProjectTest",
     size = "large",
     data = COMMON_DATA,
