@@ -48,9 +48,10 @@ fun DeviceSelectionDropdown(deviceList: List<Common.Device>, selectedDevice: Com
       }
       else {
         deviceList.forEach {
-          selectableItem(selectedDevice == it, {
-            onDeviceSelection(it)
-          }) {
+          selectableItem(
+            selected = selectedDevice == it,
+            onClick = { onDeviceSelection(it) }
+          ) {
             Text(text = it.model, modifier = Modifier.padding(horizontal = DEVICE_SELECTION_DROPDOWN_CONTENT_PADDING_DP).testTag(
               "DeviceSelectionDropdownItem"))
           }

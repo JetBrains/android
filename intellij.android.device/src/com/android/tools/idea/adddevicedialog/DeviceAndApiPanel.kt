@@ -58,7 +58,7 @@ private fun ApiLevelDropdown(images: ImmutableCollection<SystemImage>) {
   Dropdown(
     menuContent = {
       levels.forEach {
-        selectableItem(selectedLevel == it, { selectedLevel = it }, content = { ApiLevelText(it) })
+        selectableItem(selected = selectedLevel == it, onClick = { selectedLevel = it }, content = { ApiLevelText(it) })
       }
     },
     content = { ApiLevelText(selectedLevel) }
