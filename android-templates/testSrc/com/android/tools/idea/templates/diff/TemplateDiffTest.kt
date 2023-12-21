@@ -720,6 +720,11 @@ class TemplateDiffTest(private val testMode: TestMode) {
   fun testAutomotiveMediaServiceWithKotlin() {
     checkCreateTemplate("Media Service", withKotlin())
   }
+
+  @Test
+  fun testGeminiStarter() {
+    checkCreateTemplate("Gemini API Starter", withSpecificKotlin, templateStateCustomizer = mapOf("API Key" to "abcd"))
+  }
 }
 
 typealias TemplateStateCustomizer = Map<String, String>
