@@ -74,17 +74,15 @@ class DefaultTwoWayPropertyTest {
 
   private fun TwoWayProperty<String>.createAndAddListener(): Ui {
     val ui = Ui()
-    Disposer.register(disposableRule.disposable, ui)
-    addControllerListener(ui) { newValue ->
+    addControllerListener { newValue ->
       ui.controllerChangeCount++
       ui.controllerChangeLastValue = newValue
     }
     return ui
   }
 
-  private class Ui : Disposable {
+  private class Ui {
     var controllerChangeCount = 0
     var controllerChangeLastValue = ""
-    override fun dispose() {}
   }
 }

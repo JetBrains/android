@@ -55,7 +55,7 @@ class UiSettingsPanelTest {
   @Before
   fun before() {
     model = UiSettingsModel(Dimension(1344, 2992), 480)
-    panel = UiSettingsPanel(model, projectRule.disposable)
+    panel = UiSettingsPanel(model)
     model.inDarkMode.uiChangeListener = ChangeListener { lastCommand = "dark=$it" }
     model.talkBackOn.uiChangeListener = ChangeListener { lastCommand = "talkBackOn=$it" }
     model.selectToSpeakOn.uiChangeListener = ChangeListener { lastCommand = "selectToSpeakOn=$it" }

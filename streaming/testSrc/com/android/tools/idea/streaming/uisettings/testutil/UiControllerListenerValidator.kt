@@ -32,13 +32,13 @@ import com.intellij.openapi.Disposable
  * - a default value if customValues is false
  * - a predefined custom value different from the default value if customValues is true
  */
-internal class UiControllerListenerValidator(private val model: UiSettingsModel, customValues: Boolean, parentDisposable: Disposable) {
-  val darkMode = createAndAddListener(model.inDarkMode, customValues, parentDisposable)
-  val talkBackInstalled = createAndAddListener(model.talkBackInstalled, customValues, parentDisposable)
-  val talkBackOn = createAndAddListener(model.talkBackOn, customValues, parentDisposable)
-  val selectToSpeakOn = createAndAddListener(model.selectToSpeakOn, customValues, parentDisposable)
-  val fontSize = createAndAddListener(model.fontSizeInPercent, if (customValues) CUSTOM_FONT_SIZE else DEFAULT_FONT_SIZE, parentDisposable)
-  val density = createAndAddListener(model.screenDensity, if (customValues) CUSTOM_DENSITY else DEFAULT_DENSITY, parentDisposable)
+internal class UiControllerListenerValidator(private val model: UiSettingsModel, customValues: Boolean) {
+  val darkMode = createAndAddListener(model.inDarkMode, customValues)
+  val talkBackInstalled = createAndAddListener(model.talkBackInstalled, customValues)
+  val talkBackOn = createAndAddListener(model.talkBackOn, customValues)
+  val selectToSpeakOn = createAndAddListener(model.selectToSpeakOn, customValues)
+  val fontSize = createAndAddListener(model.fontSizeInPercent, if (customValues) CUSTOM_FONT_SIZE else DEFAULT_FONT_SIZE)
+  val density = createAndAddListener(model.screenDensity, if (customValues) CUSTOM_DENSITY else DEFAULT_DENSITY)
 
   /**
    * Check the lastValue and number of changes for each property listener, and make sure they match the property value.
@@ -68,9 +68,9 @@ internal class UiControllerListenerValidator(private val model: UiSettingsModel,
     assertThat(density.lastValue).isEqualTo(if (expectedCustomValues) CUSTOM_DENSITY else DEFAULT_DENSITY)
   }
 
-  private fun <T> createAndAddListener(property: ReadOnlyProperty<T>, initialValue: T, disposable: Disposable): ListenerState<T> {
+  private fun <T> createAndAddListener(property: ReadOnlyProperty<T>, initialValue: T): ListenerState<T> {
     val state = ListenerState(0, initialValue)
-    property.addControllerListener(disposable) { newValue ->
+    property.addControllerListener { newValue ->
       state.changes++
       state.lastValue = newValue
     }

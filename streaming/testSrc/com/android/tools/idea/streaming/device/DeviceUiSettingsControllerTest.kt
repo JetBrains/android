@@ -53,13 +53,13 @@ class DeviceUiSettingsControllerTest {
   @Test
   fun testReadDefaultValueWhenAttachingAfterInit() {
     controller.initAndWait()
-    val listeners = UiControllerListenerValidator(model, customValues = true, testRootDisposable)
+    val listeners = UiControllerListenerValidator(model, customValues = true)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = false)
   }
 
   @Test
   fun testReadDefaultValueWhenAttachingBeforeInit() {
-    val listeners = UiControllerListenerValidator(model, customValues = true, testRootDisposable)
+    val listeners = UiControllerListenerValidator(model, customValues = true)
     controller.initAndWait()
     listeners.checkValues(expectedChanges = 2, expectedCustomValues = false)
   }
@@ -73,7 +73,7 @@ class DeviceUiSettingsControllerTest {
     agent.fontSize = CUSTOM_FONT_SIZE
     agent.screenDensity = CUSTOM_DENSITY
     controller.initAndWait()
-    val listeners = UiControllerListenerValidator(model, customValues = false, testRootDisposable)
+    val listeners = UiControllerListenerValidator(model, customValues = false)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = true)
   }
 

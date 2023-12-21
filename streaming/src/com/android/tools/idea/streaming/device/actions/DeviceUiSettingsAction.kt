@@ -24,9 +24,7 @@ import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.popup.Balloon
-import com.intellij.openapi.util.Disposer
 import com.intellij.ui.awt.RelativePoint
 import kotlinx.coroutines.launch
 import java.awt.Dimension
@@ -61,10 +59,7 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
     AndroidCoroutineScope(deviceView).launch {
       controller.populateModel()
       EventQueue.invokeLater {
-        val disposable = Disposer.newDisposable()
-        val balloon = UiSettingsPanel(model, disposable).createPicker(component, deviceView)
-        Disposer.register(balloon, disposable)
-        Disposer.register(disposable) { Logger.getInstance(DeviceUiSettingsAction::class.java).warn("Disposable disposed of properly") }
+        val balloon = UiSettingsPanel(model).createPicker(component, deviceView)
         balloon.show(RelativePoint.getCenterOf(component), Balloon.Position.above)
       }
     }

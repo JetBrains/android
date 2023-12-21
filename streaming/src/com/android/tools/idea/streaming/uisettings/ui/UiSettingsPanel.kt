@@ -57,10 +57,7 @@ private val SPACING = object : IntelliJSpacingConfiguration() {
 /**
  * Displays a picker with setting shortcuts.
  */
-internal class UiSettingsPanel(
-  private val model: UiSettingsModel,
-  parentDisposable: Disposable
-) : BorderLayoutPanel()  {
+internal class UiSettingsPanel(private val model: UiSettingsModel) : BorderLayoutPanel()  {
   init {
     add(panel {
       customizeSpacingConfiguration(SPACING) {
@@ -69,35 +66,35 @@ internal class UiSettingsPanel(
 
         row(label(DARK_THEME_TITLE)) {
           checkBox("")
-            .bind(model.inDarkMode, parentDisposable)
+            .bind(model.inDarkMode)
             .apply { component.name = DARK_THEME_TITLE }
         }
 
         row(label(TALKBACK_TITLE)) {
           checkBox("")
-            .bind(model.talkBackOn, parentDisposable)
+            .bind(model.talkBackOn)
             .apply { component.name = TALKBACK_TITLE }
-        }.visibleIf(model.talkBackInstalled, parentDisposable)
+        }.visibleIf(model.talkBackInstalled)
 
         row(label(SELECT_TO_SPEAK_TITLE)) {
           checkBox("")
-            .bind(model.selectToSpeakOn, parentDisposable)
+            .bind(model.selectToSpeakOn)
             .apply { component.name = SELECT_TO_SPEAK_TITLE }
-        }.visibleIf(model.talkBackInstalled, parentDisposable)
+        }.visibleIf(model.talkBackInstalled)
 
         row(label(FONT_SIZE_TITLE)) {
           slider(0, model.fontSizeMaxIndex.value, 1, 1)
             .noLabels()
-            .bindSliderPosition(model.fontSizeIndex, parentDisposable)
-            .bindSliderMaximum(model.fontSizeMaxIndex, parentDisposable)
+            .bindSliderPosition(model.fontSizeIndex)
+            .bindSliderMaximum(model.fontSizeMaxIndex)
             .apply { component.name = FONT_SIZE_TITLE }
         }
 
         row(label(DENSITY_TITLE)) {
           slider(0, model.screenDensityIndex.value, 1, 1)
             .noLabels()
-            .bindSliderPosition(model.screenDensityIndex, parentDisposable)
-            .bindSliderMaximum(model.screenDensityMaxIndex, parentDisposable)
+            .bindSliderPosition(model.screenDensityIndex)
+            .bindSliderMaximum(model.screenDensityMaxIndex)
             .apply { component.name = DENSITY_TITLE }
         }
       }
@@ -145,8 +142,8 @@ internal class UiSettingsPanel(
   /**
    * Bind a [Boolean] property to an [AbstractButton] cell.
    */
-  private fun <T : AbstractButton> Cell<T>.bind(predicate: TwoWayProperty<Boolean>, disposable: Disposable): Cell<T> {
-    predicate.addControllerListener(disposable) { selected -> component.isSelected = selected }
+  private fun <T : AbstractButton> Cell<T>.bind(predicate: TwoWayProperty<Boolean>): Cell<T> {
+    predicate.addControllerListener { selected -> component.isSelected = selected }
     component.isSelected = predicate.value
     return actionListener { _, c -> predicate.setFromUi(c.isSelected) }
   }
@@ -156,21 +153,22 @@ internal class UiSettingsPanel(
     return this
   }
 
-  private fun Cell<JSlider>.bindSliderPosition(property: TwoWayProperty<Int>, disposable: Disposable): Cell<JSlider> {
-    property.addControllerListener(disposable) { component.value = it }
+  private fun Cell<JSlider>.bindSliderPosition(property: TwoWayProperty<Int>): Cell<JSlider> {
+    property.addControllerListener { component.value = it }
     component.value = property.value
     component.addChangeListener { if (!component.valueIsAdjusting) property.setFromUi(component.value) }
     return this
   }
 
-  private fun Cell<JSlider>.bindSliderMaximum(property: ReadOnlyProperty<Int>, disposable: Disposable): Cell<JSlider> = apply {
-    property.addControllerListener(disposable) { component.maximum = it }
+  private fun Cell<JSlider>.bindSliderMaximum(property: ReadOnlyProperty<Int>): Cell<JSlider> {
+    property.addControllerListener { component.maximum = it }
     component.maximum = property.value
+    return this
   }
 
-  private fun Row.visibleIf(predicate: ReadOnlyProperty<Boolean>, disposable: Disposable): Row {
+  private fun Row.visibleIf(predicate: ReadOnlyProperty<Boolean>): Row {
     visible(predicate.value)
-    predicate.addControllerListener(disposable) { visible(it) }
+    predicate.addControllerListener { visible(it) }
     return this
   }
 

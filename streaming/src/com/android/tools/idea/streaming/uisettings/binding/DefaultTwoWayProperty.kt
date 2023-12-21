@@ -16,8 +16,6 @@
 package com.android.tools.idea.streaming.uisettings.binding
 
 import com.android.tools.idea.util.ListenerCollection
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
 
 /**
  * Standard implementation of a [TwoWayProperty].
@@ -32,14 +30,9 @@ internal class DefaultTwoWayProperty<T>(initialValue: T) : TwoWayProperty<T> {
   override val value: T
     get() = actualValue
 
-  override fun addControllerListener(disposable: Disposable, listener: ChangeListener<T>) {
+  override fun addControllerListener(listener: ChangeListener<T>) {
     listeners.add(listener)
-    Disposer.register(disposable) { removeControllerListener(listener) }
     listener.valueChanged(value)
-  }
-
-  override fun removeControllerListener(listener: ChangeListener<T>) {
-    listeners.remove(listener)
   }
 
   override fun setFromUi(newValue: T) {

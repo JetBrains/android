@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.streaming.uisettings.binding
 
-import com.intellij.openapi.Disposable
-
 /**
  * General change listener.
  */
@@ -36,14 +34,8 @@ internal interface ReadOnlyProperty<T> {
 
   /**
    * The UI can be notified of changes from the controller by adding a listener.
-   * The disposable specified provides auto removal of the listener.
    */
-  fun addControllerListener(disposable: Disposable, listener: ChangeListener<T>)
-
-  /**
-   * A listener can be removed before the UI is disposed if needed.
-   */
-  fun removeControllerListener(listener: ChangeListener<T>)
+  fun addControllerListener(listener: ChangeListener<T>)
 
   /**
    * The controller should call this function to specify a new value.

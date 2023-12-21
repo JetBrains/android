@@ -70,13 +70,13 @@ class EmulatorUiSettingsControllerTest {
   @Test
   fun testReadDefaultValueWhenAttachingAfterInit() {
     controller.initAndWait()
-    val listeners = UiControllerListenerValidator(model, customValues = true, testRootDisposable)
+    val listeners = UiControllerListenerValidator(model, customValues = true)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = false)
   }
 
   @Test
   fun testReadDefaultValueWhenAttachingBeforeInit() {
-    val listeners = UiControllerListenerValidator(model, customValues = true, testRootDisposable)
+    val listeners = UiControllerListenerValidator(model, customValues = true)
     controller.initAndWait()
     listeners.checkValues(expectedChanges = 2, expectedCustomValues = false)
   }
@@ -93,7 +93,7 @@ class EmulatorUiSettingsControllerTest {
       overrideDensity = CUSTOM_DENSITY
     )
     controller.initAndWait()
-    val listeners = UiControllerListenerValidator(model, customValues = false, testRootDisposable)
+    val listeners = UiControllerListenerValidator(model, customValues = false)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = true)
   }
 
