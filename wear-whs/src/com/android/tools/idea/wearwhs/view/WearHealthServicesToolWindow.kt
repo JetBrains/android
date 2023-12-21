@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.wearwhs.WearWhsBundle.message
 import com.android.tools.idea.wearwhs.WhsCapability
+import com.intellij.codeInsight.hint.HintUtil.createWarningLabel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
@@ -40,6 +41,8 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.DefaultComboBoxModel
@@ -160,7 +163,12 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
   }
 
   private fun createCenterPanel(capabilities: List<WhsCapability>): JPanel {
+    val warningLabel = createWarningLabel(message("wear.whs.panel.overridden.value.invalid")).apply {
+      setBorder(Borders.empty(2))
+      isVisible = false
+    }
     return JPanel(VerticalFlowLayout()).apply {
+      add(warningLabel)
       border = horizontalBorders
       add(JPanel(BorderLayout()).apply {
         add(JLabel(message("wear.whs.panel.sensor")).apply {
@@ -205,14 +213,40 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
           add(checkBox, BorderLayout.CENTER)
           add(JPanel(FlowLayout()).apply {
             add(JTextField().also { textField ->
+              textField.addFocusListener(object : FocusListener {
+                override fun focusGained(e: FocusEvent?) {}
+
+                override fun focusLost(e: FocusEvent?) {
+                  // Validate the field when the user navigates away and clear it
+                  try {
+                    textField.text.toFloat()
+                  }
+                  catch (exception: NumberFormatException) {
+                    getLogger().warn("String is not a float")
+                    textField.text = ""
+                    workerScope.launch {
+                      stateManager.setOverrideValue(capability, null)
+                    }
+                  }
+                  finally {
+                    warningLabel.isVisible = false
+                  }
+                }
+              })
               textField.document.addDocumentListener(object : DocumentAdapter() {
                 override fun textChanged(e: DocumentEvent) {
                   workerScope.launch {
                     try {
                       stateManager.setOverrideValue(capability, textField.text.toFloat())
+                      uiScope.launch {
+                        warningLabel.isVisible = false
+                      }
                     }
-                    catch (exception: NumberFormatException) { // TODO(b/309931192): Show a tooltip to the user that the value is not a float
+                    catch (exception: NumberFormatException) {
                       getLogger().warn("String is not a float")
+                      uiScope.launch {
+                        warningLabel.isVisible = true
+                      }
                     }
                   }
                 }
