@@ -674,18 +674,24 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
   }
 
+  @AnyThread
   override fun deviceClientAdded(client: DeviceClient, requester: Any?) {
     if (requester != this) {
-      val serialNumber = client.deviceSerialNumber
-      val handle = onlineDevices[serialNumber]?.handle ?: return
-      adoptDeviceClient(serialNumber, handle) { client }
-      startMirroring(serialNumber, handle, client.deviceConfig, ActivationLevel.CREATE_TAB)
+      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+        val serialNumber = client.deviceSerialNumber
+        val handle = onlineDevices[serialNumber]?.handle ?: return@invokeLater
+        adoptDeviceClient(serialNumber, handle) { client }
+        startMirroring(serialNumber, handle, client.deviceConfig, ActivationLevel.CREATE_TAB)
+      }
     }
   }
 
+  @AnyThread
   override fun deviceClientRemoved(client: DeviceClient, requester: Any?) {
     if (requester != this) {
-      deactivateMirroring(client.deviceSerialNumber)
+      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+        deactivateMirroring(client.deviceSerialNumber)
+      }
     }
   }
 
@@ -1320,8 +1326,10 @@ internal class DeviceClientRegistry : Disposable {
 
   interface Listener {
 
+    @AnyThread
     fun deviceClientAdded(client: DeviceClient, requester: Any?)
 
+    @AnyThread
     fun deviceClientRemoved(client: DeviceClient, requester: Any?)
   }
 }
