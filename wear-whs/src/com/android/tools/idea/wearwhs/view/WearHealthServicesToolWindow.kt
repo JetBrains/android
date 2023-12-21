@@ -237,7 +237,12 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
                 override fun textChanged(e: DocumentEvent) {
                   workerScope.launch {
                     try {
-                      stateManager.setOverrideValue(capability, textField.text.toFloat())
+                      if (textField.text.isEmpty()) {
+                        stateManager.setOverrideValue(capability, null)
+                      }
+                      else {
+                        stateManager.setOverrideValue(capability, textField.text.toFloat())
+                      }
                       uiScope.launch {
                         warningLabel.isVisible = false
                       }
