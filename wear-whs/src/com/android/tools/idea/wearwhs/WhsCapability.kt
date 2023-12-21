@@ -22,11 +22,15 @@ enum class WhsDataType() {
   STEPS,
   DISTANCE,
   TOTAL_CALORIES,
+  FLOORS,
   ELEVATION_GAIN,
+  ELEVATION_LOSS,
   ABSOLUTE_ELEVATION,
   LOCATION,
   HEART_RATE_BPM,
   SPEED,
+  PACE,
+  STEPS_PER_MINUTE,
 }
 
 /**
@@ -88,6 +92,13 @@ val WHS_CAPABILITIES = listOf(
     isStandardCapability = false,
   ),
   WhsCapability(
+    WhsDataType.ELEVATION_LOSS,
+    "wear.whs.capability.elevation.loss.label",
+    "wear.whs.capability.elevation.loss.unit",
+    isOverrideable = true,
+    isStandardCapability = false,
+  ),
+  WhsCapability(
     WhsDataType.TOTAL_CALORIES,
     "wear.whs.capability.total.calories.label",
     "wear.whs.capability.total.calories.unit",
@@ -97,6 +108,27 @@ val WHS_CAPABILITIES = listOf(
   WhsCapability(
     WhsDataType.ABSOLUTE_ELEVATION,
     "wear.whs.capability.absolute.elevation.label",
+    "wear.whs.capability.unit.none",
+    isOverrideable = false,
+    isStandardCapability = false,
+  ),
+  WhsCapability(
+    WhsDataType.PACE,
+    "wear.whs.capability.pace.label",
+    "wear.whs.capability.pace.unit",
+    isOverrideable = false,
+    isStandardCapability = false,
+  ),
+  WhsCapability(
+    WhsDataType.FLOORS,
+    "wear.whs.capability.floors.label",
+    "wear.whs.capability.unit.none",
+    isOverrideable = false,
+    isStandardCapability = false,
+  ),
+  WhsCapability(
+    WhsDataType.STEPS_PER_MINUTE,
+    "wear.whs.capability.steps.per.minute.label",
     "wear.whs.capability.unit.none",
     isOverrideable = false,
     isStandardCapability = false,
