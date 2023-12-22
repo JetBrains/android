@@ -34,6 +34,7 @@ import java.util.LinkedList
 import java.util.concurrent.TimeUnit
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.powerRailDisplayNameMappings
+import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModelUtils.findValueNearKey
 import org.jetbrains.annotations.VisibleForTesting
 import kotlin.math.max
 import kotlin.math.min
@@ -449,21 +450,24 @@ fun List<Layer>.groupedByPhase(): List<Phase> = asSequence()
 private fun mapFrameNumber(layers: List<Layer>,
                            timelineEvents: List<AndroidFrameTimelineEvent>,
                            surfaceflingerDisplayTokenToEndNs: Map<Long, Long>): Map<Int, Long> {
-  val lifeCycleEventStartNsToNumber = mutableMapOf<Long, Int>()
+  val lifeCycleEventStartNsToNumber = LinkedHashMap<Long, Int>()
   layers.forEach { layer ->
-    layer.phaseList.forEach { phase ->
-      phase.frameEventList.forEach { event ->
-        lifeCycleEventStartNsToNumber[event.timestampNanoseconds] = event.frameNumber
-      }
+    layer.phaseList.filter {
+      // The "Display" phase contains the entire lifecycle of the frame and thus should be the only phase used to match timestamps.
+      phase -> phase.phaseName == "Display"
+    }.forEach { phase ->
+      phase.frameEventList.forEach { event -> lifeCycleEventStartNsToNumber[event.timestampNanoseconds] = event.frameNumber }
     }
   }
 
   fun getLifecycleFrameNumber(event: AndroidFrameTimelineEvent) : Int? {
     val surfaceflingerEndNs = surfaceflingerDisplayTokenToEndNs[event.displayFrameToken]
-    return lifeCycleEventStartNsToNumber[surfaceflingerEndNs]
+    // A tolerance (1000 ns) is given with timestamp-based matching to account for different clocks used for the different data sources.
+    // The value of 1000 ns is reasonable given a frame display duration will be at least in the millions of nanoseconds (milliseconds).
+    return surfaceflingerEndNs?.let { findValueNearKey(sortedMap = lifeCycleEventStartNsToNumber, targetKey = it, tolerance = 1000L) }
   }
 
   return timelineEvents
     .filter { event -> getLifecycleFrameNumber(event) != null }
-    .associate{ event -> getLifecycleFrameNumber(event)!! to event.surfaceFrameToken }
+    .associate { event -> getLifecycleFrameNumber(event)!! to event.surfaceFrameToken }
 }
