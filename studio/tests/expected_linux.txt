@@ -2035,10 +2035,10 @@ android-studio/plugins/android/lib/javax.servlet-api-3.0.1.jar
 android-studio/plugins/android/lib/jetifier-core-1.0.0-beta10.jar
 android-studio/plugins/android/lib/jetty-6.1.26.jar
 android-studio/plugins/android/lib/jetty-util-6.1.26.jar
-android-studio/plugins/android/lib/jewel-foundation-0.12.0.jar
-android-studio/plugins/android/lib/jewel-ide-laf-bridge-0.12.0-ij-233.jar
-android-studio/plugins/android/lib/jewel-ide-laf-bridge-platform-specific-0.12.0-ij-233.jar
-android-studio/plugins/android/lib/jewel-ui-0.12.0.jar
+android-studio/plugins/android/lib/jewel-foundation-0.11.0.jar
+android-studio/plugins/android/lib/jewel-ide-laf-bridge-0.11.0-ij-232.jar
+android-studio/plugins/android/lib/jewel-ide-laf-bridge-platform-specific-0.11.0-ij-232.jar
+android-studio/plugins/android/lib/jewel-ui-0.11.0.jar
 android-studio/plugins/android/lib/jsr305-2.0.1.jar
 android-studio/plugins/android/lib/juniversalchardet-1.0.3.jar
 android-studio/plugins/android/lib/kotlin_multiplatform_android_models_proto.jar
