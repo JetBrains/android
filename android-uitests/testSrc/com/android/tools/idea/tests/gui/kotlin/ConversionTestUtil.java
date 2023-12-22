@@ -31,7 +31,7 @@ public class ConversionTestUtil {
     // The Kotlin plugin version chosen is done with a network request. This does not work
     // in an environment where network access is unavailable. We need to handle setting
     // the Kotlin plugin version ourselves temporarily.
-    Wait.seconds(15)
+    Wait.seconds(20)
       .expecting("Gradle project sync in progress...")
       .until(() ->
                ideFrameFixture.getEditor().open(gradleFile).getCurrentFileContents().contains("kotlin")
@@ -39,8 +39,8 @@ public class ConversionTestUtil {
 
     ideFrameFixture.getEditor()
       .open(gradleFile)
-      .select("(id 'org.jetbrains.kotlin.android.*)")
-      .pasteText("id(\"org.jetbrains.kotlin.android\") version \"" + TestUtils.KOTLIN_VERSION_FOR_TESTS + "\" apply false");
+      .select("(kotlin = \".*\")")
+      .pasteText("kotlin = \"" + TestUtils.KOTLIN_VERSION_FOR_TESTS + "\"");
 
     guiTest.waitForBackgroundTasks();
     // TODO End hack
