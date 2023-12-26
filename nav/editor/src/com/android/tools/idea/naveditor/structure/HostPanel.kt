@@ -34,6 +34,7 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.GeneralSettings
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
@@ -163,8 +164,9 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
         }
         icon = StudioIcons.NavEditor.Tree.ACTIVITY
         val containingFile = value.containingFile?.name ?: "Unknown File"
+        val id = runReadAction { value.element?.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId) }
         append(FileUtil.getNameWithoutExtension(containingFile))
-        append(" (${value.element?.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId) ?: "no id"})")
+        append(" (${id ?: "no id"})")
       }
     }
     list.addMouseListener(object : MouseAdapter() {
