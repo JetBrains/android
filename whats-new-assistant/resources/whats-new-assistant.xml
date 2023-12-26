@@ -21,12 +21,12 @@
     hideStepIndex="true"
     version="2023.3.1">
   <feature
-      name="What's New in Iguana">
+      name="What's New in Jellyfish">
     <tutorial
         key="whats-new"
-        label=" What's New in Iguana"
+        label=" What's New in Jellyfish"
         icon="preview/product-icon.svg"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2023-2-1"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2023-3-1"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -41,7 +41,7 @@
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 12/11/2023</em><br><br>
+              <br><em>Last updated 12/26/2023</em><br><br>
             ]]>
           </section>
         </stepElement>
