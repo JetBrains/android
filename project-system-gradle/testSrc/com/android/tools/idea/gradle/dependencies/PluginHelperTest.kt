@@ -40,10 +40,10 @@ class PluginHelperTest: AndroidGradleTestCase() {
              assertThat(project.getTextForFile("gradle/libs.versions.toml"))
                .contains("{ id = \"com.example.libs\", version.ref = \"")
              assertThat(project.getTextForFile("app/build.gradle"))
-               .contains(" alias(libs.plugins.exampleLibs) apply true")
+               .contains(" alias(libs.plugins.example.libs) apply true")
 
              assertThat(project.getTextForFile("build.gradle"))
-               .contains(" alias(libs.plugins.exampleLibs) apply false")
+               .contains(" alias(libs.plugins.example.libs) apply false")
            })
   }
 
@@ -58,7 +58,7 @@ class PluginHelperTest: AndroidGradleTestCase() {
              helper.addPlugin("com.example.libs", "1.0", moduleModel)
            },
            {
-             assertThat(project.getTextForFile("gradle/libs.versions.toml")).doesNotContain("exampleLibs")
+             assertThat(project.getTextForFile("gradle/libs.versions.toml")).doesNotContain("example-libs")
              assertThat(project.getTextForFile("app/build.gradle"))
                .contains("alias(libs.plugins.libsPlugin) apply true")
 

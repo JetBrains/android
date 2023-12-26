@@ -1,4 +1,4 @@
 [versions]
 kotlin = "$VERSION$"
 [plugins]
-jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

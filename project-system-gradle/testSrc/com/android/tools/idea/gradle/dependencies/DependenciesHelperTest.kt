@@ -204,13 +204,13 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            {
              val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
              assertThat(catalogContent).contains("example-foo = \"10.0\"")
-             assertThat(catalogContent).contains("exampleFoo = { id = \"com.example.foo\", version.ref = \"example-foo\"")
+             assertThat(catalogContent).contains("example-foo = { id = \"com.example.foo\", version.ref = \"example-foo\"")
 
              val projectBuildContent = project.getTextForFile("build.gradle")
-             assertThat(projectBuildContent).contains("alias(libs.plugins.exampleFoo) apply false")
+             assertThat(projectBuildContent).contains("alias(libs.plugins.example.foo) apply false")
 
              val buildFileContent = project.getTextForFile("app/build.gradle")
-             assertThat(buildFileContent).contains("alias(libs.plugins.exampleFoo)")
+             assertThat(buildFileContent).contains("alias(libs.plugins.example.foo)")
            })
   }
 
@@ -281,7 +281,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
              assertThat(projectBuildContent).doesNotContain("example")
 
              val buildFileContent = project.getTextForFile("app/build.gradle")
-             assertThat(buildFileContent).contains("alias(libs.plugins.exampleFoo)")
+             assertThat(buildFileContent).contains("alias(libs.plugins.example.foo)")
            })
   }
 
