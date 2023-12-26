@@ -227,7 +227,7 @@ def check_artifacts(dir):
   files = sorted(os.listdir(dir))
   if not files:
     sys.exit("There are no artifacts in " + dir)
-  regex = re.compile("android-studio-([^.]*)\.(.*)\.([^.-]+)(-sources.zip|.mac.x64-no-jdk.zip|.mac.aarch64-no-jdk.zip|-no-jbr.tar.gz|-no-jbr.win.zip)$")
+  regex = re.compile("android-studio-([^.]*)\.(.*)\.([^.-]+)(-sources.zip|.mac.x64-no-jdk.zip|.mac.aarch64-no-jdk.zip|-no-jbr.tar.gz|-no-jbr.win.zip)(.spdx.json)?$")
   files = [file for file in files if regex.match(file) or file == "updater-full.jar"]
   if not files:
     sys.exit("No artifacts found in " + dir)
@@ -237,10 +237,14 @@ def check_artifacts(dir):
   bid = match.group(3)
   expected = [
       "android-studio-%s.%s.%s-no-jbr.tar.gz" % (version_major, version_minor, bid),
+      "android-studio-%s.%s.%s-no-jbr.tar.gz.spdx.json" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s-no-jbr.win.zip" % (version_major, version_minor, bid),
+      "android-studio-%s.%s.%s-no-jbr.win.zip.spdx.json" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s-sources.zip" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s.mac.aarch64-no-jdk.zip" % (version_major, version_minor, bid),
+      "android-studio-%s.%s.%s.mac.aarch64-no-jdk.zip.spdx.json" % (version_major, version_minor, bid),
       "android-studio-%s.%s.%s.mac.x64-no-jdk.zip" % (version_major, version_minor, bid),
+      "android-studio-%s.%s.%s.mac.x64-no-jdk.zip.spdx.json" % (version_major, version_minor, bid),
       "updater-full.jar",
   ]
   if files != expected:
@@ -255,7 +259,7 @@ def check_artifacts(dir):
   if len(manifests) == 1:
     manifest = os.path.basename(manifests[0])
 
-  return "AI", files[0], files[1], files[2], files[3], files[4], files[5], manifest
+  return "AI", *files, manifest
 
 
 def download(workspace, bid):
@@ -279,10 +283,10 @@ sudo apt install android-fetch-artifact""")
 
   artifacts = [
     "android-studio-*-sources.zip",
-    "android-studio-*.mac.x64-no-jdk.zip",
-    "android-studio-*.mac.aarch64-no-jdk.zip",
-    "android-studio-*-no-jbr.tar.gz",
-    "android-studio-*-no-jbr.win.zip",
+    "android-studio-*.mac.x64-no-jdk.zip", "android-studio-*.mac.x64-no-jdk.zip.spdx.json",
+    "android-studio-*.mac.aarch64-no-jdk.zip", "android-studio-*.mac.aarch64-no-jdk.zip.spdx.json",
+    "android-studio-*-no-jbr.tar.gz", "android-studio-*-no-jbr.tar.gz.spdx.json",
+    "android-studio-*-no-jbr.win.zip", "android-studio-*-no-jbr.win.zip.spdx.json",
     "updater-full.jar",
     "manifest_%s.xml" % bid,
   ]
@@ -300,7 +304,7 @@ def write_metadata(path, data):
       file.write(k + ": " + str(v) + "\n")
 
 def extract(workspace, dir, delete_after, metadata):
-  version, linux, win, sources, mac_arm, mac, updater, manifest = check_artifacts(dir)
+  version, linux, linux_sbom, win, win_sbom, sources, mac_arm, mac_arm_sbom, mac, mac_sbom, updater, manifest = check_artifacts(dir)
   path = workspace + "/prebuilts/studio/intellij-sdk/" + version
 
   if os.path.exists(path):
@@ -309,6 +313,12 @@ def extract(workspace, dir, delete_after, metadata):
   os.mkdir(path)
   shutil.copyfile(dir + "/" + sources, path + "/android-studio-sources.zip")
   shutil.copyfile(dir + "/" + updater, path + "/updater-full.jar")
+
+  os.mkdir(path + "/sbom")
+  shutil.copyfile(dir + "/" + linux_sbom, path + "/sbom/linux.spdx.json")
+  shutil.copyfile(dir + "/" + mac_sbom, path + "/sbom/darwin.spdx.json")
+  shutil.copyfile(dir + "/" + mac_arm_sbom, path + "/sbom/darwin_aarch64.spdx.json")
+  shutil.copyfile(dir + "/" + win_sbom, path + "/sbom/windows.spdx.json")
 
   print("Unzipping mac distribution...")
   # Call to unzip to preserve mac symlinks
