@@ -277,7 +277,16 @@ sudo apt install android-fetch-artifact""")
     sys.exit("--bid argument needs to be set to download")
   dir = tempfile.mkdtemp(prefix="studio_sdk", suffix=bid)
 
-  for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.x64-no-jdk.zip", "android-studio-*.mac.aarch64-no-jdk.zip", "android-studio-*-no-jbr.tar.gz", "android-studio-*-no-jbr.win.zip", "updater-full.jar", "manifest_%s.xml" % bid]:
+  artifacts = [
+    "android-studio-*-sources.zip",
+    "android-studio-*.mac.x64-no-jdk.zip",
+    "android-studio-*.mac.aarch64-no-jdk.zip",
+    "android-studio-*-no-jbr.tar.gz",
+    "android-studio-*-no-jbr.win.zip",
+    "updater-full.jar",
+    "manifest_%s.xml" % bid,
+  ]
+  for artifact in artifacts:
     os.system(
         "%s %s --bid %s --target IntelliJ '%s' %s"
         % (fetch_artifact, auth_flag, bid, artifact, dir))
