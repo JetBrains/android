@@ -26,7 +26,6 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.annotations.SystemDependent
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 
@@ -326,28 +325,6 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
     verifyFileContents(myVersionCatalogFile, """
       [libraries]
       core = { group="androidx.core", name="core-ktx", version="[1.6.0,1.8.0]!!1.8.0" }
-    """.trimIndent())
-  }
-
-  // We do not support writing in such format for now
-  @Test
-  @Ignore("b/303108824")
-  fun testAddDeclarationAsMapWithMapVersion() {
-    writeToBuildFile("")
-    writeToVersionCatalogFile("")
-    val buildModel = projectBuildModel
-    val catalogModel = buildModel.versionCatalogsModel
-
-    val declarations = catalogModel.getVersionCatalogModel("libs")!!.libraryDeclarations()
-    val spec = LibraryDeclarationSpecImpl("core-ktx", "androidx.core",
-                                          VersionDeclarationSpecImpl.create("[1.6.0,1.8.0]!!1.8.0")!!)
-
-    declarations.addDeclaration("core", spec)
-
-    applyChangesAndReparse(buildModel)
-    verifyFileContents(myVersionCatalogFile, """
-      [libraries]
-      core = { group="androidx.core", name="core-ktx", version={ strictly="[1.6.0,1.8.0]", prefer="1.8.0"} }
     """.trimIndent())
   }
 

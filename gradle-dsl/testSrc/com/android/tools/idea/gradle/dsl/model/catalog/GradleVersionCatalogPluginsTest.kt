@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.VersionDeclarationSp
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.annotations.SystemDependent
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 
@@ -175,26 +174,6 @@ class GradleVersionCatalogPluginsTest : GradleFileModelTestCase() {
       verifyFileContents(myVersionCatalogFile, """
       [plugins]
       fooPlugin = { id = "foo", version = "[1.6.0,1.8.0]!!1.8.0" }
-    """.trimIndent())
-    }
-  }
-
-  // We do not support writing in such format for now
-  @Test
-  @Ignore("b/303108936")
-  fun testAddDeclarationAsMapWithMapVersion() {
-    prepareAddTest { buildModel, catalogModel ->
-
-      val declarations = catalogModel.getVersionCatalogModel("libs")!!.pluginDeclarations()
-      val spec = PluginDeclarationSpecImpl("foo",
-                                           VersionDeclarationSpecImpl.create("[1.6.0,1.8.0]!!1.8.0")!!)
-
-      declarations.addDeclaration("fooPlugin", spec)
-
-      applyChangesAndReparse(buildModel)
-      verifyFileContents(myVersionCatalogFile, """
-      [plugins]
-      fooPlugin = { id = "foo", version = { strictly = "[1.6.0,1.8.0]", prefer = "1.8.0"} }
     """.trimIndent())
     }
   }
