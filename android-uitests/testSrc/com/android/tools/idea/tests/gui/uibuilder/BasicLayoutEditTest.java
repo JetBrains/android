@@ -32,6 +32,8 @@ import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.KeyPressInfo;
+import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -97,17 +99,30 @@ public class BasicLayoutEditTest {
     assertThat(editorFixture.canInteractWithSurface()).isTrue();
 
 
-    editorFixture
+    JTextComponentFixture textAttr = editorFixture
       .dragComponentToSurface("Common", "TextView")
       .waitForRenderToFinish()
       .getAttributesPanel()
       .waitForId("textView")
       .findSectionByName("Common Attributes")
       .findEditorOf("text")
-      .getTextField()
-      .selectAll()
-      .enterText("@string/app_name")
-      .pressAndReleaseKey(KeyPressInfo.keyCode(KeyEvent.VK_ENTER));
+      .getTextField();
+
+    // Update the text value to @string/app_name
+    // Adding extra wait to remove the flakiness in updating text
+    Wait.seconds(30)
+      .expecting("Wait for text value to be updated")
+      .until(() -> {
+        if(textAttr.text().contains("app_name")){
+          return true;
+        } else {
+          textAttr
+            .selectAll()
+            .enterText("@string/app_name")
+            .pressAndReleaseKey(KeyPressInfo.keyCode(KeyEvent.VK_ENTER));
+          return false;
+        }
+      });
 
     guiTest.ideFrame().click();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
