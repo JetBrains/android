@@ -39,6 +39,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
@@ -51,6 +52,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Semaphore;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -202,11 +204,9 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     setupTestProjectFromAndroidModel(myProject,
                                      Projects.getBaseDirPath(myProject),
                                      JavaModuleModelBuilder.Companion.getRootModuleBuilder(),
-                                     new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
-                                     new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
+                                     new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()));
     var modules = ImmutableList.of(
-      Objects.requireNonNull(gradleModule(myProject, ":app")),
-      Objects.requireNonNull(gradleModule(myProject, ":lib"))
+      Objects.requireNonNull(gradleModule(myProject, ":app"))
     ).toArray(new Module[0]);
     when(myTaskFinder.findTasksToExecute(modules, ASSEMBLE, TestCompileType.NONE)).thenReturn(ArrayListMultimap.create());
     GradleBuildInvoker buildInvoker = createBuildInvoker(myTaskFinder);
@@ -219,6 +219,30 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     assertThat(request).isNull();
     assertThat(myGradleTaskExecutor.getInvoked()).isEqualTo(0);
     assertThat(myGradleTaskExecutor.getLastRequest()).isNull();
+  }
+
+  public void testRequestsWithMultipleModes() {
+    setupTestProjectFromAndroidModel(myProject,
+                                     Projects.getBaseDirPath(myProject),
+                                     JavaModuleModelBuilder.Companion.getRootModuleBuilder(),
+                                     new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
+                                     new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
+    var modules = ImmutableList.of(
+      Objects.requireNonNull(gradleModule(myProject, ":app")),
+      Objects.requireNonNull(gradleModule(myProject, ":lib"))
+    ).toArray(new Module[0]);
+    GradleBuildInvoker buildInvoker = createBuildInvoker(myTaskFinder);
+    var requests = List.of(GradleBuildInvoker.Request
+              .builder(myProject, ProjectUtil.guessProjectDir(myProject).toNioPath().toFile(), List.of())
+              .setMode(BUNDLE)
+              .build(),
+            GradleBuildInvoker.Request
+              .builder(myProject, ProjectUtil.guessProjectDir(myProject).toNioPath().toFile(), List.of())
+              .setMode(ASSEMBLE)
+              .build());
+    assertThrows(IllegalArgumentException.class,
+                 "Each request requires the same not null build mode to be set",
+                 () -> buildInvoker.executeAssembleTasks(modules, requests));
   }
 
   public void testBundleWhenNoTasksToRun() {

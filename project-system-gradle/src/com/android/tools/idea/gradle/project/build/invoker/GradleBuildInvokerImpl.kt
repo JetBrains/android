@@ -172,11 +172,15 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
 
   override fun executeAssembleTasks(assembledModules: Array<Module>,
                                     request: List<GradleBuildInvoker.Request>): ListenableFuture<AssembleInvocationResult> {
+    if (request.isEmpty()) {
+      return Futures.immediateCancelledFuture<AssembleInvocationResult>()
+    }
     val buildMode: BuildMode =
       request
         .mapNotNull { it.mode }
         .distinct()
-        .singleOrNull() ?: return Futures.immediateCancelledFuture<AssembleInvocationResult>()
+        .singleOrNull() ?: throw IllegalArgumentException("Each request requires the same not null build mode to be set")
+
     val modulesByRootProject: Map<Path, List<Module>> =
       assembledModules
         .mapNotNull { module ->
