@@ -351,8 +351,8 @@ internal class VideoDecoder(
       val isConfig = packet.pts() == AV_NOPTS_VALUE
 
       var packetToProcess = packet
-      // A config packet must not be decoded immediately (it contains no frame).
-      // Instead, it must be concatenated with the future data packet.
+      // A config packet cannot not be decoded immediately since it contains no frame.
+      // It must be combined with the following data packet.
       if (hasPendingPacket || isConfig) {
         val offset: Int
         if (hasPendingPacket) {
