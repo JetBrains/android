@@ -257,6 +257,9 @@ def _studio_plugin_impl(ctx):
             licenses = depset(ctx.files.licenses),
             overwrite_plugin_version = True,
         ),
+        # Force 'chkplugin' to run by marking its output as a validation output.
+        # See https://bazel.build/extending/rules#validation_actions for details.
+        OutputGroupInfo(_validation = depset([ctx.outputs.plugin_metadata])),
     ]
 
 _studio_plugin = rule(
@@ -1030,6 +1033,9 @@ def _intellij_plugin_import_impl(ctx):
             ),
             overwrite_plugin_version = False,
         ),
+        # Force 'chkplugin' to run by marking its output as a validation output.
+        # See https://bazel.build/extending/rules#validation_actions for details.
+        OutputGroupInfo(_validation = depset([ctx.outputs.plugin_metadata])),
     ]
 
 _intellij_plugin_import = rule(
