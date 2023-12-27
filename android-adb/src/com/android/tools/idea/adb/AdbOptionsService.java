@@ -38,11 +38,11 @@ public final class AdbOptionsService {
    */
   static final int USER_MANAGED_ADB_PORT_MAX_VALUE = 65535;
 
-  private static final String USE_LIBUSB = "adb.use.libusb";
+  private static final String USB_BACKEND_NAME = "adb.usb.backend.name";
+
   private static final String USE_MDNS_OPENSCREEN = "adb.use.mdns.openscreen";
   private static final String USE_USER_MANAGED_ADB = "AdbOptionsService.use.user.managed.adb";
   private static final String USER_MANAGED_ADB_PORT = "AdbOptionsService.user.managed.adb.port";
-  private static final boolean LIBUSB_DEFAULT = false;
   private static final boolean USE_MDNS_OPENSCREEN_DEFAULT = true;
   private static final boolean USE_USER_MANAGED_ADB_DEFAULT = false;
 
@@ -59,8 +59,14 @@ public final class AdbOptionsService {
     return ApplicationManager.getApplication().getService(AdbOptionsService.class);
   }
 
-  public boolean shouldUseLibusb() {
-    return PropertiesComponent.getInstance().getBoolean(USE_LIBUSB, LIBUSB_DEFAULT);
+  @NotNull
+  public AdbServerUsbBackend getAdbServerUsbBackend() {
+    String value = PropertiesComponent.getInstance().getValue(USB_BACKEND_NAME, AdbServerUsbBackend.DEFAULT.name());
+    try {
+      return AdbServerUsbBackend.valueOf(value);
+    } catch(IllegalArgumentException e) {
+      return AdbServerUsbBackend.DEFAULT;
+    }
   }
 
   public boolean shouldUseMdnsOpenScreen() {
@@ -82,7 +88,7 @@ public final class AdbOptionsService {
 
   private void commitOptions(@NotNull AdbOptionsUpdater options) {
     PropertiesComponent props = PropertiesComponent.getInstance();
-    props.setValue(USE_LIBUSB, options.useLibusb());
+    props.setValue(USB_BACKEND_NAME, options.getAdbServerUsbBackend().name());
     props.setValue(USE_MDNS_OPENSCREEN, options.useMdnsOpenScreen(), USE_MDNS_OPENSCREEN_DEFAULT);
     props.setValue(USE_USER_MANAGED_ADB, options.useUserManagedAdb());
     props.setValue(USER_MANAGED_ADB_PORT, options.getUserManagedAdbPort(), USER_MANAGED_ADB_PORT_DEFAULT);
@@ -114,25 +120,25 @@ public final class AdbOptionsService {
 
   public static class AdbOptionsUpdater {
     @NotNull private final AdbOptionsService myService;
-    private boolean myUseLibusb;
+    private AdbServerUsbBackend myServerBackend;
     private boolean myUseMdnsOpenScreen;
     private boolean myUseUserManagedAdb;
     private int myUserManagedAdbPort;
 
     private AdbOptionsUpdater(@NotNull AdbOptionsService service) {
       myService = service;
-      myUseLibusb = service.shouldUseLibusb();
+      myServerBackend = service.getAdbServerUsbBackend();
       myUseMdnsOpenScreen = service.shouldUseMdnsOpenScreen();
       myUseUserManagedAdb = service.shouldUseUserManagedAdb();
       myUserManagedAdbPort = service.getUserManagedAdbPort();
     }
 
-    public boolean useLibusb() {
-      return myUseLibusb;
+    public AdbServerUsbBackend getAdbServerUsbBackend() {
+      return myServerBackend;
     }
 
-    public AdbOptionsUpdater setUseLibusb(boolean useLibusb) {
-      myUseLibusb = useLibusb;
+    public AdbOptionsUpdater setAdbServerUsbBackend(AdbServerUsbBackend serverBackend) {
+      myServerBackend = serverBackend;
       return this;
     }
 

@@ -432,7 +432,17 @@ public final class AdbService implements Disposable,
     options.setClientSupportEnabled(true); // IDE needs client monitoring support.
     options.useJdwpProxyService(StudioFlags.ENABLE_JDWP_PROXY_SERVICE.get());
     options.useDdmlibCommandService(StudioFlags.ENABLE_DDMLIB_COMMAND_SERVICE.get());
-    options.withEnv("ADB_LIBUSB", AdbOptionsService.getInstance().shouldUseLibusb() ? "1" : "0");
+
+    // There are three cases.
+    // 1. If ADB_LIBUSB is not set, adb server will choose the backend (preferred)
+    // 2. If ADB_LIBUSB == 1 -> libusb backend
+    // 3. If ADB_LIBUSB == 0 -> native backend
+    switch (AdbOptionsService.getInstance().getAdbServerUsbBackend() ) {
+      case LIBUSB -> options.withEnv("ADB_LIBUSB", "1");
+      case NATIVE -> options.withEnv("ADB_LIBUSB", "0");
+      case DEFAULT -> {}
+    }
+
     if (getInstance().myAllowMdnsOpenscreen) {
       // Enables Open Screen mDNS implementation in ADB host.
       // See https://android-review.googlesource.com/c/platform/packages/modules/adb/+/1549744

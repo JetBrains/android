@@ -1060,9 +1060,9 @@
     <option name="manually" hit="Use existing manually managed server" />
     <option name="server" hit="Use existing manually managed server" />
     <option name="use" hit="Use existing manually managed server" />
-    <option name="backend" hit="Use libusb backend" />
-    <option name="libusb" hit="Use libusb backend" />
-    <option name="use" hit="Use libusb backend" />
+    <option name="default" hit="default" />
+    <option name="libusb" hit="libusb" />
+    <option name="native" hit="native" />
   </configurable>
   <configurable id="instant.run" configurable_name="Deployment">
     <option name="apply" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
