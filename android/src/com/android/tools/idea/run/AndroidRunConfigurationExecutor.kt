@@ -17,6 +17,7 @@ package com.android.tools.idea.run
 
 import com.android.AndroidProjectTypes
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -183,7 +184,11 @@ class AndroidRunConfigurationExecutor(
   private suspend fun waitPreviousProcessTermination(devices: List<IDevice>, applicationId: String, indicator: ProgressIndicator) =
     coroutineScope {
       indicator.text = "Terminating the app"
-      val results = devices.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
+      val results = devices.filter {
+        // Starting with API33, we will purely rely on Package Manager to handle process termination.
+        !StudioFlags.INSTALL_FORGO_DONT_KILL.get() || !it.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU)
+      }.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
+
       if (results.any { !it }) {
         throw ExecutionException("Couldn't terminate previous instance of app")
       }

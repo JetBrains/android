@@ -346,6 +346,13 @@ public final class StudioFlags {
     "Requires applychanges.optimisticswap to be true.",
     true);
 
+  public static final Flag<Boolean> INSTALL_FORGO_DONT_KILL = Flag.create(
+    RUNDEBUG,
+    "install.forgo.dont.kill",
+    "When installing via the Package Manager, do not use the --dont-kill flag and skip process termination for API33+",
+    "We assume there are no race conditions with the package manager and give full control to it.",
+    true);
+
   /**
    * The level of APK change that will be supported by the deployment pipeline's optimistic
    * "deploy-without-installing" path. Deploying changes that exceed the level of support

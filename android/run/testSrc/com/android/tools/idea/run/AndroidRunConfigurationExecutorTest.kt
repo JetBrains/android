@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
 import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
@@ -77,7 +78,10 @@ import org.junit.Assert.assertThrows
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
+import org.mockito.Spy
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
@@ -114,6 +118,7 @@ class AndroidRunConfigurationExecutorTest {
         latch.countDown()
       }
     }
+
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
     val deviceFutures = DeviceFutures.forDevices(listOf(device))
 
@@ -747,5 +752,73 @@ class AndroidRunConfigurationExecutorTest {
     }
     AndroidSessionInfo.create(processHandlerForSwap, listOf(device), APPLICATION_ID)
     return runContentDescriptor!!
+  }
+
+  @Test
+  fun runAPI33() {
+    val deviceState = fakeAdb.connectAndWaitForDevice()
+    val latch = CountDownLatch(1)
+    deviceState.setActivityManager { args, _ ->
+      val command = args.joinToString(" ")
+      if (command == "start -n google.simpleapplication/google.simpleapplication.MyActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --splashscreen-show-icon") {
+        deviceState.startClient(1234, 1235, APPLICATION_ID, false)
+        latch.countDown()
+      }
+    }
+
+    val device = spy(AndroidDebugBridge.getBridge()!!.devices.single())
+    Mockito.`when`(device.version).thenReturn(AndroidVersion(33))
+    Mockito.`when`(device.forceStop(any())).thenThrow(RuntimeException("Should not kill"))
+
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+
+    val stats = RunStatsService.get(projectRule.project).create()
+    val env = getExecutionEnvironment(listOf(device)).apply {
+      putUserData(RunStats.KEY, stats)
+    }
+    val configuration = env.runProfile as AndroidRunConfiguration
+    configuration.CLEAR_APP_STORAGE = true
+    configuration.CLEAR_LOGCAT = true
+    configuration.executeMakeBeforeRunStepInTest(device)
+
+    var logcatCleared = false
+    projectRule.project.messageBus.connect(projectRule.testRootDisposable)
+      .subscribe(ClearLogcatListener.TOPIC, ClearLogcatListener { logcatCleared = true })
+
+    val runner = AndroidRunConfigurationExecutor(
+      configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
+      env,
+      deviceFutures,
+      configuration.apkProvider!!,
+      applicationDeployer = testApplicationDeployer(device, ApplicationDeployer::fullDeploy.name)
+    )
+
+    val runContentDescriptor = ProgressManager.getInstance()
+      .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
+
+    stats.success()
+    assertTaskPresentedInStats(usageTrackerRule.usages, "CLEAR_APP_STORAGE_TASK")
+    assertTaskPresentedInStats(usageTrackerRule.usages, "DEFAULT_ACTIVITY")
+
+    val processHandler = runContentDescriptor.processHandler!!
+    processHandler.startNotify()
+
+    assertThat(logcatCleared).isTrue() // comes from [com.android.tools.idea.run.tasks.ClearAppStorageTaskKt.clearAppStorage]
+    assertThat(deviceState.pmLogs).contains("list packages google.simpleapplication")
+    assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
+    assertThat((processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(APPLICATION_ID)
+    assertThat(processHandler.autoTerminate).isEqualTo(true)
+    assertThat(processHandler.isAssociated(device)).isEqualTo(true)
+    assertThat(AndroidSessionInfo.from(processHandler)).isNotNull()
+
+    if (!latch.await(10, TimeUnit.SECONDS)) {
+      fail("Activity is not started")
+    }
+    deviceState.stopClient(1234) // TODO: flaky test b/273744887
+    //if (!processHandler.waitFor(5000)) {
+    //  fail("Process handler didn't stop when debug process terminated")
+    //}
+    processHandler.destroyProcess()
   }
 }
