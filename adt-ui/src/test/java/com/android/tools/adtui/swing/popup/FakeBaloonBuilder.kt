@@ -151,7 +151,7 @@ class FakeBalloon(
   private fun show() {
     listeners.forEach { it.beforeShown(mock()) }
     component.setBounds(0, 0, 500, 1000)
-    ui = FakeUi(component, createFakeWindow = true)
+    ui = FakeUi(component, createFakeWindow = true, parentDisposable = this)
     if (requestFocus) {
       val focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager() as? FakeKeyboardFocusManager
       originalFocusOwner = focusManager?.focusOwner

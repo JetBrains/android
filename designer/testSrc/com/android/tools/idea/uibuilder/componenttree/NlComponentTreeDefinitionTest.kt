@@ -64,6 +64,7 @@ import com.google.common.collect.ImmutableCollection
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.XmlElementFactory
 import com.intellij.testFramework.EdtRule
@@ -545,6 +546,7 @@ class NlComponentTreeDefinitionTest {
     val textView = model.find("a")!!
     ui.mouse.click(rect.midX, rect.midY)
     val balloon = popupRule.fakePopupFactory.getBalloon(0)
+    Disposer.register(projectRule.testRootDisposable, balloon)
     val androidPanel = balloon.component.components.filterIsInstance<JPanel>().first()
     val toolsPanel = balloon.component.components.filterIsInstance<JPanel>().last()
     val androidButtons = androidPanel.components.filterIsInstance<JBLabel>()
