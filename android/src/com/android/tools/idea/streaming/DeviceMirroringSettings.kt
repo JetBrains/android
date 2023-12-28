@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
@@ -33,6 +34,7 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
   var activateOnConnection: Boolean by ChangeNotifyingProperty(false)
   var activateOnAppLaunch: Boolean by ChangeNotifyingProperty(false)
   var activateOnTestLaunch: Boolean by ChangeNotifyingProperty(false)
+  var streamAudio: Boolean by ChangeNotifyingProperty(StudioFlags.DEVICE_MIRRORING_AUDIO.get())
   var synchronizeClipboard: Boolean by ChangeNotifyingProperty(true)
   /** Max length of clipboard text to participate in clipboard synchronization. */
   var maxSyncedClipboardLength: Int by ChangeNotifyingProperty(MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT)

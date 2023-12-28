@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.device.settings
 
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.device.dialogs.MirroringConfirmationDialog
 import com.intellij.openapi.options.Configurable
@@ -35,10 +36,11 @@ import org.jetbrains.annotations.Nls
  */
 class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScroll {
 
-  private lateinit var synchronizeClipboardCheckBox: JBCheckBox
   private lateinit var activateOnConnectionCheckBox: JBCheckBox
   private lateinit var activateOnAppLaunchCheckBox: JBCheckBox
   private lateinit var activateOnTestLaunchCheckBox: JBCheckBox
+  private lateinit var streamAudioCheckBox: JBCheckBox
+  private lateinit var synchronizeClipboardCheckBox: JBCheckBox
   private lateinit var maxSyncedClipboardLengthTextField: JBTextField
   private lateinit var turnOffDisplayWhileMirroringCheckBox: JBCheckBox
 
@@ -83,6 +85,18 @@ class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScrol
             }
           }
     }
+    if (StudioFlags.DEVICE_MIRRORING_AUDIO.get()) {
+      row {
+        streamAudioCheckBox =
+          checkBox("Stream audio")
+            .comment("(requires Android 12+)")
+            .bindSelected(state::streamAudio)
+            .component
+      }.topGap(TopGap.SMALL)
+    }
+    else {
+      streamAudioCheckBox = JBCheckBox() // Placeholder.
+    }
     row {
       synchronizeClipboardCheckBox =
         checkBox("Enable clipboard sharing")
@@ -110,6 +124,7 @@ class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScrol
     return activateOnConnectionCheckBox.isSelected != state.activateOnConnection ||
            activateOnAppLaunchCheckBox.isSelected != state.activateOnAppLaunch ||
            activateOnTestLaunchCheckBox.isSelected != state.activateOnTestLaunch ||
+           streamAudioCheckBox.isSelected != state.streamAudio ||
            synchronizeClipboardCheckBox.isSelected != state.synchronizeClipboard ||
            maxSyncedClipboardLengthTextField.text.trim() != state.maxSyncedClipboardLength.toString() ||
            turnOffDisplayWhileMirroringCheckBox.isSelected != state.turnOffDisplayWhileMirroring
@@ -121,6 +136,7 @@ class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScrol
     state.activateOnConnection = activateOnConnectionCheckBox.isSelected
     state.activateOnAppLaunch = activateOnAppLaunchCheckBox.isSelected
     state.activateOnTestLaunch = activateOnTestLaunchCheckBox.isSelected
+    state.streamAudio = streamAudioCheckBox.isSelected
     state.synchronizeClipboard = synchronizeClipboardCheckBox.isSelected
     state.maxSyncedClipboardLength = maxSyncedClipboardLengthTextField.text.trim().toInt()
     state.turnOffDisplayWhileMirroring = turnOffDisplayWhileMirroringCheckBox.isSelected
@@ -130,6 +146,7 @@ class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScrol
     activateOnConnectionCheckBox.isSelected = state.activateOnConnection
     activateOnAppLaunchCheckBox.isSelected = state.activateOnAppLaunch
     activateOnTestLaunchCheckBox.isSelected = state.activateOnTestLaunch
+    streamAudioCheckBox.isSelected = state.streamAudio
     synchronizeClipboardCheckBox.isSelected = state.synchronizeClipboard
     maxSyncedClipboardLengthTextField.text = state.maxSyncedClipboardLength.toString()
     turnOffDisplayWhileMirroringCheckBox.isSelected = state.turnOffDisplayWhileMirroring

@@ -18,8 +18,11 @@ package com.android.tools.idea.streaming.device.settings
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.device.dialogs.MirroringConfirmationDialog
+import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -46,6 +49,7 @@ class DeviceMirroringSettingsPageTest {
 
   @Before
   fun setUp() {
+    StudioFlags.DEVICE_MIRRORING_AUDIO.override(true, projectRule.disposable)
     settings.loadState(DeviceMirroringSettings())
   }
 
@@ -68,6 +72,7 @@ class DeviceMirroringSettingsPageTest {
         ui.getComponent<JCheckBox> { it.text == "Activate mirroring when launching an app on a physical device" }
     val activateOnTestLaunchCheckBox =
         ui.getComponent<JCheckBox> { it.text == "Activate mirroring when launching a test on a physical device" }
+    val streamAudioCheckBox = ui.getComponent<JCheckBox> { it.text == "Stream audio" }
     val synchronizeClipboardCheckBox = ui.getComponent<JCheckBox> { it.text == "Enable clipboard sharing" }
     val maxSyncedClipboardLengthTextField = ui.getComponent<JTextField>()
     val turnOffDisplayWhileMirroringCheckBox = ui.getComponent<JCheckBox> { it.text == "Turn off device display while mirroring" }
@@ -76,24 +81,26 @@ class DeviceMirroringSettingsPageTest {
     assertThat(activateOnConnectionCheckBox.isEnabled).isTrue()
     assertThat(activateOnAppLaunchCheckBox.isEnabled).isTrue()
     assertThat(activateOnTestLaunchCheckBox.isEnabled).isTrue()
+    assertThat(streamAudioCheckBox.isEnabled).isTrue()
     assertThat(synchronizeClipboardCheckBox.isEnabled).isTrue()
     assertThat(maxSyncedClipboardLengthTextField.isEnabled).isTrue()
     assertThat(turnOffDisplayWhileMirroringCheckBox.isEnabled).isTrue()
     assertThat(activateOnConnectionCheckBox.isSelected).isFalse()
     assertThat(activateOnAppLaunchCheckBox.isSelected).isFalse()
     assertThat(activateOnTestLaunchCheckBox.isSelected).isFalse()
+    assertThat(streamAudioCheckBox.isSelected).isTrue()
     assertThat(synchronizeClipboardCheckBox.isSelected).isTrue()
     assertThat(maxSyncedClipboardLengthTextField.text).isEqualTo(DeviceMirroringSettings.MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT.toString())
     assertThat(turnOffDisplayWhileMirroringCheckBox.isSelected).isFalse()
 
-    createModalDialogAndInteractWithIt({ activateOnConnectionCheckBox.doClick() }) { dialog ->
+    createModalDialogAndInteractWithIt(activateOnConnectionCheckBox::doClick) { dialog ->
       assertThat(dialog.title).isEqualTo("Privacy Notice")
       dialog.close(MirroringConfirmationDialog.REJECT_EXIT_CODE)
     }
     assertThat(activateOnConnectionCheckBox.isSelected).isFalse()
     assertThat(settingsUi.isModified).isFalse()
 
-    createModalDialogAndInteractWithIt({ activateOnAppLaunchCheckBox.doClick() }) { dialog ->
+    createModalDialogAndInteractWithIt(activateOnAppLaunchCheckBox::doClick) { dialog ->
       assertThat(dialog.title).isEqualTo("Privacy Notice")
       dialog.close(MirroringConfirmationDialog.ACCEPT_EXIT_CODE)
     }
@@ -110,6 +117,14 @@ class DeviceMirroringSettingsPageTest {
     settingsUi.apply()
     assertThat(settings.activateOnTestLaunch).isTrue()
     assertThat(settingsUi.isModified).isFalse()
+
+    streamAudioCheckBox.isSelected = false
+    assertThat(settingsUi.isModified).isTrue()
+    settingsUi.apply()
+    assertThat(settings.streamAudio).isFalse()
+    assertThat(settingsUi.isModified).isFalse()
+    streamAudioCheckBox.isSelected = true
+    assertThat(settingsUi.isModified).isTrue()
 
     maxSyncedClipboardLengthTextField.text = " 3000 "
     assertThat(settingsUi.isModified).isTrue()
@@ -140,6 +155,7 @@ class DeviceMirroringSettingsPageTest {
     assertThat(activateOnConnectionCheckBox.isSelected).isFalse()
     assertThat(activateOnAppLaunchCheckBox.isSelected).isFalse()
     assertThat(activateOnTestLaunchCheckBox.isSelected).isFalse()
+    assertThat(streamAudioCheckBox.isSelected).isTrue()
     assertThat(synchronizeClipboardCheckBox.isSelected).isTrue()
     assertThat(maxSyncedClipboardLengthTextField.text).isEqualTo(DeviceMirroringSettings.MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT.toString())
     assertThat(turnOffDisplayWhileMirroringCheckBox.isSelected).isFalse()
