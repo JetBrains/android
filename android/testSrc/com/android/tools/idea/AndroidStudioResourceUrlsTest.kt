@@ -69,28 +69,28 @@ class AndroidStudioResourceUrlsTest {
   @Test
   fun mac_arm() {
     val resourceUrls = AndroidStudioResourceUrls()
-    val suffix = resourceUrls.getPatchSuffix(isMac = true, isWindows = false, isUnix = false, isAarch = true)
+    val suffix = resourceUrls.getPatchSuffix(isMac = true, isWindows = false, isUnix = false, isAarch64 = true)
     assertEquals("mac_arm.jar", suffix)
   }
 
   @Test
   fun mac() {
     val resourceUrls = AndroidStudioResourceUrls()
-    val suffix = resourceUrls.getPatchSuffix(isMac = true, isWindows = false, isUnix = false, isAarch = false)
+    val suffix = resourceUrls.getPatchSuffix(isMac = true, isWindows = false, isUnix = false, isAarch64 = false)
     assertEquals("mac.jar", suffix)
   }
 
   @Test
   fun windows() {
     val resourceUrls = AndroidStudioResourceUrls()
-    val suffix = resourceUrls.getPatchSuffix(isMac = false, isWindows = true, isUnix = false, isAarch = false)
+    val suffix = resourceUrls.getPatchSuffix(isMac = false, isWindows = true, isUnix = false, isAarch64 = false)
     assertEquals("win.jar", suffix)
   }
 
   @Test
   fun unix() {
     val resourceUrls = AndroidStudioResourceUrls()
-    val suffix = resourceUrls.getPatchSuffix(isMac = false, isWindows = false, isUnix = true, isAarch = false)
+    val suffix = resourceUrls.getPatchSuffix(isMac = false, isWindows = false, isUnix = true, isAarch64 = false)
     assertEquals("unix.jar", suffix)
   }
 
@@ -98,7 +98,7 @@ class AndroidStudioResourceUrlsTest {
   fun unknownOsAndArchitectureThrowsException() {
     val resourceUrls = AndroidStudioResourceUrls()
     assertThrows(IllegalStateException::class.java) {
-      resourceUrls.getPatchSuffix(isMac = false, isWindows = false, isUnix = false, isAarch = false)
+      resourceUrls.getPatchSuffix(isMac = false, isWindows = false, isUnix = false, isAarch64 = false)
     }
   }
 }

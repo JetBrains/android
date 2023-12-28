@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea
 
-import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.util.BuildNumber
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.platform.ide.customization.ExternalProductResourceUrls
@@ -26,41 +25,28 @@ import org.jetbrains.annotations.VisibleForTesting
 
 class AndroidStudioResourceUrls : ExternalProductResourceUrls by LegacyExternalProductResourceUrls() {
   companion object {
-    private const val UPDATE_URL = "https://dl.google.com/android/studio/patches/updates.xml"
-    private const val PATCH_URL = "https://dl.google.com/android/studio/patches/"
-    /**
-      This environment variable is only used by the e2e [com.android.tools.idea.UpdateTest]
-    */
-    private const val UPDATE_ENV_VAR = "AS_UPDATE_URL"
+    // The overriding AS_UPDATE_URL environment variable is used by QA and some E2E tests (UpdateTest).
+    private val UPDATE_BASE_URL: String = System.getenv("AS_UPDATE_URL") ?: "https://dl.google.com/android/studio/patches"
   }
 
   override val updateMetadataUrl: Url
-    get() {
-      return if (System.getenv("AS_UPDATE_URL") != null) {
-         Urls.newFromEncoded(System.getenv("AS_UPDATE_URL") + "/updates.xml")
-      } else {
-        Urls.newFromEncoded(UPDATE_URL)
-      }
-    }
+    get() = Urls.newFromEncoded(UPDATE_BASE_URL).resolve("updates.xml")
 
-  override fun computePatchUrl(from: BuildNumber, to: BuildNumber): Url? {
-    val url = System.getenv(UPDATE_ENV_VAR) ?: PATCH_URL
-    val patchFile = getPatchFileName(from, to) ?: return null
-    return Urls.newFromEncoded(url).resolve(patchFile)
+  override fun computePatchUrl(from: BuildNumber, to: BuildNumber): Url {
+    return Urls.newFromEncoded(UPDATE_BASE_URL).resolve(getPatchFileName(from, to))
   }
 
-  private fun getPatchFileName(from: BuildNumber, to: BuildNumber): String? {
-    val product = ApplicationInfo.getInstance().build.productCode
+  private fun getPatchFileName(from: BuildNumber, to: BuildNumber): String {
     val suffix = getPatchSuffix(isMac = SystemInfo.isMac, isWindows = SystemInfo.isWindows, isUnix = SystemInfo.isUnix,
-                                isAarch = SystemInfo.isAarch64) ?: return null
-    return "${product}-${from.asStringWithoutProductCode()}-${to.asStringWithoutProductCode()}-patch-$suffix"
+                                isAarch64 = SystemInfo.isAarch64)
+    return "${from.asString()}-${to.asStringWithoutProductCode()}-patch-$suffix"
   }
 
   //  mac_arm, mac_x86, win_x86 and unix_x86 are the only supported OS architectures at this time.
   @VisibleForTesting
-  fun getPatchSuffix(isMac: Boolean, isWindows: Boolean, isUnix: Boolean, isAarch: Boolean): String {
+  fun getPatchSuffix(isMac: Boolean, isWindows: Boolean, isUnix: Boolean, isAarch64: Boolean): String {
     return when {
-      isMac -> if (isAarch) "mac_arm.jar" else "mac.jar"
+      isMac -> if (isAarch64) "mac_arm.jar" else "mac.jar"
       isWindows -> "win.jar"
       isUnix -> "unix.jar"
       // propagate error to the user instead of sending an invalid request to our server
