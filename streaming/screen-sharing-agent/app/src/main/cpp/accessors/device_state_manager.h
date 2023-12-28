@@ -60,6 +60,7 @@ private:
   static void NotifyListeners(int32_t device_state);
 
   static std::mutex static_initialization_mutex_;
+  static bool initialized_;  // GUARDED_BY(static_initialization_mutex_)
   // DeviceStateManager class.
   static JObject device_state_manager_;  // GUARDED_BY(static_initialization_mutex_)
   static jmethodID get_device_state_info_method_;  // GUARDED_BY(static_initialization_mutex_)
