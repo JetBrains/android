@@ -14,6 +14,7 @@ add_library(
 
         SHARED
 
+        accessors/audio_manager.cc
         accessors/clipboard_manager.cc
         accessors/device_state_manager.cc
         accessors/display_info.cc
