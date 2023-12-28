@@ -55,6 +55,9 @@ import com.intellij.psi.util.PsiUtil
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.asJava.elements.KtLightField
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.uast.UAnnotation
+import org.jetbrains.uast.UExpression
+import org.jetbrains.uast.toUElementOfType
 
 private val LOG = Logger.getInstance(RoomSchemaManager::class.java)
 
@@ -89,7 +92,6 @@ class RoomSchemaManager(val module: Module) {
     return schemas[scopeType]!!.value
   }
 
-  private val constantEvaluationHelper = JavaPsiFacade.getInstance(module.project).constantEvaluationHelper
   private val pointerManager = SmartPointerManager.getInstance(module.project)
 
   /** Builds the schema using IJ indexes. */
@@ -224,9 +226,7 @@ class RoomSchemaManager(val module: Module) {
     embeddedAnnotation: PsiAnnotation,
     currentPrefix: String
   ): Sequence<RoomMemberColumn> {
-    val newPrefix = embeddedAnnotation.findAttributeValue("prefix")
-                      ?.let { constantEvaluationHelper.computeConstantExpression(it) }
-                      ?.toString()
+    val newPrefix = embeddedAnnotation.getAttributeValue("prefix")?.evaluate() as? String
                     ?: ""
 
     val type = (embeddedMember as? PsiField)?.type ?: (embeddedMember as PsiMethod).returnType
@@ -309,20 +309,23 @@ class RoomSchemaManager(val module: Module) {
   ): Pair<String, PsiElement>?
     where T : PsiModifierListOwner,
           T : PsiNamedElement {
-    var annotation: PsiElement? = element.modifierList
-      ?.findAnnotation(annotationName)
-      ?.findDeclaredAttributeValue(annotationAttributeName)
-    var name: String? = annotation?.let { constantEvaluationHelper.computeConstantExpression(it)?.toString() }
+    val annotation = element.modifierList?.findAnnotation(annotationName)
+    val nameExpression = annotation?.getAttributeValue(annotationAttributeName)
+    val name = nameExpression?.evaluate() as? String
+    if (name != null && nameExpression.sourcePsi != null) {
+      return name to nameExpression.sourcePsi!!
+    }
 
-    // There is special case for KtLightField when we have annotation without target (property annotation) e.g @ColumnInfo(name = 'override_name')
+    // There is special case for KtLightField when we have annotation without target (property annotation) e.g. @ColumnInfo(name = 'override_name')
     // In that case element.modifierList.findAnnotation(annotationName) returns null because it searches only for annotation with FIELD target
     if (name == null && element is KtLightField) {
       val ktExpression = element.getPropertyAnnotationExpression(annotationName, annotationAttributeName)
-      name = ktExpression?.tryEvaluateConstant()
-      if (name != null) annotation = ktExpression as PsiElement
+      ktExpression?.tryEvaluateConstant()?.let {
+        return it to ktExpression
+      }
     }
 
-    return name?.let { it to annotation!! }
+    return null
   }
 
   private inline fun AndroidxName.bothNames(f: (String) -> Unit) {
@@ -332,5 +335,10 @@ class RoomSchemaManager(val module: Module) {
 
   private fun PsiModifierList.findAnnotation(annotation: AndroidxName): PsiAnnotation? {
     return findAnnotation(annotation.oldName()) ?: findAnnotation(annotation.newName())
+  }
+
+  private fun PsiAnnotation.getAttributeValue(attributeName: String): UExpression? {
+    val uAnnotation = toUElementOfType<UAnnotation>()
+    return uAnnotation?.findDeclaredAttributeValue(attributeName)
   }
 }
