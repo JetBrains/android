@@ -39,33 +39,39 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
   {
     unique_lock lock(static_initialization_mutex_);
 
-    if (device_state_manager_.IsNull()) {
+    if (!initialized_) {
+      initialized_ = true;
       device_state_manager_ =
-          ServiceManager::GetServiceAsInterface(jni, "device_state", "android/hardware/devicestate/IDeviceStateManager");
-      JClass device_state_manager_class = device_state_manager_.GetClass();
-      jmethodID register_callback_method =
-          device_state_manager_class.GetMethod("registerCallback", "(Landroid/hardware/devicestate/IDeviceStateManagerCallback;)V");
-      request_state_method_ = device_state_manager_class.GetMethod("requestState", "(Landroid/os/IBinder;II)V");
-      if (Agent::feature_level() >= 33) {
-        cancel_state_request_method_ = device_state_manager_class.GetMethod("cancelStateRequest", "()V");
+          ServiceManager::GetServiceAsInterface(jni, "device_state", "android/hardware/devicestate/IDeviceStateManager", true);
+      if (device_state_manager_.IsNotNull()) {
+        JClass device_state_manager_class = device_state_manager_.GetClass();
+        jmethodID register_callback_method =
+            device_state_manager_class.GetMethod("registerCallback", "(Landroid/hardware/devicestate/IDeviceStateManagerCallback;)V");
+        request_state_method_ = device_state_manager_class.GetMethod("requestState", "(Landroid/os/IBinder;II)V");
+        if (Agent::feature_level() >= 33) {
+          cancel_state_request_method_ = device_state_manager_class.GetMethod("cancelStateRequest", "()V");
+        }
+        get_device_state_info_method_ =
+            device_state_manager_class.GetMethod("getDeviceStateInfo", "()Landroid/hardware/devicestate/DeviceStateInfo;");
+
+        JClass device_state_info_class = jni.GetClass("android/hardware/devicestate/DeviceStateInfo");
+        base_state_field_ = device_state_info_class.GetFieldId("baseState", "I");
+        current_state_field_ = device_state_info_class.GetFieldId("currentState", "I");
+
+        binder_class_ = jni.GetClass("android/os/Binder");
+        binder_constructor_ = binder_class_.GetConstructor("()V");
+        binder_class_.MakeGlobal();
+        device_state_manager_.MakeGlobal();
+
+        // Instantiate DeviceStateManagerCallback and call IDeviceStateManager.registerCallback passing it as the parameter.
+        JClass device_state_manager_callback_class = jni.GetClass("com/android/tools/screensharing/DeviceStateManagerCallback");
+        JObject callback = device_state_manager_callback_class.NewObject(device_state_manager_callback_class.GetConstructor("()V"));
+        device_state_manager_.CallVoidMethod(jni, register_callback_method, callback.ref());
       }
-      get_device_state_info_method_ =
-          device_state_manager_class.GetMethod("getDeviceStateInfo", "()Landroid/hardware/devicestate/DeviceStateInfo;");
-
-      JClass device_state_info_class = jni.GetClass("android/hardware/devicestate/DeviceStateInfo");
-      base_state_field_ = device_state_info_class.GetFieldId("baseState", "I");
-      current_state_field_ = device_state_info_class.GetFieldId("currentState", "I");
-
-      binder_class_ = jni.GetClass("android/os/Binder");
-      binder_constructor_ = binder_class_.GetConstructor("()V");
-      binder_class_.MakeGlobal();
-      device_state_manager_.MakeGlobal();
-
-      // Instantiate DeviceStateManagerCallback and call IDeviceStateManager.registerCallback passing it as the parameter.
-      JClass device_state_manager_callback_class = jni.GetClass("com/android/tools/screensharing/DeviceStateManagerCallback");
-      JObject callback = device_state_manager_callback_class.NewObject(device_state_manager_callback_class.GetConstructor("()V"));
-      device_state_manager_.CallVoidMethod(jni, register_callback_method, callback.ref());
     }
+  }
+  if (device_state_manager_.IsNull()) {
+    return false;
   }
 
   unique_lock lock(state_mutex_);
@@ -154,6 +160,7 @@ void DeviceStateManager::NotifyListeners(int32_t device_state) {
 }
 
 mutex DeviceStateManager::static_initialization_mutex_;
+bool DeviceStateManager::initialized_ = false;
 JObject DeviceStateManager::device_state_manager_;
 jmethodID DeviceStateManager::get_device_state_info_method_ = nullptr;
 jmethodID DeviceStateManager::request_state_method_ = nullptr;
