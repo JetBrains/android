@@ -26,12 +26,12 @@ import org.jetbrains.annotations.VisibleForTesting
 
 class AndroidStudioResourceUrls : ExternalProductResourceUrls by LegacyExternalProductResourceUrls() {
   companion object {
-    const val UPDATE_URL = "https://dl.google.com/android/studio/patches/updates.xml"
-    const val PATCH_URL = "https://dl.google.com/android/studio/patches/"
+    private const val UPDATE_URL = "https://dl.google.com/android/studio/patches/updates.xml"
+    private const val PATCH_URL = "https://dl.google.com/android/studio/patches/"
     /**
       This environment variable is only used by the e2e [com.android.tools.idea.UpdateTest]
     */
-    const val UPDATE_ENV_VAR = "AS_UPDATE_URL"
+    private const val UPDATE_ENV_VAR = "AS_UPDATE_URL"
   }
 
   override val updateMetadataUrl: Url

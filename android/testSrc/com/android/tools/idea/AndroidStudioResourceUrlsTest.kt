@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea
 
-import com.intellij.openapi.application.ApplicationInfo
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.BuildNumber
 import com.intellij.platform.ide.customization.ExternalProductResourceUrls
 import com.intellij.testFramework.ApplicationRule
 import org.assertj.core.api.Assumptions.assumeThat
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -39,49 +38,32 @@ class AndroidStudioResourceUrlsTest {
   }
 
   @Test
-  fun androidResourceUrlsGetsRegisteredCorrectly() {
-    val androidStudioResourceUrls = ExternalProductResourceUrls.getInstance()
-    assertTrue(androidStudioResourceUrls is AndroidStudioResourceUrls)
+  fun androidResourceUrlsIsRegistered() {
+    val resourceUrls = ExternalProductResourceUrls.getInstance()
+    assertThat(resourceUrls).isInstanceOf(AndroidStudioResourceUrls::class.java)
   }
 
   @Test
-  fun defaultUpdateUrl() {
-    val androidStudioResourceUrls = ExternalProductResourceUrls.getInstance()
-
-    // When accessing the update url
-    val updateUrl = androidStudioResourceUrls.updateMetadataUrl!!
-
-    // Then the update url is returned
-    assertEquals(
-      AndroidStudioResourceUrls.UPDATE_URL,
-      updateUrl.toString()
-    )
-  }
-
-  @Test
-  fun defaultPatchUrl() {
-    testPatchUrl(AndroidStudioResourceUrls.PATCH_URL)
+  @Suppress("OverrideOnly")
+  fun updateMetadataUrl() {
+    val resourceUrls = ExternalProductResourceUrls.getInstance()
+    val updateMetadataUrl = resourceUrls.updateMetadataUrl.toString()
+    assertThat(updateMetadataUrl).isEqualTo("https://dl.google.com/android/studio/patches/updates.xml")
   }
 
   // Tests for the patch url
-  // Expected on a linux local host: http://localhost:42213/AI-213.7172.25.2113.31337-213.7172.25.2113.8473230-patch-unix.jar
-  // Default expected on linux: https://dl.google.com/android/studio/patches/AI-213.7172.25.2113.31337-213.7172.25.2113.8473230-patch-unix.jar
-  private fun testPatchUrl(urlToFindPatch: String) {
-    // Given
-    val productCode = ApplicationInfo.getInstance().build.productCode
-    val fromNumber = "213.7172.25.2113.31337"
-    val toNumber = "213.7172.25.2113.8473230"
-    val from = BuildNumber.fromString("AI-${fromNumber}")!!
-    val to = BuildNumber.fromString("AI-${toNumber}")!!
+  // Expected on a linux local host: http://localhost:42213/AI-111.2.3-444.5.6-patch-unix.jar
+  // Default expected on linux: https://dl.google.com/android/studio/patches/AI-111.2.3-444.5.6-patch-unix.jar
+  @Test
+  @Suppress("OverrideOnly")
+  fun updatePatchUrl() {
+    val from = BuildNumber.fromString("AI-111.2.3")!!
+    val to = BuildNumber.fromString("AI-444.5.6")!!
+    val patchUrl = ExternalProductResourceUrls.getInstance().computePatchUrl(from, to).toString()
 
-    // When
-    val patchUrl = ExternalProductResourceUrls.getInstance().computePatchUrl(from, to)!!.toString()
-
-    // Then
-    val baseExpectedPath = "$urlToFindPatch$productCode-$fromNumber-$toNumber-patch-"
     // logic for different OS support and the different naming scheme for mac_arm
-    assertTrue(patchUrl.startsWith(baseExpectedPath))
-    assertTrue(patchUrl.endsWith(".jar"))
+    assertThat(patchUrl).startsWith("https://dl.google.com/android/studio/patches/AI-111.2.3-444.5.6-patch-")
+    assertThat(patchUrl).endsWith(".jar")
   }
 
   @Test
@@ -115,7 +97,8 @@ class AndroidStudioResourceUrlsTest {
   @Test
   fun unknownOsAndArchitectureThrowsException() {
     val resourceUrls = AndroidStudioResourceUrls()
-    assertThrows(IllegalStateException::class.java,
-                 { resourceUrls.getPatchSuffix(isMac = false, isWindows = false, isUnix = false, isAarch = false) })
+    assertThrows(IllegalStateException::class.java) {
+      resourceUrls.getPatchSuffix(isMac = false, isWindows = false, isUnix = false, isAarch = false)
+    }
   }
 }
