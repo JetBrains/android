@@ -309,7 +309,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
   bool continue_streaming = true;
   bool first_frame_after_start = true;
   while (continue_streaming && IsCodecRunning()) {
-    CodecOutputBuffer codec_buffer(codec, StringPrintf("Display %d", display_id_));
+    CodecOutputBuffer codec_buffer(codec, StringPrintf("Display %d: ", display_id_));
     if (!codec_buffer.Deque(-1)) {
       if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS && !ReduceBitRate()) {
         ExitCode exitCode = bit_rate_ <= MIN_BIT_RATE ? WEAK_VIDEO_ENCODER : REPEATED_VIDEO_ENCODER_ERRORS;
