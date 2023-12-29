@@ -45,6 +45,17 @@ class AndroidStudioResourceUrlsTest {
 
   @Test
   @Suppress("OverrideOnly")
+  fun miscUrls() {
+    val urls = ExternalProductResourceUrls.getInstance()
+    assertThat(urls.youTubeChannelUrl.toString()).isEqualTo("https://www.youtube.com/c/AndroidDevelopers")
+    assertThat(urls.whatIsNewPageUrl.toString()).isEqualTo("https://developer.android.com/r/studio-ui/menu-whats-new.html")
+    assertThat(urls.gettingStartedPageUrl.toString()).isEqualTo("http://developer.android.com/r/studio-ui/menu-start.html")
+    assertThat(urls.helpPageUrl!!("topic").toString()).contains("jetbrains.com")
+    assertThat(urls.keyboardShortcutsPdfUrl.toString()).contains("jetbrains.com")
+  }
+
+  @Test
+  @Suppress("OverrideOnly")
   fun updateMetadataUrl() {
     val resourceUrls = ExternalProductResourceUrls.getInstance()
     val updateMetadataUrl = resourceUrls.updateMetadataUrl.toString()

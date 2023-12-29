@@ -15,19 +15,21 @@
  */
 package com.android.tools.idea
 
+import com.intellij.idea.customization.base.IntelliJIdeaExternalResourceUrls
 import com.intellij.openapi.util.BuildNumber
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.platform.ide.customization.ExternalProductResourceUrls
-import com.intellij.platform.ide.impl.customization.LegacyExternalProductResourceUrls
 import com.intellij.util.Url
 import com.intellij.util.Urls
 import org.jetbrains.annotations.VisibleForTesting
 
-class AndroidStudioResourceUrls : ExternalProductResourceUrls by LegacyExternalProductResourceUrls() {
+class AndroidStudioResourceUrls : ExternalProductResourceUrls {
   companion object {
     // The overriding AS_UPDATE_URL environment variable is used by QA and some E2E tests (UpdateTest).
     private val UPDATE_BASE_URL: String = System.getenv("AS_UPDATE_URL") ?: "https://dl.google.com/android/studio/patches"
   }
+
+  private val jetbrainsUrls = IntelliJIdeaExternalResourceUrls()
 
   override val updateMetadataUrl: Url
     get() = Urls.newFromEncoded(UPDATE_BASE_URL).resolve("updates.xml")
@@ -53,4 +55,21 @@ class AndroidStudioResourceUrls : ExternalProductResourceUrls by LegacyExternalP
       else -> error("Unrecognized os: ${SystemInfo.OS_NAME} and architecture: ${SystemInfo.OS_ARCH})")
     }
   }
+
+  override val gettingStartedPageUrl: Url
+    get() = Urls.newFromEncoded("http://developer.android.com/r/studio-ui/menu-start.html")
+
+  override val whatIsNewPageUrl: Url
+    get() = Urls.newFromEncoded("https://developer.android.com/r/studio-ui/menu-whats-new.html")
+
+  override val youTubeChannelUrl: Url
+    get() = Urls.newFromEncoded("https://www.youtube.com/c/AndroidDevelopers")
+
+  // Help topics dispatched via HelpManager should generally go to JetBrains pages (https://www.jetbrains.com/help/idea).
+  override val helpPageUrl: ((topicId: String) -> Url)?
+    get() = jetbrainsUrls.helpPageUrl
+
+  // The keymap reference cards are hosted by JetBrains (https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf).
+  override val keyboardShortcutsPdfUrl: Url
+    get() = jetbrainsUrls.keyboardShortcutsPdfUrl
 }
