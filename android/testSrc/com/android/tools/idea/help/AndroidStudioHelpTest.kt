@@ -53,7 +53,7 @@ class AndroidStudioHelpTest : AndroidTestCase() {
 
     val version = "${ApplicationInfo.getInstance().majorVersion}.${ApplicationInfo.getInstance().minorVersion}"
     assertThat(TestBrowserLauncher.lastUrl)
-      .isEqualTo("https://www.jetbrains.com/idea/webhelp/$version/?top")
+      .isEqualTo("https://www.jetbrains.com/help/idea/$version/?top")
   }
 
   object TestBrowserLauncher : BrowserLauncher() {
