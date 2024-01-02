@@ -57,11 +57,13 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.apk.analyzer.ResourceIdResolver;
 import com.android.tools.fonts.ProjectFonts;
 import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.rendering.RenderTask;
 import com.android.tools.rendering.api.NavGraphResolver;
 import com.android.tools.res.ResourceRepositoryManager;
+import com.android.tools.res.ids.ResourceIdManagerHelper;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -199,7 +201,8 @@ public class LayoutPullParsers {
         renderTask.setTransparentBackground();
         renderTask.setDecorations(false);
         renderTask.setRenderingMode(V_SCROLL);
-        return createFontFamilyParser(file, (fontName) -> (new ProjectFonts(manager)).getFont(fontName), renderTask.getDefaultForegroundColor());
+        ResourceIdResolver resolver = ResourceIdManagerHelper.getResolver(renderTask.getContext().getModule().getResourceIdManager());
+        return createFontFamilyParser(file, (fontName) -> (new ProjectFonts(manager, resolver)).getFont(fontName), renderTask.getDefaultForegroundColor());
       default:
         // Should have been prevented by isSupported(PsiFile)
         assert false : folderType;

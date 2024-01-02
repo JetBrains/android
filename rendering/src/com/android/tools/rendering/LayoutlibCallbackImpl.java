@@ -75,6 +75,7 @@ import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.tools.res.FileResourceReader;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.res.ResourceNamespacing;
+import com.android.tools.res.ids.ResourceIdManagerHelper;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
@@ -342,7 +343,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         // this is a special case where we generate a synthetic font-family XML file that points
         // to the cached fonts downloaded by the DownloadableFontCacheService.
         if (myProjectFonts == null) {
-          myProjectFonts = new ProjectFonts(myRenderModule.getResourceRepositoryManager());
+          myProjectFonts =
+            new ProjectFonts(
+              myRenderModule.getResourceRepositoryManager(),
+              ResourceIdManagerHelper.getResolver(myRenderModule.getResourceIdManager())
+            );
         }
 
         FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());

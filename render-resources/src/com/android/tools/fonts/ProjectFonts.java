@@ -28,12 +28,15 @@ import com.android.ide.common.fonts.QueryParser;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourcesUtil;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
+import com.android.tools.apk.analyzer.ResourceIdResolver;
+import com.android.tools.res.FileResourceReader;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -57,13 +60,21 @@ import org.jetbrains.annotations.Nullable;
 public class ProjectFonts {
   private final DownloadableFontCacheService myService;
   private final ResourceRepositoryManager myResourceRepository;
+  private final ResourceIdResolver myResourceIdResolver;
   private final Map<String, FontFamily> myProjectFonts;
   private final Map<String, QueryParser.ParseResult> myParseResults;
   private final List<String> myDefinitions;
 
   public ProjectFonts(@NotNull ResourceRepositoryManager resourceRepositoryManager) {
+    this(resourceRepositoryManager, ResourceIdResolver.NO_RESOLUTION);
+  }
+
+  public ProjectFonts(
+    @NotNull ResourceRepositoryManager resourceRepositoryManager,
+    @NotNull ResourceIdResolver resourceIdResolver) {
     myService = DownloadableFontCacheService.getInstance();
     myResourceRepository = resourceRepositoryManager;
+    myResourceIdResolver = resourceIdResolver;
     myProjectFonts = new TreeMap<>();
     myParseResults = new HashMap<>();
     myDefinitions = new ArrayList<>();
@@ -231,19 +242,21 @@ public class ProjectFonts {
       return;
     }
     if (value.endsWith(".xml")) {
-      File fontFile = new File(value);
-      if (!fontFile.exists()) {
+      PathString pathString = ResourcesUtil.toFileResourcePathString(value);
+      if (pathString == null) {
         createUnresolvedFontFamily(name);
         return;
       }
-
-      QueryParser.ParseResult result;
-      try (InputStream is = new FileInputStream(fontFile)) {
-        result = FontFamilyParser.parseFontFamily(is, value);
+      byte[] fileBytes;
+      try {
+        fileBytes = FileResourceReader.readBytes(pathString, myResourceIdResolver);
       } catch (IOException ignore) {
         createUnresolvedFontFamily(name);
         return;
       }
+
+      InputStream is = new ByteArrayInputStream(fileBytes);
+      QueryParser.ParseResult result = FontFamilyParser.parseFontFamily(is, value);
       if (result instanceof FontFamilyParser.ParseErrorResult) {
         createUnresolvedFontFamily(name);
         return;

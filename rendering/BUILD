@@ -64,6 +64,7 @@ kotlin_library(
         "//tools/adt/idea/layoutlib-loader:tools.layoutlib-loader",
         "//tools/adt/idea/render-resources:tools.render-resources",
         "//tools/analytics-library/crash:tools.analytics-crash",
+        "//tools/base/apkparser/analyzer:tools.analyzer",
         "//tools/base/common:tools.common",
         "//tools/base/layoutlib-api:tools.layoutlib-api",
         "//tools/base/sdk-common:tools.sdk-common",

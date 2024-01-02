@@ -23,10 +23,10 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ValueXmlHelper
 import com.android.ide.common.util.PathString
 import com.android.support.FragmentTagUtil.isFragmentTag
-import com.android.tools.apk.analyzer.ResourceIdResolver
 import com.android.tools.rendering.LayoutMetadata
 import com.android.tools.res.FileResourceReader
 import com.android.tools.res.ids.ResourceIdManager
+import com.android.tools.res.ids.resolver
 import org.xmlpull.v1.XmlPullParser
 
 /** Creates a new [ILayoutPullParser] for the given XML file. */
@@ -35,11 +35,7 @@ fun create(
   namespace: ResourceNamespace,
   resIdManager: ResourceIdManager?
 ): ILayoutPullParser? {
-  val parser =
-    FileResourceReader.createXmlPullParser(xml) { i ->
-      resIdManager?.let { it.findById(i)?.resourceUrl?.toString() }
-        ?: ResourceIdResolver.NO_RESOLUTION.resolve(i)
-    } ?: return null
+  val parser = FileResourceReader.createXmlPullParser(xml, resIdManager.resolver) ?: return null
   return LayoutPullParserImpl(parser, namespace)
 }
 

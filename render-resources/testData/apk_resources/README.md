@@ -19,5 +19,5 @@ The content of `apk-with-plurals.ap_` was produced by the following steps:
 
 The content of `apk-all-resources.ap_` was produced bby the following steps:
 
-1. running `.gradlew :lib:testDebugUnitTest` in the `Allresources`
+1. running `./gradlew :lib:testDebugUnitTest` in the `Allresources`
 2. copying `Allresources/lib/build/intermediates/apk_for_local_test/debugUnitTest/apk-for-local-test.ap_` to `apk-all-resources.ap_`
