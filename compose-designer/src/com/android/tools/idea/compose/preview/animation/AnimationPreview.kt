@@ -32,7 +32,6 @@ import com.android.tools.idea.compose.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.compose.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.createToolbarWithNavigation
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_INFINITE_TRANSITION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
@@ -374,10 +373,7 @@ class AnimationPreview(
         ComposeAnimationType.ANIMATED_VISIBILITY -> AnimatedVisibilityAnimationManager(animation)
         ComposeAnimationType.ANIMATE_X_AS_STATE -> SupportedAnimationManager(animation)
         ComposeAnimationType.ANIMATED_CONTENT -> SupportedAnimationManager(animation)
-        ComposeAnimationType.INFINITE_TRANSITION ->
-          if (COMPOSE_ANIMATION_PREVIEW_INFINITE_TRANSITION.get())
-            SupportedAnimationManager(animation)
-          else UnsupportedAnimationManager(animation, tabNames.createName(animation))
+        ComposeAnimationType.INFINITE_TRANSITION -> SupportedAnimationManager(animation)
         ComposeAnimationType.ANIMATABLE,
         ComposeAnimationType.ANIMATE_CONTENT_SIZE,
         ComposeAnimationType.DECAY_ANIMATION,

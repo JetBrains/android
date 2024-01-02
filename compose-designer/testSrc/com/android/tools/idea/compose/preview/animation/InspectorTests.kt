@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -69,13 +68,11 @@ open class InspectorTests {
     ApplicationManager.getApplication().invokeAndWait {
       psiFilePointer = SmartPointerManager.createPointer(psiFile)
     }
-    StudioFlags.COMPOSE_ANIMATION_PREVIEW_INFINITE_TRANSITION.override(true)
   }
 
   @After
   open fun tearDown() {
     ComposePreviewAnimationManager.closeCurrentInspector()
-    StudioFlags.COMPOSE_ANIMATION_PREVIEW_INFINITE_TRANSITION.clearOverride()
   }
 
   fun createAndOpenInspector(): AnimationPreview {
