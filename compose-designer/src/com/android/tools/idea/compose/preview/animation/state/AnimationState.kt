@@ -19,7 +19,6 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.idea.compose.preview.animation.AnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnAction
 
 /** Animation state. */
@@ -52,15 +51,13 @@ abstract class AnimationState(callback: () -> Unit = {}) {
             else -> FromToState(tracker, callback)
           }
         ComposeAnimationType.ANIMATED_CONTENT ->
-          if (StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATED_CONTENT.get()) {
-            when {
-              unit is ComposeUnit.Color -> ColorPickerState(tracker, callback)
-              unit !is ComposeUnit.UnitUnknown -> PickerState(tracker, callback)
-              states.firstOrNull() is Boolean -> FromToState(tracker, callback)
-              states.firstOrNull() is Enum<*> -> FromToState(tracker, callback)
-              else -> FromToState(tracker, callback)
-            }
-          } else EmptyState()
+          when {
+            unit is ComposeUnit.Color -> ColorPickerState(tracker, callback)
+            unit !is ComposeUnit.UnitUnknown -> PickerState(tracker, callback)
+            states.firstOrNull() is Boolean -> FromToState(tracker, callback)
+            states.firstOrNull() is Enum<*> -> FromToState(tracker, callback)
+            else -> FromToState(tracker, callback)
+          }
         ComposeAnimationType.ANIMATED_VALUE,
         ComposeAnimationType.ANIMATABLE,
         ComposeAnimationType.ANIMATE_CONTENT_SIZE,

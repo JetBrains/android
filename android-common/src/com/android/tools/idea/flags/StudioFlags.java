@@ -1300,11 +1300,6 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_ANIMATED_CONTENT = Flag.create(
-    COMPOSE, "preview.animation.animated.content", "Enable animatedContent support",
-    "If enabled, the animatedContent Compose API support will be available in Animation Preview.",
-    true);
-
   public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_INFINITE_TRANSITION = Flag.create(
     COMPOSE, "preview.animation.infinite.transition", "Enable rememberInfiniteTransition support",
     "If enabled, the rememberInfiniteTransition Compose API support will be available in Animation Preview.",
