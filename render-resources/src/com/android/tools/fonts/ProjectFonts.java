@@ -33,6 +33,9 @@ import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -234,7 +237,13 @@ public class ProjectFonts {
         return;
       }
 
-      QueryParser.ParseResult result = FontFamilyParser.parseFontFamily(fontFile);
+      QueryParser.ParseResult result;
+      try (InputStream is = new FileInputStream(fontFile)) {
+        result = FontFamilyParser.parseFontFamily(is, value);
+      } catch (IOException ignore) {
+        createUnresolvedFontFamily(name);
+        return;
+      }
       if (result instanceof FontFamilyParser.ParseErrorResult) {
         createUnresolvedFontFamily(name);
         return;
