@@ -20,17 +20,16 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.rendering.HtmlLinkManager;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.ui.TestDialog;
-import com.intellij.openapi.ui.TestDialogManager;
-import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-public class StudioHtmlLinkManagerTest extends LightPlatformTestCase {
+public class StudioHtmlLinkManagerTest extends LayoutTestCase {
   public void testRunnable() {
     StudioHtmlLinkManager manager = new StudioHtmlLinkManager();
     final AtomicBoolean result1 = new AtomicBoolean(false);
@@ -59,19 +58,19 @@ public class StudioHtmlLinkManagerTest extends LightPlatformTestCase {
     testProjectSystem.useInTests();
 
     // try multiple invalid links
-    StudioHtmlLinkManager.handleAddDependency("addDependency:", getModule());
-    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support", getModule());
-    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support:", getModule());
-    StudioHtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:palette-v7", getModule());
-    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7-broken", getModule());
-    assertThat(testProjectSystem.getAddedDependencies(getModule())).isEmpty();
+    StudioHtmlLinkManager.handleAddDependency("addDependency:", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support:", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:palette-v7", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7-broken", myModule);
+    assertThat(testProjectSystem.getAddedDependencies(myModule)).isEmpty();
 
-    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", getModule());
-    StudioHtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:play-services", getModule());
-    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support.constraint:constraint-layout", getModule());
-    StudioHtmlLinkManager.handleAddDependency("addDebugDependency:com.google.android:flexbox", getModule());
+    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:play-services", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support.constraint:constraint-layout", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDebugDependency:com.google.android:flexbox", myModule);
     assertThat(
-      testProjectSystem.getAddedDependencies(getModule()).stream()
+      testProjectSystem.getAddedDependencies(myModule).stream()
         .map(dependency ->
                dependency.getType()
                + "("
@@ -82,5 +81,24 @@ public class StudioHtmlLinkManagerTest extends LightPlatformTestCase {
                        "IMPLEMENTATION(com.google.android.gms:play-services)",
                        "IMPLEMENTATION(com.android.support.constraint:constraint-layout)",
                        "DEBUG_IMPLEMENTATION(com.google.android:flexbox)");
+  }
+
+  // Regression test for b/315080316. It should fail when reverting ag/25616101 or regressing in any other way.
+  public void testOpenStackUrl() {
+    myFixture.setTestDataPath(LayoutTestCase.getDesignerPluginHome() + "/testData/linkmanager");
+    // Add both .class and source files for the target class
+    myFixture.copyFileToProject(
+      "MyClass.class", "src/com/google/example/MyClass.class"
+    );
+    myFixture.copyFileToProject(
+      "MyClass.kt", "src/com/google/example/MyClass.kt"
+    );
+    assertThat(FileEditorManager.getInstance(getProject()).getSelectedEditor()).isNull();
+    String url = "open:com.google.example.MyClass#myMethod;MyClass.kt";
+    StudioHtmlLinkManager.handleOpenStackUrl(url, myModule);
+    FileEditor selectedEditor = FileEditorManager.getInstance(getProject()).getSelectedEditor();
+    assertThat(selectedEditor).isNotNull();
+    // We should always navigate to the source file when it's available
+    assertThat(selectedEditor.getFile().getName()).isEqualTo("MyClass.kt");
   }
 }
