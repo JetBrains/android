@@ -39,7 +39,7 @@ class LayoutInspectorSettings : PersistentStateComponent<LayoutInspectorSettings
     }
 
   private val embeddedLayoutInspectorSetting =
-    FlagControlledSetting(ApplicationManager.getApplication().isEAP) {
+    FlagControlledSetting(false) {
       StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
     }
 
