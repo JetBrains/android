@@ -33,9 +33,8 @@ import javax.swing.BoxLayout
 import javax.swing.JCheckBox
 import javax.swing.JPanel
 
-// TODO(b/280438553) replace with redirect URL
 const val STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL =
-  "https://developer.android.com/studio/preview/features?utm_source=android-studio#embedded-layout-inspector"
+  "https://d.android.com/r/studio-ui/embedded-layout-inspector"
 
 /**
  * Class used to provide a [Configurable] to contribute to Android Studio Experimental Settings
