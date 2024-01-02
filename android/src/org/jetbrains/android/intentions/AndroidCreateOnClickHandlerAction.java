@@ -19,7 +19,6 @@ import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.ide.util.TreeClassChooser;
-import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.application.ApplicationManager;
@@ -55,6 +54,7 @@ import java.util.Locale;
 import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidTreeClassChooserFactory;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,7 +143,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
       selectedClass = selClassRef.get();
     }
     else {
-      final TreeClassChooser chooser = TreeClassChooserFactory.getInstance(project).createInheritanceClassChooser(
+      final TreeClassChooser chooser = AndroidTreeClassChooserFactory.INSTANCE.createInheritanceClassChooser(project,
         "Choose Activity to Create the Method", scope, activityBaseClass, null, aClass -> !converter.findHandlerMethod(aClass, methodName));
       chooser.showDialog();
       selectedClass = chooser.getSelected();
