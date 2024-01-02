@@ -20,6 +20,7 @@ import com.android.tools.asdriver.proto.AndroidStudioGrpc;
 import com.android.tools.idea.io.grpc.ManagedChannel;
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
+import com.android.tools.perflogger.Benchmark;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.system.CpuArch;
@@ -45,6 +46,8 @@ public class AndroidStudio implements AutoCloseable {
   private final Instant creationTime;
 
   private VideoStitcher videoStitcher = null;
+
+  private Benchmark benchmark = null;
 
   static public AndroidStudio run(AndroidStudioInstallation installation,
                                   Display display,
@@ -197,6 +200,10 @@ public class AndroidStudio implements AutoCloseable {
     return response.getValue();
   }
 
+  public void addBenchmark(Benchmark benchmark){
+    this.benchmark = benchmark;
+  }
+
   /**
    * @param force true to kill Studio right away, false to gracefully exit. Note that killing Studio will not allow it to run
    *              cleanup processes, such as stopping Gradle, which would let Gradle to continue writing to the filesystem.
@@ -337,9 +344,11 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForIndex() {
+    benchmarkLog("calling_waitForIndex");
     System.out.println("Waiting for indexing to complete");
     ASDriver.WaitForIndexRequest rq = ASDriver.WaitForIndexRequest.newBuilder().build();
     ASDriver.WaitForIndexResponse ignore = androidStudio.waitForIndex(rq);
+    benchmarkLog("after_waitForIndex");
   }
 
   public void waitForNativeBreakpointHit() throws IOException, InterruptedException {
@@ -474,8 +483,10 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForSync() throws IOException, InterruptedException {
+    benchmarkLog("calling_waitForSync");
     // "Infinite" timeout
     waitForSync(1, TimeUnit.DAYS);
+    benchmarkLog("after_waitForSync");
   }
 
   public void waitForSync(long timeout, TimeUnit unit) throws IOException, InterruptedException {
@@ -510,6 +521,12 @@ public class AndroidStudio implements AutoCloseable {
       return "Check the Android Studio stderr log for the cause. See go/e2e-find-log-files for more info.";
     }
     return "Error message: " + errorMessage;
+  }
+
+  private void benchmarkLog(String name){
+    if (benchmark != null){
+      benchmark.log(name, System.currentTimeMillis());
+    }
   }
 
   /**

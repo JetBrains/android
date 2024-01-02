@@ -16,6 +16,7 @@
 package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
+import com.android.tools.perflogger.Benchmark;
 import com.android.utils.PathUtils;
 import com.google.common.base.Preconditions;
 import com.intellij.openapi.util.SystemInfo;
@@ -199,6 +200,15 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     try (AndroidStudio studio = runStudio(project)) {
       callback.accept(studio);
       MemoryUsageReportProcessor.Companion.collectMemoryUsageStatistics(studio, install, memoryDashboardName);
+    }
+  }
+
+  public void runStudio(@NotNull final AndroidProject project,
+                        @NotNull Benchmark benchmark,
+                        Consumer<AndroidStudio> callback) throws Exception{
+    try (AndroidStudio studio = runStudio(project)) {
+      callback.accept(studio);
+      studio.addBenchmark(benchmark);
     }
   }
 
