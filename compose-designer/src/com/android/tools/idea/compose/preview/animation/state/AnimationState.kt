@@ -33,23 +33,9 @@ abstract class AnimationState(callback: () -> Unit = {}) {
     ): AnimationState {
       val unit = ComposeUnit.parseStateUnit(this.states.firstOrNull())
       return when (this.type) {
-        ComposeAnimationType.TRANSITION_ANIMATION ->
-          when {
-            unit is ComposeUnit.Color -> ColorPickerState(tracker, callback)
-            unit !is ComposeUnit.UnitUnknown -> PickerState(tracker, callback)
-            states.firstOrNull() is Boolean -> FromToState(tracker, callback)
-            states.firstOrNull() is Enum<*> -> FromToState(tracker, callback)
-            else -> FromToState(tracker, callback)
-          }
         ComposeAnimationType.ANIMATED_VISIBILITY -> SingleState(tracker, callback)
-        ComposeAnimationType.ANIMATE_X_AS_STATE ->
-          when {
-            unit is ComposeUnit.Color -> ColorPickerState(tracker, callback)
-            unit !is ComposeUnit.UnitUnknown -> PickerState(tracker, callback)
-            states.firstOrNull() is Boolean -> FromToState(tracker, callback)
-            states.firstOrNull() is Enum<*> -> FromToState(tracker, callback)
-            else -> FromToState(tracker, callback)
-          }
+        ComposeAnimationType.TRANSITION_ANIMATION,
+        ComposeAnimationType.ANIMATE_X_AS_STATE,
         ComposeAnimationType.ANIMATED_CONTENT ->
           when {
             unit is ComposeUnit.Color -> ColorPickerState(tracker, callback)
