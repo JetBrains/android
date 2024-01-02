@@ -1110,7 +1110,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * This method avoid negative timestamps which may be counter-intuitive.
    */
   public static Pair<Long, Long> computeImportedFileStartEndTimestampsNs(File file) {
-    long hash = Hashing.sha256().hashString(file.getAbsolutePath(), StandardCharsets.UTF_8).asLong();
+    long hash = normalizeHash(Hashing.sha256().hashString(file.getAbsolutePath(), StandardCharsets.UTF_8).asLong());
     // Avoid Long.MAX_VALUE which as the end timestamp means ongoing in transport pipeline.
     if (hash == Long.MAX_VALUE || hash == Long.MIN_VALUE || hash == Long.MIN_VALUE + 1) {
       hash /= 2;
@@ -1119,11 +1119,34 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (hash < 0) {
       hash = -hash;
     }
-    long rangeNs = TimeUnit.MICROSECONDS.toNanos(1);
+
+    // An IEEE 754 64 bit floating point number (which has 52 bits, plus 1 implied) can exactly represent integers with an absolute value
+    // of less than or equal to 2^53. The largest hash is 2 ^ 63 - 1, in nanoseconds, which is 2 ^ 60 in microseconds. So we need a range
+    // that's larger than 2 ^ (60 - 53) to guarantee the range's start and end are different in microseconds of double type. 1 second is
+    // 10 ^ 6 microsecond that can satisfy this condition.
+    // For example, 9060106487899244232L and 9060106487899245232L in nanoseconds (different by 1000) will be converted to the same
+    // microseconds in double type number 9.060106487899244E15.
+    long rangeNs = TimeUnit.SECONDS.toNanos(1);
+
     // Make sure (hash + rangeNs) as the end timestamp doesn't overflow.
     if (hash >= Long.MAX_VALUE - rangeNs) {
       hash -= rangeNs;
     }
     return new Pair<>(hash, hash + rangeNs);
+  }
+
+  /***
+   * This method will eliminate errors in the system due to possible loss of precision during conversion.
+   *
+   * Profilers code converts the range's start and end timestamps between nanoseconds as long and microseconds as double. The conversion
+   * may lose precision. For example, 9097726376199135381L will be converted to 9.097726376199136E15, which will then be converted to
+   * 9097726376199136000L. As the start timestamp is used as both the range's start and the import event timestamp, the loss of precision
+   * may cause the event fall out of range (the event's timestamp isn't being converted). (see details in b/311035879).
+   * @param originalHash
+   * @return long
+   */
+  private static long normalizeHash(long originalHash) {
+    double hashMs = TimeUnit.NANOSECONDS.toMicros(originalHash);
+    return TimeUnit.MICROSECONDS.toNanos((long)hashMs);
   }
 }
