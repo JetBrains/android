@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.device.explorer.files.ui;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.util.HumanReadableUtil;
@@ -71,10 +73,6 @@ public class DeviceExplorerPanel {
 
     myErrorText.setFont(AdtUiUtils.EMPTY_TOOL_WINDOW_FONT);
     myErrorText.setForeground(NamedColorUtil.getInactiveTextColor());
-
-    // Disable toolbar until implementation is complete, as the "Device Explorer"
-    // feature is enabled by default.
-    //createToolbar();
   }
 
   @NotNull
@@ -171,6 +169,7 @@ public class DeviceExplorerPanel {
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
       .setBackground(UIUtil.getTreeBackground())
       .setShouldPaintExpandControl(true)
+      .setBorder(DEFAULT_TOP_BORDER)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Name")
                    .setPreferredWidth(JBUI.scale(600))
@@ -221,7 +220,7 @@ public class DeviceExplorerPanel {
                                       boolean hasFocus) {
       setToolTipText(null);
       setIcon(null);
-      setIpad(JBUI.insets(0, 0, 0, TEXT_RENDERER_HORIZ_PADDING));
+      setIpad(JBUI.insetsRight(TEXT_RENDERER_HORIZ_PADDING));
 
       DeviceFileEntryNode node = DeviceFileEntryNode.fromNode(value);
       if (node != null) {
@@ -310,7 +309,7 @@ public class DeviceExplorerPanel {
       if (node != null) {
         append(node.getEntry().getPermissions().getText());
       }
-      setIpad(JBUI.insets(0, TEXT_RENDERER_HORIZ_PADDING, 0, TEXT_RENDERER_HORIZ_PADDING));
+      setIpad(JBUI.insets(0, TEXT_RENDERER_HORIZ_PADDING));
     }
   }
 
@@ -328,7 +327,7 @@ public class DeviceExplorerPanel {
         DeviceFileEntry.DateTime date = node.getEntry().getLastModifiedDate();
         append(date.getText());
       }
-      setIpad(JBUI.insets(0, TEXT_RENDERER_HORIZ_PADDING, 0, TEXT_RENDERER_HORIZ_PADDING));
+      setIpad(JBUI.insets(0, TEXT_RENDERER_HORIZ_PADDING));
     }
   }
 
@@ -350,7 +349,7 @@ public class DeviceExplorerPanel {
           append(HumanReadableUtil.getHumanizedSize(size));
         }
       }
-      setIpad(JBUI.insets(0, TEXT_RENDERER_HORIZ_PADDING, 0, TEXT_RENDERER_HORIZ_PADDING));
+      setIpad(JBUI.insets(0, TEXT_RENDERER_HORIZ_PADDING));
     }
   }
 }

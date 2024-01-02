@@ -130,7 +130,7 @@ class ProcessListTableBuilder {
     SimpleColoredComponent().apply {
       toolTipText = null
       icon = null
-      ipad = JBUI.insetsRight(DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING)
+      ipad = JBUI.insets(DeviceMonitorPanel.TEXT_RENDERER_VERT_PADDING, DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING)
       processInfo?.let {
         icon = processIcon
         if (it.isPidOnly || it.processName == null) {
@@ -164,7 +164,7 @@ class ProcessListTableBuilder {
         append(it.pid.toString())
         setTextAlign(SwingConstants.TRAILING)
       }
-      ipad = JBUI.insets(0, DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING)
+      ipad = JBUI.insets(DeviceMonitorPanel.TEXT_RENDERER_VERT_PADDING, DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING)
       if (isSelected) background = table.selectionBackground
     }
   }
@@ -186,7 +186,7 @@ class ProcessListTableBuilder {
           append(it.abi ?: "-")
         }
       }
-      ipad = JBUI.insets(0, DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING)
+      ipad = JBUI.insets(DeviceMonitorPanel.TEXT_RENDERER_VERT_PADDING, DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING)
       if (isSelected) background = table.selectionBackground
     }
   }
@@ -208,7 +208,7 @@ class ProcessListTableBuilder {
           append(it.vmIdentifier ?: "-")
         }
       }
-      ipad = JBUI.insets(0, DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING)
+      ipad = JBUI.insets(DeviceMonitorPanel.TEXT_RENDERER_VERT_PADDING, DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING)
       if (isSelected) background = table.selectionBackground
     }
   }
@@ -231,7 +231,7 @@ class ProcessListTableBuilder {
         }
         setTextAlign(SwingConstants.TRAILING)
       }
-      ipad = JBUI.insets(0, DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING)
+      ipad = JBUI.insets(DeviceMonitorPanel.TEXT_RENDERER_VERT_PADDING, DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING)
       if (isSelected) background = table.selectionBackground
     }
   }
@@ -259,7 +259,7 @@ class ProcessListTableBuilder {
           append(status)
         }
       }
-      ipad = JBUI.insets(0, DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING)
+      ipad = JBUI.insets(DeviceMonitorPanel.TEXT_RENDERER_VERT_PADDING, DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING)
       if (isSelected) background = table.selectionBackground
     }
   }
