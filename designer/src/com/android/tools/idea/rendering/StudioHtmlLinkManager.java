@@ -513,7 +513,8 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     }
   }
 
-  private static void handleOpenStackUrl(@NotNull String url, @NotNull Module module) {
+  @VisibleForTesting
+  static void handleOpenStackUrl(@NotNull String url, @NotNull Module module) {
     assert url.startsWith(URL_OPEN) : url;
     // Syntax: URL_OPEN + className + '#' + methodName + ';' + fileName + ':' + lineNumber;
     int start = URL_OPEN.length();
