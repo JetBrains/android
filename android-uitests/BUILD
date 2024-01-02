@@ -126,6 +126,7 @@ maven_repository(
         "@maven//:android.arch.navigation.navigation-ui_1.0.0",
         "@maven//:android.arch.persistence.room.runtime_1.0.0",
         "@maven//:androidx.activity.activity-compose_1.7.2",
+        "@maven//:androidx.activity.activity-compose_1.8.0",
         "@maven//:androidx.activity.activity-ktx_1.6.0",
         "@maven//:androidx.activity.activity-ktx_1.7.0",
         "@maven//:androidx.activity.activity-ktx_1.8.0",
