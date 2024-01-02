@@ -1961,37 +1961,6 @@ java_test(
 )
 
 java_test(
-    name = "CreateAndRunInstantAppTest",
-    size = "enormous",
-    timeout = "long",
-    data = COMMON_DATA + select({
-        ":has_emulator": [
-            "@externsdk//:emulator",
-            "@externsdk//:system-images",
-        ],
-        "//conditions:default": [],
-    }) + [
-        "//prebuilts/studio/sdk:instant-apps-sdk",
-    ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.CreateAndRunInstantAppTest"],
-    tags = [
-        "block-network",
-        "cpu:100",
-        "no-remote",
-        "no_mac",
-        "no_windows",
-        "qa_smoke",
-        "qa_smoke_emu",
-        "qa_smoke_unreliable_emu",  # b/147893119
-        "qa_unreliable",  # b/147893119
-        "requires-fakeroot",
-        "requires_emulator",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "DualDebuggerBreakpointsTest",
     size = "enormous",
     timeout = "long",
@@ -2360,36 +2329,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_windows",
         "qa_unreliable",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "AddInstantModuleTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/MinSdk24App/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.AddInstantModuleTest"],
-    tags = COMMON_TAGS + [
-        "no_windows",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
-    name = "BuildInstantAppTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.BuildInstantAppTest"],
-    tags = COMMON_TAGS + [
-        "no_windows",
-        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
