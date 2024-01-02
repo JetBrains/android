@@ -44,8 +44,8 @@ private fun DeviceSkinDropdown(
     menuContent = {
       skins.forEach {
         selectableItem(
-          selectedSkin == it,
-          { onSelectedSkinChange(it) },
+          selected = selectedSkin == it,
+          onClick = { onSelectedSkinChange(it) },
           content = { Text(it.toString()) }
         )
       }
