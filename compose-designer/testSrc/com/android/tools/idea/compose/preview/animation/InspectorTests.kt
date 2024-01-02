@@ -69,7 +69,6 @@ open class InspectorTests {
     ApplicationManager.getApplication().invokeAndWait {
       psiFilePointer = SmartPointerManager.createPointer(psiFile)
     }
-    StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.override(true)
     StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATED_CONTENT.override(true)
     StudioFlags.COMPOSE_ANIMATION_PREVIEW_INFINITE_TRANSITION.override(true)
   }
@@ -77,7 +76,6 @@ open class InspectorTests {
   @After
   open fun tearDown() {
     ComposePreviewAnimationManager.closeCurrentInspector()
-    StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.clearOverride()
     StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATED_CONTENT.clearOverride()
     StudioFlags.COMPOSE_ANIMATION_PREVIEW_INFINITE_TRANSITION.clearOverride()
   }
