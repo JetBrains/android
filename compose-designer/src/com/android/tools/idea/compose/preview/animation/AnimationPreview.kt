@@ -367,13 +367,12 @@ class AnimationPreview(
   fun createTab(animation: ComposeAnimation) {
     animationsMap[animation] =
       when (animation.type) {
-        ComposeAnimationType.TRANSITION_ANIMATION -> SupportedAnimationManager(animation)
-        ComposeAnimationType.ANIMATED_VALUE ->
-          UnsupportedAnimationManager(animation, tabNames.createName(animation))
         ComposeAnimationType.ANIMATED_VISIBILITY -> AnimatedVisibilityAnimationManager(animation)
-        ComposeAnimationType.ANIMATE_X_AS_STATE -> SupportedAnimationManager(animation)
-        ComposeAnimationType.ANIMATED_CONTENT -> SupportedAnimationManager(animation)
+        ComposeAnimationType.TRANSITION_ANIMATION,
+        ComposeAnimationType.ANIMATE_X_AS_STATE,
+        ComposeAnimationType.ANIMATED_CONTENT,
         ComposeAnimationType.INFINITE_TRANSITION -> SupportedAnimationManager(animation)
+        ComposeAnimationType.ANIMATED_VALUE,
         ComposeAnimationType.ANIMATABLE,
         ComposeAnimationType.ANIMATE_CONTENT_SIZE,
         ComposeAnimationType.DECAY_ANIMATION,
