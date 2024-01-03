@@ -416,6 +416,12 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     myRemoveQualifierButton = new JButton("<<");
     buttonsPanel.add(myRemoveQualifierButton);
 
+    add(getListsPanel(buttonsPanel, leftPanel, rightPanel), BorderLayout.CENTER);
+    add(myQualifierOptionsPanel, BorderLayout.EAST);
+  }
+
+  @NotNull
+  private static JPanel getListsPanel(JPanel buttonsPanel, JPanel leftPanel, JPanel rightPanel) {
     final int gap = 5;
 
     final JPanel listsPanel = new JPanel(new AbstractLayoutManager() {
@@ -449,12 +455,10 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         }
       }
     });
-
     listsPanel.add(leftPanel);
     listsPanel.add(buttonsPanel);
     listsPanel.add(rightPanel);
-    add(listsPanel, BorderLayout.CENTER);
-    add(myQualifierOptionsPanel, BorderLayout.EAST);
+    return listsPanel;
   }
 
   private abstract static class MyQualifierEditor<T extends ResourceQualifier> {
