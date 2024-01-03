@@ -47,7 +47,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.openapi.util.Ref;
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.EnumComboBoxModel;
@@ -69,6 +68,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1112,6 +1112,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     private JBCheckBox myShowAllRegions;
     private JBLabel myWarningsLabel;
 
+    // Special language comparator: We want to prefer 2-letter language codes.
+    private static final Comparator<String> LOCALE_COMPARATOR =
+      Comparator.comparingInt(String::length).thenComparing(String.CASE_INSENSITIVE_ORDER);
 
     @Override
     JComponent getComponent() {
@@ -1127,11 +1130,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       JBLabel languageTip = new JBLabel("Tip: Type in list to filter");
       JBLabel regionLabel = new JBLabel("Specific Region Only:");
 
-      SortedListModel<String> languageModel = new SortedListModel<>((s1, s2) -> {
-        // Special language comparator: We want to prefer 2-letter language codes.
-        int delta = s1.length() - s2.length();
-        return delta == 0 ? String.CASE_INSENSITIVE_ORDER.compare(s1, s2) : delta;
-      });
+      SortedListModel<String> languageModel = new SortedListModel<>(LOCALE_COMPARATOR);
       languageModel.addAll(LocaleManager.getLanguageCodes(true));
       myLanguageList.setModel(languageModel);
       myLanguageList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -1192,7 +1191,11 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
     /** Populate the region list based on an optional language selection */
     private void updateRegionList(@Nullable String languageCode) {
-      SortedListModel<String> regionModel = getRegionModel();
+      SortedListModel<String> regionModel = new SortedListModel<>(
+        // First FAKE_VALUE, but for boolean-valued comparators, false is first.
+        Comparator.<String, Boolean>comparing(FAKE_VALUE::equals).reversed()
+          .thenComparing(LOCALE_COMPARATOR));
+      regionModel.add(FAKE_VALUE);
       if (!myShowAllRegions.isSelected() && languageCode != null) {
         final List<String> relevant = LocaleManager.getRelevantRegions(languageCode);
         for (String code : relevant) {
@@ -1207,31 +1210,6 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       if (languageCode != null && regionModel.getSize() > 0) {
         myRegionList.setSelectedIndex(0);
       }
-    }
-
-    @NotNull
-    private static SortedListModel<String> getRegionModel() {
-      final Ref<String> preferred = new Ref<>(null);
-      SortedListModel<String> regionModel = new SortedListModel<>((s1, s2) -> {
-        // Sort "Any Region" to the top
-        if (s1.equals(FAKE_VALUE)) {
-          return -1;
-        }
-        if (s2.equals(FAKE_VALUE)) {
-          return 1;
-        }
-        if (s1.equals(preferred.get())) {
-          return -1;
-        }
-        if (s2.equals(preferred.get())) {
-          return 1;
-        }
-        // Special language comparator: We want to prefer 2-letter language codes.
-        int delta = s1.length() - s2.length();
-        return delta == 0 ? String.CASE_INSENSITIVE_ORDER.compare(s1, s2) : delta;
-      });
-      regionModel.add(FAKE_VALUE);
-      return regionModel;
     }
 
     @Override
