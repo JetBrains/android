@@ -97,7 +97,7 @@ constructor(
         runConfigurationFlow.map { selectedTargetStateService.getState(it?.configuration) },
         selectionStateUpdateFlow
       )
-      .stateIn(coroutineScope, SharingStarted.Lazily, SelectionState())
+      .stateIn(coroutineScope, SharingStarted.Eagerly, SelectionState())
 
   /**
    * The primary output of this class, which is the result of combining the current set of devices
@@ -108,12 +108,13 @@ constructor(
       .combine(selectionStateFlow, ::updateState)
       .stateIn(
         coroutineScope,
-        SharingStarted.Lazily,
+        // Note that nothing collects this flow at present, so it must be eager for it to be updated
+        SharingStarted.Eagerly,
         DevicesAndTargets(emptyList(), false, emptyList())
       )
 
   val devicesAndTargets: DevicesAndTargets
-    get() = devicesAndTargetsFlow.firstValue()
+    get() = devicesAndTargetsFlow.value
 
   private fun updateSelectionState(selectionState: SelectionState) {
     selectedTargetStateService.updateState(selectionState)

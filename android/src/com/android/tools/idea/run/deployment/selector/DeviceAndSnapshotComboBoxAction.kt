@@ -162,7 +162,7 @@ internal constructor(
       return
     }
 
-    if (devicesService(project).devices.firstValue() is LoadingState.Loading) {
+    if (devicesService(project).devices.value is LoadingState.Loading) {
       presentation.setEnabled(false)
       presentation.text = "Loading Devices..."
       return

@@ -68,7 +68,7 @@ class DeviceAndSnapshotComboBoxActionTest {
     devicesFlow.value = listOf(FakeDeviceHandle(scope, null, handleId("1")))
     sendLaunchCompatibility()
 
-    devicesSelectedService.devicesAndTargetsFlow.firstValue()
+    devicesSelectedService // fetch lazy value
     testScope.advanceUntilIdle()
 
     val event = actionEvent(dataContext(project), place = ActionPlaces.MAIN_TOOLBAR)

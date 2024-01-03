@@ -49,7 +49,6 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -57,7 +56,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.android.facet.AndroidFacet
@@ -184,21 +182,15 @@ constructor(
           }
         }
       }
-      .stateIn(coroutineScope, SharingStarted.Lazily, LoadingState.Loading)
+      .stateIn(coroutineScope, SharingStarted.Eagerly, LoadingState.Loading)
 
   /** A flow that only contains the list of devices when it is ready. */
   val loadedDevices: Flow<List<DeploymentTargetDevice>> = devices.mapNotNull { it.value }
 
   fun loadedDevicesOrNull(): List<DeploymentTargetDevice>? {
-    return devices.firstValue().value
+    return devices.value.value
   }
 }
-
-/**
- * Returns the current value of the StateFlow, like StateFlow.value, but if the flow is lazy, also
- * starts collecting the flow.
- */
-internal fun <T> StateFlow<T>.firstValue() = runBlocking { first() }
 
 private fun adbFlow(): Flow<DdmlibDeviceLookup?> = callbackFlow {
   val listener =
