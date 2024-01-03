@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.ui
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.Blames
@@ -28,7 +29,6 @@ import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.client.IssueResponse
-import com.android.tools.idea.insights.waitForCondition
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -238,7 +238,7 @@ class StackTraceConsoleTest {
 
         // Ensure initial state: there's hyperlinks
         val hyperlinks = stackTraceConsole.consoleView.hyperlinks
-        waitForCondition(6000) {
+        delayUntilCondition(200) {
           // Below is what's printed out in the console:
           // ```
           //  retrofit2.HttpException: HTTP 401
@@ -257,7 +257,7 @@ class StackTraceConsoleTest {
           .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
         dispatchAllInvocationEventsInIdeEventQueue()
 
-        waitForCondition(6000) {
+        delayUntilCondition(200) {
           hyperlinks.findAllHyperlinksOnLine(1).isEmpty() &&
             hyperlinks.findAllHyperlinksOnLine(2).isEmpty()
         }

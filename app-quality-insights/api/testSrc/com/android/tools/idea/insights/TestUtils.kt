@@ -20,7 +20,7 @@ import java.time.Instant
 import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.delay
 
-suspend fun waitForCondition(timeoutMs: Long = 500, condition: () -> Boolean) {
+suspend inline fun waitForCondition(timeoutMs: Long = 500, crossinline condition: () -> Boolean) {
   val waitIntervalMs = 50L
   var index = 0
 
