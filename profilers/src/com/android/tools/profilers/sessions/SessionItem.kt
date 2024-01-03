@@ -74,8 +74,9 @@ class SessionItem(
   /**
    * The MEMORY_CAPTURE and CPU_CAPTURE session types are indicative of imported memory and CPU sessions respectively.
    */
-  override val canExport = sessionMetaData.type == SessionMetaData.SessionType.MEMORY_CAPTURE
-                           || sessionMetaData.type == SessionMetaData.SessionType.CPU_CAPTURE
+  override val canExport get() = childArtifacts.size == 1
+                                 && sessionMetaData.type == SessionMetaData.SessionType.MEMORY_CAPTURE
+                                 || sessionMetaData.type == SessionMetaData.SessionType.CPU_CAPTURE
 
   override fun export(outputStream: OutputStream) {
     assert(canExport)

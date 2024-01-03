@@ -21,6 +21,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.LiveStage
 import com.android.tools.profilers.NullMonitorStage
@@ -31,6 +32,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.Utils.debuggableProcess
 import com.android.tools.profilers.Utils.newProcess
 import com.android.tools.profilers.Utils.onlineDevice
+import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
@@ -234,6 +236,37 @@ class SessionItemTest {
     }.build())
 
     Truth.assertThat(sessionItem.name).isEqualTo("com.google.app (Pixel 3A XL)")
+  }
+
+  @Test
+  fun `session with no child artifacts is not exportable`() {
+    val session = Common.Session.newBuilder().build()
+
+    val sessionItem = SessionItem(myProfilers, session, Common.SessionMetaData.newBuilder().apply {
+      sessionName = "com.google.app (Pixel 3A XL)"
+      type = Common.SessionMetaData.SessionType.MEMORY_CAPTURE
+    }.build())
+
+    // Make sure there are no child artifacts.
+    Truth.assertThat(sessionItem.getChildArtifacts()).isEmpty()
+    // Despite being a valid session type (MEMORY_CAPTURE), no child artifacts will lead to canExport being false.
+    Truth.assertThat(sessionItem.canExport).isFalse()
+  }
+
+  @Test
+  fun `session with a single child artifacts is exportable`() {
+    val session = Common.Session.newBuilder().build()
+
+    val sessionItem = SessionItem(myProfilers, session, Common.SessionMetaData.newBuilder().apply {
+      sessionName = "com.google.app (Pixel 3A XL)"
+      type = Common.SessionMetaData.SessionType.MEMORY_CAPTURE
+    }.build())
+
+    sessionItem.setChildArtifacts(listOf(
+      CpuCaptureSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), Common.SessionMetaData.getDefaultInstance(),
+                                Trace.TraceInfo.getDefaultInstance())))
+    // The session item has a single child artifact, thus canExport should be true.
+    Truth.assertThat(sessionItem.canExport).isTrue()
   }
 
   private fun generateMemoryCaptureEvents() {
