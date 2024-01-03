@@ -17,7 +17,6 @@ py_test(
         "//tools/adt/idea/studio:android-studio.mac.zip",
         "//tools/adt/idea/studio:android-studio.win.zip",
     ],
-    tags = ["manual"],  # TODO(b/312254687): this test fails with IntelliJ 2023.3.
 )
 
 exports_files(
