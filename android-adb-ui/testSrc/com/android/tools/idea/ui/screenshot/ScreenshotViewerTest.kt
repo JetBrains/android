@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
@@ -50,7 +51,6 @@ import com.intellij.util.ui.EDT
 import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
 import org.junit.After
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -60,6 +60,9 @@ import java.util.EnumSet
 import javax.swing.JButton
 import javax.swing.JComboBox
 import javax.swing.UIManager
+import kotlin.time.Duration.Companion.seconds
+
+private val TIMEOUT = 5.seconds
 
 private const val DISPLAY_INFO_PHONE =
   "DisplayDeviceInfo{\"Built-in Screen\": uniqueId=\"local:4619827259835644672\", 1080 x 2400, modeId 1, defaultModeId 1," +
@@ -119,33 +122,34 @@ class ScreenshotViewerTest {
   }
 
   @Test
-  @Ignore("b/316591692")
   fun testResizing() {
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
     val zoomModel = ui.getComponent<ImageComponentDecorator>().zoomModel
-    val zoomFactor = zoomModel.zoomFactor
-
+    waitForCondition(TIMEOUT) {
+      zoomModel.zoomFactor == 1.0
+    }
     viewer.rootPane.setSize(viewer.rootPane.width + 50, viewer.rootPane.width + 100)
     ui.layoutAndDispatchEvents()
-    assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(zoomFactor)
+    assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(1.0)
   }
 
   @Test
-  @Ignore("b/316591692")
   fun testUpdateEditorImage() {
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
     val zoomModel = ui.getComponent<ImageComponentDecorator>().zoomModel
-    val zoomFactor = zoomModel.zoomFactor
+    waitForCondition(TIMEOUT) {
+      zoomModel.zoomFactor == 1.0
+    }
 
     viewer.updateEditorImage()
     ui.layoutAndDispatchEvents()
-    assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(zoomFactor)
+    assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(1.0)
   }
 
   @Test
@@ -164,7 +168,6 @@ class ScreenshotViewerTest {
     assertThat(processedImage.getRGB(screenshotImage.width - 5, screenshotImage.height - 5)).isEqualTo(0)
   }
 
-  @Ignore("b/316591692")
   @Test
   fun testClipRoundScreenshotWithBackgroundColor() {
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
@@ -176,13 +179,15 @@ class ScreenshotViewerTest {
     clipComboBox.selectFirstMatch("Rectangular")
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    waitForCondition(TIMEOUT) {
+      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+    }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
     assertThat(processedImage.getRGB(screenshotImage.width - 5, screenshotImage.height - 5)).isEqualTo(Color.BLACK.rgb)
   }
 
-  @Ignore("b/316591692")
   @Test
   fun testClipRoundScreenshotWithBackgroundColorInDarkMode() {
     runInEdt {
@@ -196,6 +201,9 @@ class ScreenshotViewerTest {
     clipComboBox.selectFirstMatch("Rectangular")
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    waitForCondition(TIMEOUT) {
+      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+    }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
@@ -223,7 +231,6 @@ class ScreenshotViewerTest {
   }
 
   @Test
-  @Ignore("b/316591692")
   fun testPlayCompatibleScreenshot() {
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
@@ -234,6 +241,9 @@ class ScreenshotViewerTest {
     clipComboBox.selectFirstMatch("Play Store Compatible")
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    waitForCondition(TIMEOUT) {
+      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+    }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
@@ -241,7 +251,6 @@ class ScreenshotViewerTest {
   }
 
   @Test
-  @Ignore("b/316591692")
   fun testPlayCompatibleScreenshotInDarkMode() {
     runInEdt {
       UIManager.setLookAndFeel(DarculaLaf())
@@ -255,6 +264,9 @@ class ScreenshotViewerTest {
     clipComboBox.selectFirstMatch("Play Store Compatible")
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    waitForCondition(TIMEOUT) {
+      ui.getComponent<ImageComponent>().document.value.getRGB(0, 0) == Color.BLACK.rgb
+    }
     val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
@@ -316,6 +328,9 @@ class ScreenshotViewerTest {
     val ui = FakeUi(viewer.rootPane)
     val copyClipboardButton = ui.getComponent<JButton> { it.text == "Copy to Clipboard" }
 
+    waitForCondition(TIMEOUT) {
+      ui.getComponent<ImageComponent>().document.value != null
+    }
     copyClipboardButton.doClick()
 
     EDT.dispatchAllInvocationEvents()
