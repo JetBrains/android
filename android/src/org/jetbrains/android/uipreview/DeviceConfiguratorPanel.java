@@ -404,7 +404,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     final JPanel rightPanel = new JPanel(new BorderLayout(JBUI.scale(5), JBUI.scale(5)));
     myChosenQualifiersList = new JBList<>();
     myChosenQualifiersList.setMinimumSize(JBUI.size(10, 10));
-    label = new JBLabel(AndroidBundle.message("android.layout.preview.edit.configuration.choosen.qualifiers.label"));
+    label = new JBLabel(AndroidBundle.message("android.layout.preview.edit.configuration.chosen.qualifiers.label"));
     label.setLabelFor(myChosenQualifiersList);
     rightPanel.add(label, BorderLayout.NORTH);
     rightPanel.add(new JBScrollPane(myChosenQualifiersList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
