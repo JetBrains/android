@@ -1192,6 +1192,25 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
     /** Populate the region list based on an optional language selection */
     private void updateRegionList(@Nullable String languageCode) {
+      SortedListModel<String> regionModel = getRegionModel();
+      if (!myShowAllRegions.isSelected() && languageCode != null) {
+        final List<String> relevant = LocaleManager.getRelevantRegions(languageCode);
+        for (String code : relevant) {
+          regionModel.add(code);
+        }
+      } else {
+        for (String code : LocaleManager.getRegionCodes(true)) {
+          regionModel.add(code);
+        }
+      }
+      myRegionList.setModel(regionModel);
+      if (languageCode != null && regionModel.getSize() > 0) {
+        myRegionList.setSelectedIndex(0);
+      }
+    }
+
+    @NotNull
+    private static SortedListModel<String> getRegionModel() {
       final Ref<String> preferred = new Ref<>(null);
       SortedListModel<String> regionModel = new SortedListModel<>((s1, s2) -> {
         // Sort "Any Region" to the top
@@ -1212,20 +1231,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         return delta == 0 ? String.CASE_INSENSITIVE_ORDER.compare(s1, s2) : delta;
       });
       regionModel.add(FAKE_VALUE);
-      if (!myShowAllRegions.isSelected() && languageCode != null) {
-        final List<String> relevant = LocaleManager.getRelevantRegions(languageCode);
-        for (String code : relevant) {
-          regionModel.add(code);
-        }
-      } else {
-        for (String code : LocaleManager.getRegionCodes(true)) {
-          regionModel.add(code);
-        }
-      }
-      myRegionList.setModel(regionModel);
-      if (languageCode != null && regionModel.getSize() > 0) {
-        myRegionList.setSelectedIndex(0);
-      }
+      return regionModel;
     }
 
     @Override
