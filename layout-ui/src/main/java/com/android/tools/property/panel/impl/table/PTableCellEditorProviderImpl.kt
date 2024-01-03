@@ -162,7 +162,7 @@ class PTableCellEditorImpl : PTableCellEditor, TableSupport {
     val propertyItem = item ?: return
     val editor = editorComponent ?: return
     val tableColumn = column ?: return
-    table?.updateRowHeight(propertyItem, tableColumn, editor.preferredSize.height, scrollIntoView)
+    table?.updateRowHeight(propertyItem, tableColumn, editor, scrollIntoView)
   }
 
   override fun close(oldTable: PTable) {

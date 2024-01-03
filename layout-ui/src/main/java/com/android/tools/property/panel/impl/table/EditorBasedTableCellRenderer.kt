@@ -92,7 +92,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(
     model.tableExpansionState = computeTableExpansionState(table, item, column)
     model.property = property
     if (model.isCustomHeight) {
-      table.updateRowHeight(item, column, editor.preferredSize.height, false)
+      table.updateRowHeight(item, column, editor, false)
     }
     return editor
   }

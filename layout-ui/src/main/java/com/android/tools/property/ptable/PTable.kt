@@ -93,8 +93,16 @@ interface PTable {
   /** Toggles the expansion state of the specified [PTableGroupItem] */
   fun toggle(item: PTableGroupItem)
 
-  /** Set the row [height] corresponding to the [item] and optionally [scrollIntoView] */
-  fun updateRowHeight(item: PTableItem, column: PTableColumn, height: Int, scrollIntoView: Boolean)
+  /**
+   * Set the row height to the preferred height of the [cellEditor] corresponding to the [item] and
+   * optionally [scrollIntoView]
+   */
+  fun updateRowHeight(
+    item: PTableItem,
+    column: PTableColumn,
+    cellEditor: JComponent,
+    scrollIntoView: Boolean
+  )
 
   /** Start editing the specified row, and stop editing if row is -1. */
   fun startEditing(row: Int)

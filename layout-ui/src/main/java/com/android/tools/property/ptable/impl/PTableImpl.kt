@@ -31,6 +31,7 @@ import com.android.tools.property.ptable.PTableGroupItem
 import com.android.tools.property.ptable.PTableGroupModification
 import com.android.tools.property.ptable.PTableItem
 import com.android.tools.property.ptable.PTableModel
+import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.wm.IdeFocusManager
@@ -44,6 +45,7 @@ import com.intellij.ui.TableCell
 import com.intellij.ui.TableExpandableItemsHandler
 import com.intellij.ui.TableUtil
 import com.intellij.ui.scale.JBUIScale
+import com.intellij.ui.util.preferredHeight
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.awt.Component
@@ -228,9 +230,25 @@ open class PTableImpl(
   override fun updateRowHeight(
     item: PTableItem,
     column: PTableColumn,
-    height: Int,
+    cellEditor: JComponent,
     scrollIntoView: Boolean
   ) {
+    // The Border insets height for a DarculaTextBorder is different if
+    // DarculaUIUtil.isTableCellEditor returns false.
+    // Temporary add the editor as a child to the table to get the correct preferred height.
+    val isAttached = DarculaUIUtil.isTableCellEditor(cellEditor)
+    if (!isAttached) {
+      add(cellEditor)
+    }
+    val height =
+      try {
+        cellEditor.preferredHeight
+      } finally {
+        if (!isAttached) {
+          remove(cellEditor)
+        }
+      }
+
     val index = model.indexOf(item)
     if (index >= 0) {
       val row = convertRowIndexToView(index)
