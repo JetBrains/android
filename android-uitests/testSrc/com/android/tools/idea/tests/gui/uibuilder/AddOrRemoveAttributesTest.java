@@ -202,7 +202,11 @@ public class AddOrRemoveAttributesTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     //Adding baseline constraint attribute in the declared attributes panel.
-    addLayoutConstraintInDeclaredAttributes("button","app:layout_constraintBaseline_toBaselineOf", "@id/checkBox");
+    addLayoutConstraintInDeclaredAttributes("button","app:layout_constraintBaseline_toBaselineOf",
+                                            "@id/checkBox");
+    // Repeat above step to reduce flakiness
+    addLayoutConstraintInDeclaredAttributes("button","app:layout_constraintBaseline_toBaselineOf",
+                                            "@id/checkBox");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     myNlEditorFixture.waitForSurfaceToLoad();
     myNlEditorFixture.waitForRenderToFinish();
