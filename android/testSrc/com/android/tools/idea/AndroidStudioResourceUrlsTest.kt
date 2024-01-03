@@ -47,6 +47,7 @@ class AndroidStudioResourceUrlsTest {
   @Suppress("OverrideOnly")
   fun miscUrls() {
     val urls = ExternalProductResourceUrls.getInstance()
+    assertThat(urls.downloadPageUrl.toString()).isEqualTo("https://developer.android.com/r/studio-ui/download-stable")
     assertThat(urls.youTubeChannelUrl.toString()).isEqualTo("https://www.youtube.com/c/AndroidDevelopers")
     assertThat(urls.whatIsNewPageUrl.toString()).isEqualTo("https://developer.android.com/r/studio-ui/menu-whats-new.html")
     assertThat(urls.gettingStartedPageUrl.toString()).isEqualTo("http://developer.android.com/r/studio-ui/menu-start.html")

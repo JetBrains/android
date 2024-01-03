@@ -56,6 +56,9 @@ class AndroidStudioResourceUrls : ExternalProductResourceUrls {
     }
   }
 
+  override val downloadPageUrl: Url
+    get() = Urls.newFromEncoded("https://developer.android.com/r/studio-ui/download-stable")
+
   override val gettingStartedPageUrl: Url
     get() = Urls.newFromEncoded("http://developer.android.com/r/studio-ui/menu-start.html")
 
