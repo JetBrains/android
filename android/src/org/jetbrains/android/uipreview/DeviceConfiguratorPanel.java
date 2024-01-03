@@ -4,8 +4,43 @@ package org.jetbrains.android.uipreview;
 import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
 
 import com.android.ide.common.resources.LocaleManager;
-import com.android.ide.common.resources.configuration.*;
-import com.android.resources.*;
+import com.android.ide.common.resources.configuration.CountryCodeQualifier;
+import com.android.ide.common.resources.configuration.DensityQualifier;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.KeyboardStateQualifier;
+import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.ide.common.resources.configuration.NavigationMethodQualifier;
+import com.android.ide.common.resources.configuration.NavigationStateQualifier;
+import com.android.ide.common.resources.configuration.NetworkCodeQualifier;
+import com.android.ide.common.resources.configuration.NightModeQualifier;
+import com.android.ide.common.resources.configuration.ResourceQualifier;
+import com.android.ide.common.resources.configuration.ScreenDimensionQualifier;
+import com.android.ide.common.resources.configuration.ScreenHeightQualifier;
+import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
+import com.android.ide.common.resources.configuration.ScreenRatioQualifier;
+import com.android.ide.common.resources.configuration.ScreenRoundQualifier;
+import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
+import com.android.ide.common.resources.configuration.ScreenWidthQualifier;
+import com.android.ide.common.resources.configuration.SmallestScreenWidthQualifier;
+import com.android.ide.common.resources.configuration.TextInputMethodQualifier;
+import com.android.ide.common.resources.configuration.TouchScreenQualifier;
+import com.android.ide.common.resources.configuration.UiModeQualifier;
+import com.android.ide.common.resources.configuration.VersionQualifier;
+import com.android.resources.Density;
+import com.android.resources.Keyboard;
+import com.android.resources.KeyboardState;
+import com.android.resources.LayoutDirection;
+import com.android.resources.Navigation;
+import com.android.resources.NavigationState;
+import com.android.resources.NightMode;
+import com.android.resources.ResourceEnum;
+import com.android.resources.ScreenOrientation;
+import com.android.resources.ScreenRatio;
+import com.android.resources.ScreenRound;
+import com.android.resources.ScreenSize;
+import com.android.resources.TouchScreen;
+import com.android.resources.UiMode;
 import com.android.tools.idea.rendering.FlagManager;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
@@ -13,7 +48,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.Ref;
-import com.intellij.ui.*;
+import com.intellij.ui.CollectionListModel;
+import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.EnumComboBoxModel;
+import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
@@ -22,16 +61,31 @@ import com.intellij.ui.speedSearch.ListWithFilter;
 import com.intellij.util.ui.AbstractLayoutManager;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.AbstractListModel;
+import javax.swing.ComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionListener;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,12 +111,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       applyEditors();
     }
   };
-  public final ListSelectionListener myUpdatingListListener = new ListSelectionListener() {
-    @Override
-    public void valueChanged(ListSelectionEvent listSelectionEvent) {
-      applyEditors();
-    }
-  };
+  public final ListSelectionListener myUpdatingListListener = listSelectionEvent -> applyEditors();
 
   @SuppressWarnings("unchecked")
   public DeviceConfiguratorPanel() {
@@ -161,59 +210,45 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       label.setIcon(getResourceIcon(qualifier));
     }));
 
-    myAddQualifierButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        final ResourceQualifier selectedQualifier = myAvailableQualifiersList.getSelectedValue();
-        if (selectedQualifier != null) {
-          final int index = myAvailableQualifiersList.getSelectedIndex();
+    myAddQualifierButton.addActionListener(e -> {
+      final ResourceQualifier selectedQualifier = myAvailableQualifiersList.getSelectedValue();
+      if (selectedQualifier != null) {
+        final int index = myAvailableQualifiersList.getSelectedIndex();
 
-          myAvailableQualifiersConfig.removeQualifier(selectedQualifier);
-          myChosenQualifiersConfig.addQualifier(selectedQualifier);
+        myAvailableQualifiersConfig.removeQualifier(selectedQualifier);
+        myChosenQualifiersConfig.addQualifier(selectedQualifier);
 
-          updateLists();
-          applyEditors();
+        updateLists();
+        applyEditors();
 
-          if (index >= 0) {
-            myAvailableQualifiersList.setSelectedIndex(Math.min(index, myAvailableQualifiersList.getItemsCount() - 1));
-          }
-          myChosenQualifiersList.setSelectedValue(selectedQualifier, true);
+        if (index >= 0) {
+          myAvailableQualifiersList.setSelectedIndex(Math.min(index, myAvailableQualifiersList.getItemsCount() - 1));
+        }
+        myChosenQualifiersList.setSelectedValue(selectedQualifier, true);
+      }
+    });
+
+    myRemoveQualifierButton.addActionListener(e -> {
+      final ResourceQualifier selectedQualifier = myChosenQualifiersList.getSelectedValue();
+      if (selectedQualifier != null) {
+        final int index = myChosenQualifiersList.getSelectedIndex();
+
+        myChosenQualifiersConfig.removeQualifier(selectedQualifier);
+        myAvailableQualifiersConfig.addQualifier(selectedQualifier);
+        updateLists();
+        applyEditors();
+
+        if (index >= 0) {
+          myChosenQualifiersList.setSelectedIndex(Math.min(index, myChosenQualifiersList.getItemsCount() - 1));
         }
       }
     });
 
-    myRemoveQualifierButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        final ResourceQualifier selectedQualifier = myChosenQualifiersList.getSelectedValue();
-        if (selectedQualifier != null) {
-          final int index = myChosenQualifiersList.getSelectedIndex();
+    myAvailableQualifiersList.addListSelectionListener(e -> updateButtons());
 
-          myChosenQualifiersConfig.removeQualifier(selectedQualifier);
-          myAvailableQualifiersConfig.addQualifier(selectedQualifier);
-          updateLists();
-          applyEditors();
-
-          if (index >= 0) {
-            myChosenQualifiersList.setSelectedIndex(Math.min(index, myChosenQualifiersList.getItemsCount() - 1));
-          }
-        }
-      }
-    });
-
-    myAvailableQualifiersList.addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        updateButtons();
-      }
-    });
-
-    myChosenQualifiersList.addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        updateButtons();
-        updateQualifierEditor();
-      }
+    myChosenQualifiersList.addListSelectionListener(e -> {
+      updateButtons();
+      updateQualifierEditor();
     });
   }
 
@@ -1145,20 +1180,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
       myLanguageList.addListSelectionListener(myUpdatingListListener);
       myRegionList.addListSelectionListener(myUpdatingListListener);
-      myLanguageList.addListSelectionListener(new ListSelectionListener() {
-        @Override
-        public void valueChanged(ListSelectionEvent listSelectionEvent) {
-          // If selecting languages, attempt to pick relevant regions, if applicable
-          updateRegionList(myLanguageList.getSelectedValue());
-        }
-      });
-      myShowAllRegions.addChangeListener(new ChangeListener() {
-        @Override
-        public void stateChanged(ChangeEvent changeEvent) {
-          updateRegionList(myLanguageList.getSelectedValue());
-        }
-      });
-
+      // If selecting languages, attempt to pick relevant regions, if applicable
+      myLanguageList.addListSelectionListener(listSelectionEvent -> updateRegionList(myLanguageList.getSelectedValue()));
+      myShowAllRegions.addChangeListener(e -> updateRegionList(myLanguageList.getSelectedValue()));
       return pane;
     }
 
