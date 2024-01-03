@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.Facet;
@@ -229,13 +230,15 @@ public class AndroidDependenciesCache implements Disposable {
     // Loop in the reverse order to resolve dependencies on the libraries, so that if a library
     // is required by two higher level libraries it can be inserted in the correct place.
 
+    boolean isTestModule = ModuleSystemUtil.isAndroidTestModule(module);
     for (int i = entries.length; --i >= 0;) {
       ProgressManager.checkCanceled();
       OrderEntry orderEntry = entries[i];
       if (orderEntry instanceof ModuleOrderEntry) {
         ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)orderEntry;
 
-        if (moduleOrderEntry.getScope() == DependencyScope.COMPILE) {
+        DependencyScope dependencyScope = moduleOrderEntry.getScope();
+        if (dependencyScope == DependencyScope.COMPILE || (isTestModule && dependencyScope == DependencyScope.TEST)) {
           Module depModule = moduleOrderEntry.getModule();
 
           if (depModule != null) {
