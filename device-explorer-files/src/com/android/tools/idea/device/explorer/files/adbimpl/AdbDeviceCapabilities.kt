@@ -57,7 +57,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
       catch (e: AdbShellCommandException) {
         logger.debug(
           """Device "$deviceName" does not seem to support the "test" command: ${
-            commandResult.outputSummary()}""", e)
+            commandResult.outputSummary()}""")
         false
       }
     }
@@ -81,7 +81,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
       }
       catch (e: AdbShellCommandException) {
         logger.debug("""Device "$deviceName" does not seem to support "-f" flag for rm: ${
-            commandResult.outputSummary()}""", e)
+            commandResult.outputSummary()}""")
         false
       }
     }
@@ -105,7 +105,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
       catch (e: AdbShellCommandException) {
         logger.debug("""Device "$deviceName" does not seem to support "touch" command: ${
           commandResult.outputSummary()
-        }""", e)
+        }""")
         false
       }
     }
@@ -124,7 +124,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
     catch (e: AdbShellCommandException) {
       logger.debug(
           """Device "$deviceName" does not seem to support the "su 0" command: ${
-              commandResult.outputSummary()}""", e)
+              commandResult.outputSummary()}""")
       false
     }
   }
@@ -163,7 +163,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
         catch (e: AdbShellCommandException) {
           logger.debug(
               """Device "$deviceName" does not seem to support the "cp" command: ${
-                  commandResult.outputSummary()}""", e)
+                  commandResult.outputSummary()}""")
           false
         }
       }
@@ -232,7 +232,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
     catch (e: AdbShellCommandException) {
       logger.debug(
           """Device "$deviceName" does not seem to support the "cp" command: ${
-              commandResult.outputSummary()}""", e)
+              commandResult.outputSummary()}""")
       false
     }
   }
@@ -289,12 +289,12 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
           // There is not much we can do if we can't delete the test file other than logging the error.
           logger.debug(
               """Device "$deviceName": Error deleting temporary test file "$remotePath": ${
-                  commandResult.outputSummary()}""", e)
+                  commandResult.outputSummary()}""")
         }
       }
       catch (e: Exception) {
         // There is not much we can do if we can't delete the test file other than logging the error.
-        logger.debug("""Device "$deviceName": Error deleting temporary test file "$remotePath"""", e)
+        logger.debug("""Device "$deviceName": Error deleting temporary test file "$remotePath"""")
       }
     }
 
@@ -315,7 +315,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
             FileUtil.delete(tempFile)
           }
           catch (e: Exception) {
-            logger.debug("""Device "$deviceName": Error deleting temporary file "$tempFile"""", e)
+            logger.debug("""Device "$deviceName": Error deleting temporary file "$tempFile"""")
           }
         }
       }

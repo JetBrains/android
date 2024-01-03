@@ -64,7 +64,7 @@ class AdbFileListing(
         }
         processStatOutputLine(commandResult.output[0], defaultRoot)
       } catch (e: AdbShellCommandException) {
-        LOGGER.debug(e)
+        LOGGER.debug(e.message)
         defaultRoot
       }
     }
@@ -80,7 +80,7 @@ class AdbFileListing(
         }
         processStatOutputLine(commandResult.output[0], defaultData)
       } catch (e: AdbShellCommandException) {
-        LOGGER.debug(e)
+        LOGGER.debug(e.message)
         defaultData
       }
     }
