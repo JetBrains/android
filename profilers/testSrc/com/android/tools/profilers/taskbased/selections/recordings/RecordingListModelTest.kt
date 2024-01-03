@@ -302,7 +302,7 @@ class RecordingListModelTest {
   }
 
   private fun startSession(device: Common.Device, process: Common.Process, taskType: Common.ProfilerTaskType) {
-    myManager.beginSession(1, device, process, taskType)
+    myManager.beginSession(1, device, process, taskType, false)
     myManager.update()
   }
 }

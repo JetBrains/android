@@ -916,7 +916,7 @@ class SessionsManagerTest {
   }
 
   private fun beginSessionWithTaskHelper(device: Device, process: Common.Process, taskType: Common.ProfilerTaskType) {
-    myManager.beginSession(1, device, process, taskType)
+    myManager.beginSession(1, device, process, taskType, false)
     myManager.update()
   }
 

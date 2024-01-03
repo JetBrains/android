@@ -1635,7 +1635,7 @@ public final class StudioProfilersTest {
     Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
     myTransportService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myProfilers.setProcess(device, process, Common.ProfilerTaskType.SYSTEM_TRACE);
+    myProfilers.setProcess(device, process, Common.ProfilerTaskType.SYSTEM_TRACE, false);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     Common.Session firstSession = myProfilers.getSession();
@@ -1645,7 +1645,7 @@ public final class StudioProfilersTest {
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     // Create second session by calling setProcess again (even with same process) with Task-Based UX enabled.
-    myProfilers.setProcess(device, process, Common.ProfilerTaskType.SYSTEM_TRACE);
+    myProfilers.setProcess(device, process, Common.ProfilerTaskType.SYSTEM_TRACE, false);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Two sessions should be created by now.

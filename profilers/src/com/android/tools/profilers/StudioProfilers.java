@@ -602,7 +602,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   public void setProcess(@Nullable Common.Device device, @Nullable Common.Process process) {
-    setProcess(device, process, Common.ProfilerTaskType.UNSPECIFIED_TASK);
+    setProcess(device, process, Common.ProfilerTaskType.UNSPECIFIED_TASK, false);
   }
 
   /**
@@ -613,7 +613,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    *                  If it is null, a process will be determined automatically by heuristics.
    * @param taskType  the type of task to pass into beginSession so that the created session has a respective task type.
    */
-  public void setProcess(@Nullable Common.Device device, @Nullable Common.Process process, @NotNull Common.ProfilerTaskType taskType) {
+  public void setProcess(@Nullable Common.Device device,
+                         @Nullable Common.Process process,
+                         @NotNull Common.ProfilerTaskType taskType,
+                         boolean isStartupTask) {
     if (device != null) {
       // Device can be not null in the following scenarios:
       // 1. User explicitly sets a device from the dropdown.
@@ -650,9 +653,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       setAutoProfilingEnabled(false);
     }
 
-    // If the process changes OR the process was set in via Task initiation in the Task-Based UX, we end the current session and begin
-    // a new one.
-    if (!Objects.equals(process, myProcess) || getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+    // If the process changes OR the process was set in via a non-startup task initiation in the Task-Based UX, we end the current session
+    // and begin a new one. In regard to startup tasks, a change in process to end the current session and begin a new one.
+    if (!Objects.equals(process, myProcess) || (!isStartupTask && getIdeServices().getFeatureConfig().isTaskBasedUxEnabled())) {
       // First make sure to end the previous session.
       mySessionsManager.endCurrentSession();
 
@@ -662,7 +665,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       // Only start a new session if the process is valid.
       if (myProcess != null && myProcess.getState() == Common.Process.State.ALIVE) {
-        mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess, taskType);
+        mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess, taskType, isStartupTask);
       }
     }
   }

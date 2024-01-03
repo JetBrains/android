@@ -22,6 +22,8 @@ import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.Pro
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskTypeMappingUtils
 import com.google.common.annotations.VisibleForTesting
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * The TaskHomeTabModel serves as the data model for the task home tab. It owns the process list model to manage the available processes
@@ -31,6 +33,13 @@ import com.google.common.annotations.VisibleForTesting
 class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profilers) {
   @VisibleForTesting
   val processListModel = ProcessListModel(profilers, taskGridModel::resetTaskSelection)
+
+  private val _isStartupTaskEnabled = MutableStateFlow(false)
+  val isStartupTaskEnabled = _isStartupTaskEnabled.asStateFlow()
+
+  fun enableIsStartupTask(isStartupTaskEnabled: Boolean) {
+    _isStartupTaskEnabled.value = isStartupTaskEnabled
+  }
 
   @VisibleForTesting
   val selectedDevice: Common.Device get() = processListModel.selectedDevice.value
@@ -42,5 +51,6 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
                                                 && selectedTaskType != ProfilerTaskType.UNSPECIFIED
 
   override fun onEnterTaskButtonClick() = profilers.setProcess(selectedDevice, selectedProcess,
-                                                               TaskTypeMappingUtils.convertTaskType(selectedTaskType))
+                                                               TaskTypeMappingUtils.convertTaskType(selectedTaskType),
+                                                               _isStartupTaskEnabled.value)
 }

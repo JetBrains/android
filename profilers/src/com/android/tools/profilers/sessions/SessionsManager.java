@@ -129,6 +129,11 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   private ProfilerTaskType myCurrentTaskType = ProfilerTaskType.UNSPECIFIED;
 
   /**
+   * Whether the current task initiated by the user is to be started on startup of the process or not.
+   */
+  private boolean myIsCurrentTaskStartup = false;
+
+  /**
    * A cache of the view ranges that were used by each session before it was unselected. Note that the key represents a Session's id.
    */
   private final Map<Long, Range> mySessionViewRangeMap;
@@ -206,6 +211,10 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
   public ProfilerTaskType getCurrentTaskType() {
     return myCurrentTaskType;
+  }
+
+  public boolean getIsCurrentTaskStartup() {
+    return myIsCurrentTaskStartup;
   }
 
   @NotNull
@@ -419,6 +428,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     mySessionItems.put(session.getSessionId(), sessionItem);
     mySessionMetaDatas.put(session.getSessionId(), metadata);
     myCurrentTaskType = TaskTypeMappingUtils.convertTaskType(sessionData.getTaskType());
+    myIsCurrentTaskStartup = sessionData.getIsStartupTask();
     return sessionItem;
   }
 
@@ -485,7 +495,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   public void beginSession(long streamId, @NotNull Common.Device device, @NotNull Common.Process process) {
-    beginSession(streamId, device, process, Common.ProfilerTaskType.UNSPECIFIED_TASK);
+    beginSession(streamId, device, process, Common.ProfilerTaskType.UNSPECIFIED_TASK, false);
   }
 
   /**
@@ -494,12 +504,14 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   public void beginSession(long streamId,
                            @NotNull Common.Device device,
                            @NotNull Common.Process process,
-                           @NotNull Common.ProfilerTaskType taskType) {
+                           @NotNull Common.ProfilerTaskType taskType,
+                           boolean isStartupTask) {
     BeginSession.Builder requestBuilder = BeginSession.newBuilder()
       .setSessionName(buildSessionName(device, process))
       .setRequestTimeEpochMs(System.currentTimeMillis())
       .setProcessAbi(process.getAbiCpuArch())
-      .setTaskType(taskType);
+      .setTaskType(taskType)
+      .setIsStartupTask(isStartupTask);
     // Attach agent for advanced profiling if JVMTI is enabled and the process is debuggable
     doBeginSession(streamId, device, process, requestBuilder);
   }

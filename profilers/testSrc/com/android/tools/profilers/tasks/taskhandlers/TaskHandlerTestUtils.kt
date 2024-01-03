@@ -43,7 +43,7 @@ object TaskHandlerTestUtils {
       .build()
     transportService.addProcess(device, debuggableEvent)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for the session to auto start and select.
-    profilers.setProcess(device, null, taskType) // Will start a new session on the preferred process
+    profilers.setProcess(device, null, taskType, false) // Will start a new session on the preferred process
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for the session to auto start and select.
     Truth.assertThat(profilers.session.pid).isEqualTo(FakeTransportService.FAKE_PROCESS.pid)
     Truth.assertThat(

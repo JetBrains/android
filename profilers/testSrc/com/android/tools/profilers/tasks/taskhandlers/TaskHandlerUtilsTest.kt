@@ -93,7 +93,7 @@ class TaskHandlerUtilsTest {
       1L to createSessionItem(myProfilers, selectedSession, 1, listOf() ))
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Utils.debuggableProcess { pid = 10 }
-    myProfilers.sessionsManager.beginSession(device.deviceId, device, process1, Common.ProfilerTaskType.LIVE_VIEW)
+    myProfilers.sessionsManager.beginSession(device.deviceId, device, process1, Common.ProfilerTaskType.LIVE_VIEW, false)
     myProfilers.sessionsManager.update()
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { false }
     assertThat(artifact).isEqualTo(sessionIdToSessionItems[selectedSession.sessionId])
@@ -108,7 +108,7 @@ class TaskHandlerUtilsTest {
       1L to createSessionItem(myProfilers, selectedSession, 1, listOf() ))
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Utils.debuggableProcess { pid = 10 }
-    myProfilers.sessionsManager.beginSession(device.deviceId, device, process1, Common.ProfilerTaskType.HEAP_DUMP)
+    myProfilers.sessionsManager.beginSession(device.deviceId, device, process1, Common.ProfilerTaskType.HEAP_DUMP, false)
     myProfilers.sessionsManager.update()
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { false }
     assertThat(artifact).isNull()
