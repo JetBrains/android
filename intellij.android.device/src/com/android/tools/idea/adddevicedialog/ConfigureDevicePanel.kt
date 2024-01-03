@@ -34,14 +34,15 @@ internal fun ConfigureDevicePanel(
   device: VirtualDevice,
   images: ImmutableCollection<SystemImage>,
   skins: ImmutableCollection<Skin>,
-  onDeviceChange: (VirtualDevice) -> Unit
+  onDeviceChange: (VirtualDevice) -> Unit,
+  onImportButtonClick: () -> Unit
 ) {
   @OptIn(ExperimentalJewelApi::class)
   SwingBridgeTheme {
     Column {
       Text("Configure device")
       Text("Add a device to device manager")
-      Tabs(device, images, skins, onDeviceChange)
+      Tabs(device, images, skins, onDeviceChange, onImportButtonClick)
     }
   }
 }
@@ -51,7 +52,8 @@ private fun Tabs(
   device: VirtualDevice,
   images: ImmutableCollection<SystemImage>,
   skins: ImmutableCollection<Skin>,
-  onDeviceChange: (VirtualDevice) -> Unit
+  onDeviceChange: (VirtualDevice) -> Unit,
+  onImportButtonClick: () -> Unit
 ) {
   var selectedTab by remember { mutableStateOf(Tab.DEVICE_AND_API) }
 
@@ -64,7 +66,12 @@ private fun Tabs(
   when (selectedTab) {
     Tab.DEVICE_AND_API -> DeviceAndApiPanel(device, images, onDeviceChange)
     Tab.ADDITIONAL_SETTINGS ->
-      AdditionalSettingsPanel(device.skin, skins) { onDeviceChange(device.copy(skin = it)) }
+      AdditionalSettingsPanel(
+        device.skin,
+        skins,
+        { onDeviceChange(device.copy(skin = it)) },
+        onImportButtonClick
+      )
   }
 }
 

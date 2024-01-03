@@ -20,17 +20,20 @@ import androidx.compose.runtime.Composable
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import kotlinx.collections.immutable.ImmutableCollection
 import org.jetbrains.jewel.ui.component.Dropdown
+import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 internal fun AdditionalSettingsPanel(
   selectedSkin: Skin,
   skins: ImmutableCollection<Skin>,
-  onSelectedSkinChange: (Skin) -> Unit
+  onSelectedSkinChange: (Skin) -> Unit,
+  onImportButtonClick: () -> Unit
 ) {
   Row {
     Text("Device skin")
     DeviceSkinDropdown(selectedSkin, skins, onSelectedSkinChange)
+    OutlinedButton(onImportButtonClick) { Text("Import") }
   }
 }
 

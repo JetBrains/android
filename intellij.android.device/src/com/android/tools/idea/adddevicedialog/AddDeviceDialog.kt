@@ -30,7 +30,7 @@ internal object AddDeviceDialog {
   ): DialogWrapper {
     val model = AddDeviceWizardModel(images, skins)
 
-    return StudioWizardDialogBuilder(ConfigureDeviceStep(model), "Add Device")
+    return StudioWizardDialogBuilder(ConfigureDeviceStep(model, project), "Add Device")
       .setProject(project)
       .build(SimpleStudioWizardLayout())
   }

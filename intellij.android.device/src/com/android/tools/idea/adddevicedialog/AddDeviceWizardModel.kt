@@ -20,31 +20,44 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.wizard.model.WizardModel
 import java.nio.file.Path
 import kotlinx.collections.immutable.ImmutableCollection
+import kotlinx.collections.immutable.toImmutableList
 
 internal class AddDeviceWizardModel
 internal constructor(
   internal val systemImages: ImmutableCollection<SystemImage>,
-  internal val skins: ImmutableCollection<Skin>
+  skins: ImmutableCollection<Skin>
 ) : WizardModel() {
   internal var device by initDevice()
+  internal var skins by mutableStateOf(skins)
 
   private fun initDevice(): MutableState<VirtualDevice> {
     // TODO Stop hard coding these defaults and use the values from the selected device definition
     val sdk = AndroidSdks.getInstance().tryToChooseSdkHandler().location.toString()
-    val skin = Path.of(sdk, "skins", "pixel_7")
 
     return mutableStateOf(
       VirtualDevice(
         "Pixel 7 API 34",
         AndroidVersion(34, null, 7, true),
-        skins.find { it.path() == skin }!!
+        DefaultSkin(Path.of(sdk, "skins", "pixel_7"))
       )
     )
+  }
+
+  internal fun importSkin(path: Path) {
+    var skin = skins.find { it.path() == path }
+
+    if (skin == null) {
+      skin = DefaultSkin(path)
+      skins = (skins + skin).sorted().toImmutableList()
+    }
+
+    device = device.copy(skin = skin)
   }
 
   override fun handleFinished() {
