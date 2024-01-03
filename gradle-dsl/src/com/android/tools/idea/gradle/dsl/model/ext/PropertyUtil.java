@@ -69,7 +69,8 @@ public class PropertyUtil {
       if (oldElement != null) {
         name = oldElement.getNameElement();
         effect = oldElement.getModelEffect();
-      } else if (propertyDescription != null) {
+      }
+      else if (propertyDescription != null) {
         effect = new ModelEffectDescription(propertyDescription, CREATE_WITH_VALUE);
       }
 
@@ -259,23 +260,24 @@ public class PropertyUtil {
    */
   @Nullable
   public static GradleDslElement findOriginalElement(@NotNull GradleDslElement parent, @NotNull GradleDslElement element) {
-    GradlePropertiesDslElement holder = parent instanceof GradleDslMethodCall ? ((GradleDslMethodCall)parent).getArgumentsElement() :
-                                        (GradlePropertiesDslElement)parent;
-
-    if (holder instanceof GradleDslExpressionList || holder instanceof GradleDslElementList) {
-      // get all elements that are loaded from file
-      List<GradleDslElement> originalElements = holder.getOriginalElements();
-      // get all effective elements (with new and without deleted)
-      List<GradleDslElement> elements = holder.getAllPropertyElements();
-      int index = elements.indexOf(element);
-      // return original element unless it's new
-      // if new - return same position original element as it can be deleted and same value be added.
-      return (originalElements.contains(element)) ? element :
-             (index >= 0 && originalElements.size() > index) ? originalElements.get(index) : null;
+    GradleDslElement parentHolder = parent instanceof GradleDslMethodCall ? ((GradleDslMethodCall)parent).getArgumentsElement() : parent;
+    if (parentHolder instanceof GradlePropertiesDslElement holder) {
+      if (holder instanceof GradleDslExpressionList || holder instanceof GradleDslElementList) {
+        // get all elements that are loaded from file
+        List<GradleDslElement> originalElements = holder.getOriginalElements();
+        // get all effective elements (with new and without deleted)
+        List<GradleDslElement> elements = holder.getAllPropertyElements();
+        int index = elements.indexOf(element);
+        // return original element unless it's new
+        // if new - return same position original element as it can be deleted and same value be added.
+        return (originalElements.contains(element)) ? element :
+               (index >= 0 && originalElements.size() > index) ? originalElements.get(index) : null;
+      }
+      else {
+        return holder.getOriginalElementForNameAndType(element.getName(), element.getElementType());
+      }
     }
-    else {
-      return holder.getOriginalElementForNameAndType(element.getName(), element.getElementType());
-    }
+    return null;
   }
 
   /**
