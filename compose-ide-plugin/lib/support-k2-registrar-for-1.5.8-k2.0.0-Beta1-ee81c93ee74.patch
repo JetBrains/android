@@ -1,0 +1,1459 @@
+commit ee81c93ee7432c6598227bbcd16b2164c394e2af
+Author: Jaebaek Seo <jaebaek@google.com>
+Date:   Thu Jan 4 15:04:50 2024 -0800
+
+    [PATCH] [do not merge] Support K2 registrar for 1.5.6-k2.0.0-Beta1
+    
+    Because of the known memory leak issue
+    (https://youtrack.jetbrains.com/issue/KT-60952), Compose compiler plugin
+    1.5.6-k2.0.0-Beta1 uses the deprecated API `ComponentRegistrar` that is
+    not supported by IJ 233 for K2 anymore.
+    
+    This patch simply adds `ComposePluginRegistrarForK2` to Patchset 19 of
+    "Change-Id: Ic40e3cb8872a6b5edfa56c6d8973ae9860eef74c":
+    
+        Author: Jim S <jsproch@google.com>
+        Date:   Wed Nov 15 13:53:36 2023 -0800
+    
+            Kotlin 2.0.0 Rebase
+    
+            Change-Id: Ic40e3cb8872a6b5edfa56c6d8973ae9860eef74c
+    
+    (1.5.6-k2.0.0-Beta1).
+    
+    `ComposePluginRegistrarForK2` is a child of the new registrar class
+    `CompilerPluginRegistrar` that allows IJ 233 to enable Compose compiler
+    plugin for K2.
+    
+    Note that the memory leak will not happen with
+    `ComposePluginRegistrarForK2`. In KT-60952, we concluded
+    `ComposeDiagnosticSuppressor` is not cleaned up by GC. It is K1
+    specific class, and `ComposePluginRegistrarForK2` does not use it.
+    
+    If we find memory leaks related to this new registrar, we have to
+    remove the problematic extensions from the ExtensionStorage i.e., user
+    of `ComposePluginRegistrarForK2`.
+    
+    Test: ComposableCheckerTests
+    Bug: 316022748
+    Change-Id: Ia83598063b2784f88cf8bcbbb2cd91327eb4da9a
+
+diff --git a/buildSrc/private/src/main/kotlin/androidx/build/uptodatedness/TaskUpToDateValidator.kt b/buildSrc/private/src/main/kotlin/androidx/build/uptodatedness/TaskUpToDateValidator.kt
+index 5ccd97ab47a..a267f6515fc 100644
+--- a/buildSrc/private/src/main/kotlin/androidx/build/uptodatedness/TaskUpToDateValidator.kt
++++ b/buildSrc/private/src/main/kotlin/androidx/build/uptodatedness/TaskUpToDateValidator.kt
+@@ -130,7 +130,13 @@ val ALLOW_RERUNNING_TASKS =
+         ":wear:tiles:tiles-proto:extractIncludeTestProto",
+ 
+         // https://youtrack.jetbrains.com/issue/KT-61931
+-        "checkKotlinGradlePluginConfigurationErrors"
++        "checkKotlinGradlePluginConfigurationErrors",
++
++        // https://youtrack.jetbrains.com/issue/KT-63634
++        ":viewpager2:viewpager2:compileDebugAndroidTestKotlin",
++        "compileTestKotlinDesktop",
++        "compileTestKotlin",
++        "compileTestKotlinJvm",
+     )
+ 
+ // Additional tasks that are expected to be temporarily out-of-date after running once
+diff --git a/buildSrc/repos.gradle b/buildSrc/repos.gradle
+index 297a5206249..872840958b7 100644
+--- a/buildSrc/repos.gradle
++++ b/buildSrc/repos.gradle
+@@ -63,6 +63,9 @@ def addMavenRepositories(RepositoryHandler handler) {
+             }
+         }
+     }
++    handler.maven {
++        url("https://plugins.gradle.org/m2/")
++    }
+     if (System.getenv("ALLOW_PUBLIC_REPOS") != null || System.getProperty("ALLOW_PUBLIC_REPOS") != null) {
+         handler.mavenCentral()
+         handler.google()
+diff --git a/busytown/impl/prepare-linux-sysroot.sh b/busytown/impl/prepare-linux-sysroot.sh
+index a89d199abe2..9d46a0c48d0 100755
+--- a/busytown/impl/prepare-linux-sysroot.sh
++++ b/busytown/impl/prepare-linux-sysroot.sh
+@@ -8,6 +8,10 @@ SYSROOT_DIR=$1
+ mkdir -p $SYSROOT_DIR
+ # TODO Can we find a more reliable way to get the kotlin native version?
+ KOTLIN_NATIVE_VERSION=$(grep "kotlinNative =" gradle/libs.versions.toml| cut -d "=" -f2|tr -d '"'|cut -d " " -f2)
++
++PREBUILTS_PROPERTIES="$(cat $SCRIPT_DIR/../../../../prebuilts/androidx/konan/linux-prebuilts.properties)"
++echo "$KOTLIN_NATIVE_VERSION=${PREBUILTS_PROPERTIES#*=}" >> $SCRIPT_DIR/../../../../prebuilts/androidx/konan/linux-prebuilts.properties
++
+ # extract it into the out dir
+ $SCRIPT_DIR/../../../../prebuilts/androidx/konan/copy-linux-sysroot.sh \
+     --kotlin-version $KOTLIN_NATIVE_VERSION \
+diff --git a/camera/integration-tests/viewfindertestapp/src/main/java/androidx/camera/integration/viewfinder/CameraViewfinderFoldableFragment.kt b/camera/integration-tests/viewfindertestapp/src/main/java/androidx/camera/integration/viewfinder/CameraViewfinderFoldableFragment.kt
+index 3627dd51e99..057f11c6352 100644
+--- a/camera/integration-tests/viewfindertestapp/src/main/java/androidx/camera/integration/viewfinder/CameraViewfinderFoldableFragment.kt
++++ b/camera/integration-tests/viewfindertestapp/src/main/java/androidx/camera/integration/viewfinder/CameraViewfinderFoldableFragment.kt
+@@ -301,7 +301,7 @@ class CameraViewfinderFoldableFragment : Fragment(), View.OnClickListener {
+                             "camera id cannot be null"
+                         })
+                         .get<Int>(CameraCharacteristics.LENS_FACING)
+-                    if (Objects.equal(currentFacing, facing)) {
++                    if (Objects.equal(currentFacing as Any, facing as Any)) {
+                         continue
+                     }
+                 }
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/ClassStabilityTransformTests.kt b/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/ClassStabilityTransformTests.kt
+index 479d52ff8d0..9b06e88fbfb 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/ClassStabilityTransformTests.kt
++++ b/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/ClassStabilityTransformTests.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin
+ 
+ import androidx.compose.compiler.plugins.kotlin.analysis.FqNameMatcher
+@@ -25,6 +27,7 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+ import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+ import org.jetbrains.kotlin.ir.expressions.IrExpression
+ import org.jetbrains.kotlin.ir.expressions.IrReturn
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.IrType
+ import org.jetbrains.kotlin.ir.util.defaultType
+ import org.jetbrains.kotlin.ir.util.statements
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/ComposerParamTransformTests.kt b/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/ComposerParamTransformTests.kt
+index cd9027b0b4e..84ec2cc1989 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/ComposerParamTransformTests.kt
++++ b/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/ComposerParamTransformTests.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin
+ 
+ import org.intellij.lang.annotations.Language
+@@ -22,6 +24,7 @@ import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+ import org.jetbrains.kotlin.ir.declarations.IrValueParameter
+ import org.jetbrains.kotlin.ir.expressions.IrCall
+ import org.jetbrains.kotlin.ir.expressions.IrGetValue
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.classFqName
+ import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
+ import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/StaticExpressionDetectionTests.kt b/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/StaticExpressionDetectionTests.kt
+index 4913143eb92..5aebb69d463 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/StaticExpressionDetectionTests.kt
++++ b/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/StaticExpressionDetectionTests.kt
+@@ -14,12 +14,15 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin
+ 
+ import androidx.compose.compiler.plugins.kotlin.facade.SourceFile
+ import androidx.compose.compiler.plugins.kotlin.lower.dumpSrc
+ import org.intellij.lang.annotations.Language
+ import org.jetbrains.kotlin.ir.declarations.IrFunction
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.junit.Assert.assertEquals
+ import org.junit.Assert.fail
+ import org.junit.Test
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/analysis/ComposableDeclarationCheckerTests.kt b/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/analysis/ComposableDeclarationCheckerTests.kt
+index be507dfd6c4..94529d9b582 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/analysis/ComposableDeclarationCheckerTests.kt
++++ b/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/analysis/ComposableDeclarationCheckerTests.kt
+@@ -435,7 +435,7 @@ class ComposableDeclarationCheckerTests(useFir: Boolean) : AbstractComposeDiagno
+             """
+                 import androidx.compose.runtime.Composable
+ 
+-                class Impl : () -> Unit, @Composable (Int) -> Unit {
++                class Impl : ${if (useFir) "<!MIXING_FUNCTIONAL_KINDS_IN_SUPERTYPES!>" else ""}() -> Unit, @Composable (Int) -> Unit${if (useFir) "<!>" else ""} {
+                     <!CONFLICTING_OVERLOADS!>@Composable override fun invoke()<!> {}
+                     @Composable override fun invoke(p0: Int) {}
+                 }
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/facade/K2CompilerFacade.kt b/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/facade/K2CompilerFacade.kt
+index ff32894cd9e..97d835c187a 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/facade/K2CompilerFacade.kt
++++ b/compose/compiler/compiler-hosted/integration-tests/src/jvmTest/kotlin/androidx/compose/compiler/plugins/kotlin/facade/K2CompilerFacade.kt
+@@ -33,13 +33,12 @@ import org.jetbrains.kotlin.cli.jvm.compiler.NoScopeRecordCliBindingTrace
+ import org.jetbrains.kotlin.cli.jvm.compiler.PsiBasedProjectFileSearchScope
+ import org.jetbrains.kotlin.cli.jvm.compiler.TopDownAnalyzerFacadeForJVM
+ import org.jetbrains.kotlin.cli.jvm.compiler.VfsBasedProjectEnvironment
++import org.jetbrains.kotlin.cli.jvm.compiler.pipeline.convertToIrAndActualizeForJvm
+ import org.jetbrains.kotlin.codegen.ClassBuilderFactories
+ import org.jetbrains.kotlin.codegen.state.GenerationState
+ import org.jetbrains.kotlin.config.CommonConfigurationKeys
+ import org.jetbrains.kotlin.config.CompilerConfiguration
+-import org.jetbrains.kotlin.config.JVMConfigurationKeys
+ import org.jetbrains.kotlin.config.languageVersionSettings
+-import org.jetbrains.kotlin.constant.EvaluatedConstTracker
+ import org.jetbrains.kotlin.diagnostics.DiagnosticReporterFactory
+ import org.jetbrains.kotlin.diagnostics.impl.BaseDiagnosticsCollector
+ import org.jetbrains.kotlin.fir.BinaryModuleData
+@@ -47,7 +46,6 @@ import org.jetbrains.kotlin.fir.DependencyListForCliModule
+ import org.jetbrains.kotlin.fir.FirModuleData
+ import org.jetbrains.kotlin.fir.FirModuleDataImpl
+ import org.jetbrains.kotlin.fir.FirSession
+-import org.jetbrains.kotlin.fir.backend.Fir2IrConfiguration
+ import org.jetbrains.kotlin.fir.backend.jvm.FirJvmBackendClassResolver
+ import org.jetbrains.kotlin.fir.backend.jvm.FirJvmBackendExtension
+ import org.jetbrains.kotlin.fir.backend.jvm.JvmFir2IrExtensions
+@@ -56,7 +54,6 @@ import org.jetbrains.kotlin.fir.java.FirProjectSessionProvider
+ import org.jetbrains.kotlin.fir.pipeline.Fir2IrActualizedResult
+ import org.jetbrains.kotlin.fir.pipeline.FirResult
+ import org.jetbrains.kotlin.fir.pipeline.buildResolveAndCheckFirFromKtFiles
+-import org.jetbrains.kotlin.fir.pipeline.convertToIrAndActualizeForJvm
+ import org.jetbrains.kotlin.fir.session.FirJvmSessionFactory
+ import org.jetbrains.kotlin.fir.session.environment.AbstractProjectEnvironment
+ import org.jetbrains.kotlin.ir.backend.jvm.serialization.JvmIrMangler
+@@ -105,7 +102,7 @@ class K2CompilerFacade(environment: KotlinCoreEnvironment) : KotlinCompilerFacad
+                 )
+             ),
+             projectEnvironment,
+-            null,
++            { null },
+             FirExtensionRegistrar.getInstances(project),
+             configuration.languageVersionSettings,
+             configuration.get(CommonConfigurationKeys.LOOKUP_TRACKER),
+@@ -210,15 +207,8 @@ class K2CompilerFacade(environment: KotlinCoreEnvironment) : KotlinCompilerFacad
+ 
+         val fir2IrResult = analysisResult.firResult.convertToIrAndActualizeForJvm(
+             fir2IrExtensions,
+-            Fir2IrConfiguration(
+-                configuration.languageVersionSettings,
+-                analysisResult.reporter,
+-                configuration.getBoolean(JVMConfigurationKeys.LINK_VIA_SIGNATURES),
+-                EvaluatedConstTracker.create(),
+-                configuration[CommonConfigurationKeys.INLINE_CONST_TRACKER],
+-                configuration[CommonConfigurationKeys.EXPECT_ACTUAL_TRACKER],
+-                allowNonCachedDeclarations = false
+-            ),
++            configuration,
++            analysisResult.reporter,
+             IrGenerationExtension.getInstances(project),
+         )
+ 
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ClassStabilityTransformTests/testStabilityPropagationOfVariousTypesInSameModule[useFir = true].txt b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ClassStabilityTransformTests/testStabilityPropagationOfVariousTypesInSameModule[useFir = true].txt
+index aaf19931877..76fbbac5fae 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ClassStabilityTransformTests/testStabilityPropagationOfVariousTypesInSameModule[useFir = true].txt	
++++ b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ClassStabilityTransformTests/testStabilityPropagationOfVariousTypesInSameModule[useFir = true].txt	
+@@ -37,7 +37,7 @@ class StableDelegateProp {
+       return <this>.p1%delegate.getValue(<this>, ::p1)
+     }
+     set(value) {
+-      <this>.p1%delegate.setValue(<this>, ::p1, <set-?>)
++      return <this>.p1%delegate.setValue(<this>, ::p1, <set-?>)
+     }
+   static val %stable: Int = 0
+ }
+@@ -48,7 +48,7 @@ class UnstableDelegateProp {
+       return <this>.p1%delegate.getValue(<this>, ::p1)
+     }
+     set(value) {
+-      <this>.p1%delegate.setValue(<this>, ::p1, <set-?>)
++      return <this>.p1%delegate.setValue(<this>, ::p1, <set-?>)
+     }
+   static val %stable: Int = UnstableDelegate.%stable
+ }
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ClassStabilityTransformTests/testStabilityTransformOfVariousTypes[useFir = true].txt b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ClassStabilityTransformTests/testStabilityTransformOfVariousTypes[useFir = true].txt
+index 7415c1c31e5..b4e1cfd46ad 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ClassStabilityTransformTests/testStabilityTransformOfVariousTypes[useFir = true].txt	
++++ b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ClassStabilityTransformTests/testStabilityTransformOfVariousTypes[useFir = true].txt	
+@@ -124,7 +124,7 @@ class StableDelegateProp {
+       return <this>.p1%delegate.getValue(<this>, ::p1)
+     }
+     set(value) {
+-      <this>.p1%delegate.setValue(<this>, ::p1, <set-?>)
++      return <this>.p1%delegate.setValue(<this>, ::p1, <set-?>)
+     }
+   static val %stable: Int = 0
+ }
+@@ -135,7 +135,7 @@ class UnstableDelegateProp {
+       return <this>.p1%delegate.getValue(<this>, ::p1)
+     }
+     set(value) {
+-      <this>.p1%delegate.setValue(<this>, ::p1, <set-?>)
++      return <this>.p1%delegate.setValue(<this>, ::p1, <set-?>)
+     }
+   static val %stable: Int = 8
+ }
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ControlFlowTransformTests/testElvis[useFir = true].txt b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ControlFlowTransformTests/testElvis[useFir = true].txt
+index 0910c29e2d7..9fae0909613 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ControlFlowTransformTests/testElvis[useFir = true].txt	
++++ b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ControlFlowTransformTests/testElvis[useFir = true].txt	
+@@ -29,13 +29,13 @@ fun Example(x: Int?, %composer: Composer?, %changed: Int) {
+     traceEventStart(<>, %changed, -1, <>)
+   }
+   val y = <block>{
+-    val <elvis> = x
++    val tmp0_elvis_lhs = x
+     val tmp0_group = when {
+-      <elvis> == null -> {
++      tmp0_elvis_lhs == null -> {
+         R(%composer, 0)
+       }
+       else -> {
+-        <elvis>
++        tmp0_elvis_lhs
+       }
+     }
+     tmp0_group
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ControlFlowTransformTests/testReturnNull[useFir = true].txt b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ControlFlowTransformTests/testReturnNull[useFir = true].txt
+index d205974fc97..537592c6f6c 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ControlFlowTransformTests/testReturnNull[useFir = true].txt	
++++ b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.ControlFlowTransformTests/testReturnNull[useFir = true].txt	
+@@ -137,7 +137,11 @@ fun Test4(b: Boolean, %composer: Composer?, %changed: Int): String? {
+   if (isTraceInProgress()) {
+     traceEventStart(<>, %changed, -1, <>)
+   }
+-  val tmp0 = if (b) "true" else null
++  val tmp0 = if (b) {
++    "true"
++  } else {
++    null
++  }
+   if (isTraceInProgress()) {
+     traceEventEnd()
+   }
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testAdaptedFunctionRef[useFir = true].txt b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testAdaptedFunctionRef[useFir = true].txt
+index ab1b9ff01eb..57852495d84 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testAdaptedFunctionRef[useFir = true].txt	
++++ b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testAdaptedFunctionRef[useFir = true].txt	
+@@ -63,7 +63,7 @@ fun rememberFooInline(%composer: Composer?, %changed: Int): Int {
+ @Composable
+ fun rememberFoo(%composer: Composer?, %changed: Int): Int {
+   %composer.startReplaceableGroup(<>)
+-  sourceInformation(%composer, "C(rememberFoo)<test>,<foo(sc...>:Test.kt")
++  sourceInformation(%composer, "C(rememberFoo)<scroll...>,<foo(sc...>:Test.kt")
+   if (isTraceInProgress()) {
+     traceEventStart(<>, %changed, -1, <>)
+   }
+@@ -105,7 +105,7 @@ fun rememberFooExactInline(%composer: Composer?, %changed: Int): Int {
+ @Composable
+ fun rememberFooExact(%composer: Composer?, %changed: Int): Int {
+   %composer.startReplaceableGroup(<>)
+-  sourceInformation(%composer, "C(rememberFooExact)<testEx...>,<foo(sc...>:Test.kt")
++  sourceInformation(%composer, "C(rememberFooExact)<scroll...>,<foo(sc...>:Test.kt")
+   if (isTraceInProgress()) {
+     traceEventStart(<>, %changed, -1, <>)
+   }
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testComposableCaptureInDelegates[useFir = true].txt b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testComposableCaptureInDelegates[useFir = true].txt
+index 0556c76cec2..bec2cc7b814 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testComposableCaptureInDelegates[useFir = true].txt	
++++ b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testComposableCaptureInDelegates[useFir = true].txt	
+@@ -14,10 +14,6 @@ class Test(val value: Int) : Delegate by Impl({
+ 
+ @StabilityInferred(parameters = 1)
+ class Test(val value: Int) : Delegate {
+-  val content: Function2<Composer, Int, Unit>
+-    get() {
+-      return <this>.%%delegate_0.content
+-    }
+   private val %%delegate_0: Impl = Impl(composableLambdaInstance(<>, true) { %composer: Composer?, %changed: Int ->
+     sourceInformation(%composer, "C:Test.kt")
+     if (%changed and 0b1011 != 0b0010 || !%composer.skipping) {
+@@ -33,5 +29,9 @@ class Test(val value: Int) : Delegate {
+     }
+   }
+   )
++  val content: Function2<Composer, Int, Unit>
++    get() {
++      return <this>.%%delegate_0.content
++    }
+   static val %stable: Int = 0
+ }
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testLocalFunctionReferenceWReceiver[useFir = true].txt b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testLocalFunctionReferenceWReceiver[useFir = true].txt
+index 6e1af1c9f12..8739b0cb705 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testLocalFunctionReferenceWReceiver[useFir = true].txt	
++++ b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testLocalFunctionReferenceWReceiver[useFir = true].txt	
+@@ -19,7 +19,7 @@ fun Something(param: String, rcvr: Int) {
+ @Composable
+ fun Something(param: String, rcvr: Int, %composer: Composer?, %changed: Int) {
+   %composer = %composer.startRestartGroup(<>)
+-  sourceInformation(%composer, "C(Something)<method>:Test.kt")
++  sourceInformation(%composer, "C(Something)<rcvr::...>:Test.kt")
+   val %dirty = %changed
+   if (%changed and 0b1110 == 0) {
+     %dirty = %dirty or if (%composer.changed(param)) 0b0100 else 0b0010
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testLocalFunctionReference[useFir = true].txt b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testLocalFunctionReference[useFir = true].txt
+index 9b24a99dcee..444d05d4b79 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testLocalFunctionReference[useFir = true].txt	
++++ b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testLocalFunctionReference[useFir = true].txt	
+@@ -19,7 +19,7 @@ fun Something(param: String) {
+ @Composable
+ fun Something(param: String, %composer: Composer?, %changed: Int) {
+   %composer = %composer.startRestartGroup(<>)
+-  sourceInformation(%composer, "C(Something)<method>:Test.kt")
++  sourceInformation(%composer, "C(Something)<::meth...>:Test.kt")
+   val %dirty = %changed
+   if (%changed and 0b1110 == 0) {
+     %dirty = %dirty or if (%composer.changed(param)) 0b0100 else 0b0010
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testNonComposableFunctionReferenceWithArgumentsMemoization[useFir = true].txt b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testNonComposableFunctionReferenceWithArgumentsMemoization[useFir = true].txt
+index a1bbcd76a7b..6ac271b7cbd 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testNonComposableFunctionReferenceWithArgumentsMemoization[useFir = true].txt	
++++ b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testNonComposableFunctionReferenceWithArgumentsMemoization[useFir = true].txt	
+@@ -25,7 +25,7 @@ class Stable {
+ @Composable
+ fun Something(%composer: Composer?, %changed: Int) {
+   %composer = %composer.startRestartGroup(<>)
+-  sourceInformation(%composer, "C(Something)<rememb...>,<qux>:Test.kt")
++  sourceInformation(%composer, "C(Something)<rememb...>,<x::qux>:Test.kt")
+   if (%changed != 0 || !%composer.skipping) {
+     if (isTraceInProgress()) {
+       traceEventStart(<>, %changed, -1, <>)
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testNonComposableFunctionReferenceWithNoArgumentsMemoization[useFir = true].txt b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testNonComposableFunctionReferenceWithNoArgumentsMemoization[useFir = true].txt
+index a169c19ef8e..1f91ed8d0a5 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testNonComposableFunctionReferenceWithNoArgumentsMemoization[useFir = true].txt	
++++ b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testNonComposableFunctionReferenceWithNoArgumentsMemoization[useFir = true].txt	
+@@ -25,7 +25,7 @@ class Stable {
+ @Composable
+ fun Something(%composer: Composer?, %changed: Int) {
+   %composer = %composer.startRestartGroup(<>)
+-  sourceInformation(%composer, "C(Something)<rememb...>,<qux>:Test.kt")
++  sourceInformation(%composer, "C(Something)<rememb...>,<x::qux>:Test.kt")
+   if (%changed != 0 || !%composer.skipping) {
+     if (isTraceInProgress()) {
+       traceEventStart(<>, %changed, -1, <>)
+diff --git a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testNonComposableFunctionReferenceWithStableExtensionReceiverMemoization[useFir = true].txt b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testNonComposableFunctionReferenceWithStableExtensionReceiverMemoization[useFir = true].txt
+index d1ea51b3d73..3b246ece8db 100644
+--- a/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testNonComposableFunctionReferenceWithStableExtensionReceiverMemoization[useFir = true].txt	
++++ b/compose/compiler/compiler-hosted/integration-tests/src/test/resources/golden/androidx.compose.compiler.plugins.kotlin.LambdaMemoizationTransformTests/testNonComposableFunctionReferenceWithStableExtensionReceiverMemoization[useFir = true].txt	
+@@ -21,7 +21,7 @@ fun Example() {
+ @Composable
+ fun Example(%composer: Composer?, %changed: Int) {
+   %composer.startReplaceableGroup(<>)
+-  sourceInformation(%composer, "C(Example)<rememb...>,<foo>:Test.kt")
++  sourceInformation(%composer, "C(Example)<rememb...>,<x::foo>:Test.kt")
+   if (isTraceInProgress()) {
+     traceEventStart(<>, %changed, -1, <>)
+   }
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/BuildMetrics.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/BuildMetrics.kt
+index 06ceb0d7fe2..62e59fca79e 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/BuildMetrics.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/BuildMetrics.kt
+@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.ir.declarations.IrProperty
+ import org.jetbrains.kotlin.ir.declarations.IrValueParameter
+ import org.jetbrains.kotlin.ir.expressions.IrCall
+ import org.jetbrains.kotlin.ir.expressions.IrExpression
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.IrType
+ import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
+ import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
+@@ -231,6 +232,7 @@ class ModuleMetricsImpl(
+             knownUnstable() -> "unstable"
+             else -> "runtime"
+         }
++        @OptIn(UnsafeDuringIrConstructionAPI::class)
+         fun print(out: Appendable, src: IrSourcePrinterVisitor) = with(out) {
+             append("${stability.simpleHumanReadable()} ")
+             append("class ")
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposeFqNames.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposeFqNames.kt
+index 001ab7e9a93..3bc673aa8e5 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposeFqNames.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposeFqNames.kt
+@@ -18,6 +18,7 @@ package androidx.compose.compiler.plugins.kotlin
+ 
+ import org.jetbrains.kotlin.ir.declarations.IrAnnotationContainer
+ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.IrType
+ import org.jetbrains.kotlin.ir.util.constructedClass
+ import org.jetbrains.kotlin.ir.util.hasAnnotation
+@@ -130,5 +131,6 @@ fun IrType.hasComposableAnnotation(): Boolean =
+ fun IrAnnotationContainer.hasComposableAnnotation(): Boolean =
+     hasAnnotation(ComposeFqNames.Composable)
+ 
++@UnsafeDuringIrConstructionAPI
+ fun IrConstructorCall.isComposableAnnotation() =
+     symbol.owner.constructedClass.hasEqualFqName(ComposeFqNames.Composable)
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposeIrGenerationExtension.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposeIrGenerationExtension.kt
+index 9ffd47dce89..92e2ef407cb 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposeIrGenerationExtension.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposeIrGenerationExtension.kt
+@@ -39,7 +39,7 @@ import androidx.compose.compiler.plugins.kotlin.lower.decoys.SubstituteDecoyCall
+ import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+ import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
+-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
++import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
+ import org.jetbrains.kotlin.backend.common.serialization.signature.PublicIdSignatureComputer
+ import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsGlobalDeclarationTable
+ import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerIr
+@@ -148,7 +148,7 @@ class ComposeIrGenerationExtension(
+         }
+ 
+         val idSignatureBuilder = when {
+-            pluginContext.platform.isJs() -> IdSignatureSerializer(
++            pluginContext.platform.isJs() -> IdSignatureFactory(
+                 PublicIdSignatureComputer(mangler!!),
+                 DeclarationTable(JsGlobalDeclarationTable(pluginContext.irBuiltIns))
+             )
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
+index 9911b1ba626..f63549e3a5d 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt
+@@ -243,6 +243,29 @@ class ComposeCommandLineProcessor : CommandLineProcessor {
+     }
+ }
+ 
++@OptIn(ExperimentalCompilerApi::class)
++class ComposePluginRegistrarForK2 : org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar() {
++    override val supportsK2: Boolean
++        get() = true
++
++    override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
++        // Workaround only for K2 plugin registrar
++        if (!configuration.languageVersionSettings.languageVersion.usesK2) return
++
++        // Avoid the conflict with [ComposePluginRegistrar].
++        if (ComposePluginRegistrar.pluginRegistered) return
++        ComposePluginRegistrar.pluginRegistered = true
++
++        if (ComposePluginRegistrar.checkCompilerVersion(configuration)) {
++            DescriptorSerializerPlugin.registerExtension(ClassStabilityFieldSerializationPlugin())
++            FirExtensionRegistrarAdapter.registerExtension(ComposeFirExtensionRegistrar())
++            IrGenerationExtension.registerExtension(
++                ComposePluginRegistrar.createComposeIrExtension(configuration)
++            )
++        }
++    }
++}
++
+ @Suppress("DEPRECATION") // CompilerPluginRegistrar does not expose project (or disposable) causing
+                          // memory leaks, see: https://youtrack.jetbrains.com/issue/KT-60952
+ @OptIn(ExperimentalCompilerApi::class)
+@@ -254,6 +277,10 @@ class ComposePluginRegistrar : org.jetbrains.kotlin.compiler.plugin.ComponentReg
+         project: MockProject,
+         configuration: CompilerConfiguration
+     ) {
++        // Avoid the conflict with [ComposePluginRegistrarForK2].
++        if (pluginRegistered) return
++        pluginRegistered = true
++
+         if (checkCompilerVersion(configuration)) {
+             registerCommonExtensions(project)
+             IrGenerationExtension.registerExtension(
+@@ -264,9 +291,11 @@ class ComposePluginRegistrar : org.jetbrains.kotlin.compiler.plugin.ComponentReg
+     }
+ 
+     companion object {
++        internal var pluginRegistered = false
++
+         fun checkCompilerVersion(configuration: CompilerConfiguration): Boolean {
+             try {
+-                val KOTLIN_VERSION_EXPECTATION = "1.9.22"
++                val KOTLIN_VERSION_EXPECTATION = "2.0.0-Beta1"
+                 KotlinCompilerVersion.getVersion()?.let { version ->
+                     val msgCollector = configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY)
+                     val suppressKotlinVersionCheck = configuration.get(
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/VersionChecker.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/VersionChecker.kt
+index db4656d5d1d..ac846d9d0f6 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/VersionChecker.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/VersionChecker.kt
+@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+ import org.jetbrains.kotlin.ir.declarations.IrProperty
+ import org.jetbrains.kotlin.ir.expressions.IrConst
+ import org.jetbrains.kotlin.ir.expressions.IrConstKind
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.platform.jvm.isJvm
+ 
+ class VersionChecker(val context: IrPluginContext) {
+@@ -147,6 +148,7 @@ class VersionChecker(val context: IrPluginContext) {
+             get() = runtimeVersionToMavenVersionTable[minimumRuntimeVersionInt] ?: "unknown"
+     }
+ 
++    @OptIn(UnsafeDuringIrConstructionAPI::class)
+     fun check() {
+         // version checker accesses bodies of the functions that are not deserialized in KLIB
+         if (!context.platform.isJvm()) return
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/analysis/Stability.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/analysis/Stability.kt
+index eee5edccc1f..475c9cbbbac 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/analysis/Stability.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/analysis/Stability.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.analysis
+ 
+ import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
+@@ -39,6 +41,7 @@ import org.jetbrains.kotlin.ir.expressions.IrGetValue
+ import org.jetbrains.kotlin.ir.expressions.IrLocalDelegatedPropertyReference
+ import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.IrDynamicType
+ import org.jetbrains.kotlin.ir.types.IrErrorType
+ import org.jetbrains.kotlin.ir.types.IrSimpleType
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/k2/ComposableCallableReferenceChecker.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/k2/ComposableCallableReferenceChecker.kt
+index f7aa35c4193..c961ccf0d4b 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/k2/ComposableCallableReferenceChecker.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/k2/ComposableCallableReferenceChecker.kt
+@@ -21,8 +21,8 @@ import org.jetbrains.kotlin.diagnostics.reportOn
+ import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
+ import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirCallableReferenceAccessChecker
+ import org.jetbrains.kotlin.fir.expressions.FirCallableReferenceAccess
+-import org.jetbrains.kotlin.fir.types.coneType
+ import org.jetbrains.kotlin.fir.types.functionTypeKind
++import org.jetbrains.kotlin.fir.types.resolvedType
+ 
+ /**
+  * Report an error on composable function references.
+@@ -41,7 +41,7 @@ object ComposableCallableReferenceChecker : FirCallableReferenceAccessChecker()
+         // The type of a function reference depends on the context where it is used.
+         // We could allow non-reflective composable function references, but this would be fragile
+         // and depend on details of the frontend resolution.
+-        val kind = expression.typeRef.coneType.functionTypeKind(context.session)
++        val kind = expression.resolvedType.functionTypeKind(context.session)
+         if (kind == ComposableFunction || kind == KComposableFunction) {
+             reporter.reportOn(
+                 expression.source,
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/k2/FirUtils.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/k2/FirUtils.kt
+index a84412599bc..6da08106574 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/k2/FirUtils.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/k2/FirUtils.kt
+@@ -48,7 +48,7 @@ import org.jetbrains.kotlin.fir.types.isArrayType
+ import org.jetbrains.kotlin.fir.types.isString
+ import org.jetbrains.kotlin.fir.types.isUnit
+ import org.jetbrains.kotlin.fir.types.type
+-import org.jetbrains.kotlin.name.StandardClassIds
++import org.jetbrains.kotlin.name.JvmStandardClassIds
+ 
+ fun FirAnnotationContainer.hasComposableAnnotation(session: FirSession): Boolean =
+     hasAnnotation(ComposeClassIds.Composable, session)
+@@ -165,7 +165,7 @@ fun FirFunctionSymbol<*>.isMain(session: FirSession): Boolean {
+ }
+ 
+ private fun FirNamedFunctionSymbol.jvmNameAsString(session: FirSession): String =
+-    getAnnotationStringParameter(StandardClassIds.Annotations.JvmName, session)
++    getAnnotationStringParameter(JvmStandardClassIds.Annotations.JvmName, session)
+         ?: name.asString()
+ 
+ private val FirFunctionSymbol<*>.explicitParameterTypes: List<ConeKotlinType>
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/AbstractComposeLowering.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/AbstractComposeLowering.kt
+index 906c58c4267..06d6084955c 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/AbstractComposeLowering.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/AbstractComposeLowering.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.ComposeCallableIds
+@@ -98,6 +100,7 @@ import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrReturnTargetSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.symbols.impl.IrVariableSymbolImpl
+ import org.jetbrains.kotlin.ir.types.IrSimpleType
+ import org.jetbrains.kotlin.ir.types.IrType
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ClassStabilityTransformer.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ClassStabilityTransformer.kt
+index 8d6397eaa68..19da5dbe84b 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ClassStabilityTransformer.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ClassStabilityTransformer.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
+@@ -36,6 +38,7 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+ import org.jetbrains.kotlin.ir.expressions.IrExpression
+ import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrExpressionBodyImpl
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.defaultType
+ import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
+ import org.jetbrains.kotlin.ir.util.constructors
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableFunInterfaceLowering.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableFunInterfaceLowering.kt
+index 9bacca87eee..875f8918baa 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableFunInterfaceLowering.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableFunInterfaceLowering.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
+@@ -26,6 +28,7 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
+ import org.jetbrains.kotlin.ir.expressions.IrTypeOperator.IMPLICIT_CAST
+ import org.jetbrains.kotlin.ir.expressions.IrTypeOperator.SAM_CONVERSION
+ import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.IrType
+ import org.jetbrains.kotlin.ir.types.IrTypeSystemContextImpl
+ import org.jetbrains.kotlin.ir.types.classOrNull
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableFunctionBodyTransformer.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableFunctionBodyTransformer.kt
+index afd9a53b227..b068620659f 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableFunctionBodyTransformer.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableFunctionBodyTransformer.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.ComposeCallableIds
+@@ -106,6 +108,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrWhenImpl
+ import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrReturnTargetSymbol
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.symbols.impl.IrVariableSymbolImpl
+ import org.jetbrains.kotlin.ir.types.IrSimpleType
+ import org.jetbrains.kotlin.ir.types.IrType
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableLambdaAnnotator.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableLambdaAnnotator.kt
+index f05b3632b5e..c688a850ffd 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableLambdaAnnotator.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableLambdaAnnotator.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
+@@ -24,6 +26,7 @@ import org.jetbrains.kotlin.ir.declarations.IrFunction
+ import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
+ import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
+ import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.util.constructors
+ import org.jetbrains.kotlin.ir.util.defaultType
+ import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableTargetAnnotationsTransformer.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableTargetAnnotationsTransformer.kt
+index 305f3a6db0d..8cbfa4dd742 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableTargetAnnotationsTransformer.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableTargetAnnotationsTransformer.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
+@@ -68,6 +70,7 @@ import org.jetbrains.kotlin.ir.interpreter.getLastOverridden
+ import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrSymbol
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.IrSimpleType
+ import org.jetbrains.kotlin.ir.types.IrType
+ import org.jetbrains.kotlin.ir.types.IrTypeArgument
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableTypeRemapper.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableTypeRemapper.kt
+index 241fee54ec4..74163b0e5fe 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableTypeRemapper.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposableTypeRemapper.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
+@@ -44,6 +46,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
+ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.IrSimpleType
+ import org.jetbrains.kotlin.ir.types.IrType
+ import org.jetbrains.kotlin.ir.types.IrTypeAbbreviation
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposerIntrinsicTransformer.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposerIntrinsicTransformer.kt
+index 2863dcb3c47..83cd2f185d6 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposerIntrinsicTransformer.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposerIntrinsicTransformer.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
+@@ -24,6 +26,7 @@ import org.jetbrains.kotlin.ir.declarations.IrFile
+ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+ import org.jetbrains.kotlin.ir.expressions.IrCall
+ import org.jetbrains.kotlin.ir.expressions.IrExpression
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.util.dump
+ import org.jetbrains.kotlin.ir.util.kotlinFqName
+ import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposerLambdaMemoization.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposerLambdaMemoization.kt
+index 99cacc5c202..dc0c5e815c7 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposerLambdaMemoization.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposerLambdaMemoization.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.ComposeCallableIds
+@@ -80,6 +82,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
+ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrSymbol
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.IrType
+ import org.jetbrains.kotlin.ir.types.isUnit
+ import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposerParamTransformer.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposerParamTransformer.kt
+index 8644e5150ff..13e6685a730 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposerParamTransformer.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/ComposerParamTransformer.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.KtxNameConventions
+@@ -53,6 +55,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrLocalDelegatedPropertyReferenceImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
+ import org.jetbrains.kotlin.ir.types.IrSimpleType
+ import org.jetbrains.kotlin.ir.types.IrType
+@@ -80,7 +83,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
+ import org.jetbrains.kotlin.ir.visitors.acceptVoid
+ import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
+ import org.jetbrains.kotlin.load.java.JvmAbi
+-import org.jetbrains.kotlin.name.StandardClassIds
++import org.jetbrains.kotlin.name.JvmStandardClassIds
+ import org.jetbrains.kotlin.platform.isJs
+ import org.jetbrains.kotlin.platform.jvm.isJvm
+ import org.jetbrains.kotlin.resolve.DescriptorUtils
+@@ -441,7 +444,7 @@ class ComposerParamTransformer(
+     }
+ 
+     private fun jvmNameAnnotation(name: String): IrConstructorCall {
+-        val jvmName = getTopLevelClass(StandardClassIds.Annotations.JvmName)
++        val jvmName = getTopLevelClass(JvmStandardClassIds.Annotations.JvmName)
+         val ctor = jvmName.constructors.first { it.owner.isPrimary }
+         val type = jvmName.createType(false, emptyList())
+         return IrConstructorCallImpl(
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/CopyDefaultValuesFromExpectLowering.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/CopyDefaultValuesFromExpectLowering.kt
+index 4326036f504..da3f28586c1 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/CopyDefaultValuesFromExpectLowering.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/CopyDefaultValuesFromExpectLowering.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
+@@ -40,6 +42,7 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrValueParameterSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.util.DeepCopyIrTreeWithSymbols
+ import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
+ import org.jetbrains.kotlin.ir.util.DeepCopyTypeRemapper
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/DurableFunctionKeyTransformer.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/DurableFunctionKeyTransformer.kt
+index 5dee036f82e..c27776e600e 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/DurableFunctionKeyTransformer.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/DurableFunctionKeyTransformer.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
+@@ -38,6 +40,7 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+ import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
+ import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.defaultType
+ import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
+ import org.jetbrains.kotlin.ir.util.addChild
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/DurableKeyTransformer.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/DurableKeyTransformer.kt
+index 23d6edcb8d6..ef1caea1579 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/DurableKeyTransformer.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/DurableKeyTransformer.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.ModuleMetrics
+@@ -56,6 +58,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrBranchImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrElseBranchImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrStringConcatenationImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.IrDynamicType
+ import org.jetbrains.kotlin.ir.types.IrErrorType
+ import org.jetbrains.kotlin.ir.types.IrSimpleType
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/FunctionReferenceBuilder.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/FunctionReferenceBuilder.kt
+index a341ffda094..46cea4b8511 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/FunctionReferenceBuilder.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/FunctionReferenceBuilder.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
+@@ -39,6 +41,7 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
+ import org.jetbrains.kotlin.ir.expressions.impl.IrInstanceInitializerCallImpl
+ import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrSymbol
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.IrType
+ import org.jetbrains.kotlin.ir.types.IrTypeSystemContext
+ import org.jetbrains.kotlin.ir.util.addFakeOverrides
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/IrInlineReferenceLocator.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/IrInlineReferenceLocator.kt
+index 8c72dac0bf1..58f17b9450f 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/IrInlineReferenceLocator.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/IrInlineReferenceLocator.kt
+@@ -15,6 +15,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
+@@ -31,6 +33,7 @@ import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
+ import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
+ import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
+ import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.IrType
+ import org.jetbrains.kotlin.ir.types.classOrNull
+ import org.jetbrains.kotlin.ir.types.isNullable
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/IrSourcePrinter.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/IrSourcePrinter.kt
+index 0b0f561fdbb..3f0e27e2f8e 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/IrSourcePrinter.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/IrSourcePrinter.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.KtxNameConventions
+@@ -92,6 +94,7 @@ import org.jetbrains.kotlin.ir.expressions.IrWhileLoop
+ import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
+ import org.jetbrains.kotlin.ir.symbols.IrReturnTargetSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrTypeAliasSymbol
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.IrDynamicType
+ import org.jetbrains.kotlin.ir.types.IrErrorType
+ import org.jetbrains.kotlin.ir.types.IrSimpleType
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/KlibAssignableParamTransformer.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/KlibAssignableParamTransformer.kt
+index 2b1b3130c70..b2d454336b4 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/KlibAssignableParamTransformer.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/KlibAssignableParamTransformer.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.ModuleMetrics
+@@ -31,6 +33,7 @@ import org.jetbrains.kotlin.ir.expressions.IrSetValue
+ import org.jetbrains.kotlin.ir.expressions.impl.IrBlockBodyImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrSetValueImpl
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.symbols.impl.IrVariableSymbolImpl
+ import org.jetbrains.kotlin.ir.transformStatement
+ import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/LiveLiteralTransformer.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/LiveLiteralTransformer.kt
+index 32938f502b2..41ec081bbee 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/LiveLiteralTransformer.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/LiveLiteralTransformer.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.ComposeCallableIds
+@@ -89,6 +91,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrStringConcatenationImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.copyWithOffsets
+ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
+ import org.jetbrains.kotlin.ir.types.IrType
+ import org.jetbrains.kotlin.ir.types.defaultType
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/WrapJsComposableLambdaLowering.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/WrapJsComposableLambdaLowering.kt
+index 27386ba5327..5dc1a227b14 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/WrapJsComposableLambdaLowering.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/WrapJsComposableLambdaLowering.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower
+ 
+ import androidx.compose.compiler.plugins.kotlin.ComposeCallableIds
+@@ -24,7 +26,7 @@ import androidx.compose.compiler.plugins.kotlin.lower.decoys.AbstractDecoysLower
+ import androidx.compose.compiler.plugins.kotlin.lower.decoys.CreateDecoysTransformer
+ import androidx.compose.compiler.plugins.kotlin.lower.decoys.isDecoy
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
++import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
+ import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
+ import org.jetbrains.kotlin.descriptors.Modality
+ import org.jetbrains.kotlin.ir.IrStatement
+@@ -42,6 +44,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionReferenceImpl
+ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
+ import org.jetbrains.kotlin.ir.types.IrType
+ import org.jetbrains.kotlin.ir.types.typeWith
+@@ -85,7 +88,7 @@ class WrapJsComposableLambdaLowering(
+     context: IrPluginContext,
+     symbolRemapper: DeepCopySymbolRemapper,
+     metrics: ModuleMetrics,
+-    signatureBuilder: IdSignatureSerializer,
++    signatureBuilder: IdSignatureFactory,
+     stabilityInferencer: StabilityInferencer,
+     private val decoysEnabled: Boolean
+ ) : AbstractDecoysLowering(
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/AbstractDecoysLowering.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/AbstractDecoysLowering.kt
+index f232b69ecc5..4f4130e7218 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/AbstractDecoysLowering.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/AbstractDecoysLowering.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower.decoys
+ 
+ import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
+@@ -22,12 +24,13 @@ import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
+ import androidx.compose.compiler.plugins.kotlin.lower.AbstractComposeLowering
+ import androidx.compose.compiler.plugins.kotlin.lower.includeFileNameInExceptionTrace
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
++import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
+ import org.jetbrains.kotlin.ir.declarations.IrConstructor
+ import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+ import org.jetbrains.kotlin.ir.declarations.IrFile
+ import org.jetbrains.kotlin.ir.declarations.IrFunction
+ import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.IrSimpleType
+ import org.jetbrains.kotlin.ir.types.IrType
+ import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
+@@ -41,7 +44,7 @@ abstract class AbstractDecoysLowering(
+     symbolRemapper: DeepCopySymbolRemapper,
+     metrics: ModuleMetrics,
+     stabilityInferencer: StabilityInferencer,
+-    override val signatureBuilder: IdSignatureSerializer,
++    override val signatureBuilder: IdSignatureFactory,
+ ) : AbstractComposeLowering(
+     context = pluginContext,
+     symbolRemapper = symbolRemapper,
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/CreateDecoysTransformer.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/CreateDecoysTransformer.kt
+index df2db0c8092..385f843a0ab 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/CreateDecoysTransformer.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/CreateDecoysTransformer.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower.decoys
+ 
+ import androidx.compose.compiler.plugins.kotlin.ModuleMetrics
+@@ -22,7 +24,7 @@ import androidx.compose.compiler.plugins.kotlin.lower.ModuleLoweringPass
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+ import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
+ import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
++import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
+ import org.jetbrains.kotlin.ir.IrStatement
+ import org.jetbrains.kotlin.ir.builders.declarations.IrFunctionBuilder
+ import org.jetbrains.kotlin.ir.builders.declarations.buildConstructor
+@@ -41,6 +43,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
+ import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
+ import org.jetbrains.kotlin.ir.expressions.IrGetValue
+ import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
+ import org.jetbrains.kotlin.ir.util.addChild
+ import org.jetbrains.kotlin.ir.util.constructors
+@@ -81,7 +84,7 @@ import org.jetbrains.kotlin.name.Name
+ class CreateDecoysTransformer(
+     pluginContext: IrPluginContext,
+     symbolRemapper: DeepCopySymbolRemapper,
+-    signatureBuilder: IdSignatureSerializer,
++    signatureBuilder: IdSignatureFactory,
+     stabilityInferencer: StabilityInferencer,
+     metrics: ModuleMetrics,
+ ) : AbstractDecoysLowering(
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/DecoyTransformBase.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/DecoyTransformBase.kt
+index c73f49b46b5..182e99ad3dc 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/DecoyTransformBase.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/DecoyTransformBase.kt
+@@ -14,13 +14,15 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower.decoys
+ 
+ import androidx.compose.compiler.plugins.kotlin.lower.DeepCopyPreservingMetadata
+ import androidx.compose.compiler.plugins.kotlin.lower.hasAnnotationSafe
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContextImpl
+-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
++import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
+ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+ import org.jetbrains.kotlin.ir.IrElement
+ import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
+@@ -37,6 +39,7 @@ import org.jetbrains.kotlin.ir.linkage.IrDeserializer.TopLevelSymbolKind.FUNCTIO
+ import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrSymbol
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.types.IrType
+ import org.jetbrains.kotlin.ir.types.IrTypeArgument
+ import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
+@@ -54,7 +57,7 @@ import org.jetbrains.kotlin.ir.util.toIrConst
+ @JvmDefaultWithCompatibility
+ internal interface DecoyTransformBase {
+     val context: IrPluginContext
+-    val signatureBuilder: IdSignatureSerializer
++    val signatureBuilder: IdSignatureFactory
+ 
+     fun IrFunction.getSignatureId(): Long {
+         val signature = symbol.signature
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/RecordDecoySignaturesTransformer.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/RecordDecoySignaturesTransformer.kt
+index 6b40aaa1dae..b78006ee235 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/RecordDecoySignaturesTransformer.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/RecordDecoySignaturesTransformer.kt
+@@ -16,17 +16,20 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower.decoys
+ 
+ import androidx.compose.compiler.plugins.kotlin.ModuleMetrics
+ import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
+ import androidx.compose.compiler.plugins.kotlin.lower.ModuleLoweringPass
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
++import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
+ import org.jetbrains.kotlin.ir.IrStatement
+ import org.jetbrains.kotlin.ir.declarations.IrDeclaration
+ import org.jetbrains.kotlin.ir.declarations.IrFunction
+ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
+ import org.jetbrains.kotlin.ir.util.IdSignature
+ import org.jetbrains.kotlin.ir.util.KotlinMangler
+@@ -41,7 +44,7 @@ import org.jetbrains.kotlin.ir.util.getAnnotation
+ class RecordDecoySignaturesTransformer(
+     pluginContext: IrPluginContext,
+     symbolRemapper: DeepCopySymbolRemapper,
+-    override val signatureBuilder: IdSignatureSerializer,
++    override val signatureBuilder: IdSignatureFactory,
+     metrics: ModuleMetrics,
+     val mangler: KotlinMangler.IrMangler,
+     stabilityInferencer: StabilityInferencer
+diff --git a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/SubstituteDecoyCallsTransformer.kt b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/SubstituteDecoyCallsTransformer.kt
+index 72a2809d2ba..2f0d9348f3c 100644
+--- a/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/SubstituteDecoyCallsTransformer.kt
++++ b/compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/lower/decoys/SubstituteDecoyCallsTransformer.kt
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++@file:OptIn(UnsafeDuringIrConstructionAPI::class)
++
+ package androidx.compose.compiler.plugins.kotlin.lower.decoys
+ 
+ import androidx.compose.compiler.plugins.kotlin.ModuleMetrics
+@@ -21,7 +23,7 @@ import androidx.compose.compiler.plugins.kotlin.analysis.StabilityInferencer
+ import androidx.compose.compiler.plugins.kotlin.lower.ComposerParamTransformer
+ import androidx.compose.compiler.plugins.kotlin.lower.ModuleLoweringPass
+ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
++import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
+ import org.jetbrains.kotlin.ir.IrStatement
+ import org.jetbrains.kotlin.ir.declarations.IrConstructor
+ import org.jetbrains.kotlin.ir.declarations.IrFunction
+@@ -41,6 +43,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrDelegatingConstructorCallImpl
+ import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionReferenceImpl
+ import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
+ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
++import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
+ import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
+ import org.jetbrains.kotlin.ir.util.copyTypeAndValueArgumentsFrom
+ import org.jetbrains.kotlin.ir.util.patchDeclarationParents
+@@ -54,7 +57,7 @@ import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
+ class SubstituteDecoyCallsTransformer(
+     pluginContext: IrPluginContext,
+     symbolRemapper: DeepCopySymbolRemapper,
+-    signatureBuilder: IdSignatureSerializer,
++    signatureBuilder: IdSignatureFactory,
+     stabilityInferencer: StabilityInferencer,
+     metrics: ModuleMetrics,
+ ) : AbstractDecoysLowering(
+diff --git a/compose/compiler/compiler-hosted/src/main/resources/META-INF/services/org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar b/compose/compiler/compiler-hosted/src/main/resources/META-INF/services/org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+new file mode 100644
+index 00000000000..46e96658b7c
+--- /dev/null
++++ b/compose/compiler/compiler-hosted/src/main/resources/META-INF/services/org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+@@ -0,0 +1 @@
++androidx.compose.compiler.plugins.kotlin.ComposePluginRegistrarForK2
+\ No newline at end of file
+diff --git a/datastore/datastore-compose-samples/build.gradle b/datastore/datastore-compose-samples/build.gradle
+index 698b179ccdb..a00b9fdf1a8 100644
+--- a/datastore/datastore-compose-samples/build.gradle
++++ b/datastore/datastore-compose-samples/build.gradle
+@@ -32,6 +32,12 @@ plugins {
+     alias(libs.plugins.kotlinSerialization)
+ }
+ 
++repositories {
++    maven {
++        url("https://androidx.dev/storage/compose-compiler/repository/")
++    }
++}
++
+ dependencies {
+     implementation(libs.protobufLite)
+     implementation(libs.kotlinStdlib)
+@@ -57,6 +63,9 @@ android {
+     defaultConfig {
+         minSdk 28
+     }
++    composeOptions {
++        kotlinCompilerExtensionVersion "1.5.6-dev-k2.0.0-Beta1-06a03be2b42"
++    }
+ }
+ 
+ protobuf {
+diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
+index 75b96f0cfd7..04f0f81b408 100644
+--- a/gradle/libs.versions.toml
++++ b/gradle/libs.versions.toml
+@@ -40,13 +40,13 @@ jcodec = "0.2.5"
+ kotlin17 = "1.7.10"
+ kotlin18 = "1.8.22"
+ kotlin19 = "1.9.22"
+-kotlin = "1.9.22"
++kotlin = "2.0.0-Beta1"
+ kotlinBenchmark = "0.4.8"
+-kotlinNative = "1.9.22"
++kotlinNative = "2.0.0-Beta1"
+ kotlinCompileTesting = "1.4.9"
+ kotlinCoroutines = "1.7.3"
+ kotlinSerialization = "1.3.3"
+-ksp = "1.9.21-1.0.15"
++ksp = "2.0.0-Beta1-1.0.14"
+ ktfmt = "0.45"
+ ktlint = "0.49.1"
+ leakcanary = "2.12"
+@@ -168,11 +168,11 @@ guavaListenableFuture = { module = "com.google.guava:listenablefuture", version
+ guavaTestlib = { module = "com.google.guava:guava-testlib", version.ref = "guavaJre" }
+ gradleIncapHelper = { module = "net.ltgt.gradle.incap:incap", version.ref = "incap" }
+ gradleIncapHelperProcessor = { module = "net.ltgt.gradle.incap:incap-processor", version.ref = "incap" }
+-kotlinAnnotationProcessingEmbeddable = { module = "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable" }
++kotlinAnnotationProcessingEmbeddable = { module = "org.jetbrains.kotlin:kotlin-annotation-processing-embeddable", version.ref = "kotlin" }
+ kotlinBenchmarkRuntime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinBenchmark" }
+ kotlinBom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
+ kotlinCompiler = { module = "org.jetbrains.kotlin:kotlin-compiler", version.ref = "kotlin" }
+-kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable" }
++kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin" }
+ kotlinCompileTesting = { module = "com.github.tschuchortdev:kotlin-compile-testing", version.ref = "kotlinCompileTesting" }
+ kotlinCompileTestingKsp = { module = "com.github.tschuchortdev:kotlin-compile-testing-ksp", version.ref = "kotlinCompileTesting" }
+ kotlinCoroutinesAndroid = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
+@@ -183,7 +183,7 @@ kotlinCoroutinesPlayServices = { module = "org.jetbrains.kotlinx:kotlinx-corouti
+ kotlinCoroutinesTest = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinCoroutines" }
+ kotlinCoroutinesRx2 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-rx2", version.ref = "kotlinCoroutines" }
+ kotlinCoroutinesRx3 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-rx3", version.ref = "kotlinCoroutines" }
+-kotlinDaemonEmbeddable = { module = "org.jetbrains.kotlin:kotlin-daemon-embeddable" }
++kotlinDaemonEmbeddable = { module = "org.jetbrains.kotlin:kotlin-daemon-embeddable", version.ref = "kotlin" }
+ kotlinKlibCommonizer = { module = "org.jetbrains.kotlin:kotlin-klib-commonizer" }
+ kotlinMetadataJvm = { module = "org.jetbrains.kotlinx:kotlinx-metadata-jvm", version = "0.7.0" }
+ kotlinSerializationCore = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinSerialization" }
+diff --git a/gradle/verification-metadata.xml b/gradle/verification-metadata.xml
+index e61e69d6f22..f90ecdfb32a 100644
+--- a/gradle/verification-metadata.xml
++++ b/gradle/verification-metadata.xml
+@@ -482,19 +482,19 @@
+       </trusted-keys>
+    </configuration>
+    <components>
+-      <component group="" name="kotlin-native-prebuilt-linux-x86_64" version="1.9.22">
+-         <artifact name="kotlin-native-prebuilt-linux-x86_64-1.9.22.tar.gz">
+-            <sha256 value="4653979dd53623b92439def2ea28706c2842eaae84bdfa6ba7703dad210a1328" origin="Hand-built using sha256sum kotlin-native-prebuilt-linux-x86_64-1.9.22.tar.gz" reason="https://youtrack.jetbrains.com/issue/KT-52483"/>
++      <component group="" name="kotlin-native-prebuilt-linux-x86_64" version="2.0.0-Beta1">
++         <artifact name="kotlin-native-prebuilt-linux-x86_64-2.0.0-Beta1.tar.gz">
++            <sha256 value="7c4d1673caee4033dfc917ba15fc35e3fe209060ed86d686a4b618b7432895d0" origin="Hand-built using sha256sum kotlin-native-prebuilt-linux-x86_64-2.0.0-Beta1.tar.gz" reason="Artifact is not signed"/>
+          </artifact>
+       </component>
+-      <component group="" name="kotlin-native-prebuilt-macos-aarch64" version="1.9.22">
+-         <artifact name="kotlin-native-prebuilt-macos-aarch64-1.9.22.tar.gz">
+-            <sha256 value="20f4ff427763c19fe20ffaae0b0447eb8ebb17d2f834ca9208c7a22bdc5ffbc0" origin="Hand-built using sha256sum kotlin-native-prebuilt-macos-aarch64-1.9.22.tar.gz" reason="https://youtrack.jetbrains.com/issue/KT-52483"/>
++      <component group="" name="kotlin-native-prebuilt-macos-aarch64" version="2.0.0-Beta1">
++         <artifact name="kotlin-native-prebuilt-macos-aarch64-2.0.0-Beta1.tar.gz">
++            <sha256 value="1265dd2a3576c039163c2b483926803692fd3ada89d1754d821091a3823c6f5d" origin="Hand-built using sha256sum kotlin-native-prebuilt-macos-aarch64-2.0.0-Beta1.tar.gz"/>
+          </artifact>
+       </component>
+-      <component group="" name="kotlin-native-prebuilt-macos-x86_64" version="1.9.22">
+-         <artifact name="kotlin-native-prebuilt-macos-x86_64-1.9.22.tar.gz">
+-            <sha256 value="abe5f19ac2a9df76a3e8822d54447f0322252f3620da5394ab728beea836ec9e" origin="Hand-built using sha256sum kotlin-native-prebuilt-macos-x86_64-1.9.22.tar.gz" reason="https://youtrack.jetbrains.com/issue/KT-52483"/>
++      <component group="" name="kotlin-native-prebuilt-macos-x86_64" version="2.0.0-Beta1">
++         <artifact name="kotlin-native-prebuilt-macos-x86_64-2.0.0-Beta1.tar.gz">
++            <sha256 value="88d7fd30238d900bf2ef0017fa0e98c3a1078b5d323bdd3b942d0ad258d8df2a" origin="Hand-built using sha256sum kotlin-native-prebuilt-macos-x86_64-2.0.0-Beta1.tar.gz"/>
+          </artifact>
+       </component>
+       <component group="aopalliance" name="aopalliance" version="1.0">
+diff --git a/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/DelegatingTestRegistrar.kt b/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/DelegatingTestRegistrar.kt
+index 735ca3cddea..868b6302741 100644
+--- a/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/DelegatingTestRegistrar.kt
++++ b/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/DelegatingTestRegistrar.kt
+@@ -49,6 +49,10 @@ internal class DelegatingTestRegistrar :
+         }
+     }
+ 
++    // FirKotlinToJvmBytecodeCompiler throws an error when it sees an incompatible plugin.
++    override val supportsK2: Boolean
++        get() = true
++
+     companion object {
+         private const val REGISTRAR_CLASSPATH =
+             "META-INF/services/org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar"
+diff --git a/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/KotlinCliRunner.kt b/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/KotlinCliRunner.kt
+index b4428a5eea6..fae0147a344 100644
+--- a/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/KotlinCliRunner.kt
++++ b/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/KotlinCliRunner.kt
+@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
+ import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
+ import org.jetbrains.kotlin.config.JvmDefaultMode
+ import org.jetbrains.kotlin.config.JvmTarget
++import org.jetbrains.kotlin.config.LanguageVersion
+ 
+ /**
+  * Utility object to run kotlin compiler via its CLI API.
+@@ -40,6 +41,9 @@ internal object KotlinCliRunner {
+         .distinct()
+ 
+     private fun CompilationStepArguments.copyToCliArguments(cliArguments: K2JVMCompilerArguments) {
++        // TODO(b/314151707): Support language version >= 2.0 by migrating to KAPT4, otherwise KAPT3
++        // is disabled when K2 and FIR is enabled by default on language version >= 2.0
++        cliArguments.languageVersion = LanguageVersion.KOTLIN_1_9.versionString
+         // stdlib is in the classpath so no need to specify it here.
+         cliArguments.noStdlib = true
+         cliArguments.noReflect = true
+diff --git a/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/TestKapt3Registrar.kt b/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/TestKapt3Registrar.kt
+index 209e7249318..e869e61eb91 100644
+--- a/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/TestKapt3Registrar.kt
++++ b/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/TestKapt3Registrar.kt
+@@ -19,9 +19,6 @@ package androidx.room.compiler.processing.util.compiler
+ 
+ import java.io.File
+ import javax.annotation.processing.Processor
+-import org.jetbrains.kotlin.base.kapt3.KaptFlag
+-import org.jetbrains.kotlin.base.kapt3.KaptOptions
+-import org.jetbrains.kotlin.base.kapt3.logString
+ import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+ import org.jetbrains.kotlin.cli.jvm.config.JavaSourceRoot
+@@ -36,11 +33,14 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
+ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+ import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
+ import org.jetbrains.kotlin.kapt3.AbstractKapt3Extension
++import org.jetbrains.kotlin.kapt3.base.KaptFlag
++import org.jetbrains.kotlin.kapt3.base.KaptOptions
+ import org.jetbrains.kotlin.kapt3.base.LoadedProcessors
+ import org.jetbrains.kotlin.kapt3.base.incremental.DeclaredProcType
+ import org.jetbrains.kotlin.kapt3.base.incremental.IncrementalProcessor
++import org.jetbrains.kotlin.kapt3.base.logString
++import org.jetbrains.kotlin.kapt3.base.util.doOpenInternalPackagesIfRequired
+ import org.jetbrains.kotlin.kapt3.util.MessageCollectorBackedKaptLogger
+-import org.jetbrains.kotlin.kapt3.util.doOpenInternalPackagesIfRequired
+ import org.jetbrains.kotlin.platform.TargetPlatform
+ import org.jetbrains.kotlin.platform.jvm.isJvm
+ import org.jetbrains.kotlin.resolve.jvm.ReplaceWithSupertypeAnonymousTypeTransformer
+diff --git a/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/steps/KaptCompilationStep.kt b/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/steps/KaptCompilationStep.kt
+index 2665543b366..4919453a1a1 100644
+--- a/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/steps/KaptCompilationStep.kt
++++ b/room/room-compiler-processing-testing/src/main/java/androidx/room/compiler/processing/util/compiler/steps/KaptCompilationStep.kt
+@@ -22,12 +22,12 @@ import androidx.room.compiler.processing.util.compiler.TestKapt3Registrar
+ import androidx.room.compiler.processing.util.compiler.toSourceSet
+ import java.io.File
+ import javax.annotation.processing.Processor
+-import org.jetbrains.kotlin.base.kapt3.AptMode
+-import org.jetbrains.kotlin.base.kapt3.KaptFlag
+-import org.jetbrains.kotlin.base.kapt3.KaptOptions
+ import org.jetbrains.kotlin.cli.common.ExitCode
+ import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
+ import org.jetbrains.kotlin.compiler.plugin.parseLegacyPluginOption
++import org.jetbrains.kotlin.kapt3.base.AptMode
++import org.jetbrains.kotlin.kapt3.base.KaptFlag
++import org.jetbrains.kotlin.kapt3.base.KaptOptions
+ 
+ /**
+  * Runs KAPT to run annotation processors.

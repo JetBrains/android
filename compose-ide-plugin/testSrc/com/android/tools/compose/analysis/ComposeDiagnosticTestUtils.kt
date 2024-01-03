@@ -48,3 +48,13 @@ internal fun setUpCompilerArgumentsForComposeCompilerPlugin(project: Project) {
     }
   }
 }
+
+internal fun wrongAnnotationTargetError(target: String) =
+  "[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target '$target'${
+  if (isK2Plugin()) "." else ""
+}"
+
+internal val nothingToInline =
+  "[NOTHING_TO_INLINE] Expected performance impact from inlining is insignificant. Inlining works best for functions with parameters of ${
+    if (!isK2Plugin()) "functional types" else "function types."
+  }"
