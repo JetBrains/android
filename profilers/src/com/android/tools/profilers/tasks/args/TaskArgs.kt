@@ -20,4 +20,6 @@ package com.android.tools.profilers.tasks.args
  * These encompass configuration details for tailoring the initiation/launch of the task, and/or provisioning the data
  * required to reload a previous task.
  */
-interface TaskArgs {}
+interface TaskArgs {
+  val isFromStartup: Boolean
+}

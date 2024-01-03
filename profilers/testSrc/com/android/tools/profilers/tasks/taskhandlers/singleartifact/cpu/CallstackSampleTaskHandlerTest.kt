@@ -101,7 +101,7 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
                                                                                                         1L,
                                                                                                         100L,
                                                                                                         createDefaultSimpleperfTraceConfiguration())
-    val cpuTaskArgs = CpuTaskArgs(callstackSampleSessionArtifact)
+    val cpuTaskArgs = CpuTaskArgs(false, callstackSampleSessionArtifact)
     myCallstackSampleTaskHandler.enter(cpuTaskArgs)
     // The session is alive, so startTask and thus startCapture should be called.
     assertThat(myCallstackSampleTaskHandler.stage!!.recordingModel.isRecording)
@@ -194,7 +194,7 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
                                                                                                         1L,
                                                                                                         100L,
                                                                                                         createDefaultSimpleperfTraceConfiguration())
-    val cpuTaskArgs = CpuTaskArgs(callstackSampleSessionArtifact)
+    val cpuTaskArgs = CpuTaskArgs(false, callstackSampleSessionArtifact)
     // The session is not alive (dead) so loadTask and thus loadCapture should be called.
     val argsSuccessfullyUsed = myCallstackSampleTaskHandler.enter(cpuTaskArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
@@ -216,7 +216,7 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
                                                                                                         1L,
                                                                                                         100L,
                                                                                                         createDefaultSimpleperfTraceConfiguration())
-    val cpuTaskArgs = CpuTaskArgs(callstackSampleSessionArtifact)
+    val cpuTaskArgs = CpuTaskArgs(false, callstackSampleSessionArtifact)
     val argsSuccessfullyUsed = myCallstackSampleTaskHandler.loadTask(cpuTaskArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
 
@@ -254,13 +254,13 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
                                                                        createDefaultSimpleperfTraceConfiguration()))),
     )
 
-    val cpuTaskArgs = myCallstackSampleTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val cpuTaskArgs = myCallstackSampleTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(cpuTaskArgs).isNotNull()
     assertThat(cpuTaskArgs).isInstanceOf(CpuTaskArgs::class.java)
     assertThat(cpuTaskArgs!!.getCpuCaptureArtifact()).isNotNull()
-    assertThat(cpuTaskArgs.getCpuCaptureArtifact().artifactProto.configuration.hasSimpleperfOptions()).isTrue()
-    assertThat(cpuTaskArgs.getCpuCaptureArtifact().artifactProto.fromTimestamp).isEqualTo(5L)
-    assertThat(cpuTaskArgs.getCpuCaptureArtifact().artifactProto.toTimestamp).isEqualTo(500L)
+    assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.configuration.hasSimpleperfOptions()).isTrue()
+    assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.fromTimestamp).isEqualTo(5L)
+    assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.toTimestamp).isEqualTo(500L)
   }
 
   @Test
@@ -275,7 +275,7 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
                                                                        createDefaultSimpleperfTraceConfiguration()))),
     )
 
-    val cpuTaskArgs = myCallstackSampleTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val cpuTaskArgs = myCallstackSampleTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     // A return value of null indicates the task args were not constructed correctly (the underlying artifact was not found or supported by
     // the task).
     assertThat(cpuTaskArgs).isNull()

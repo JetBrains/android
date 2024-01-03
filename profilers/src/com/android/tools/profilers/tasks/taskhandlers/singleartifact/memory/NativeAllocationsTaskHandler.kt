@@ -45,22 +45,33 @@ class NativeAllocationsTaskHandler(sessionsManager: SessionsManager) : MemoryTas
       handleError("The task arguments (TaskArgs) supplied are not of the expected type (NativeAllocationsTaskArgs)")
       return false
     }
+
     val nativeAllocationsTaskArtifact = args.getMemoryCaptureArtifact()
+    if (nativeAllocationsTaskArtifact == null) {
+      handleError("The task arguments (NativeAllocationsTaskArgs) supplied do not contains a valid artifact to load")
+      return false
+    }
     loadCapture(nativeAllocationsTaskArtifact)
     return true
   }
 
-  override fun createArgs(sessionItems: Map<Long, SessionItem>,
+  override fun createArgs(isStartupTask: Boolean,
+                          sessionItems: Map<Long, SessionItem>,
                           selectedSession: Common.Session): NativeAllocationsTaskArgs? {
-    // Finds the artifact that backs the task identified via its corresponding unique session (selectedSession).
-    val artifact = findTaskArtifact(selectedSession, sessionItems, ::supportsArtifact)
-
-    // Only if the underlying artifact is non-null should the TaskArgs be non-null.
-    return if (supportsArtifact(artifact)) {
-      artifact.asSafely<HeapProfdSessionArtifact>()?.let { NativeAllocationsTaskArgs(it) }
+    // If the session/task is ongoing, then the args only need to contain data on whether it is a startup task or not.
+    return if (SessionsManager.isSessionAlive(selectedSession)) {
+      NativeAllocationsTaskArgs(isStartupTask, null)
     }
     else {
-      null
+      // If the session/task is complete, then the args only need to contain data on the underlying capture/artifact to load.
+      val artifact = findTaskArtifact(selectedSession, sessionItems, ::supportsArtifact)
+      // Only if the underlying artifact is non-null should the TaskArgs be non-null.
+      return if (supportsArtifact(artifact)) {
+        artifact.asSafely<HeapProfdSessionArtifact>()?.let { NativeAllocationsTaskArgs(isStartupTask, it) }
+      }
+      else {
+        null
+      }
     }
   }
 

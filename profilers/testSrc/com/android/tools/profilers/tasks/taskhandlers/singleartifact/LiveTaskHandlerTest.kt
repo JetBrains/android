@@ -159,7 +159,7 @@ class LiveTaskHandlerTest {
     TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
                                       myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.LIVE_VIEW)
 
-    val liveTaskHandlerCreateArgs = liveTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val liveTaskHandlerCreateArgs = liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(liveTaskHandlerCreateArgs).isNotNull()
     assertThat(liveTaskHandlerCreateArgs).isInstanceOf(LiveTaskArgs::class.java)
     assertThat(liveTaskHandlerCreateArgs?.getLiveTaskArtifact()).isEqualTo(sessionIdToSessionItems[selectedSession.sessionId])
@@ -175,7 +175,7 @@ class LiveTaskHandlerTest {
     TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
                                       myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.LIVE_VIEW)
 
-    val liveTaskHandlerCreateArgs = liveTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val liveTaskHandlerCreateArgs = liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(liveTaskHandlerCreateArgs).isNull()
   }
 
@@ -189,14 +189,14 @@ class LiveTaskHandlerTest {
     TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
                                       myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE)
 
-    val liveTaskHandlerCreateArgs = liveTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val liveTaskHandlerCreateArgs = liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(liveTaskHandlerCreateArgs).isNull()
   }
 
   @Test
   fun testLoadArgsWithNonLiveArgs() {
     val heapProfdSessionArtifact = createHprofSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
-    val result = liveTaskHandler.loadTask(HeapDumpTaskArgs(heapProfdSessionArtifact))
+    val result = liveTaskHandler.loadTask(HeapDumpTaskArgs(artifact = heapProfdSessionArtifact))
     assertThat(result).isFalse()
   }
 
@@ -205,7 +205,7 @@ class LiveTaskHandlerTest {
     val finishedSession = Common.Session.getDefaultInstance()
     val sessionItem = SessionItem(myProfilers, finishedSession,
                                   Common.SessionMetaData.newBuilder().setType(Common.SessionMetaData.SessionType.FULL).build())
-    val result = liveTaskHandler.loadTask(LiveTaskArgs(sessionItem))
+    val result = liveTaskHandler.loadTask(LiveTaskArgs(artifact = sessionItem))
     assertThat(result).isTrue()
     assertThat(myProfilers.stage).isInstanceOf(LiveStage::class.java)
   }
@@ -214,7 +214,7 @@ class LiveTaskHandlerTest {
   fun testLoadArgsWithInvalidArgs() {
     val selectedSession = Common.Session.getDefaultInstance()
     val sessionItem = createSessionItem(myProfilers, selectedSession, 1, listOf())
-    val result = liveTaskHandler.loadTask(LiveTaskArgs(sessionItem))
+    val result = liveTaskHandler.loadTask(LiveTaskArgs(artifact = sessionItem))
     assertThat(result).isTrue()
 
     // Since SessionMetaData.SessionType.FULL is not true, the stage is not changed hence LiveStage is not set.

@@ -101,7 +101,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
                                                                                                     Common.Session.getDefaultInstance(), 1L,
                                                                                                     100L,
                                                                                                     createDefaultPerfettoTraceConfiguration())
-    val cpuTaskArgs = CpuTaskArgs(systemTraceSessionArtifact)
+    val cpuTaskArgs = CpuTaskArgs(false, systemTraceSessionArtifact)
     mySystemTraceTaskHandler.enter(cpuTaskArgs)
     // The session is alive, so startTask and thus startCapture should be called.
     assertThat(mySystemTraceTaskHandler.stage!!.recordingModel.isRecording)
@@ -193,7 +193,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
                                                                                                     Common.Session.getDefaultInstance(), 1L,
                                                                                                     100L,
                                                                                                     createDefaultPerfettoTraceConfiguration())
-    val cpuTaskArgs = CpuTaskArgs(systemTraceSessionArtifact)
+    val cpuTaskArgs = CpuTaskArgs(false, systemTraceSessionArtifact)
     // The session is not alive (dead) so loadTask and thus loadCapture should be called.
     val argsSuccessfullyUsed = mySystemTraceTaskHandler.enter(cpuTaskArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
@@ -214,7 +214,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
                                                                                                     Common.Session.getDefaultInstance(), 1L,
                                                                                                     100L,
                                                                                                     createDefaultPerfettoTraceConfiguration())
-    val cpuTaskArgs = CpuTaskArgs(systemTraceSessionArtifact)
+    val cpuTaskArgs = CpuTaskArgs(false, systemTraceSessionArtifact)
     val argsSuccessfullyUsed = mySystemTraceTaskHandler.loadTask(cpuTaskArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
 
@@ -251,13 +251,13 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
                                                                        createDefaultPerfettoTraceConfiguration()))),
     )
 
-    val cpuTaskArgs = mySystemTraceTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val cpuTaskArgs = mySystemTraceTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(cpuTaskArgs).isNotNull()
     assertThat(cpuTaskArgs).isInstanceOf(CpuTaskArgs::class.java)
     assertThat(cpuTaskArgs!!.getCpuCaptureArtifact()).isNotNull()
-    assertThat(cpuTaskArgs.getCpuCaptureArtifact().artifactProto.configuration.hasPerfettoOptions()).isTrue()
-    assertThat(cpuTaskArgs.getCpuCaptureArtifact().artifactProto.fromTimestamp).isEqualTo(5L)
-    assertThat(cpuTaskArgs.getCpuCaptureArtifact().artifactProto.toTimestamp).isEqualTo(500L)
+    assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.configuration.hasPerfettoOptions()).isTrue()
+    assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.fromTimestamp).isEqualTo(5L)
+    assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.toTimestamp).isEqualTo(500L)
   }
 
   @Test
@@ -272,7 +272,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
                                                                        createDefaultPerfettoTraceConfiguration()))),
     )
 
-    val cpuTaskArgs = mySystemTraceTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val cpuTaskArgs = mySystemTraceTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     // A return value of null indicates the task args were not constructed correctly (the underlying artifact was not found or supported by
     // the task).
     assertThat(cpuTaskArgs).isNull()

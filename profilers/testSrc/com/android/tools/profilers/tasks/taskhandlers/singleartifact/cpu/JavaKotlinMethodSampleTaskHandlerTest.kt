@@ -100,7 +100,7 @@ class JavaKotlinMethodSampleTaskHandlerTest(private val myExposureLevel: Exposur
                                                                                                                1L,
                                                                                                                100L,
                                                                                                                createDefaultArtSampleTraceConfiguration())
-    val cpuTaskArgs = CpuTaskArgs(javaKotlinMethodSampleSessionArtifact)
+    val cpuTaskArgs = CpuTaskArgs(false, javaKotlinMethodSampleSessionArtifact)
     myJavaKotlinMethodSampleTaskHandler.enter(cpuTaskArgs)
     // The session is alive, so startTask and thus startCapture should be called.
     assertThat(myJavaKotlinMethodSampleTaskHandler.stage!!.recordingModel.isRecording)
@@ -196,7 +196,7 @@ class JavaKotlinMethodSampleTaskHandlerTest(private val myExposureLevel: Exposur
                                                                                                                1L,
                                                                                                                100L,
                                                                                                                createDefaultArtSampleTraceConfiguration())
-    val cpuTaskArgs = CpuTaskArgs(javaKotlinMethodSampleSessionArtifact)
+    val cpuTaskArgs = CpuTaskArgs(false, javaKotlinMethodSampleSessionArtifact)
     // The session is not alive (dead) so loadTask and thus loadCapture should be called.
     val argsSuccessfullyUsed = myJavaKotlinMethodSampleTaskHandler.enter(cpuTaskArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
@@ -218,7 +218,7 @@ class JavaKotlinMethodSampleTaskHandlerTest(private val myExposureLevel: Exposur
                                                                                                                1L,
                                                                                                                100L,
                                                                                                                createDefaultArtSampleTraceConfiguration())
-    val cpuTaskArgs = CpuTaskArgs(javaKotlinMethodSampleSessionArtifact)
+    val cpuTaskArgs = CpuTaskArgs(false, javaKotlinMethodSampleSessionArtifact)
     val argsSuccessfullyUsed = myJavaKotlinMethodSampleTaskHandler.loadTask(cpuTaskArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
 
@@ -256,14 +256,14 @@ class JavaKotlinMethodSampleTaskHandlerTest(private val myExposureLevel: Exposur
                                                                        createDefaultArtSampleTraceConfiguration()))),
     )
 
-    val cpuTaskArgs = myJavaKotlinMethodSampleTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val cpuTaskArgs = myJavaKotlinMethodSampleTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(cpuTaskArgs).isNotNull()
     assertThat(cpuTaskArgs).isInstanceOf(CpuTaskArgs::class.java)
     assertThat(cpuTaskArgs!!.getCpuCaptureArtifact()).isNotNull()
-    assertThat(cpuTaskArgs.getCpuCaptureArtifact().artifactProto.configuration.hasArtOptions()).isTrue()
-    assertThat(cpuTaskArgs.getCpuCaptureArtifact().artifactProto.configuration.artOptions.traceMode).isEqualTo(TraceMode.SAMPLED)
-    assertThat(cpuTaskArgs.getCpuCaptureArtifact().artifactProto.fromTimestamp).isEqualTo(5L)
-    assertThat(cpuTaskArgs.getCpuCaptureArtifact().artifactProto.toTimestamp).isEqualTo(500L)
+    assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.configuration.hasArtOptions()).isTrue()
+    assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.configuration.artOptions.traceMode).isEqualTo(TraceMode.SAMPLED)
+    assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.fromTimestamp).isEqualTo(5L)
+    assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.toTimestamp).isEqualTo(500L)
   }
 
   @Test
@@ -278,7 +278,7 @@ class JavaKotlinMethodSampleTaskHandlerTest(private val myExposureLevel: Exposur
                                                                        createDefaultArtSampleTraceConfiguration()))),
     )
 
-    val cpuTaskArgs = myJavaKotlinMethodSampleTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val cpuTaskArgs = myJavaKotlinMethodSampleTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     // A return value of null indicates the task args were not constructed correctly (the underlying artifact was not found or supported by
     // the task).
     assertThat(cpuTaskArgs).isNull()

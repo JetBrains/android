@@ -49,22 +49,35 @@ abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : Si
       handleError("The task arguments (TaskArgs) supplied are not of the expected type (CpuTaskArgs)")
       return false
     }
-    loadCapture(args.getCpuCaptureArtifact())
+
+    val cpuTaskArtifact = args.getCpuCaptureArtifact()
+    if (cpuTaskArtifact == null) {
+      handleError("The task arguments (CpuTaskArgs) supplied do not contains a valid artifact to load")
+      return false
+    }
+    loadCapture(cpuTaskArtifact)
     return true
   }
 
   override fun createArgs(
+    isStartupTask: Boolean,
     sessionItems: Map<Long, SessionItem>,
     selectedSession: Common.Session
   ): CpuTaskArgs? {
-    val artifact = findTaskArtifact(selectedSession, sessionItems, ::supportsArtifact)
-
-    // Only if the underlying artifact is non-null should the TaskArgs be non-null
-    return if (supportsArtifact(artifact)) {
-      artifact.asSafely<CpuCaptureSessionArtifact>()?.let { CpuTaskArgs(it) }
+    return if (SessionsManager.isSessionAlive(selectedSession)) {
+      // If the session/task is ongoing, then the args only need to contain data on whether it is a startup task or not.
+      CpuTaskArgs(isStartupTask, null)
     }
     else {
-      null
+      // If the session/task is complete, then the args only need to contain data on the underlying capture/artifact to load.
+      val artifact = findTaskArtifact(selectedSession, sessionItems, ::supportsArtifact)
+      // Only if the underlying artifact is non-null should the TaskArgs be non-null
+      if (supportsArtifact(artifact)) {
+        artifact.asSafely<CpuCaptureSessionArtifact>()?.let { CpuTaskArgs(isStartupTask, it) }
+      }
+      else {
+        null
+      }
     }
   }
 

@@ -59,6 +59,7 @@ class JavaKotlinAllocationsTaskHandler(sessionsManager: SessionsManager) : Memor
   }
 
   override fun createArgs(
+    isStartupTask: Boolean,
     sessionItems: Map<Long, SessionItem>,
     selectedSession: Common.Session
   ): AllocationsTaskArgs<out SessionArtifact<Memory.AllocationsInfo>>? {
@@ -67,8 +68,8 @@ class JavaKotlinAllocationsTaskHandler(sessionsManager: SessionsManager) : Memor
 
     // Only if the underlying artifact is non-null should the TaskArgs be non-null.
     return if (supportsArtifact(artifact)) {
-      return artifact.asSafely<LegacyAllocationsSessionArtifact>()?.let { LegacyJavaKotlinAllocationsTaskArgs(it) }
-             ?: artifact.asSafely<AllocationSessionArtifact>()?.let { JavaKotlinAllocationsTaskArgs(it) }
+      return artifact.asSafely<LegacyAllocationsSessionArtifact>()?.let { LegacyJavaKotlinAllocationsTaskArgs(artifact = it) }
+             ?: artifact.asSafely<AllocationSessionArtifact>()?.let { JavaKotlinAllocationsTaskArgs(artifact = it) }
     }
     else {
       null

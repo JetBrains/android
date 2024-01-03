@@ -79,7 +79,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
   @Test
   fun testSetupStageCalledOnEnterAndSetsStageCorrectly() {
     val allocationsSessionArtifact = createAllocationSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
-    val allocationsTaskArgs = JavaKotlinAllocationsTaskArgs(allocationsSessionArtifact)
+    val allocationsTaskArgs = JavaKotlinAllocationsTaskArgs(artifact = allocationsSessionArtifact)
     // Verify that the stage is not set in the StudioProfilers stage management before the call to setupStage.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
     // Verify that the current stage stored in the MemoryTaskHandler is not set before the call to setupStage.
@@ -92,7 +92,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
   fun testSetupStageCalledOnEnterAndSetsStageCorrectlyWithLegacyAllocationsSessionArtifact() {
     val legacyAllocationsSessionArtifact = createLegacyAllocationsSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L,
                                                                                   100L)
-    val legacyAllocationsTaskArgs = LegacyJavaKotlinAllocationsTaskArgs(legacyAllocationsSessionArtifact)
+    val legacyAllocationsTaskArgs = LegacyJavaKotlinAllocationsTaskArgs(artifact = legacyAllocationsSessionArtifact)
     // Verify that the stage is not set in the StudioProfilers stage management before the call to setupStage.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
     // Verify that the current stage stored in the MemoryTaskHandler is not set before the call to setupStage.
@@ -127,7 +127,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
     TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer,
                                       Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
     val allocationsSessionArtifact = createAllocationSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
-    val allocationsTaskArgs = JavaKotlinAllocationsTaskArgs(allocationsSessionArtifact)
+    val allocationsTaskArgs = JavaKotlinAllocationsTaskArgs(artifact = allocationsSessionArtifact)
     myJavaKotlinAllocationsTaskHandler.enter(allocationsTaskArgs)
     // The session is alive, so startTask and thus startCapture should be called.
     assertThat(myJavaKotlinAllocationsTaskHandler.stage!!.recordingOptionsModel.isRecording)
@@ -195,7 +195,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
 
     // Create a fake AllocationSessionArtifact.
     val allocationsSessionArtifact = createAllocationSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
-    val allocationsTaskArgs = JavaKotlinAllocationsTaskArgs(allocationsSessionArtifact)
+    val allocationsTaskArgs = JavaKotlinAllocationsTaskArgs(artifact = allocationsSessionArtifact)
     // The session is not alive (dead) so loadTask and thus loadCapture should be called.
     val argsSuccessfullyUsed = myJavaKotlinAllocationsTaskHandler.enter(allocationsTaskArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
@@ -215,7 +215,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
     // Create a fake LegacyAllocationsSessionArtifact.
     val legacyAllocationsSessionArtifact = createLegacyAllocationsSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L,
                                                                                   100L)
-    val legacyAllocationsTaskArgs = LegacyJavaKotlinAllocationsTaskArgs(legacyAllocationsSessionArtifact)
+    val legacyAllocationsTaskArgs = LegacyJavaKotlinAllocationsTaskArgs(artifact = legacyAllocationsSessionArtifact)
     // The session is not alive (dead) so loadTask and thus loadCapture should be called.
     val argsSuccessfullyUsed = myJavaKotlinAllocationsTaskHandler.enter(legacyAllocationsTaskArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
@@ -233,7 +233,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
     val allocationsSessionArtifact = createAllocationSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
-    val allocationsTaskArgs = JavaKotlinAllocationsTaskArgs(allocationsSessionArtifact)
+    val allocationsTaskArgs = JavaKotlinAllocationsTaskArgs(artifact = allocationsSessionArtifact)
     val argsSuccessfullyUsed = myJavaKotlinAllocationsTaskHandler.loadTask(allocationsTaskArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
 
@@ -251,7 +251,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
 
     val legacyAllocationsSessionArtifact = createLegacyAllocationsSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L,
                                                                                   100L)
-    val legacyAllocationsTaskArgs = LegacyJavaKotlinAllocationsTaskArgs(legacyAllocationsSessionArtifact)
+    val legacyAllocationsTaskArgs = LegacyJavaKotlinAllocationsTaskArgs(artifact = legacyAllocationsSessionArtifact)
     val argsSuccessfullyUsed = myJavaKotlinAllocationsTaskHandler.loadTask(legacyAllocationsTaskArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
 
@@ -287,7 +287,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
         createAllocationSessionArtifact(myProfilers, selectedSession, 1, 100))),
     )
 
-    val allocationsTaskArgs = myJavaKotlinAllocationsTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val allocationsTaskArgs = myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(allocationsTaskArgs).isNotNull()
     assertThat(allocationsTaskArgs).isInstanceOf(JavaKotlinAllocationsTaskArgs::class.java)
     assertThat(allocationsTaskArgs!!.getAllocationSessionArtifact()).isNotNull()
@@ -303,7 +303,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
         createLegacyAllocationsSessionArtifact(myProfilers, selectedSession, 1, 100))),
     )
 
-    val legacyAllocationsTaskArgs = myJavaKotlinAllocationsTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val legacyAllocationsTaskArgs = myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(legacyAllocationsTaskArgs).isNotNull()
     assertThat(legacyAllocationsTaskArgs).isInstanceOf(LegacyJavaKotlinAllocationsTaskArgs::class.java)
     assertThat(legacyAllocationsTaskArgs!!.getAllocationSessionArtifact()).isNotNull()
@@ -321,7 +321,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
         createAllocationSessionArtifact(myProfilers, selectedSession, 1, 100))),
     )
 
-    val allocationsTaskArgs = myJavaKotlinAllocationsTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val allocationsTaskArgs = myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     // A return value of null indicates the task args were not constructed correctly (the underlying artifact was not found or supported by
     // the task).
     assertThat(allocationsTaskArgs).isNull()

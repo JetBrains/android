@@ -23,7 +23,7 @@ class ProfilerTaskLauncherTest {
   @Test
   fun `launch profiler task with undefined task type throws error`() {
     assertThrows(AssertionError::class.java) {
-      ProfilerTaskLauncher.launchProfilerTask(ProfilerTaskType.UNSPECIFIED, emptyMap(), Common.Session.getDefaultInstance(),
+      ProfilerTaskLauncher.launchProfilerTask(ProfilerTaskType.UNSPECIFIED, false, emptyMap(), Common.Session.getDefaultInstance(),
                                               emptyMap()) { _, _ -> /* Do nothing */ }
     }
   }

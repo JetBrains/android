@@ -89,10 +89,11 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
    *
    * To construct the arguments to load a previous or imported task, the session (sessionItems) are passed in for inspection.
    *
+   * @param isStartupTask boolean flag indicating whether the task was initiated on startup of the process or not
    * @param sessionItems list of session items (sessions taken in the current profiler instance or from importing) that contain artifacts
    * @param selectedSession the current session (alive or not) that the current task corresponds to
    */
-  abstract fun createArgs(sessionItems: Map<Long, SessionItem>, selectedSession: Common.Session): TaskArgs?
+  abstract fun createArgs(isStartupTask: Boolean,sessionItems: Map<Long, SessionItem>, selectedSession: Common.Session): TaskArgs?
 
   /**
    * Returns whether the task supports a given session artifact (backing data construct).

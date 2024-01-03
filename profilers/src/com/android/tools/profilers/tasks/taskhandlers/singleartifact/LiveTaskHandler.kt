@@ -82,7 +82,7 @@ class LiveTaskHandler(private val sessionsManager: SessionsManager) : ProfilerTa
    * @param sessionItems list of session items (sessions taken in the current profiler instance or from importing) that contain artifacts
    * @param selectedSession the current session (alive or not) that the current task corresponds to
    */
-  override fun createArgs(sessionItems: Map<Long, SessionItem>, selectedSession: Common.Session): LiveTaskArgs? {
+  override fun createArgs(isStartupTask: Boolean, sessionItems: Map<Long, SessionItem>, selectedSession: Common.Session): LiveTaskArgs? {
 
     // Finds the artifact that backs the task identified via its corresponding unique session (selectedSession).
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionItems, ::supportsArtifact)
@@ -90,7 +90,7 @@ class LiveTaskHandler(private val sessionsManager: SessionsManager) : ProfilerTa
     // Only if the underlying artifact is non-null should the TaskArgs be non-null.
     return if (supportsArtifact(artifact)) {
       artifact.asSafely<SessionItem>()?.let {
-        LiveTaskArgs(it)
+        LiveTaskArgs(artifact = it)
       }
     }
     else {

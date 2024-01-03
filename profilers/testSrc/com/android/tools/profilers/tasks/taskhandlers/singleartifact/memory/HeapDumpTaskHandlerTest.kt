@@ -74,7 +74,7 @@ class HeapDumpTaskHandlerTest {
   @Test
   fun testSetupStageCalledOnEnterAndSetsStageCorrectly() {
     val hprofSessionArtifact = createHprofSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
-    val heapDumpArgs = HeapDumpTaskArgs(hprofSessionArtifact)
+    val heapDumpArgs = HeapDumpTaskArgs(artifact = hprofSessionArtifact)
     // Verify that the stage is not set in the StudioProfilers stage management before the call to setupStage.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
     // Verify that the current stage stored in the MemoryTaskHandler is not set before the call to setupStage.
@@ -101,7 +101,7 @@ class HeapDumpTaskHandlerTest {
   fun testStartTaskInvokedOnEnterWithAliveSession() {
     TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.HEAP_DUMP)
     val hprofSessionArtifact = createHprofSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
-    val heapDumpArgs = HeapDumpTaskArgs(hprofSessionArtifact)
+    val heapDumpArgs = HeapDumpTaskArgs(artifact = hprofSessionArtifact)
     myHeapDumpTaskHandler.enter(heapDumpArgs)
     // The session is alive, so startTask and thus startCapture should be called.
     assertThat(myHeapDumpTaskHandler.stage!!.recordingOptionsModel.isRecording)
@@ -155,7 +155,7 @@ class HeapDumpTaskHandlerTest {
 
     // Create a fake HprofSessionArtifact.
     val hprofSessionArtifact = createHprofSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
-    val heapDumpArgs = HeapDumpTaskArgs(hprofSessionArtifact)
+    val heapDumpArgs = HeapDumpTaskArgs(artifact = hprofSessionArtifact)
     // The session is not alive (dead) so loadTask and thus loadCapture should be called.
     val argsSuccessfullyUsed = myHeapDumpTaskHandler.enter(heapDumpArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
@@ -173,7 +173,7 @@ class HeapDumpTaskHandlerTest {
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
     val hprofSessionArtifact = createHprofSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
-    val heapDumpArgs = HeapDumpTaskArgs(hprofSessionArtifact)
+    val heapDumpArgs = HeapDumpTaskArgs(artifact = hprofSessionArtifact)
     val argsSuccessfullyUsed = myHeapDumpTaskHandler.loadTask(heapDumpArgs)
     assertThat(argsSuccessfullyUsed).isTrue()
 
@@ -208,7 +208,7 @@ class HeapDumpTaskHandlerTest {
       1L to createSessionItem(myProfilers, selectedSession, 1, listOf(createHprofSessionArtifact(myProfilers, selectedSession, 1, 100))),
     )
 
-    val heapDumpTaskArgs = myHeapDumpTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val heapDumpTaskArgs = myHeapDumpTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(heapDumpTaskArgs).isNotNull()
     assertThat(heapDumpTaskArgs).isInstanceOf(HeapDumpTaskArgs::class.java)
     assertThat(heapDumpTaskArgs!!.getMemoryCaptureArtifact()).isNotNull()
@@ -225,7 +225,7 @@ class HeapDumpTaskHandlerTest {
       1L to createSessionItem(myProfilers, selectedSession, 1, listOf(createHprofSessionArtifact(myProfilers, selectedSession, 1, 100))),
     )
 
-    val heapDumpTaskArgs = myHeapDumpTaskHandler.createArgs(sessionIdToSessionItems, selectedSession)
+    val heapDumpTaskArgs = myHeapDumpTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     // A return value of null indicates the task args were not constructed correctly (the underlying artifact was not found or supported by
     // the task).
     assertThat(heapDumpTaskArgs).isNull()

@@ -35,6 +35,7 @@ object ProfilerTaskLauncher {
    */
   @JvmStatic
   fun launchProfilerTask(selectedTaskType: ProfilerTaskType,
+                         isStartupTask: Boolean,
                          taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
                          session: Common.Session,
                          sessionIdToSessionItems: Map<Long, SessionItem>,
@@ -45,7 +46,7 @@ object ProfilerTaskLauncher {
     }
     val taskHandler: ProfilerTaskHandler = taskHandlers[selectedTaskType]!!
     // Construct the args using the selected tasks task handler implementation of TaskArgs creation.
-    val args = taskHandler.createArgs(sessionIdToSessionItems, session)
+    val args = taskHandler.createArgs(isStartupTask, sessionIdToSessionItems, session)
     // Open the task tab with the selected task and constructed task arguments.
     openTaskTab.accept(selectedTaskType, args)
   }

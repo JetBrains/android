@@ -49,14 +49,15 @@ class HeapDumpTaskHandler(sessionsManager: SessionsManager) : MemoryTaskHandler(
     return true
   }
 
-  override fun createArgs(sessionItems: Map<Long, SessionItem>,
+  override fun createArgs(isStartupTask: Boolean,
+                          sessionItems: Map<Long, SessionItem>,
                           selectedSession: Common.Session): HeapDumpTaskArgs? {
     // Finds the artifact that backs the task identified via its corresponding unique session (selectedSession).
     val artifact = findTaskArtifact(selectedSession, sessionItems, ::supportsArtifact)
 
     // Only if the underlying artifact is non-null should the TaskArgs be non-null.
     return if (supportsArtifact(artifact)) {
-      artifact.asSafely<HprofSessionArtifact>()?.let { HeapDumpTaskArgs(it) }
+      artifact.asSafely<HprofSessionArtifact>()?.let { HeapDumpTaskArgs(artifact = it) }
     }
     else {
       null

@@ -178,10 +178,9 @@ class AndroidProfilerToolWindowFactoryTest {
     val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]
     assertThat(profilerToolWindow).isNotNull()
 
-    profilerToolWindow!!.createTaskTab(ProfilerTaskType.SYSTEM_TRACE,
-                                       CpuTaskArgs(CpuCaptureSessionArtifact
-                                                 (profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
-                                                  Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
+    profilerToolWindow!!.createTaskTab(ProfilerTaskType.SYSTEM_TRACE, CpuTaskArgs(false,
+      CpuCaptureSessionArtifact(profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
+                                Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
 
     // Creating the task tab with a SYSTEM_TRACE task (a CPU task) should open up a second tab with non-null content, a tab name
     // of "System Trace" and the current stage should be set to the CpuProfilerStage.
@@ -211,10 +210,9 @@ class AndroidProfilerToolWindowFactoryTest {
     val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]
     assertThat(profilerToolWindow).isNotNull()
 
-    profilerToolWindow!!.createTaskTab(ProfilerTaskType.NATIVE_ALLOCATIONS,
-                                       NativeAllocationsTaskArgs(HeapProfdSessionArtifact(
-                                         profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
-                                         Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
+    profilerToolWindow!!.createTaskTab(ProfilerTaskType.NATIVE_ALLOCATIONS, NativeAllocationsTaskArgs(false,
+      HeapProfdSessionArtifact(profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
+                               Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
 
     // Creating the task tab with a NATIVE_ALLOCATIONS task (a memory task) should open up a second tab with non-null content, a tab name
     // of "Native Allocations" and the current stage should be set to the MainMemoryProfilerStage.
@@ -243,10 +241,9 @@ class AndroidProfilerToolWindowFactoryTest {
     assertThat(profilerToolWindow).isNotNull()
 
     // Create a task tab.
-    profilerToolWindow!!.createTaskTab(ProfilerTaskType.SYSTEM_TRACE,
-                                       CpuTaskArgs(CpuCaptureSessionArtifact
-                                                   (profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
-                                                    Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
+    profilerToolWindow!!.createTaskTab(ProfilerTaskType.SYSTEM_TRACE, CpuTaskArgs(false,
+      CpuCaptureSessionArtifact(profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
+                                Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
 
     // Make sure new tab is open and is selected.
     waitForCondition(5L, TimeUnit.SECONDS) {

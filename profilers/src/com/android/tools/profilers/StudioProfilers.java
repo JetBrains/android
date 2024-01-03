@@ -727,7 +727,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
       ProfilerTaskType selectedTaskType = mySessionsManager.getCurrentTaskType();
       Map<Long, SessionItem> sessionIdToSessionItems = mySessionsManager.getSessionIdToSessionItems();
-      ProfilerTaskLauncher.launchProfilerTask(selectedTaskType, getTaskHandlers(), getSession(), sessionIdToSessionItems, myCreateTaskTab);
+      boolean isStartupTask = mySessionsManager.getIsCurrentTaskStartup();
+      ProfilerTaskLauncher.launchProfilerTask(selectedTaskType, isStartupTask, getTaskHandlers(), getSession(), sessionIdToSessionItems,
+                                              myCreateTaskTab);
     }
   }
 
