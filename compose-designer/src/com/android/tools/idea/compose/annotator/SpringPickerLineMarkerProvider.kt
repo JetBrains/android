@@ -21,10 +21,10 @@ import com.android.tools.idea.compose.pickers.preview.utils.containingPackage
 import com.android.tools.idea.compose.pickers.spring.model.SpringPickerPropertiesModel
 import com.android.tools.idea.compose.pickers.spring.model.SpringPropertiesProvider
 import com.android.tools.idea.compose.pickers.spring.model.SpringPropertiesProviderK2
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.DECLARATION_FLOAT_SPEC
 import com.android.tools.idea.compose.preview.DECLARATION_SPRING
 import com.android.tools.idea.compose.preview.DECLARATION_SPRING_SPEC
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
@@ -44,11 +44,11 @@ import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.descriptors.containingPackage
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.util.CommentSaver.Companion.tokenType
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtCallElement
@@ -91,7 +91,7 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
     val callElement = element.parentOfType<KtCallElement>() ?: return null
     var resolvedCall: ResolvedCall<*>? = null
     val resolvedPackage =
-      if (isK2Plugin()) {
+      if (KotlinPluginModeProvider.isK2Mode()) {
         allowAnalysisOnEdt {
           analyze(callElement) {
             val functionSymbol =
@@ -129,7 +129,7 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
         module = module,
         file = callElement.containingKtFile,
         psiPropertiesProvider =
-          if (isK2Plugin()) {
+          if (KotlinPluginModeProvider.isK2Mode()) {
             SpringPropertiesProviderK2(callElement)
           } else {
             resolvedCall?.let { SpringPropertiesProvider(it) } ?: return null

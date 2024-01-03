@@ -43,7 +43,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -228,7 +228,7 @@ class PreviewPickerTests {
 
     Sdks.addLatestAndroidSdk(fixture.projectDisposable, module)
     val model = getFirstModel(fileContent)
-    assertEquals(if (isK2Plugin()) "1.0f" else "1f", model.properties["", "fontScale"].defaultValue)
+    assertEquals(if (KotlinPluginModeProvider.isK2Mode()) "1.0f" else "1f", model.properties["", "fontScale"].defaultValue)
     assertEquals("false", model.properties["", "showBackground"].defaultValue)
     assertEquals("false", model.properties["", "showDecoration"].defaultValue)
     assertEquals("Default (en-US)", model.properties["", "locale"].defaultValue)

@@ -68,7 +68,7 @@ import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.js.descriptorUtils.nameIfStandardType
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -209,7 +209,7 @@ private class PreviewPropertiesProvider(
   private val annotationEntry: KtAnnotationEntry,
 ) : PsiPropertiesProvider {
   val resolvedCall: ResolvedCall<out CallableDescriptor>? =
-    if (isK2Plugin()) null
+    if (KotlinPluginModeProvider.isK2Mode()) null
     else annotationEntry.getResolvedCall(annotationEntry.analyzeK1(BodyResolveMode.FULL))
 
   override fun invoke(
@@ -218,7 +218,7 @@ private class PreviewPropertiesProvider(
   ): Collection<PsiPropertyItem> {
     val properties = mutableListOf<PsiPropertyItem>()
     ReadAction.run<Throwable> {
-      if (isK2Plugin()) {
+      if (KotlinPluginModeProvider.isK2Mode()) {
         collectParameterPropertyItemsForK2(project, model, properties)
         return@run
       }
@@ -258,7 +258,7 @@ private class PreviewPropertiesProvider(
     callElement: KtCallElement?,
   ) {
     fun addNewValueArgument(newValueArgument: KtValueArgument, psiFactory: KtPsiFactory) =
-      if (isK2Plugin()) {
+      if (KotlinPluginModeProvider.isK2Mode()) {
         callElement?.addNewValueArgument(newValueArgument, psiFactory)
       } else {
         resolvedCall?.addNewValueArgument(newValueArgument, psiFactory)

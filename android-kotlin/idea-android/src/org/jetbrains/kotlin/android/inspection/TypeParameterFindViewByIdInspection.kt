@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
@@ -61,7 +61,7 @@ class TypeParameterFindViewByIdInspection : AbstractKotlinInspection(), CleanupL
 
                 val parentCast = (expression.parent as? KtBinaryExpressionWithTypeRHS)?.takeIf { isUnsafeCast(it) } ?: return
                 val typeText = parentCast.right?.getTypeTextWithoutQuestionMark() ?: return
-                if (isK2Plugin()) {
+                if (KotlinPluginModeProvider.isK2Mode()) {
                     analyze(expression) {
                         val calleeSymbol = expression.resolveCall()?.singleFunctionCallOrNull()?.symbol as? KtFunctionSymbol ?: return
                         if (calleeSymbol.name.asString() != "findViewById" || calleeSymbol.typeParameters.size != 1) {

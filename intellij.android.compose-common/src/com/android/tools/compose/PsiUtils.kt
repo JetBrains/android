@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -39,7 +39,7 @@ private val composableFunctionKey = Key.create<CachedValue<KtAnnotationEntry?>>(
 private val deprecatedKey = Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isDeprecated")
 
 @OptIn(KtAllowAnalysisOnEdt::class)
-fun PsiElement.isComposableFunction(): Boolean = if (isK2Plugin()) {
+fun PsiElement.isComposableFunction(): Boolean = if (KotlinPluginModeProvider.isK2Mode()) {
   (this as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) { annotationEntry ->
     allowAnalysisOnEdt {
       analyze(annotationEntry) {

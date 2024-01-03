@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
@@ -104,7 +104,7 @@ fun KtModifierListOwner.addAnnotationWithUsageSite(
 fun KtAnnotated.findAnnotationWithUsageSite(annotationFqName: FqName, useSiteTarget: AnnotationUseSiteTarget?): KtAnnotationEntry? {
   if (annotationEntries.isEmpty()) return null
 
-  if (isK2Plugin()) {
+  if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {
       analyze(this) {
         val annotatedSymbol = (this@findAnnotationWithUsageSite as? KtDeclaration)?.getSymbol() as? KtAnnotatedSymbol

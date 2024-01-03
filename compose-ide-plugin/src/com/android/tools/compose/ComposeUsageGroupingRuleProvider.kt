@@ -31,7 +31,7 @@ import com.intellij.usages.rules.PsiElementUsage
 import com.intellij.usages.rules.UsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleEx
 import com.intellij.usages.rules.UsageGroupingRuleProviderEx
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFunction
@@ -49,7 +49,7 @@ private tailrec fun PsiElement.isInPreviewFunction(): Boolean {
 }
 
 /** Returns whether a [KtFunction] is annotated with @Preview. */
-private fun KtFunction.hasPreviewAnnotation() = if (isK2Plugin()) {
+private fun KtFunction.hasPreviewAnnotation() = if (KotlinPluginModeProvider.isK2Mode()) {
   findAnnotation(PREVIEW_FQ_NAME) != null
 } else {
   descriptor?.annotations?.hasAnnotation(PREVIEW_FQ_NAME) == true

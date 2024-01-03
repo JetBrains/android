@@ -46,7 +46,7 @@ import org.jetbrains.kotlin.analysis.api.base.KtConstantValue
 import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.refactoring.getLineNumber
 import org.jetbrains.kotlin.name.FqName
@@ -527,7 +527,7 @@ class LiteralsManager(
    */
   suspend fun findLiterals(root: PsiElement): FindResult =
     if (root.language == KotlinLanguage.INSTANCE) {
-      val evaluator = if (isK2Plugin()) KotlinAnalysisApiConstantEvaluator else KotlinFe10ConstantEvaluator
+      val evaluator = if (KotlinPluginModeProvider.isK2Mode()) KotlinAnalysisApiConstantEvaluator else KotlinFe10ConstantEvaluator
       findLiterals(root, literalsTypes, evaluator) {
         it !is KtAnnotationEntry // Exclude annotations since we do not process literals in them.
         && it !is KtSimpleNameExpression // Exclude variable constants.

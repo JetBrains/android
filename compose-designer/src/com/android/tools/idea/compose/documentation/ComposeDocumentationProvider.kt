@@ -56,7 +56,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.Nls
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.asJava.findFacadeClass
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.name.FqName
@@ -223,7 +223,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
       ((containingKtFile.originalFile as? KtFile)?.findFacadeClass())?.qualifiedName
     } else {
       val containingClass = parentOfType<KtClass>() ?: return null
-      if (isK2Plugin()) analyze(this) { containingClass.getQualifiedName(this) }
+      if (KotlinPluginModeProvider.isK2Mode()) analyze(this) { containingClass.getQualifiedName(this) }
       else containingClass.getQualifiedName()
     }
   }

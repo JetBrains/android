@@ -21,7 +21,7 @@ import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerActio
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferences
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
 import org.jetbrains.kotlin.idea.util.ImportDescriptorResult
 import org.jetbrains.kotlin.idea.util.ImportInsertHelper
@@ -77,7 +77,7 @@ internal class ClassPsiCallParameter(
     fqValue: String,
     trackableValue: PreviewPickerValue
   ) {
-    if (isK2Plugin()) {
+    if (KotlinPluginModeProvider.isK2Mode()) {
       setValueAndShorten(fqValue, trackableValue)
       return
     }

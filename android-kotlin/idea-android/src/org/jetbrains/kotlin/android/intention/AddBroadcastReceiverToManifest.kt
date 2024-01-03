@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.android.isSubclassOf
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -44,7 +44,7 @@ class AddBroadcastReceiverToManifest : AbstractRegisterComponentAction("Add broa
     }
 
     @OptIn(KtAllowAnalysisOnEdt::class)
-    private fun KtClass.isSubclassOfBroadcastReceiver() = if (isK2Plugin()) {
+    private fun KtClass.isSubclassOfBroadcastReceiver() = if (KotlinPluginModeProvider.isK2Mode()) {
         allowAnalysisOnEdt {
             analyze(this@isSubclassOfBroadcastReceiver) {
                 isSubclassOf(this@isSubclassOfBroadcastReceiver, SdkConstants.CLASS_BROADCASTRECEIVER, strict = true)

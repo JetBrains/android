@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.completion.BasicLookupElementFactory.Companion.SHORT_NAMES_RENDERER
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
@@ -37,7 +37,7 @@ import org.jetbrains.kotlin.resolve.source.getPsi
 data class ComposableFunctionRenderParts(val parameters: String?, val tail: String?)
 
 fun KtDeclaration.getComposableFunctionRenderParts(): ComposableFunctionRenderParts? {
-  return if (isK2Plugin()) {
+  return if (KotlinPluginModeProvider.isK2Mode()) {
     analyze(this) {
       val functionLikeSymbol = this@getComposableFunctionRenderParts.getSymbol() as? KtFunctionLikeSymbol ?: return null
       getComposableFunctionRenderParts(functionLikeSymbol)

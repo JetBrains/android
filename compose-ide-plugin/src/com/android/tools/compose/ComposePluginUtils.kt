@@ -37,7 +37,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.receiverType
 import org.jetbrains.kotlin.analysis.api.types.KtType
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
@@ -86,7 +86,7 @@ internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): F
   }
 }
 
-internal fun KtDeclaration.returnTypeFqName(): FqName? = if (isK2Plugin()) {
+internal fun KtDeclaration.returnTypeFqName(): FqName? = if (KotlinPluginModeProvider.isK2Mode()) {
   if (this !is KtCallableDeclaration) null
   else analyze(this) { asFqName(this@returnTypeFqName.getReturnKtType()) }
 }
@@ -95,7 +95,7 @@ else {
 }
 
 @OptIn(KtAllowAnalysisOnEdt::class)
-internal fun KtElement.callReturnTypeFqName() = if (isK2Plugin()) {
+internal fun KtElement.callReturnTypeFqName() = if (KotlinPluginModeProvider.isK2Mode()) {
   allowAnalysisOnEdt {
     analyze(this) {
       val callReturnType = this@callReturnTypeFqName.resolveCall()?.singleFunctionCallOrNull()?.symbol?.returnType
@@ -110,7 +110,7 @@ else {
 // TODO(274630452): When the upstream APIs are available, implement it based on `fullyExpandedType` and `KtTypeRenderer`.
 private fun KtAnalysisSession.asFqName(type: KtType) = type.expandedClassSymbol?.classIdIfNonLocal?.asSingleFqName()
 
-internal fun KtFunction.hasComposableAnnotation() = if (isK2Plugin()) {
+internal fun KtFunction.hasComposableAnnotation() = if (KotlinPluginModeProvider.isK2Mode()) {
   findAnnotation(ComposeFqNames.Composable) != null
 } else {
   descriptor?.hasComposableAnnotation() == true

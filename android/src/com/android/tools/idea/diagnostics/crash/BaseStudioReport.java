@@ -23,7 +23,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ui.ExperimentalUI;
 import java.util.Map;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProviderKt;
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 
 /** Crash report that uses Android Studio product id. */
 public abstract class BaseStudioReport extends CrashReport {
@@ -47,7 +47,7 @@ public abstract class BaseStudioReport extends CrashReport {
 
     String isKotlinK2 = "Unknown";
     try {
-      isKotlinK2 = Boolean.toString(KotlinPluginModeProviderKt.isK2Plugin());
+      isKotlinK2 = Boolean.toString(KotlinPluginModeProvider.Companion.isK2Mode());
     } catch (Throwable ignore) {
     }
     builder.addTextBody("isKotlinK2", isKotlinK2);

@@ -63,7 +63,7 @@ import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.analysis.providers.createDeclarationProvider
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.idea.base.facet.platform.platform
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.projectStructure.productionSourceInfo
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
 import org.jetbrains.kotlin.name.FqName
@@ -144,7 +144,7 @@ fun StringParameter.validateStringType(
       }
     KOTLIN_FUNCTION -> {
       project ?: return false
-      if (isK2Plugin()) {
+      if (KotlinPluginModeProvider.isK2Mode()) {
         val packageFqName = if (packageName != null) FqName(packageName) else FqName.ROOT
         val topLevelCallableNames = project.createDeclarationProvider(searchScope, null).getTopLevelCallableNamesInPackage(packageFqName)
         topLevelCallableNames.any { it.identifierOrNullIfSpecial == value }

@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.android.isSubclassOf
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -44,7 +44,7 @@ class AddActivityToManifest : AbstractRegisterComponentAction("Add activity to m
     }
 
     @OptIn(KtAllowAnalysisOnEdt::class)
-    private fun KtClass.isSubclassOfActivity() = if (isK2Plugin()) {
+    private fun KtClass.isSubclassOfActivity() = if (KotlinPluginModeProvider.isK2Mode()) {
         allowAnalysisOnEdt {
             analyze(this@isSubclassOfActivity) {
                 isSubclassOf(this@isSubclassOfActivity, SdkConstants.CLASS_ACTIVITY, strict = true)

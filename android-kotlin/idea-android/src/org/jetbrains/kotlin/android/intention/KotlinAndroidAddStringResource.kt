@@ -48,7 +48,7 @@ import org.jetbrains.kotlin.builtins.isExtensionFunctionType
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
@@ -277,7 +277,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
 
     @OptIn(KtAllowAnalysisOnEdt::class)
     private fun KtFunction.isSubclassExtensionOfAny(baseClasses: Collection<String>): Boolean {
-        if (isK2Plugin()) {
+        if (KotlinPluginModeProvider.isK2Mode()) {
             allowAnalysisOnEdt {
                 analyze(this) {
                     val functionSymbol = this@isSubclassExtensionOfAny.getSymbol() as? KtFunctionLikeSymbol ?: return false
@@ -293,7 +293,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
 
     @OptIn(KtAllowAnalysisOnEdt::class)
     private fun KtLambdaExpression.isSubclassExtensionOfAny(baseClasses: Collection<String>): Boolean {
-        if (isK2Plugin()) {
+        if (KotlinPluginModeProvider.isK2Mode()) {
             allowAnalysisOnEdt {
                 analyze(this) {
                     val type = this@isSubclassExtensionOfAny.getKtType() as? KtFunctionalType ?: return false
@@ -314,7 +314,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
 
     @OptIn(KtAllowAnalysisOnEdt::class)
     private fun KtClassOrObject.isSubclassOfAny(baseClasses: Collection<String>): Boolean {
-        if (isK2Plugin()) {
+        if (KotlinPluginModeProvider.isK2Mode()) {
             allowAnalysisOnEdt {
                 analyze(this) {
                     val classOrObjectSymbol = this@isSubclassOfAny.getClassOrObjectSymbol() ?: return false

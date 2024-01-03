@@ -32,7 +32,7 @@ import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
@@ -135,7 +135,7 @@ fun KtModifierListOwner.addAnnotation(
 // TODO(jsjeon): Once available, use upstream util in `AnnotationModificationUtils`
 @OptIn(KtAllowAnalysisOnEdt::class)
 fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
-  if (isK2Plugin()) {
+  if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {
       analyze(this) {
         val annotatedSymbol =

@@ -44,7 +44,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
 import org.jetbrains.kotlin.asJava.elements.KtLightElement
 import org.jetbrains.kotlin.builtins.jvm.JavaToKotlinClassMap
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.FqNameUnsafe
@@ -213,7 +213,7 @@ internal fun <T : PsiModifierListOwner> Collection<T>.filterByQualifier(
 }
 
 private fun KtAnnotated.getQualifierInfoFromKtAnnotated(): QualifierInfo? {
-  return if (isK2Plugin()) {
+  return if (KotlinPluginModeProvider.isK2Mode()) {
     getQualifierInfoFromKtAnnotatedK2()
   } else {
     getQualifierInfoFromKtAnnotatedK1()

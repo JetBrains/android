@@ -28,7 +28,7 @@ import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import org.jetbrains.android.AndroidResourceExternalAnnotatorBase
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.symbols.KtJavaFieldSymbol
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
@@ -46,7 +46,7 @@ class AndroidKotlinResourceExternalAnnotator : AndroidResourceExternalAnnotatorB
             override fun visitElement(element: PsiElement) {
                 super.visitElement(element)
                 val reference = element as? KtNameReferenceExpression ?: return
-                val resourceReference = if (isK2Plugin()) {
+                val resourceReference = if (KotlinPluginModeProvider.isK2Mode()) {
                     reference.resourceReferenceK2()
                 } else {
                     reference.resourceReference()

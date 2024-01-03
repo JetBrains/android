@@ -42,7 +42,7 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -91,7 +91,7 @@ inline fun <T> KtAnalysisSession?.applyOrAnalyze(element: KtElement, block: KtAn
 
 /** Checks if this [KtProperty] has a backing field or implements get/set on its own. */
 fun KtProperty.hasBackingField(analysisSession: KtAnalysisSession? = null): Boolean {
-  if (isK2Plugin()) {
+  if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
       val symbol = getVariableSymbol() as? KtPropertySymbol ?: return false
       return symbol.hasBackingField
@@ -107,7 +107,7 @@ fun KtProperty.hasBackingField(analysisSession: KtAnalysisSession? = null): Bool
  * Prefer to use [fqNameMatches], which checks the short name first and thus has better performance.
  */
 fun KtAnnotationEntry.getQualifiedName(analysisSession: KtAnalysisSession? = null): String? {
-  return if (isK2Plugin()) {
+  return if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
       typeReference?.getKtType()?.expandedClassSymbol?.classIdIfNonLocal?.asFqNameString()
     }
@@ -168,7 +168,7 @@ fun KtAnalysisSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName
 
 /** Computes the qualified name for a Kotlin Class. Returns null if the class is a kotlin built-in. */
 fun KtClass.getQualifiedName(analysisSession: KtAnalysisSession? = null): String? {
-  return if (isK2Plugin()) {
+  return if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
       val symbol = getClassOrObjectSymbol()
       val classId = symbol?.classIdIfNonLocal ?: return null
@@ -216,7 +216,7 @@ fun KtAnnotationEntry.findValueArgument(annotationAttributeName: String): KtValu
   valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == annotationAttributeName } as? KtValueArgument
 
 inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KtAnalysisSession? = null): T? =
-  if (isK2Plugin()) {
+  if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
       evaluate(KtConstantEvaluationMode.CONSTANT_LIKE_EXPRESSION_EVALUATION)
         ?.takeUnless { it is KtErrorConstantValue }
@@ -284,7 +284,7 @@ fun KtAnnotated.hasAnnotation(fqn: String) = findAnnotation(FqName(fqn)) != null
 // TODO(jsjeon): Once available, use upstream util in `AnnotationModificationUtils`
 @OptIn(KtAllowAnalysisOnEdt::class)
 fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
-  if (isK2Plugin()) {
+  if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {
       analyze(this) {
         val annotatedSymbol =
