@@ -1185,7 +1185,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       myRegionList.addListSelectionListener(myUpdatingListListener);
       // If selecting languages, attempt to pick relevant regions, if applicable
       myLanguageList.addListSelectionListener(listSelectionEvent -> updateRegionList(myLanguageList.getSelectedValue()));
-      myShowAllRegions.addChangeListener(e -> updateRegionList(myLanguageList.getSelectedValue()));
+      myShowAllRegions.addItemListener(e -> updateRegionList(myLanguageList.getSelectedValue()));
       return pane;
     }
 
