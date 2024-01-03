@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
 import com.android.tools.idea.run.deployment.liveedit.analysis.ComposeGroupTree
 import com.android.tools.idea.run.deployment.liveedit.analysis.FunctionKeyMeta
@@ -71,7 +70,7 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
     }
 
     val durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTimeNs)
-    println("classfile analysis ran in ${durationMs}ms")
+    LiveEditLogger("LiveEditOutputBuilder").log("Class file analysis ran in ${durationMs}ms")
   }
 
   private fun handleClassFile(classFile: OutputFile,

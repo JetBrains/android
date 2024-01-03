@@ -57,18 +57,18 @@ internal fun getInternalClassName(packageName : FqName?, className : String, fil
 
 internal fun getCompiledClasses(internalClassName: String, input: KtFile, compilerOutput: List<OutputFile>,
                                liveEditOutput : LiveEditCompilerOutput.Builder, inlineCandidateCache: SourceInlineCandidateCache) {
-  // TODO: Remove all these println once we are more stable.
-  println("Lived edit classes summary start")
+  val logger = LiveEditLogger("Live Edit")
+  logger.log("Lived edit classes summary start")
   for (c in compilerOutput) {
 
     // We get things like folder path an
     if (!c.relativePath.endsWith(".class")) {
-      println("   Skipping output: ${c.relativePath}")
+      logger.log("   Skipping output: ${c.relativePath}")
       continue
     }
 
     if (isKeyMetaClass(c)) {
-      println("   Skipping MetaKey: ${c.relativePath}")
+      logger.log("   Skipping MetaKey: ${c.relativePath}")
       continue
     }
 
@@ -80,7 +80,7 @@ internal fun getCompiledClasses(internalClassName: String, input: KtFile, compil
         c.relativePath == "${classInfo.facadeClassFqName.toString().replace(".", "/")}.class") {
       var primaryClass = c.asByteArray()
       var name = c.relativePath.substringBefore(".class")
-      println("   Primary class: ${c.relativePath}")
+      logger.log("   Primary class: ${c.relativePath}")
       inlineCandidateCache.computeIfAbsent(name) {
         SourceInlineCandidate(input, it)
       }.setByteCode(primaryClass)
@@ -91,7 +91,7 @@ internal fun getCompiledClasses(internalClassName: String, input: KtFile, compil
     // Lambdas and compose classes are proxied in the interpreted on device.
     val reader = ClassReader(c.asByteArray());
     if (isProxiable(reader)) {
-      println("   Proxiable class: ${c.relativePath}")
+      logger.log("   Proxiable class: ${c.relativePath}")
       val name = c.relativePath.substringBefore(".class")
       val supportClass = c.asByteArray()
       inlineCandidateCache.computeIfAbsent(name) {
@@ -101,10 +101,10 @@ internal fun getCompiledClasses(internalClassName: String, input: KtFile, compil
       continue
     }
 
-    println("   Ignored class: ${c.relativePath}")
+    logger.log("   Ignored class: ${c.relativePath}")
     // TODO: New classes (or existing unmodified classes) are not handled here. We should let the user know here.
   }
-  println("Lived edit classes summary end")
+  logger.log("Lived edit classes summary end")
 }
 
 private fun isProxiable(clazzFile: ClassReader): Boolean {
