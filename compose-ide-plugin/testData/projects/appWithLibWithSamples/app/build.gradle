@@ -28,6 +28,5 @@ dependencies {
     lintChecks "org.gradle.sample:checks:1.0-SNAPSHOT"
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'com.example:lib:3.0'
-    implementation 'androidx.ui:lib:3.0'
+    implementation 'androidx.core.haptics:haptics:1.0.0-alpha01'
 }

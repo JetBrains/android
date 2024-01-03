@@ -1,7 +1,7 @@
 package com.example.appforsamplestest
 
-import app.main.myFunction
+import androidx.core.haptics.signal.WaveformSignal
 
 fun main() {
-  myFunction()
+  WaveformSignal.off(3L)
 }

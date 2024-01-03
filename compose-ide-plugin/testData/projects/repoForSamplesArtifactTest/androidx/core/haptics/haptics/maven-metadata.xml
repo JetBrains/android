@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>androidx.core.haptics</groupId>
+  <artifactId>haptics</artifactId>
+  <versioning>
+    <latest>1.0.0-alpha01</latest>
+    <release>1.0.0-alpha01</release>
+    <versions>
+      <version>1.0.0-alpha01</version>
+    </versions>
+    <lastUpdated>20240103121714</lastUpdated>
+  </versioning>
+</metadata>
