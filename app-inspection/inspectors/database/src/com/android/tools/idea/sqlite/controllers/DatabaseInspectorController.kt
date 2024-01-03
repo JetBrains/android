@@ -67,6 +67,7 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import icons.StudioIcons
@@ -717,8 +718,10 @@ class DatabaseInspectorControllerImpl(
         notifyExportError = { _, throwable ->
           if (throwable is CancellationException)
             return@ExportToFileController // normal cancellation of a coroutine as per Kotlin spec
+          val title = DatabaseInspectorBundle.message("export.notification.error.title")
+          thisLogger().warn(title, throwable)
           appInspectionIdeServices?.showNotification(
-            title = DatabaseInspectorBundle.message("export.notification.error.title"),
+            title = title,
             content = throwable?.message ?: throwable?.toString() ?: "",
             severity = Severity.ERROR
           )
