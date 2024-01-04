@@ -30,6 +30,7 @@ import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyI
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
+import com.android.tools.idea.layoutinspector.properties.ResolutionStackItem
 import com.android.tools.idea.layoutinspector.properties.ResultListener
 import com.android.tools.idea.layoutinspector.properties.addInternalProperties
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
@@ -41,6 +42,7 @@ import java.util.concurrent.Future
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 
 class AppInspectionPropertiesProvider(
   private val propertiesCache: ViewPropertiesCache,
@@ -100,11 +102,15 @@ class AppInspectionPropertiesProvider(
    * - Create resolution stack items based on the resolution stack received from the agent.
    */
   @Slow // may use index for resolveDimension
-  private fun completeProperties(view: ViewNode, propertiesData: ViewPropertiesData) {
+  @VisibleForTesting
+  fun completeProperties(view: ViewNode, propertiesData: ViewPropertiesData) {
     val properties = propertiesData.properties
     if (properties.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) return
 
-    properties.values.forEach { it.resolveDimensionType(view) }
+    properties.values.forEach { property ->
+      property.resolveDimensionType(view)
+      runReadAction { property.replaceFileLocations(view) }
+    }
 
     if (model.resourceLookup.hasResolver) {
       runReadAction {
@@ -156,17 +162,18 @@ class AppInspectionPropertiesProvider(
     val classLocation =
       model.resourceLookup.resolveClassNameAsSourceLocation(className) ?: return null
     return InspectorGroupPropertyItem(
-      item.namespace,
-      item.name,
-      item.type,
-      item.initialValue,
-      classLocation,
-      item.section,
-      item.source,
-      item.viewId,
-      item.lookup,
-      emptyList()
-    )
+        item.namespace,
+        item.name,
+        item.type,
+        item.initialValue,
+        classLocation,
+        item.section,
+        item.source,
+        item.viewId,
+        item.lookup,
+        emptyList()
+      )
+      .apply { sourceLocations.addAll(item.sourceLocations) }
   }
 
   /**
@@ -198,22 +205,33 @@ class AppInspectionPropertiesProvider(
     }
     val classLocation: SourceLocation? = (item as? InspectorGroupPropertyItem)?.classLocation
     if (map.isNotEmpty() || item.source != null || classLocation != null) {
+      val children = mutableListOf<InspectorPropertyItem>()
       // Make this item a group item such that the details are hidden until the item is expanded.
       // Note that there doesn't have to be sub items in the group. A source location or class
       // location is enough to trigger this.
       return InspectorGroupPropertyItem(
-        item.namespace,
-        item.name,
-        item.type,
-        item.initialValue,
-        classLocation,
-        item.section,
-        item.source,
-        item.viewId,
-        item.lookup,
-        map
-      )
+          item.namespace,
+          item.name,
+          item.type,
+          item.initialValue,
+          classLocation,
+          item.section,
+          item.source,
+          item.viewId,
+          item.lookup,
+          children
+        )
+        .apply {
+          sourceLocations.addAll(item.sourceLocations)
+          map.mapTo(children) { (reference, value) ->
+            ResolutionStackItem(this, reference, value).apply { replaceFileLocations(view) }
+          }
+        }
     }
     return null
+  }
+
+  private fun InspectorPropertyItem.replaceFileLocations(view: ViewNode) {
+    lookup.resourceLookup.findFileLocations(this, view, source, sourceLocations)
   }
 }

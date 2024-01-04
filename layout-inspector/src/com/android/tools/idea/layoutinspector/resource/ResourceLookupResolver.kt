@@ -191,12 +191,15 @@ class ResourceLookupResolver(
     property: InspectorPropertyItem,
     view: ViewNode,
     source: ResourceReference?,
+    sourceLocations: MutableList<SourceLocation>,
     max: Int
-  ): List<SourceLocation> {
-    return when (source?.resourceType) {
-      ResourceType.LAYOUT -> findFileLocationsFromViewTag(property, view, source, max)
-      ResourceType.STYLE -> findFileLocationsFromStyle(property, source, max)
-      else -> emptyList()
+  ) {
+    sourceLocations.clear()
+    when (source?.resourceType) {
+      ResourceType.LAYOUT ->
+        findFileLocationsFromViewTag(property, view, source, sourceLocations, max)
+      ResourceType.STYLE -> findFileLocationsFromStyle(property, source, sourceLocations, max)
+      else -> {}
     }
   }
 
@@ -281,23 +284,30 @@ class ResourceLookupResolver(
     property: InspectorPropertyItem,
     view: ViewNode,
     layout: ResourceReference,
+    sourceLocations: MutableList<SourceLocation>,
     max: Int
-  ): List<SourceLocation> {
+  ) {
     val xmlAttributeValue =
       findLayoutAttribute(property, view, layout)?.valueElement
-        ?: return findApproximateLocation(layout)
-    val location = createFileLocation(xmlAttributeValue) ?: return findApproximateLocation(layout)
+        ?: return addApproximateLocation(layout, sourceLocations)
+    val location =
+      createFileLocation(xmlAttributeValue)
+        ?: return addApproximateLocation(layout, sourceLocations)
     val resValue = dereferenceRawAttributeValue(xmlAttributeValue)
-    if (max <= 1 || resValue == null) {
-      return listOf(location)
+    sourceLocations.add(location)
+    if (resValue != null) {
+      addValueReference(resValue, sourceLocations, max - 1)
     }
-    val result = mutableListOf<SourceLocation>()
-    result.add(location)
-    addValueReference(resValue, result, max - 1)
-    return result
   }
 
-  private fun findApproximateLocation(layout: ResourceReference): List<SourceLocation> {
+  private fun addApproximateLocation(
+    layout: ResourceReference,
+    sourceLocations: MutableList<SourceLocation>
+  ) {
+    sourceLocations.add(findApproximateLocation(layout))
+  }
+
+  private fun findApproximateLocation(layout: ResourceReference): SourceLocation {
     val reference = mapReference(layout) ?: return unknownLocation()
     val layoutValue = resolver.getUnresolvedResource(reference)
     val file = resolver.resolveLayout(layoutValue) ?: return unknownLocation()
@@ -305,31 +315,27 @@ class ResourceLookupResolver(
       (AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile) ?: return unknownLocation()
     val element = xmlFile.rootTag ?: xmlFile
     val navigatable = findNavigatable(element)
-    return listOf(SourceLocation("${file.name}:?", navigatable))
+    return SourceLocation("${file.name}:?", navigatable)
   }
 
-  private fun unknownLocation(): List<SourceLocation> {
-    return listOf(SourceLocation("unknown:?", null))
+  private fun unknownLocation(): SourceLocation {
+    return SourceLocation("unknown:?", null)
   }
 
   private fun findFileLocationsFromStyle(
     property: InspectorPropertyItem,
     style: ResourceReference,
+    sourceLocations: MutableList<SourceLocation>,
     max: Int
-  ): List<SourceLocation> {
-    val reference = mapReference(style) ?: return emptyList()
+  ) {
+    val reference = mapReference(style) ?: return
     val attr = attr(property)
-    val styleValue = resolver.getStyle(reference) ?: return emptyList()
-    val value = styleValue.getItem(attr) ?: return emptyList()
-    val tag = convertStyleItemValueToXmlTag(styleValue, value) ?: return emptyList()
-    val location = createFileLocation(tag) ?: return emptyList()
-    if (max <= 1 || value.reference == null) {
-      return listOf(location)
-    }
-    val result = mutableListOf<SourceLocation>()
-    result.add(location)
-    dereference(value)?.let { addValueReference(it, result, max - 1) }
-    return result
+    val styleValue = resolver.getStyle(reference) ?: return
+    val value = styleValue.getItem(attr) ?: return
+    val tag = convertStyleItemValueToXmlTag(styleValue, value) ?: return
+    val location = createFileLocation(tag) ?: return
+    sourceLocations.add(location)
+    dereference(value)?.let { addValueReference(it, sourceLocations, max - 1) }
   }
 
   private fun findAttributeValueFromViewTag(
@@ -494,12 +500,14 @@ class ResourceLookupResolver(
     result: MutableList<SourceLocation>,
     max: Int
   ) {
-    val tag = convertToXmlTag(resourceValue) ?: return
-    val location = createFileLocation(tag) ?: return
-    result.add(location)
-    if (max > 1) {
-      val nextValue = dereference(resourceValue) ?: return
-      addValueReference(nextValue, result, max - 1)
+    var nextResourceValue: ResourceValue? = resourceValue
+    var count = 0
+    while (nextResourceValue != null && count < max) {
+      val tag = convertToXmlTag(nextResourceValue) ?: return
+      val location = createFileLocation(tag) ?: return
+      result.add(location)
+      count++
+      nextResourceValue = dereference(nextResourceValue)
     }
   }
 

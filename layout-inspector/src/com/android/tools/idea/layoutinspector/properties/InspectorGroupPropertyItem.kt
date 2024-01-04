@@ -35,43 +35,6 @@ open class InspectorGroupPropertyItem(
   InspectorPropertyItem(namespace, name, name, type, value, section, source, viewId, lookup),
   PTableGroupItem {
 
-  /**
-   * PropertyItem instance that holds a value with resolution stack.
-   *
-   * The value of this item is the actual value of the property. The overridden values are kept as a
-   * list of [ResolutionStackItem]s which will appear as children in a properties table.
-   *
-   * @param stack is a map of ordered values for the property that are overridden by other values
-   *   e.g. from styles.
-   */
-  constructor(
-    namespace: String,
-    name: String,
-    type: PropertyType,
-    value: String?,
-    classLocation: SourceLocation?,
-    group: PropertySection,
-    source: ResourceReference?,
-    viewId: Long,
-    lookup: ViewNodeAndResourceLookup,
-    stack: Map<ResourceReference, String?>
-  ) : this(
-    namespace,
-    name,
-    type,
-    value,
-    classLocation,
-    group,
-    source,
-    viewId,
-    lookup,
-    mutableListOf<InspectorPropertyItem>()
-  ) {
-    stack.mapTo(children as MutableList) { (reference, value) ->
-      ResolutionStackItem(this, reference, value)
-    }
-  }
-
   /** This item need a ResolutionEditor for display */
   override val needsResolutionEditor: Boolean
     get() = true

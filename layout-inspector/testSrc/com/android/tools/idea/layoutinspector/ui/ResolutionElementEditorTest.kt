@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ELEVATION
 import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.ide.common.rendering.api.ResourceNamespace
@@ -31,9 +30,8 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ResolutionStackModel
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
-import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
-import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
+import com.android.tools.idea.layoutinspector.properties.createTestProperty
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -149,29 +147,17 @@ class ResolutionElementEditorTest {
       )
     val node = model["title"]!!
     val item1 =
-      InspectorPropertyItem(
-        ANDROID_URI,
-        ATTR_TEXT_COLOR,
+      createTestProperty(
         ATTR_TEXT_COLOR,
         PropertyType.COLOR,
         null,
-        PropertySection.DECLARED,
         node.layout,
-        node.drawId,
+        emptyList(),
+        node,
         model
       )
     val item2 =
-      InspectorPropertyItem(
-        ANDROID_URI,
-        ATTR_ELEVATION,
-        ATTR_ELEVATION,
-        PropertyType.FLOAT,
-        null,
-        PropertySection.DEFAULT,
-        null,
-        node.drawId,
-        model
-      )
+      createTestProperty(ATTR_ELEVATION, PropertyType.FLOAT, null, null, emptyList(), node, model)
 
     // The "textColor" attribute is defined in the layout file, and we should have a link to the
     // layout definition
@@ -231,38 +217,33 @@ class ResolutionElementEditorTest {
         body = DemoExample.setUpDemo(projectRule.fixture)
       )
     val node = model["title"]!!
-    val item =
-      InspectorPropertyItem(
-        ANDROID_URI,
-        ATTR_TEXT_COLOR,
-        ATTR_TEXT_COLOR,
-        PropertyType.COLOR,
-        null,
-        PropertySection.DECLARED,
-        node.layout,
-        node.drawId,
-        model
-      )
     val textStyleMaterial =
       ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material")
-    val map =
-      listOf(textStyleMaterial).associateWith {
-        model.resourceLookup.findAttributeValue(item, node, it)
-      }
-    val value = model.resourceLookup.findAttributeValue(item, node, item.source!!)
-    val property =
-      InspectorGroupPropertyItem(
-        ANDROID_URI,
-        item.attrName,
-        item.type,
-        value,
-        null,
-        item.section,
-        item.source,
-        node.drawId,
-        model,
-        map
+    var property =
+      createTestProperty(
+        ATTR_TEXT_COLOR,
+        PropertyType.COLOR,
+        value = null,
+        node.layout,
+        listOf(textStyleMaterial),
+        node,
+        model
       )
+        as InspectorGroupPropertyItem
+    val value = model.resourceLookup.findAttributeValue(property, node, property.source!!)
+    if (value != null) {
+      property =
+        createTestProperty(
+          ATTR_TEXT_COLOR,
+          PropertyType.COLOR,
+          value,
+          node.layout,
+          listOf(textStyleMaterial),
+          node,
+          model
+        )
+          as InspectorGroupPropertyItem
+    }
     val editors = JPanel()
     editors.layout = BoxLayout(editors, BoxLayout.PAGE_AXIS)
     val propertiesModel = InspectorPropertiesModel(projectRule.testRootDisposable)

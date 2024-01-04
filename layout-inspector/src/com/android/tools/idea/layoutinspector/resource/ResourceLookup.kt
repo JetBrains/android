@@ -145,18 +145,19 @@ class ResourceLookup(private val project: Project) {
   /**
    * Find the file locations for a [property].
    *
-   * The list of file locations will start from [InspectorPropertyItem.source]. If that is a
-   * reference the definition of that reference will be next etc. The [max] guards against recursive
-   * indirection in the resources. Each file location is specified by:
+   * The list of file locations will start from [source]. If that is a reference the definition of
+   * that reference will be next etc. The [max] guards against recursive indirection in the
+   * resources. Each file location is specified by:
    * - a string containing the file name and a line number
    * - a [Navigatable] that can be used to goto the source location
    */
   fun findFileLocations(
     property: InspectorPropertyItem,
     view: ViewNode,
+    source: ResourceReference?,
+    sourceLocations: MutableList<SourceLocation>,
     max: Int = MAX_RESOURCE_INDIRECTION
-  ): List<SourceLocation> =
-    resolver?.findFileLocations(property, view, property.source, max) ?: emptyList()
+  ) = resolver?.findFileLocations(property, view, source, sourceLocations, max)
 
   /** Find the location of the specified [view]. */
   fun findFileLocation(view: ViewNode): SourceLocation? = resolver?.findFileLocation(view)

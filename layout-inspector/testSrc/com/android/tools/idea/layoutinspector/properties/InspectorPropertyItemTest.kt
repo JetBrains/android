@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_PADDING_TOP
 import com.android.SdkConstants.ATTR_TEXT_SIZE
@@ -66,86 +65,74 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
     model = null
   }
 
-  protected fun dimensionDpPropertyOf(value: String?): InspectorPropertyItem {
-    val nodeId = fakeComposeNode.drawId
-    return InspectorPropertyItem(
-      ANDROID_URI,
+  protected fun dimensionDpPropertyOf(value: String?): InspectorPropertyItem =
+    createTestProperty(
       "x",
       PropertyType.DIMENSION_DP,
       value,
-      PropertySection.DECLARED,
       null,
-      nodeId,
+      emptyList(),
+      fakeComposeNode,
       model!!
     )
-  }
 
-  protected fun dimensionSpPropertyOf(value: String?): InspectorPropertyItem {
-    val nodeId = fakeComposeNode.drawId
-    return InspectorPropertyItem(
-      ANDROID_URI,
+  protected fun dimensionSpPropertyOf(value: String?): InspectorPropertyItem =
+    createTestProperty(
       "textSize",
       PropertyType.DIMENSION_SP,
       value,
-      PropertySection.DECLARED,
       null,
-      nodeId,
+      emptyList(),
+      fakeComposeNode,
       model!!
     )
-  }
 
-  protected fun dimensionEmPropertyOf(value: String?): InspectorPropertyItem {
-    val nodeId = fakeComposeNode.drawId
-    return InspectorPropertyItem(
-      ANDROID_URI,
+  protected fun dimensionEmPropertyOf(value: String?): InspectorPropertyItem =
+    createTestProperty(
       "lineSpacing",
       PropertyType.DIMENSION_EM,
       value,
-      PropertySection.DECLARED,
       null,
-      nodeId,
+      emptyList(),
+      fakeComposeNode,
       model!!
     )
-  }
 
   protected fun dimensionPropertyOf(value: String?): InspectorPropertyItem {
-    val nodeId = model!!["title"]!!.drawId
-    return InspectorPropertyItem(
-      ANDROID_URI,
+    val node = model!!["title"]!!
+    return createTestProperty(
       ATTR_PADDING_TOP,
       PropertyType.DIMENSION,
       value,
-      PropertySection.DECLARED,
       null,
-      nodeId,
+      emptyList(),
+      node,
       model!!
     )
   }
 
   protected fun dimensionFloatPropertyOf(value: String?): InspectorPropertyItem {
-    val nodeId = model!!["title"]!!.drawId
-    return InspectorPropertyItem(
-      ANDROID_URI,
+    val node = model!!["title"]!!
+    return createTestProperty(
       ATTR_PADDING_TOP,
       PropertyType.DIMENSION_FLOAT,
       value,
-      PropertySection.DECLARED,
       null,
-      nodeId,
+      emptyList(),
+      node,
       model!!
     )
   }
 
   protected fun textSizePropertyOf(value: String?): InspectorPropertyItem {
-    val nodeId = model!!["title"]!!.drawId
-    return InspectorPropertyItem(
-      ANDROID_URI,
+    val node = model!!["title"]!!
+    return createTestProperty(
       ATTR_TEXT_SIZE,
       PropertyType.DIMENSION_FLOAT,
       value,
-      PropertySection.DECLARED,
       null,
-      nodeId,
+      emptyList(),
+      node,
       model!!
     )
   }
@@ -172,33 +159,20 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
   protected fun browseProperty(attrName: String, type: PropertyType, source: ResourceReference?) {
     val node = model!!["title"]!!
     val property =
-      InspectorPropertyItem(
-        ANDROID_URI,
-        attrName,
-        attrName,
-        type,
-        null,
-        PropertySection.DECLARED,
-        source ?: node.layout,
-        node.drawId,
-        model!!
-      )
+      createTestProperty(attrName, type, null, source ?: node.layout, emptyList(), node, model!!)
     property.helpSupport.browse()
   }
 
-  protected fun colorPropertyOf(value: String?): InspectorPropertyItem {
-    val nodeId = fakeComposeNode.drawId
-    return InspectorPropertyItem(
-      ANDROID_URI,
+  protected fun colorPropertyOf(value: String?): InspectorPropertyItem =
+    createTestProperty(
       "color",
       PropertyType.COLOR,
       value,
-      PropertySection.DECLARED,
       null,
-      nodeId,
+      emptyList(),
+      fakeComposeNode,
       model!!
     )
-  }
 }
 
 @RunsInEdt

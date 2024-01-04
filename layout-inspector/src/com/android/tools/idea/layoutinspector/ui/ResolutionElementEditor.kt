@@ -82,10 +82,7 @@ class ResolutionElementEditor(
 
   private fun updateFromModel() {
     val property = editorModel.property as InspectorPropertyItem
-    val context = property.lookup
-    val view = context[property.viewId]
-    val resourceLookup = property.lookup.resourceLookup
-    val locations = view?.let { resourceLookup.findFileLocations(property, it) } ?: listOf()
+    val locations = property.sourceLocations
     val classLocation = (property as? InspectorGroupPropertyItem)?.classLocation
     val hideLinkPanel =
       (locations.isEmpty() && classLocation == null) ||
@@ -205,8 +202,7 @@ class ResolutionElementEditor(
       if (property is PTableGroupItem) {
         return true
       }
-      val view = property.lookup[property.viewId] ?: return false
-      return property.lookup.resourceLookup.findFileLocations(property, view, max = 1).isNotEmpty()
+      return property.sourceLocations.isNotEmpty()
     }
   }
 

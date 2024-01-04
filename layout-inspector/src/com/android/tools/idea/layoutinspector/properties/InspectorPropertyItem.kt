@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.parseColor
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.property.panel.api.ActionIconButton
 import com.android.tools.property.panel.api.HelpSupport
@@ -84,6 +85,9 @@ open class InspectorPropertyItem(
       dimensionValue = computeDimensionValue(value)
     }
 
+  /** The source locations for this [source] reference (populated late) */
+  val sourceLocations = mutableListOf<SourceLocation>()
+
   /** Return true if this property has details that will require a ResolutionEditor */
   open val needsResolutionEditor: Boolean
     get() = false
@@ -132,12 +136,8 @@ open class InspectorPropertyItem(
   override val helpSupport =
     object : HelpSupport {
       override fun browse() {
-        val view = lookup[viewId] ?: return
-        val location =
-          lookup.resourceLookup
-            .findFileLocations(this@InspectorPropertyItem, view, 1)
-            .singleOrNull() ?: return
-        location.navigatable?.navigate(true)
+        val location = sourceLocations.firstOrNull()
+        location?.navigatable?.navigate(true)
       }
     }
 
