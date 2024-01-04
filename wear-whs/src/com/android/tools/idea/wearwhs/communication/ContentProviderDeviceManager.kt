@@ -42,9 +42,9 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
 
   override suspend fun loadCapabilities() = capabilities
 
-  override suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, CapabilityStatus> {
+  override suspend fun loadCurrentCapabilityStatus(): Map<WhsDataType, CapabilityStatus> {
     if (serialNumber == null) {
-      // TODO: Log this error
+      logger.warn(IllegalStateException("Serial number not set"))
       return emptyMap()
     }
 
@@ -70,7 +70,7 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
 
   override suspend fun clearContentProvider() {
     if (serialNumber == null) {
-      // TODO: Log this error
+      logger.warn(IllegalStateException("Serial number not set"))
       return
     }
 
@@ -80,7 +80,7 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
 
   override suspend fun isWhsVersionSupported(): Boolean {
     if (serialNumber == null) {
-      // TODO: Log this error
+      logger.warn(IllegalStateException("Serial number not set"))
       return false
     }
 
@@ -132,7 +132,7 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
 
   override suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>) {
     if (serialNumber == null) {
-      // TODO: Log this error
+      logger.warn(IllegalStateException("Serial number not set"))
       return
     }
 
@@ -157,7 +157,7 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
 
   override suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>) {
     if (serialNumber == null) {
-      // TODO: Log this error
+      logger.warn(IllegalStateException("Serial number not set"))
       return
     }
 

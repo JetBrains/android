@@ -17,25 +17,38 @@ package com.android.tools.idea.wearwhs.view
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.wearwhs.EventTrigger
+import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsCapability
+import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.communication.ConnectionLostException
 import com.android.tools.idea.wearwhs.communication.WearHealthServicesDeviceManager
 import com.android.tools.idea.wearwhs.logger.WearHealthServicesEventLogger
 import com.intellij.openapi.Disposable
 import io.ktor.util.collections.ConcurrentMap
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
+import kotlin.time.Duration.Companion.seconds
+
+/**
+ * Default polling interval for updating the state manager with values from [WearHealthServicesDeviceManager].
+ */
+private const val POLLING_INTERVAL_SECONDS: Long = 10L
 
 internal class WearHealthServicesToolWindowStateManagerImpl(
   private val deviceManager: WearHealthServicesDeviceManager,
-  private val logger: WearHealthServicesEventLogger = WearHealthServicesEventLogger())
+  private val logger: WearHealthServicesEventLogger = WearHealthServicesEventLogger(),
+  @VisibleForTesting private val pollingIntervalSeconds: Long = POLLING_INTERVAL_SECONDS)
   : WearHealthServicesToolWindowStateManager, Disposable {
+
   private val currentPreset = MutableStateFlow(Preset.ALL)
   private val capabilitiesList = MutableStateFlow(emptyList<WhsCapability>())
   private val capabilityToState = ConcurrentMap<WhsCapability, MutableStateFlow<CapabilityState>>()
   private val progress = MutableStateFlow<WhsStateManagerStatus>(WhsStateManagerStatus.Idle)
+  private val workerScope = AndroidCoroutineScope(this)
 
   // TODO(b/305924111): Update this value periodically to reflect it on the UI
   private val ongoingExercise = MutableStateFlow(false)
@@ -51,8 +64,35 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
     }
 
   init {
-    AndroidCoroutineScope(this).launch {
+    workerScope.launch {
       setCapabilities(deviceManager.loadCapabilities())
+      while (true) {
+        updateState()
+        delay(pollingIntervalSeconds.seconds)
+      }
+    }
+  }
+
+  private suspend fun updateState() {
+    if (serialNumber == null) {
+      // Panel is not bound to an emulator yet
+      return
+    }
+
+    val currentStates = deviceManager.loadCurrentCapabilityStatus()
+    currentStates.forEach { (dataType, state) ->
+      // Update values only if they're synced through and got changed in the background
+      capabilityToState[dataType.toCapability()]?.let { stateFlow ->
+        if (stateFlow.value.synced) {
+          stateFlow.emit(
+            stateFlow.value.copy(
+              enabled = state.enabled,
+              overrideValue = state.overrideValue,
+              synced = true
+            )
+          )
+        }
+      }
     }
   }
 
@@ -148,5 +188,11 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
 
   override fun dispose() { // Clear all callbacks to avoid memory leaks
     capabilityToState.clear()
+  }
+}
+
+private fun WhsDataType.toCapability(): WhsCapability {
+  return WHS_CAPABILITIES.single {
+    it.dataType == this
   }
 }

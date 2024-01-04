@@ -48,21 +48,28 @@ internal interface WearHealthServicesDeviceManager {
   suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>)
 
   /**
-   * Loads the current state from WHS to compare with the current UI.
-   */
-  suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, CapabilityStatus>
-
-  /**
    * Deletes all data from the WHS content provider
    */
   suspend fun clearContentProvider()
 
+  /**
+   * Returns if the WHS version is supported.
+   */
   suspend fun isWhsVersionSupported(): Boolean
+
+  /**
+   * Loads the current status from WHS to compare with the current UI.
+   */
+  suspend fun loadCurrentCapabilityStatus(): Map<WhsDataType, CapabilityStatus>
 
   /**
    * Sets the serial number of the emulator to connect.
    */
   fun setSerialNumber(serialNumber: String)
+
+  /**
+   * Sends an event trigger to the device.
+   */
   suspend fun triggerEvent(eventTrigger: EventTrigger)
 }
 

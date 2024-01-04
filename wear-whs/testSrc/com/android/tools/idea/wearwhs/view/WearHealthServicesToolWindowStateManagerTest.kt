@@ -19,25 +19,25 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
-import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.android.tools.idea.wearwhs.communication.CapabilityStatus
+import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.android.tools.idea.wearwhs.logger.WearHealthServicesEventLogger
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearHealthServicesEvent
 import com.intellij.openapi.util.Disposer
 import junit.framework.TestCase.assertEquals
-import kotlinx.coroutines.flow.takeWhile
-import kotlinx.coroutines.runBlocking
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert
 import org.junit.Assert.assertFalse
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 private val capabilities = listOf(WhsCapability(
   WhsDataType.HEART_RATE_BPM,
@@ -67,7 +67,9 @@ class WearHealthServicesToolWindowStateManagerTest {
   private val logger = WearHealthServicesEventLogger { loggedEvents.add(it) }
   private val deviceManager by lazy { FakeDeviceManager(capabilities) }
   private val stateManager by lazy {
-    WearHealthServicesToolWindowStateManagerImpl(deviceManager, logger)
+    WearHealthServicesToolWindowStateManagerImpl(deviceManager, logger, 1L).also {
+      it.serialNumber = "test"
+    }
   }
 
   @Before
@@ -162,15 +164,17 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.getState(capabilities[1]).map { it.synced }.waitForValue(true)
     stateManager.getState(capabilities[2]).map { it.synced }.waitForValue(true)
 
-    assertThat(deviceManager.loadCurrentCapabilityStates()).containsExactly(
+    assertThat(deviceManager.loadCurrentCapabilityStatus()).containsExactly(
       capabilities[0].dataType, CapabilityStatus(false, null),
       capabilities[1].dataType, CapabilityStatus(true, 3f),
       capabilities[2].dataType, CapabilityStatus(true, null)
     )
 
-    assertThat(loggedEvents).hasSize(1)
+    assertThat(loggedEvents).hasSize(2)
     assertThat(loggedEvents[0].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
-    assertThat(loggedEvents[0].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_SUCCESS)
+    assertThat(loggedEvents[0].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.EMULATOR_BOUND)
+    assertThat(loggedEvents[1].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
+    assertThat(loggedEvents[1].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_SUCCESS)
   }
 
   @Test
@@ -184,9 +188,11 @@ class WearHealthServicesToolWindowStateManagerTest {
 
     stateManager.getStatus().waitForValue(WhsStateManagerStatus.ConnectionLost)
 
-    assertThat(loggedEvents).hasSize(1)
+    assertThat(loggedEvents).hasSize(2)
     assertThat(loggedEvents[0].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
-    assertThat(loggedEvents[0].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_FAILURE)
+    assertThat(loggedEvents[0].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.EMULATOR_BOUND)
+    assertThat(loggedEvents[1].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
+    assertThat(loggedEvents[1].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_FAILURE)
   }
 
   @Test
@@ -204,6 +210,38 @@ class WearHealthServicesToolWindowStateManagerTest {
 
     stateManager.applyChanges()
     stateManager.getStatus().waitForValue(WhsStateManagerStatus.Idle)
+  }
+
+  @Test
+  fun `test stateManager periodically updates the values from the device`() = runBlocking {
+    stateManager.getCapabilitiesList().waitForValue(capabilities)
+
+    stateManager.applyChanges()
+
+    stateManager.getStatus().waitForValue(WhsStateManagerStatus.Idle)
+
+    // Disable value on-device
+    deviceManager.setCapabilities(mapOf(capabilities[0].dataType to false))
+
+    // Verify that the value is updated
+    stateManager.getState(capabilities[0]).map { it.enabled }.waitForValue(false, 2000)
+  }
+
+  @Test
+  fun `test stateManager periodically updates the override values from the device`() = runBlocking {
+    stateManager.getCapabilitiesList().waitForValue(capabilities)
+
+    stateManager.applyChanges()
+
+    stateManager.getStatus().waitForValue(WhsStateManagerStatus.Idle)
+
+    // Enable sensor and override value on device
+    deviceManager.setCapabilities(mapOf(capabilities[0].dataType to true))
+    deviceManager.overrideValues(mapOf(capabilities[0].dataType to 10f))
+
+    // Verify that the value is updated
+    stateManager.getState(capabilities[0]).map { it.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[0]).map { it.overrideValue }.waitForValue(10f)
   }
 
   private suspend fun <T> Flow<T>.waitForValue(value: T, timeout: Long = 1000) {

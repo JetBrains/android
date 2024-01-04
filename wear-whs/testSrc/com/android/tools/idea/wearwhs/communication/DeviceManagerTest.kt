@@ -472,7 +472,7 @@ class DeviceManagerTest {
 
     var parsedCapabilities = WHS_CAPABILITIES.associate { it.dataType to CapabilityStatus(false, null) }
     val job = launch {
-      parsedCapabilities = deviceManager.loadCurrentCapabilityStates()
+      parsedCapabilities = deviceManager.loadCurrentCapabilityStatus()
     }
     job.join()
 
