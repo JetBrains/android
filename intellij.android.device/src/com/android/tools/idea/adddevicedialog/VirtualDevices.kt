@@ -54,7 +54,7 @@ internal object VirtualDevices {
         "hw.accelerometer" to "yes",
         "hw.audioInput" to "yes",
         "hw.battery" to "yes",
-        "hw.camera.back" to "virtualscene",
+        "hw.camera.back" to device.rearCamera.asParameter,
         "hw.camera.front" to device.frontCamera.asParameter,
         "hw.cpu.ncore" to "4",
         "hw.dPad" to "no",

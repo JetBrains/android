@@ -26,5 +26,6 @@ internal constructor(
   internal val name: String,
   internal val sdkExtensionLevel: AndroidVersion,
   internal val skin: Skin,
-  internal val frontCamera: AvdCamera
+  internal val frontCamera: AvdCamera,
+  internal val rearCamera: AvdCamera
 )

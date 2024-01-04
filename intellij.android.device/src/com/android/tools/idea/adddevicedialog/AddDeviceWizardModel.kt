@@ -46,7 +46,8 @@ internal constructor(
         "Pixel 7 API 34",
         AndroidVersion(34, null, 7, true),
         DefaultSkin(Path.of(sdk, "skins", "pixel_7")),
-        AvdCamera.EMULATED
+        AvdCamera.EMULATED,
+        AvdCamera.VIRTUAL_SCENE // TODO We're assuming the emulator supports this feature
       )
     )
   }

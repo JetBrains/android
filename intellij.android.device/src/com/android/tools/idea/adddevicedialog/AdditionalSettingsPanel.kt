@@ -35,7 +35,7 @@ internal fun AdditionalSettingsPanel(
 ) {
   Row {
     Text("Device skin")
-    DeviceSkinDropdown(device.skin, skins) { onDeviceChange(device.copy(skin = it)) }
+    Dropdown(device.skin, skins) { onDeviceChange(device.copy(skin = it)) }
     OutlinedButton(onImportButtonClick) { Text("Import") }
   }
 
@@ -43,44 +43,35 @@ internal fun AdditionalSettingsPanel(
 
   Row {
     Text("Front")
-    FrontDropdown(device.frontCamera) { onDeviceChange(device.copy(frontCamera = it)) }
+    Dropdown(device.frontCamera, FRONT_CAMERAS) { onDeviceChange(device.copy(frontCamera = it)) }
+  }
+
+  Row {
+    Text("Rear")
+    Dropdown(device.rearCamera, REAR_CAMERAS) { onDeviceChange(device.copy(rearCamera = it)) }
   }
 }
 
 @Composable
-private fun DeviceSkinDropdown(
-  selectedSkin: Skin,
-  skins: ImmutableCollection<Skin>,
-  onSelectedSkinChange: (Skin) -> Unit
+private fun <I> Dropdown(
+  selectedItem: I,
+  items: ImmutableCollection<I>,
+  onSelectedItemChange: (I) -> Unit
 ) {
   Dropdown(
     menuContent = {
-      skins.forEach {
-        selectableItem(
-          selected = selectedSkin == it,
-          onClick = { onSelectedSkinChange(it) },
-          content = { Text(it.toString()) }
-        )
-      }
-    },
-    content = { Text(selectedSkin.toString()) }
-  )
-}
-
-@Composable
-private fun FrontDropdown(selectedCamera: AvdCamera, onSelectedCameraChange: (AvdCamera) -> Unit) {
-  Dropdown(
-    menuContent = {
-      FRONT_CAMERAS.forEach {
-        selectableItem(selectedCamera == it, onClick = { onSelectedCameraChange(it) }) {
+      items.forEach {
+        selectableItem(selectedItem == it, onClick = { onSelectedItemChange(it) }) {
           Text(it.toString())
         }
       }
     }
   ) {
-    Text(selectedCamera.toString())
+    Text(selectedItem.toString())
   }
 }
 
 private val FRONT_CAMERAS =
   listOf(AvdCamera.NONE, AvdCamera.EMULATED, AvdCamera.WEBCAM).toImmutableList()
+
+private val REAR_CAMERAS = AvdCamera.values().asIterable().toImmutableList()
