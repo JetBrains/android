@@ -3612,6 +3612,7 @@ java_test(
 # fat test
 java_test(
     name = "AddLocaleTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",

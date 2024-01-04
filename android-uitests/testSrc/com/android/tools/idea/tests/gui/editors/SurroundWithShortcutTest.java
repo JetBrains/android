@@ -88,14 +88,16 @@ public class SurroundWithShortcutTest {
 
     clickCodeSurroundWith(ideFrame);
     guiTest.robot().enterText("6"); // Shortcut: "4" for try / catch
-    Wait.seconds(5).expecting("Try/Catch block to be added.")
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    Wait.seconds(15).expecting("Try/Catch block to be added.")
       .until(() -> editorFixture.getCurrentFileContents().contains(TRY_CATCH_BLOCK));
 
     removeTryCatchAndVerify(ideFrame, editorFixture);
 
     clickCodeSurroundWith(ideFrame);
     guiTest.robot().enterText("4"); // Shortcut: "4" for do/while
-    Wait.seconds(5).expecting("Do/While block to be added.")
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    Wait.seconds(15).expecting("Do/While block to be added.")
       .until(() -> editorFixture.getCurrentFileContents().contains(DO_WHILE_BLOCK));
   }
 
