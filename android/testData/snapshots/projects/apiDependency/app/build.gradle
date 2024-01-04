@@ -31,4 +31,5 @@ android {
 dependencies {
     implementation project(":lib")
     implementation project(":jlib0")
+    implementation platform(project(":jlib1"))
 }
