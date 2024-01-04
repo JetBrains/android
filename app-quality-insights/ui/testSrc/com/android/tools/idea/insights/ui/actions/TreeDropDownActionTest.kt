@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.ui.actions
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
@@ -25,7 +26,6 @@ import com.android.tools.idea.insights.GroupAware
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ui.TreeDropDownPopup
-import com.android.tools.idea.insights.waitForCondition
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.ibm.icu.impl.Assert.fail
@@ -200,7 +200,7 @@ class TreeDropDownActionTest {
           getLocationOnScreen = { fakeUi.getPosition(this) }
         )
 
-      waitForCondition(1000) { dropdown.selectionState.value.items.size == 3 }
+      delayUntilCondition(200) { dropdown.selectionState.value.items.size == 3 }
 
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
       val toolbar =
@@ -277,7 +277,7 @@ class TreeDropDownActionTest {
           getLocationOnScreen = { fakeUi.getPosition(this) }
         )
 
-      waitForCondition(1000) { dropdown.selectionState.value.items.size == 2 }
+      delayUntilCondition(200) { dropdown.selectionState.value.items.size == 2 }
 
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
       val toolbar =
@@ -325,7 +325,7 @@ class TreeDropDownActionTest {
           getLocationOnScreen = { fakeUi.getPosition(this) }
         )
 
-      waitForCondition(1000) { dropdown.selectionState.value.items.size == 5 }
+      delayUntilCondition(200) { dropdown.selectionState.value.items.size == 5 }
 
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
       val toolbar =
@@ -394,7 +394,9 @@ class TreeDropDownActionTest {
           targetComponent = panel
         }
       panel.add(toolbar.component, BorderLayout.CENTER)
-      check(toolbar is ActionToolbarImpl) // Downcast needed until we get IntelliJ commit 2c2720e223 in 2024.1.
+      check(
+        toolbar is ActionToolbarImpl
+      ) // Downcast needed until we get IntelliJ commit 2c2720e223 in 2024.1.
       PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
 
       val actionButton = toolbar.component.getComponent(0) as ActionButton
@@ -437,7 +439,7 @@ class TreeDropDownActionTest {
           getLocationOnScreen = { FakeUi(panel).getPosition(this) }
         )
 
-      waitForCondition(1000) { dropdown.selectionState.value.items.size == 5 }
+      delayUntilCondition(200) { dropdown.selectionState.value.items.size == 5 }
 
       val actionGroups = DefaultActionGroup().apply { add(dropdown) }
       val toolbar =
@@ -445,7 +447,9 @@ class TreeDropDownActionTest {
           targetComponent = panel
         }
       panel.add(toolbar.component, BorderLayout.CENTER)
-      check(toolbar is ActionToolbarImpl) // Downcast needed until we get IntelliJ commit 2c2720e223 in 2024.1.
+      check(
+        toolbar is ActionToolbarImpl
+      ) // Downcast needed until we get IntelliJ commit 2c2720e223 in 2024.1.
       PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
 
       val actionButton = toolbar.component.getComponent(0) as ActionButton

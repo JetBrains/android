@@ -17,20 +17,6 @@ package com.android.tools.idea.insights
 
 import java.time.Duration
 import java.time.Instant
-import java.util.concurrent.TimeoutException
-import kotlinx.coroutines.delay
-
-suspend inline fun waitForCondition(timeoutMs: Long = 500, crossinline condition: () -> Boolean) {
-  val waitIntervalMs = 50L
-  var index = 0
-
-  while (index * waitIntervalMs < timeoutMs) {
-    if (condition()) return
-    index++
-    delay(waitIntervalMs)
-  }
-  throw TimeoutException()
-}
 
 private val TestTimeIntervals =
   listOf(
