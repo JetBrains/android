@@ -18,6 +18,7 @@ package com.android.tools.idea.adddevicedialog
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import com.android.sdklib.internal.avd.AvdCamera
+import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import kotlinx.collections.immutable.ImmutableCollection
@@ -72,9 +73,15 @@ private fun NetworkGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
     Text("Speed")
     Dropdown(device.speed, SPEEDS) { onDeviceChange(device.copy(speed = it)) }
   }
+
+  Row {
+    Text("Latency")
+    Dropdown(device.latency, LATENCIES) { onDeviceChange(device.copy(latency = it)) }
+  }
 }
 
 private val SPEEDS = AvdNetworkSpeed.values().asIterable().toImmutableList()
+private val LATENCIES = AvdNetworkLatency.values().asIterable().toImmutableList()
 
 @Composable
 private fun <I> Dropdown(

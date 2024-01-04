@@ -49,7 +49,8 @@ internal constructor(
         DefaultSkin(Path.of(sdk, "skins", "pixel_7")),
         AvdCamera.EMULATED,
         AvdCamera.VIRTUAL_SCENE, // TODO We're assuming the emulator supports this feature
-        EmulatedProperties.DEFAULT_NETWORK_SPEED
+        EmulatedProperties.DEFAULT_NETWORK_SPEED,
+        EmulatedProperties.DEFAULT_NETWORK_LATENCY
       )
     )
   }
