@@ -6,6 +6,26 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.gradle.dsl.iml"],
     lint_baseline = "lint_baseline.xml",
+    module_visibility = [
+        # Language-specific implementation modules
+        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
+        "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
+        # Gradle Project System tools
+        "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
+        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
+        "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade",
+        # Templates and Wizards
+        "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
+        "//tools/adt/idea/android-templates:intellij.android.templates",
+        # Kotlin Android Gradle Configurator
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
+        # TODO(xof): investigate
+        "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
+        "//tools/studio/google/cloud/testing/test-recorder:test-recorder",
+        "//tools/vendor/google/android-ndk:android-ndk",
+        "//tools/vendor/google/firebase:firebase",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

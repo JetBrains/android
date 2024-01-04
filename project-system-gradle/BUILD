@@ -11,6 +11,42 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.gradle.iml"],
     lint_baseline = "lint_baseline.xml",
+    module_visibility = [
+        # Gradle Project System tools
+        "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
+        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
+        "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade",
+        "//tools/vendor/google/focus-plugin:declarative-gradle.focus-plugin",
+        # Project System Token implementation modules
+        "//tools/adt/idea/native-symbolizer/gradle:native-symbolizer.gradle",
+        "//tools/adt/idea/nav/safeargs/common/gradle:intellij.android.nav.safeargs.common.gradle",
+        "//tools/adt/idea/app-inspection/ide/gradle:app-inspection.ide.gradle",
+        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector.gradle",
+        "//tools/adt/idea/nav/editor:intellij.android.nav.editor.gradle",
+        "//tools/adt/idea/profilers-android/gradle:intellij.android.profilersAndroid.gradle",
+        # Templates and Wizards
+        "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
+        "//tools/adt/idea/android-templates:intellij.android.templates",
+        # Kotlin Android Gradle Configurator
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
+        # TODO(b/316555700), Kotlin Intrinsics deprecation schedule, AndroidModuleInfoProviderImpl
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
+        # TODO(xof): investigate
+        "//tools/adt/idea/android-lint:intellij.android.lint",
+        "//tools/adt/idea/app-quality-insights/play-vitals/ide:intellij.android.app-quality-insights.play-vitals.ide",
+        "//tools/adt/idea/android-navigator:intellij.android.navigator",
+        "//tools/adt/idea/mlkit:intellij.android.mlkit",
+        "//tools/vendor/google/ml/sml-android:ml.sml-android",
+        "//tools/vendor/google/android-ndk:android-ndk",
+        "//tools/adt/idea/compose-designer:intellij.android.compose-designer",
+        "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
+        "//tools/adt/idea/designer:intellij.android.designer",
+        "//tools/vendor/google/firebase:firebase",
+        "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
+        "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as",
+        "//tools/studio/google/cloud/testing/test-recorder:test-recorder",
+        "//tools/vendor/google/url-assistant:url-assistant",
+    ],
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
