@@ -76,7 +76,7 @@ internal object VirtualDevices {
         "hw.sensors.proximity" to "yes",
         "hw.trackBall" to "no",
         "runtime.network.latency" to "none",
-        "runtime.network.speed" to "full",
+        "runtime.network.speed" to device.speed.asParameter,
         "showDeviceFrame" to "yes",
         "skin.dynamic" to "yes",
         "skin.path" to skin.toString(),

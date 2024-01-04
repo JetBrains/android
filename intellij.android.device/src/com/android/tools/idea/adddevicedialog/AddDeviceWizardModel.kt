@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.internal.avd.AvdCamera
+import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.sdk.AndroidSdks
@@ -47,7 +48,8 @@ internal constructor(
         AndroidVersion(34, null, 7, true),
         DefaultSkin(Path.of(sdk, "skins", "pixel_7")),
         AvdCamera.EMULATED,
-        AvdCamera.VIRTUAL_SCENE // TODO We're assuming the emulator supports this feature
+        AvdCamera.VIRTUAL_SCENE, // TODO We're assuming the emulator supports this feature
+        EmulatedProperties.DEFAULT_NETWORK_SPEED
       )
     )
   }

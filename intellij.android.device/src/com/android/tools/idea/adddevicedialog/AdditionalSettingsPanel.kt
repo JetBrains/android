@@ -18,6 +18,7 @@ package com.android.tools.idea.adddevicedialog
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import com.android.sdklib.internal.avd.AvdCamera
+import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
@@ -39,6 +40,12 @@ internal fun AdditionalSettingsPanel(
     OutlinedButton(onImportButtonClick) { Text("Import") }
   }
 
+  CameraGroup(device, onDeviceChange)
+  NetworkGroup(device, onDeviceChange)
+}
+
+@Composable
+private fun CameraGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
   GroupHeader("Camera")
 
   Row {
@@ -51,6 +58,23 @@ internal fun AdditionalSettingsPanel(
     Dropdown(device.rearCamera, REAR_CAMERAS) { onDeviceChange(device.copy(rearCamera = it)) }
   }
 }
+
+private val FRONT_CAMERAS =
+  listOf(AvdCamera.NONE, AvdCamera.EMULATED, AvdCamera.WEBCAM).toImmutableList()
+
+private val REAR_CAMERAS = AvdCamera.values().asIterable().toImmutableList()
+
+@Composable
+private fun NetworkGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
+  GroupHeader("Network")
+
+  Row {
+    Text("Speed")
+    Dropdown(device.speed, SPEEDS) { onDeviceChange(device.copy(speed = it)) }
+  }
+}
+
+private val SPEEDS = AvdNetworkSpeed.values().asIterable().toImmutableList()
 
 @Composable
 private fun <I> Dropdown(
@@ -70,8 +94,3 @@ private fun <I> Dropdown(
     Text(selectedItem.toString())
   }
 }
-
-private val FRONT_CAMERAS =
-  listOf(AvdCamera.NONE, AvdCamera.EMULATED, AvdCamera.WEBCAM).toImmutableList()
-
-private val REAR_CAMERAS = AvdCamera.values().asIterable().toImmutableList()

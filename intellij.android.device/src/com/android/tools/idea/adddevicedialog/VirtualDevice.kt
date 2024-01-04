@@ -18,6 +18,7 @@ package com.android.tools.idea.adddevicedialog
 import androidx.compose.runtime.Immutable
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.internal.avd.AvdCamera
+import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 
 @Immutable
@@ -27,5 +28,6 @@ internal constructor(
   internal val sdkExtensionLevel: AndroidVersion,
   internal val skin: Skin,
   internal val frontCamera: AvdCamera,
-  internal val rearCamera: AvdCamera
+  internal val rearCamera: AvdCamera,
+  internal val speed: AvdNetworkSpeed
 )
