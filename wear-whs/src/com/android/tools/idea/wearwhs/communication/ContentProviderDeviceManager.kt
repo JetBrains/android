@@ -48,7 +48,7 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
   override suspend fun loadOngoingExercise() = false
 
   private fun contentUpdateCapability(key: String, value: Boolean): String {
-    return "content update --uri $whsUri --bind $key:b:$value --where \"$key\""
+    return "content update --uri $whsUri --bind $key:b:$value"
   }
 
   private suspend fun setCapability(capability: WhsCapability, newValue: Boolean) {
