@@ -75,7 +75,7 @@ public class DrawableResourceNavigationTest {
   @Test
   public void testDrawableResource() throws IOException {
     //Open Resource Manager
-    guiTest.ideFrame().invokeMenuPath("Tools", "Resource Manager");
+    myIdeFrameFixture.invokeMenuPath("Tools", "Resource Manager");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     ResourceExplorerFixture myResourceExplorerFixture = ResourceExplorerFixture.find(guiTest.robot());
 
@@ -83,6 +83,8 @@ public class DrawableResourceNavigationTest {
     int selectedTabIndex = myResourceExplorerFixture.tabbedPane().target().getSelectedIndex();
     assertThat(myResourceExplorerFixture.tabbedPane().target().getTitleAt(selectedTabIndex)).matches("Drawable");
     myResourceExplorerFixture.click();
+    myResourceExplorerFixture.clickRefreshButton();
+    myIdeFrameFixture.waitUntilProgressBarNotDisplayed();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     // Verify 1 : A drawable named icon_category_entertainment should be showing

@@ -34,6 +34,7 @@ import org.fest.swing.fixture.JTabbedPaneFixture
 import org.fest.swing.fixture.JTextComponentFixture
 import org.fest.swing.timing.Wait
 import java.util.regex.Pattern
+import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.JTabbedPane
 
@@ -75,6 +76,14 @@ class ResourceExplorerFixture private constructor(robot: Robot, target: JPanel) 
    */
   fun clickAddButton(): ResourceExplorerFixture {
     ActionButtonFixture.findByIcon(AllIcons.General.Add, robot(), target()).click()
+    return this
+  }
+
+  /**
+   * Clicks the refresh button in the Resource Explorer.
+   */
+  fun clickRefreshButton(): ResourceExplorerFixture {
+    ActionButtonFixture.findByText("Refresh Previews", robot(), target()).click()
     return this
   }
 
