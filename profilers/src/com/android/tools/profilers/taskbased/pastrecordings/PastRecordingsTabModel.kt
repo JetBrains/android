@@ -15,11 +15,9 @@
  */
 package com.android.tools.profilers.taskbased.pastrecordings
 
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.taskbased.TaskEntranceTabModel
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel
-import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.google.common.annotations.VisibleForTesting
 
 /**
@@ -33,8 +31,6 @@ class PastRecordingsTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(
 
   @VisibleForTesting
   val selectedRecording get() = recordingListModel.selectedRecording.value
-
-  override val isEnterTaskButtonEnabled get() = selectedRecording != null && selectedTaskType != ProfilerTaskType.UNSPECIFIED
 
   override fun onEnterTaskButtonClick() {
     val selectedSession = selectedRecording!!.session

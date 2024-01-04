@@ -28,12 +28,6 @@ abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
   val taskHandlers get() = profilers.taskHandlers
 
   /**
-   * Returns whether the Profiler task button should be enabled or not. This usually means that a valid task is selected along with a valid
-   * process or recording to enter the task with.
-   */
-  abstract val isEnterTaskButtonEnabled : Boolean
-
-  /**
    * Handles click of start or open Profiler task button.
    */
   abstract fun onEnterTaskButtonClick()

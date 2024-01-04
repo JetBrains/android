@@ -19,7 +19,6 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.taskbased.TaskEntranceTabModel
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
-import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskTypeMappingUtils
 import com.google.common.annotations.VisibleForTesting
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,10 +44,6 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
   val selectedDevice: Common.Device get() = processListModel.selectedDevice.value
   @VisibleForTesting
   val selectedProcess: Common.Process get() = processListModel.selectedProcess.value
-
-  override val isEnterTaskButtonEnabled get() = selectedDevice != Common.Device.getDefaultInstance()
-                                                && selectedProcess != Common.Process.getDefaultInstance()
-                                                && selectedTaskType != ProfilerTaskType.UNSPECIFIED
 
   override fun onEnterTaskButtonClick() = profilers.setProcess(selectedDevice, selectedProcess,
                                                                TaskTypeMappingUtils.convertTaskType(selectedTaskType),
