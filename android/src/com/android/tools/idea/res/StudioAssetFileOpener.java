@@ -92,7 +92,7 @@ public class StudioAssetFileOpener implements AssetFileOpener {
    * Returns whether the given file is contained within the downloadable fonts cache
    */
   private static boolean isCachedFontFile(@NotNull VirtualFile file) {
-    File fontCachePathFile = DownloadableFontCacheService.getInstance().getFontPath();
+    File fontCachePathFile = DownloadableFontCacheService.getInstance().getFontCachePath();
     if (fontCachePathFile == null) {
       return false;
     }

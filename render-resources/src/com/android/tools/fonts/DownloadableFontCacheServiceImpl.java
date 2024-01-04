@@ -21,10 +21,11 @@ import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
+import com.android.ide.common.fonts.FontsFolderProvider;
 import com.android.ide.common.fonts.FontLoader;
 import com.android.ide.common.fonts.FontProvider;
+import com.android.ide.common.fonts.SdkFontsFolderProvider;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileUtil;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.io.File;
@@ -58,7 +59,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
 
   private final FontDownloader myFontDownloader;
 
-  private final Supplier<File> mySdkHomeProvider;
+  private final FontsFolderProvider myFontsFolderProvider;
 
   @NotNull
   public static DownloadableFontCacheServiceImpl getInstance() {
@@ -203,7 +204,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   public void refresh(@Nullable Runnable success, @Nullable Runnable failure) {
     Collection<FontDirectoryDownloader> services;
     synchronized (getLock()) {
-      if (updateSdkHome()) {
+      if (updateFontsFolder()) {
         updateDownloadServices();
       }
       services = myDownloadServiceMap.values();
@@ -214,18 +215,31 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
     }
   }
 
+  @Override
+  @Nullable
+  public File getFontCachePath() {
+    return super.getFontPath();
+  }
+
   protected DownloadableFontCacheServiceImpl(
     @NotNull FontDownloader fontDownloader,
-    @NotNull Supplier<File> sdkHomeProvider
+    @NotNull FontsFolderProvider fontsFolderProvider
   ) {
     myDownloadServiceMap = new HashMap<>();
     myFontDownloader = fontDownloader;
-    mySdkHomeProvider = sdkHomeProvider;
+    myFontsFolderProvider = fontsFolderProvider;
     init();
     mySystemFonts = new SystemFonts(this);
 
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     instance = this;
+  }
+
+  protected DownloadableFontCacheServiceImpl(
+    @NotNull FontDownloader fontDownloader,
+    @NotNull Supplier<File> sdkHomeProvider
+  ) {
+    this(fontDownloader, new SdkFontsFolderProvider(sdkHomeProvider));
   }
 
   @TestOnly
@@ -234,12 +248,9 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   }
 
   private void init() {
-    File initialSdkHome = mySdkHomeProvider.get();
-    if (initialSdkHome == null) {
-      initialSdkHome = createTempSdk();
-    }
+    File fontFolder = myFontsFolderProvider.getFontsFolder();
     synchronized (getLock()) {
-      clear(initialSdkHome);
+      setFontPath(fontFolder);
       fontsLoaded();
       updateDownloadServices();
     }
@@ -253,31 +264,14 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
     }
   }
 
-  @Nullable
-  private static File createTempSdk() {
-    try {
-      return FileUtil.createTempDirectory("temp", "sdk");
-    }
-    catch (IOException ex) {
-      Logger.getInstance(DownloadableFontCacheServiceImpl.class).error(ex);
-      return null;
-    }
-  }
-
-  private boolean updateSdkHome() {
+  private boolean updateFontsFolder() {
     synchronized (getLock()) {
-      File newSdkHome = mySdkHomeProvider.get();
-      File oldSdkHome = getSdkHome();
-      if (Objects.equals(newSdkHome, oldSdkHome)) {
+      File newFontsFolder = myFontsFolderProvider.getFontsFolder();
+      File oldFontsFolder = getFontPath();
+      if (Objects.equals(newFontsFolder, oldFontsFolder)) {
         return false;
       }
-      if (newSdkHome == null) {
-        if (oldSdkHome != null && oldSdkHome.getName().startsWith("temp")) {
-          return false;
-        }
-        newSdkHome = createTempSdk();
-      }
-      clear(newSdkHome);
+      setFontPath(newFontsFolder);
       return true;
     }
   }

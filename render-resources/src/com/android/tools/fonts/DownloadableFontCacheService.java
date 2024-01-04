@@ -129,5 +129,5 @@ public interface DownloadableFontCacheService {
    * Returns the path to the current font cache directory, if any.
    */
   @Nullable
-  File getFontPath();
+  File getFontCachePath();
 }
