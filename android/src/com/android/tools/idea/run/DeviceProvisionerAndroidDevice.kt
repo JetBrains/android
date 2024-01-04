@@ -30,26 +30,24 @@ import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.Snapshot
+import com.android.sdklib.deviceprovisioner.awaitReady
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.concurrency.getCompletedOrNull
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
-import com.intellij.util.Function
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.transformLatest
-import kotlinx.coroutines.guava.asListenableFuture
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeoutOrNull
-import org.jetbrains.android.facet.AndroidFacet
 import java.util.EnumSet
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Supplier
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.guava.asListenableFuture
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * An [AndroidDevice] implemented via the [DeviceProvisioner]. In contrast to the other
@@ -131,10 +129,11 @@ class DeviceTemplateAndroidDevice(
 
   override fun bootDefault(): ListenableFuture<IDevice> = boot {
     val deviceHandle = deviceTemplate.activationAction.activate()
-    val connectedDevice =
-      withTimeoutOrNull(activationTimeout) { deviceHandle.awaitOnline() }
+
+    val deviceState =
+      withTimeoutOrNull(activationTimeout) { deviceHandle.awaitReady() }
         ?: throw IllegalStateException("Device did not start")
-    ddmlibDeviceLookup.findDdmlibDeviceWithTimeout(connectedDevice)
+    ddmlibDeviceLookup.findDdmlibDeviceWithTimeout(deviceState.connectedDevice)
   }
 
   override fun canRun(
@@ -186,10 +185,10 @@ class DeviceHandleAndroidDevice(
     if (deviceHandle.state.connectedDevice == null) {
       action()
     }
-    val connectedDevice =
-      withTimeoutOrNull(activationTimeout) { deviceHandle.awaitOnline() }
+    val deviceState =
+      withTimeoutOrNull(activationTimeout) { deviceHandle.awaitReady() }
         ?: throw IllegalStateException("Device did not start")
-    return ddmlibDeviceLookup.findDdmlibDeviceWithTimeout(connectedDevice)
+    return ddmlibDeviceLookup.findDdmlibDeviceWithTimeout(deviceState.connectedDevice)
   }
 
   override fun canRun(
@@ -239,23 +238,5 @@ suspend inline fun <R> pollUntilPresent(block: () -> R?): R {
   }
 }
 
-/** Returns the DeviceHandle's ConnectedDevice when it reaches the ONLINE state. */
-suspend fun DeviceHandle.awaitOnline(): ConnectedDevice =
-  stateFlow
-    .transformLatest { state ->
-      state.connectedDevice?.let { connectedDevice ->
-        connectedDevice.deviceInfoFlow.first {
-          it.deviceState == com.android.adblib.DeviceState.ONLINE
-        }
-        emit(connectedDevice)
-      }
-    }
-    .first()
-
-/**
- * How long we wait after activate() returns for the device to become connected.
- *
- * TODO: We could try to enforce that the DeviceHandle always waits for connection before returning
- *   instead
- */
-private val activationTimeout = 5.seconds
+/** How long we wait after activate() returns for the device to become ready. */
+private val activationTimeout = 5.minutes
