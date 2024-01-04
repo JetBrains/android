@@ -126,7 +126,7 @@ fun <T> CachedValuesManager.getCachedValue(
   dataHolder: UserDataHolder,
   key: Key<CachedValue<T>>,
   provider: CachedValueProvider<T>
-): T = this.getCachedValue(dataHolder, key, provider, false)
+): T = runReadAction { this.getCachedValue(dataHolder, key, provider, false) }
 
 /**
  * Finds if [vFile] in [project] has any of the given [annotationFqn] FQCN or the given
