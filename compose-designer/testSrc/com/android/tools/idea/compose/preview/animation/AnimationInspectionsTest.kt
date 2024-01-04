@@ -17,6 +17,9 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.google.common.truth.Correspondence
+import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.codeInspection.LocalQuickFixOnPsiElement
 import com.intellij.codeInspection.ex.QuickFixWrapper
@@ -24,8 +27,6 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.CommandProcessor
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -50,6 +51,13 @@ private const val CROSSFADE_LABEL_NOT_SET_MESSAGE =
 
 private const val TRANSITION_PROPERTY_LABEL_NOT_SET_MESSAGE =
   "The label parameter should be set so this transition property can be better inspected in the Animation Preview"
+
+private object DescriptionCorrespondence : Correspondence<HighlightInfo, String>() {
+  override fun toString() = "has description equal to"
+
+  override fun compare(actual: HighlightInfo?, expected: String?): Boolean =
+    actual?.description == expected
+}
 
 class AnimationInspectionsTest {
 
@@ -157,6 +165,25 @@ class AnimationInspectionsTest {
     fixture.enableInspections(CrossfadeLabelInspection() as InspectionProfileEntry)
   }
 
+  private fun runQuickFix() {
+    val quickFix =
+      fixture
+        .getAllQuickFixes()
+        .mapNotNull { QuickFixWrapper.unwrap(it) }
+        .single { it.name == "Add label parameter" && it.familyName == "Compose preview" }
+        as LocalQuickFixOnPsiElement
+
+    ApplicationManager.getApplication().invokeAndWait {
+      CommandProcessor.getInstance()
+        .executeCommand(
+          fixture.project,
+          { runWriteAction { quickFix.applyFix() } },
+          "Add Label Argument",
+          null,
+        )
+    }
+  }
+
   // region AnimatedContent Extension
 
   @Test
@@ -175,10 +202,9 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertEquals(
-      UPDATE_TRANSITION_LABEL_NOT_SET_MESSAGE,
-      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
-    )
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING))
+      .comparingElementsUsing(DescriptionCorrespondence)
+      .containsExactly(UPDATE_TRANSITION_LABEL_NOT_SET_MESSAGE)
   }
 
   @Test
@@ -197,7 +223,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
   // endregion
 
@@ -216,10 +242,9 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertEquals(
-      ANIMATED_CONTENT_LABEL_NOT_SET_MESSAGE,
-      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
-    )
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING))
+      .comparingElementsUsing(DescriptionCorrespondence)
+      .containsExactly(ANIMATED_CONTENT_LABEL_NOT_SET_MESSAGE)
   }
 
   @Test
@@ -236,7 +261,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -253,7 +278,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -270,7 +295,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -298,20 +323,7 @@ class AnimationInspectionsTest {
     """
         .trimIndent()
 
-    val quickFix =
-      (fixture.getAllQuickFixes().single() as QuickFixWrapper).fix as LocalQuickFixOnPsiElement
-    assertEquals("Add label parameter", quickFix.text)
-    assertEquals("Compose preview", quickFix.familyName)
-
-    ApplicationManager.getApplication().invokeAndWait {
-      CommandProcessor.getInstance()
-        .executeCommand(
-          fixture.project,
-          { runWriteAction { quickFix.applyFix() } },
-          "Add Label Argument",
-          null
-        )
-    }
+    runQuickFix()
 
     fixture.checkResult(fileContentAfterFix)
   }
@@ -332,10 +344,9 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertEquals(
-      REMEMBER_INFINITE_TRANSITION_LABEL_NOT_SET_MESSAGE,
-      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
-    )
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING))
+      .comparingElementsUsing(DescriptionCorrespondence)
+      .containsExactly(REMEMBER_INFINITE_TRANSITION_LABEL_NOT_SET_MESSAGE)
   }
 
   @Test
@@ -352,7 +363,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -369,7 +380,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -397,20 +408,7 @@ class AnimationInspectionsTest {
     """
         .trimIndent()
 
-    val quickFix =
-      (fixture.getAllQuickFixes().single() as QuickFixWrapper).fix as LocalQuickFixOnPsiElement
-    assertEquals("Add label parameter", quickFix.text)
-    assertEquals("Compose preview", quickFix.familyName)
-
-    ApplicationManager.getApplication().invokeAndWait {
-      CommandProcessor.getInstance()
-        .executeCommand(
-          fixture.project,
-          { runWriteAction { quickFix.applyFix() } },
-          "Add Label Argument",
-          null
-        )
-    }
+    runQuickFix()
 
     fixture.checkResult(fileContentAfterFix)
   }
@@ -434,10 +432,10 @@ class AnimationInspectionsTest {
 
     fixture.configureByText("Test.kt", fileContent)
     fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)
-    assertEquals(
-      INFINITE_TRANSITION__PROPERTY_LABEL_NOT_SET_MESSAGE,
-      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
-    )
+
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING))
+      .comparingElementsUsing(DescriptionCorrespondence)
+      .containsExactly(INFINITE_TRANSITION__PROPERTY_LABEL_NOT_SET_MESSAGE)
   }
 
   @Test
@@ -457,10 +455,10 @@ class AnimationInspectionsTest {
 
     fixture.configureByText("Test.kt", fileContent)
     fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)
-    assertEquals(
-      INFINITE_TRANSITION__PROPERTY_LABEL_NOT_SET_MESSAGE,
-      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
-    )
+
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING))
+      .comparingElementsUsing(DescriptionCorrespondence)
+      .containsExactly(INFINITE_TRANSITION__PROPERTY_LABEL_NOT_SET_MESSAGE)
   }
 
   @Test
@@ -480,10 +478,10 @@ class AnimationInspectionsTest {
 
     fixture.configureByText("Test.kt", fileContent)
     fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)
-    assertEquals(
-      INFINITE_TRANSITION__PROPERTY_LABEL_NOT_SET_MESSAGE,
-      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
-    )
+
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING))
+      .comparingElementsUsing(DescriptionCorrespondence)
+      .containsExactly(INFINITE_TRANSITION__PROPERTY_LABEL_NOT_SET_MESSAGE)
   }
 
   @Test
@@ -502,7 +500,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -521,7 +519,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -553,20 +551,7 @@ class AnimationInspectionsTest {
     """
         .trimIndent()
 
-    val quickFix =
-      (fixture.getAllQuickFixes().single() as QuickFixWrapper).fix as LocalQuickFixOnPsiElement
-    assertEquals("Add label parameter", quickFix.text)
-    assertEquals("Compose preview", quickFix.familyName)
-
-    ApplicationManager.getApplication().invokeAndWait {
-      CommandProcessor.getInstance()
-        .executeCommand(
-          fixture.project,
-          { runWriteAction { quickFix.applyFix() } },
-          "Add Label Argument",
-          null
-        )
-    }
+    runQuickFix()
 
     fixture.checkResult(fileContentAfterFix)
   }
@@ -587,10 +572,9 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertEquals(
-      ANIMATE_AS_STATE_LABEL_NOT_SET_MESSAGE,
-      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
-    )
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING))
+      .comparingElementsUsing(DescriptionCorrespondence)
+      .containsExactly(ANIMATE_AS_STATE_LABEL_NOT_SET_MESSAGE)
   }
 
   @Test
@@ -608,7 +592,7 @@ class AnimationInspectionsTest {
 
     fixture.configureByText("Test.kt", fileContent)
     // It's expected there is no warning as animateIntAsState doesn't have a label parameter.
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -625,10 +609,9 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertEquals(
-      ANIMATE_AS_STATE_LABEL_NOT_SET_MESSAGE,
-      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
-    )
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING))
+      .comparingElementsUsing(DescriptionCorrespondence)
+      .containsExactly(ANIMATE_AS_STATE_LABEL_NOT_SET_MESSAGE)
   }
 
   @Test
@@ -645,7 +628,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -662,7 +645,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -679,7 +662,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -696,7 +679,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -724,20 +707,7 @@ class AnimationInspectionsTest {
     """
         .trimIndent()
 
-    val quickFix =
-      (fixture.getAllQuickFixes().single() as QuickFixWrapper).fix as LocalQuickFixOnPsiElement
-    assertEquals("Add label parameter", quickFix.text)
-    assertEquals("Compose preview", quickFix.familyName)
-
-    ApplicationManager.getApplication().invokeAndWait {
-      CommandProcessor.getInstance()
-        .executeCommand(
-          fixture.project,
-          { runWriteAction { quickFix.applyFix() } },
-          "Add Label Argument",
-          null
-        )
-    }
+    runQuickFix()
 
     fixture.checkResult(fileContentAfterFix)
   }
@@ -758,10 +728,9 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertEquals(
-      CROSSFADE_LABEL_NOT_SET_MESSAGE,
-      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
-    )
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING))
+      .comparingElementsUsing(DescriptionCorrespondence)
+      .containsExactly(CROSSFADE_LABEL_NOT_SET_MESSAGE)
   }
 
   @Test
@@ -778,7 +747,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -795,7 +764,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -812,7 +781,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -840,23 +809,11 @@ class AnimationInspectionsTest {
     """
         .trimIndent()
 
-    val quickFix =
-      (fixture.getAllQuickFixes().single() as QuickFixWrapper).fix as LocalQuickFixOnPsiElement
-    assertEquals("Add label parameter", quickFix.text)
-    assertEquals("Compose preview", quickFix.familyName)
-
-    ApplicationManager.getApplication().invokeAndWait {
-      CommandProcessor.getInstance()
-        .executeCommand(
-          fixture.project,
-          { runWriteAction { quickFix.applyFix() } },
-          "Add Label Argument",
-          null
-        )
-    }
+    runQuickFix()
 
     fixture.checkResult(fileContentAfterFix)
   }
+
   // endregion
 
   @Test
@@ -873,10 +830,9 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertEquals(
-      UPDATE_TRANSITION_LABEL_NOT_SET_MESSAGE,
-      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
-    )
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING))
+      .comparingElementsUsing(DescriptionCorrespondence)
+      .containsExactly(UPDATE_TRANSITION_LABEL_NOT_SET_MESSAGE)
   }
 
   @Test
@@ -893,7 +849,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -910,7 +866,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -927,10 +883,9 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertEquals(
-      UPDATE_TRANSITION_LABEL_NOT_SET_MESSAGE,
-      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
-    )
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING))
+      .comparingElementsUsing(DescriptionCorrespondence)
+      .containsExactly(UPDATE_TRANSITION_LABEL_NOT_SET_MESSAGE)
   }
 
   @Test
@@ -949,10 +904,9 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertEquals(
-      TRANSITION_PROPERTY_LABEL_NOT_SET_MESSAGE,
-      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
-    )
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING))
+      .comparingElementsUsing(DescriptionCorrespondence)
+      .containsExactly(TRANSITION_PROPERTY_LABEL_NOT_SET_MESSAGE)
   }
 
   @Test
@@ -971,7 +925,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -990,10 +944,9 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertEquals(
-      TRANSITION_PROPERTY_LABEL_NOT_SET_MESSAGE,
-      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
-    )
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING))
+      .comparingElementsUsing(DescriptionCorrespondence)
+      .containsExactly(TRANSITION_PROPERTY_LABEL_NOT_SET_MESSAGE)
   }
 
   @Test
@@ -1012,7 +965,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -1036,7 +989,7 @@ class AnimationInspectionsTest {
     fixture.configureByText("Test.kt", fileContent)
     // The animateColor method is not defined in one of the Compose animation packages, so we don't
     // show a warning.
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+    assertThat(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING)).isEmpty()
   }
 
   @Test
@@ -1064,20 +1017,7 @@ class AnimationInspectionsTest {
     """
         .trimIndent()
 
-    val quickFix =
-      QuickFixWrapper.unwrap(fixture.getAllQuickFixes().single()) as LocalQuickFixOnPsiElement
-    assertEquals("Add label parameter", quickFix.text)
-    assertEquals("Compose preview", quickFix.familyName)
-
-    ApplicationManager.getApplication().invokeAndWait {
-      CommandProcessor.getInstance()
-        .executeCommand(
-          fixture.project,
-          { runWriteAction { quickFix.applyFix() } },
-          "Add Label Argument",
-          null
-        )
-    }
+    runQuickFix()
 
     fixture.checkResult(fileContentAfterFix)
   }
@@ -1111,20 +1051,7 @@ class AnimationInspectionsTest {
     """
         .trimIndent()
 
-    val quickFix =
-      QuickFixWrapper.unwrap(fixture.getAllQuickFixes().single()) as LocalQuickFixOnPsiElement
-    assertEquals("Add label parameter", quickFix.text)
-    assertEquals("Compose preview", quickFix.familyName)
-
-    ApplicationManager.getApplication().invokeAndWait {
-      CommandProcessor.getInstance()
-        .executeCommand(
-          fixture.project,
-          { runWriteAction { quickFix.applyFix() } },
-          "Add Label Argument",
-          null
-        )
-    }
+    runQuickFix()
 
     fixture.checkResult(fileContentAfterFix)
   }
@@ -1162,20 +1089,7 @@ class AnimationInspectionsTest {
     """
         .trimIndent()
 
-    val quickFix =
-      QuickFixWrapper.unwrap(fixture.getAllQuickFixes().single()) as LocalQuickFixOnPsiElement
-    assertEquals("Add label parameter", quickFix.text)
-    assertEquals("Compose preview", quickFix.familyName)
-
-    ApplicationManager.getApplication().invokeAndWait {
-      CommandProcessor.getInstance()
-        .executeCommand(
-          fixture.project,
-          { runWriteAction { quickFix.applyFix() } },
-          "Add Label Argument",
-          null
-        )
-    }
+    runQuickFix()
 
     fixture.checkResult(fileContentAfterFix)
   }
