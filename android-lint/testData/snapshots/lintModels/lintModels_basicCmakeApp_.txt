@@ -50,7 +50,7 @@ MODULE                        : project.app
                 artifacts::app                : null => :app@main
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
-        MinSdkVersion                 : API 16
+        MinSdkVersion                 : API 21
         TargetSdkVersion              : API <SDK_VERSION>
         SourceProviders
             - ManifestFiles               : <ROOT>/app/src/main/AndroidManifest.xml

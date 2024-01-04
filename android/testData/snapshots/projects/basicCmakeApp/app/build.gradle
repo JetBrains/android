@@ -5,7 +5,7 @@ android {
     compileSdkVersion 25
     defaultConfig {
         applicationId "com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long"
-        minSdkVersion 3
+        minSdkVersion 21
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"

@@ -189,11 +189,11 @@ MODULE                        : project.app
         hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
-            ApiLevel                      : 16
-            ApiString                     : 16
+            ApiLevel                      : 21
+            ApiString                     : 21
         runtimeMinSdk
-            ApiLevel                      : 16
-            ApiString                     : 16
+            ApiLevel                      : 21
+            ApiString                     : 21
         targetSdk
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
@@ -261,8 +261,8 @@ MODULE                        : project.app
             VersionCode                   : 1
             VersionName                   : 1.0
             MinSdkVersion
-                ApiLevel                      : 16
-                ApiString                     : 16
+                ApiLevel                      : 21
+                ApiString                     : 21
             TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
@@ -433,8 +433,8 @@ MODULE                        : project.app
             DisplayName                   : debug
             InstantAppCompatible          : false
             MinSdkVersion
-                ApiLevel                      : 16
-                ApiString                     : 16
+                ApiLevel                      : 21
+                ApiString                     : 21
             TargetSdkVersion
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>

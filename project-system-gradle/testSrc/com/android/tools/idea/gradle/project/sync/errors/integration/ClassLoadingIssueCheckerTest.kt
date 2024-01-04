@@ -167,6 +167,6 @@ class ClassLoadingIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
     }
 
     val buildFile = root.resolve("app").resolve(SdkConstants.FN_BUILD_GRADLE)
-    buildFile.appendText("apply plugin: 'org.example.testPlugin'")
+    buildFile.appendText("\napply plugin: 'org.example.testPlugin'")
   }
 }

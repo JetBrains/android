@@ -209,6 +209,7 @@ class SyncScenariosIntegrationTest {
     val preparedProject = projectRule.prepareTestProject(TestProject.BASIC_CMAKE_APP)
     val buildFile = preparedProject.root.resolve("app").resolve("build.gradle")
     buildFile.writeText(buildFile.readText() + """
+      
       android {
         defaultConfig {
           ndk {
@@ -235,6 +236,7 @@ class SyncScenariosIntegrationTest {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val buildFile = preparedProject.root.resolve("app").resolve("build.gradle")
     buildFile.writeText(buildFile.readText() + """
+      
       sourceSets {
         test.resources.srcDirs += 'src/test/resources'
       }

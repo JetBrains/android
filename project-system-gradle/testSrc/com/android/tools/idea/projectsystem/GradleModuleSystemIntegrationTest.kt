@@ -277,6 +277,7 @@ class GradleModuleSystemIntegrationTest {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val buildGradle = preparedProject.root.resolve("app/build.gradle")
     buildGradle.appendText("""
+      
       android.compileOptions.coreLibraryDesugaringEnabled = true
       android.defaultConfig.multiDexEnabled = true
       dependencies {

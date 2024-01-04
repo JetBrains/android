@@ -61,6 +61,7 @@ class TaskConfigurationNotTriggeredDuringSyncTest {
     val taskRegistrationFailure = "lint task should not be registered"
     val buildFile = prepared.root.resolve("app").resolve("build.gradle")
     buildFile.appendText("""
+      
           tasks.register("shouldNotBeConfigured", Test.class).configure {
             println("$failureMessage")
           }
@@ -91,6 +92,7 @@ class TaskConfigurationNotTriggeredDuringSyncTest {
     val taskRegistrationFailure = "lint task should not be registered"
     val buildFile = prepared.root.resolve("app").resolve("build.gradle")
     buildFile.appendText("""
+      
           tasks.register("shouldNotBeConfigured", Test.class).configure {
             println("$failureMessage")
           }

@@ -122,6 +122,7 @@ enum class TestProject(
       val buildFile = root.resolve("app").resolve("build.gradle")
       buildFile.writeText(
         buildFile.readText() + """
+          
           sourceSets {
             test.resources.srcDirs += 'src/test/resources'
           }
@@ -399,9 +400,10 @@ enum class TestProject(
     TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
     testName = "buildConfigAsBytecodeEnabled",
     patch = { projectRoot ->
-      projectRoot.resolve("gradle.properties").appendText("android.enableBuildConfigAsBytecode=true")
+      projectRoot.resolve("gradle.properties").appendText("\nandroid.enableBuildConfigAsBytecode=true")
       projectRoot.resolve("app/build.gradle").appendText(
         """
+          
           android.buildFeatures.buildConfig true
         """.trimIndent()
       )

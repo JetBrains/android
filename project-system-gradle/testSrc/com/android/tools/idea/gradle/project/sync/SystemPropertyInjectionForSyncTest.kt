@@ -46,6 +46,7 @@ class SystemPropertyInjectionForSyncTest {
     val buildFile = prepared.root.resolve("app").resolve("build.gradle")
     buildFile.writeText(
       buildFile.readText() + """
+        
           if (System.getProperty("jna.classpath") != null) throw new RuntimeException("jna.classpath should not be injected") 
         """.trimIndent()
     )
@@ -61,6 +62,7 @@ class SystemPropertyInjectionForSyncTest {
     val buildFile = prepared.root.resolve("app").resolve("build.gradle")
     buildFile.writeText(
       buildFile.readText() + """
+        
           if (!project.providers.gradleProperty("android.studio.version").isPresent()) {
             throw new RuntimeException("Studio version should be injected")
           }
