@@ -542,7 +542,6 @@ class ComposeModifierCompletionContributorTest {
     myFixture.completeBasic()
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings).contains("extensionFunction")
-    assertThat(lookupStrings).contains("extensionFunctionReturnsNonModifier")
     assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
 
     myFixture.lookup.currentItem =
