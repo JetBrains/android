@@ -20,7 +20,10 @@ import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.communication.FakeDeviceManager
 import com.android.tools.idea.wearwhs.communication.OnDeviceCapabilityState
+import com.android.tools.idea.wearwhs.logger.WearHealthServicesEventLogger
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.WearHealthServicesEvent
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.runBlocking
@@ -57,11 +60,16 @@ class WearHealthServicesToolWindowStateManagerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
+  private val loggedEvents = mutableListOf<AndroidStudioEvent.Builder>()
+  private val logger = WearHealthServicesEventLogger { loggedEvents.add(it) }
   private val deviceManager by lazy { FakeDeviceManager(capabilities) }
-  private val stateManager by lazy { WearHealthServicesToolWindowStateManagerImpl(deviceManager) }
+  private val stateManager by lazy {
+    WearHealthServicesToolWindowStateManagerImpl(deviceManager, logger)
+  }
 
   @Before
   fun setUp() {
+    loggedEvents.clear()
     Disposer.register(projectRule.testRootDisposable, stateManager)
   }
 
@@ -152,6 +160,10 @@ class WearHealthServicesToolWindowStateManagerTest {
       capabilities[1], OnDeviceCapabilityState(true, 3f),
       capabilities[2], OnDeviceCapabilityState(true, null)
     )
+
+    assertThat(loggedEvents).hasSize(1)
+    assertThat(loggedEvents[0].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
+    assertThat(loggedEvents[0].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_SUCCESS)
   }
 
   @Test
@@ -164,6 +176,10 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.applyChanges()
 
     stateManager.getStatus().waitForValue(WhsStateManagerStatus.ConnectionLost)
+
+    assertThat(loggedEvents).hasSize(1)
+    assertThat(loggedEvents[0].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
+    assertThat(loggedEvents[0].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_FAILURE)
   }
 
   @Test
@@ -187,7 +203,8 @@ class WearHealthServicesToolWindowStateManagerTest {
     val received = mutableListOf<T>()
     try {
       withTimeout(timeout) { takeWhile { it != value }.collect { received.add(it) } }
-    } catch (ex: TimeoutCancellationException) {
+    }
+    catch (ex: TimeoutCancellationException) {
       Assert.fail("Timed out waiting for value $value. Received values so far $received")
     }
   }
