@@ -905,6 +905,7 @@ java_binary(
 # managed by go/iml_to_build
 iml_module(
     name = "studio",
+    srcs = ["src"],
     iml_files = ["studio.iml"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -928,6 +929,7 @@ iml_module(
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion[module]",
         "//tools/vendor/google/ml/sml-android:ml.sml-android[module]",
         "//tools/adt/idea/studio:studio-sdk-all-plugins[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
     ],
 )
 
