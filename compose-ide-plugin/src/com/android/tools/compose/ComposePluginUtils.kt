@@ -26,7 +26,8 @@ import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
-import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.calls.KtCallableMemberCall
+import org.jetbrains.kotlin.analysis.api.calls.calls
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtCallableSymbol
@@ -98,9 +99,10 @@ internal fun KtElement.callReturnTypeFqName() =
   if (isK2Plugin()) {
     allowAnalysisOnEdt {
       analyze(this) {
-        val callReturnType =
-          this@callReturnTypeFqName.resolveCall()?.singleFunctionCallOrNull()?.symbol?.returnType
-        callReturnType?.let { asFqName(it) }
+        val call =
+          this@callReturnTypeFqName.resolveCall()?.calls?.firstOrNull()
+            as? KtCallableMemberCall<*, *>
+        call?.let { asFqName(it.symbol.returnType) }
       }
     }
   } else {
