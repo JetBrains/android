@@ -22,12 +22,12 @@ import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.android.tools.rendering.RenderService
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
@@ -76,7 +76,7 @@ suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
       while (isActive && sceneViewPeerPanels.isEmpty()) {
         withContext(Dispatchers.Main) {
           delay(250)
-          ApplicationManager.getApplication().invokeAndWait { fakeUi.root.validate() }
+          withContext(uiThread) { fakeUi.root.validate() }
           sceneViewPeerPanels.addAll(fakeUi.findAllComponents())
 
           if (retryCounter++ % 4 == 0) {

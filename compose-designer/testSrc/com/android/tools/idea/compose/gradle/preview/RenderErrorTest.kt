@@ -45,7 +45,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
@@ -126,21 +125,20 @@ class RenderErrorTest {
     projectRule.fixture.enableInspections(*visualLintInspections)
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
 
-    ApplicationManager.getApplication().invokeAndWait {
-      fakeUi =
-        FakeUi(
-          JPanel().apply {
-            layout = BorderLayout()
-            size = Dimension(1000, 800)
-            add(previewView, BorderLayout.CENTER)
-          },
-          1.0,
-          true,
-        )
-      fakeUi.root.validate()
-    }
-
     runBlocking {
+      fakeUi =
+        withContext(uiThread) {
+          FakeUi(
+              JPanel().apply {
+                layout = BorderLayout()
+                size = Dimension(1000, 800)
+                add(previewView, BorderLayout.CENTER)
+              },
+              1.0,
+              true,
+            )
+            .also { it.root.validate() }
+        }
       composePreviewRepresentation.activateAndWaitForRender(fakeUi, timeout = 1.minutes)
     }
   }
