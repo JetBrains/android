@@ -57,7 +57,7 @@ public class AndroidResourceQuickFixProvider extends UnresolvedReferenceQuickFix
 
     if (IdeResourcesUtil.ALL_VALUE_RESOURCE_TYPES.contains(resourceType)) {
       registrar
-        .register(new CreateValueResourceQuickFix(facet, resourceType, resFieldName, contextFile, true));
+        .register(new CreateValueResourceQuickFix(facet, resourceType, resFieldName, contextFile));
     }
     ResourceFolderType folderType = FolderTypeRelationship.getNonValuesRelatedFolder(resourceType);
     if (folderType != null) {

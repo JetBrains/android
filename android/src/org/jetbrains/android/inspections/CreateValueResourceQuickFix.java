@@ -36,18 +36,15 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
   private final ResourceType myResourceType;
   private final String myResourceName;
   private final PsiFile myFile;
-  private final boolean myChooseName;
 
   public CreateValueResourceQuickFix(@NotNull AndroidFacet facet,
                                      @NotNull ResourceType resourceType,
                                      @NotNull String resourceName,
-                                     @NotNull PsiFile file,
-                                     boolean chooseName) {
+                                     @NotNull PsiFile file) {
     myFacet = facet;
     myResourceType = resourceType;
     myResourceName = resourceName;
     myFile = file;
-    myChooseName = chooseName;
   }
 
   @Override
@@ -109,7 +106,7 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
         }
       }
       final CreateXmlResourceDialog dialog =
-        new CreateXmlResourceDialog(myFacet.getModule(), myResourceType, myResourceName, value, myChooseName, defaultFileToCreate,
+        new CreateXmlResourceDialog(myFacet.getModule(), myResourceType, myResourceName, value, false, defaultFileToCreate,
                                     myFile.getVirtualFile());
       dialog.setTitle("New " + StringUtil.capitalize(myResourceType.getDisplayName()) + " Value Resource");
       if (!dialog.showAndGet()) {

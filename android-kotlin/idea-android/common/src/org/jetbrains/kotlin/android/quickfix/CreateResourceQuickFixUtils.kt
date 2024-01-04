@@ -43,7 +43,7 @@ fun getCreateResourceQuickFixActions(expression: KtSimpleNameExpression) : List<
 
     return buildList {
         if (resourceType in ALL_VALUE_RESOURCE_TYPES) {
-            add(CreateValueResourceQuickFix(facet, resourceType, info.fieldName, contextFile, true))
+            add(CreateValueResourceQuickFix(facet, resourceType, info.fieldName, contextFile))
         }
 
         FolderTypeRelationship.getNonValuesRelatedFolder(resourceType)?.let {
