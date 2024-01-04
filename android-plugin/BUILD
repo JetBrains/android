@@ -20,6 +20,8 @@ iml_module(
         "//tools/adt/idea/app-inspection/ide/gradle:app-inspection.ide.gradle",
         "//tools/adt/idea/nav/safeargs/common/gradle:intellij.android.nav.safeargs.common.gradle",
         "//tools/adt/idea/native-symbolizer/gradle:native-symbolizer.gradle",
+        "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
+        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
     ],
     # do not sort: must match IML order
     deps = [

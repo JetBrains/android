@@ -65,5 +65,7 @@
     <orderEntry type="module" module-name="intellij.android.nav.safeargs.common.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="native-symbolizer" />
     <orderEntry type="module" module-name="native-symbolizer.gradle" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
   </component>
 </module>
