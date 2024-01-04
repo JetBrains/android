@@ -335,6 +335,8 @@ class TreeDropDownActionTest {
       panel.add(toolbar.component, BorderLayout.CENTER)
       fakeUi.updateToolbars()
 
+      delayUntilCondition(200) { toolbar.component.componentCount > 0 }
+
       val actionButton = toolbar.component.getComponent(0) as ActionButton
       actionButton.click()
       dropdown.titleState.waitForValue("All values")
