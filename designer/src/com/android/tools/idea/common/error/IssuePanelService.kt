@@ -32,8 +32,6 @@ import com.intellij.analysis.problemsView.toolWindow.HighlightingPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewProjectErrorsPanelProvider
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.components.Service
@@ -43,6 +41,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
@@ -546,30 +545,28 @@ class IssuePanelService(private val project: Project) {
 
   @UiThread
   fun startUiCheck(
-    parentDisposable: Disposable,
+    file: VirtualFile,
     name: String,
     displayName: String,
     surface: NlDesignSurface,
-    postIssueUpdateListener: Runnable,
-    additionalDataProvider: DataProvider
+    postIssueUpdateListener: Runnable
   ) {
-    val contentManager =
-      ToolWindowManager.getInstance(project).getToolWindow(ProblemsView.ID)?.contentManager
-        ?: return
+    val problemsViewWindow =
+      ToolWindowManager.getInstance(project).getToolWindow(ProblemsView.ID) ?: return
+    val contentManager = problemsViewWindow.contentManager
 
     var uiCheckIssuePanel = nameToTabMap[name]?.get()?.let { tabToPanelMap[it]?.get() }
     if (uiCheckIssuePanel == null) {
       val issueProvider =
-        DesignToolsIssueProvider(parentDisposable, project, NotSuppressedFilter, name)
+        DesignToolsIssueProvider(problemsViewWindow.disposable, project, NotSuppressedFilter, name)
       uiCheckIssuePanel =
         DesignerCommonIssuePanel(
-          parentDisposable,
+          problemsViewWindow.disposable,
           project,
           DesignerCommonIssuePanelModelProvider.getInstance(project).createModel(),
           { UICheckNodeFactory },
           issueProvider,
           { "UI Check did not find any issues to report" },
-          additionalDataProvider
         )
 
       val tab =
@@ -579,10 +576,10 @@ class IssuePanelService(private val project: Project) {
             tabName = name
             isPinnable = true
             isCloseable = true
+            putUserData(TAB_VIRTUAL_FILE, file)
           }
 
       contentManager.addContent(tab)
-      Disposer.register(parentDisposable) { contentManager.removeContent(tab, true) }
       nameToTabMap[name] = WeakReference(tab)
       tabToPanelMap[tab] = WeakReference(uiCheckIssuePanel)
       contentManager.setSelectedContent(tab)
@@ -605,6 +602,8 @@ class IssuePanelService(private val project: Project) {
       project.getService(IssuePanelService::class.java)
 
     const val DESIGN_TOOL_TAB_NAME = "Designer"
+    val TAB_VIRTUAL_FILE: Key<VirtualFile> =
+      Key.create(IssuePanelService::class.java.name + "_VirtualFile")
   }
 
   /**

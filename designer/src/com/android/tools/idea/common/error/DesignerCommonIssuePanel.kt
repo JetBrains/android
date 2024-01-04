@@ -61,20 +61,14 @@ private val KEY_DETAIL_VISIBLE = DesignerCommonIssuePanel::class.java.name + "_d
 val DESIGNER_COMMON_ISSUE_PANEL =
   DataKey.create<DesignerCommonIssuePanel>("DesignerCommonIssuePanel")
 
-/**
- * The issue panel to load the issues from Layout Editor and Layout Validation Tool.
- *
- * @param additionalDataProvider A [DataProvider] used to pass information from the creator of this
- *   panel, that will allow to link the panel with the previews from which it displays the errors.
- */
+/** The issue panel to load the issues from Layout Editor and Layout Validation Tool. */
 class DesignerCommonIssuePanel(
   parentDisposable: Disposable,
   private val project: Project,
   private val treeModel: DesignerCommonIssueModel,
   nodeFactoryProvider: () -> NodeFactory,
   val issueProvider: DesignerCommonIssueProvider<Any>,
-  private val emptyMessageProvider: () -> String,
-  private val additionalDataProvider: DataProvider? = null
+  private val emptyMessageProvider: () -> String
 ) : Disposable {
 
   private val issueListeners = mutableListOf<IssueListener>()
@@ -99,7 +93,7 @@ class DesignerCommonIssuePanel(
         if (DESIGNER_COMMON_ISSUE_PANEL.`is`(dataId)) {
           return this@DesignerCommonIssuePanel
         }
-        val node = getSelectedNode() ?: return additionalDataProvider?.getData(dataId)
+        val node = getSelectedNode() ?: return null
         if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
           return DataProvider { getDataInBackground(it, node) }
         }
@@ -109,7 +103,7 @@ class DesignerCommonIssuePanel(
         if (PlatformDataKeys.VIRTUAL_FILE.`is`(dataId)) {
           return node.getVirtualFile()
         }
-        return additionalDataProvider?.getData(dataId)
+        return null
       }
     }
 

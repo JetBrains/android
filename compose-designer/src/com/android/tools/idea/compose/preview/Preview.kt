@@ -635,21 +635,14 @@ class ComposePreviewRepresentation(
   }
 
   fun createUiCheckTab(instance: ComposePreviewElementInstance) {
-    IssuePanelService.getInstance(project).startUiCheck(
-      this,
-      instance.instanceId,
-      instance.displaySettings.name,
-      surface,
-      postIssueUpdateListenerForUiCheck
-    ) {
-      // Pass preview manager and instance to the tab created for this UI Check preview.
-      // This enables restarting the UI Check mode from an action inside the tab.
-      when (it) {
-        COMPOSE_PREVIEW_MANAGER.name -> this
-        COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> instance
-        else -> null
-      }
-    }
+    IssuePanelService.getInstance(project)
+      .startUiCheck(
+        psiFilePointer.virtualFile,
+        instance.instanceId,
+        instance.displaySettings.name,
+        surface,
+        postIssueUpdateListenerForUiCheck
+      )
   }
 
   private suspend fun onUiCheckPreviewStop() {
