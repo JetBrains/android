@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.internal.avd.AvdCamera
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.sdk.AndroidSdks
@@ -44,7 +45,8 @@ internal constructor(
       VirtualDevice(
         "Pixel 7 API 34",
         AndroidVersion(34, null, 7, true),
-        DefaultSkin(Path.of(sdk, "skins", "pixel_7"))
+        DefaultSkin(Path.of(sdk, "skins", "pixel_7")),
+        AvdCamera.EMULATED
       )
     )
   }

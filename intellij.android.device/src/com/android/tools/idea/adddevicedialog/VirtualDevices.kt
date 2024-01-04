@@ -55,7 +55,7 @@ internal object VirtualDevices {
         "hw.audioInput" to "yes",
         "hw.battery" to "yes",
         "hw.camera.back" to "virtualscene",
-        "hw.camera.front" to "emulated",
+        "hw.camera.front" to device.frontCamera.asParameter,
         "hw.cpu.ncore" to "4",
         "hw.dPad" to "no",
         "hw.device.hash2" to "MD5:3db3250dab5d0d93b29353040181c7e9",

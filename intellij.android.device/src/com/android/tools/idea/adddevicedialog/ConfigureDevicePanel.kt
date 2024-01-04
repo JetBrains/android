@@ -66,12 +66,7 @@ private fun Tabs(
   when (selectedTab) {
     Tab.DEVICE_AND_API -> DeviceAndApiPanel(device, images, onDeviceChange)
     Tab.ADDITIONAL_SETTINGS ->
-      AdditionalSettingsPanel(
-        device.skin,
-        skins,
-        { onDeviceChange(device.copy(skin = it)) },
-        onImportButtonClick
-      )
+      AdditionalSettingsPanel(device, skins, onDeviceChange, onImportButtonClick)
   }
 }
 

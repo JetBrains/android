@@ -17,6 +17,7 @@ package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.runtime.Immutable
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.internal.avd.AvdCamera
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 
 @Immutable
@@ -24,5 +25,6 @@ internal data class VirtualDevice
 internal constructor(
   internal val name: String,
   internal val sdkExtensionLevel: AndroidVersion,
-  internal val skin: Skin
+  internal val skin: Skin,
+  internal val frontCamera: AvdCamera
 )
