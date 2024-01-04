@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.actions
 
 import com.android.SdkConstants.APP_PREFIX
 import com.android.SdkConstants.FN_BUILD_GRADLE
+import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
@@ -60,8 +61,14 @@ class ExplainSyncOrBuildOutputIntegrationTest {
       )
     }) {}
     val actual = getErrorShortDescription(eventResults[1])!!.trimIndent()
-    assertContains(actual, """
-                was tested up to compileSdk = 34.
+      .replace("\r\n", "\n")
+      .replace("\\", "/")
+    val absolutePath = buildFile.absolutePath
+      .replace("\\", "/")
+    assertEquals("""
+                We recommend using a newer Android Gradle plugin to use compileSdk = 341123
+                
+                This Android Gradle plugin ($ANDROID_GRADLE_PLUGIN_VERSION) was tested up to compileSdk = 34.
 
                 You are strongly encouraged to update your project to use a newer
                 Android Gradle plugin that has been tested with compileSdk = 341123.
@@ -72,7 +79,7 @@ class ExplainSyncOrBuildOutputIntegrationTest {
                 To suppress this warning, add/update
                     android.suppressUnsupportedCompileSdk=341123
                 to this project's gradle.properties.
-              """.trimIndent())
-    assertEquals(14, actual.lines().size)
+                Affected Modules: <a href="openFile:$absolutePath">app</a>
+              """.trimIndent(), actual)
   }
 }
