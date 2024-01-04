@@ -84,6 +84,7 @@ class StackTraceConsoleTest {
       WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
       stackTraceConsole.consoleView.waitAllRequests()
 
+      delayUntilCondition(200) { stackTraceConsole.consoleView.editor.document.text.isNotBlank() }
       assertThat(stackTraceConsole.consoleView.editor.document.text.trim())
         .isEqualTo(
           """
@@ -192,6 +193,7 @@ class StackTraceConsoleTest {
       WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
       stackTraceConsole.consoleView.waitAllRequests()
 
+      delayUntilCondition(200) { stackTraceConsole.consoleView.editor.document.text.isNotBlank() }
       assertThat(stackTraceConsole.consoleView.editor.document.text.trim())
         .isEqualTo(
           """
