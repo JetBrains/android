@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.actions
 
-import com.android.tools.idea.explainer.IssueExplainer
+import com.android.tools.idea.studiobot.AiExcludeService
+import com.android.tools.idea.studiobot.ChatService
+import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.disposable
 import com.intellij.build.ExecutionNode
@@ -45,6 +47,7 @@ import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNull
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import java.util.function.Supplier
 import kotlin.test.assertTrue
 
@@ -53,8 +56,26 @@ class ExplainSyncOrBuildOutputTest {
 
   private val projectRule = ProjectRule()
 
+  private val testStudioBot =
+      object : StudioBot.StubStudioBot() {
+        var wasCalled: String? = null
+
+        override fun isAvailable(): Boolean = true
+
+        override fun isContextAllowed(): Boolean = true
+
+        override fun chat(project: Project): ChatService = object : ChatService {
+          override fun sendChatQuery(query: AiExcludeService.ValidatedQuery,
+                                     requestSource: StudioBot.RequestSource,
+                                     displayText: String) {
+            ApplicationManager.getApplication().assertIsDispatchThread()
+            wasCalled = query.query
+          }
+        }
+      }
+
   @get:Rule
-  val rule = RuleChain(ApplicationRule(), projectRule, ApplicationServiceRule(IssueExplainer::class.java, TestIssueExplainer), EdtRule())
+  val rule = RuleChain(ApplicationRule(), projectRule, ApplicationServiceRule(StudioBot::class.java, testStudioBot), EdtRule())
 
   @Test
   fun testActionPerformedExplainerText() {
@@ -65,7 +86,7 @@ class ExplainSyncOrBuildOutputTest {
     val event = AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
 
     action.actionPerformed(event)
-    assertEquals("Unexpected tokens (use ';' to separate expressions on the same line)", TestIssueExplainer.wasCalled)
+    assertEquals("Explain build error: Unexpected tokens (use ';' to separate expressions on the same line)", testStudioBot.wasCalled)
   }
 
   @Test
@@ -86,7 +107,7 @@ class ExplainSyncOrBuildOutputTest {
     panel.setSelectionRow(4)
     action.update(event)
     assertFalse(event.presentation.isEnabled)
-    assertNull(TestIssueExplainer.wasCalled)
+    assertNull(testStudioBot.wasCalled)
   }
 
   inner class TestDataContext(val panel: Tree) : DataContext {
@@ -152,23 +173,6 @@ class ExplainSyncOrBuildOutputTest {
       Affected Modules: <a href="openFile:/Users/baskakov/AndroidStudioProjects/MyApplicationHedgehog/app/build.gradle.kts">app</a>
       
       """.trimIndent(), getErrorShortDescription(event))
-  }
-
-
-  object TestIssueExplainer : IssueExplainer() {
-
-    var wasCalled: String? = null
-
-    override fun explain(
-      project: Project,
-      request: String,
-      requestKind: RequestKind,
-      extraDocumentation: String?,
-      extraUrls: List<String>
-    ) {
-      ApplicationManager.getApplication().assertIsDispatchThread()
-      wasCalled = request
-    }
   }
 
   private class TestBuildTreeStructure(val root: TestExecutionNode) : AbstractTreeStructure() {

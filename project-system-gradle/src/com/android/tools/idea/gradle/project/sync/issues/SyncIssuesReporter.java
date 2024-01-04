@@ -19,8 +19,9 @@ import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGrad
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.explainer.IssueExplainer;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.studiobot.StudioBot;
+import com.android.tools.idea.studiobot.StudioBotBundle;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -129,10 +130,10 @@ public class SyncIssuesReporter {
     }
     final var gradleSyncMessages = GradleSyncMessages.getInstance(project);
 
-    IssueExplainer service = IssueExplainer.get();
-    if (service.isAvailable()) {
+    StudioBot studioBot = StudioBot.Companion.getInstance();
+    if (studioBot.isAvailable()) {
       // this only covers sync warning, but sync errors are handled by AndroidGradleExecutionConsoleManager
-      addIssueExplanationLinks(service, syncMessages);
+      addIssueExplanationLinks(studioBot, syncMessages);
     }
 
     for (SyncMessage syncMessage : syncMessages) {
@@ -149,17 +150,17 @@ public class SyncIssuesReporter {
     }
   }
 
-  private static void addIssueExplanationLinks(@NotNull IssueExplainer service, @NotNull List<SyncMessage> syncMessages) {
+  private static void addIssueExplanationLinks(@NotNull StudioBot studioBot, @NotNull List<SyncMessage> syncMessages) {
     for (SyncMessage syncMessage : syncMessages) {
       final var message = syncMessage.getText();
       syncMessage.add(new SyncIssueNotificationHyperlink(
         "explain.issue",
-        service.getConsoleLinkText(),
+        StudioBotBundle.message("studiobot.ask.text"),
         AndroidStudioEvent.GradleSyncQuickFix.UNKNOWN_GRADLE_SYNC_QUICK_FIX
       ) {
         @Override
         protected void execute(@NotNull Project project) {
-          IssueExplainer.get().explain(project, message, IssueExplainer.RequestKind.SYNC_ISSUE);
+          studioBot.chat(project).stageChatQuery("Explain gradle sync issue:" + message, StudioBot.RequestSource.SYNC);
         }
       });
     }

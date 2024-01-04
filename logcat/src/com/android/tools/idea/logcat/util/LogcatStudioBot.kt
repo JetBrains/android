@@ -23,7 +23,7 @@ import kotlin.math.min
  * header, and for crashes, will focus on the root cause of the exception in order to make it
  * shorter (and will skip various stack traces too.)
  */
-internal fun LogcatMessage.extractStudioBotQuestion(): String {
+internal fun LogcatMessage.extractStudioBotContent(): String {
   return extractRelevant(message) + " with tag " + header.tag
 }
 

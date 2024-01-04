@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.ml-api",
     srcs = ["src"],
     iml_files = ["intellij.android.ml-api.iml"],
+    resources = ["src/resources"],
     visibility = ["//visibility:public"],
     deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
 )

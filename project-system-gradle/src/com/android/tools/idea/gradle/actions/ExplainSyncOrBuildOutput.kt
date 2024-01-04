@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.actions
 
-import com.android.tools.idea.explainer.IssueExplainer
+import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.StudioBotBundle
 import com.intellij.build.ExecutionNode
 import com.intellij.build.events.EventResult
 import com.intellij.build.events.FailureResult
@@ -23,22 +24,27 @@ import com.intellij.build.events.MessageEventResult
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.annotations.VisibleForTesting
+import icons.StudioIcons
 import javax.swing.tree.TreePath
 
 private val ASK_STUDIO_BOT_UNTIL_EOL = Regex(">> Ask Studio Bot:[^\n]*")
 private const val ASK_STUDIO_BOT_LINK_TEXT = "<a href=\"explain.issue\">>> Ask Studio Bot</a>"
 
 class ExplainSyncOrBuildOutput : DumbAwareAction(
-  service<IssueExplainer>().getShortLabel(), service<IssueExplainer>().getShortLabel(),
-  service<IssueExplainer>().getIcon()
+  StudioBotBundle.message("studiobot.ask.text"), StudioBotBundle.message("studiobot.ask.text"),
+  StudioIcons.StudioBot.ASK
 ) {
 
   override fun update(e: AnActionEvent) {
+    val studioBot = StudioBot.getInstance()
+    if (!studioBot.isAvailable()) {
+      e.presentation.isEnabled = false
+      return
+    }
     // we don't want to ask question about intermediate nodes which are just file names
     val component = e.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)
     val tree = component as? Tree
@@ -55,13 +61,31 @@ class ExplainSyncOrBuildOutput : DumbAwareAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
     val component = e.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)
     val tree = component as? Tree ?: return
     val selectedNodes = getSelectedNodes(tree)
     if (selectedNodes.isEmpty()) return
+
     val node = selectedNodes[0]
-    val shortDescription = getErrorShortDescription(node.result) ?: node.name
-    service<IssueExplainer>().explain(e.project!!, shortDescription, IssueExplainer.RequestKind.BUILD_ISSUE)
+    val errorName = node.name
+    val shortDescription = getErrorShortDescription(node.result) ?: errorName
+    val studioBot = StudioBot.getInstance()
+
+    val query = "Explain build error: $shortDescription"
+
+    // If context sharing is enabled, send the query immediately. Otherwise, stage
+    // it in the query bar.
+    if (studioBot.isContextAllowed()) {
+      // A shorter version of the query. This is how it will appear in the chat UI.
+      val displayText = "Explain build error: $errorName"
+      val validatedQuery = studioBot.aiExcludeService()
+        .validateQuery(project, query, emptyList())
+        .getOrThrow()
+      studioBot.chat(project).sendChatQuery(validatedQuery, StudioBot.RequestSource.BUILD, displayText = displayText)
+    } else {
+      studioBot.chat(project).stageChatQuery(query, StudioBot.RequestSource.BUILD)
+    }
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.ASSERT
@@ -30,6 +29,7 @@ import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
 import com.android.tools.idea.logcat.util.logcatMessage
+import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
@@ -48,7 +48,7 @@ class MessageFormatterTest {
   val rule =
     RuleChain(
       ApplicationRule(),
-      ApplicationServiceRule(IssueExplainer::class.java, TestIssueExplainer),
+      ApplicationServiceRule(StudioBot::class.java, TestStudioBot),
     )
 
   private val logcatColors = LogcatColors()
@@ -634,7 +634,7 @@ class MessageFormatterTest {
 
   @Test
   fun formatMessages_exception_studioBotEnabled() {
-    TestIssueExplainer.available = true
+    TestStudioBot.available = true
     val textAccumulator = TextAccumulator()
 
     messageFormatter.formatMessages(
@@ -653,7 +653,7 @@ class MessageFormatterTest {
 
   @Test
   fun formatMessages_exception_studioBotDisabled() {
-    TestIssueExplainer.available = false
+    TestStudioBot.available = false
     val textAccumulator = TextAccumulator()
 
     messageFormatter.formatMessages(
@@ -670,10 +670,12 @@ class MessageFormatterTest {
       )
   }
 
-  private object TestIssueExplainer : IssueExplainer() {
+  private object TestStudioBot : StudioBot.StubStudioBot() {
     var available = true
 
     override fun isAvailable(): Boolean = available
+
+    override fun isContextAllowed(): Boolean = true
   }
 }
 

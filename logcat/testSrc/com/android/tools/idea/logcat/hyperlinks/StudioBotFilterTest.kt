@@ -1,10 +1,10 @@
 package com.android.tools.idea.logcat.hyperlinks
 
-import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
+import com.android.tools.idea.studiobot.AiExcludeService
+import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.filters.Filter.ResultItem
@@ -15,6 +15,7 @@ import com.intellij.testFramework.RunsInEdt
 import kotlin.test.fail
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import org.mockito.Mockito.verify
 
 /** Tests for [com.android.tools.idea.logcat.hyperlinks.StudioBotFilter] */
@@ -23,14 +24,24 @@ class StudioBotFilterTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  private val mockIssueExplainer = mock<IssueExplainer>()
+  private val myMockAiExcludeService =
+    Mockito.spy(object : AiExcludeService.StubAiExcludeService() {})
+
+  private val myMockStudioBot =
+    object : StudioBot.StubStudioBot() {
+      override fun isAvailable() = true
+
+      override fun isContextAllowed() = true
+
+      override fun aiExcludeService() = myMockAiExcludeService
+    }
 
   @get:Rule
   val rule =
     RuleChain(
       projectRule,
       logcatEditorRule,
-      ApplicationServiceRule(IssueExplainer::class.java, mockIssueExplainer),
+      ApplicationServiceRule(StudioBot::class.java, myMockStudioBot),
       EdtRule()
     )
 
@@ -63,11 +74,12 @@ class StudioBotFilterTest {
 
     val expectedQuestion =
       """
-      Exception
+      Explain: Exception
       at com.example(File.kt:1) with tag ExampleTag
       """
         .trimIndent()
-    verify(mockIssueExplainer).explain(project, expectedQuestion, IssueExplainer.RequestKind.LOGCAT)
+
+    verify(myMockAiExcludeService).validateQuery(project, expectedQuestion, emptyList())
   }
 }
 

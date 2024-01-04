@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.build.invoker
 
 import com.android.builder.model.AndroidProject
-import com.android.tools.idea.explainer.IssueExplainer
+import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
@@ -39,6 +39,8 @@ import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.gradle.buildRootDir
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.StudioBotBundle
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ListMultimap
 import com.google.common.util.concurrent.Futures
@@ -453,12 +455,12 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
         if (request.doNotShowBuildOutputOnFailure) {
           buildDescriptor.isActivateToolWindowWhenFailed = false
         }
-        val explainer = IssueExplainer.get()
-        if (explainer.isAvailable()) {
+        val studioBot = StudioBot.getInstance()
+        if (studioBot.isAvailable()) {
           // build explainer output text shouldn't contain explainer links,
           // but it's added here to prevent links without highlighting from appearing
           // since both build and sync output are managed by BuildOutputParserWrapper
-          buildDescriptor.withExecutionFilter(ExplainBuildErrorFilter(explainer.getConsoleLinkText()))
+          buildDescriptor.withExecutionFilter(ExplainBuildErrorFilter(StudioBotBundle.message("studiobot.ask.text") + ": "))
         }
         val event = StartBuildEventImpl(buildDescriptor, "running...")
         startBuildEventPosted = true

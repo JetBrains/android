@@ -17,10 +17,12 @@ package com.android.tools.idea.gradle.filters;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS;
 
-import com.android.tools.idea.explainer.IssueExplainer;
+import com.android.tools.idea.studiobot.ChatService;
 import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput;
 import com.android.tools.idea.gradle.project.build.output.ExplainBuildErrorFilter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.studiobot.StudioBot;
+import com.android.tools.idea.studiobot.StudioBotBundle;
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
@@ -74,11 +76,11 @@ public class AndroidGradleExecutionConsoleManager extends GradleExecutionConsole
                                             @Nullable ExecutionEnvironment env) {
     // converts explainer console output to hyperlinks
     Filter[] filters = super.getCustomExecutionFilters(project, task, env);
-    IssueExplainer explainer = IssueExplainer.get();
-    if (!explainer.isAvailable()) {
+    StudioBot studioBot = StudioBot.Companion.getInstance();
+    if (studioBot == null || !studioBot.isAvailable()) {
       return filters;
     }
-    String explainerLinkText = explainer.getConsoleLinkText();
+    String explainerLinkText = StudioBotBundle.message("studiobot.ask.text");
     Filter[] customFilters = new Filter[filters.length + 1];
     System.arraycopy(filters, 0, customFilters, 0, filters.length);
     customFilters[filters.length] = new ExplainBuildErrorFilter(explainerLinkText);
@@ -92,8 +94,8 @@ public class AndroidGradleExecutionConsoleManager extends GradleExecutionConsole
                                             @Nullable ExecutionEnvironment env) {
     // add sync tree popup menu items for an explainer service
     AnAction[] contextActions = super.getCustomContextActions(project, task, env);
-    IssueExplainer explainer = IssueExplainer.get();
-    if (!explainer.isAvailable()) {
+    StudioBot studioBot = StudioBot.Companion.getInstance();
+    if (studioBot == null || !studioBot.isAvailable()) {
       return contextActions;
     }
     AnAction[] extendedActions = new AnAction[contextActions.length + 1];

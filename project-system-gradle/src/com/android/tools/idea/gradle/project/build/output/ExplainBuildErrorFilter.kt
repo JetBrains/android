@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.tools.idea.explainer.IssueExplainer
+import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.Filter.ResultItem
 
@@ -31,9 +31,12 @@ class ExplainBuildErrorFilter(private val linkPrefix: String) : Filter {
     val message = line.substring(startIndex)
     // TODO add message
     val linkStart = lineStart + index
+
+    // This should only be called when Studio Bot is available
+    val studioBot = StudioBot.getInstance()
     return Filter.Result(
       listOf(ResultItem(linkStart, linkStart + linkPrefix.length + 1) { project ->
-        IssueExplainer.get().explain(project, message, IssueExplainer.RequestKind.BUILD_ISSUE)
+        studioBot.chat(project).stageChatQuery("Explain build error: $message", StudioBot.RequestSource.BUILD)
       }))
   }
 }

@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
-import com.android.tools.idea.explainer.IssueExplainer
-import com.android.tools.idea.explainer.IssueExplainer.RequestKind.LOGCAT
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
-import com.android.tools.idea.logcat.util.extractStudioBotQuestion
+import com.android.tools.idea.logcat.util.extractStudioBotContent
+import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.Filter.Result
 import com.intellij.execution.filters.Filter.ResultItem
@@ -49,12 +48,28 @@ internal class StudioBotFilter(private val editor: EditorEx) : Filter {
 
   private class StudioBotHyperLinkInfo(private val editor: EditorEx) : HyperlinkInfo {
     override fun navigate(project: Project) {
+      val studioBot = StudioBot.getInstance()
+      if (!studioBot.isAvailable()) return
+      if (!studioBot.isContextAllowed()) return
+
       val offset = editor.caretModel.offset
       editor.document.processRangeMarkersOverlappingWith(offset, offset) {
         val message =
           it.getUserData(LOGCAT_MESSAGE_KEY) ?: return@processRangeMarkersOverlappingWith true
-        val question = message.extractStudioBotQuestion()
-        IssueExplainer.get().explain(project, question, LOGCAT)
+
+        val content = message.extractStudioBotContent()
+        val query = LogcatBundle.message("logcat.studio.bot.action.query.basic", content)
+
+        // If context sharing is enabled, send the query immediately. Otherwise, stage
+        // it in the query bar.
+        if (studioBot.isContextAllowed()) {
+          val validatedRequest =
+            studioBot.aiExcludeService().validateQuery(project, query, emptyList()).getOrThrow()
+          studioBot.chat(project).sendChatQuery(validatedRequest, StudioBot.RequestSource.LOGCAT)
+        } else {
+          studioBot.chat(project).stageChatQuery(query, StudioBot.RequestSource.LOGCAT)
+        }
+
         ApplicationManager.getApplication().invokeLater {
           ToolWindowManagerEx.getInstanceEx(project).hideToolWindow("Logcat", false)
         }

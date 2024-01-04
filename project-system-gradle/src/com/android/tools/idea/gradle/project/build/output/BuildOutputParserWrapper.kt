@@ -18,11 +18,12 @@ package com.android.tools.idea.gradle.project.build.output
 import com.android.SdkConstants
 import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser.AAPT_TOOL_NAME
 import com.android.ide.common.resources.MergingException.RESOURCE_ASSET_MERGER_TOOL_NAME
-import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser.ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP
 import com.android.tools.idea.gradle.project.build.output.CmakeOutputParser.CMAKE
 import com.android.tools.idea.gradle.project.build.output.XmlErrorOutputParser.Companion.XML_PARSING_GROUP
 import com.android.tools.idea.projectsystem.FilenameConstants
+import com.android.tools.idea.studiobot.StudioBot
+import com.android.tools.idea.studiobot.StudioBotBundle
 import com.android.utils.FileUtils
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildEvent
@@ -60,7 +61,7 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser) : BuildOutputParse
 
   val buildErrorMessages = ArrayList<BuildErrorMessage>()
 
-  private val explainerAvailable = IssueExplainer.get().isAvailable()
+  private val explainerAvailable = StudioBot.getInstance()?.isAvailable() == true
 
   override fun parse(line: String?, reader: BuildOutputInstantReader?, messageConsumer: Consumer<in BuildEvent>?): Boolean {
     return parser.parse(line, reader) {
@@ -85,7 +86,8 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser) : BuildOutputParse
    */
   private fun BuildEvent.injectExplanationText(): BuildEvent {
     return if (this is FileMessageEvent) {
-      val description = (description?.trimEnd()?.plus("\n\n") ?: "") + "${IssueExplainer.get().getConsoleLinkText()}: " + message
+      val description = (description?.trimEnd()?.plus("\n\n") ?: "") +
+                        StudioBotBundle.message("studiobot.ask.text") + message
       FileMessageEventImpl(parentId ?: "", kind, group, message, description, filePosition)
     } else {
       this

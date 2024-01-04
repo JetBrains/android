@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.explainer.IssueExplainer
-import com.android.tools.idea.explainer.IssueExplainer.RequestKind.LOGCAT
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
+import com.android.tools.idea.studiobot.AiExcludeService
+import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -44,18 +43,23 @@ class AskStudioBotActionTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  private val mockIssueExplainer =
-    spy(
-      object : IssueExplainer() {
-        override fun isAvailable() = true
-      }
-    )
+  class MockStudioBot : StudioBot.StubStudioBot() {
+    var available = true
+
+    override fun isAvailable() = available
+
+    override fun isContextAllowed() = true
+
+    private val myAiExcludeService = spy(object : AiExcludeService.StubAiExcludeService() {})!!
+
+    override fun aiExcludeService() = myAiExcludeService
+  }
 
   @get:Rule
   val rule =
     RuleChain(
       ApplicationRule(),
-      ApplicationServiceRule(IssueExplainer::class.java, mockIssueExplainer),
+      ApplicationServiceRule(StudioBot::class.java, MockStudioBot()),
       projectRule,
       logcatEditorRule,
       EdtRule(),
@@ -115,7 +119,7 @@ class AskStudioBotActionTest {
 
   @Test
   fun update_studioBotNotAvailable() {
-    whenever(mockIssueExplainer.isAvailable()).thenReturn(false)
+    (StudioBot.getInstance() as MockStudioBot).available = false
     val event = testActionEvent(editor)
     logcatEditorRule.putLogcatMessages(logcatMessage(tag = "MyTag", message = "Message 1"))
     editor.caretModel.moveToOffset(editor.document.textLength / 2)
@@ -135,7 +139,8 @@ class AskStudioBotActionTest {
 
     action.actionPerformed(event)
 
-    verify(mockIssueExplainer).explain(project, "Message 1 with tag MyTag", LOGCAT)
+    verify(StudioBot.getInstance().aiExcludeService())
+      .validateQuery(project, "Explain this log entry: Message 1 with tag MyTag", emptyList())
   }
 
   @Test
@@ -149,15 +154,15 @@ class AskStudioBotActionTest {
 
     action.actionPerformed(event)
 
-    verify(mockIssueExplainer)
-      .explain(
+    verify(StudioBot.getInstance().aiExcludeService())
+      .validateQuery(
         project,
         """
-        Exception
+        Explain this crash: Exception
         at com.example(File.kt:1) with tag MyTag
       """
           .trimIndent(),
-        LOGCAT
+        emptyList()
       )
   }
 
@@ -175,7 +180,8 @@ class AskStudioBotActionTest {
 
     action.actionPerformed(event)
 
-    verify(mockIssueExplainer).explain(project, "This is the selection", LOGCAT)
+    verify(StudioBot.getInstance().aiExcludeService())
+      .validateQuery(project, "Explain this selection: This is the selection", emptyList())
   }
 
   private fun testActionEvent(editor: EditorEx): AnActionEvent {

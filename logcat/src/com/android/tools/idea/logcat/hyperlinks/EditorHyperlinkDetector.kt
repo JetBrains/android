@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
-import com.android.tools.idea.explainer.IssueExplainer
+import com.android.tools.idea.studiobot.StudioBot
 import com.intellij.execution.filters.CompositeFilter
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
@@ -30,7 +30,7 @@ internal class EditorHyperlinkDetector(private val project: Project, private val
   HyperlinkDetector {
   private val editorHyperlinkSupport = EditorHyperlinkSupport.get(editor)
 
-  private val issueExplainer = IssueExplainer.get()
+  private val myStudioBot = StudioBot.getInstance()
 
   @VisibleForTesting val filter = SdkSourceRedirectFilter(project, createFilters())
 
@@ -57,7 +57,7 @@ internal class EditorHyperlinkDetector(private val project: Project, private val
         ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project))
       )
       add(SimpleFileLinkFilter(project))
-      if (issueExplainer.isAvailable()) {
+      if (myStudioBot.isAvailable()) {
         add(StudioBotFilter(editor))
       }
     }

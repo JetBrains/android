@@ -22,7 +22,6 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.LoadLogcatFile
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.PauseLogcat
@@ -102,6 +101,7 @@ import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Projec
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.Companion.USER_REQUEST
 import com.android.tools.idea.run.ClearLogcatListener
+import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.DeviceArtScreenshotOptions
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
@@ -538,7 +538,8 @@ constructor(
       add(IgnoreTagAction())
       add(CreateScratchFileAction())
       add(Separator.create())
-      if (IssueExplainer.get().isAvailable()) {
+      val studioBot = StudioBot.getInstance()
+      if (studioBot.isAvailable()) {
         add(AskStudioBotAction())
         add(Separator.create())
       }

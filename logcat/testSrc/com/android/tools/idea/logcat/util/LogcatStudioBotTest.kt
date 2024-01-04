@@ -45,7 +45,7 @@ class LogcatStudioBotTest {
                 "\tat android.os.Binder.execTransactInternal(Binder.java:1285)\n" +
                 "\tat android.os.Binder.execTransact(Binder.java:1244)\n"
           )
-          .extractStudioBotQuestion()
+          .extractStudioBotContent()
       )
       .isEqualTo(
         """
@@ -66,7 +66,7 @@ class LogcatStudioBotTest {
             tag = "MyTag",
             message = "Compat change id reported: 183155436; UID 10111; state: ENABLED\n"
           )
-          .extractStudioBotQuestion()
+          .extractStudioBotContent()
       )
       .isEqualTo("Compat change id reported: 183155436; UID 10111; state: ENABLED with tag MyTag")
   }
@@ -191,7 +191,7 @@ class LogcatStudioBotTest {
                 "\tat qic.run(PG:4)\n" +
                 "\tat java.lang.Thread.run(Thread.java:1012) \n"
           )
-          .extractStudioBotQuestion()
+          .extractStudioBotContent()
       )
       .isEqualTo(
         """
@@ -316,7 +316,7 @@ class LogcatStudioBotTest {
                 "\tat java.util.concurrent.ThreadPoolExecutor\$Worker.run(ThreadPoolExecutor.java:637) \n" +
                 "\tat java.lang.Thread.run(Thread.java:1012) "
           )
-          .extractStudioBotQuestion()
+          .extractStudioBotContent()
       )
       .isEqualTo(
         """
@@ -371,7 +371,7 @@ class LogcatStudioBotTest {
                 "\tat com.android.internal.os.RuntimeInit\$MethodAndArgsCaller.run(RuntimeInit.java:578) \n" +
                 "\tat com.android.internal.os.ZygoteInit.main(ZygoteInit.java:946) "
           )
-          .extractStudioBotQuestion()
+          .extractStudioBotContent()
       )
       .isEqualTo(
         "FATAL EXCEPTION: main\n" +

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.hyperlinks.StudioBotFilter
 import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.studiobot.StudioBot
 import java.time.ZoneId
 
 private val exceptionLinePattern = Regex("\n\\s*at .+\\(.+\\)\n")
@@ -33,8 +33,6 @@ internal class MessageFormatter(
   // app?
   private var previousTag: String? = null
   private var previousPid: Int? = null
-
-  private val issueExplainer = IssueExplainer.get()
 
   fun formatMessages(
     formattingOptions: FormattingOptions,
@@ -77,7 +75,7 @@ internal class MessageFormatter(
 
         val msg =
           when {
-            !issueExplainer.isAvailable() -> message.message
+            StudioBot.getInstance()?.isAvailable() != true -> message.message
             exceptionLinePattern.containsMatchIn(message.message) ->
               insertStudioBotText(message.message)
             else -> message.message

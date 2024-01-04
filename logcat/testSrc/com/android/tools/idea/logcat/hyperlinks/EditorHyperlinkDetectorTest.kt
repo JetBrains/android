@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
-import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
+import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.filters.CompositeFilter
@@ -45,7 +45,7 @@ class EditorHyperlinkDetectorTest {
     RuleChain(
       projectRule,
       logcatEditorRule,
-      ApplicationServiceRule(IssueExplainer::class.java, TestIssueExplainer),
+      ApplicationServiceRule(StudioBot::class.java, TestStudioBot),
       EdtRule()
     )
 
@@ -62,7 +62,7 @@ class EditorHyperlinkDetectorTest {
    */
   @Test
   fun usesCorrectFilters_withoutStudioBot() {
-    TestIssueExplainer.available = false
+    TestStudioBot.available = false
     val expectedFilters =
       ConsoleViewUtil.computeConsoleFilters(
         project,
@@ -84,7 +84,7 @@ class EditorHyperlinkDetectorTest {
    */
   @Test
   fun usesCorrectFilters_withStudioBot() {
-    TestIssueExplainer.available = true
+    TestStudioBot.available = true
     val expectedFilters =
       ConsoleViewUtil.computeConsoleFilters(
         project,
@@ -167,9 +167,11 @@ class EditorHyperlinkDetectorTest {
     }
   }
 
-  private object TestIssueExplainer : IssueExplainer() {
+  private object TestStudioBot : StudioBot.StubStudioBot() {
     var available = true
 
     override fun isAvailable(): Boolean = available
+
+    override fun isContextAllowed(): Boolean = true
   }
 }
