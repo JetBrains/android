@@ -25,6 +25,7 @@ import com.android.tools.property.ptable.KEY_IS_VISUALLY_RESTRICTED
 import com.intellij.openapi.ui.ErrorBorderCapable
 import com.intellij.ui.ClientProperty
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
@@ -61,9 +62,14 @@ class PropertyLabel(private val model: BasePropertyEditorModel) : JBLabel() {
   }
 
   private fun updateFromModel() {
-    text = expandableText(model.value, model.tableExpansionState)
+    val actualValue = model.value
+    val textValue = actualValue.takeIf { it.isNotEmpty() } ?: model.defaultValue
+    val textColor =
+      if (actualValue.isEmpty()) NamedColorUtil.getInactiveTextColor()
+      else UIUtil.getLabelForeground()
+    text = expandableText(textValue, model.tableExpansionState)
     isVisible = model.visible
-    foreground = model.displayedForeground(UIUtil.getLabelForeground())
+    foreground = model.displayedForeground(textColor)
     background = model.displayedBackground(UIUtil.TRANSPARENT_COLOR)
     isOpaque = model.isUsedInRendererWithSelection
     updateOutline()

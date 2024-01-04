@@ -55,6 +55,9 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) :
       property.value = if (value.isEmpty()) null else value
     }
 
+  override val defaultValue: String
+    get() = property.defaultValue.orEmpty()
+
   override var visible = true
     get() = field && lineModel?.hidden != true
     set(value) {

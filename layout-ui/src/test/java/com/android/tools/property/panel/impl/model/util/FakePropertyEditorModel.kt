@@ -25,6 +25,8 @@ import com.android.tools.property.panel.api.TableSupport
 class FakePropertyEditorModel(override var property: PropertyItem) : PropertyEditorModel {
   override var value: String = property.value ?: ""
 
+  override var defaultValue: String = property.defaultValue ?: ""
+
   override var visible = true
 
   override var readOnly = false

@@ -59,6 +59,9 @@ interface PropertyEditorModel {
   /** The value shown in the editor. */
   val value: String
 
+  /** The default value shown in the editor if the value is blank */
+  val defaultValue: String
+
   /** Returns the line (if known) where this editor is kept. */
   var lineModel: InspectorLineModel?
 
