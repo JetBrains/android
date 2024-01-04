@@ -187,7 +187,9 @@ class DeviceViewPanelWithFullInspectorTest {
       panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().renderModel
     delegateDataProvider(panel)
     panel.flatten(false).filterIsInstance<ActionToolbar>().forEach { toolbar ->
-      check(toolbar is ActionToolbarImpl) // Downcast needed until we get IntelliJ commit 2c2720e223 in 2024.1.
+      check(
+        toolbar is ActionToolbarImpl
+      ) // Downcast needed until we get IntelliJ commit 2c2720e223 in 2024.1.
       PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
     }
     val toggle =

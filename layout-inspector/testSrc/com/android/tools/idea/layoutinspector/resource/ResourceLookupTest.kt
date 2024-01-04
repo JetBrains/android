@@ -38,6 +38,7 @@ import com.intellij.util.ui.ColorIcon
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Rectangle
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
@@ -84,7 +85,7 @@ class ResourceLookupTest {
   }
 
   @Test
-  fun testSingleColorIcon() {
+  fun testSingleColorIcon() = runBlocking {
     val title = ViewNode(1, "TextView", null, Rectangle(30, 60, 300, 100), null, "Hello Folks", 0)
     val context =
       object : ViewNodeAndResourceLookup {

@@ -36,7 +36,7 @@ import com.android.tools.idea.layoutinspector.properties.ResultListener
 import com.android.tools.idea.layoutinspector.properties.addInternalProperties
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.property.panel.api.PropertiesTable
-import com.intellij.openapi.application.runReadAction
+import com.intellij.util.concurrency.ThreadingAssertions.assertBackgroundThread
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Future
@@ -104,35 +104,34 @@ class AppInspectionPropertiesProvider(
    */
   @Slow // may use index for resolveDimension
   @VisibleForTesting
-  fun completeProperties(view: ViewNode, propertiesData: ViewPropertiesData) {
+  suspend fun completeProperties(view: ViewNode, propertiesData: ViewPropertiesData) {
+    assertBackgroundThread()
     val properties = propertiesData.properties
     if (properties.getByNamespace(NAMESPACE_INTERNAL).isNotEmpty()) return
 
     properties.values.forEach { property ->
       property.resolveDimensionType(view)
-      runReadAction { property.replaceFileLocations(view) }
-      runReadAction { property.addColorButton(view) }
+      property.replaceFileLocations(view)
+      property.addColorButton(view)
     }
 
     if (model.resourceLookup.hasResolver) {
-      runReadAction {
-        propertiesData.classNames
-          .cellSet()
-          .mapNotNull { cell ->
-            properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let {
-              convertToItemWithClassLocation(it, cell.value!!)
-            }
+      propertiesData.classNames
+        .cellSet()
+        .mapNotNull { cell ->
+          properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let {
+            convertToItemWithClassLocation(it, cell.value!!)
           }
-          .forEach { properties.put(it) }
-        propertiesData.resolutionStacks
-          .cellSet()
-          .mapNotNull { cell ->
-            properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let {
-              convertToResolutionStackItem(it, view, cell.value!!)
-            }
+        }
+        .forEach { properties.put(it) }
+      propertiesData.resolutionStacks
+        .cellSet()
+        .mapNotNull { cell ->
+          properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let {
+            convertToResolutionStackItem(it, view, cell.value!!)
           }
-          .forEach { properties.put(it) }
-      }
+        }
+        .forEach { properties.put(it) }
     }
     addInternalProperties(
       properties,
@@ -157,7 +156,7 @@ class AppInspectionPropertiesProvider(
    * this will delay that cost until it is needed to show the properties for the containing
    * [ViewNode].
    */
-  private fun convertToItemWithClassLocation(
+  private suspend fun convertToItemWithClassLocation(
     item: InspectorPropertyItem,
     className: String
   ): InspectorPropertyItem? {
@@ -194,7 +193,7 @@ class AppInspectionPropertiesProvider(
    * were found the original property item is replaced with a group item with children consisting of
    * the available resource references where a value was found.
    */
-  private fun convertToResolutionStackItem(
+  private suspend fun convertToResolutionStackItem(
     item: InspectorPropertyItem,
     view: ViewNode,
     resolutionStack: List<ResourceReference>
@@ -240,11 +239,11 @@ class AppInspectionPropertiesProvider(
     return null
   }
 
-  private fun InspectorPropertyItem.replaceFileLocations(view: ViewNode) {
+  private suspend fun InspectorPropertyItem.replaceFileLocations(view: ViewNode) {
     lookup.resourceLookup.findFileLocations(this, view, source, sourceLocations)
   }
 
-  private fun InspectorPropertyItem.addColorButton(view: ViewNode) {
+  private suspend fun InspectorPropertyItem.addColorButton(view: ViewNode) {
     colorButton = ColorActionIconButton.createColorButton(type, value, view, lookup.resourceLookup)
   }
 }

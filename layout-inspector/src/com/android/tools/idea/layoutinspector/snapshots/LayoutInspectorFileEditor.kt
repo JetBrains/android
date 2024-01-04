@@ -103,6 +103,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
 
       // TODO: error handling
       snapshotLoader = SnapshotLoader.createSnapshotLoader(path)
+      val layoutInspectorCoroutineScope = AndroidCoroutineScope(this)
       val model = InspectorModel(project)
       stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
       metadata =
@@ -129,8 +130,6 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
           override val isConnected
             get() = true
         }
-
-      val layoutInspectorCoroutineScope = AndroidCoroutineScope(this)
 
       // TODO: persisted tree setting scoped to file
       val treeSettings = EditorTreeSettings(client.capabilities)

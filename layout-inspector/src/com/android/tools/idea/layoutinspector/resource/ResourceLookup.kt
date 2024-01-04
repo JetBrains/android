@@ -30,6 +30,7 @@ import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import com.intellij.psi.JavaPsiFacade
@@ -151,23 +152,25 @@ class ResourceLookup(private val project: Project) {
    * - a string containing the file name and a line number
    * - a [Navigatable] that can be used to goto the source location
    */
-  fun findFileLocations(
+  suspend fun findFileLocations(
     property: InspectorPropertyItem,
     view: ViewNode,
     source: ResourceReference?,
     sourceLocations: MutableList<SourceLocation>,
     max: Int = MAX_RESOURCE_INDIRECTION
-  ) = resolver?.findFileLocations(property, view, source, sourceLocations, max)
+  ) = readAction { resolver?.findFileLocations(property, view, source, sourceLocations, max) }
 
   /** Find the location of the specified [view]. */
-  fun findFileLocation(view: ViewNode): SourceLocation? = resolver?.findFileLocation(view)
+  suspend fun findFileLocation(view: ViewNode): SourceLocation? = readAction {
+    resolver?.findFileLocation(view)
+  }
 
   /** Find the attribute value from resource reference. */
-  fun findAttributeValue(
+  suspend fun findAttributeValue(
     property: InspectorPropertyItem,
     view: ViewNode,
     location: ResourceReference
-  ): String? = resolver?.findAttributeValue(property, view, location)
+  ): String? = readAction { resolver?.findAttributeValue(property, view, location) }
 
   /** Find the lambda source location. */
   @Slow
@@ -194,21 +197,24 @@ class ResourceLookup(private val project: Project) {
     composeResolver.findComposableNavigatable(composable)
 
   /** Find the icon from this drawable property. */
-  fun resolveAsIcon(value: String?, view: ViewNode): Icon? {
-    resolver?.resolveAsIcon(value, view)?.let {
-      return it
-    }
+  suspend fun resolveAsIcon(value: String?, view: ViewNode): Icon? {
+    readAction { resolver?.resolveAsIcon(value, view) }
+      ?.let {
+        return it
+      }
     val color = value?.let { parseColor(value) } ?: return null
     return JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, color, false))
   }
 
   /** Convert a class name to a source location. */
-  fun resolveClassNameAsSourceLocation(className: String): SourceLocation? {
-    val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))
-    val navigatable = psiClass?.let { findNavigatable(psiClass) } ?: return null
-    val source = ClassUtil.extractClassName(className)
-    return SourceLocation(source, navigatable)
+  suspend fun resolveClassNameAsSourceLocation(className: String): SourceLocation? {
+    return readAction {
+      val psiClass =
+        JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))
+      val navigatable = psiClass?.let { findNavigatable(psiClass) }
+      val source = ClassUtil.extractClassName(className)
+      navigatable?.let { SourceLocation(source, it) }
+    }
   }
 
   /** Is this attribute a dimension according to the resource manager. */

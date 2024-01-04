@@ -43,7 +43,7 @@ import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.IntelliJLaf
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.JBColor
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -56,6 +56,7 @@ import javax.swing.LookAndFeel
 import javax.swing.UIManager
 import javax.swing.plaf.metal.MetalLookAndFeel
 import javax.swing.plaf.metal.MetalTheme
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExternalResource
@@ -64,7 +65,6 @@ import org.junit.rules.RuleChain
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
 private const val DIFF_THRESHOLD = 0.01
 
-@RunsInEdt
 class ResolutionElementEditorTest {
   private val projectRule = AndroidProjectRule.withSdk()
 
@@ -77,20 +77,20 @@ class ResolutionElementEditorTest {
       .around(IconLoaderRule())!!
 
   @Test
-  fun testPaintClosed() {
+  fun testPaintClosed() = runBlocking {
     val editors = createEditors()
     getEditor(editors, 1).isVisible = false
     checkImage(editors, "Closed")
   }
 
   @Test
-  fun testPaintOpen() {
+  fun testPaintOpen() = runBlocking {
     val editors = createEditors()
     checkImage(editors, "Open")
   }
 
   @Test
-  fun testPaintOpenWithDetails() {
+  fun testPaintOpenWithDetails() = runBlocking {
     val editors = createEditors()
     getEditor(editors, 0).editorModel.isExpandedTableItem = true
     expandFirstLabel(getEditor(editors, 0), true)
@@ -98,7 +98,7 @@ class ResolutionElementEditorTest {
   }
 
   @Test
-  fun testPaintOpenWithTwoDetails() {
+  fun testPaintOpenWithTwoDetails() = runBlocking {
     val editors = createEditors()
     getEditor(editors, 0).editorModel.isExpandedTableItem = true
     expandFirstLabel(getEditor(editors, 0), true)
@@ -107,7 +107,7 @@ class ResolutionElementEditorTest {
   }
 
   @Test
-  fun testDynamicHeight() {
+  fun testDynamicHeight() = runBlocking {
     var updateCount = 0
     val editors = createEditors()
     val editor = getEditor(editors, 0)
@@ -138,13 +138,14 @@ class ResolutionElementEditorTest {
   }
 
   @Test
-  fun testHasLinkPanel() {
-    val model =
+  fun testHasLinkPanel() = runBlocking {
+    val model = runInEdtAndGet {
       model(
         projectRule.project,
         FakeTreeSettings(),
         body = DemoExample.setUpDemo(projectRule.fixture)
       )
+    }
     val node = model["title"]!!
     val item1 =
       createTestProperty(
@@ -168,7 +169,7 @@ class ResolutionElementEditorTest {
   }
 
   @Test
-  fun testDoubleClick() {
+  fun testDoubleClick() = runBlocking {
     val editors = createEditors()
     val editor = getEditor(editors, 0)
     var toggleCount = 0
@@ -209,13 +210,14 @@ class ResolutionElementEditorTest {
     action.actionPerformed(event)
   }
 
-  private fun createEditors(): JPanel {
-    val model =
+  private suspend fun createEditors(): JPanel {
+    val model = runInEdtAndGet {
       model(
         projectRule.project,
         FakeTreeSettings(),
         body = DemoExample.setUpDemo(projectRule.fixture)
       )
+    }
     val node = model["title"]!!
     val textStyleMaterial =
       ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material")

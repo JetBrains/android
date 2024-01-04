@@ -27,7 +27,7 @@ import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 
 /** Create a property, and use [AppInspectionPropertiesProvider] to add resource information. */
-fun createTestProperty(
+suspend fun createTestProperty(
   name: String,
   type: PropertyType,
   value: String?,

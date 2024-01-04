@@ -31,7 +31,7 @@ class ColorActionIconButton(override val actionIcon: Icon?) : ActionIconButton {
   override val action: AnAction? = null
 
   companion object {
-    fun createColorButton(
+    suspend fun createColorButton(
       type: PropertyType,
       value: String?,
       view: ViewNode,
@@ -44,7 +44,7 @@ class ColorActionIconButton(override val actionIcon: Icon?) : ActionIconButton {
         else -> null
       }
 
-    private fun createColorButtonIcon(
+    private suspend fun createColorButtonIcon(
       value: String?,
       view: ViewNode,
       lookup: ResourceLookup
