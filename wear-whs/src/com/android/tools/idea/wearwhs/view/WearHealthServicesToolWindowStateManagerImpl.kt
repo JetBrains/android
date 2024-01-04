@@ -86,13 +86,13 @@ internal class WearHealthServicesToolWindowStateManagerImpl(private val deviceMa
 
   override suspend fun setCapabilityEnabled(capability: WhsCapability, enabled: Boolean) {
     val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
-    val newState = stateFlow.value.copy(enabled = enabled)
+    val newState = stateFlow.value.copy(enabled = enabled, synced = false)
     stateFlow.emit(newState)
   }
 
   override suspend fun setOverrideValue(capability: WhsCapability, value: Float?) {
     val stateFlow = capabilityToState[capability] ?: throw IllegalArgumentException()
-    val newState = stateFlow.value.copy(overrideValue = value)
+    val newState = stateFlow.value.copy(overrideValue = value, synced = false)
     stateFlow.emit(newState)
   }
 

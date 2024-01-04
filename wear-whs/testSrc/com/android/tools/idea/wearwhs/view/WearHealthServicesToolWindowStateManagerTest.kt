@@ -107,6 +107,7 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.setOverrideValue(capabilities[1], 3f)
 
     stateManager.getState(capabilities[1]).map { it.overrideValue }.waitForValue(3f)
+    stateManager.getState(capabilities[1]).map { it.synced }.waitForValue(false)
   }
 
   @Test
@@ -122,6 +123,7 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.getPreset().waitForValue(Preset.ALL)
     stateManager.getState(capabilities[2]).map { it.enabled }.waitForValue(true)
     stateManager.getState(capabilities[1]).map { it.overrideValue }.waitForValue(null)
+    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(false)
   }
 
   @Test
