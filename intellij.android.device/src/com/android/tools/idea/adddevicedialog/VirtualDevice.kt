@@ -16,6 +16,7 @@
 package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.runtime.Immutable
+import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
@@ -31,5 +32,6 @@ internal constructor(
   internal val frontCamera: AvdCamera,
   internal val rearCamera: AvdCamera,
   internal val speed: AvdNetworkSpeed,
-  internal val latency: AvdNetworkLatency
+  internal val latency: AvdNetworkLatency,
+  internal val orientation: ScreenOrientation
 )

@@ -17,6 +17,7 @@ package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
+import com.android.resources.ScreenOrientation
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
@@ -43,6 +44,7 @@ internal fun AdditionalSettingsPanel(
 
   CameraGroup(device, onDeviceChange)
   NetworkGroup(device, onDeviceChange)
+  StartupGroup(device.orientation) { onDeviceChange(device.copy(orientation = it)) }
 }
 
 @Composable
@@ -82,6 +84,33 @@ private fun NetworkGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) 
 
 private val SPEEDS = AvdNetworkSpeed.values().asIterable().toImmutableList()
 private val LATENCIES = AvdNetworkLatency.values().asIterable().toImmutableList()
+
+@Composable
+private fun StartupGroup(
+  selectedOrientation: ScreenOrientation,
+  onSelectedOrientationChange: (ScreenOrientation) -> Unit
+) {
+  GroupHeader("Startup")
+
+  Row {
+    Text("Orientation")
+
+    Dropdown(
+      menuContent = {
+        ORIENTATIONS.forEach {
+          selectableItem(selectedOrientation == it, onClick = { onSelectedOrientationChange(it) }) {
+            Text(it.shortDisplayValue)
+          }
+        }
+      }
+    ) {
+      Text(selectedOrientation.shortDisplayValue)
+    }
+  }
+}
+
+private val ORIENTATIONS =
+  listOf(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE).toImmutableList()
 
 @Composable
 private fun <I> Dropdown(

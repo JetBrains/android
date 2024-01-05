@@ -973,7 +973,7 @@ public class AvdManagerConnection {
     }
     if (orientation == ScreenOrientation.LANDSCAPE) {
       hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION,
-                             StringUtil.toLowerCase(ScreenOrientation.LANDSCAPE.getShortDisplayValue()));
+                             ScreenOrientation.LANDSCAPE.getShortDisplayValue().toLowerCase(Locale.ROOT));
     }
     if (device.getId().equals("13.5in Freeform")) {
       hardwareProperties.put(AVD_INI_DISPLAY_SETTINGS_FILE, "freeform");

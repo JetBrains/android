@@ -19,6 +19,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.EmulatedProperties
@@ -50,7 +51,8 @@ internal constructor(
         AvdCamera.EMULATED,
         AvdCamera.VIRTUAL_SCENE, // TODO We're assuming the emulator supports this feature
         EmulatedProperties.DEFAULT_NETWORK_SPEED,
-        EmulatedProperties.DEFAULT_NETWORK_LATENCY
+        EmulatedProperties.DEFAULT_NETWORK_LATENCY,
+        ScreenOrientation.PORTRAIT
       )
     )
   }
