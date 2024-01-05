@@ -74,6 +74,8 @@ interface ComposeStatus {
   val description: String
   /** When true, the refresh icon will be displayed next to the notification chip. */
   val presentation: Presentation?
+  val shouldSimplify: Boolean
+    get() = false
 
   companion object {
     val PRESENTATION = Key<Presentation>("ComposeStatus.Presentation")
@@ -181,6 +183,12 @@ open class IssueNotificationAction(
     return status.icon == null && StringUtil.isEmpty(status.title)
   }
 
+  /**
+   * Returns true if a minified version of the status should be displayed for places
+   * where screen real estate is limited.
+   */
+  open fun shouldSimplify(status: ComposeStatus, dataContext: DataContext) : Boolean = false
+
   override fun displayTextInToolbar(): Boolean = true
 
   override fun update(e: AnActionEvent) {
@@ -194,7 +202,7 @@ open class IssueNotificationAction(
         }
         isEnabledAndVisible = true
         icon = it.icon
-        text = it.title
+        text = if (shouldSimplify(it, e.dataContext)) "" else it.title
         description = it.description
         putClientProperty(ComposeStatus.PRESENTATION, it.presentation)
         val isErrorOrWarningIcon = it.icon == AllIcons.General.Error || it.icon == AllIcons.General.Warning

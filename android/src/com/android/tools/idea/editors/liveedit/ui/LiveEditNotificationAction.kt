@@ -190,6 +190,16 @@ class LiveEditIssueNotificationAction(
     return shouldHideImpl(status, dataContext)
   }
 
+  override fun shouldSimplify(status: ComposeStatus, dataContext: DataContext): Boolean {
+    val toolWindowId = dataContext.getData(PlatformDataKeys.TOOL_WINDOW)
+
+    if (toolWindowId != null && toolWindowId.id == RUNNING_DEVICES_TOOL_WINDOW_ID) {
+      return status.shouldSimplify
+    } else {
+      return false
+    }
+  }
+
   override fun getActionUpdateThread(): ActionUpdateThread {
     return ActionUpdateThread.BGT
   }

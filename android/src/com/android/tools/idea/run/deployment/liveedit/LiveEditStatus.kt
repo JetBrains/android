@@ -41,7 +41,8 @@ open class LiveEditStatus(
   val descriptionManualMode: String? = null,
   val redeployMode: RedeployMode = RedeployMode.NONE,
   val actionId: String? = null,
-) : ComposeStatus {
+  override val shouldSimplify: Boolean = false,
+  ) : ComposeStatus {
   companion object {
     // A simple priority system that is used when multiple LiveEditStatus need to be merged.
     // The high the value is, the more important the status is, and thus takes precedence.
@@ -181,7 +182,8 @@ open class LiveEditStatus(
       AnimatedIcon.Default.INSTANCE,
       message("le.status.loading.title"),
       message("le.status.loading.description"),
-      REFRESHING
+      REFRESHING,
+      shouldSimplify = true
     )
 
   object InProgress :
@@ -189,7 +191,8 @@ open class LiveEditStatus(
       AnimatedIcon.Default.INSTANCE,
       message("le.status.in_progress.title"),
       message("le.status.in_progress.description"),
-      REFRESHING
+      REFRESHING,
+      shouldSimplify = true
     )
 
   object CopyingPsi :
@@ -197,7 +200,8 @@ open class LiveEditStatus(
       AnimatedIcon.Default.INSTANCE,
       message("le.status.pre_compiling.title"),
       message("le.status.pre_compiling.description"),
-      REFRESHING
+      REFRESHING,
+      shouldSimplify = true
     )
 
   object UpToDate :
@@ -207,6 +211,7 @@ open class LiveEditStatus(
       message("le.status.up_to_date.description"),
       DEFAULT,
       descriptionManualMode = "App is up to date. Code changes will be applied to the running app on Refresh.",
+      shouldSimplify = true
     )
 
   object SyncNeeded :
