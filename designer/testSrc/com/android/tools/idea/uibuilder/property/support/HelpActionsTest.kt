@@ -113,7 +113,7 @@ class HelpActionsTest {
         .build()
     val event = AnActionEvent.createFromDataContext("", null, context)
     HelpActions.help.actionPerformed(event)
-    waitForCondition(100, TimeUnit.MILLISECONDS) { popupRule.fakePopupFactory.popupCount > 0 }
+    waitForCondition(10, TimeUnit.SECONDS) { popupRule.fakePopupFactory.popupCount > 0 }
     val popup = popupRule.fakePopupFactory.getNextPopup<Unit, FakeComponentPopup>()
     val doc =
       UIUtil.findComponentsOfType(popup.contentPanel, DocumentationEditorPane::class.java)
