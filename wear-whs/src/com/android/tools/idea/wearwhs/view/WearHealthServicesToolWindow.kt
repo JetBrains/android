@@ -63,21 +63,21 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
   private val uiScope: CoroutineScope = AndroidCoroutineScope(this, uiThread)
   private val workerScope: CoroutineScope = AndroidCoroutineScope(this, workerThread)
 
-  private var serialNumber: String? = null
-
   fun setSerialNumber(serialNumber: String) {
-    stateManager.serialNumber = serialNumber
-    this.serialNumber = serialNumber
-    workerScope.launch {
-      if (stateManager.isWhsVersionSupported()) {
-        withContext(uiThread) {
-          removeAll()
-          add(createContentPanel())
+    if (serialNumber != stateManager.serialNumber) {
+      stateManager.serialNumber = serialNumber
+      workerScope.launch {
+        if (stateManager.isWhsVersionSupported()) {
+          withContext(uiThread) {
+            removeAll()
+            add(createContentPanel())
+          }
         }
-      } else {
-        withContext(uiThread) {
-          removeAll()
-          add(createWhsVersionNotSupportedPanel())
+        else {
+          withContext(uiThread) {
+            removeAll()
+            add(createWhsVersionNotSupportedPanel())
+          }
         }
       }
     }
@@ -97,7 +97,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
     }
 
   private fun createContentPanel(): JPanel {
-    if (serialNumber == null) {
+    if (stateManager.serialNumber == null) {
       return JPanel().apply {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
         border = Borders.empty(JBUI.scale(20))
