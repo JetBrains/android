@@ -30,6 +30,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.idea.util.module
+import org.jetbrains.kotlin.psi.KtFile
 
 private const val kotlinPluginId = "org.jetbrains.kotlin"
 
@@ -61,6 +62,9 @@ internal fun checkSupportedFiles(file: PsiFile) {
   val virtualFile = file.virtualFile ?: return // Extremely unlikely, but possible.
   if (virtualFile.path.contains("buildSrc")) {
     throw unsupportedBuildSrcChange(file.virtualFile.path)
+  }
+  if (file !is KtFile) {
+    throw LiveEditUpdateException(LiveEditUpdateException.Error.NON_KOTLIN, file.name, file, null)
   }
 }
 

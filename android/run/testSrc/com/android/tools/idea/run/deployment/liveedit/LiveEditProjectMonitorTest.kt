@@ -27,11 +27,14 @@ import com.android.tools.deployer.AdbClient
 import com.android.tools.deployer.Installer
 import com.android.tools.deployer.TestLogger
 import com.android.tools.deployer.tasks.LiveUpdateDeployer
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.LiveEditEvent
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
 import junit.framework.Assert
+import junit.framework.Assert.assertTrue
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -40,6 +43,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.time.DurationUnit
@@ -196,5 +200,34 @@ class LiveEditProjectMonitorTest {
       val status = monitor.status(device)
       status.description.contains("IOException")
     }
+  }
+
+  @Test
+  fun nonKotlinClassDiffer() {
+    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject)
+    val file = projectRule.fixture.configureByText("A.java", "class A() { }")
+    val device: IDevice = MockitoKt.mock()
+    whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+
+    var latch = CountDownLatch(3)
+    val statuses = mutableListOf<LiveEditStatus>()
+    monitor.liveEditDevices.addListener {
+      statuses.add(it[device]!!)
+      latch.countDown()
+    }
+    monitor.notifyAppDeploy("com.test.app", device, LiveEditApp(emptySet(), 30)) { true }
+
+    ReadAction.run<Throwable> {
+      monitor.beforeFileChanged(file)
+      monitor.fileChanged(file)
+    }
+
+    // Because LE has no protection against a race condition here, we need to ensure the changes are actually queued.
+    assertTrue(latch.await(5000, TimeUnit.MILLISECONDS))
+
+    latch = CountDownLatch(2)
+    monitor.onManualLETrigger()
+    assertTrue(latch.await(5000, TimeUnit.MILLISECONDS))
+    assertTrue(statuses.last().description.startsWith(LiveEditUpdateException.Error.NON_KOTLIN.message))
   }
 }

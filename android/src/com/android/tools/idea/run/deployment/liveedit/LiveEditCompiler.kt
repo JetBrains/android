@@ -239,7 +239,7 @@ class LiveEditCompiler(val project: Project,
     for (input in inputs) {
       // The function we are looking at no longer belongs to file. This is mostly an IDE refactor / copy-and-paste action.
       // This should be solved nicely with a ClassDiffer.
-      if (input.element.containingFile == null) {
+      if (input.element?.containingFile == null) {
         continue
       }
 

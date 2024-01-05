@@ -18,12 +18,12 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.log.LogWrapper
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.util.containers.addIfNotNull
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClassInitializer
-import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
@@ -53,75 +53,75 @@ private class PsiState(leafNodes: List<LeafPsiElement>) {
 }
 
 class PsiValidator {
-  private var oldVisitors = mutableMapOf<KtFile, Visitor>()
+  private var oldVisitors = mutableMapOf<PsiFile, Visitor>()
 
-  fun beforeChanges(ktFile: KtFile) {
-    if (ktFile in oldVisitors) {
+  fun beforeChanges(psiFile: PsiFile) {
+    if (psiFile in oldVisitors) {
       return
     }
     val validateMs = measureTimeMillis {
       val visitor = Visitor()
-      ktFile.accept(visitor)
-      oldVisitors[ktFile] = visitor
+      psiFile.accept(visitor)
+      oldVisitors[psiFile] = visitor
     }
     logger.info("Live Edit: PSI validator traversed PSI in $validateMs ms")
   }
 
-  fun validatePsiChanges(ktFile: KtFile): MutableList<LiveEditUpdateException> {
+  fun validatePsiChanges(psiFile: PsiFile): MutableList<LiveEditUpdateException> {
     val errors = mutableListOf<LiveEditUpdateException>()
     val validateMs = measureTimeMillis {
-      val old = oldVisitors[ktFile]
+      val old = oldVisitors[psiFile]
       if (old == null) {
-        logger.warning("No old PSI to diff against for ${ktFile.name}")
+        logger.warning("No old PSI to diff against for ${psiFile.name}")
         return errors
       }
       val new = Visitor()
-      ktFile.accept(new)
+      psiFile.accept(new)
 
-      errors.addIfNotNull(validateProperties(ktFile, old.properties, new.properties))
-      errors.addIfNotNull(validateInitBlocks(ktFile, old.initBlocks, new.initBlocks))
-      errors.addIfNotNull(validateConstructors(ktFile, old.primaryConstructors, new.primaryConstructors))
-      errors.addIfNotNull(validateConstructors(ktFile, old.secondaryConstructors, new.secondaryConstructors))
+      errors.addIfNotNull(validateProperties(psiFile, old.properties, new.properties))
+      errors.addIfNotNull(validateInitBlocks(psiFile, old.initBlocks, new.initBlocks))
+      errors.addIfNotNull(validateConstructors(psiFile, old.primaryConstructors, new.primaryConstructors))
+      errors.addIfNotNull(validateConstructors(psiFile, old.secondaryConstructors, new.secondaryConstructors))
     }
     logger.info("Live Edit: PSI validator checked PSI in $validateMs ms")
     return errors
   }
 
-  fun validationFinished(ktFile: KtFile) {
-    oldVisitors.remove(ktFile)
+  fun validationFinished(psiFile: PsiFile) {
+    oldVisitors.remove(psiFile)
   }
 }
 
-private fun validateConstructors(ktFile: KtFile,
+private fun validateConstructors(psiFile: PsiFile,
                                  oldConstructors: Map<List<FqName?>, PsiState>,
                                  newConstructors: Map<List<FqName?>, PsiState>): LiveEditUpdateException? {
   for (entry in oldConstructors) {
     val other = newConstructors[entry.key] ?: continue
     if (other != entry.value) {
       return LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-                                    "in $ktFile, modified constructor $entry.key", ktFile, null)
+                                    "in $psiFile, modified constructor $entry.key", psiFile, null)
     }
   }
   return null
 }
 
-private fun validateInitBlocks(ktFile: KtFile, oldInit: Map<Int, PsiState>, newInit: Map<Int, PsiState>): LiveEditUpdateException? {
+private fun validateInitBlocks(psiFile: PsiFile, oldInit: Map<Int, PsiState>, newInit: Map<Int, PsiState>): LiveEditUpdateException? {
   // We don't care about the exact offsets of each init block, only that the relative order of blocks has remained the same.
   val old = oldInit.toSortedMap().map { it.value }
   val new = newInit.toSortedMap().map { it.value }
   if (old != new) {
     return LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-                                  "in $ktFile, modified init block", ktFile, null)
+                                  "in $psiFile, modified init block", psiFile, null)
   }
   return null
 }
 
-private fun validateProperties(ktFile: KtFile, oldProps: Map<FqName, PsiState>, newProps: Map<FqName, PsiState>): LiveEditUpdateException? {
+private fun validateProperties(psiFile: PsiFile, oldProps: Map<FqName, PsiState>, newProps: Map<FqName, PsiState>): LiveEditUpdateException? {
   for (entry in oldProps) {
     val other = newProps[entry.key] ?: continue
     if (other != entry.value) {
       return LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
-                                    "in $ktFile, modified property ${entry.key.shortName()} of ${entry.key.parent()}", ktFile, null)
+                                    "in $psiFile, modified property ${entry.key.shortName()} of ${entry.key.parent()}", psiFile, null)
     }
   }
   return null

@@ -31,7 +31,7 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
     // Sorted lexicographically for readability and consistency
     ANALYSIS_ERROR("Resolution Analysis Error", "%", true, Status.ANALYSIS_ERROR),
     COMPILATION_ERROR("Compilation Error", "%", true, Status.COMPILATION_ERROR),
-    NON_KOTLIN("Modified non-Kotlin source not supported", "%", false, Status.NON_KOTLIN),
+    NON_KOTLIN("Modifying a non-Kotlin file is not supported", "%", false, Status.NON_KOTLIN),
     NON_PRIVATE_INLINE_FUNCTION("Modified function is a non-private inline function", "%", true, Status.NON_PRIVATE_INLINE_FUNCTION),
     UNABLE_TO_INLINE("Unable to inline function", "%", true, Status.UNABLE_TO_INLINE),
     UNABLE_TO_LOCATE_COMPOSE_GROUP("Unable to locate Compose Invalid Group", "%", false, Status.UNABLE_TO_LOCATE_COMPOSE_GROUP),

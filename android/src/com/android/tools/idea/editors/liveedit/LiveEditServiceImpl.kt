@@ -64,6 +64,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
@@ -312,15 +313,26 @@ class LiveEditServiceImpl(val project: Project,
     }
   }
 
-  private fun VirtualFile.letIfLiveEditable(block: (KtFile) -> Unit) {
-    val ktFile = ReadAction.compute<KtFile?, Throwable> {
-      if (shouldHandleFile(this)) {
-        return@compute getKtFile(this)
+  private fun VirtualFile.letIfLiveEditable(block: (PsiFile) -> Unit) {
+    val psiFile = ReadAction.compute<PsiFile?, Throwable> {
+      if (!shouldHandleFile(this)) {
+        return@compute null
       }
-      null
+
+      // Ensure that we have the original, VirtualFile-backed version of the file, since sometimes
+      // an event is generated with a non-physical version of a given file, which will cause some
+      // Live Edit checks that assume a non-null VirtualFile to fail.
+      val psiFile = PsiManager.getInstance(project).findFile(this)?.originalFile
+
+      // Ignore scripts. This check must be done in a read action.
+      if (psiFile is KtFile && psiFile.isScript()) {
+        return@compute null
+      }
+
+      psiFile
     }
-    if (ktFile != null) {
-      block(ktFile)
+    if (psiFile != null) {
+      block(psiFile)
     }
   }
 
@@ -336,20 +348,13 @@ class LiveEditServiceImpl(val project: Project,
 
     // Filter to only files from this project.
     val index = ProjectFileIndex.getInstance(project)
-    return index.isInProject(file)
-  }
-
-  @RequiresReadLock
-  private fun getKtFile(file: VirtualFile): KtFile? {
-    // Ensure that we have the original, VirtualFile-backed version of the file, since sometimes an event is generated with a
-    // non-physical version of a given file, which will cause some Live Edit checks that assume a non-null VirtualFile to fail.
-    val ktFile = PsiManager.getInstance(project).findFile(file)?.originalFile as? KtFile ?: return null
-
-    // Ignore .kts files.
-    if (ktFile.isScript()) {
-      return null
+    if (!index.isInProject(file)) {
+      return false
     }
 
-    return ktFile
+    // All sort of files might be modified and written during save actions. This is an issue for
+    // manual mode where some metadata files get updated on save. To avoid that, we only Live Edit
+    // files that are currently opened by the editor.
+    return FileEditorManager.getInstance(project).isFileOpen(file)
   }
 }

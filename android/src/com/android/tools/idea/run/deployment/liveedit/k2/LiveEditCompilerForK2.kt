@@ -148,13 +148,13 @@ internal class LiveEditCompilerForK2(
 
     val selectedClasses = InternalClassNamesToSealedClasses()
     for (input in inputs) {
+      val element = input.element
       // The function we are looking at no longer belongs to file. This is mostly an IDE refactor / copy-and-paste action.
       // This should be solved nicely with a ClassDiffer.
-      if (input.element.containingFile == null) {
+      if (element?.containingFile == null) {
         continue
       }
 
-      val element = input.element
       val (internalClassName, containingFile) = analyze(element) {
         when(element) {
           // When the edit event was contained in a function

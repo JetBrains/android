@@ -59,6 +59,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.IOException;
+import com.intellij.psi.PsiFile;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -383,22 +384,22 @@ public class LiveEditProjectMonitor implements Disposable {
     return true;
   }
 
-  // Called before an edit to a Kotlin file is made. Only called on the class-differ code path.
-  public void beforeFileChanged(KtFile ktFile) {
+  // Called before an edit to a file is made. Only called on the class-differ code path.
+  public void beforeFileChanged(PsiFile psiFile) {
     if (shouldLiveEdit()) {
-      psiValidator.beforeChanges(ktFile);
+      psiValidator.beforeChanges(psiFile);
     }
   }
 
-  // Called when a Kotlin file is modified. Only called on the class-differ code path.
-  public void fileChanged(KtFile ktFile) {
+  // Called when a file is modified. Only called on the class-differ code path.
+  public void fileChanged(PsiFile psiFile) {
     if (!shouldLiveEdit()) {
       return;
     }
 
     // Add this while we're still inside a write action, so that no compile can be running while we queue this. This minimizes the risk of a
     // race condition between any retried compilations and this newly queued event.
-    changedMethodQueue.add(new EditEvent(ktFile, ktFile, new ArrayList<>(), new ArrayList<>()));
+    changedMethodQueue.add(new EditEvent(psiFile, null, new ArrayList<>(), new ArrayList<>()));
 
     mainThreadExecutor.schedule(() -> {
       if (ProjectSystemUtil.getProjectSystem(project).getSyncManager().isSyncNeeded() || intermediateSyncs.get()) {
@@ -452,9 +453,9 @@ public class LiveEditProjectMonitor implements Disposable {
 
     // In manual mode, we store changes and update status but defer processing.
     if (LiveEditService.Companion.isLeTriggerManual()) {
-      updateEditableStatus(LiveEditStatus.OutOfDate.INSTANCE);
       if (bufferedEvents.size() < 2000) {
         bufferedEvents.addAll(changes);
+        updateEditableStatus(LiveEditStatus.OutOfDate.INSTANCE);
       } else {
         // Something is wrong. Discard event otherwise we will run Out Of Memory
         updateEditableStatus(LiveEditStatus.createErrorStatus("Too many buffered LE keystrokes. Redeploy app."));
