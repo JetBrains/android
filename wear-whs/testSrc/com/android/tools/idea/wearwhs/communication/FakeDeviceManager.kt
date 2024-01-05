@@ -61,12 +61,12 @@ internal class FakeDeviceManager(
     onDeviceStates[capability]?.enabled = false
   }
 
-  override suspend fun overrideValue(capability: WhsCapability, value: Float?) = if (failState) {
+  override suspend fun overrideValue(capability: WhsCapability, value: Number?) = if (failState) {
     throw ConnectionLostException("Failed to override value")
   }
   else {
     delay(DELAY_MS)
-    onDeviceStates[capability]?.overrideValue = value
+    onDeviceStates[capability]?.overrideValue = value?.toFloat()
   }
 
   override suspend fun loadCurrentCapabilityStates(): Map<WhsCapability, OnDeviceCapabilityState> = if (failState) {

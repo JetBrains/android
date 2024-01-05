@@ -52,6 +52,17 @@ class DeviceManagerTest {
   private val adbCommandDisableSpeed = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind SPEED:b:false"
   private val adbCommandDisablePace = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind PACE:b:false"
   private val adbCommandDisableStepsPerMinute = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS_PER_MINUTE:b:false"
+  private val adbCommandSetStepsTo55 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS:i:55"
+  private val adbCommandSetDistanceTo10 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind DISTANCE:f:10.0"
+  private val adbCommandSetTotalCaloriesTo100 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind TOTAL_CALORIES:f:100.0"
+  private val adbCommandSetFloorsTo5 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind FLOORS:f:5.0"
+  private val adbCommandSetElevationGainTo50 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_GAIN:f:50.0"
+  private val adbCommandSetElevationLossTo20 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:f:20.0"
+  private val adbCommandSetAbsoluteElevationTo120 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ABSOLUTE_ELEVATION:f:120.0"
+  private val adbCommandSetHeartRateBpmTo65 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind HEART_RATE_BPM:f:65.0"
+  private val adbCommandSetSpeedTo30 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind SPEED:f:30.0"
+  private val adbCommandSetPaceTo20 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind PACE:f:20.0"
+  private val adbCommandSetStepsPerMinuteTo25 = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS_PER_MINUTE:f:25.0"
 
   private val capabilities = mapOf(
     WhsDataType.STEPS to WhsCapability(
@@ -272,5 +283,74 @@ class DeviceManagerTest {
   fun `Enable and disable steps per minute`() {
     assertEnablingCapabilitySendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, adbCommandEnableStepsPerMinute)
     assertDisablingCapabilitySendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, adbCommandDisableStepsPerMinute)
+  }
+
+  @Test
+  fun `Setting capability override value when serial number is not set does not result in crash`() = runTest {
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+
+    val job = launch {
+      deviceManager.overrideValue(WhsDataType.STEPS.toCapability(), 55)
+    }
+    job.join()
+  }
+
+  private fun assertOverrideSendsAdbCommand(dataType: WhsDataType, overrideValue: Number?, expectedAdbCommand: String) = runTest {
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValue(dataType.toCapability(), overrideValue) }, expectedAdbCommand)
+  }
+
+  @Test
+  fun `Override steps`() = runTest {
+    assertOverrideSendsAdbCommand(WhsDataType.STEPS, 55, adbCommandSetStepsTo55)
+  }
+
+  @Test
+  fun `Override distance`() {
+    assertOverrideSendsAdbCommand(WhsDataType.DISTANCE, 10, adbCommandSetDistanceTo10)
+  }
+
+  @Test
+  fun `Override total calories`() {
+    assertOverrideSendsAdbCommand(WhsDataType.TOTAL_CALORIES, 100, adbCommandSetTotalCaloriesTo100)
+  }
+
+  @Test
+  fun `Override floors`() {
+    assertOverrideSendsAdbCommand(WhsDataType.FLOORS, 5, adbCommandSetFloorsTo5)
+  }
+
+  @Test
+  fun `Override elevation gain`() {
+    assertOverrideSendsAdbCommand(WhsDataType.ELEVATION_GAIN, 50, adbCommandSetElevationGainTo50)
+  }
+
+  @Test
+  fun `Override elevation loss`() {
+    assertOverrideSendsAdbCommand(WhsDataType.ELEVATION_LOSS, 20, adbCommandSetElevationLossTo20)
+  }
+
+  @Test
+  fun `Override absolute elevation`() {
+    assertOverrideSendsAdbCommand(WhsDataType.ABSOLUTE_ELEVATION, 120, adbCommandSetAbsoluteElevationTo120)
+  }
+
+  @Test
+  fun `Override heart rate bpm`() {
+    assertOverrideSendsAdbCommand(WhsDataType.HEART_RATE_BPM, 65, adbCommandSetHeartRateBpmTo65)
+  }
+
+  @Test
+  fun `Override speed`() {
+    assertOverrideSendsAdbCommand(WhsDataType.SPEED, 30, adbCommandSetSpeedTo30)
+  }
+
+  @Test
+  fun `Override pace`() {
+    assertOverrideSendsAdbCommand(WhsDataType.PACE, 20, adbCommandSetPaceTo20)
+  }
+
+  @Test
+  fun `Override steps per minute`() {
+    assertOverrideSendsAdbCommand(WhsDataType.STEPS_PER_MINUTE, 25, adbCommandSetStepsPerMinuteTo25)
   }
 }

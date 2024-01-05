@@ -20,6 +20,7 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.shellAsText
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsCapability
+import com.android.tools.idea.wearwhs.WhsDataType
 
 const val whsUri: String = "content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config"
 
@@ -47,8 +48,14 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
   // TODO(b/305924111) Implement loadOngoingExercise method
   override suspend fun loadOngoingExercise() = false
 
-  private fun contentUpdateCapability(key: String, value: Boolean): String {
-    return "content update --uri $whsUri --bind $key:b:$value"
+  private inline fun <reified T> contentUpdateCapability(key: String, value: T): String {
+    val type = when (value) {
+      is Boolean -> 'b'
+      is Int -> 'i'
+      is Float -> 'f'
+      else -> 's'
+    }
+    return "content update --uri $whsUri --bind $key:$type:$value"
   }
 
   private suspend fun setCapability(capability: WhsCapability, newValue: Boolean) {
@@ -70,7 +77,25 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
     setCapability(capability, false)
   }
 
-  // TODO(b/305924073): Implement override methods
-  override suspend fun overrideValue(capability: WhsCapability, value: Float?) {}
+  override suspend fun overrideValue(capability: WhsCapability, value: Number?) {
+    if (serialNumber == null) {
+      // TODO: Log this error
+      return
+    }
+
+    if (value == null) {
+      // TODO: Delete override value from content provider
+      return
+    }
+
+    val device = DeviceSelector.fromSerialNumber(serialNumber!!)
+
+    val contentUpdateCommand = if (capability.key == WhsDataType.STEPS) {
+      contentUpdateCapability(capability.key.name, value.toInt())
+    } else {
+      contentUpdateCapability(capability.key.name, value.toFloat())
+    }
+    adbSession.deviceServices.shellAsText(device, contentUpdateCommand)
+  }
 }
 

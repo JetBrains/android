@@ -48,7 +48,7 @@ internal interface WearHealthServicesDeviceManager {
   /**
    * Overrides the sensor value for the given capability.
    */
-  suspend fun overrideValue(capability: WhsCapability, value: Float?)
+  suspend fun overrideValue(capability: WhsCapability, value: Number?)
 
   /**
    * Loads the current state from WHS to compare with the current UI.
