@@ -59,4 +59,25 @@ class LintReportParserTest {
     // Splitting takes care of both Windows line endings and also makes the assertion error easier to read
     assertContentEquals(expected, byteStream.toString().split("\r\n", "\n"))
   }
+
+  @Test
+  fun parseNoIssuesReport() {
+    val exampleReport =
+      getTestDataRoot().resolve("lintReportParser").resolve("lint-results-debug-empty.txt")
+
+    val byteStream = ByteArrayOutputStream()
+    val lintReportParser = LintReportParser(PrintStream(byteStream))
+
+    lintReportParser.parseLintReport(
+      Path("C:\\Windows\\fakeProjectDir\\testNewBasicViewsActivity_VALIDATING_"),
+      exampleReport
+    )
+
+    val expected =
+      """No issues found.
+""".split("\r\n", "\n")
+
+    // Splitting takes care of both Windows line endings and also makes the assertion error easier to read
+    assertContentEquals(expected, byteStream.toString().split("\r\n", "\n"))
+  }
 }

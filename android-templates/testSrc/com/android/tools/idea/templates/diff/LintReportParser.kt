@@ -51,6 +51,10 @@ class LintReportParser(private val out: PrintStream) {
     val lines = Files.readLines(reportPath.toFile(), Charset.defaultCharset())
 
     lines.forEach { line ->
+      if (line == "No issues found.") {
+        out.println(line)
+        return 0
+      }
       // At the end of the lint report, there is a line that says X errors, Y warnings. Use this as
       // the final tally to make sure we parsed the right number of issues, and also to print out
       // our
