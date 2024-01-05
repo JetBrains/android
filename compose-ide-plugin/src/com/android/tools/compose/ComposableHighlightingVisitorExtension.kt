@@ -18,28 +18,10 @@ package com.android.tools.compose
 
 import androidx.compose.compiler.plugins.kotlin.k1.isComposableInvocation
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType
-import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
-import com.intellij.openapi.editor.colors.TextAttributesKey
-import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingVisitorExtension
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-
-const val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "ComposableCallTextAttributes"
-
-val COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
-  TextAttributesKey.createTextAttributesKey(
-    COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME,
-    DefaultLanguageHighlighterColors.FUNCTION_CALL
-  )
-
-val COMPOSABLE_CALL_TEXT_TYPE: HighlightInfoType =
-  HighlightInfoType.HighlightInfoTypeImpl(
-    HighlightInfoType.SYMBOL_TYPE_SEVERITY,
-    COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY,
-    false
-  )
 
 /**
  * Used to apply styles for calls to @Composable functions.
@@ -76,9 +58,4 @@ class ComposableHighlightingVisitorExtension : KotlinHighlightingVisitorExtensio
       COMPOSABLE_CALL_TEXT_TYPE
     else null
   }
-
-  private fun isInLibrarySource(element: PsiElement) =
-    element.containingFile.virtualFile != null &&
-      ProjectFileIndex.getInstance(element.project)
-        .isInLibrarySource(element.containingFile.virtualFile)
 }

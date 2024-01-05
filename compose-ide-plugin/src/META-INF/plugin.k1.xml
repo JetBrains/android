@@ -16,6 +16,7 @@
 
 <idea-plugin>
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <highlighterExtension implementation="com.android.tools.compose.ComposableHighlightingVisitorExtension"/>
     <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeUnresolvedFunctionFixContributor"/>
     <quickFixContributor implementation="com.android.tools.compose.intentions.AddComposableAnnotationQuickFix$Contributor"/>
 

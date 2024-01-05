@@ -16,6 +16,7 @@
 
 <idea-plugin>
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <callHighlighterExtension implementation="com.android.tools.compose.aa.ComposableCallHighlighterExtension"/>
     <codeinsight.quickfix.registrar implementation="com.android.tools.compose.aa.intentions.ComposeIdePluginQuickFixRegistrar"/>
   </extensions>
 </idea-plugin>
