@@ -588,6 +588,21 @@ iml_module(
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "com.android.tools.idea.inspections.IllegalIdentifierInspectionTest",
         },
+        "SendFeedbackActionTest": {
+            "test_filter": "com.android.tools.idea.actions.SendFeedbackActionTest",
+        },
+        "ExportProjectZipTest": {
+            "test_filter": "com.android.tools.idea.actions.ExportProjectZipTest",
+        },
+        "aidl": {
+            "test_filter": "com.android.tools.idea.lang.aidl",
+        },
+        "proguardR8": {
+            "test_filter": "com.android.tools.idea.lang.proguardR8",
+        },
+        "javadoc": {
+            "test_filter": "com.android.tools.idea.javadoc",
+        },
         "other": {
             "shard_count": 5,
         },
