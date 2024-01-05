@@ -210,8 +210,8 @@ class ResourceLookupResolver(
   }
 
   /** Resolve this drawable property as an icon. */
-  fun resolveAsIcon(property: InspectorPropertyItem, view: ViewNode): Icon? {
-    val url = property.value?.let { ResourceUrl.parse(it) } ?: return null
+  fun resolveAsIcon(value: String?, view: ViewNode): Icon? {
+    val url = value?.let { ResourceUrl.parse(it) } ?: return null
     val tag = findViewTagInFile(view, view.layout) ?: return null
     val (namespace, namespaceResolver) = getNamespacesContext(tag)
     val reference = url.resolve(namespace, namespaceResolver) ?: return null

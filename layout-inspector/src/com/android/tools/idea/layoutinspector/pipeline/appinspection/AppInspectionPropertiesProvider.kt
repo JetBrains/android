@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Com
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersData
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewPropertiesCache
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewPropertiesData
+import com.android.tools.idea.layoutinspector.properties.ColorActionIconButton
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
@@ -110,6 +111,7 @@ class AppInspectionPropertiesProvider(
     properties.values.forEach { property ->
       property.resolveDimensionType(view)
       runReadAction { property.replaceFileLocations(view) }
+      runReadAction { property.addColorButton(view) }
     }
 
     if (model.resourceLookup.hasResolver) {
@@ -173,7 +175,10 @@ class AppInspectionPropertiesProvider(
         item.lookup,
         emptyList()
       )
-      .apply { sourceLocations.addAll(item.sourceLocations) }
+      .apply {
+        sourceLocations.addAll(item.sourceLocations)
+        colorButton = item.colorButton
+      }
   }
 
   /**
@@ -223,8 +228,12 @@ class AppInspectionPropertiesProvider(
         )
         .apply {
           sourceLocations.addAll(item.sourceLocations)
+          colorButton = item.colorButton
           map.mapTo(children) { (reference, value) ->
-            ResolutionStackItem(this, reference, value).apply { replaceFileLocations(view) }
+            ResolutionStackItem(this, reference, value).apply {
+              replaceFileLocations(view)
+              addColorButton(view)
+            }
           }
         }
     }
@@ -233,5 +242,9 @@ class AppInspectionPropertiesProvider(
 
   private fun InspectorPropertyItem.replaceFileLocations(view: ViewNode) {
     lookup.resourceLookup.findFileLocations(this, view, source, sourceLocations)
+  }
+
+  private fun InspectorPropertyItem.addColorButton(view: ViewNode) {
+    colorButton = ColorActionIconButton.createColorButton(type, value, view, lookup.resourceLookup)
   }
 }

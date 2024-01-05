@@ -194,11 +194,10 @@ class ResourceLookup(private val project: Project) {
     composeResolver.findComposableNavigatable(composable)
 
   /** Find the icon from this drawable property. */
-  fun resolveAsIcon(property: InspectorPropertyItem, view: ViewNode): Icon? {
-    resolver?.resolveAsIcon(property, view)?.let {
+  fun resolveAsIcon(value: String?, view: ViewNode): Icon? {
+    resolver?.resolveAsIcon(value, view)?.let {
       return it
     }
-    val value = property.value
     val color = value?.let { parseColor(value) } ?: return null
     return JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, color, false))
   }

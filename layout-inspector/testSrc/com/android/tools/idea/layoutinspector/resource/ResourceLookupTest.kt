@@ -106,7 +106,7 @@ class ResourceLookupTest {
         title.drawId,
         context
       )
-    val icon = context.resourceLookup.resolveAsIcon(property, title)
+    val icon = context.resourceLookup.resolveAsIcon(property.value, title)
     assertThat(icon)
       .isEqualTo(JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, Color(0xCC0000), false)))
   }
