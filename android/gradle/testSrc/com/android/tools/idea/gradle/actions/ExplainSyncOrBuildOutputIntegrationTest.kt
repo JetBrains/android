@@ -18,20 +18,24 @@ package com.android.tools.idea.gradle.actions
 import com.android.SdkConstants.APP_PREFIX
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorShortDescription
+import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getGradleFilesContext
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.EventResult
+import org.jetbrains.kotlin.utils.sure
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
 
 class ExplainSyncOrBuildOutputIntegrationTest {
 
@@ -60,6 +64,7 @@ class ExplainSyncOrBuildOutputIntegrationTest {
         }
       )
     }) {}
+
     val actual = getErrorShortDescription(eventResults[1])!!.trimIndent()
       .replace("\r\n", "\n")
       .replace("\\", "/")
@@ -81,5 +86,16 @@ class ExplainSyncOrBuildOutputIntegrationTest {
                 to this project's gradle.properties.
                 Affected Modules: <a href="openFile:$absolutePath">app</a>
               """.trimIndent(), actual)
+  }
+
+  @Test
+  fun testGradleFilesContext() {
+    val preparedProject: PreparedTestProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    val (contextString, files) = preparedProject.open {
+      getGradleFilesContext(it, AiExcludeService.StubAiExcludeService())
+    }!!
+
+    assertTrue(contextString.contains("Project Gradle files, separated by -------:"))
+    assertEquals(3, files.size)
   }
 }

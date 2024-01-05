@@ -15,14 +15,26 @@
  */
 package com.android.tools.idea.gradle.actions
 
+import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorDetailsContext
+import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorFileLocationContext
+import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getErrorShortDescription
+import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput.Companion.getGradleFilesContext
 import com.android.tools.idea.studiobot.AiExcludeService
 import com.android.tools.idea.studiobot.ChatService
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.testing.ApplicationServiceRule
+import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.util.toIoFile
 import com.intellij.build.ExecutionNode
+import com.intellij.build.FileNavigatable
+import com.intellij.build.FilePosition
+import com.intellij.build.events.EventResult
+import com.intellij.build.events.Failure
+import com.intellij.build.events.FailureResult
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.MessageEventResult
+import com.intellij.build.events.impl.FailureImpl
 import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -33,7 +45,10 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.writeText
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -48,13 +63,12 @@ import junit.framework.TestCase.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.io.File
 import java.util.function.Supplier
 import kotlin.test.assertTrue
 
 @RunsInEdt
 class ExplainSyncOrBuildOutputTest {
-
-  private val projectRule = ProjectRule()
 
   private val testStudioBot =
       object : StudioBot.StubStudioBot() {
@@ -74,6 +88,12 @@ class ExplainSyncOrBuildOutputTest {
         }
       }
 
+  private val projectRule = ProjectRule()
+  private val project get() = projectRule.project
+
+  @get:Rule
+  val tempDirRule = TemporaryDirectoryRule()
+
   @get:Rule
   val rule = RuleChain(ApplicationRule(), projectRule, ApplicationServiceRule(StudioBot::class.java, testStudioBot), EdtRule())
 
@@ -86,7 +106,19 @@ class ExplainSyncOrBuildOutputTest {
     val event = AnActionEvent.createFromDataContext("AnActionEvent", Presentation(), TestDataContext(panel))
 
     action.actionPerformed(event)
-    assertEquals("Explain build error: Unexpected tokens (use ';' to separate expressions on the same line)", testStudioBot.wasCalled)
+    assertEquals(
+      """
+        I'm getting an error trying to build my project. The error is "Unexpected tokens (use ';' to separate expressions on the same line)".
+
+        Here are more details about the error and my project:
+
+        START CONTEXT
+        Project name: ${project.name}
+        Project path: ${project.basePath}
+        END CONTEXT
+
+        Explain this error and how to fix it.
+      """.trimIndent(), testStudioBot.wasCalled)
   }
 
   @Test
@@ -119,7 +151,7 @@ class ExplainSyncOrBuildOutputTest {
     override fun <T> getData(key: DataKey<T>): T? {
       @Suppress("UNCHECKED_CAST")
       return when (key) {
-        CommonDataKeys.PROJECT -> projectRule.project as T
+        CommonDataKeys.PROJECT -> project as T
         PlatformCoreDataKeys.CONTEXT_COMPONENT -> panel as T
         else -> null
       }
@@ -151,7 +183,7 @@ class ExplainSyncOrBuildOutputTest {
           android.suppressUnsupportedCompileSdk=34456
       to this project's gradle.properties.
       <a href="android.suppressUnsupportedCompileSdk">Update Gradle property to suppress warning</a>
-      Affected Modules: <a href="openFile:/Users/baskakov/AndroidStudioProjects/MyApplicationHedgehog/app/build.gradle.kts">app</a>
+      Affected Modules: <a href="openFile:/Users/someUsername/AndroidStudioProjects/MyApplicationHedgehog/app/build.gradle.kts">app</a>
       <a href="explain.issue">>> Ask Studio Bot</a>
     """.trimIndent()
     }
@@ -170,9 +202,143 @@ class ExplainSyncOrBuildOutputTest {
           android.suppressUnsupportedCompileSdk=34456
       to this project's gradle.properties.
       <a href="android.suppressUnsupportedCompileSdk">Update Gradle property to suppress warning</a>
-      Affected Modules: <a href="openFile:/Users/baskakov/AndroidStudioProjects/MyApplicationHedgehog/app/build.gradle.kts">app</a>
+      Affected Modules: <a href="openFile:/Users/someUsername/AndroidStudioProjects/MyApplicationHedgehog/app/build.gradle.kts">app</a>
       
       """.trimIndent(), getErrorShortDescription(event))
+  }
+
+  @Test
+  fun getErrorDetailsForFailureResult() {
+    val node = object : ExecutionNode(null, null, false, Supplier { true }) {
+      override fun getResult(): EventResult = FailureResult {
+        listOf(
+          FailureImpl(
+          "Gradle Sync issues.",
+          """
+            Could not find com.android.tools.build:gradle:123.456.789.
+            Searched in the following locations:
+              - file:/Users/username/dev/studio-main/out/repo/com/android/tools/build/gradle/123.456.789/gradle-123.456.789.pom
+              - https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/123.456.789/gradle-123.456.789.pom
+              - https://repo.maven.apache.org/maven2/com/android/tools/build/gradle/123.456.789/gradle-123.456.789.pom
+            Required by:
+                unspecified:unspecified:unspecified
+            <a href="add.google.maven.repo">Add google Maven repository and sync project</a>
+            <a href="open.plugin.build.file">Open File</a>
+          """.trimIndent()
+          )
+        )
+      }
+    }
+    assertEquals(
+      """
+        Error details:
+        Could not find com.android.tools.build:gradle:123.456.789.
+        Searched in the following locations:
+          - file:/Users/username/dev/studio-main/out/repo/com/android/tools/build/gradle/123.456.789/gradle-123.456.789.pom
+          - https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/123.456.789/gradle-123.456.789.pom
+          - https://repo.maven.apache.org/maven2/com/android/tools/build/gradle/123.456.789/gradle-123.456.789.pom
+        Required by:
+            unspecified:unspecified:unspecified
+        <a href="add.google.maven.repo">Add google Maven repository and sync project</a>
+        <a href="open.plugin.build.file">Open File</a>
+      """.trimIndent(),
+      getErrorDetailsContext(node)
+    )
+  }
+
+  @Test
+  fun getErrorDetailsForMessageEventResult() {
+    val node = object : ExecutionNode(null, null, false, Supplier { true }) {
+      override fun getResult(): EventResult = object : MessageEventResult {
+        override fun getKind() = MessageEvent.Kind.ERROR
+        override fun getDetails()= "e: file:///Users/someUsername/AndroidStudioProjects/MyComposeApp/app/src/main/java/com/example/mycomposeapp/Sandbox.kt:4:5 Expecting member declaration"
+      }
+    }
+    assertEquals(
+      """
+        Error details:
+        e: file:///Users/someUsername/AndroidStudioProjects/MyComposeApp/app/src/main/java/com/example/mycomposeapp/Sandbox.kt:4:5 Expecting member declaration
+      """.trimIndent(),
+      getErrorDetailsContext(node)
+    )
+  }
+
+  @Test
+  fun getCompilerErrorLocationContext() {
+    val file = tempDirRule.createVirtualFile("MyFile.kt")
+
+    WriteCommandAction.runWriteCommandAction(project) {
+      file.writeText(
+        """
+        class MyClass {
+          println("Hello")
+        }
+      """.trimIndent()
+      )
+    }
+
+    val navigatable = FileNavigatable(
+      project,
+      FilePosition(
+        file.toIoFile(),
+        1,
+        2
+      )
+    )
+
+    assertEquals(
+      Pair(
+        """
+        The error is in this file:
+        ${file.path}
+
+        The error is located at the line marked with --->:
+        ```
+             class MyClass {
+        --->   println("Hello")
+             }
+        ```
+      """.trimIndent(),
+        file
+      ),
+      getErrorFileLocationContext(navigatable, project, AiExcludeService.StubAiExcludeService())
+    )
+  }
+
+  @Test
+  fun errorLocationRespectsAiExclude() {
+    val file = tempDirRule.createVirtualFile("MyFile.kt")
+
+    WriteCommandAction.runWriteCommandAction(project) {
+      file.writeText(
+        """
+        class MyClass {
+          println("Hello")
+        }
+      """.trimIndent()
+      )
+    }
+
+    val navigatable = FileNavigatable(
+      project,
+      FilePosition(
+        file.toIoFile(),
+        1,
+        2
+      )
+    )
+
+    // An AiExcludeService that excludes all files
+    val aiExcludeService = object : AiExcludeService.StubAiExcludeService() {
+      override fun isFileExcluded(project: Project, file: VirtualFile) = true
+    }
+
+    val result = getErrorFileLocationContext(navigatable, project, aiExcludeService)
+
+    assertEquals(
+      null,
+      result
+    )
   }
 
   private class TestBuildTreeStructure(val root: TestExecutionNode) : AbstractTreeStructure() {

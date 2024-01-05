@@ -17,6 +17,7 @@ package com.android.tools.idea.studiobot
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Studio Bot allows users to control how much information about their project is shared during the API calls with the backend.
@@ -60,6 +61,7 @@ abstract class AiExcludeService {
 
   protected class ValidatedQueryImpl(override val query: String): ValidatedQuery
 
+  @TestOnly
   open class StubAiExcludeService: AiExcludeService() {
     override fun isFileExcluded(project: Project, file: VirtualFile): Boolean = false
 
