@@ -42,13 +42,7 @@ import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskgrid.TaskGrid
 import com.android.tools.profilers.taskbased.tasks.TaskGridModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.CallstackSampleTaskHandler
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.JavaKotlinMethodSampleTaskHandler
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.JavaKotlinMethodTraceTaskHandler
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemTraceTaskHandler
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.HeapDumpTaskHandler
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.JavaKotlinAllocationsTaskHandler
-import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.NativeAllocationsTaskHandler
+import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Ignore
@@ -84,13 +78,8 @@ class TaskGridTest {
     myManager = myProfilers.sessionsManager
     taskGridModel = TaskGridModel()
     ideProfilerServices.enableTaskBasedUx(true)
-    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, SystemTraceTaskHandler(myManager, false))
-    myProfilers.addTaskHandler(ProfilerTaskType.CALLSTACK_SAMPLE, CallstackSampleTaskHandler(myManager))
-    myProfilers.addTaskHandler(ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE, JavaKotlinMethodTraceTaskHandler(myManager))
-    myProfilers.addTaskHandler(ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE, JavaKotlinMethodSampleTaskHandler(myManager))
-    myProfilers.addTaskHandler(ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS, JavaKotlinAllocationsTaskHandler(myManager))
-    myProfilers.addTaskHandler(ProfilerTaskType.HEAP_DUMP, HeapDumpTaskHandler(myManager))
-    myProfilers.addTaskHandler(ProfilerTaskType.NATIVE_ALLOCATIONS, NativeAllocationsTaskHandler(myManager))
+    val taskHandlers = ProfilerTaskHandlerFactory.createTaskHandlers(myManager)
+    taskHandlers.forEach { myProfilers.addTaskHandler(it.key, it.value) }
   }
 
   @Ignore("b/309566948")
@@ -101,8 +90,8 @@ class TaskGridTest {
     ) {
       JewelThemedComposableWrapper(isDark = false) {
         TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
-                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
-                 myProfilers.taskHandlers)
+                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
+                 myProfilers.taskHandlers, myProfilers)
       }
     }
   }
@@ -131,8 +120,8 @@ class TaskGridTest {
     ) {
       JewelThemedComposableWrapper(isDark = true) {
         TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
-                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
-                 myProfilers.taskHandlers)
+                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
+                 myProfilers.taskHandlers, myProfilers)
       }
     }
   }
@@ -159,12 +148,12 @@ class TaskGridTest {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = false) {
         TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
-                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
-                 myProfilers.taskHandlers)
+                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
+                 myProfilers.taskHandlers, myProfilers)
       }
     }
 
-    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(7)
+    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(8)
 
     composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Callstack Sample").assertIsDisplayed().assertIsEnabled()
@@ -173,6 +162,29 @@ class TaskGridTest {
     composeTestRule.onNodeWithText("Java/Kotlin Allocations").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Heap Dump").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Native Allocations").assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithText("Live View").assertIsDisplayed().assertIsEnabled()
+  }
+
+  @Test
+  fun `only startup tasks are enabled and selectable without a selected device and process`() {
+    // There should be one task grid item for every task handler. Seven task handlers were added in the setup step of this test.
+    composeTestRule.setContent {
+      JewelThemedComposableWrapper(isDark = false) {
+        TaskGrid(taskGridModel, Common.Device.getDefaultInstance(), Common.Process.getDefaultInstance(), true, myProfilers.taskHandlers,
+                 myProfilers)
+      }
+    }
+
+    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(8)
+
+    composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithText("Callstack Sample").assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithText("Java/Kotlin Method Trace").assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithText("Java/Kotlin Method Sample (legacy)").assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithText("Native Allocations").assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithText("Java/Kotlin Allocations").assertIsDisplayed().assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Heap Dump").assertIsDisplayed().assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Live View").assertIsDisplayed().assertIsNotEnabled()
   }
 
   @Test
@@ -181,12 +193,12 @@ class TaskGridTest {
       JewelThemedComposableWrapper(isDark = false) {
         // Set feature level to 28, which will enable all tasks except Native Allocations.
         TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(28).build(),
-                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
-                 myProfilers.taskHandlers)
+                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
+                 myProfilers.taskHandlers, myProfilers)
       }
     }
 
-    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(7)
+    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(8)
 
     composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Callstack Sample").assertIsDisplayed().assertIsEnabled()
@@ -194,6 +206,7 @@ class TaskGridTest {
     composeTestRule.onNodeWithText("Java/Kotlin Method Sample (legacy)").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Java/Kotlin Allocations").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Heap Dump").assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithText("Live View").assertIsDisplayed().assertIsEnabled()
     // Because the Native Allocations task requires device feature level 29, this task is not supported and this should not be clickable.
     composeTestRule.onNodeWithText("Native Allocations").assertIsDisplayed().assertIsNotEnabled()
   }
@@ -204,18 +217,19 @@ class TaskGridTest {
       JewelThemedComposableWrapper(isDark = false) {
         // Set exposure level of process to profileable so only profileable-compatible tasks are enabled.
         TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
-                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE).build(),
-                 myProfilers.taskHandlers)
+                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE).build(), false,
+                 myProfilers.taskHandlers, myProfilers)
       }
     }
 
-    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(7)
+    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(8)
 
     composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Callstack Sample").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Java/Kotlin Method Trace").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Java/Kotlin Method Sample (legacy)").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("Native Allocations").assertIsDisplayed().assertIsEnabled()
+    composeTestRule.onNodeWithText("Live View").assertIsDisplayed().assertIsEnabled()
     // Java/Kotlin Allocations and Heap Dump tasks can only be done on Debuggable processes and thus should be disabled when a profileable
     // process is selected.
     composeTestRule.onNodeWithText("Java/Kotlin Allocations").assertIsDisplayed().assertIsNotEnabled()
@@ -227,12 +241,12 @@ class TaskGridTest {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = false) {
         TaskGrid(taskGridModel, Common.Device.newBuilder().setFeatureLevel(30).build(),
-                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(),
-                 myProfilers.taskHandlers)
+                 Common.Process.newBuilder().setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build(), false,
+                 myProfilers.taskHandlers, myProfilers)
       }
     }
 
-    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(7)
+    composeTestRule.onAllNodesWithTag(testTag = "TaskGridItem").assertCountEquals(8)
 
     composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled()
     composeTestRule.onNodeWithText("System Trace").performClick()

@@ -33,11 +33,14 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
   @VisibleForTesting
   val processListModel = ProcessListModel(profilers, taskGridModel::resetTaskSelection)
 
-  private val _isStartupTaskEnabled = MutableStateFlow(false)
-  val isStartupTaskEnabled = _isStartupTaskEnabled.asStateFlow()
+  private val _isProfilingFromProcessStart = MutableStateFlow(false)
+  val isProfilingFromProcessStart = _isProfilingFromProcessStart.asStateFlow()
 
-  fun enableIsStartupTask(isStartupTaskEnabled: Boolean) {
-    _isStartupTaskEnabled.value = isStartupTaskEnabled
+  fun setIsProfilingFromProcessStart(isProfilingFromProcessStart: Boolean) {
+    if (!isProfilingFromProcessStart) {
+      profilers.ideServices.disableStartupTasks()
+    }
+    _isProfilingFromProcessStart.value = isProfilingFromProcessStart
   }
 
   @VisibleForTesting
@@ -47,5 +50,5 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
 
   override fun onEnterTaskButtonClick() = profilers.setProcess(selectedDevice, selectedProcess,
                                                                TaskTypeMappingUtils.convertTaskType(selectedTaskType),
-                                                               _isStartupTaskEnabled.value)
+                                                               _isProfilingFromProcessStart.value)
 }

@@ -53,19 +53,22 @@ private fun TaskGridAndBarsContainer(taskGrid: @Composable () -> Unit,
 fun TaskGridAndBars(taskGridModel: TaskGridModel,
                     selectedDevice: Common.Device,
                     selectedProcess: Common.Process,
+                    isProfilingFromProcessStart: Boolean,
                     taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
                     onEnterProfilerTask: () -> Unit,
                     profilers: StudioProfilers,
                     ideProfilerComponents: IdeProfilerComponents,
                     modifier: Modifier) {
   val selectedTaskType by taskGridModel.selectedTaskType.collectAsState()
-  val canStartTask = selectedDevice != Common.Device.getDefaultInstance()
-                     && selectedProcess != Common.Process.getDefaultInstance()
-                     && selectedTaskType != ProfilerTaskType.UNSPECIFIED
+  // A device and process do not need to be selected if startup tasks are enabled (isProfilingFromProcessStart = true) to start the task.
+  val canStartTask = selectedTaskType != ProfilerTaskType.UNSPECIFIED &&
+                     ((selectedDevice != Common.Device.getDefaultInstance() && selectedProcess != Common.Process.getDefaultInstance()) ||
+                      isProfilingFromProcessStart)
+
   TaskGridAndBarsContainer(
     taskGrid = {
       TaskGrid(taskGridModel = taskGridModel, selectedDevice = selectedDevice, selectedProcess = selectedProcess,
-               taskHandlers = taskHandlers)
+               isProfilingFromProcessStart = isProfilingFromProcessStart, taskHandlers = taskHandlers, profilers = profilers)
     },
     topBar = { TopBar(profilers, ideProfilerComponents) },
     taskActionBar = { TaskActionBar(canStartTask, onEnterProfilerTask, true) },

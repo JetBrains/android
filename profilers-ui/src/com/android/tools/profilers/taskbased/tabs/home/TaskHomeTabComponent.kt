@@ -42,6 +42,7 @@ fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdePr
   ) {
     val taskGridModel = taskHomeTabModel.taskGridModel
     val taskHandlers = taskHomeTabModel.taskHandlers
+    val isProfilingFromProcessStart by taskHomeTabModel.isProfilingFromProcessStart.collectAsState()
     val processListModel = taskHomeTabModel.processListModel
     val selectedProcess by processListModel.selectedProcess.collectAsState()
     val selectedDevice by processListModel.selectedDevice.collectAsState()
@@ -54,8 +55,8 @@ fun TaskHomeTab(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdePr
         ProcessList(processListModel, it)
       },
       second = {
-        TaskGridAndBars(taskGridModel, selectedDevice, selectedProcess, taskHandlers, taskHomeTabModel::onEnterTaskButtonClick,
-                        profilers, ideProfilerComponents, it)
+        TaskGridAndBars(taskGridModel, selectedDevice, selectedProcess, isProfilingFromProcessStart, taskHandlers,
+                        taskHomeTabModel::onEnterTaskButtonClick, profilers, ideProfilerComponents, it)
       }
     )
   }

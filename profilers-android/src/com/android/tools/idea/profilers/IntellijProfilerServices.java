@@ -27,6 +27,7 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
@@ -39,6 +40,7 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
+import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
@@ -302,6 +304,56 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel) {
     return CpuProfilerConfigConverter.toProfilingConfiguration(CpuProfilerConfigsState.getDefaultConfigs(), apiLevel);
+  }
+
+  @Override
+  public void enableStartupTask(@NotNull ProfilerTaskType taskType) {
+    // This method should only be called by tasks that can be run on startup.
+    assert (isTaskSupportedOnStartup(taskType));
+
+    RunManager runManager = RunManager.getInstance(myProject);
+    if (runManager != null) {
+      RunnerAndConfigurationSettings configurationSettings = runManager.getSelectedConfiguration();
+      if (configurationSettings != null &&
+          configurationSettings.getConfiguration() instanceof AndroidRunConfigurationBase androidConfiguration) {
+        // Disable/reset all startup profiling configurations before setting one.
+        disableStartupTasks();
+
+        ProfilerState profilerState = androidConfiguration.getProfilerState();
+        profilerState.STARTUP_PROFILING_ENABLED = true;
+
+        if (taskType == ProfilerTaskType.NATIVE_ALLOCATIONS) {
+          profilerState.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
+        }
+        else {
+          profilerState.STARTUP_CPU_PROFILING_ENABLED = true;
+          profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME = CpuProfilerConfigConverter.fromTaskTypeToConfigName(taskType);
+        }
+      }
+    }
+  }
+
+  @Override
+  public boolean isTaskSupportedOnStartup(@NotNull ProfilerTaskType taskType) {
+    // The CpuProfilerConfig technologies are the only profiling configurations allowed to be performed on startup.
+    return Arrays.stream(CpuProfilerConfig.Technology.values())
+      .anyMatch(value -> value.getName().equals(taskType.getDescription()));
+  }
+
+  @Override
+  public void disableStartupTasks() {
+    RunManager runManager = RunManager.getInstance(myProject);
+    if (runManager != null) {
+      RunnerAndConfigurationSettings configurationSettings = runManager.getSelectedConfiguration();
+      if (configurationSettings != null &&
+          configurationSettings.getConfiguration() instanceof AndroidRunConfigurationBase androidConfiguration) {
+        ProfilerState profilerState = androidConfiguration.getProfilerState();
+        profilerState.STARTUP_PROFILING_ENABLED = false;
+        profilerState.STARTUP_CPU_PROFILING_ENABLED = false;
+        profilerState.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = false;
+        profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME = "";
+      }
+    }
   }
 
   @Override

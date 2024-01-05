@@ -20,12 +20,12 @@ import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsSelectable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.onParent
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
@@ -46,6 +46,7 @@ import com.android.tools.profilers.taskbased.tabs.home.TaskHomeTab
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.google.common.truth.Truth.assertThat
+import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -87,6 +88,11 @@ class TaskHomeTabTest {
     assertThat(taskHomeTabModel.processListModel.deviceToProcesses.value).isEmpty()
   }
 
+  @After
+  fun cleanup() {
+    taskHomeTabModel.setIsProfilingFromProcessStart(false)
+  }
+
   @Ignore("b/309566948")
   @Test
   fun `visual test, light theme`() {
@@ -119,8 +125,12 @@ class TaskHomeTabTest {
       }
     }
 
+    // If startup tasks are enabled, the system trace task would be enabled already. Here we make sure it is not enabled when startup tasks
+    // is disabled.
+    composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsNotEnabled()
+
     // Populate the device and process selections. Device will be auto-selected as it is the first and only online device available.
-    val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 24)
+    val device = ProcessListModelTest.createDevice("FakeDevice", Common.Device.State.ONLINE, "12", 28)
     ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(20, "FakeProcess1", Common.Process.State.ALIVE,
                                                                                          device.deviceId), myTransportService, myTimer)
     ProcessListModelTest.addDeviceWithProcess(device, ProcessListModelTest.createProcess(40, "FakeProcess2", Common.Process.State.ALIVE,
@@ -144,13 +154,39 @@ class TaskHomeTabTest {
     composeTestRule.onNodeWithTag("EnterTaskButton").assertIsNotEnabled()
 
     // Make task selection.
-    composeTestRule.onNodeWithText("Heap Dump").assertIsDisplayed().assertIsEnabled().assertHasClickAction()
-    composeTestRule.onNodeWithText("Heap Dump").performClick()
+    composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled().assertHasClickAction()
+    composeTestRule.onNodeWithText("System Trace").performClick()
 
     // Make sure task selection was registered in data model.
-    assertThat(taskHomeTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.HEAP_DUMP)
+    assertThat(taskHomeTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
 
     // Make sure at this point, the start profiler task button is now enabled as device, process, and task selections were all valid.
+    composeTestRule.onNodeWithTag("EnterTaskButton").assertIsEnabled()
+  }
+
+  @Test
+  fun `startup tasks are enabled and selectable without process and device selection with task starting from process start`() {
+    composeTestRule.setContent {
+      JewelThemedComposableWrapper(isDark = true) {
+        taskHomeTabModel.setIsProfilingFromProcessStart(true)
+        TaskHomeTab(taskHomeTabModel, myComponents)
+      }
+    }
+
+    // If startup tasks is enabled, the system trace task should be enabled and selectable already.
+    composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled().assertIsSelectable()
+
+    // Make sure at this point, the start profiler task button is still disabled as a task selection has not been made yet.
+    composeTestRule.onNodeWithTag("EnterTaskButton").assertIsNotEnabled()
+
+    // Make task selection.
+    composeTestRule.onNodeWithText("System Trace").assertIsDisplayed().assertIsEnabled().assertHasClickAction()
+    composeTestRule.onNodeWithText("System Trace").performClick()
+
+    // Make sure task selection was registered in data model.
+    assertThat(taskHomeTabModel.selectedTaskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
+
+    // Make sure at this point, the start profiler task button is now enabled startup tasks is enabled, and the task selection is valid.
     composeTestRule.onNodeWithTag("EnterTaskButton").assertIsEnabled()
   }
 }

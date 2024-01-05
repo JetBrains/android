@@ -17,7 +17,13 @@ package com.android.tools.idea.profilers.profilingconfig
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter.fromTaskTypeToConfigName
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
+import com.android.tools.idea.run.profiler.CpuProfilerConfig.INSTRUMENTED_JAVA_CONFIG_NAME
+import com.android.tools.idea.run.profiler.CpuProfilerConfig.NATIVE_ALLOCATIONS_CONFIG_NAME
+import com.android.tools.idea.run.profiler.CpuProfilerConfig.SAMPLED_JAVA_CONFIG_NAME
+import com.android.tools.idea.run.profiler.CpuProfilerConfig.SAMPLED_NATIVE_CONFIG_NAME
+import com.android.tools.idea.run.profiler.CpuProfilerConfig.SYSTEM_TRACE_CONFIG_NAME
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
 import com.android.tools.profilers.cpu.config.AtraceConfiguration
@@ -28,6 +34,7 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.google.common.truth.Truth.assertThat
 import org.junit.AfterClass
 import org.junit.Test
@@ -373,5 +380,42 @@ class CpuProfilerConfigConverterTest {
     assertThat(cpuProfilerConfig.technology).isEqualTo(CpuProfilerConfig.Technology.SAMPLED_JAVA)
     assertThat(cpuProfilerConfig.samplingIntervalUs).isEqualTo(ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US)
     assertThat(cpuProfilerConfig.bufferSizeMb).isEqualTo(ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB)
+  }
+
+  @Test
+  fun testFromTaskTypeToConfigNameJavaKotlinMethodSample() {
+    val result = fromTaskTypeToConfigName(ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE)
+    assertThat(SAMPLED_JAVA_CONFIG_NAME).isEqualTo(result)
+  }
+
+  @Test
+  fun testFromTaskTypeToConfigNameJavaKotlinMethodTrace() {
+    val result = fromTaskTypeToConfigName(ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE)
+    assertThat(INSTRUMENTED_JAVA_CONFIG_NAME).isEqualTo(result)
+  }
+
+  @Test
+  fun testFromTaskTypeToConfigNameCallstackSample() {
+    val result = fromTaskTypeToConfigName(ProfilerTaskType.CALLSTACK_SAMPLE)
+    assertThat(SAMPLED_NATIVE_CONFIG_NAME).isEqualTo(result)
+  }
+
+  @Test
+  fun testFromTaskTypeToConfigNameSystemTrace() {
+    val result = fromTaskTypeToConfigName(ProfilerTaskType.SYSTEM_TRACE)
+    assertThat(SYSTEM_TRACE_CONFIG_NAME).isEqualTo(result)
+  }
+
+  @Test
+  fun testFromTaskTypeToConfigNameNativeAllocations() {
+    val result = fromTaskTypeToConfigName(ProfilerTaskType.NATIVE_ALLOCATIONS)
+    assertThat(NATIVE_ALLOCATIONS_CONFIG_NAME).isEqualTo(result)
+  }
+
+  @Test
+  fun testFromTaskTypeToConfigNameUnspecifiedTaskType() {
+    // Test handling of unspecified task type
+    val result = fromTaskTypeToConfigName(ProfilerTaskType.UNSPECIFIED)
+    assertThat("").isEqualTo(result)
   }
 }

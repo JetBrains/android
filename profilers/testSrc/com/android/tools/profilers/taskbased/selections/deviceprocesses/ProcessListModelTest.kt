@@ -326,7 +326,7 @@ class ProcessListModelTest {
                      deviceState: Common.Device.State,
                      version: String,
                      apilevel: Int) = Common.Device.newBuilder().setDeviceId(deviceName.hashCode().toLong()).setSerial(deviceName).setState(
-      deviceState).setModel(deviceName).setVersion(version).setApiLevel(apilevel).build()
+      deviceState).setModel(deviceName).setVersion(version).setApiLevel(apilevel).setFeatureLevel(apilevel).build()
 
     fun createProcess(pid: Int,
                       processName: String,

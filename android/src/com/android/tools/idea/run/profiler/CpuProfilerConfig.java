@@ -22,6 +22,11 @@ import java.util.Objects;
 
 public class CpuProfilerConfig {
   public static final int DEFAULT_BUFFER_SIZE_MB = 8;
+  public static final String SAMPLED_JAVA_CONFIG_NAME = "Java/Kotlin Method Sample (legacy)";
+  public static final String INSTRUMENTED_JAVA_CONFIG_NAME = "Java/Kotlin Method Trace";
+  public static final String SAMPLED_NATIVE_CONFIG_NAME = "Callstack Sample";
+  public static final String SYSTEM_TRACE_CONFIG_NAME = "System Trace";
+  public static final String NATIVE_ALLOCATIONS_CONFIG_NAME = "Native Allocations";
 
   @NotNull private String myName;
   @NotNull private Technology myTechnology;
@@ -121,35 +126,35 @@ public class CpuProfilerConfig {
       @NotNull
       @Override
       public String getName() {
-        return "Java/Kotlin Method Sample (legacy)";
+        return SAMPLED_JAVA_CONFIG_NAME;
       }
     },
     INSTRUMENTED_JAVA {
       @NotNull
       @Override
       public String getName() {
-        return "Java/Kotlin Method Trace";
+        return INSTRUMENTED_JAVA_CONFIG_NAME;
       }
     },
     SAMPLED_NATIVE {
       @NotNull
       @Override
       public String getName() {
-        return "Callstack Sample";
+        return SAMPLED_NATIVE_CONFIG_NAME;
       }
     },
     SYSTEM_TRACE {
       @NotNull
       @Override
       public String getName() {
-        return "System Trace";
+        return SYSTEM_TRACE_CONFIG_NAME;
       }
     },
     NATIVE_ALLOCATIONS {
       @NotNull
       @Override
       public String getName() {
-        return "Native Allocations";
+        return NATIVE_ALLOCATIONS_CONFIG_NAME;
       }
     };
 
