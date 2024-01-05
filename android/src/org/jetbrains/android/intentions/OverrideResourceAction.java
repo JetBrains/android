@@ -44,6 +44,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.NlsSafe;
 import com.intellij.openapi.util.io.StreamUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -64,6 +65,8 @@ import org.jetbrains.android.actions.CreateResourceDirectoryDialog;
 import org.jetbrains.android.actions.ElementCreatingValidator;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,8 +82,11 @@ import org.jetbrains.annotations.Nullable;
  * </ul>
  */
 public class OverrideResourceAction extends AbstractIntentionAction {
-  private static String getActionName(@Nullable String folder) {
-    return "Override Resource in " + (folder != null ? folder : "Other Configuration...");
+  @Nls
+  @NotNull
+  private static String getActionName(@NlsSafe @Nullable String folder) {
+    return AndroidBundle.message("android.override.resource.in.intention.text",
+                                 (folder != null ? folder : AndroidBundle.message("android.other.configuration")));
   }
 
   @NotNull

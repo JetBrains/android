@@ -21,6 +21,7 @@ import com.intellij.psi.util.InheritanceUtil;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.Service;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +34,7 @@ public class AddServiceToManifest extends AbstractRegisterComponentAction {
   @NotNull
   @Override
   public String getText() {
-    return "Add service to manifest";
+    return AndroidBundle.message("android.add.service.to.manifest.intention.text");
   }
 
   @Override
