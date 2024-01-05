@@ -35,6 +35,7 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -69,7 +70,7 @@ public final class ConvertLayoutToDataBindingAction extends AbstractIntentionAct
   @Override
   @NotNull
   public String getText() {
-    return "Convert to data binding layout";
+    return AndroidBundle.message("android.convert.to.data.binding.layout.intention.text");
   }
 
   @NotNull

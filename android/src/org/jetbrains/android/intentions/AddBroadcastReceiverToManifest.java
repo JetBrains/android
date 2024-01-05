@@ -21,6 +21,7 @@ import com.intellij.psi.util.InheritanceUtil;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.Receiver;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +34,7 @@ public class AddBroadcastReceiverToManifest extends AbstractRegisterComponentAct
   @NotNull
   @Override
   public String getText() {
-    return "Add broadcast receiver to manifest";
+    return AndroidBundle.message("android.add.broadcast.receiver.to.manifest.intention.text");
   }
 
   @Override
