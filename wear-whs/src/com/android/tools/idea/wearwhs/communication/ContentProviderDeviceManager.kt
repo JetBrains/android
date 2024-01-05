@@ -83,14 +83,11 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
       return
     }
 
-    if (value == null) {
-      // TODO: Delete override value from content provider
-      return
-    }
-
     val device = DeviceSelector.fromSerialNumber(serialNumber!!)
 
-    val contentUpdateCommand = if (capability.key == WhsDataType.STEPS) {
+    val contentUpdateCommand = if (value == null) {
+      contentUpdateCapability(capability.key.name, "\"\"")
+    } else if (capability.key == WhsDataType.STEPS) {
       contentUpdateCapability(capability.key.name, value.toInt())
     } else {
       contentUpdateCapability(capability.key.name, value.toFloat())
