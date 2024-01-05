@@ -142,6 +142,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
     for (entry in capabilityToState.keys) {
       setOverrideValue(entry, null)
     }
+    deviceManager.clearContentProvider()
   }
 
   override fun dispose() { // Clear all callbacks to avoid memory leaks

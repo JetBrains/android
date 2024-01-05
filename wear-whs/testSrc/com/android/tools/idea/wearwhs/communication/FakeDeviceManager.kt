@@ -29,6 +29,7 @@ internal class FakeDeviceManager(
   internal val capabilities: List<WhsCapability> = WHS_CAPABILITIES) : WearHealthServicesDeviceManager {
   internal var failState = false
   internal val triggeredEvents = mutableListOf<EventTrigger>()
+  internal var clearContentProviderInvocations = 0
   private val onDeviceStates = capabilities.associateWith { OnDeviceCapabilityState(false, null) }
 
   override suspend fun loadCapabilities() = if (failState) {
@@ -77,6 +78,10 @@ internal class FakeDeviceManager(
   else {
     delay(DELAY_MS)
     onDeviceStates
+  }
+
+  override suspend fun clearContentProvider() {
+    clearContentProviderInvocations++
   }
 
   override fun setSerialNumber(serialNumber: String) {}

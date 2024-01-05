@@ -76,6 +76,7 @@ class DeviceManagerTest {
   private val adbCommandClearSpeed = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind SPEED:s:\"\""
   private val adbCommandClearPace = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind PACE:s:\"\""
   private val adbCommandClearStepsPerMinute = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS_PER_MINUTE:s:\"\""
+  private val adbCommandDeleteEntries = "content delete --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config"
 
   private val capabilities = mapOf(
     WhsDataType.STEPS to WhsCapability(
@@ -390,5 +391,20 @@ class DeviceManagerTest {
     assertDeviceManagerFunctionSendsAdbCommand(
       { deviceManager -> deviceManager.triggerEvent(EventTrigger("whs.GOLF_SHOT", "label")) },
       "am broadcast -a \"whs.GOLF_SHOT\" com.google.android.wearable.healthservices")
+  }
+
+  @Test
+  fun `Delete entries without setting serial number does not result in crash`() = runTest {
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+
+    val job = launch {
+      deviceManager.clearContentProvider()
+    }
+    job.join()
+  }
+
+  @Test
+  fun `Delete entries triggers correct adb command`() {
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.clearContentProvider() }, adbCommandDeleteEntries)
   }
 }

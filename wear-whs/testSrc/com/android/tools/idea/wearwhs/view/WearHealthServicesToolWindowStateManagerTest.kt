@@ -25,6 +25,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearHealthServicesEvent
 import com.intellij.openapi.util.Disposer
+import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -119,12 +120,14 @@ class WearHealthServicesToolWindowStateManagerTest {
   }
 
   @Test
-  fun `test reset sets the preset to all and removes overrides`() = runBlocking {
+  fun `test reset sets the preset to all, removes overrides and invokes device manager`() = runBlocking {
     stateManager.getCapabilitiesList().waitForValue(capabilities)
 
     stateManager.setPreset(Preset.STANDARD)
 
     stateManager.setOverrideValue(capabilities[1], 3f)
+
+    assertEquals(0, deviceManager.clearContentProviderInvocations)
 
     stateManager.reset()
 
@@ -132,6 +135,8 @@ class WearHealthServicesToolWindowStateManagerTest {
     stateManager.getState(capabilities[2]).map { it.enabled }.waitForValue(true)
     stateManager.getState(capabilities[1]).map { it.overrideValue }.waitForValue(null)
     stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(false)
+
+    assertEquals(1, deviceManager.clearContentProviderInvocations)
   }
 
   @Test

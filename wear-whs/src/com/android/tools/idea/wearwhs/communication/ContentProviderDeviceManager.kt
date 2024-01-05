@@ -45,6 +45,16 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
     OnDeviceCapabilityState(false, null)
   }
 
+  override suspend fun clearContentProvider() {
+    if (serialNumber == null) {
+      // TODO: Log this error
+      return
+    }
+
+    val device = DeviceSelector.fromSerialNumber(serialNumber!!)
+    adbSession.deviceServices.shellAsText(device, "content delete --uri $whsUri")
+  }
+
   override fun setSerialNumber(serialNumber: String) {
     this.serialNumber = serialNumber
   }
