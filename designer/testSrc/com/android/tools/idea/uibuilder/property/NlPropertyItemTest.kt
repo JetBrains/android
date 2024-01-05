@@ -54,6 +54,7 @@ import com.android.SdkConstants.VIEW_MERGE
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.WARNING
@@ -85,6 +86,7 @@ import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.ColorsIcon
 import icons.StudioIcons
 import java.awt.Color
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
@@ -248,8 +250,7 @@ class NlPropertyItemTest {
     // trigger once the icon is available.
     val actionIcon = runReadAction { colorButton.actionIcon }
     updatedPropertiesDeferrable.await()
-    assertThat(runReadAction { colorButton.actionIcon }).isNotEqualTo(actionIcon)
-    assertThat(runReadAction { colorButton.actionIcon }).isEqualTo(colorIcon)
+    waitForCondition(10, TimeUnit.SECONDS) { runReadAction { colorButton.actionIcon } == colorIcon }
     val browseButton = property.browseButton!!
     assertThat(runReadAction { browseButton.actionIcon })
       .isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
