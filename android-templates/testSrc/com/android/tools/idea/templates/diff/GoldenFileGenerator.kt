@@ -34,19 +34,6 @@ class GoldenFileGenerator(template: Template, goldenDirName: String) :
     FileUtils.deleteRecursivelyIfExists(outputDir.toFile())
     FileUtils.copyDirectory(projectDir.toFile(), outputDir.toFile())
     FILES_TO_IGNORE.forEach { FileUtils.deleteRecursivelyIfExists(goldenDir.resolve(it).toFile()) }
-
-    println("\n----------------------------------------")
-    println(
-      "Outputting generated golden files to $outputDir\n\n" +
-        "To update these files, unzip golden/ from outputs.zip to the android-templates/testData/golden directory.\n" +
-        "For a remote invocation, download and unzip golden/ from outputs.zip:\n" +
-        "    unzip outputs.zip \"golden/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"\n" +
-        "\n" +
-        "For a local invocation, outputs.zip will be in bazel-testlogs:\n" +
-        "    unzip $(bazel info bazel-testlogs)/tools/adt/idea/android-templates/intellij.android.templates.tests_tests__TemplateDiffTest/test.outputs/outputs.zip \\\n" +
-        "    \"golden/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\""
-    )
-    println("----------------------------------------\n")
   }
 
   override fun prepareProject(projectRoot: File) {

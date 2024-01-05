@@ -88,7 +88,8 @@ class TemplateDiffTest(private val testMode: TestMode) {
      * If GENERATE_LINT_BASELINE=true, then this is also assumed to be true.
      */
     private fun shouldGenerateGolden(): Boolean {
-      return shouldGenerateLintBaseline() || System.getenv("GENERATE_GOLDEN")?.equals("true") ?: false
+      return shouldGenerateLintBaseline() ||
+        System.getenv("GENERATE_GOLDEN")?.equals("true") ?: false
     }
 
     /**
@@ -180,6 +181,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
       // TODO: We need to check more combinations of different moduleData/template params here.
       // Running once to make it as easy as possible.
       projectRenderer.renderProject(project, *customizers)
+      printUnzipInstructions()
     }
     println("Checked $name ($goldenDirName) successfully in ${msToCheck}ms\n")
     validationFailed = false
@@ -243,6 +245,36 @@ class TemplateDiffTest(private val testMode: TestMode) {
           .paths
       moduleData.setModuleRoots(paths, projectData.topOut!!.path, moduleData.name!!, packageName)
     }
+
+  private fun printUnzipInstructions() {
+    val generatedBaseline = shouldGenerateLintBaseline()
+
+    val remoteBaseline =
+      if (generatedBaseline)
+        "    unzip outputs.zip \"lintBaseline/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"\n"
+      else ""
+
+    val localBaseline =
+      if (generatedBaseline)
+        "\n    unzip $(bazel info bazel-testlogs)/tools/adt/idea/android-templates/intellij.android.templates.tests_tests__TemplateDiffTest/test.outputs/outputs.zip \\\n" +
+          "    \"lintBaseline/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\""
+      else ""
+
+    println("\n----------------------------------------")
+    println(
+      "Outputting generated golden${if (generatedBaseline) " and Lint baseline" else ""} files to undeclared outputs\n\n" +
+        "To update these files, unzip golden/${if (generatedBaseline) " and lintBaseline/" else ""} from outputs.zip to the android-templates/testData/golden directory.\n" +
+        "For a remote invocation, download and unzip golden/${if (generatedBaseline) " and lintBaseline/" else ""} from outputs.zip:\n" +
+        "    unzip outputs.zip \"golden/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"\n" +
+        remoteBaseline +
+        "\n" +
+        "For a local invocation, outputs.zip will be in bazel-testlogs:\n" +
+        "    unzip $(bazel info bazel-testlogs)/tools/adt/idea/android-templates/intellij.android.templates.tests_tests__TemplateDiffTest/test.outputs/outputs.zip \\\n" +
+        "    \"golden/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"" +
+        localBaseline
+    )
+    println("----------------------------------------\n")
+  }
 
   /*
    * Tests for individual activity templates go below here. Each test method should only test one

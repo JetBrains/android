@@ -81,7 +81,6 @@ class GoldenFileValidator(
 
   /** Build the project to ensure it compiles */
   private fun performBuild() {
-    @Suppress("IncorrectParentDisposable")
     injectBuildOutputDumpingBuildViewManager(gradleProjectRule.project, gradleProjectRule.project)
     gradleProjectRule.invokeTasks("compileDebugSources").apply { // "assembleDebug" is too slow
       buildError?.printStackTrace()
@@ -145,19 +144,11 @@ class GoldenFileValidator(
           if (generateLintBaseline) {
             copyBaselineFile(projectBaseline)
             println("$numErrors lint warnings exist! Generated baseline file $goldenDirName.xml")
-            println(
-              "To update these files, unzip lintBaseline/ from outputs.zip to the android-templates/testData/lintBaseline directory.\n" +
-                "For a remote invocation, download and unzip lintBaseline/ from outputs.zip:\n" +
-                "    unzip outputs.zip \"lintBaseline/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"\n" +
-                "\n" +
-                "For a local invocation, outputs.zip will be in bazel-testlogs:\n" +
-                "    unzip $(bazel info bazel-testlogs)/tools/adt/idea/android-templates/intellij.android.templates.tests_tests__TemplateDiffTest/test.outputs/outputs.zip \\\n" +
-                "    \"lintBaseline/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\""
-            )
-            // TODO: we shouldn't generate the golden files if we generate lint, but we also don't want to fail the entire test
           } else {
             fail(
               "$numErrors lint warnings exist! Either there is no baseline, or there are new warnings not in the baseline.\n" +
+                "Please fix the warnings and re-run the golden generator. " +
+                "If this is intentional, you can generate a new baseline file to ignore these warnings.\n" +
                 "To generate the baseline file, re-run the generator with --test_env=GENERATE_LINT_BASELINE=true"
             )
           }
