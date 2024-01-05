@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 8.4.0-dev" type="baseline" client="gradle" dependencies="false" name="AGP (8.4.0-dev)" variant="all" version="8.4.0-dev">
+
+    <issue
+        id="FragmentTagUsage"
+        message="Replace the &lt;fragment> tag with FragmentContainerView."
+        errorLine1="&lt;fragment xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
+        errorLine2=" ~~~~~~~~">
+        <location
+            file="src/main/res/layout/activity_map.xml"
+            line="2"
+            column="2"/>
+    </issue>
+
+</issues>

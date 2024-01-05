@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 8.4.0-dev" type="baseline" client="gradle" dependencies="false" name="AGP (8.4.0-dev)" variant="all" version="8.4.0-dev">
+
+    <issue
+        id="Deprecated"
+        message="App actions via actions.xml is deprecated; Please migrate to shortcuts.xml. See https://developers.google.com/assistant/app/legacy/migration-guide."
+        errorLine1="            android:name=&quot;com.google.android.actions&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="16"
+            column="13"/>
+    </issue>
+
+</issues>
