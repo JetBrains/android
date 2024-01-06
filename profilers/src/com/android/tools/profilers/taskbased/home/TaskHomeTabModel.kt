@@ -30,17 +30,19 @@ import kotlinx.coroutines.flow.asStateFlow
  * reading the process and Profiler task selection and using such values to launch the Profiler task.
  */
 class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profilers) {
-  @VisibleForTesting
-  val processListModel = ProcessListModel(profilers, taskGridModel::resetTaskSelection)
-
   private val _isProfilingFromProcessStart = MutableStateFlow(false)
   val isProfilingFromProcessStart = _isProfilingFromProcessStart.asStateFlow()
+
+  @VisibleForTesting
+  val processListModel = ProcessListModel(profilers, isProfilingFromProcessStart, taskGridModel::resetTaskSelection)
 
   fun setIsProfilingFromProcessStart(isProfilingFromProcessStart: Boolean) {
     if (!isProfilingFromProcessStart) {
       profilers.ideServices.disableStartupTasks()
     }
     _isProfilingFromProcessStart.value = isProfilingFromProcessStart
+    // Task selection should be reset when toggling the startup tasks feature as the task enablement criteria changes.
+    taskGridModel.resetTaskSelection()
   }
 
   @VisibleForTesting
@@ -48,7 +50,13 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
   @VisibleForTesting
   val selectedProcess: Common.Process get() = processListModel.selectedProcess.value
 
-  override fun onEnterTaskButtonClick() = profilers.setProcess(selectedDevice, selectedProcess,
-                                                               TaskTypeMappingUtils.convertTaskType(selectedTaskType),
-                                                               _isProfilingFromProcessStart.value)
+  override fun onEnterTaskButtonClick() {
+    if (_isProfilingFromProcessStart.value) {
+      val prefersProfileable = taskGridModel.selectedTaskType.value.prefersProfileable
+      profilers.ideServices.buildAndLaunchAction(prefersProfileable)
+    }
+    else {
+      profilers.setProcess(selectedDevice, selectedProcess, TaskTypeMappingUtils.convertTaskType(selectedTaskType), false)
+    }
+  }
 }

@@ -42,6 +42,7 @@ import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.Pro
 import com.android.tools.profilers.taskbased.selections.deviceprocesses.ProcessListModelTest
 import com.android.tools.profilers.taskbased.tabs.home.processlist.ProcessList
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -74,7 +75,7 @@ class ProcessListTest {
       myTimer
     )
     myManager = myProfilers.sessionsManager
-    processListModel = ProcessListModel(myProfilers) {}
+    processListModel = ProcessListModel(myProfilers, MutableStateFlow(false)) {}
     ideProfilerServices.enableTaskBasedUx(true)
   }
 
@@ -198,7 +199,7 @@ class ProcessListTest {
   fun `default entry shown when no online devices are available`() {
     composeTestRule.setContent {
       JewelThemedComposableWrapper(isDark = true) {
-        val emptyDeviceProcessListModel = ProcessListModel(myProfilers) {}
+        val emptyDeviceProcessListModel = ProcessListModel(myProfilers, MutableStateFlow(false)) {}
         ProcessList(emptyDeviceProcessListModel)
       }
     }

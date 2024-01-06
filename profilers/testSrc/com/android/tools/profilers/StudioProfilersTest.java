@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS;
 import static com.android.tools.profilers.StudioProfilers.AGENT_STATUS_MAX_RETRY_COUNT;
 import static com.google.common.truth.Truth.assertThat;
@@ -1701,6 +1702,39 @@ public final class StudioProfilersTest {
     // Confirm that the first session was not ended.
     assertThat(myProfilers.getSessionsManager().mySessionItems.get(firstSession.getSessionId())).isNotNull();
     assertThat(myProfilers.getSessionsManager().mySessionItems.get(firstSession.getSessionId()).isOngoing()).isTrue();
+  }
+
+  @Test
+  public void testStartupTaskWithTaskBasedUxEnabled() {
+    // Setup of conditions to allow for startup task to be performed. This includes enabling the Task-Based UX feature flag, the startup
+    // task feature, setting a selected task handler (and supplying its corresponding task handler), and providing a preferred device.
+    myIdeProfilerServices.enableTaskBasedUx(true);
+    myProfilers.getTaskHomeTabModel().setIsProfilingFromProcessStart(true);
+    myProfilers.getTaskHomeTabModel().getTaskGridModel().onTaskSelection(ProfilerTaskType.SYSTEM_TRACE);
+    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, new SystemTraceTaskHandler(myProfilers.getSessionsManager(), false));
+    Common.Device device = FAKE_DEVICE;
+    myTransportService.addDevice(device);
+
+    // Set preferred device + process to be used for the startup task.
+    myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS.getName(), null);
+
+    // Provide the processes so that StudioProfilers can detect a change in processes and attempt to perform the startup task.
+    Common.Process debuggableEvent = FAKE_PROCESS.toBuilder()
+      .setStartTimestampNs(5)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
+      .build();
+    myTransportService.addProcess(device, debuggableEvent);
+
+    // Because there is a change in processes, the StudioProfiler#update loop will attempt to start a new session on the preferred device.
+    // It will succeed because Task-Based UX is enabled, the startup tasks feature is enabled, a task is selected (SYSTEM_TRACE), and a
+    // preferred device is supplied.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // Check that setProcess was called on process change and thus the session pid is that of FAKE_PROCESS (pid=1).
+    assertThat(myProfilers.getSession().getPid()).isEqualTo(FAKE_PROCESS.getPid());
+    // Make sure that the startup task is tied to the session created on startup.
+    assertThat(myProfilers.getSessionsManager().getIsCurrentTaskStartup()).isTrue();
+    assertThat(myProfilers.getSessionsManager().getCurrentTaskType()).isEqualTo(ProfilerTaskType.SYSTEM_TRACE);
   }
 
   @Test

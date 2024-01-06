@@ -54,8 +54,10 @@ import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionItem;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
 import com.android.tools.profilers.tasks.ProfilerTaskLauncher;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
+import com.android.tools.profilers.tasks.TaskTypeMappingUtils;
 import com.android.tools.profilers.tasks.args.TaskArgs;
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler;
 import com.google.common.annotations.VisibleForTesting;
@@ -164,6 +166,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private Map<Long, Common.Stream> myStreamIdToStreams;
 
+  /**
+   * Data model for the Task-Based UX's home tab.
+   */
+  @NotNull
+  private final TaskHomeTabModel myTaskHomeTabModel;
+
+  @NotNull
   private final Map<ProfilerTaskType, ProfilerTaskHandler> myTaskHandlers;
 
   @NotNull private final SessionsManager mySessionsManager;
@@ -254,6 +263,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     mySessionChangeListener = new HashMap<>();
     myDeviceToStreamIds = new HashMap<>();
     myStreamIdToStreams = new HashMap<>();
+    myTaskHomeTabModel = new TaskHomeTabModel(this);
     myTaskHandlers = taskHandlers;
     myCreateTaskTab = createTaskTab;
     myOpenTaskTab = openTaskTab;
@@ -369,6 +379,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   public List<Common.Device> getDevices() {
     return Lists.newArrayList(myProcesses.keySet());
+  }
+
+  @NotNull
+  public TaskHomeTabModel getTaskHomeTabModel() {
+    return myTaskHomeTabModel;
   }
 
   /**
@@ -518,8 +533,21 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         // The following call to setProcess will start a session on profiler start and on process selection change, but Task-Based UX does
         // not auto start a session on profiler start or on process change. Thus, we disable the call to setProcess if the Task-Based UX
         // is enabled.
-        if (!getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+        boolean isTaskBasedUXEnabled = getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
+        if (!isTaskBasedUXEnabled) {
           setProcess(findPreferredDevice(), null);
+        }
+
+        if (isTaskBasedUXEnabled) {
+          boolean isProfilingFromProcessStart = getTaskHomeTabModel().isProfilingFromProcessStart().getValue();
+          ProfilerTaskType selectedTaskType = getTaskHomeTabModel().getSelectedTaskType();
+          // The check for a non-null preferred device makes sure the preferred device is alive and detected. It is imperative for startup
+          // scenarios, although this condition may be true in non-startup scenarios too. It's worth noting that repeated calls to
+          // setProcess with the same parameters are harmless, as setProcess prevents starting a session/task with the same device and
+          // process combination when facilitating a startup task.
+          if (findPreferredDevice() != null && isProfilingFromProcessStart && selectedTaskType != ProfilerTaskType.UNSPECIFIED) {
+            setProcess(findPreferredDevice(), null, TaskTypeMappingUtils.convertTaskType(selectedTaskType), true);
+          }
         }
 
         // These need to be fired every time the process list changes so that the device/process dropdown always reflects the latest.

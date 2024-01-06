@@ -21,9 +21,14 @@ import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.annotations.VisibleForTesting
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class ProcessListModel(val profilers: StudioProfilers, private val resetTaskSelection: () -> Unit) : AspectObserver() {
+class ProcessListModel(
+  val profilers: StudioProfilers,
+  private val isProfilingFromProcessStart: StateFlow<Boolean>,
+  private val resetTaskSelection: () -> Unit,
+) : AspectObserver() {
   private val _deviceToProcesses = MutableStateFlow(mapOf<Common.Device, List<Common.Process>>())
   val deviceToProcesses = _deviceToProcesses.asStateFlow()
 
@@ -68,12 +73,7 @@ class ProcessListModel(val profilers: StudioProfilers, private val resetTaskSele
       resetDeviceSelection()
     }
 
-    // If there is no device selected and there is only one online device, this single device is auto-selected.
-    val updatedDevices = _deviceList.value;
-    if (!isDeviceSelected() && updatedDevices.size == 1) {
-      onDeviceSelection(updatedDevices.first())
-    }
-
+    autoSelectDevice()
     reorderProcessList()
   }
 
@@ -128,8 +128,23 @@ class ProcessListModel(val profilers: StudioProfilers, private val resetTaskSele
     _deviceToProcesses.value = newDeviceToProcesses
   }
 
+  /**
+   * Auto-selects a device if there is no device is currently selected and there is only one online device.
+   */
+  private fun autoSelectDevice() {
+    val updatedDevices = _deviceList.value;
+    if (!isDeviceSelected() && updatedDevices.size == 1) {
+      onDeviceSelection(updatedDevices.first())
+    }
+  }
+
   fun onDeviceSelection(newDevice: Common.Device) {
-    resetTaskSelection()
+    // Reset task selection unless this callback is triggered by a startup task. During a startup task, the device is auto-selected and
+    // later a session would be created using the task selected before this callback's execution. Therefore, the task selection shouldn't
+    // be reset here for a startup task.
+    if (!isProfilingFromProcessStart.value) {
+      resetTaskSelection()
+    }
     _selectedDevice.value = newDevice
     // Force reordering now that device is selected. This makes sure the process list is reordered correctly using the preferred process
     // in the case the preferred process was set before a device selection was made.
