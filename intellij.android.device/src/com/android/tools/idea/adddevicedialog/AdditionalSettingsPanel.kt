@@ -44,7 +44,7 @@ internal fun AdditionalSettingsPanel(
 
   CameraGroup(device, onDeviceChange)
   NetworkGroup(device, onDeviceChange)
-  StartupGroup(device.orientation) { onDeviceChange(device.copy(orientation = it)) }
+  StartupGroup(device, onDeviceChange)
 }
 
 @Composable
@@ -86,10 +86,7 @@ private val SPEEDS = AvdNetworkSpeed.values().asIterable().toImmutableList()
 private val LATENCIES = AvdNetworkLatency.values().asIterable().toImmutableList()
 
 @Composable
-private fun StartupGroup(
-  selectedOrientation: ScreenOrientation,
-  onSelectedOrientationChange: (ScreenOrientation) -> Unit
-) {
+private fun StartupGroup(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
   GroupHeader("Startup")
 
   Row {
@@ -98,19 +95,29 @@ private fun StartupGroup(
     Dropdown(
       menuContent = {
         ORIENTATIONS.forEach {
-          selectableItem(selectedOrientation == it, onClick = { onSelectedOrientationChange(it) }) {
+          selectableItem(
+            device.orientation == it,
+            onClick = { onDeviceChange(device.copy(orientation = it)) }
+          ) {
             Text(it.shortDisplayValue)
           }
         }
       }
     ) {
-      Text(selectedOrientation.shortDisplayValue)
+      Text(device.orientation.shortDisplayValue)
     }
+  }
+
+  Row {
+    Text("Default boot")
+    Dropdown(device.defaultBoot, BOOTS) { onDeviceChange(device.copy(defaultBoot = it)) }
   }
 }
 
 private val ORIENTATIONS =
   listOf(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE).toImmutableList()
+
+private val BOOTS = enumValues<Boot>().asIterable().toImmutableList()
 
 @Composable
 private fun <I> Dropdown(

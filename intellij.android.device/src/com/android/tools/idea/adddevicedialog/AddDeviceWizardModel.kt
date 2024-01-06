@@ -52,7 +52,8 @@ internal constructor(
         AvdCamera.VIRTUAL_SCENE, // TODO We're assuming the emulator supports this feature
         EmulatedProperties.DEFAULT_NETWORK_SPEED,
         EmulatedProperties.DEFAULT_NETWORK_LATENCY,
-        ScreenOrientation.PORTRAIT
+        ScreenOrientation.PORTRAIT,
+        Boot.QUICK
       )
     )
   }

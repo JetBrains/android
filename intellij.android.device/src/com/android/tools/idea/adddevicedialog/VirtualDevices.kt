@@ -43,14 +43,10 @@ internal object VirtualDevices {
     val skin = device.skin.path()
 
     val properties =
-      mapOf(
+      mutableMapOf(
         "AvdId" to id,
         "avd.ini.displayname" to device.name,
         "disk.dataPartition.size" to "2G",
-        "fastboot.chosenSnapshotFile" to "",
-        "fastboot.forceChosenSnapshotBoot" to "no",
-        "fastboot.forceColdBoot" to "no",
-        "fastboot.forceFastBoot" to "yes",
         "hw.accelerometer" to "yes",
         "hw.audioInput" to "yes",
         "hw.battery" to "yes",
@@ -82,6 +78,8 @@ internal object VirtualDevices {
         "skin.path" to skin.toString(),
         "vm.heapSize" to "256"
       )
+
+    properties.putAll(device.defaultBoot.properties)
 
     connection.createOrUpdateAvd(
       /* currentInfo= */ null,
