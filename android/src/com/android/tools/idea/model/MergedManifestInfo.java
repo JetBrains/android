@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.model;
 
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.annotations.concurrency.Immutable;
@@ -28,14 +27,13 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ManifestOverrides;
 import com.android.tools.idea.projectsystem.MergedManifestContributors;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -44,13 +42,11 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.util.messages.MessageBusConnection;
 import gnu.trove.TObjectLongHashMap;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -75,7 +71,7 @@ import org.w3c.dom.Document;
  * the {@link #isUpToDate} method.
  */
 @Immutable
-final class MergedManifestInfo implements Disposable.Default {
+final class MergedManifestInfo {
   private static final Logger LOG = Logger.getInstance(MergedManifestInfo.class);
 
   @NotNull private final AndroidFacet myFacet;
@@ -86,9 +82,9 @@ final class MergedManifestInfo implements Disposable.Default {
    */
   @Nullable private final Document myDomDocument;
   @NotNull private final ModificationStamps myModificationStamps;
+  private final long mySyncModificationCount;
   @Nullable private final ImmutableList<MergingReport.Record> myLoggingRecords;
   @Nullable private final Actions myActions;
-  private volatile boolean myInvalidatedBySync = false;
 
   /**
    * Relevant information extracted from the result of running the manifest merger,
@@ -186,18 +182,15 @@ final class MergedManifestInfo implements Disposable.Default {
   private MergedManifestInfo(@NotNull AndroidFacet facet,
                              @Nullable Document domDocument,
                              @NotNull ModificationStamps modificationStamps,
+                             long syncModificationCount,
                              @Nullable ImmutableList<MergingReport.Record> loggingRecords,
                              @Nullable Actions actions) {
     myFacet = facet;
     myDomDocument = domDocument;
     myModificationStamps = modificationStamps;
+    mySyncModificationCount = syncModificationCount;
     myLoggingRecords = loggingRecords;
     myActions = actions;
-    Disposer.register(facet, this);
-    Project project = facet.getModule().getProject();
-    MessageBusConnection connection = project.getMessageBus().connect(this);
-    ProjectSystemSyncManager.SyncResultListener listener = (result) -> { if (result.isSuccessful()) this.myInvalidatedBySync = true; };
-    connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, listener);
   }
 
   /**
@@ -210,6 +203,7 @@ final class MergedManifestInfo implements Disposable.Default {
 
     MergedManifestContributors contributors = ProjectSystemUtil.getModuleSystem(facet).getMergedManifestContributors();
     ModificationStamps modificationStamps = ModificationStamps.forFiles(project, contributors.allFiles);
+    long syncModificationCount = ProjectSyncModificationTracker.getInstance(project).getModificationCount();
 
     Document document = null;
     ImmutableList<MergingReport.Record> loggingRecords = null;
@@ -222,7 +216,7 @@ final class MergedManifestInfo implements Disposable.Default {
       actions = result.actions;
     }
 
-    return new MergedManifestInfo(facet, document, modificationStamps, loggingRecords, actions);
+    return new MergedManifestInfo(facet, document, modificationStamps, syncModificationCount, loggingRecords, actions);
   }
 
   @Slow
@@ -272,7 +266,8 @@ final class MergedManifestInfo implements Disposable.Default {
     if (manifests.primaryManifest == null) {
       return true;
     }
-    if (myDomDocument == null || myInvalidatedBySync) {
+    long modificationCount = ProjectSyncModificationTracker.getInstance(myFacet.getModule().getProject()).getModificationCount();
+    if (myDomDocument == null || modificationCount != mySyncModificationCount) {
       return false;
     }
     return myModificationStamps.isCurrent(myFacet.getModule().getProject(), manifests.allFiles);
