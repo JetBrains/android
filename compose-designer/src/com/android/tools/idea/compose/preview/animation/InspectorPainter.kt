@@ -20,6 +20,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.Color
@@ -34,7 +35,7 @@ open class DefaultToolbarImpl(rootComponent: JComponent, place: String, actions:
   init {
     targetComponent = rootComponent
     ActionToolbarUtil.makeToolbarNavigable(this)
-    layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
+    layoutStrategy = ToolbarLayoutStrategy.HORIZONTAL_NOWRAP_STRATEGY
     setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
   }
 }

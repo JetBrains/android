@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 
@@ -30,7 +30,7 @@ fun createStatusIcon(action: AnAction, target: JComponent): JComponent {
     .apply {
       targetComponent = target
       (this as? ActionToolbarImpl)?.setForceMinimumSize(true)
-      layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
+      layoutStrategy = ToolbarLayoutStrategy.HORIZONTAL_NOWRAP_STRATEGY
     }
     .component
     .apply {

@@ -39,6 +39,7 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.UIUtil;
@@ -131,7 +132,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     Disposer.register(this, myToolbarActionGroups);
 
     myNorthToolbar = createActionToolbar("NlConfigToolbar", myToolbarActionGroups.getNorthGroup());
-    myNorthToolbar.setLayoutPolicy(ActionToolbar.AUTO_LAYOUT_POLICY);
+    myNorthToolbar.setLayoutStrategy(ToolbarLayoutStrategy.HORIZONTAL_AUTOLAYOUT_STRATEGY);
     myNorthToolbar.setTargetComponent(mySurface);
 
     JComponent northToolbarComponent = myNorthToolbar.getComponent();
@@ -143,7 +144,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     JComponent northEastToolbarComponent = myNorthEastToolbar.getComponent();
     myNorthEastToolbar.setReservePlaceAutoPopupIcon(false);
     northEastToolbarComponent.setName("NlRhsConfigToolbar");
-    myNorthEastToolbar.setLayoutPolicy(ActionToolbar.AUTO_LAYOUT_POLICY);
+    myNorthEastToolbar.setLayoutStrategy(ToolbarLayoutStrategy.HORIZONTAL_AUTOLAYOUT_STRATEGY);
 
     myCenterToolbar = createActionToolbar("NlLayoutToolbar", myDynamicGroup);
     myCenterToolbar.setTargetComponent(mySurface);
@@ -180,7 +181,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   @NotNull
   private static ActionToolbarImpl createActionToolbar(@NotNull String place, @NotNull ActionGroup group) {
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(place, group, true);
-    toolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
+    toolbar.setLayoutStrategy(ToolbarLayoutStrategy.HORIZONTAL_WRAP_STRATEGY);
     if (group == ActionGroup.EMPTY_GROUP) {
       toolbar.getComponent().setVisible(false);
     }

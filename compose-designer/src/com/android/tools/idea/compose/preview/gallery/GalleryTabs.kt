@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -282,7 +283,7 @@ class GalleryTabs<Key : TitledKey>(
     ActionToolbarImpl(place, actionGroup, true).apply {
       targetComponent = root
       ActionToolbarUtil.makeToolbarNavigable(this)
-      layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
+      layoutStrategy = ToolbarLayoutStrategy.HORIZONTAL_NOWRAP_STRATEGY
       setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
     }
 

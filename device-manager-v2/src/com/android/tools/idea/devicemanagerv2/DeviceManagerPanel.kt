@@ -51,6 +51,7 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -315,7 +316,7 @@ constructor(
   private fun createToolbar(actions: List<AnAction>): ActionToolbar {
     val toolbar =
       ActionManager.getInstance().createActionToolbar(TOOLBAR_ID, DefaultActionGroup(actions), true)
-    toolbar.layoutPolicy = ActionToolbar.AUTO_LAYOUT_POLICY
+    toolbar.layoutStrategy = ToolbarLayoutStrategy.HORIZONTAL_AUTOLAYOUT_STRATEGY
     toolbar.targetComponent = this
     ActionToolbarUtil.makeToolbarNavigable(toolbar)
     return toolbar

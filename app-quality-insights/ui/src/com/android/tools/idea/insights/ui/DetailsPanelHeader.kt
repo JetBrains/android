@@ -38,6 +38,7 @@ import java.awt.Dimension
 import javax.swing.JPanel
 import javax.swing.border.CompoundBorder
 import org.jetbrains.annotations.VisibleForTesting
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 
 class DetailsPanelHeader(editor: Editor) : JPanel(TabularLayout("*,Fit", "Fit")) {
   @VisibleForTesting val titleLabel = SimpleColoredComponent()
@@ -60,7 +61,7 @@ class DetailsPanelHeader(editor: Editor) : JPanel(TabularLayout("*,Fit", "Fit"))
     border = JBUI.Borders.empty()
     add(titleLabel, TabularLayout.Constraint(0, 0))
     toolbar.targetComponent = this
-    toolbar.layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
+    toolbar.layoutStrategy = ToolbarLayoutStrategy.HORIZONTAL_NOWRAP_STRATEGY
     toolbar.setReservePlaceAutoPopupIcon(false)
     ActionToolbarUtil.makeToolbarNavigable(toolbar)
     toolbar.component.apply {

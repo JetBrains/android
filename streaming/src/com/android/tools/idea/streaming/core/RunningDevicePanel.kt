@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
@@ -175,7 +176,7 @@ abstract class RunningDevicePanel(
   private fun createToolbar(toolbarId: String, horizontal: Boolean): ActionToolbar {
     val actions = listOf(CustomActionsSchema.getInstance().getCorrectedAction(toolbarId)!!)
     val toolbar = ActionManager.getInstance().createActionToolbar(toolbarId, DefaultActionGroup(actions), horizontal)
-    toolbar.layoutPolicy = ActionToolbar.AUTO_LAYOUT_POLICY
+    toolbar.layoutStrategy = if (horizontal) ToolbarLayoutStrategy.HORIZONTAL_AUTOLAYOUT_STRATEGY else ToolbarLayoutStrategy.VERTICAL_AUTOLAYOUT_STRATEGY
     toolbar.targetComponent = this
     ActionToolbarUtil.makeToolbarNavigable(toolbar)
     return toolbar

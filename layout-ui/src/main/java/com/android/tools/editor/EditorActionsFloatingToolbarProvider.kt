@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
@@ -260,7 +261,7 @@ private fun createToolbar(
   // Place must be "DesignSurface" to get the correct variation for zoom icons.
   val toolbar =
     actionManager.createActionToolbar(place, actionGroup, false).apply {
-      layoutPolicy = ActionToolbar.WRAP_LAYOUT_POLICY
+      layoutStrategy = ToolbarLayoutStrategy.HORIZONTAL_WRAP_STRATEGY
       setTargetComponent(target)
       setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
       component.apply {

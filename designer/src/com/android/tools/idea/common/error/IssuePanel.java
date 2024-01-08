@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.IdeBorderFactory;
@@ -262,7 +263,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ACTION_BAR_PLACE, actionGroup, true);
     toolbar.setTargetComponent(this);
     ActionToolbarUtil.makeToolbarNavigable(toolbar);
-    toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
+    toolbar.setLayoutStrategy(ToolbarLayoutStrategy.HORIZONTAL_NOWRAP_STRATEGY);
     return toolbar;
   }
 
