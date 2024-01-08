@@ -18,8 +18,9 @@ package com.android.tools.idea.run.editor
 import com.intellij.execution.util.ListTableWithButtons
 import com.intellij.icons.AllIcons
 import com.intellij.idea.ActionsBundle
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.AnActionButton
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import java.awt.Component
@@ -52,11 +53,14 @@ class AndroidTestExtraParamsTable(
 
   override fun createRemoveAction() = if (showAddAndDeleteElementButton) super.createRemoveAction() else null
 
-  override fun createExtraActions(): Array<AnActionButton> {
-    val extraActions = super.createExtraActions()
+  override fun createExtraToolbarActions(): Array<AnAction> {
+    val extraActions = super.createExtraToolbarActions()
     return if (showRevertElementButton) {
-      val revertAction = object : AnActionButton(ActionsBundle.message("action.ChangesView.Revert.text"),
-                                                 AllIcons.Actions.Rollback) {
+      val revertAction = object : AnAction(ActionsBundle.message("action.ChangesView.Revert.text"), null,
+                                           AllIcons.Actions.Rollback) {
+
+        override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
         override fun actionPerformed(e: AnActionEvent) {
           stopEditing()
           selection.forEach { selectedParam ->
@@ -67,8 +71,8 @@ class AndroidTestExtraParamsTable(
           setModified()
         }
 
-        override fun isEnabled(): Boolean {
-          return selection.any { selectedParam ->
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = selection.any { selectedParam ->
             selectedParam.ORIGINAL_VALUE_SOURCE != AndroidTestExtraParamSource.NONE
             && selectedParam.VALUE != selectedParam.ORIGINAL_VALUE
           }
