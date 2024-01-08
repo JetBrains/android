@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Wrapper class to define the options available for [SwitchSurfaceLayoutManagerAction].
@@ -37,7 +38,8 @@ import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
 data class SurfaceLayoutManagerOption(
   val displayName: String,
   val layoutManager: SurfaceLayoutManager,
-  val sceneViewAlignment: DesignSurface.SceneViewAlignment = DesignSurface.SceneViewAlignment.CENTER
+  val sceneViewAlignment: DesignSurface.SceneViewAlignment =
+    DesignSurface.SceneViewAlignment.CENTER,
 )
 
 private const val PREVIEW_LEFT_PADDING = 25
@@ -61,18 +63,42 @@ private val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<Positi
   listOf(PositionableGroup(it.toList()))
 }
 
-private val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<PositionableGroup> =
+@VisibleForTesting
+val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<PositionableGroup> =
   { contents ->
     val groups = mutableMapOf<String?, MutableList<PositionableContent>>()
     for (content in contents) {
       groups.getOrPut(content.organizationGroup) { mutableListOf() }.add(content)
     }
 
-    // Put previews which are the only preview in a group last as one group.
-    val singles = groups.filter { it.value.size == 1 }
-    singles.forEach { groups.remove(it.key) }
-    groups.values.map { PositionableGroup(it) } +
-      listOf(PositionableGroup(singles.values.flatten()))
+    groups.values
+      .fold(
+        Pair(mutableListOf<PositionableGroup>(), mutableListOf<PositionableContent>()),
+      ) { temp, next ->
+        val hasSinglePreview = next.size == 1
+        // If next has only one preview - keep it in temp.second
+        if (hasSinglePreview) {
+          temp.second.addAll(next)
+        }
+
+        // Temp.second contains all consecutive groups with size 1.
+        // If next is not a group with size 1 or if it is the last element, group all collected
+        // groups with size 1 as one.
+        if (!hasSinglePreview || groups.values.last() == next) {
+          if (temp.second.isNotEmpty()) {
+            temp.first.add(PositionableGroup(temp.second.toList()))
+            temp.second.clear()
+          }
+        }
+
+        // If next has more than one element - it will have its own PositionableGroup
+        if (!hasSinglePreview) {
+          temp.first.add(PositionableGroup(next))
+        }
+
+        temp
+      }
+      .first
   }
 
 /** Toolbar option to select [PreviewMode.Gallery] layout. */
@@ -94,7 +120,7 @@ val LIST_LAYOUT_MANAGER_OPTION =
         PREVIEW_FRAME_PADDING_PROVIDER,
         GROUP_BY_BASE_COMPONENT,
       ),
-      DesignSurface.SceneViewAlignment.LEFT
+      DesignSurface.SceneViewAlignment.LEFT,
     )
   } else if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
     SurfaceLayoutManagerOption(
@@ -104,8 +130,8 @@ val LIST_LAYOUT_MANAGER_OPTION =
         NlConstants.DEFAULT_SCREEN_OFFSET_Y,
         NlConstants.SCREEN_DELTA,
         NlConstants.SCREEN_DELTA,
-        SingleDirectionLayoutManager.Alignment.CENTER
-      )
+        SingleDirectionLayoutManager.Alignment.CENTER,
+      ),
     )
   } else {
     SurfaceLayoutManagerOption(
@@ -116,7 +142,7 @@ val LIST_LAYOUT_MANAGER_OPTION =
         PREVIEW_FRAME_PADDING_PROVIDER,
         NO_GROUP_TRANSFORM,
       ),
-      DesignSurface.SceneViewAlignment.LEFT
+      DesignSurface.SceneViewAlignment.LEFT,
     )
   }
 
@@ -129,7 +155,7 @@ val GRID_LAYOUT_MANAGER_OPTIONS =
         PREVIEW_TOP_PADDING,
         PREVIEW_LEFT_PADDING,
         PREVIEW_FRAME_PADDING_PROVIDER,
-        GROUP_BY_BASE_COMPONENT
+        GROUP_BY_BASE_COMPONENT,
       ),
       DesignSurface.SceneViewAlignment.LEFT,
     )
@@ -140,9 +166,9 @@ val GRID_LAYOUT_MANAGER_OPTIONS =
         NlConstants.DEFAULT_SCREEN_OFFSET_X,
         NlConstants.DEFAULT_SCREEN_OFFSET_Y,
         NlConstants.SCREEN_DELTA,
-        NlConstants.SCREEN_DELTA
+        NlConstants.SCREEN_DELTA,
       ),
-      DesignSurface.SceneViewAlignment.LEFT
+      DesignSurface.SceneViewAlignment.LEFT,
     )
   } else {
     SurfaceLayoutManagerOption(
