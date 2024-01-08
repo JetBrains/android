@@ -23,7 +23,7 @@ import com.android.tools.idea.preview.util.createToolbarWithNavigation
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
@@ -130,7 +130,7 @@ class AnimationCard(
   }
 
   private inner class ExpandAction :
-    AnActionButton(message("animation.inspector.action.expand"), UIUtil.getTreeCollapsedIcon()) {
+    DumbAwareAction(message("animation.inspector.action.expand"), null, UIUtil.getTreeCollapsedIcon()) {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
@@ -143,8 +143,7 @@ class AnimationCard(
       }
     }
 
-    override fun updateButton(e: AnActionEvent) {
-      super.updateButton(e)
+    override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = true
       e.presentation.apply {
         if (state.value.expanded) {

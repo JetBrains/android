@@ -21,7 +21,7 @@ import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
 
 /**
@@ -33,17 +33,16 @@ import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
  */
 class AnimationInspectorAction(
   private val isEssentialsModeEnabled: () -> Boolean,
-  private val defaultModeDescription: String = message("action.animation.inspector.description"),
+  private val defaultModeDescription: String = message("action.animation.inspector.description")
 ) :
-  AnActionButton(
+  DumbAwareAction(
     message("action.animation.inspector.title"),
     defaultModeDescription,
     ANIMATION_INSPECTOR,
   ) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-  override fun updateButton(e: AnActionEvent) {
-    super.updateButton(e)
+  override fun update(e: AnActionEvent) {
     e.presentation.apply {
       val isEssentialsModeEnabled = isEssentialsModeEnabled()
       isEnabled = !isEssentialsModeEnabled

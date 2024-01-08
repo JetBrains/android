@@ -23,8 +23,10 @@ import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionToolbarPosition;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -155,7 +157,7 @@ class ExtractStyleDialog extends DialogWrapper {
     decorator.setEditAction(null);
     decorator.disableUpDownActions();
 
-    AnActionButton selectAll = new AnActionButton("Select All", null, PlatformIcons.SELECT_ALL_ICON) {
+    AnAction selectAll = new DumbAwareAction("Select All", null, PlatformIcons.SELECT_ALL_ICON) {
       @Override
       public @NotNull ActionUpdateThread getActionUpdateThread() {
         return ActionUpdateThread.BGT;
@@ -168,7 +170,8 @@ class ExtractStyleDialog extends DialogWrapper {
     };
     decorator.addExtraAction(selectAll);
 
-    AnActionButton unselectAll = new AnActionButton("Unselect All", null, PlatformIcons.UNSELECT_ALL_ICON) {
+    AnAction
+      unselectAll = new DumbAwareAction("Unselect All", null, PlatformIcons.UNSELECT_ALL_ICON) {
       @Override
       public @NotNull ActionUpdateThread getActionUpdateThread() {
         return ActionUpdateThread.BGT;

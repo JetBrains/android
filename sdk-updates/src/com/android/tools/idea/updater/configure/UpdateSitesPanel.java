@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.options.ex.Settings;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.ui.AnActionButton;
 import com.intellij.ui.AnActionButtonRunnable;
 import com.intellij.ui.AnActionButtonUpdater;
@@ -97,35 +98,35 @@ public class UpdateSitesPanel {
       public boolean isEnabled(@NotNull AnActionEvent e) {
         return mySourcesTableModel.isEditable();
       }
-    }).addExtraAction(new AnActionButton("Select All", AllIcons.Actions.Selectall) {
+    }).addExtraAction(new DumbAwareAction("Select All", null, AllIcons.Actions.Selectall) {
       @Override
       public @NotNull ActionUpdateThread getActionUpdateThread() {
         return ActionUpdateThread.BGT;
+      }
+
+      @Override
+      public void update(@NotNull AnActionEvent e) {
+        e.getPresentation().setEnabled(mySourcesTableModel.hasEditableRows());
       }
 
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         mySourcesTableModel.setAllEnabled(true);
       }
-
-      @Override
-      public boolean isEnabled() {
-        return mySourcesTableModel.hasEditableRows();
-      }
-    }).addExtraAction(new AnActionButton("Deselect All", AllIcons.Actions.Unselectall) {
+    }).addExtraAction(new DumbAwareAction("Deselect All", null, AllIcons.Actions.Unselectall) {
       @Override
       public @NotNull ActionUpdateThread getActionUpdateThread() {
         return ActionUpdateThread.BGT;
       }
 
       @Override
-      public void actionPerformed(@NotNull AnActionEvent e) {
-        mySourcesTableModel.setAllEnabled(false);
+      public void update(@NotNull AnActionEvent e) {
+        e.getPresentation().setEnabled(mySourcesTableModel.hasEditableRows());
       }
 
       @Override
-      public boolean isEnabled() {
-        return mySourcesTableModel.hasEditableRows();
+      public void actionPerformed(@NotNull AnActionEvent e) {
+        mySourcesTableModel.setAllEnabled(false);
       }
     }).setMoveDownAction(null).setMoveUpAction(null).setRemoveActionUpdater(new AnActionButtonUpdater() {
       @Override

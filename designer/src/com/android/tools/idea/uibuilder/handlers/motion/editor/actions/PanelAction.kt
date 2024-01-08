@@ -19,13 +19,13 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.Bas
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import java.awt.Component
 import javax.swing.JComponent
 
 /** AnAction for target [BaseCreatePanel]. */
-class PanelAction(private val panel: BaseCreatePanel, private val motionEditor: MotionEditor) :
-  AnActionButton(panel.name, panel.icon) {
+open class PanelAction(private val panel: BaseCreatePanel, private val motionEditor: MotionEditor) :
+  DumbAwareAction(panel.name, null, panel.icon) {
 
   /**
    * If current action appears in popup, context should be set, otherwise it will use component

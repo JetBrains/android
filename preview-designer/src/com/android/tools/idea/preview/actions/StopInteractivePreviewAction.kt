@@ -20,7 +20,7 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
 
 /**
@@ -28,14 +28,14 @@ import icons.StudioIcons
  * already running and if the preview is not refreshing.
  */
 class StopInteractivePreviewAction(private val isDisabled: (e: AnActionEvent) -> Boolean) :
-  AnActionButton(
+  DumbAwareAction(
     message("action.stop.interactive.title"),
     message("action.stop.interactive.description"),
     StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE,
   ) {
   override fun displayTextInToolbar(): Boolean = true
 
-  override fun updateButton(e: AnActionEvent) {
+  override fun update(e: AnActionEvent) {
     val previewMode = e.dataContext.findPreviewManager(PreviewModeManager.KEY)?.mode?.value
     e.presentation.isEnabled = previewMode is PreviewMode.Interactive && !isDisabled(e)
     e.presentation.isVisible = previewMode is PreviewMode.Interactive

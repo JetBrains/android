@@ -21,7 +21,7 @@ import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
 
 /**
@@ -31,16 +31,16 @@ import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
  *   when Essentials Mode is enabled.
  */
 class EnableInteractiveAction(private val isEssentialsModeEnabled: () -> Boolean) :
-  AnActionButton(
+  DumbAwareAction(
     message("action.interactive.title"),
     message("action.interactive.description"),
     INTERACTIVE_PREVIEW,
   ) {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-  override fun updateButton(e: AnActionEvent) {
-    super.updateButton(e)
+  override fun update(e: AnActionEvent) {
     val isEssentialsModeEnabled = isEssentialsModeEnabled()
+    e.presentation.isVisible = true
     e.presentation.isEnabled = !isEssentialsModeEnabled
     e.presentation.text = if (isEssentialsModeEnabled) null else message("action.interactive.title")
     e.presentation.description =

@@ -16,22 +16,23 @@
 package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.fileChooser.actions.VirtualFileDeleteProvider;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
-import com.intellij.ui.AnActionButton;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PlatformIcons;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -76,11 +77,12 @@ public class CreateXmlResourceSubdirPanel {
 
     decorator.setRemoveAction(button -> doDeleteDirectory());
 
-    final AnActionButton selectAll = new AnActionButton("Select All", null, PlatformIcons.SELECT_ALL_ICON) {
+    AnAction selectAll = new DumbAwareAction("Select All", null, PlatformIcons.SELECT_ALL_ICON) {
       @Override
       public @NotNull ActionUpdateThread getActionUpdateThread() {
         return ActionUpdateThread.BGT;
       }
+
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         doSelectAllDirs();
@@ -88,7 +90,7 @@ public class CreateXmlResourceSubdirPanel {
     };
     decorator.addExtraAction(selectAll);
 
-    final AnActionButton unselectAll = new AnActionButton("Unselect All", null, PlatformIcons.UNSELECT_ALL_ICON) {
+    AnAction unselectAll = new DumbAwareAction("Unselect All", null, PlatformIcons.UNSELECT_ALL_ICON) {
       @Override
       public @NotNull ActionUpdateThread getActionUpdateThread() {
         return ActionUpdateThread.BGT;

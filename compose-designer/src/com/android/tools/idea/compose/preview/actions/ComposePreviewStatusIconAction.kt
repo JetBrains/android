@@ -24,17 +24,16 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.actions.hasSceneViewErrors
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.ui.AnActionButton
 import icons.StudioIcons
 
-/** [AnAction] that can be used to show an icon according to the Compose Preview status */
-internal class ComposePreviewStatusIconAction : AnActionButton() {
+/** [DumbAwareAction] that can be used to show an icon according to the Compose Preview status */
+internal class ComposePreviewStatusIconAction : DumbAwareAction() {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
-  override fun updateButton(e: AnActionEvent) {
+  override fun update(e: AnActionEvent) {
     val composePreviewManager = e.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val project = e.project ?: return
     val previewStatus = composePreviewManager.status()

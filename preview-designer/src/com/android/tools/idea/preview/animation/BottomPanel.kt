@@ -23,7 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.ToolbarLabelAction
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBFont
@@ -40,7 +40,7 @@ import javax.swing.border.MatteBorder
 class BottomPanel(rootComponent: JComponent, private val tracker: AnimationTracker) :
   JPanel(BorderLayout()) {
 
-  var clockTimeMs = 0
+  var clockTimeMs: Int = 0
     set(value) {
       field = value
       westToolbar.updateActionsImmediately()
@@ -85,9 +85,9 @@ class BottomPanel(rootComponent: JComponent, private val tracker: AnimationTrack
   }
 
   private inner class ResetTimelineAction :
-    AnActionButton(
-      message("animation.inspector.action.reset.timeline"),
-      StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED,
+    DumbAwareAction(
+      message("animation.inspector.action.reset.timeline"), null,
+      StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED
     ) {
     override fun actionPerformed(e: AnActionEvent) {
       resetListeners.forEach { it() }
@@ -96,8 +96,7 @@ class BottomPanel(rootComponent: JComponent, private val tracker: AnimationTrack
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-    override fun updateButton(e: AnActionEvent) {
-      super.updateButton(e)
+    override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = true
       e.presentation.text = message("animation.inspector.action.reset.single.animation")
     }

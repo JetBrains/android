@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 
 /** Click or Swipe Handler action. */
-class ClickOrSwipeAction(motionEditor: MotionEditor) :
+open class ClickOrSwipeAction(motionEditor: MotionEditor) :
   OpenPopUpAction("Create Click or Swipe Handler", MEIcons.CREATE_ON_STAR) {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

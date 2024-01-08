@@ -27,18 +27,17 @@ import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
 
 class EnableUiCheckAction :
-  AnActionButton(
+  DumbAwareAction(
     message("action.uicheck.title"),
     message("action.uicheck.description"),
     StudioIcons.Compose.Toolbar.UI_CHECK,
   ) {
 
-  override fun updateButton(e: AnActionEvent) {
-    super.updateButton(e)
+  override fun update(e: AnActionEvent) {
     val isUiCheckModeEnabled = StudioFlags.COMPOSE_UI_CHECK_MODE.get()
     val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
     val disableForWear =
