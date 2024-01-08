@@ -78,6 +78,9 @@ class DeviceManagerTest {
   private val adbCommandClearStepsPerMinute = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS_PER_MINUTE:s:\"\""
   private val adbCommandDeleteEntries = "content delete --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config"
   private val adbCommandSetMultipleCapabilities = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ABSOLUTE_ELEVATION:b:false --bind DISTANCE:b:false --bind ELEVATION_GAIN:b:true --bind ELEVATION_LOSS:b:false --bind FLOORS:b:false --bind HEART_RATE_BPM:b:true --bind LOCATION:b:true --bind PACE:b:true --bind SPEED:b:false --bind STEPS:b:true --bind STEPS_PER_MINUTE:b:false --bind TOTAL_CALORIES:b:false"
+  private val adbCommandMultipleFloatOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind DISTANCE:f:12.0 --bind FLOORS:f:5.0 --bind TOTAL_CALORIES:f:123.0"
+  private val adbCommandFloatIntOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:f:5.0 --bind STEPS:i:55"
+  private val adbCommandFloatIntNullOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:f:5.0 --bind PACE:s:\"\" --bind STEPS:i:55"
 
   private val capabilities = mapOf(
     WhsDataType.STEPS to WhsCapability(
@@ -435,5 +438,51 @@ class DeviceManagerTest {
       WhsDataType.PACE to true,
       WhsDataType.STEPS_PER_MINUTE to false,
     )) }, adbCommandSetMultipleCapabilities)
+  }
+
+  @Test
+  fun `Setting multiple override values without setting serial number does not result in crash`() = runTest {
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+
+    val job = launch {
+      deviceManager.overrideValues(mapOf(WhsDataType.STEPS to 55))
+    }
+    job.join()
+  }
+
+  @Test
+  fun `Setting multiple float override values triggers expected adb command with keys in alphabetical order`() {
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValues(mapOf(
+      WhsDataType.DISTANCE to 12.0,
+      WhsDataType.TOTAL_CALORIES to 123.0,
+      WhsDataType.FLOORS to 5.0,
+    )) }, adbCommandMultipleFloatOverrides)
+  }
+
+  @Test
+  fun `Setting float and int override values triggers expected adb command with keys in alphabetical order`() {
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValues(mapOf(
+      WhsDataType.STEPS to 55,
+      WhsDataType.ELEVATION_LOSS to 5.0,
+    )) }, adbCommandFloatIntOverrides)
+  }
+
+  @Test
+  fun `Setting float, int and null override values triggers expected adb command with keys in alphabetical order`() {
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValues(mapOf(
+      WhsDataType.STEPS to 55,
+      WhsDataType.ELEVATION_LOSS to 5.0,
+      WhsDataType.PACE to null,
+    )) }, adbCommandFloatIntNullOverrides)
+  }
+
+  @Test
+  fun `Setting location override value is ignored`() {
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.overrideValues(mapOf(
+      WhsDataType.STEPS to 55,
+      WhsDataType.ELEVATION_LOSS to 5.0,
+      WhsDataType.PACE to null,
+      WhsDataType.LOCATION to null,
+    )) }, adbCommandFloatIntNullOverrides)
   }
 }

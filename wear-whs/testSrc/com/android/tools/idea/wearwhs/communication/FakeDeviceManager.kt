@@ -77,6 +77,10 @@ internal class FakeDeviceManager(
     onDeviceStates[capability]?.overrideValue = value?.toFloat()
   }
 
+  override suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>) {
+    TODO("Not yet implemented")
+  }
+
   override suspend fun loadCurrentCapabilityStates(): Map<WhsCapability, OnDeviceCapabilityState> = if (failState) {
     throw ConnectionLostException("Failed to load capability states")
   }
