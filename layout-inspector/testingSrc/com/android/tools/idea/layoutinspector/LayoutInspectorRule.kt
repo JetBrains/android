@@ -268,7 +268,7 @@ class LayoutInspectorRule(
     val layoutInspectorCoroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
 
     deviceModel = DeviceModel(disposable, processes)
-    inspectorModel = InspectorModel(project)
+    inspectorModel = InspectorModel(project, layoutInspectorCoroutineScope)
     notificationModel = NotificationModel(project)
     launcher =
       InspectorClientLauncher(

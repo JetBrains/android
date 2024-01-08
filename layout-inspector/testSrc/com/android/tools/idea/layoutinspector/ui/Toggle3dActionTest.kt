@@ -62,7 +62,7 @@ class Toggle3dActionTest {
 
   private val scheduler = VirtualTimeScheduler()
 
-  private val inspectorModel = model { view(1) { view(2) { image() } } }
+  private val inspectorModel = model(disposableRule.disposable) { view(1) { view(2) { image() } } }
   private lateinit var inspector: LayoutInspector
   private lateinit var renderModel: RenderModel
 

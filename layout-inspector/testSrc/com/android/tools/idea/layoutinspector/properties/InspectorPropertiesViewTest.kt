@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.SdkConstants.ANDROID_URI
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.FLAG_IS_INLINED
@@ -78,6 +79,7 @@ class InspectorPropertiesViewTest {
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup: ResourceLookup = mock()
+        override val scope = AndroidCoroutineScope(disposableRule.disposable)
         override val selection: ViewNode? = null
 
         override fun get(id: Long): ViewNode? = null
@@ -115,6 +117,7 @@ class InspectorPropertiesViewTest {
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup: ResourceLookup = mock()
+        override val scope = AndroidCoroutineScope(disposableRule.disposable)
         override val selection: ViewNode? = null
 
         override fun get(id: Long): ViewNode? = null
@@ -163,6 +166,7 @@ class InspectorPropertiesViewTest {
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup: ResourceLookup = mock()
+        override val scope = AndroidCoroutineScope(disposableRule.disposable)
         override val selection: ViewNode? = null
 
         override fun get(id: Long): ViewNode? = null
@@ -236,15 +240,16 @@ class InspectorPropertiesViewTest {
 
   @Test
   fun testInlinedComposable() {
-    val model = model {
-      view(ROOT) {
-        compose(VIEW1, "MyApplicationTheme") {
-          compose(VIEW2, "Column", composeFlags = FLAG_IS_INLINED, composePackageHash = EXAMPLE) {
-            compose(VIEW3, "Text", composePackageHash = EXAMPLE)
+    val model =
+      model(disposableRule.disposable) {
+        view(ROOT) {
+          compose(VIEW1, "MyApplicationTheme") {
+            compose(VIEW2, "Column", composeFlags = FLAG_IS_INLINED, composePackageHash = EXAMPLE) {
+              compose(VIEW3, "Text", composePackageHash = EXAMPLE)
+            }
           }
         }
       }
-    }
     model.setSelection(model[VIEW2], SelectionOrigin.INTERNAL)
     val x =
       InspectorPropertyItem(
@@ -309,7 +314,7 @@ class InspectorPropertiesViewTest {
   private fun createView(
     properties: List<InspectorPropertyItem>,
     customize: (InspectorPropertiesModel) -> Unit = {},
-    model: InspectorModel = model {},
+    model: InspectorModel = model(disposableRule.disposable) {},
     notificationModel: NotificationModel = NotificationModel(mock())
   ): InspectorPropertiesView {
     val table = HashBasedTable.create<String, String, InspectorPropertyItem>()

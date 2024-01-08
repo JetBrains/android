@@ -153,10 +153,10 @@ class LegacyDeviceRule(
 
   /** Creates a real [LegacyClient] that's good enough for tests */
   private fun createSimpleLegacyClient(): LegacyClient {
-    val model = model(project) {}
+    val model = model(disposable, project) {}
     val notificationModel = NotificationModel(project)
     val process = LEGACY_DEVICE.createProcess()
-    val scope = AndroidCoroutineScope(disposableRule.disposable)
+    val scope = AndroidCoroutineScope(disposable)
     val client =
       LegacyClient(
           process,
@@ -165,7 +165,7 @@ class LegacyDeviceRule(
           notificationModel,
           LayoutInspectorSessionMetrics(model.project, process),
           scope,
-          disposableRule.disposable
+          disposable
         )
         .apply { launchMonitor = MockitoKt.mock() }
     // This causes the current client to register its listeners

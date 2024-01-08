@@ -27,6 +27,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
@@ -36,6 +37,7 @@ import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLook
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
@@ -84,7 +86,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testTextColorFromLayout() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.textColor)
     val locations = mutableListOf<SourceLocation>()
@@ -102,7 +104,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testTextColorFromLayoutWithSpecialConfiguration() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme, "w800dp", "land")
     val view = findView(data.textColor)
     val locations = mutableListOf<SourceLocation>()
@@ -125,7 +127,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testBackgroundTintFromLayoutWithThemeReference() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.backgroundTint)
     val locations = mutableListOf<SourceLocation>()
@@ -148,7 +150,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testSupportBackgroundTint() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.supportBackgroundTint)
     val locations = mutableListOf<SourceLocation>()
@@ -161,7 +163,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testTextColorFromMyTextStyleExtra() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.textColor)
     val locations = mutableListOf<SourceLocation>()
@@ -174,7 +176,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testTextColorFromMyTextStyle() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.textColor)
     val locations = mutableListOf<SourceLocation>()
@@ -197,7 +199,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testTextColorFromMyTextStyleWithSpecialConfiguration() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme, "w800dp", "land")
     val view = findView(data.textColor)
     val locations = mutableListOf<SourceLocation>()
@@ -220,7 +222,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testColorValueFromTextStyleMaterialBody1() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.textColor)
     val locations = mutableListOf<SourceLocation>()
@@ -259,7 +261,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testColorValueFromTextStyleMaterialWithLimit() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.textColor)
     val locations = mutableListOf<SourceLocation>()
@@ -281,7 +283,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testDrawableFromLayoutWithVectorDrawable() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.background)
     val locations = mutableListOf<SourceLocation>()
@@ -294,7 +296,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testDrawableFromLayoutWithVectorDrawableWithIndirection() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.drawableLeft)
     val locations = mutableListOf<SourceLocation>()
@@ -316,7 +318,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testAndroidDrawableFromLayoutWithTripleIndirection() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.drawableRight)
     val locations = mutableListOf<SourceLocation>()
@@ -346,7 +348,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testTextFromTextFieldWithoutAnId() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val value1 = resolver.findAttributeValue(data.text1, findView(data.text1), data.demo)
     val value2 = resolver.findAttributeValue(data.text2, findView(data.text2), data.demo)
@@ -362,7 +364,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testButtonWithBackgroundColor() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val background =
       InspectorPropertyItem(
@@ -388,7 +390,7 @@ class ResourceLookupResolverTest {
 
   @Test
   fun testApproximateFileLocation() {
-    val data = Data()
+    val data = Data(projectRule.testRootDisposable)
     val resolver = createResourceLookupResolver(data.theme)
     val view = findView(data.text1)
     val locations = mutableListOf<SourceLocation>()
@@ -414,7 +416,7 @@ class ResourceLookupResolverTest {
 
   private fun findView(item: InspectorPropertyItem): ViewNode = item.lookup[item.viewId]!!
 
-  private class Data {
+  private class Data(parentDisposable: Disposable) {
     val theme = "@style/AppTheme"
     val exampleNS = ResourceNamespace.fromPackageName("com.example")
     val demo = ResourceReference(exampleNS, ResourceType.LAYOUT, "demo")
@@ -451,6 +453,7 @@ class ResourceLookupResolverTest {
     val context =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup: ResourceLookup = mock()
+        override val scope = AndroidCoroutineScope(parentDisposable)
         override val selection: ViewNode? = null
 
         override fun get(id: Long): ViewNode? =

@@ -50,7 +50,7 @@ class LinePainterTest {
   @Test
   fun testSystemNodeWithMultipleChildren() {
     val coroutineScope = AndroidCoroutineScope((projectRule.testRootDisposable))
-    val model = InspectorModel(projectRule.project)
+    val model = InspectorModel(projectRule.project, coroutineScope)
     val treeSettings = FakeTreeSettings()
     val mockLauncher = mock<InspectorClientLauncher>()
     whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }

@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -36,6 +37,7 @@ import com.android.tools.idea.layoutinspector.util.TestStringTable
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import java.awt.Rectangle
 import java.awt.Shape
@@ -46,11 +48,12 @@ import org.jetbrains.android.facet.AndroidFacet
 // TODO: find a way to indicate that this is a api 29+ model without having to specify an image on a
 // subnode
 fun model(
+  disposable: Disposable,
   project: Project = mock(),
   treeSettings: TreeSettings = FakeTreeSettings(),
   scheduler: ScheduledExecutorService? = null,
   body: InspectorModelDescriptor.() -> Unit
-) = InspectorModelDescriptor(project, scheduler).also(body).build(treeSettings)
+) = InspectorModelDescriptor(disposable, project, scheduler).also(body).build(treeSettings)
 
 fun window(
   windowId: Any,
@@ -338,6 +341,7 @@ class InspectorViewDescriptor(
 }
 
 class InspectorModelDescriptor(
+  val disposable: Disposable,
   val project: Project,
   private val scheduler: ScheduledExecutorService?
 ) {
@@ -403,7 +407,7 @@ class InspectorModelDescriptor(
     )
 
   fun build(treeSettings: TreeSettings): InspectorModel {
-    val model = InspectorModel(project, scheduler)
+    val model = InspectorModel(project, AndroidCoroutineScope(disposable), scheduler)
     val windowRoot = root?.build() ?: return model
     val newWindow =
       FakeAndroidWindow(windowRoot, windowRoot.drawId, root?.imageType ?: ImageType.UNKNOWN) {

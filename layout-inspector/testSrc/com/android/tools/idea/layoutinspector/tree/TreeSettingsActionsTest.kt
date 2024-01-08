@@ -48,6 +48,7 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.treeStructure.Tree
 import java.util.EnumSet
 import javax.swing.JComponent
@@ -65,6 +66,8 @@ class TreeSettingsActionsTest {
   companion object {
     @JvmField @ClassRule val rule = ApplicationRule()
   }
+
+  @get:Rule val disposableRule = DisposableRule()
 
   @get:Rule
   val recompositionFlagRule =
@@ -285,7 +288,7 @@ class TreeSettingsActionsTest {
       ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
     val mainLayout =
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
-    return model {
+    return model(disposableRule.disposable) {
       view(ROOT) {
         view(VIEW1, layout = mainLayout) {
           view(VIEW2, layout = screenSimple) { view(VIEW3, layout = appcompatScreenSimple) }

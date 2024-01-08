@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.runningdevices.ui
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
@@ -46,6 +45,7 @@ import com.android.tools.idea.testing.runDispatching
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
@@ -99,6 +99,9 @@ class LayoutInspectorRendererTest {
   private val treeSettings = FakeTreeSettings()
   private val renderSettings = FakeRenderSettings()
 
+  private val disposable: Disposable
+    get() = androidProjectRule.testRootDisposable
+
   private lateinit var renderModel: RenderModel
   private lateinit var renderLogic: RenderLogic
 
@@ -113,19 +116,23 @@ class LayoutInspectorRendererTest {
   private val deviceDisplayRectangle =
     Rectangle(10, 10, deviceScreenDimension.width, deviceScreenDimension.height)
 
-  private val verticalInspectorModel = model {
-    view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
-      view(VIEW1, 10, 15, 25, 25) { image() }
-      compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
-    }
-  }
+  private val verticalInspectorModel: InspectorModel
+    get() =
+      model(disposable) {
+        view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
+          view(VIEW1, 10, 15, 25, 25) { image() }
+          compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
+        }
+      }
 
-  private val horizontalInspectorModel = model {
-    view(ROOT, 0, 0, deviceScreenDimension.height, deviceScreenDimension.width) {
-      view(VIEW1, 10, 15, 25, 25) { image() }
-      compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
-    }
-  }
+  private val horizontalInspectorModel: InspectorModel
+    get() =
+      model(disposable) {
+        view(ROOT, 0, 0, deviceScreenDimension.height, deviceScreenDimension.width) {
+          view(VIEW1, 10, 15, 25, 25) { image() }
+          compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
+        }
+      }
 
   @Before
   fun setUp() {
@@ -145,11 +152,12 @@ class LayoutInspectorRendererTest {
 
   @Test
   fun testScreenWithLeftBorder() {
-    val inspectorModelWithLeftBorder = model {
-      view(ROOT, 10, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
-        view(VIEW1, 10, 15, 25, 25) { image() }
+    val inspectorModelWithLeftBorder =
+      model(disposable) {
+        view(ROOT, 10, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
+          view(VIEW1, 10, 15, 25, 25) { image() }
+        }
       }
-    }
     inspectorModelWithLeftBorder.resourceLookup.screenDimension = deviceScreenDimension
 
     val renderModel =
@@ -163,11 +171,12 @@ class LayoutInspectorRendererTest {
 
   @Test
   fun testScreenWithRightBorder() {
-    val inspectorModelWithRightBorder = model {
-      view(ROOT, 0, 0, deviceScreenDimension.width - 10, deviceScreenDimension.height) {
-        view(VIEW1, 10, 15, 25, 25) { image() }
+    val inspectorModelWithRightBorder =
+      model(disposable) {
+        view(ROOT, 0, 0, deviceScreenDimension.width - 10, deviceScreenDimension.height) {
+          view(VIEW1, 10, 15, 25, 25) { image() }
+        }
       }
-    }
     inspectorModelWithRightBorder.resourceLookup.screenDimension = deviceScreenDimension
 
     val renderModel =
@@ -181,11 +190,12 @@ class LayoutInspectorRendererTest {
 
   @Test
   fun testScreenWithTopBorder() {
-    val inspectorModelWithTopBorder = model {
-      view(ROOT, 0, 10, deviceScreenDimension.width, deviceScreenDimension.height) {
-        view(VIEW1, 10, 15, 25, 25) { image() }
+    val inspectorModelWithTopBorder =
+      model(disposable) {
+        view(ROOT, 0, 10, deviceScreenDimension.width, deviceScreenDimension.height) {
+          view(VIEW1, 10, 15, 25, 25) { image() }
+        }
       }
-    }
     inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
 
     val renderModel =
@@ -199,11 +209,12 @@ class LayoutInspectorRendererTest {
 
   @Test
   fun testScreenWithBottomBorder() {
-    val inspectorModelWithTopBorder = model {
-      view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height - 10) {
-        view(VIEW1, 10, 15, 25, 25) { image() }
+    val inspectorModelWithTopBorder =
+      model(disposable) {
+        view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height - 10) {
+          view(VIEW1, 10, 15, 25, 25) { image() }
+        }
       }
-    }
     inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
 
     val renderModel =
@@ -238,11 +249,12 @@ class LayoutInspectorRendererTest {
     // test all possible combinations of rotations
     val combinations = allPossibleCombinations(listOf(0, 1, 2, 3), listOf(0, 90, 180, 270))
     combinations.forEach {
-      val inspectorModelWithTopBorder = model {
-        view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height - 10) {
-          view(VIEW1, 10, 15, 25, 25) { image() }
+      val inspectorModelWithTopBorder =
+        model(disposable) {
+          view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height - 10) {
+            view(VIEW1, 10, 15, 25, 25) { image() }
+          }
         }
-      }
       inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
       verticalInspectorModel.resourceLookup.displayOrientation = it.deviceRotation
       val inspectorModel =
@@ -416,11 +428,7 @@ class LayoutInspectorRendererTest {
 
     var latestPopup: FakeActionPopupMenu? = null
     ApplicationManager.getApplication()
-      .replaceService(
-        ActionManager::class.java,
-        MockitoKt.mock(),
-        androidProjectRule.testRootDisposable
-      )
+      .replaceService(ActionManager::class.java, mock(), androidProjectRule.testRootDisposable)
     doAnswer { invocation ->
         latestPopup = FakeActionPopupMenu(invocation.getArgument(1))
         latestPopup
@@ -546,11 +554,12 @@ class LayoutInspectorRendererTest {
 
   @Test
   fun testLayoutInspectorRenderingOutsideOfMainDisplayShowError() {
-    val inspectorModelWithLeftBorder = model {
-      view(ROOT, 10, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
-        view(VIEW1, 10, 15, 25, 25) { image() }
+    val inspectorModelWithLeftBorder =
+      model(disposable) {
+        view(ROOT, 10, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
+          view(VIEW1, 10, 15, 25, 25) { image() }
+        }
       }
-    }
     inspectorModelWithLeftBorder.resourceLookup.isRunningInMainDisplay = false
 
     val renderModel =
@@ -653,6 +662,7 @@ class LayoutInspectorRendererTest {
 
   private fun createModel(): InspectorModel =
     model(
+      androidProjectRule.testRootDisposable,
       androidProjectRule.project,
       FakeTreeSettings(),
       body =
@@ -716,7 +726,7 @@ private class FakeMouseListener : MouseAdapter() {
 }
 
 private class FakeActionPopupMenu(private val group: ActionGroup) : ActionPopupMenu {
-  val popup: JPopupMenu = MockitoKt.mock()
+  val popup: JPopupMenu = mock()
 
   override fun getComponent(): JPopupMenu = popup
 
@@ -729,7 +739,7 @@ private class FakeActionPopupMenu(private val group: ActionGroup) : ActionPopupM
   override fun setDataContext(dataProvider: Supplier<out DataContext>) = error("Not implemented")
 
   fun assertSelectViewActionAndGotoDeclaration(vararg expected: Long) {
-    val event: AnActionEvent = MockitoKt.mock()
+    val event: AnActionEvent = mock()
     whenever(event.actionManager).thenReturn(ActionManager.getInstance())
     val actions = group.getChildren(event)
     assertThat(actions.size).isEqualTo(2)

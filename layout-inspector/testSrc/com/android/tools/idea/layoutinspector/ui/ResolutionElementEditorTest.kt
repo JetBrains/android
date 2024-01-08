@@ -141,6 +141,7 @@ class ResolutionElementEditorTest {
   fun testHasLinkPanel() = runBlocking {
     val model = runInEdtAndGet {
       model(
+        projectRule.testRootDisposable,
         projectRule.project,
         FakeTreeSettings(),
         body = DemoExample.setUpDemo(projectRule.fixture)
@@ -213,6 +214,7 @@ class ResolutionElementEditorTest {
   private suspend fun createEditors(): JPanel {
     val model = runInEdtAndGet {
       model(
+        projectRule.testRootDisposable,
         projectRule.project,
         FakeTreeSettings(),
         body = DemoExample.setUpDemo(projectRule.fixture)

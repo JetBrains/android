@@ -37,10 +37,13 @@ import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
+import com.intellij.testFramework.DisposableRule
 import java.awt.Polygon
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
 
@@ -49,6 +52,10 @@ private val activityMain =
 private const val EPSILON = 0.001
 
 class RenderModelTest {
+  @get:Rule val disposableRule = DisposableRule()
+
+  val disposable: Disposable
+    get() = disposableRule.disposable
 
   @Test
   fun testOverlappingRects() {
@@ -61,13 +68,14 @@ class RenderModelTest {
         VIEW4 to Rectangle(40, 40, 20, 20)
       )
 
-    val model = model {
-      view(ROOT, rectMap[ROOT]) {
-        view(VIEW1, rectMap[VIEW1]) { view(VIEW2, rectMap[VIEW2]) { image() } }
-        view(VIEW3, rectMap[VIEW3])
-        view(VIEW4, rectMap[VIEW4])
+    val model =
+      model(disposable) {
+        view(ROOT, rectMap[ROOT]) {
+          view(VIEW1, rectMap[VIEW1]) { view(VIEW2, rectMap[VIEW2]) { image() } }
+          view(VIEW3, rectMap[VIEW3])
+          view(VIEW4, rectMap[VIEW4])
+        }
       }
-    }
 
     checkModel(model, 0.5, 0.0, rectMap)
   }
@@ -83,21 +91,25 @@ class RenderModelTest {
         VIEW4 to Rectangle(40, 40, 20, 20)
       )
 
-    val model = model {
-      view(ROOT, rectMap[ROOT]) {
-        view(VIEW1, rectMap[VIEW1]) { view(VIEW2, rectMap[VIEW2]) { image() } }
-        view(VIEW3, rectMap[VIEW3]) { view(VIEW4, rectMap[VIEW4]) }
+    val model =
+      model(disposable) {
+        view(ROOT, rectMap[ROOT]) {
+          view(VIEW1, rectMap[VIEW1]) { view(VIEW2, rectMap[VIEW2]) { image() } }
+          view(VIEW3, rectMap[VIEW3]) { view(VIEW4, rectMap[VIEW4]) }
+        }
       }
-    }
 
     checkModel(model, 0.5, 0.0, rectMap)
   }
 
   @Test
   fun testResetRotation() {
-    val model = model {
-      view(ROOT, Rectangle(0, 0, 100, 200)) { view(VIEW1, Rectangle(10, 10, 50, 100)) { image() } }
-    }
+    val model =
+      model(disposable) {
+        view(ROOT, Rectangle(0, 0, 100, 200)) {
+          view(VIEW1, Rectangle(10, 10, 50, 100)) { image() }
+        }
+      }
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val panelModel = RenderModel(model, mock(), treeSettings) { DisconnectedClient }
@@ -116,12 +128,13 @@ class RenderModelTest {
 
   @Test
   fun testRootBoundsUpdate() {
-    val model = model {
-      view(ROOT, Rectangle(0, 0, 100, 200)) {
-        view(VIEW1, Rectangle(10, -10, 50, 100)) { image() }
-        view(VIEW3, 20, 20, 10, 10)
+    val model =
+      model(disposable) {
+        view(ROOT, Rectangle(0, 0, 100, 200)) {
+          view(VIEW1, Rectangle(10, -10, 50, 100)) { image() }
+          view(VIEW3, 20, 20, 10, 10)
+        }
       }
-    }
     val window1 =
       window(ROOT2, ROOT2, -10, 0, 10, 10) { view(VIEW2, Rectangle(-10, 0, 10, 10)) { image() } }
     model.update(window1, listOf(ROOT, ROOT2), 0)
@@ -142,7 +155,7 @@ class RenderModelTest {
 
   @Test
   fun testSwitchDevices() {
-    val model = model { view(ROOT) }
+    val model = model(disposable) { view(ROOT) }
     val treeSettings = FakeTreeSettings()
     val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SKP)
     val client: InspectorClient = mock()
@@ -173,13 +186,14 @@ class RenderModelTest {
 
   @Test
   fun testFindViewsAt() {
-    var model = model {
-      view(ROOT, 0, 0, 100, 100) {
-        view(VIEW1, 0, 0, 30, 30) { view(VIEW2, 0, 0, 10, 10) }
-        image()
-        view(VIEW3, 50, 50, 20, 20)
+    var model =
+      model(disposable) {
+        view(ROOT, 0, 0, 100, 100) {
+          view(VIEW1, 0, 0, 30, 30) { view(VIEW2, 0, 0, 10, 10) }
+          image()
+          view(VIEW3, 50, 50, 20, 20)
+        }
       }
-    }
     val treeSettings = FakeTreeSettings()
     var panelModel = RenderModel(model, mock(), treeSettings) { DisconnectedClient }
     assertThat(panelModel.findViewsAt(5.0, 5.0).map { it.drawId }.toList())
@@ -188,12 +202,13 @@ class RenderModelTest {
     assertThat(panelModel.findViewsAt(60.0, 60.0).map { it.drawId }.toList())
       .containsExactly(VIEW3, ROOT)
 
-    model = model {
-      view(ROOT, 0, 0, 100, 100) {
-        view(VIEW1, 0, 0, 100, 100) { view(VIEW2, 0, 0, 100, 100) }
-        view(VIEW3, 0, 0, 100, 100)
+    model =
+      model(disposable) {
+        view(ROOT, 0, 0, 100, 100) {
+          view(VIEW1, 0, 0, 100, 100) { view(VIEW2, 0, 0, 100, 100) }
+          view(VIEW3, 0, 0, 100, 100)
+        }
       }
-    }
     panelModel = RenderModel(model, mock(), treeSettings) { DisconnectedClient }
     assertThat(panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList())
       .containsExactly(VIEW3, VIEW2, VIEW1, ROOT)
@@ -201,12 +216,13 @@ class RenderModelTest {
 
   @Test
   fun testAllNodesInvisible() {
-    val model = model {
-      view(ROOT, Rectangle(0, 0, 100, 200)) {
-        view(VIEW1, Rectangle(10, 10, 50, 100)) { view(VIEW2, 10, 10, 10, 10) }
-        view(VIEW3, 50, 50, 20, 20)
+    val model =
+      model(disposable) {
+        view(ROOT, Rectangle(0, 0, 100, 200)) {
+          view(VIEW1, Rectangle(10, 10, 50, 100)) { view(VIEW2, 10, 10, 10, 10) }
+          view(VIEW3, 50, 50, 20, 20)
+        }
       }
-    }
     val treeSettings = FakeTreeSettings()
     val panelModel = RenderModel(model, mock(), treeSettings) { DisconnectedClient }
     panelModel.layerSpacing = 0
@@ -229,7 +245,7 @@ class RenderModelTest {
     val p1 = Polygon(intArrayOf(-5, 5, 80, 80), intArrayOf(5, -5, 80, 120), 4)
     val p2 = Polygon(intArrayOf(80, 120, 5, -5), intArrayOf(-5, 5, 20, 10), 4)
     val p3 = Polygon(intArrayOf(-5, 5, 80, 80), intArrayOf(200, 180, 380, 420), 4)
-    val model = RenderModel(model {}, mock(), FakeTreeSettings()) { DisconnectedClient }
+    val model = RenderModel(model(disposable) {}, mock(), FakeTreeSettings()) { DisconnectedClient }
     assertThat(model.testOverlap(r1, r2)).isTrue()
     assertThat(model.testOverlap(r1, r3)).isFalse()
     assertThat(model.testOverlap(p1, r1)).isTrue()
@@ -243,12 +259,13 @@ class RenderModelTest {
   @Test
   fun testSetSelection() {
     val treeSettings = FakeTreeSettings()
-    val model = model {
-      view(ROOT, 0, 0, 100, 100) {
-        view(VIEW1, 0, 0, 100, 100) { view(VIEW2, 0, 0, 100, 100) }
-        view(VIEW3, 0, 0, 100, 100)
+    val model =
+      model(disposable) {
+        view(ROOT, 0, 0, 100, 100) {
+          view(VIEW1, 0, 0, 100, 100) { view(VIEW2, 0, 0, 100, 100) }
+          view(VIEW3, 0, 0, 100, 100)
+        }
       }
-    }
     val mockStats = mock<SessionStatistics>()
     val mockClient = mock<InspectorClient>()
     whenever(mockClient.stats).thenAnswer { mockStats }
@@ -269,14 +286,15 @@ class RenderModelTest {
       )
 
     @Suppress("MapGetWithNotNullAssertionOperator")
-    val model = model {
-      view(ROOT, rectMap[ROOT]!!, imageType = AndroidWindow.ImageType.SKP, layout = null) {
-        view(VIEW1, rectMap[VIEW1]!!, layout = null) {
-          view(VIEW3, rectMap[VIEW3]!!, layout = activityMain) { image() }
+    val model =
+      model(disposable) {
+        view(ROOT, rectMap[ROOT]!!, imageType = AndroidWindow.ImageType.SKP, layout = null) {
+          view(VIEW1, rectMap[VIEW1]!!, layout = null) {
+            view(VIEW3, rectMap[VIEW3]!!, layout = activityMain) { image() }
+          }
+          view(VIEW2, rectMap[VIEW2]!!, layout = activityMain)
         }
-        view(VIEW2, rectMap[VIEW2]!!, layout = activityMain)
       }
-    }
 
     checkModel(model, xOff, yOff, rectMap, hideSystemNodes)
   }

@@ -132,7 +132,7 @@ class LayoutInspectorManagerTest {
         foregroundProcessDetection = fakeForegroundProcessDetection,
         inspectorClientSettings = InspectorClientSettings(displayViewRule.project),
         launcher = launcher,
-        layoutInspectorModel = model {},
+        layoutInspectorModel = model(displayViewRule.disposable) {},
         notificationModel = notificationModel,
         treeSettings = FakeTreeSettings()
       )

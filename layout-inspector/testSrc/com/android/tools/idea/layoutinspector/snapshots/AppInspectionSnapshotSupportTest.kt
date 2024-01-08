@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.snapshots
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
@@ -120,7 +121,8 @@ class AppInspectionSnapshotSupportTest {
 
     inspectorRule.inspectorClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
-    val newModel = InspectorModel(inspectorRule.project)
+    val newModel =
+      InspectorModel(inspectorRule.project, AndroidCoroutineScope(inspectorRule.disposable))
     snapshotLoader.loadFile(
       savePath,
       newModel,
@@ -150,7 +152,8 @@ class AppInspectionSnapshotSupportTest {
     inspectorRule.inspectorModel.resourceLookup.updateConfiguration(null, null, null)
 
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
-    val newModel = InspectorModel(inspectorRule.project)
+    val newModel =
+      InspectorModel(inspectorRule.project, AndroidCoroutineScope(inspectorRule.disposable))
     val newNotificationModel = NotificationModel(inspectorRule.project)
     snapshotLoader.loadFile(
       savePath,
@@ -192,7 +195,8 @@ class AppInspectionSnapshotSupportTest {
 
     inspectorRule.inspectorClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
-    val newModel = InspectorModel(inspectorRule.project)
+    val newModel =
+      InspectorModel(inspectorRule.project, AndroidCoroutineScope(inspectorRule.disposable))
     val newNotificationModel = NotificationModel(inspectorRule.project)
     snapshotLoader.loadFile(
       savePath,
@@ -276,7 +280,8 @@ class AppInspectionSnapshotSupportTest {
 
     // Ensure the snapshot was saved correctly
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
-    val newModel = InspectorModel(inspectorRule.project)
+    val newModel =
+      InspectorModel(inspectorRule.project, AndroidCoroutineScope(inspectorRule.disposable))
     val newNotificationModel = NotificationModel(inspectorRule.project)
     snapshotLoader.loadFile(
       savePath,

@@ -1263,7 +1263,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
           AppInspectionInspectorClient(
             process = processDescriptor2,
             isInstantlyAutoConnected = false,
-            model = model(inspectorRule.project) {},
+            model = model(inspectorRule.disposable, inspectorRule.project) {},
             notificationModel = inspectorRule.notificationModel,
             metrics = mock(),
             treeSettings = mock(),
@@ -1305,7 +1305,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
           AppInspectionInspectorClient(
             process = processDescriptor,
             isInstantlyAutoConnected = false,
-            model = model(inspectorRule.project) {},
+            model = model(projectRule.testRootDisposable, inspectorRule.project) {},
             notificationModel = inspectorRule.notificationModel,
             metrics = mock(),
             treeSettings = mock(),
@@ -1341,7 +1341,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
           AppInspectionInspectorClient(
             process = processDescriptor,
             isInstantlyAutoConnected = false,
-            model = model(inspectorRule.project) {},
+            model = model(inspectorRule.disposable, inspectorRule.project) {},
             notificationModel = notificationModel,
             metrics = mock(),
             treeSettings = mock(),

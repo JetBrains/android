@@ -104,7 +104,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
       // TODO: error handling
       snapshotLoader = SnapshotLoader.createSnapshotLoader(path)
       val layoutInspectorCoroutineScope = AndroidCoroutineScope(this)
-      val model = InspectorModel(project)
+      val model = InspectorModel(project, layoutInspectorCoroutineScope)
       stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
       metadata =
         snapshotLoader?.loadFile(path, model, notificationModel, stats) ?: throw Exception()

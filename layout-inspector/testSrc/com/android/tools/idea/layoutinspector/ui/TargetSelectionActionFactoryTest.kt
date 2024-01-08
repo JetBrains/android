@@ -54,7 +54,7 @@ class TargetSelectionActionFactoryTest {
     val mockClientSettings = mock<InspectorClientSettings>()
     val mockLauncher = mock<InspectorClientLauncher>()
     whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
-    val inspectorModel = InspectorModel(projectRule.project)
+    val inspectorModel = InspectorModel(projectRule.project, scope)
     val mockTreeSettings = mock<TreeSettings>()
     layoutInspector =
       LayoutInspector(

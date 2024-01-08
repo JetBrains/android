@@ -32,6 +32,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import kotlin.math.pow
 import kotlin.properties.Delegates
+import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.VisibleForTesting
 
 const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY =
@@ -50,6 +51,7 @@ enum class SelectionOrigin {
 
 class InspectorModel(
   val project: Project,
+  override val scope: CoroutineScope,
   val scheduler: ScheduledExecutorService? = null,
   processesModel: ProcessesModel? = null
 ) : ViewNodeAndResourceLookup {

@@ -539,7 +539,7 @@ class ComposeLayoutInspectorClientTest {
   ) {
     var errorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
     val capabilities = EnumSet.noneOf(InspectorClient.Capability::class.java)
-    val model = model(projectRule.project) {}
+    val model = model(projectRule.testRootDisposable, projectRule.project) {}
     val notificationModel = NotificationModel(projectRule.project)
     val client =
       ComposeLayoutInspectorClient.launch(

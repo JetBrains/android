@@ -155,12 +155,13 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testSize() {
-    val model = model {
-      view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 0, 0, 50, 50) { view(VIEW3, 30, 30, 10, 10) }
-        view(VIEW2, 60, 160, 10, 20)
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 100, 200) {
+          view(VIEW1, 0, 0, 50, 50) { view(VIEW3, 30, 30, 10, 10) }
+          view(VIEW2, 60, 160, 10, 20)
+        }
       }
-    }
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val renderSettings = FakeRenderSettings()
@@ -187,12 +188,13 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testPaint() {
-    val model = model {
-      view(ROOT, 0, 0, 100, 150) {
-        view(VIEW1, 10, 15, 25, 25) { image() }
-        compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 100, 150) {
+          view(VIEW1, 10, 15, 25, 25) { image() }
+          compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
+        }
       }
-    }
     @Suppress("UndesirableClassUsage") val generatedImage = BufferedImage(120, 200, TYPE_INT_ARGB)
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
@@ -347,14 +349,15 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testPaintWithFold() {
-    val model = model {
-      view(ROOT, 0, 0, 20, 40) {
-        view(VIEW1, 3, 3, 14, 14) {
-          view(VIEW2, 6, 6, 8, 8)
-          image()
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 20, 40) {
+          view(VIEW1, 3, 3, 14, 14) {
+            view(VIEW2, 6, 6, 8, 8)
+            image()
+          }
         }
       }
-    }
     model.foldInfo =
       InspectorModel.FoldInfo(
         97,
@@ -456,11 +459,12 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testPaintWithHiddenSystemViews() {
-    val model = model {
-      view(ROOT, 0, 0, 20, 40, layout = null) {
-        view(VIEW1, 5, 6, 10, 10, layout = activityMain) { image() }
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 20, 40, layout = null) {
+          view(VIEW1, 5, 6, 10, 10, layout = activityMain) { image() }
+        }
       }
-    }
     @Suppress("UndesirableClassUsage") val generatedImage = BufferedImage(40, 60, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
@@ -505,12 +509,13 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testRotationDoesntThrow() {
-    val model = model {
-      view(ROOT, 0, 0, 500, 1000) {
-        // Use an RTL name to force TextLayout to be used
-        view(VIEW1, 125, 150, 250, 250, qualifiedName = "שמי העברי") { image() }
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 500, 1000) {
+          // Use an RTL name to force TextLayout to be used
+          view(VIEW1, 125, 150, 250, 250, qualifiedName = "שמי העברי") { image() }
+        }
       }
-    }
 
     @Suppress("UndesirableClassUsage") val generatedImage = BufferedImage(10, 15, TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
@@ -537,7 +542,10 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testOverlay() {
-    val model = model { view(ROOT, 0, 0, 600, 600) { view(VIEW1, 125, 150, 250, 250) } }
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 600, 600) { view(VIEW1, 125, 150, 250, 250) }
+      }
 
     @Suppress("UndesirableClassUsage") val generatedImage = BufferedImage(1000, 1500, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
@@ -583,7 +591,8 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testDrag() {
-    val model = model { view(ROOT, 0, 0, 100, 200) { view(VIEW1, 25, 30, 50, 50) } }
+    val model =
+      model(disposable.disposable) { view(ROOT, 0, 0, 100, 200) { view(VIEW1, 25, 30, 50, 50) } }
 
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
@@ -637,15 +646,16 @@ class DeviceViewContentPanelTest {
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
     val layoutAppcompat =
       ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
-    val model = model {
-      view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 25, 30, 50, 50, layout = layoutMain) {
-          view(VIEW2, 30, 35, 40, 40, layout = layoutAppcompat) {
-            view(VIEW3, 35, 40, 30, 30, layout = layoutAppcompat)
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 100, 200) {
+          view(VIEW1, 25, 30, 50, 50, layout = layoutMain) {
+            view(VIEW2, 30, 35, 40, 40, layout = layoutAppcompat) {
+              view(VIEW3, 35, 40, 30, 30, layout = layoutAppcompat)
+            }
           }
         }
       }
-    }
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
@@ -695,7 +705,7 @@ class DeviceViewContentPanelTest {
     val layoutAppcompat =
       ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
     val model =
-      model(projectRule.project) {
+      model(projectRule.testRootDisposable, projectRule.project) {
         view(ROOT, 0, 0, 100, 200) {
           view(
             VIEW1,
@@ -744,15 +754,16 @@ class DeviceViewContentPanelTest {
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
     val layoutAppcompat =
       ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
-    val model = model {
-      view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 25, 30, 50, 50, layout = layoutMain) {
-          view(VIEW2, 30, 35, 40, 40, layout = layoutAppcompat) {
-            view(VIEW3, 35, 40, 30, 30, layout = layoutAppcompat)
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 100, 200) {
+          view(VIEW1, 25, 30, 50, 50, layout = layoutMain) {
+            view(VIEW2, 30, 35, 40, 40, layout = layoutAppcompat) {
+              view(VIEW3, 35, 40, 30, 30, layout = layoutAppcompat)
+            }
           }
         }
       }
-    }
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
@@ -781,17 +792,18 @@ class DeviceViewContentPanelTest {
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
     val layoutAppcompat =
       ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
-    val model = model {
-      view(ROOT, 0, 0, 100, 200, layout = null) {
-        view(VIEW1, 25, 30, 50, 50, layout = layoutMain) {
-          view(VIEW2, 30, 35, 40, 40, layout = layoutAppcompat) {
-            view(VIEW3, 35, 40, 30, 30, layout = layoutAppcompat) {
-              view(VIEW4, 36, 41, 25, 25, layout = layoutMain)
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 100, 200, layout = null) {
+          view(VIEW1, 25, 30, 50, 50, layout = layoutMain) {
+            view(VIEW2, 30, 35, 40, 40, layout = layoutAppcompat) {
+              view(VIEW3, 35, 40, 30, 30, layout = layoutAppcompat) {
+                view(VIEW4, 36, 41, 25, 25, layout = layoutMain)
+              }
             }
           }
         }
       }
-    }
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
@@ -828,7 +840,7 @@ class DeviceViewContentPanelTest {
   fun testEmptyTextVisibility() {
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
-    val model = model {}
+    val model = model(disposable.disposable) {}
     val launcher: InspectorClientLauncher = mock()
     val client = mock<InspectorClient>()
     whenever(client.stats).thenAnswer { mock<SessionStatistics>() }
@@ -879,7 +891,10 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testPaintMultiWindow() {
-    val model = model { view(ROOT, 0, 0, 100, 200) { view(VIEW1, 0, 0, 50, 50) { image() } } }
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 100, 200) { view(VIEW1, 0, 0, 50, 50) { image() } }
+      }
 
     // Second window. Root doesn't overlap with top of first window--verify they're on separate
     // levels in the drawing.
@@ -928,7 +943,10 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testPaintMultiWindowDimBehind() {
-    val model = model { view(ROOT, 0, 0, 100, 200) { view(VIEW1, 0, 0, 50, 50) { image() } } }
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 100, 200) { view(VIEW1, 0, 0, 50, 50) { image() } }
+      }
 
     // Second window. Root doesn't overlap with top of first window--verify they're on separate
     // levels in the drawing.
@@ -975,13 +993,14 @@ class DeviceViewContentPanelTest {
     val image2 = ImageIO.read(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image2.png").toFile())
     val image3 = ImageIO.read(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image3.png").toFile())
 
-    val model = model {
-      view(ROOT, 0, 0, 585, 804) {
-        image(image1)
-        view(VIEW1, 0, 100, 585, 585) { image(image2) }
-        view(VIEW2, 100, 400, 293, 402) { image(image3) }
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 585, 804) {
+          image(image1)
+          view(VIEW1, 0, 100, 585, 585) { image(image2) }
+          view(VIEW2, 100, 400, 293, 402) { image(image3) }
+        }
       }
-    }
 
     @Suppress("UndesirableClassUsage") val generatedImage = BufferedImage(350, 450, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
@@ -1077,13 +1096,14 @@ class DeviceViewContentPanelTest {
       fillRect(0, 0, 20, 20)
     }
 
-    val model = model {
-      view(ROOT, 0, 0, 40, 40) {
-        view(VIEW1, 0, 0, 40, 40) { image(image2) }
-        image(image1)
-        view(VIEW2, 20, 20, 20, 20) { image(image3) }
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 40, 40) {
+          view(VIEW1, 0, 0, 40, 40) { image(image2) }
+          image(image1)
+          view(VIEW2, 20, 20, 20, 20) { image(image3) }
+        }
       }
-    }
 
     @Suppress("UndesirableClassUsage") val generatedImage = BufferedImage(120, 140, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
@@ -1131,13 +1151,14 @@ class DeviceViewContentPanelTest {
   fun testPaintWithRootImageOnly() {
     val image1 = ImageIO.read(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image1.png").toFile())
 
-    val model = model {
-      view(ROOT, 0, 0, 585, 804) {
-        image(image1)
-        view(VIEW1, 0, 100, 585, 585)
-        view(VIEW2, 100, 400, 293, 402)
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 585, 804) {
+          image(image1)
+          view(VIEW1, 0, 100, 585, 585)
+          view(VIEW2, 100, 400, 293, 402)
+        }
       }
-    }
 
     @Suppress("UndesirableClassUsage") val generatedImage = BufferedImage(350, 450, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
@@ -1188,20 +1209,21 @@ class DeviceViewContentPanelTest {
       fill(Polygon(intArrayOf(0, 180, 220, 40), intArrayOf(40, 0, 180, 220), 4))
     }
 
-    val model = model {
-      view(ROOT, 0, 0, 400, 600) {
-        view(
-          VIEW1,
-          50,
-          100,
-          300,
-          300,
-          bounds = Polygon(intArrayOf(90, 270, 310, 130), intArrayOf(180, 140, 320, 360), 4)
-        ) {
-          image(image1)
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 400, 600) {
+          view(
+            VIEW1,
+            50,
+            100,
+            300,
+            300,
+            bounds = Polygon(intArrayOf(90, 270, 310, 130), intArrayOf(180, 140, 320, 360), 4)
+          ) {
+            image(image1)
+          }
         }
       }
-    }
 
     val generatedImage = BufferedImage(400, 600, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
@@ -1275,20 +1297,21 @@ class DeviceViewContentPanelTest {
       fillRect(0, 0, 80, 100)
     }
 
-    val model = model {
-      view(ROOT, 0, 0, 100, 100) {
-        view(
-          VIEW1,
-          20,
-          20,
-          60,
-          60,
-          bounds = Polygon(intArrayOf(-20, 80, 80, -20), intArrayOf(-50, -50, 150, 150), 4)
-        ) {
-          image(image1)
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 100, 100) {
+          view(
+            VIEW1,
+            20,
+            20,
+            60,
+            60,
+            bounds = Polygon(intArrayOf(-20, 80, 80, -20), intArrayOf(-50, -50, 150, 150), 4)
+          ) {
+            image(image1)
+          }
         }
       }
-    }
 
     val generatedImage = BufferedImage(200, 200, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
@@ -1326,12 +1349,13 @@ class DeviceViewContentPanelTest {
   @RunsInEdt
   @Test
   fun testAutoScroll() {
-    val model = model {
-      view(ROOT, 0, 0, 300, 400) {
-        view(VIEW1, 0, 0, 50, 50) { view(VIEW3, 30, 30, 10, 10) }
-        view(VIEW2, 60, 160, 10, 20)
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 300, 400) {
+          view(VIEW1, 0, 0, 50, 50) { view(VIEW3, 30, 30, 10, 10) }
+          view(VIEW2, 60, 160, 10, 20)
+        }
       }
-    }
     val view1 = model[VIEW1]
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
@@ -1400,7 +1424,7 @@ class DeviceViewContentPanelTest {
         }
         .build()
 
-    val model = model {}
+    val model = model(disposable.disposable) {}
     val folderConfiguration =
       FolderConfiguration().apply {
         screenRoundQualifier = ScreenRoundQualifier(ScreenRound.ROUND)
@@ -1449,14 +1473,15 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testPaintWithChildrenOutsideParent() {
-    val model = model {
-      view(ROOT, 0, 0, 20, 40) {
-        view(VIEW1, 0, 0, 20, 40)
-        image()
-        view(VIEW2, -23, 0, 20, 40)
-        view(VIEW3, 0, 0, 20, 40)
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 20, 40) {
+          view(VIEW1, 0, 0, 20, 40)
+          image()
+          view(VIEW2, -23, 0, 20, 40)
+          view(VIEW3, 0, 0, 20, 40)
+        }
       }
-    }
     @Suppress("UndesirableClassUsage") val generatedImage = BufferedImage(90, 70, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
@@ -1492,12 +1517,13 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testPaintWithChildAboveSibling() {
-    val model = model {
-      view(ROOT, 0, 0, 20, 40) {
-        view(VIEW1, 0, 0, 20, 20) { view(VIEW2, 0, 0, 20, 40) }
-        view(VIEW3, 0, 20, 20, 20)
+    val model =
+      model(disposable.disposable) {
+        view(ROOT, 0, 0, 20, 40) {
+          view(VIEW1, 0, 0, 20, 20) { view(VIEW2, 0, 0, 20, 40) }
+          view(VIEW3, 0, 20, 20, 20)
+        }
       }
-    }
 
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
@@ -1544,7 +1570,7 @@ class DeviceViewContentPanelWithScaledFontTest {
       .replaceService(ActionManager::class.java, mock(), disposable.disposable)
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val model = model {}
+    val model = model(disposable.disposable) {}
 
     val renderSettings = FakeRenderSettings()
     val panel =

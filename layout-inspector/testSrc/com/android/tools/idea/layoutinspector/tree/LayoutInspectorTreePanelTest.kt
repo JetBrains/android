@@ -656,8 +656,8 @@ class LayoutInspectorTreePanelTest {
   fun testSystemNodeWithMultipleChildren() {
     val mockLauncher = mock<InspectorClientLauncher>()
     whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
-    val model = InspectorModel(projectRule.project)
     val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val model = InspectorModel(projectRule.project, coroutineScope)
     val clientSettings = InspectorClientSettings(projectRule.project)
     val inspector =
       LayoutInspector(
@@ -717,8 +717,8 @@ class LayoutInspectorTreePanelTest {
   fun testSystemNodeInMiddleOfCallStack() {
     val mockLauncher = mock<InspectorClientLauncher>()
     whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
-    val model = InspectorModel(projectRule.project)
     val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val model = InspectorModel(projectRule.project, coroutineScope)
     val clientSettings = InspectorClientSettings(projectRule.project)
     val inspector =
       LayoutInspector(
@@ -777,8 +777,8 @@ class LayoutInspectorTreePanelTest {
   fun testSemanticTrees() {
     val mockLauncher = mock<InspectorClientLauncher>()
     whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
-    val model = InspectorModel(projectRule.project)
     val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val model = InspectorModel(projectRule.project, coroutineScope)
     val clientSettings = InspectorClientSettings(projectRule.project)
     val inspector =
       LayoutInspector(

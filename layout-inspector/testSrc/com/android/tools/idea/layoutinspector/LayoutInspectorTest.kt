@@ -107,7 +107,7 @@ class LayoutInspectorTest {
     mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
     val mockClientSettings = mock<InspectorClientSettings>()
     val mockLauncher = mock<InspectorClientLauncher>()
-    inspectorModel = model { view(ROOT, qualifiedName = "root") }
+    inspectorModel = model(disposableRule.disposable) { view(ROOT, qualifiedName = "root") }
     mockRenderModel = mock()
 
     val mockTreeSettings = mock<TreeSettings>()
@@ -172,7 +172,7 @@ class LayoutInspectorTest {
       val mockClientSettings = mock<InspectorClientSettings>()
       val mockLauncher = mock<InspectorClientLauncher>()
       whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
-      val inspectorModel = InspectorModel(projectRule.project)
+      val inspectorModel = InspectorModel(projectRule.project, scope)
       val mockTreeSettings = mock<TreeSettings>()
       val layoutInspector =
         LayoutInspector(

@@ -79,6 +79,7 @@ class ComposeResolverTest {
 
   private fun createModel(): InspectorModel =
     model(
+      projectRule.testRootDisposable,
       projectRule.project,
       FakeTreeSettings(),
       body =

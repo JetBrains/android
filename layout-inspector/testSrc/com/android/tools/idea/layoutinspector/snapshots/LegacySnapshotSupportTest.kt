@@ -24,6 +24,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.waitForCondition
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -81,7 +82,7 @@ DONE.
     waitForCondition(5, TimeUnit.SECONDS) { !legacyClient.model.isEmpty }
     legacyClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
-    val newModel = InspectorModel(legacyRule.project)
+    val newModel = InspectorModel(legacyRule.project, AndroidCoroutineScope(legacyRule.disposable))
     val newNotificationModel = NotificationModel(legacyRule.project)
     val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
     snapshotLoader.loadFile(savePath, newModel, newNotificationModel, stats)

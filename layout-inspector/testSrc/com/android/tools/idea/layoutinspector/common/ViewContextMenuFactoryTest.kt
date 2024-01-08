@@ -74,18 +74,19 @@ class ViewContextMenuFactoryTest {
       mockPopupMenu
     }
     whenever(mockPopupMenu.component).thenReturn(popupMenuComponent)
-    inspectorModel = model {
-      view(
-        ROOT,
-        viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")
-      ) {
-        view(VIEW1)
-        view(VIEW2, qualifiedName = "viewName") {
-          view(VIEW3, textValue = "myText") { image() }
-          image()
+    inspectorModel =
+      model(disposableRule.disposable) {
+        view(
+          ROOT,
+          viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")
+        ) {
+          view(VIEW1)
+          view(VIEW2, qualifiedName = "viewName") {
+            view(VIEW3, textValue = "myText") { image() }
+            image()
+          }
         }
       }
-    }
 
     val client: InspectorClient = mock()
     whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
@@ -105,7 +106,7 @@ class ViewContextMenuFactoryTest {
 
   @Test
   fun testEmptyModel() {
-    showViewContextMenu(listOf(), model {}, source!!, 0, 0)
+    showViewContextMenu(listOf(), model(disposableRule.disposable) {}, source!!, 0, 0)
     assertThat(createdGroup).isNull()
   }
 
@@ -236,12 +237,16 @@ class ViewContextMenuFactoryLegacyTest {
   private var source: JComponent? = mock()
   private var popupMenuComponent: JPopupMenu? = mock()
   private var createdGroup: ActionGroup? = null
-  private var inspectorModel: InspectorModel? = model {
-    view(ROOT, viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")) {
-      view(VIEW1)
-      view(VIEW2, qualifiedName = "viewName") { view(VIEW3, textValue = "myText") }
+  private var inspectorModel: InspectorModel? =
+    model(disposableRule.disposable) {
+      view(
+        ROOT,
+        viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")
+      ) {
+        view(VIEW1)
+        view(VIEW2, qualifiedName = "viewName") { view(VIEW3, textValue = "myText") }
+      }
     }
-  }
 
   private val event: AnActionEvent = mock()
 
