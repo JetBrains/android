@@ -589,7 +589,7 @@ iml_module(
             "test_filter": "com.android.tools.idea.inspections.IllegalIdentifierInspectionTest",
         },
         "other": {
-            "shard_count": 3,
+            "shard_count": 5,
         },
     },
     test_class = "com.android.tools.idea.IdeaTestSuite",
