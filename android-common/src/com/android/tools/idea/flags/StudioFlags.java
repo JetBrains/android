@@ -346,9 +346,9 @@ public final class StudioFlags {
     "Requires applychanges.optimisticswap to be true.",
     true);
 
-  public static final Flag<Boolean> INSTALL_FORGO_DONT_KILL = Flag.create(
+  public static final Flag<Boolean> INSTALL_USE_PM_TERMINATE = Flag.create(
     RUNDEBUG,
-    "install.forgo.dont.kill",
+    "install.use.pm.terminate",
     "When installing via the Package Manager, do not use the --dont-kill flag and skip process termination for API33+",
     "We assume there are no race conditions with the package manager and give full control to it.",
     true);

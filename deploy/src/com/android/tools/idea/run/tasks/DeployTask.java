@@ -126,7 +126,7 @@ public class DeployTask extends AbstractDeployTask {
 
     // The above statement is no longer true for API33. That is to say, we no longer need to perform our own
     // process termination in Studio and will rely solely on the Package Manager to perform process termination.
-    boolean isDontKillNeed = !StudioFlags.INSTALL_FORGO_DONT_KILL.get() ||
+    boolean isDontKillNeed = !StudioFlags.INSTALL_USE_PM_TERMINATE.get() ||
                              !device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU);
     if (isDontKillSupported && isDontKillNeed) {
       options.setDontKill();

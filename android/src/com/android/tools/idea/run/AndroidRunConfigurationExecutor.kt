@@ -183,7 +183,7 @@ class AndroidRunConfigurationExecutor(
       indicator.text = "Terminating the app"
       val results = devices.filter {
         // Starting with API33, we will purely rely on Package Manager to handle process termination.
-        !StudioFlags.INSTALL_FORGO_DONT_KILL.get() || !it.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU)
+        !StudioFlags.INSTALL_USE_PM_TERMINATE.get() || !it.version.isGreaterOrEqualThan(AndroidVersion.VersionCodes.TIRAMISU)
       }.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
 
       if (results.any { !it }) {
