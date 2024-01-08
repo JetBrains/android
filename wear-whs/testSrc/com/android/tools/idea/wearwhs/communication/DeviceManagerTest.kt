@@ -77,6 +77,7 @@ class DeviceManagerTest {
   private val adbCommandClearPace = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind PACE:s:\"\""
   private val adbCommandClearStepsPerMinute = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind STEPS_PER_MINUTE:s:\"\""
   private val adbCommandDeleteEntries = "content delete --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config"
+  private val adbCommandSetMultipleCapabilities = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ABSOLUTE_ELEVATION:b:false --bind DISTANCE:b:false --bind ELEVATION_GAIN:b:true --bind ELEVATION_LOSS:b:false --bind FLOORS:b:false --bind HEART_RATE_BPM:b:true --bind LOCATION:b:true --bind PACE:b:true --bind SPEED:b:false --bind STEPS:b:true --bind STEPS_PER_MINUTE:b:false --bind TOTAL_CALORIES:b:false"
 
   private val capabilities = mapOf(
     WhsDataType.STEPS to WhsCapability(
@@ -406,5 +407,33 @@ class DeviceManagerTest {
   @Test
   fun `Delete entries triggers correct adb command`() {
     assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.clearContentProvider() }, adbCommandDeleteEntries)
+  }
+
+  @Test
+  fun `Setting multiple capabilities without setting serial number does not result in crash`() = runTest {
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+
+    val job = launch {
+      deviceManager.setCapabilities(mapOf(WhsDataType.STEPS to true))
+    }
+    job.join()
+  }
+
+  @Test
+  fun `Setting multiple capabilities triggers expected adb command with keys in alphabetical order`() {
+    assertDeviceManagerFunctionSendsAdbCommand({ deviceManager -> deviceManager.setCapabilities(mapOf(
+      WhsDataType.STEPS to true,
+      WhsDataType.DISTANCE to false,
+      WhsDataType.TOTAL_CALORIES to false,
+      WhsDataType.FLOORS to false,
+      WhsDataType.ELEVATION_GAIN to true,
+      WhsDataType.ELEVATION_LOSS to false,
+      WhsDataType.ABSOLUTE_ELEVATION to false,
+      WhsDataType.LOCATION to true,
+      WhsDataType.HEART_RATE_BPM to true,
+      WhsDataType.SPEED to false,
+      WhsDataType.PACE to true,
+      WhsDataType.STEPS_PER_MINUTE to false,
+    )) }, adbCommandSetMultipleCapabilities)
   }
 }

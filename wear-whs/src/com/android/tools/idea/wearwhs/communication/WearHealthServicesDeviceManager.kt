@@ -17,6 +17,7 @@ package com.android.tools.idea.wearwhs.communication
 
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WhsCapability
+import com.android.tools.idea.wearwhs.WhsDataType
 
 /**
  * Interface for the Wear Health Services Device Manager.
@@ -45,6 +46,11 @@ internal interface WearHealthServicesDeviceManager {
    * Disables a capability of WHS on the device.
    */
   suspend fun disableCapability(capability: WhsCapability)
+
+  /**
+   * Set multiple WHS capabilities on the device.
+   */
+  suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>)
 
   /**
    * Overrides the sensor value for the given capability.

@@ -62,6 +62,14 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
   // TODO(b/305924111) Implement loadOngoingExercise method
   override suspend fun loadOngoingExercise() = false
 
+  private fun contentUpdateMultipleCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>): String {
+    val sb = StringBuilder("content update --uri $whsUri")
+    for (capabilityUpdate in capabilityUpdates.toSortedMap(compareBy { it.name })) {
+      sb.append(" --bind ${capabilityUpdate.key}:b:${capabilityUpdate.value}")
+    }
+    return sb.toString()
+  }
+
   private inline fun <reified T> contentUpdateCapability(key: String, value: T): String {
     val type = when (value) {
       is Boolean -> 'b'
@@ -89,6 +97,18 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
 
   override suspend fun disableCapability(capability: WhsCapability) {
     setCapability(capability, false)
+  }
+
+  override suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>) {
+    if (serialNumber == null) {
+      // TODO: Log this error
+      return
+    }
+
+    val contentUpdateCommand = contentUpdateMultipleCapabilities(capabilityUpdates)
+    val device = DeviceSelector.fromSerialNumber(serialNumber!!)
+
+    adbSession.deviceServices.shellAsText(device, contentUpdateCommand)
   }
 
   override suspend fun overrideValue(capability: WhsCapability, value: Number?) {

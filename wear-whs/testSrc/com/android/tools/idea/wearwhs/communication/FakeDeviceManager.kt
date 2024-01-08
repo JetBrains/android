@@ -18,6 +18,7 @@ package com.android.tools.idea.wearwhs.communication
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsCapability
+import com.android.tools.idea.wearwhs.WhsDataType
 import kotlinx.coroutines.delay
 
 private const val DELAY_MS = 100L
@@ -62,6 +63,10 @@ internal class FakeDeviceManager(
   else {
     delay(DELAY_MS)
     onDeviceStates[capability]?.enabled = false
+  }
+
+  override suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>) {
+    TODO("Not yet implemented")
   }
 
   override suspend fun overrideValue(capability: WhsCapability, value: Number?) = if (failState) {
