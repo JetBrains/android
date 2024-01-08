@@ -199,8 +199,17 @@ def move_project_kotlinc_opts_into_modules(project: JpsProject):
     kotlin_facet = create_kotlin_facet_from_project_settings(project)
     for module in project.modules:
         facet_manager = get_or_create_child(module.xml.getroot(), "component", name="FacetManager")
-        if facet_manager.find(f"./facet[@type='kotlin-language']") is None:
+        kotlin_language_facet = facet_manager.find(f"./facet[@type='kotlin-language']")
+        # copy kotlin configurations if there aren't any specified in the module
+        if kotlin_language_facet is None:
             facet_manager.append(copy.deepcopy(kotlin_facet))
+        else:
+            # if useProjectSettings is true (which it is by default), we want to set it explicitly to what is used in tools/idea
+            # so that the default for Android Studio is not used for that module, as these could conflict.
+            configurations = kotlin_language_facet.find("configuration")
+            use_idea_settings = "true" if configurations is None else configurations.attrib.get("useProjectSettings", "true")
+            if use_idea_settings == "true":
+                facet_manager.append(copy.deepcopy(kotlin_facet))
 
 
 def write_project(project: JpsProject, outdir: Path):
