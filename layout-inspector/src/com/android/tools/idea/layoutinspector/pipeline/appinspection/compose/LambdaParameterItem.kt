@@ -26,7 +26,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.editor.colors.EditorColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.ui.popup.Balloon
@@ -36,7 +36,7 @@ import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.UIUtil
 import java.util.concurrent.TimeUnit
-import org.jetbrains.kotlin.idea.util.application.executeOnPooledThread
+import kotlinx.coroutines.launch
 
 /**
  * A [LinkPropertyItem] for a lambda parameter from Compose.
@@ -79,14 +79,16 @@ class LambdaParameterItem(
   override val link =
     object : AnAction("$fileName:$startLineNumber") {
       override fun actionPerformed(event: AnActionEvent) {
-        val popupLocation = JBPopupFactory.getInstance().guessBestPopupLocation(event.dataContext)
-        executeOnPooledThread { gotoLambdaLocation(event, popupLocation) }
+        lookup.scope.launch {
+          val popupLocation = JBPopupFactory.getInstance().guessBestPopupLocation(event.dataContext)
+          gotoLambdaLocation(event, popupLocation)
+        }
       }
     }
 
   @Slow
-  private fun gotoLambdaLocation(event: AnActionEvent, popupLocation: RelativePoint) {
-    val location = runReadAction {
+  private suspend fun gotoLambdaLocation(event: AnActionEvent, popupLocation: RelativePoint) {
+    val location =
       lookup.resourceLookup.findLambdaLocation(
         packageName,
         fileName,
@@ -95,9 +97,9 @@ class LambdaParameterItem(
         startLineNumber,
         endLineNumber
       )
-    }
+
     location.navigatable?.let {
-      if (runReadAction { it.canNavigate() }) {
+      if (readAction { it.canNavigate() }) {
         invokeLater {
           // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when
           // focus is removed

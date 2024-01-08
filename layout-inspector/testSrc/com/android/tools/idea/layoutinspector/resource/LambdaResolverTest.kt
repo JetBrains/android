@@ -18,9 +18,10 @@ package com.android.tools.idea.layoutinspector.resource
 import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.psi.PsiElement
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -42,7 +43,7 @@ class LambdaResolverTest {
   }
 
   @Test
-  fun testFindLambdaLocation() = runReadAction {
+  fun testFindLambdaLocation() = runBlocking {
     checkLambda("1", 34, 34, 34, "{ 1 }")
     checkLambda("2", 34, 34, 34, "{ 2 }")
     checkLambda("3", 34, 34, 34, "{ f2({ 3 }, { 4 }) }")
@@ -91,7 +92,7 @@ class LambdaResolverTest {
   }
 
   @Test
-  fun testFindLambdaLocationWithinComposable() = runReadAction {
+  fun testFindLambdaLocationWithinComposable() = runBlocking {
     checkLambda("1", 82, 82, 82, "{ it - 1 }")
     checkLambda(
       "lambda-10\$1",
@@ -147,7 +148,7 @@ class LambdaResolverTest {
   }
 
   @Test
-  fun testFindFunctionReferenceLocation() = runReadAction {
+  fun testFindFunctionReferenceLocation() = runBlocking {
     check("1", "f3", 10, 10, 10, "::f3")
     check("1", "fx", 23, 23, 23, "::fx")
     check("4", "f3", 27, 27, 27, "::f3")
@@ -159,7 +160,7 @@ class LambdaResolverTest {
   }
 
   @Test
-  fun testFindLambdaFromUnknownFile() = runReadAction {
+  fun testFindLambdaFromUnknownFile() = runBlocking {
     val resourceLookup = ResourceLookup(projectRule.project)
     val result =
       resourceLookup.findLambdaLocation("com.example", "MyOtherFile.kt", "l$1", "", 102, 107)
@@ -167,7 +168,7 @@ class LambdaResolverTest {
     assertThat(result.navigatable).isNull()
   }
 
-  private fun checkLambda(
+  private suspend fun checkLambda(
     lambdaName: String,
     startLine: Int,
     endLine: Int,
@@ -175,7 +176,7 @@ class LambdaResolverTest {
     expectedText: String? = null
   ) = check(lambdaName, functionName = "", startLine, endLine, expectedStartLine, expectedText)
 
-  private fun check(
+  private suspend fun check(
     lambdaName: String,
     functionName: String,
     startLine: Int,
@@ -199,7 +200,7 @@ class LambdaResolverTest {
       assertThat(fileDescriptor?.line).isEqualTo(expectedStartLine - 1)
       assertThat(fileDescriptor?.column).isEqualTo(0)
     } else {
-      var actual = (result.navigatable as? PsiElement)?.text?.trim()
+      var actual = readAction { (result.navigatable as? PsiElement)?.text?.trim() }
       if (actual != null && actual.startsWith("{\n")) {
         actual = "{\n" + actual.substring(2).trimIndent()
       }

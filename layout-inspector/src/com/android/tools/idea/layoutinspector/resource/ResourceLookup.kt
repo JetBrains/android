@@ -174,14 +174,14 @@ class ResourceLookup(private val project: Project) {
 
   /** Find the lambda source location. */
   @Slow
-  fun findLambdaLocation(
+  suspend fun findLambdaLocation(
     packageName: String,
     fileName: String,
     lambdaName: String,
     functionName: String,
     startLine: Int,
     endLine: Int
-  ): SourceLocation =
+  ): SourceLocation = readAction {
     composeResolver.findLambdaLocation(
       packageName,
       fileName,
@@ -190,11 +190,13 @@ class ResourceLookup(private val project: Project) {
       startLine,
       endLine
     )
+  }
 
   /** Find the source navigatable of a composable function. */
   @Slow
-  fun findComposableNavigatable(composable: ComposeViewNode): Navigatable? =
+  suspend fun findComposableNavigatable(composable: ComposeViewNode): Navigatable? = readAction {
     composeResolver.findComposableNavigatable(composable)
+  }
 
   /** Find the icon from this drawable property. */
   suspend fun resolveAsIcon(value: String?, view: ViewNode): Icon? {

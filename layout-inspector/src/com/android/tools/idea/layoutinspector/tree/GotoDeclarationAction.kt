@@ -26,7 +26,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.runReadAction
 import com.intellij.pom.Navigatable
 import com.intellij.ui.EditorNotificationPanel.Status
 import kotlinx.coroutines.CoroutineScope
@@ -79,7 +78,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
       val resourceLookup = model.resourceLookup
       val node = model.selection ?: return@withContext null
       if (node is ComposeViewNode) {
-        runReadAction { resourceLookup.findComposableNavigatable(node) }
+        resourceLookup.findComposableNavigatable(node)
       } else {
         val navigatable =
           withContext(AndroidDispatchers.uiThread) {
