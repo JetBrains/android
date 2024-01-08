@@ -28,7 +28,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.ui.ToggleActionButton
+import com.intellij.openapi.project.DumbAwareToggleAction
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -78,7 +78,8 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) :
   }
 
   private class ButtonAction(private val model: ToggleButtonPropertyEditorModel) :
-    ToggleActionButton(model.description, model.icon) {
+    DumbAwareToggleAction(model.description, null, model.icon) {
+
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override fun isSelected(event: AnActionEvent): Boolean {
