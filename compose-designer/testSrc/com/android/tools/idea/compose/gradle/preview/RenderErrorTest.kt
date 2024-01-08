@@ -61,6 +61,7 @@ import java.awt.Dimension
 import javax.swing.JPanel
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.utils.alwaysTrue
@@ -68,7 +69,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -269,35 +269,35 @@ class RenderErrorTest {
       assertEquals("RenderError.kt", navigatable.file.name)
     }
 
-  @Ignore("b/307260641")
   @Test
   fun testVisualLintErrors() =
     runBlocking(workerThread) {
-      val modelsWithIssues =
-        listOf(
+      listOf(
           "PreviewWithContrastError",
           "PreviewWithContrastErrorAgain",
           "PreviewWithWideButton",
           "PreviewWithLongText",
         )
+        .forEach { modelWithIssues ->
+          launch {
+            startUiCheckForModel(modelWithIssues)
 
-      modelsWithIssues.forEach { modelWithIssues ->
-        startUiCheckForModel(modelWithIssues)
+            val issues = visualLintRenderIssues()
+            // 1-2% of the time we get two issues instead of one. Only one of the issues has a
+            // component
+            // field that is populated. We attempt to retrieve it here.
+            val issue = runInEdtAndGet {
+              issues.first { it.components.firstOrNull()?.navigatable is OpenFileDescriptor }
+            }
 
-        val issues = visualLintRenderIssues()
-        // 1-2% of the time we get two issues instead of one. Only one of the issues has a component
-        // field that is populated. We attempt to retrieve it here.
-        val issue = runInEdtAndGet {
-          issues.first { it.components.firstOrNull()?.navigatable is OpenFileDescriptor }
+            assertEquals("Visual Lint Issue", issue.category)
+            val navigatable = issue.components[0].navigatable
+            assertTrue(navigatable is OpenFileDescriptor)
+            assertEquals("RenderError.kt", (navigatable as OpenFileDescriptor).file.name)
+
+            stopUiCheck()
+          }
         }
-
-        assertEquals("Visual Lint Issue", issue.category)
-        val navigatable = issue.components[0].navigatable
-        assertTrue(navigatable is OpenFileDescriptor)
-        assertEquals("RenderError.kt", (navigatable as OpenFileDescriptor).file.name)
-
-        stopUiCheck()
-      }
     }
 
   private fun countVisibleActions(
