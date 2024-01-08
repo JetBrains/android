@@ -21,11 +21,13 @@ import com.android.tools.idea.sdk.StudioSettingsController;
 import com.intellij.CommonBundle;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.options.ex.Settings;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.ui.AnActionButton;
 import com.intellij.ui.AnActionButtonRunnable;
 import com.intellij.ui.AnActionButtonUpdater;
@@ -85,54 +87,73 @@ public class UpdateSitesPanel {
 
   private ToolbarDecorator addExtraActions(final ToolbarDecorator decorator) {
     return decorator.setEditAction(new AnActionButtonRunnable() {
-      @Override
-      public void run(AnActionButton anActionButton) {
-        mySourcesTableModel.editRow(myUpdateSitesTable.getSelectedRow());
-      }
-    }).setEditActionUpdater(new AnActionButtonUpdater() {
-      @Override
-      public boolean isEnabled(@NotNull AnActionEvent e) {
-        return myUpdateSitesTable.getSelectedRowCount() == 1 && mySourcesTableModel.isEditable(myUpdateSitesTable.getSelectedRow());
-      }
-    }).setAddActionUpdater(new AnActionButtonUpdater() {
-      @Override
-      public boolean isEnabled(@NotNull AnActionEvent e) {
-        return mySourcesTableModel.isEditable();
-      }
-    }).addExtraAction(new AnActionButton(AndroidBundle.messagePointer("action.AnActionButton.update.sites.text.select.all"), AllIcons.Actions.Selectall) {
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent e) {
-        mySourcesTableModel.setAllEnabled(true);
-      }
-
-      @Override
-      public boolean isEnabled() {
-        return mySourcesTableModel.hasEditableRows();
-      }
-    }).addExtraAction(new AnActionButton(AndroidBundle.messagePointer("action.AnActionButton.update.sites.text.deselect.all"), AllIcons.Actions.Unselectall) {
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent e) {
-        mySourcesTableModel.setAllEnabled(false);
-      }
-
-      @Override
-      public boolean isEnabled() {
-        return mySourcesTableModel.hasEditableRows();
-      }
-    }).setMoveDownAction(null).setMoveUpAction(null).setRemoveActionUpdater(new AnActionButtonUpdater() {
-      @Override
-      public boolean isEnabled(@NotNull AnActionEvent e) {
-        if (myUpdateSitesTable.getSelectedRowCount() < 1) {
-          return false;
+        @Override
+        public void run(AnActionButton anActionButton) {
+          mySourcesTableModel.editRow(myUpdateSitesTable.getSelectedRow());
         }
-        for (int i : myUpdateSitesTable.getSelectedRows()) {
-          if (!mySourcesTableModel.isEditable(i)) {
+      })
+      .setEditActionUpdater(new AnActionButtonUpdater() {
+        @Override
+        public boolean isEnabled(@NotNull AnActionEvent e) {
+          return myUpdateSitesTable.getSelectedRowCount() == 1 && mySourcesTableModel.isEditable(myUpdateSitesTable.getSelectedRow());
+        }
+      })
+      .setAddActionUpdater(new AnActionButtonUpdater() {
+        @Override
+        public boolean isEnabled(@NotNull AnActionEvent e) {
+          return mySourcesTableModel.isEditable();
+        }
+      })
+      .addExtraAction(
+        new DumbAwareAction(AndroidBundle.messagePointer("action.AnActionButton.update.sites.text.select.all"), AllIcons.Actions.Selectall) {
+          @Override
+          public @NotNull ActionUpdateThread getActionUpdateThread() {
+            return ActionUpdateThread.EDT;
+          }
+
+          @Override
+          public void update(@NotNull AnActionEvent e) {
+            e.getPresentation().setEnabled(mySourcesTableModel.hasEditableRows());
+          }
+
+          @Override
+          public void actionPerformed(@NotNull AnActionEvent e) {
+            mySourcesTableModel.setAllEnabled(true);
+          }
+        })
+      .addExtraAction(new DumbAwareAction(AndroidBundle.messagePointer("action.AnActionButton.update.sites.text.deselect.all"),
+                                             AllIcons.Actions.Unselectall) {
+        @Override
+        public @NotNull ActionUpdateThread getActionUpdateThread() {
+          return ActionUpdateThread.EDT;
+        }
+
+        @Override
+        public void update(@NotNull AnActionEvent e) {
+          e.getPresentation().setEnabled(mySourcesTableModel.hasEditableRows());
+        }
+
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent e) {
+          mySourcesTableModel.setAllEnabled(false);
+        }
+      })
+      .setMoveDownAction(null)
+      .setMoveUpAction(null)
+      .setRemoveActionUpdater(new AnActionButtonUpdater() {
+        @Override
+        public boolean isEnabled(@NotNull AnActionEvent e) {
+          if (myUpdateSitesTable.getSelectedRowCount() < 1) {
             return false;
           }
+          for (int i : myUpdateSitesTable.getSelectedRows()) {
+            if (!mySourcesTableModel.isEditable(i)) {
+              return false;
+            }
+          }
+          return true;
         }
-        return true;
-      }
-    });
+      });
   }
 
   public boolean isModified() {

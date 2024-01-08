@@ -16,16 +16,24 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.actions
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.ui.AnActionButton
 
 /** Modify Menu action. */
-abstract class ModifyMenuAction : AnActionButton("Modify Constraint Set", MEIcons.EDIT_MENU) {
+abstract class ModifyMenuAction : DumbAwareAction("Modify Constraint Set", null, MEIcons.EDIT_MENU) {
 
   abstract val actions: List<AnAction>
+  var enabled: Boolean = true
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
+  override fun update(e: AnActionEvent) {
+    e.presentation.isEnabled = enabled
+  }
 
   override fun actionPerformed(e: AnActionEvent) {
     val menu =

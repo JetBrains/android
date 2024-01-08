@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.actions
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import org.jetbrains.android.util.AndroidBundle.message
 
 
@@ -26,7 +26,7 @@ import org.jetbrains.android.util.AndroidBundle.message
  * Expand/collapse action.
  */
 open class ExpandAction :
-  AnActionButton(message("resource.manager.collapse.section"), AllIcons.Ide.Notification.Expand) {
+  DumbAwareAction(message("resource.manager.collapse.section"), null, AllIcons.Ide.Notification.Expand) {
 
   var expanded = true
     private set
@@ -34,8 +34,7 @@ open class ExpandAction :
     expanded = !expanded
   }
 
-  override fun updateButton(e: AnActionEvent) {
-    super.updateButton(e)
+  override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = true
     e.presentation.apply {
       if (expanded) {

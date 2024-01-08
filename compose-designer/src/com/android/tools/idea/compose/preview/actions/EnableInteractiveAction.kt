@@ -17,12 +17,13 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
 
 /**
@@ -32,14 +33,14 @@ import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
  *   information.
  */
 internal class EnableInteractiveAction(private val dataContextProvider: () -> DataContext) :
-  AnActionButton(
+  DumbAwareAction(
     message("action.interactive.title"),
     message("action.interactive.description"),
     INTERACTIVE_PREVIEW
   ) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
-  override fun updateButton(e: AnActionEvent) {
-    super.updateButton(e)
+  override fun update(e: AnActionEvent) {
     val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
     e.presentation.isVisible = true
     e.presentation.isEnabled = !isEssentialsModeEnabled

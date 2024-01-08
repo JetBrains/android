@@ -29,9 +29,11 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMT
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.ui.AnActionButton;
+import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.util.NlsActions;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -97,7 +99,7 @@ class ConstraintSetPanel extends JPanel {
   private final JLabel mTitle;
   boolean mBuildingTable;
 
-  AnActionButton createConstraint = new AnActionButton("Create Constraint") {
+  MyAction createConstraint = new MyAction("Create Constraint") {
     @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       Track.createConstraint(mMeModel.myTrack);
@@ -106,7 +108,7 @@ class ConstraintSetPanel extends JPanel {
     }
   };
 
-  AnActionButton createAllConstraints = new AnActionButton("Create All Constraints") {
+  MyAction createAllConstraints = new MyAction("Create All Constraints") {
     @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       Track.createConstraint(mMeModel.myTrack);
@@ -115,7 +117,7 @@ class ConstraintSetPanel extends JPanel {
     }
   };
 
-  AnActionButton createSectionedConstraint = new AnActionButton("Create Sectioned Constraint") {
+  MyAction createSectionedConstraint = new MyAction("Create Sectioned Constraint") {
     @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       ConstraintSetPanelCommands.createSectionedConstraint(mMultiSelectedTag, mConstraintSet);
@@ -123,7 +125,7 @@ class ConstraintSetPanel extends JPanel {
     }
   };
 
-  AnActionButton clearConstraint = new AnActionButton("Clear Constraint") {
+  MyAction clearConstraint = new MyAction("Clear Constraint") {
     @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       Track.clearConstraint(mMeModel.myTrack);
@@ -131,14 +133,14 @@ class ConstraintSetPanel extends JPanel {
       buildTable();
     }
   };
-  AnActionButton moveConstraint = new AnActionButton("Move Constraints to layout") {
+  MyAction moveConstraint = new MyAction("Move Constraints to layout") {
     @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       ConstraintSetPanelCommands.moveConstraint(mSelectedTag, mConstraintSet);
     }
   };
 
-  AnActionButton overrideConstraint = new AnActionButton("Convert from sectioned constraints") {
+  MyAction overrideConstraint = new MyAction("Convert from sectioned constraints") {
     @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e)  {
       ConstraintSetPanelCommands.convertFromSectioned(mSelectedTag, mConstraintSet);
@@ -651,6 +653,29 @@ class ConstraintSetPanel extends JPanel {
       if (selectedSet.contains(id)) {
         mConstraintSetTable.addRowSelectionInterval(i, i);
       }
+    }
+  }
+
+  abstract static class MyAction extends DumbAwareAction {
+    boolean enabled;
+
+    MyAction(@NlsActions.ActionText String text) {
+      super(text);
+    }
+
+    @Override
+    public
+    @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.EDT;
+    }
+
+    @Override
+    public void update(@org.jetbrains.annotations.NotNull AnActionEvent e) {
+      e.getPresentation().setEnabled(enabled);
+    }
+
+    void setEnabled(boolean enabled) {
+      this.enabled = enabled;
     }
   }
 }

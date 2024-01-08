@@ -17,27 +17,26 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.ui.AnActionButton
 import icons.StudioIcons
 
 class EnableUiCheckAction(private val dataContextProvider: () -> DataContext) :
-  AnActionButton(
+  DumbAwareAction(
     message("action.uicheck.title"),
     message("action.uicheck.description"),
     StudioIcons.Compose.Toolbar.UI_CHECK
   ) {
 
-  override fun updateButton(e: AnActionEvent) {
-    super.updateButton(e)
+  override fun update(e: AnActionEvent) {
     val isUiCheckModeEnabled = StudioFlags.NELE_COMPOSE_UI_CHECK_MODE.get()
     val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
     e.presentation.isVisible = isUiCheckModeEnabled

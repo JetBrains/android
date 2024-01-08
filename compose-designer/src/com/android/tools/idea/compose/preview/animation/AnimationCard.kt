@@ -16,12 +16,13 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
@@ -118,7 +119,9 @@ class AnimationCard(
   }
 
   private inner class ExpandAction :
-    AnActionButton(message("animation.inspector.action.expand"), UIUtil.getTreeCollapsedIcon()) {
+    DumbAwareAction(message("animation.inspector.action.expand"), null, UIUtil.getTreeCollapsedIcon()) {
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override fun actionPerformed(e: AnActionEvent) {
       state.expanded = !state.expanded
@@ -129,8 +132,7 @@ class AnimationCard(
       }
     }
 
-    override fun updateButton(e: AnActionEvent) {
-      super.updateButton(e)
+    override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = true
       e.presentation.apply {
         if (state.expanded) {

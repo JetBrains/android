@@ -22,13 +22,14 @@ import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.AnActionButton
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.Component
@@ -106,8 +107,8 @@ class PlaybackControls(
 
     /** Snap the animation to the start state. */
     inner class GoToStartAction :
-      AnActionButton(
-        message("animation.inspector.action.go.to.start"),
+      DumbAwareAction(
+        message("animation.inspector.action.go.to.start"), null,
         StudioIcons.LayoutEditor.Motion.GO_TO_START
       ) {
       override fun actionPerformed(e: AnActionEvent) {
@@ -119,16 +120,17 @@ class PlaybackControls(
         if (!playPauseAction.isPlaying) playPauseComponent?.requestFocus()
       }
 
-      override fun updateButton(e: AnActionEvent) {
-        super.updateButton(e)
+      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
+      override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = !clockControl.isAtStart()
       }
     }
 
     /** Snap the animation to the end state. */
     inner class GoToEndAction :
-      AnActionButton(
-        message("animation.inspector.action.go.to.end"),
+      DumbAwareAction(
+        message("animation.inspector.action.go.to.end"), null,
         StudioIcons.LayoutEditor.Motion.GO_TO_END
       ) {
       override fun actionPerformed(e: AnActionEvent) {
@@ -141,8 +143,9 @@ class PlaybackControls(
           playPauseComponent?.requestFocus()
       }
 
-      override fun updateButton(e: AnActionEvent) {
-        super.updateButton(e)
+      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
+      override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = !clockControl.isAtEnd()
       }
     }
@@ -153,8 +156,8 @@ class PlaybackControls(
    * playing state.
    */
   private inner class PlayPauseAction(parentDisposable: Disposable) :
-    AnActionButton(
-      message("animation.inspector.action.play"),
+    DumbAwareAction(
+      message("animation.inspector.action.play"), null,
       StudioIcons.LayoutEditor.Motion.PLAY
     ),
     Disposable {
@@ -193,8 +196,9 @@ class PlaybackControls(
         tracker.triggerPlayAction()
       }
 
-    override fun updateButton(e: AnActionEvent) {
-      super.updateButton(e)
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+    override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = true
       e.presentation.apply {
         if (isPlaying) {

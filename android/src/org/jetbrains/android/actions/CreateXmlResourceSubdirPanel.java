@@ -17,15 +17,17 @@ package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.fileChooser.actions.VirtualFileDeleteProvider;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
-import com.intellij.ui.AnActionButton;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.ToolbarDecorator;
@@ -80,7 +82,7 @@ public class CreateXmlResourceSubdirPanel {
 
     decorator.setRemoveAction(button -> doDeleteDirectory());
 
-    final AnActionButton selectAll = new AnActionButton(AndroidBundle.messagePointer("action.AnActionButton.text.select.all"), PlatformIcons.SELECT_ALL_ICON) {
+    AnAction selectAll = new DumbAwareAction(AndroidBundle.messagePointer("action.AnActionButton.text.select.all"), Presentation.NULL_STRING, PlatformIcons.SELECT_ALL_ICON) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         doSelectAllDirs();
@@ -88,7 +90,7 @@ public class CreateXmlResourceSubdirPanel {
     };
     decorator.addExtraAction(selectAll);
 
-    final AnActionButton unselectAll = new AnActionButton(AndroidBundle.messagePointer("action.AnActionButton.text.unselect.all"), PlatformIcons.UNSELECT_ALL_ICON) {
+    AnAction unselectAll = new DumbAwareAction(AndroidBundle.messagePointer("action.AnActionButton.text.unselect.all"), Presentation.NULL_STRING, PlatformIcons.UNSELECT_ALL_ICON) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         doUnselectAllDirs();

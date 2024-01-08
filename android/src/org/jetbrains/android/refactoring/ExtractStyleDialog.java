@@ -8,13 +8,15 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionToolbarPosition;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.ui.AnActionButton;
 import com.intellij.ui.CheckboxTree;
 import com.intellij.ui.CheckedTreeNode;
 import com.intellij.ui.SimpleTextAttributes;
@@ -148,7 +150,7 @@ class ExtractStyleDialog extends DialogWrapper {
     decorator.setEditAction(null);
     decorator.disableUpDownActions();
 
-    AnActionButton selectAll = new AnActionButton(AndroidBundle.messagePointer("action.AnActionButton.extract.style.text.select.all"), PlatformIcons.SELECT_ALL_ICON) {
+    AnAction selectAll = new DumbAwareAction(AndroidBundle.messagePointer("action.AnActionButton.extract.style.text.select.all"), Presentation.NULL_STRING, PlatformIcons.SELECT_ALL_ICON) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         setChecked(true);
@@ -156,7 +158,7 @@ class ExtractStyleDialog extends DialogWrapper {
     };
     decorator.addExtraAction(selectAll);
 
-    AnActionButton unselectAll = new AnActionButton(AndroidBundle.messagePointer("action.AnActionButton.extract.style.text.unselect.all"), PlatformIcons.UNSELECT_ALL_ICON) {
+    AnAction unselectAll = new DumbAwareAction(AndroidBundle.messagePointer("action.AnActionButton.extract.style.text.unselect.all"), Presentation.NULL_STRING, PlatformIcons.UNSELECT_ALL_ICON) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         setChecked(false);

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
 
 /**
@@ -28,14 +28,14 @@ import icons.StudioIcons
  * already running and if the preview is not refreshing.
  */
 class StopInteractivePreviewAction :
-  AnActionButton(
+  DumbAwareAction(
     message("action.stop.interactive.title"),
     message("action.stop.interactive.description"),
     StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE
   ) {
   override fun displayTextInToolbar(): Boolean = true
 
-  override fun updateButton(e: AnActionEvent) {
+  override fun update(e: AnActionEvent) {
     e.presentation.isEnabled =
       findComposePreviewManagersForContext(e.dataContext).any {
         // The action should be disabled when refreshing.

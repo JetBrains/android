@@ -17,12 +17,13 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
 
 /**
@@ -33,7 +34,7 @@ import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
  *   information.
  */
 class AnimationInspectorAction(private val dataContextProvider: () -> DataContext) :
-  AnActionButton(
+  DumbAwareAction(
     message("action.animation.inspector.title"),
     message("action.animation.inspector.description"),
     ANIMATION_INSPECTOR
@@ -41,8 +42,9 @@ class AnimationInspectorAction(private val dataContextProvider: () -> DataContex
 
   private fun getPreviewElement() = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
 
-  override fun updateButton(e: AnActionEvent) {
-    super.updateButton(e)
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
+  override fun update(e: AnActionEvent) {
     e.presentation.apply {
       val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
       isEnabled = !isEssentialsModeEnabled

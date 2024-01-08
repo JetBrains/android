@@ -17,11 +17,12 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.ToolbarLabelAction
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBFont
@@ -41,7 +42,7 @@ class BottomPanel(
   private val tracker: AnimationTracker
 ) : JPanel(BorderLayout()) {
 
-  var clockTimeMs = 0
+  var clockTimeMs: Int = 0
     set(value) {
       field = value
       westToolbar.updateActionsImmediately()
@@ -83,8 +84,8 @@ class BottomPanel(
   }
 
   private inner class ResetTimelineAction :
-    AnActionButton(
-      message("animation.inspector.action.reset.timeline"),
+    DumbAwareAction(
+      message("animation.inspector.action.reset.timeline"), null,
       StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED
     ) {
     override fun actionPerformed(e: AnActionEvent) {
@@ -92,8 +93,9 @@ class BottomPanel(
       tracker.resetTimeline()
     }
 
-    override fun updateButton(e: AnActionEvent) {
-      super.updateButton(e)
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
+    override fun update(e: AnActionEvent) {
       if (e.presentation.isEnabled != previewState.isCoordinationAvailable()) {
         e.presentation.isEnabled = previewState.isCoordinationAvailable()
         e.presentation.text =

@@ -21,7 +21,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.Cre
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor
 
 /** Click or Swipe Handler action. */
-class ClickOrSwipeAction(motionEditor: MotionEditor) :
+open class ClickOrSwipeAction(val motionEditor: MotionEditor) :
   OpenPopUpAction(
     "Create Click or Swipe Handler",
     MEIcons.CREATE_ON_STAR,

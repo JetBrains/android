@@ -17,14 +17,14 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.actions
 
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.ui.AnActionButton
 import javax.swing.Icon
 
 /** Action which will open popup with other [actions]. */
-abstract class OpenPopUpAction : AnActionButton {
+abstract class OpenPopUpAction : DumbAwareAction {
 
-  constructor(name: String, icon: Icon) : super(name, icon)
+  constructor(name: String, icon: Icon) : super(name, null, icon)
   constructor(name: String) : super(name)
 
   abstract val actions: List<PanelAction>

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE
 
 /**
@@ -28,7 +28,7 @@ import icons.StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE
  * preview.
  */
 class StopAnimationInspectorAction :
-  AnActionButton(
+  DumbAwareAction(
     message("action.stop.animation.inspector.title"),
     message("action.stop.animation.inspector.description"),
     // TODO(b/157895086): Generalize the icon or use a specific one for animation inspector
@@ -36,7 +36,7 @@ class StopAnimationInspectorAction :
   ) {
   override fun displayTextInToolbar(): Boolean = true
 
-  override fun updateButton(e: AnActionEvent) {
+  override fun update(e: AnActionEvent) {
     val composePreviewManagers = findComposePreviewManagersForContext(e.dataContext)
     e.presentation.isEnabled = !composePreviewManagers.any { it.status().isRefreshing }
     e.presentation.isVisible =

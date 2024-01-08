@@ -33,9 +33,9 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.ListPopup
-import com.intellij.ui.AnActionButton
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBThinOverlappingScrollBar
 import com.intellij.util.ui.JBUI
@@ -145,7 +145,7 @@ class GalleryTabs<Key : TitledKey>(
 
   /** Toolbar button that shows all available previews in a dropdown. */
   private inner class AllTabsDropdown :
-    AnActionButton(message("action.gallery.show.hidden"), AllIcons.General.ChevronDown) {
+    DumbAwareAction(message("action.gallery.show.hidden"), null, AllIcons.General.ChevronDown) {
 
     var popup: ListPopup? = null
     override fun actionPerformed(e: AnActionEvent) {
@@ -173,8 +173,7 @@ class GalleryTabs<Key : TitledKey>(
       return ActionUpdateThread.EDT
     }
 
-    override fun updateButton(e: AnActionEvent) {
-      super.updateButton(e)
+    override fun update(e: AnActionEvent) {
       e.presentation.isVisible = centerPanel.width > this@GalleryTabs.width
     }
   }

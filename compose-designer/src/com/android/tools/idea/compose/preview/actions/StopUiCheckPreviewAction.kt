@@ -15,22 +15,22 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.AnActionButton
+import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
 
 class StopUiCheckPreviewAction :
-  AnActionButton(
+  DumbAwareAction(
     message("action.stop.uicheck.title"),
     message("action.stop.uicheck.description"),
     StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE
   ) {
   override fun displayTextInToolbar(): Boolean = true
 
-  override fun updateButton(e: AnActionEvent) {
+  override fun update(e: AnActionEvent) {
     val composePreviewManagers = findComposePreviewManagersForContext(e.dataContext)
     e.presentation.isEnabled = !composePreviewManagers.any { it.status().isRefreshing }
     e.presentation.isVisible = composePreviewManagers.any { it.isUiCheckPreview }

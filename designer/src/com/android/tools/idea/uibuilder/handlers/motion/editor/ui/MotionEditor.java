@@ -35,8 +35,10 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.Cre
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector.TimeLineListener;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.ui.AnActionButton;
+import com.intellij.openapi.project.DumbAwareAction;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -91,9 +93,31 @@ public class MotionEditor extends JPanel {
   private final List<Command> myCommandListeners = new ArrayList<>();
 
   PanelAction createConstrainSet = new PanelAction(new CreateConstraintSet(), this);
-  PanelAction createTransition = new PanelAction(new CreateTransition(), this);
-  AnActionButton clickOrSwipe = new ClickOrSwipeAction(this);
-  AnActionButton cycleAction = new AnActionButton("Cycle between layouts", MEIcons.CYCLE_LAYOUT) {
+  PanelAction createTransition = new PanelAction(new CreateTransition(), this) {
+    @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.EDT;
+    }
+
+    @Override
+    public void update(@org.jetbrains.annotations.NotNull AnActionEvent e) {
+      MTag[] mtags = getMeModel().motionScene.getChildTags("ConstraintSet");
+      e.getPresentation().setEnabled(mtags.length >= 2);
+    }
+  };
+  ClickOrSwipeAction clickOrSwipe = new ClickOrSwipeAction(this) {
+    @Override
+    public @org.jetbrains.annotations.NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.EDT;
+    }
+
+    @Override
+    public void update(@org.jetbrains.annotations.NotNull AnActionEvent e) {
+      MTag[] mtags = getMeModel().motionScene.getChildTags("Transition");
+      e.getPresentation().setEnabled(mtags.length >= 1);
+    }
+  };
+  AnAction cycleAction = new DumbAwareAction("Cycle between layouts", null, MEIcons.CYCLE_LAYOUT) {
     @Override
     public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       layoutTop();
@@ -387,10 +411,6 @@ public class MotionEditor extends JPanel {
       mConstraintSetPanel.setMTag(asConstraintSet(newSelection), mMeModel);
       mTransitionPanel.setMTag(asTransition(newSelection), mMeModel);
       mSelectedTag = newSelection;
-      MTag[] mtags = model.motionScene.getChildTags("ConstraintSet");
-      createTransition.setEnabled(mtags.length >= 2);
-      mtags = model.motionScene.getChildTags("Transition");
-      clickOrSwipe.setEnabled(mtags.length >= 1);
     }
     finally {
       mUpdatingModel = false;
