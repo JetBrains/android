@@ -30,11 +30,15 @@ import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
+import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException
+import com.intellij.util.containers.ContainerUtil
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class DslMethodNotFoundFailureTest {
 
@@ -59,7 +63,8 @@ class DslMethodNotFoundFailureTest {
     expectedErrorNodeNameVerifier: (String) -> Unit
   ) {
     var capturedException: Exception? = null
-    val buildEvents = mutableListOf<BuildEvent>()
+    val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
+    val allBuildEventsProcessedLatch = CountDownLatch(1)
     preparedProject.open(
       updateOptions = {
         it.copy(
@@ -70,10 +75,19 @@ class DslMethodNotFoundFailureTest {
           syncExceptionHandler = { e: Exception ->
             capturedException = e
           },
-          syncViewEventHandler = { buildEvent -> buildEvents.add(buildEvent) }
+          syncViewEventHandler = { buildEvent ->
+            buildEvents.add(buildEvent)
+            // Events are generated in a separate thread(s) and if we don't wait for the FinishBuildEvent
+            // some might not reach here by the time we inspect them below resulting in flakiness (like b/318490086).
+            if (buildEvent is FinishBuildEventImpl) {
+              allBuildEventsProcessedLatch.countDown()
+            }
+          }
         )
       }
-    ) { }
+    ) {
+      allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
+    }
 
     Truth.assertThat(capturedException).isInstanceOf(LocationAwareExternalSystemException::class.java)
 
