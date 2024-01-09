@@ -33,6 +33,12 @@ import com.intellij.openapi.project.Project
  * See [AiExcludeService] and [isContextAllowed] for more details.
  */
 interface StudioBot {
+  /**
+   * The maximum number of characters a query can contain before it starts getting cut off starting from the end.
+   * This is an approximate value derived from the number of tokens supported by the latest AIDA model.
+   */
+  val MAX_QUERY_CHARS: Int
+
   /** Returns whether Studio Bot is available (user has logged in and onboarded). */
   fun isAvailable(): Boolean = false
 
@@ -71,6 +77,7 @@ interface StudioBot {
   }
 
   open class StubStudioBot: StudioBot {
+    override val MAX_QUERY_CHARS = Int.MAX_VALUE
     override fun isAvailable(): Boolean = false
     override fun isContextAllowed(): Boolean = false
     override fun aiExcludeService(): AiExcludeService = AiExcludeService.StubAiExcludeService()
