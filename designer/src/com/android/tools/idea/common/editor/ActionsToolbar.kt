@@ -36,6 +36,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.UIUtil
@@ -96,7 +97,8 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     northToolbar =
       createActionToolbar("NlConfigToolbar", surface, toolbarActionGroups!!.northGroup).apply {
         this.component.name = "NlConfigToolbar"
-        this.layoutPolicy = ActionToolbar.AUTO_LAYOUT_POLICY
+        this.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
+        this.setLayoutSecondaryActions(true)
       }
 
     northEastToolbar =
@@ -104,7 +106,8 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
         .apply {
           this.isReservePlaceAutoPopupIcon = false
           this.component.name = "NlRhsConfigToolbar"
-          this.layoutPolicy = ActionToolbar.AUTO_LAYOUT_POLICY
+          this.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
+          this.setLayoutSecondaryActions(true)
         }
 
     centerToolbar =
@@ -267,7 +270,6 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
       group: ActionGroup,
     ): ActionToolbarImpl {
       val toolbar = ActionManager.getInstance().createActionToolbar(place, group, true)
-      toolbar.layoutPolicy = ActionToolbar.WRAP_LAYOUT_POLICY
       if (group === ActionGroup.EMPTY_GROUP) {
         toolbar.component.isVisible = false
       }
