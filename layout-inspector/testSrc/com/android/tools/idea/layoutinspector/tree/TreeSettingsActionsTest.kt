@@ -78,6 +78,7 @@ class TreeSettingsActionsTest {
   private val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
   private val capabilities = EnumSet.noneOf(Capability::class.java)
   private var isConnected = false
+  private var isCapturing = true
 
   @Test
   fun testFilterSystemNodeAction() {
@@ -159,7 +160,14 @@ class TreeSettingsActionsTest {
     assertThat(event.presentation.text)
       .isEqualTo("Show Recomposition Counts (Needs Compose 1.2.1+)")
     capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+
+    isCapturing = false
     RecompositionCounts.update(event)
+    assertThat(event.presentation.isVisible).isFalse()
+
+    isCapturing = true
+    RecompositionCounts.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isTrue()
     assertThat(event.presentation.text).isEqualTo("Show Recomposition Counts")
 
@@ -175,6 +183,7 @@ class TreeSettingsActionsTest {
 
     // Disconnect and check modifying setting:
     isConnected = false
+    isCapturing = false
     assertThat(RecompositionCounts.isSelected(event)).isFalse()
     RecompositionCounts.setSelected(event, true)
     assertThat(RecompositionCounts.isSelected(event)).isTrue()
@@ -261,6 +270,7 @@ class TreeSettingsActionsTest {
     whenever(client.stats).thenReturn(stats)
     Mockito.doAnswer { capabilities }.whenever(client).capabilities
     Mockito.doAnswer { isConnected }.whenever(client).isConnected
+    Mockito.doAnswer { isCapturing }.whenever(client).isCapturing
 
     val dataContext =
       object : DataContext {
