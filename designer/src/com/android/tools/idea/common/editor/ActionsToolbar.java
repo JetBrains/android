@@ -133,6 +133,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
     myNorthToolbar = createActionToolbar("NlConfigToolbar", myToolbarActionGroups.getNorthGroup());
     myNorthToolbar.setLayoutStrategy(ToolbarLayoutStrategy.HORIZONTAL_AUTOLAYOUT_STRATEGY);
+    myNorthToolbar.setLayoutSecondaryActions(true);
     myNorthToolbar.setTargetComponent(mySurface);
 
     JComponent northToolbarComponent = myNorthToolbar.getComponent();
@@ -145,6 +146,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     myNorthEastToolbar.setReservePlaceAutoPopupIcon(false);
     northEastToolbarComponent.setName("NlRhsConfigToolbar");
     myNorthEastToolbar.setLayoutStrategy(ToolbarLayoutStrategy.HORIZONTAL_AUTOLAYOUT_STRATEGY);
+    myNorthEastToolbar.setLayoutSecondaryActions(true);
 
     myCenterToolbar = createActionToolbar("NlLayoutToolbar", myDynamicGroup);
     myCenterToolbar.setTargetComponent(mySurface);
