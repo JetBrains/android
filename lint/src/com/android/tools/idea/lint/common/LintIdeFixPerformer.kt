@@ -113,7 +113,11 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
     virtualFile.delete(this)
   }
 
-  override fun applyEdits(fileData: PendingEditFile, edits: List<PendingEdit>) {
+  override fun applyEdits(
+    fileProvider: FileProvider,
+    fileData: PendingEditFile,
+    edits: List<PendingEdit>
+  ) {
     // In the IDE we should always be passing in a lambda when we call
     // applyEdits since here we want to pass in additional context (such as the
     // PsiElement to be operated on -- since we may use the same fix both in a
@@ -464,7 +468,7 @@ private class LintIdeFixPerformerFix(
     // side effect: updates performer.deltas map
     val applicable = isApplicable(startElement, endElement, context.type)
     if (applicable) {
-      performer.applyEdits(edits.keys.toList()) { fileData, edits ->
+      performer.applyEdits(performer.createFileProvider(), edits.keys.toList()) { fileData, edits ->
         applyEdits(fileData, edits, context, startElement)
       }
     }
