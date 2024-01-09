@@ -52,7 +52,7 @@ class AdbDeviceFileSystem(
   }
 
   override suspend fun dataDirectory(): DeviceFileEntry {
-    return AdbDeviceDefaultFileEntry(this, adbFileListing.getDataDirectory(), null)
+    return AdbDeviceDefaultFileEntry(this, adbFileListing.getDataDirectory(), createEmptyRootParent(this))
   }
 
   suspend fun resolveMountPoint(entry: AdbDeviceFileEntry): AdbDeviceFileEntry =
@@ -89,6 +89,13 @@ class AdbDeviceFileSystem(
   companion object {
     private fun createDirectFileEntry(entry: AdbDeviceFileEntry): AdbDeviceDirectFileEntry {
       return AdbDeviceDirectFileEntry(entry.fileSystem, entry.myEntry, entry.parent, null)
+    }
+
+    // Shell /data/ entries to keep a consistent tree structure. This should not be shown
+    private fun createEmptyRootParent(device: AdbDeviceFileSystem): AdbDeviceFileEntry {
+      val rootShell = AdbDeviceDefaultFileEntry(device, AdbFileListing.defaultRoot, null)
+      return AdbDeviceDefaultFileEntry(device, AdbFileListingEntryBuilder().setPath("/data/").setKind(
+        AdbFileListingEntry.EntryKind.DIRECTORY).build(), rootShell)
     }
   }
 }

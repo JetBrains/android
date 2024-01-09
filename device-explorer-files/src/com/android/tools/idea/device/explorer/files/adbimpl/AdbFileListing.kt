@@ -171,7 +171,7 @@ class AdbFileListing(
     )
   }
   companion object {
-    private val defaultRoot: AdbFileListingEntry = AdbFileListingEntryBuilder().setPath("/").setKind(EntryKind.DIRECTORY).build()
+    val defaultRoot: AdbFileListingEntry = AdbFileListingEntryBuilder().setPath("/").setKind(EntryKind.DIRECTORY).build()
     private val defaultData: AdbFileListingEntry = AdbFileListingEntryBuilder().setPath("/data/data/").setKind(EntryKind.DIRECTORY).build()
   }
 }

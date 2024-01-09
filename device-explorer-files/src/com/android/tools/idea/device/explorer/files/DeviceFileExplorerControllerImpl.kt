@@ -158,7 +158,7 @@ class DeviceFileExplorerControllerImpl(
   /** Updates the view and tree model to reflect the given device and state. */
   private suspend fun updateActiveDeviceState(device: DeviceFileSystem) {
     try {
-      val root = if (isPackageFilterActive && packageNamesProvider.getPackageNames().isNotEmpty()) device.dataDirectory() else device.rootDirectory()
+      val root = if (shouldUsePackageFilter()) device.dataDirectory() else device.rootDirectory()
       val model = DefaultTreeModel(DeviceFileEntryNode(root))
       this.model.setDevice(device, model, DefaultTreeSelectionModel())
     } catch (t: Throwable) {
@@ -361,6 +361,17 @@ class DeviceFileExplorerControllerImpl(
 
     private fun findDeviceFileEntryNodeFromPath(root: DeviceFileEntryNode, entryFullPath: String): DeviceFileEntryNode? {
       val pathComponents = AdbPathUtil.getSegments(entryFullPath)
+
+      /* AdbPathUtil.getSegments removes the root "/" segment by default. We handle that edge case
+      by checking if the result is empty. To reuse empty meaning the root node with /data/data,
+      we can just remove the first two components (data/data). This is only applicable when the
+      package filter is being used.
+      */
+      if (pathComponents.size >= 2 && shouldUsePackageFilter()) {
+        pathComponents.removeFirst()
+        pathComponents.removeFirst()
+      }
+
       if (pathComponents.isEmpty()) {
         return root
       }
@@ -1239,9 +1250,7 @@ class DeviceFileExplorerControllerImpl(
       loadingNodesAlarms.addRequest(showLoadingNode, showLoadingNodeDelayMillis)
       startLoadChildren(node)
       try {
-        val shouldFilterEntries = node.entry.fullPath.matches(Regex("/data/data/")) &&
-                                  isPackageFilterActive &&
-                                  packageNamesProvider.getPackageNames().isNotEmpty()
+        val shouldFilterEntries = node.entry.fullPath.matches(Regex("/data/data/")) && shouldUsePackageFilter()
         val entries = if (shouldFilterEntries) node.entry.entries().filter { packageNamesProvider.getPackageNames().contains(it.name) } else node.entry.entries()
         if (treeModel != getTreeModel()) {
           // We switched to another device, ignore this callback
@@ -1447,6 +1456,9 @@ class DeviceFileExplorerControllerImpl(
     }
     loadingChildrenAlarms.addRequest(::repaintLoadingChildren, transferringNodeRepaintMillis)
   }
+
+  private fun shouldUsePackageFilter() =
+    isPackageFilterActive && packageNamesProvider.getPackageNames().isNotEmpty()
 
   @VisibleForTesting object NodeSorting {
     /**
