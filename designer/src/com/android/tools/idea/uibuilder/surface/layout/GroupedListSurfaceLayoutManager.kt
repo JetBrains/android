@@ -113,7 +113,7 @@ class GroupedListSurfaceLayoutManager(
   ): Dimension {
     val dim = dimension ?: Dimension()
 
-    val verticalList = transform(content).flatMap { it.content }
+    val verticalList = transform(content).flatMap { listOf(it.header) + it.content }.filterNotNull()
 
     if (verticalList.isEmpty()) {
       dim.setSize(0, 0)
@@ -145,7 +145,7 @@ class GroupedListSurfaceLayoutManager(
     availableHeight: Int,
     keepPreviousPadding: Boolean
   ): Map<PositionableContent, Point> {
-    val verticalList = transform(content).flatMap { it.content }
+    val verticalList = transform(content).flatMap { listOf(it.header) + it.content }.filterNotNull()
     if (verticalList.isEmpty()) {
       return emptyMap()
     }

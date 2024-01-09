@@ -22,9 +22,12 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
+import com.android.tools.idea.common.surface.organization.createOrganizationHeaders
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.scene.hasValidImage
+import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.GroupedSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
@@ -101,7 +104,18 @@ internal class SceneViewPanel(
 
     // Invalidate the current components
     removeAll()
+
+    // Headers to be added.
+    val headers =
+      if (organizationIsEnabled()) designSurfaceSceneViews.createOrganizationHeaders()
+      else mutableMapOf()
+
     designSurfaceSceneViews.forEachIndexed { index, sceneView ->
+
+      // Add header to layout.
+      val organizationGroup = sceneView.scene.sceneManager.model.organizationGroup
+      headers.remove(organizationGroup)?.let { add(it) }
+
       val toolbarActions = actionManagerProvider().sceneViewContextToolbarActions
       val bottomBar = actionManagerProvider().getSceneViewBottomBar(sceneView)
       val statusIconAction = actionManagerProvider().sceneViewStatusIconAction
@@ -141,6 +155,11 @@ internal class SceneViewPanel(
       )
     }
   }
+
+  private fun organizationIsEnabled() =
+    StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get() &&
+      ((layout as? NlDesignSurfacePositionableContentLayoutManager)?.layoutManager
+        is GroupedSurfaceLayoutManager)
 
   override fun doLayout() {
     revalidateSceneViews()

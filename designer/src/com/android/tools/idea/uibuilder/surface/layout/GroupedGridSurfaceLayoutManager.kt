@@ -73,7 +73,7 @@ class GroupedGridSurfaceLayoutManager(
       }
 
     val groupSizes = groups.map { group -> getGroupSize(group, sizeFunc, scaleFunc) }
-    val requiredWidth = groupSizes.maxOf { it.width }
+    val requiredWidth = groupSizes.maxOfOrNull { it.width } ?: 0
     val requiredHeight = groupSizes.sumOf { it.height }
 
     dim.setSize(

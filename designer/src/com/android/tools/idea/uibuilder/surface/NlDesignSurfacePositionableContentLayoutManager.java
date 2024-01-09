@@ -61,7 +61,6 @@ public class NlDesignSurfacePositionableContentLayoutManager extends Positionabl
     return dimension;
   }
 
-  @VisibleForTesting
   @NotNull
   public SurfaceLayoutManager getLayoutManager() {
     return myLayoutManager;

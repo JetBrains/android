@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.HeaderPositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
@@ -75,25 +76,35 @@ val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<Positiona
       .fold(
         Pair(mutableListOf<PositionableGroup>(), mutableListOf<PositionableContent>()),
       ) { temp, next ->
-        val hasSinglePreview = next.size == 1
-        // If next has only one preview - keep it in temp.second
-        if (hasSinglePreview) {
+        val hasHeader = next.any { it is HeaderPositionableContent }
+        // If next is not in its own group - keep it in temp.second
+        if (!hasHeader) {
           temp.second.addAll(next)
         }
 
-        // Temp.second contains all consecutive groups with size 1.
-        // If next is not a group with size 1 or if it is the last element, group all collected
-        // groups with size 1 as one.
-        if (!hasSinglePreview || groups.values.last() == next) {
+        // Temp.second contains all consecutive previews without its own group.
+        // If next is not in a group or if it is the last element, group all collected
+        // previews as one group
+        if (hasHeader || groups.values.last() == next) {
           if (temp.second.isNotEmpty()) {
-            temp.first.add(PositionableGroup(temp.second.toList()))
+            temp.first.add(
+              PositionableGroup(
+                temp.second.filter { it !is HeaderPositionableContent },
+                temp.second.filterIsInstance<HeaderPositionableContent>().singleOrNull(),
+              ),
+            )
             temp.second.clear()
           }
         }
 
-        // If next has more than one element - it will have its own PositionableGroup
-        if (!hasSinglePreview) {
-          temp.first.add(PositionableGroup(next))
+        // If next has its own group - it will have its own PositionableGroup
+        if (hasHeader) {
+          temp.first.add(
+            PositionableGroup(
+              next.filter { it !is HeaderPositionableContent },
+              next.filterIsInstance<HeaderPositionableContent>().singleOrNull(),
+            ),
+          )
         }
 
         temp
