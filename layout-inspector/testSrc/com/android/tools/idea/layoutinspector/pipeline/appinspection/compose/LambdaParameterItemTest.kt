@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
-import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
+import com.android.testutils.waitForCondition
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.PropertySection
@@ -29,35 +30,32 @@ import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.ui.popup.Balloon
-import com.intellij.openapi.ui.popup.BalloonBuilder
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import com.intellij.ui.awt.RelativePoint
-import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.ArgumentMatchers.isNull
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoInteractions
 
 @RunsInEdt
 class LambdaParameterItemTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
+  private val popupRule = JBPopupRule()
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule).around(EdtRule())!!
+  val ruleChain =
+    RuleChain.outerRule(projectRule)
+      .around(popupRule)
+      .around(fileOpenCaptureRule)
+      .around(EdtRule())!!
 
   @Before
   fun before() {
@@ -70,34 +68,28 @@ class LambdaParameterItemTest {
   @Test
   fun testLambdaLookup() {
     val item = createParameterItem("MyCompose.kt", 17, 17)
-    val balloon = mockBalloonBuilder()
-    lateinit var future: Future<*>
-    item.futureCaptor = { future = it }
     item.link.actionPerformed(mockEvent())
-    future.get()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    verifyNoInteractions(balloon)
     fileOpenCaptureRule.checkEditor(
       "MyCompose.kt",
       17,
       "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),"
     )
+    assertThat(popupRule.fakePopupFactory.balloonCount).isEqualTo(0)
   }
 
   @Test
   fun testLambdaLookupOfUnknownLocation() {
     val item = createParameterItem("MyCompose.kt", 10, 20)
-    val balloon = mockBalloonBuilder()
+
     val disposable = Disposer.newDisposable()
+    Disposer.register(projectRule.testRootDisposable, disposable)
     ApplicationManager.getApplication()
       .replaceService(FileDocumentManager::class.java, mock(), disposable)
-    lateinit var future: Future<*>
-    item.futureCaptor = { future = it }
+
     item.link.actionPerformed(mockEvent())
-    future.get()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    verify(balloon).show(any(RelativePoint::class.java), any())
-    assertThat(capturedBalloonContent()).isEqualTo("Could not determine exact source location")
+    waitForCondition(10, TimeUnit.SECONDS) { popupRule.fakePopupFactory.balloonCount > 0 }
+    val balloon = popupRule.fakePopupFactory.getNextBalloon()
+    assertThat(balloon.htmlContent).isEqualTo("Could not determine exact source location")
 
     // FileOpenCaptureRule is using FileDocumentManager:
     Disposer.dispose(disposable)
@@ -107,14 +99,10 @@ class LambdaParameterItemTest {
   @Test
   fun testLookupDoesNotExist() {
     val item = createParameterItem("NotExist.kt", 10, 12)
-    val balloon = mockBalloonBuilder()
-    lateinit var future: Future<*>
-    item.futureCaptor = { future = it }
     item.link.actionPerformed(mockEvent())
-    future.get()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    verify(balloon).show(any(RelativePoint::class.java), any())
-    assertThat(capturedBalloonContent()).isEqualTo("Could not determine source location")
+    waitForCondition(10, TimeUnit.SECONDS) { popupRule.fakePopupFactory.balloonCount > 0 }
+    val balloon = popupRule.fakePopupFactory.getNextBalloon()
+    assertThat(balloon.htmlContent).isEqualTo("Could not determine source location")
     fileOpenCaptureRule.checkNoNavigation()
   }
 
@@ -149,31 +137,14 @@ class LambdaParameterItemTest {
     )
   }
 
-  private fun mockBalloonBuilder(): Balloon {
-    projectRule.replaceService(JBPopupFactory::class.java, mock())
-    val factory = JBPopupFactory.getInstance()
-    val builder: BalloonBuilder = mock()
-    val balloon: Balloon = mock()
-    whenever(factory.createHtmlTextBalloonBuilder(anyString(), any(), any(), isNull()))
-      .thenReturn(builder)
-    whenever(factory.guessBestPopupLocation(any(DataContext::class.java))).thenReturn(mock())
-    whenever(builder.setBorderColor(any())).thenReturn(builder)
-    whenever(builder.setBorderInsets(any())).thenReturn(builder)
-    whenever(builder.setFadeoutTime(any())).thenReturn(builder)
-    whenever(builder.createBalloon()).thenReturn(balloon)
-    return balloon
-  }
-
-  private fun capturedBalloonContent(): String {
-    val factory = JBPopupFactory.getInstance()
-    val content = ArgumentCaptor.forClass(String::class.java)
-    verify(factory).createHtmlTextBalloonBuilder(content.capture(), any(), any(), isNull())
-    return content.value
-  }
-
   private fun mockEvent(): AnActionEvent {
     val event: AnActionEvent = mock()
-    val context: DataContext = mock()
+    val context = DataContext { dataId ->
+      when (dataId) {
+        PlatformCoreDataKeys.CONTEXT_COMPONENT.name -> JPanel()
+        else -> null
+      }
+    }
     whenever(event.dataContext).thenReturn(context)
     return event
   }

@@ -34,11 +34,16 @@ import java.awt.Rectangle
 import java.awt.event.ActionListener
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
+import javax.swing.JPanel
 
 /**
  * A fake [BalloonBuilder] for tests.
  */
-class FakeBalloonBuilder(private val factory: FakeJBPopupFactory, private val component: JComponent): BalloonBuilder {
+class FakeBalloonBuilder(
+  private val factory: FakeJBPopupFactory,
+  private val component: JComponent = JPanel(),
+  private val htmlContent: String = ""
+): BalloonBuilder {
   private var requestFocus: Boolean = false
 
   override fun setBorderColor(color: Color) = this
@@ -100,11 +105,12 @@ class FakeBalloonBuilder(private val factory: FakeJBPopupFactory, private val co
 
   override fun setDisposable(anchor: Disposable) = this
 
-  override fun createBalloon() = FakeBalloon(component, requestFocus).also { factory.addBalloon(it) }
+  override fun createBalloon() = FakeBalloon(component, htmlContent, requestFocus).also { factory.addBalloon(it) }
 }
 
 class FakeBalloon(
   val component: JComponent,
+  val htmlContent: String,
   private val requestFocus: Boolean
 ): Balloon {
   var target: Any? = null

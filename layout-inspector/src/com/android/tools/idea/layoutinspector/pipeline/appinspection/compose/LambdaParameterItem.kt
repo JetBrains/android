@@ -35,9 +35,7 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.UIUtil
-import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
-import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.util.application.executeOnPooledThread
 
 /**
@@ -83,12 +81,8 @@ class LambdaParameterItem(
       override fun actionPerformed(event: AnActionEvent) {
         val popupLocation = JBPopupFactory.getInstance().guessBestPopupLocation(event.dataContext)
         executeOnPooledThread { gotoLambdaLocation(event, popupLocation) }
-          .also { futureCaptor?.invoke(it) }
       }
     }
-
-  /** Allow tests to control the execution of [gotoLambdaLocation]. */
-  @VisibleForTesting var futureCaptor: ((Future<*>) -> Unit)? = null
 
   @Slow
   private fun gotoLambdaLocation(event: AnActionEvent, popupLocation: RelativePoint) {

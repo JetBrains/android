@@ -250,13 +250,11 @@ class FakeJBPopupFactory : JBPopupFactory() {
     TODO("Not yet implemented")
   }
 
-  override fun guessBestPopupLocation(component: JComponent): RelativePoint {
-    TODO("Not yet implemented")
-  }
+  override fun guessBestPopupLocation(component: JComponent): RelativePoint =
+    RelativePoint(component, Point(0, 0))
 
-  override fun guessBestPopupLocation(dataContext: DataContext): RelativePoint {
-    TODO("Not yet implemented")
-  }
+  override fun guessBestPopupLocation(dataContext: DataContext): RelativePoint =
+    guessBestPopupLocation(PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext) as JComponent)
 
   override fun guessBestPopupLocation(editor: Editor): RelativePoint {
     TODO("Not yet implemented")
@@ -293,9 +291,8 @@ class FakeJBPopupFactory : JBPopupFactory() {
                                             icon: Icon?,
                                             textColor: Color?,
                                             fillColor: Color?,
-                                            listener: HyperlinkListener?): BalloonBuilder {
-    TODO("Not yet implemented")
-  }
+                                            listener: HyperlinkListener?): BalloonBuilder =
+    FakeBalloonBuilder(this, htmlContent = htmlContent)
 
   override fun createHtmlTextBalloonBuilder(html: Html,
                                             icon: Icon?,
