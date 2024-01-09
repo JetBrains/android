@@ -74,6 +74,12 @@ internal interface WearHealthServicesToolWindowStateManager {
   fun getStatus(): StateFlow<WhsStateManagerStatus?>
 
   /**
+   * Returns if the current WHS version is supported or not, so an error can be displayed by
+   * the UI.
+   */
+  suspend fun isWhsVersionSupported(): Boolean
+
+  /**
    * Used to get/set the serial number of the currently running emulator.
    */
   var serialNumber: String?

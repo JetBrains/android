@@ -62,6 +62,9 @@ internal class WearHealthServicesToolWindowStateManagerImpl(private val deviceMa
 
   override fun getStatus(): StateFlow<WhsStateManagerStatus> = progress.asStateFlow()
 
+  // TODO(b/309609475): Check the actual WHS version using the device manager
+  override suspend fun isWhsVersionSupported(): Boolean = true
+
   override fun getCapabilitiesList(): StateFlow<List<WhsCapability>> = capabilitiesList.asStateFlow()
 
   override fun getPreset(): StateFlow<Preset> = currentPreset.asStateFlow()
