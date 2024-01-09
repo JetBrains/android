@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("JavaIoSerializableObjectMustHaveReadResolve")
+
 package com.android.tools.idea.insights
 
 object UnconfiguredAppException : Exception()
@@ -29,7 +31,6 @@ open class TimeoutException : Exception()
 
 object CancellableTimeoutException : TimeoutException()
 
-// TODO: this is used for Crashlytics only. To be removed when the offline flag is removed.
 data class RevertibleException(
   val snapshot: AppInsightsState? = null,
   override val cause: Throwable? = null

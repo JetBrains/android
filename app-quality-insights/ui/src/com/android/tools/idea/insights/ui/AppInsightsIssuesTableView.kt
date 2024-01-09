@@ -34,7 +34,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ScrollPaneFactory
-import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.TableSpeedSearch
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.scale.JBUIScale
@@ -210,13 +209,10 @@ class AppInsightsIssuesTableView(
                 is NoOperatingSystemsSelectedException -> {
                   table.tableEmptyText.apply {
                     clear()
-                    appendText(
-                      "No operating systems selected",
-                      SimpleTextAttributes.REGULAR_ATTRIBUTES
-                    )
+                    appendText("No operating systems selected", EMPTY_STATE_TITLE_FORMAT)
                     appendSecondaryText(
                       "No operating systems are selected. Enable an operating system above to see issues.",
-                      SimpleTextAttributes(SimpleTextAttributes.STYLE_SMALLER, null),
+                      EMPTY_STATE_TEXT_FORMAT,
                       null
                     )
                   }
