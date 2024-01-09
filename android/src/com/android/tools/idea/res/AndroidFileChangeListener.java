@@ -106,12 +106,19 @@ import org.jetbrains.plugins.gradle.config.GradleFileType;
  * </ul>
  */
 public class AndroidFileChangeListener implements Disposable {
-  private ResourceFolderRegistry myRegistry;
-  private Project myProject;
-  private ResourceNotificationManager myResourceNotificationManager;
-  private EditorNotifications myEditorNotifications;
+  private final ResourceFolderRegistry myRegistry;
+  private final Project myProject;
+  private final ResourceNotificationManager myResourceNotificationManager;
+  private final EditorNotifications myEditorNotifications;
 
   @Nullable private SampleDataListener mySampleDataListener;
+
+  public AndroidFileChangeListener(Project project) {
+    myProject = project;
+    myResourceNotificationManager = ResourceNotificationManager.getInstance(myProject);
+    myRegistry = ResourceFolderRegistry.getInstance(myProject);
+    myEditorNotifications = EditorNotifications.getInstance(myProject);
+  }
 
   @NotNull
   public static AndroidFileChangeListener getInstance(@NotNull Project project) {
@@ -122,16 +129,11 @@ public class AndroidFileChangeListener implements Disposable {
     @Override
     public void runActivity(@NotNull Project project) {
       AndroidFileChangeListener listener = getInstance(project);
-      listener.onProjectOpened(project);
+      listener.onProjectOpened();
     }
   }
 
-  private void onProjectOpened(@NotNull Project project) {
-    myProject = project;
-    myResourceNotificationManager = ResourceNotificationManager.getInstance(myProject);
-    myRegistry = ResourceFolderRegistry.getInstance(myProject);
-    myEditorNotifications = EditorNotifications.getInstance(myProject);
-
+  private void onProjectOpened() {
     PsiManager.getInstance(myProject).addPsiTreeChangeListener(new MyPsiListener(), this);
     EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new MyDocumentListener(myProject, myRegistry), this);
 
