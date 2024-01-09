@@ -105,13 +105,14 @@ class FakeBalloonBuilder(
 
   override fun setDisposable(anchor: Disposable) = this
 
-  override fun createBalloon() = FakeBalloon(component, htmlContent, requestFocus).also { factory.addBalloon(it) }
+  override fun createBalloon() = FakeBalloon(component, htmlContent, requestFocus, factory.disposable).also { factory.addBalloon(it) }
 }
 
 class FakeBalloon(
   val component: JComponent,
   val htmlContent: String,
-  private val requestFocus: Boolean
+  private val requestFocus: Boolean,
+  parentDisposable: Disposable
 ): Balloon {
   var target: Any? = null
     private set
@@ -122,6 +123,10 @@ class FakeBalloon(
   private var originalFocusOwner: Component? = null
   private var isDisposed = false
   private val listeners = mutableListOf<JBPopupListener>()
+
+  init {
+    Disposer.register(parentDisposable, this)
+  }
 
   override fun dispose() {
     if (!isDisposed) {

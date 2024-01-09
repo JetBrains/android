@@ -17,6 +17,7 @@ package com.android.tools.adtui.swing.popup
 
 import com.android.testutils.waitForCondition
 import com.intellij.ide.DataManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
@@ -67,7 +68,7 @@ import javax.swing.event.HyperlinkListener
  * Note to contributors:
  * As methods are implemented, please move them towards the top of the file.
  */
-class FakeJBPopupFactory : JBPopupFactory() {
+class FakeJBPopupFactory(val disposable: Disposable) : JBPopupFactory() {
   private val popups = ArrayDeque<JBPopup>()
   private val balloons = ArrayDeque<FakeBalloon>()
 
