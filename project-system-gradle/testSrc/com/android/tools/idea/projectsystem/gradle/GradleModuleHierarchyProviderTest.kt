@@ -22,9 +22,9 @@ import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit
+import com.intellij.gradle.toolingExtension.util.GradleVersionUtil
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.io.File
 
@@ -51,15 +51,15 @@ data class GradleModuleHierarchyProviderTest(
           project.findModule("composite4"),
         )
 
-        val additionalTopLevel =
-          if (GradleSettings.getInstance(project).linkedProjectsSettings.single().resolveGradleVersion() < GradleVersion.version("8.0")) {
-            // With Gradle 7.x (and below), the names of the included builds had to be unique (even for nested ones), and the identity
-            // path is just the build name. In Gradle 8.0+ names don't need to be unique so Gradle identity path includes full parent chain.
-            // This means that resulting hierarchy is different.
-            listOf(project.findModule("compositeNest"), project.findModule("com.test.compositeNest3.compositeNest"))
-          } else {
-            emptyList()
-          }
+        val projectGradleVersion = GradleSettings.getInstance(project).linkedProjectsSettings.single().resolveGradleVersion()
+        val additionalTopLevel = if (GradleVersionUtil.isGradleOlderThan(projectGradleVersion, "8.0")) {
+          // With Gradle 7.x (and below), the names of the included builds had to be unique (even for nested ones), and the identity
+          // path is just the build name. In Gradle 8.0+ names don't need to be unique so Gradle identity path includes full parent chain.
+          // This means that resulting hierarchy is different.
+          listOf(project.findModule("compositeNest"), project.findModule("com.test.compositeNest3.compositeNest"))
+        } else {
+          emptyList()
+        }
 
         val provider = GradleModuleHierarchyProvider(project)
         assertThat(provider.forProject.submodules).containsExactlyElementsIn(expected + additionalTopLevel)

@@ -20,12 +20,12 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
+import com.intellij.gradle.toolingExtension.util.GradleVersionUtil
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.File
@@ -201,7 +201,7 @@ private fun canFetchV2Models(gradlePluginVersion: AgpVersion?): Boolean {
  *  @returns true if we can fetch the V2 models in parallel, otherwise, returns false.
  */
 private fun canUseParallelSync(agpVersion: AgpVersion?, gradleVersion: String): Boolean {
-  return GradleVersion.version(gradleVersion) >= GradleVersion.version("7.4.2") &&
+  return GradleVersionUtil.isGradleAtLeast(gradleVersion, "7.4.2") &&
          agpVersion != null &&
          ((agpVersion >= AgpVersion(7, 2, 0) && agpVersion < "7.3.0-alpha01") ||
           agpVersion.isAtLeast(7, 3, 0, "alpha", 4, true))
