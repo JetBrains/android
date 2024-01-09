@@ -41,8 +41,8 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
   override suspend fun loadCapabilities() = capabilities
 
   // TODO(b/309607065): Implement loadCurrentCapabilityStates method
-  override suspend fun loadCurrentCapabilityStates() = capabilities.associateWith {
-    OnDeviceCapabilityState(false, null)
+  override suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, OnDeviceCapabilityState> = capabilities.associate {
+    it.key to OnDeviceCapabilityState(false, null)
   }
 
   override suspend fun clearContentProvider() {

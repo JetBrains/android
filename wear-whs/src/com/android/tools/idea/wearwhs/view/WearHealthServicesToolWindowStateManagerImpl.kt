@@ -26,6 +26,7 @@ import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.launch
 
 internal class WearHealthServicesToolWindowStateManagerImpl(
@@ -107,34 +108,24 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   }
 
   override suspend fun applyChanges() {
-    for (entry in capabilityToState.entries.iterator()) {
-      val capability = entry.key
-      val stateFlow = entry.value
+    progress.emit(WhsStateManagerStatus.Syncing)
+    val capabilityUpdates = capabilityToState.entries.associate { it.key.key to it.value.value.enabled }
+    val overrideUpdates = capabilityToState.entries.associate { it.key.key to it.value.value.overrideValue }
+    try {
+      deviceManager.setCapabilities(capabilityUpdates)
+      deviceManager.overrideValues(overrideUpdates)
+    } catch (exception: ConnectionLostException) {
+      logger.logApplyChangesFailure()
+      progress.emit(WhsStateManagerStatus.ConnectionLost)
+      return
+    }
+    capabilityToState.entries.forEach {
+      val stateFlow = it.value
       val state = stateFlow.value
-      if (state.synced) {
-        continue
-      }
-      progress.emit(WhsStateManagerStatus.Syncing(capability))
-      try {
-        if (state.enabled) {
-          deviceManager.enableCapability(capability)
-        }
-        else {
-          deviceManager.disableCapability(capability)
-        }
-        if (state.overrideValue != 0f && state.overrideValue != null) {
-          deviceManager.overrideValue(capability, state.overrideValue)
-        }
-      }
-      catch (exception: ConnectionLostException) {
-        logger.logApplyChangesFailure()
-        progress.emit(WhsStateManagerStatus.ConnectionLost)
-        return
-      }
       stateFlow.emit(state.copy(synced = true))
-      progress.emit(WhsStateManagerStatus.Idle)
     }
     logger.logApplyChangesSuccess()
+    progress.emit(WhsStateManagerStatus.Idle)
   }
 
   override suspend fun reset() {

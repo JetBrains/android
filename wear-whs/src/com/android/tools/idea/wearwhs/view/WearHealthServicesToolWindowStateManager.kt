@@ -118,7 +118,7 @@ internal enum class Preset(@PropertyKey(resourceBundle = BUNDLE_NAME) val labelK
  */
 internal sealed class WhsStateManagerStatus {
   object Ready : WhsStateManagerStatus()
-  class Syncing(val capability: WhsCapability) : WhsStateManagerStatus()
+  object Syncing : WhsStateManagerStatus()
   object ConnectionLost : WhsStateManagerStatus()
   object Idle : WhsStateManagerStatus()
 }

@@ -66,7 +66,7 @@ internal interface WearHealthServicesDeviceManager {
   /**
    * Loads the current state from WHS to compare with the current UI.
    */
-  suspend fun loadCurrentCapabilityStates(): Map<WhsCapability, OnDeviceCapabilityState>
+  suspend fun loadCurrentCapabilityStates(): Map<WhsDataType, OnDeviceCapabilityState>
 
   /**
    * Deletes all data from the WHS content provider

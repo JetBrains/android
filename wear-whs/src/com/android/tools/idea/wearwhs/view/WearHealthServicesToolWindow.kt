@@ -177,7 +177,7 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
             }
 
             is WhsStateManagerStatus.Syncing -> {
-              text = message(it.capability.label)
+              text = message("wear.whs.panel.capabilities.syncing")
             }
 
             is WhsStateManagerStatus.ConnectionLost -> {
