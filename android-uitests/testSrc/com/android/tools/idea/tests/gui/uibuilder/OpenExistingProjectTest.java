@@ -20,8 +20,10 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
@@ -36,11 +38,11 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class OpenExistingProjectTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
-  protected static final String APP_NAME = "Test App";
-  protected static final String PACKAGE_NAME = "android.com.testapp";
+  protected static final String APP_NAME = "TestApp";
+  protected static final String PACKAGE_NAME = "com.google.testapp";
   protected static final int MIN_SDK_API = SdkVersionInfo.HIGHEST_SUPPORTED_API;
 
   /**
@@ -68,7 +70,7 @@ public class OpenExistingProjectTest {
   @Test
   public void testOpenExistingProject() {
     //Create a new project
-    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Java);
+    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Kotlin);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
@@ -79,13 +81,18 @@ public class OpenExistingProjectTest {
     //Closing  and opening the new project.
     ideFrame = ideFrame.closeProject()
       .openTheMostRecentProject(guiTest);
+
+    GuiTests.waitForProjectIndexingToFinish(ideFrame.getProject());
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    EditorFixture editorFixture = ideFrame.getEditor();
+    editorFixture.waitForFileToActivate(90);
 
     ideFrame.invokeMenuPath("Code", "Inspect Code...");
     InspectCodeDialogFixture inspectCodeDialog = InspectCodeDialogFixture.find(ideFrame);
     inspectCodeDialog.clickAnalyze();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    List<String> errors = ideFrame.getEditor().getHighlights(HighlightSeverity.ERROR);
+    List<String> errors = editorFixture.getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).hasSize(0);
 
     //Rebuilding the project.x

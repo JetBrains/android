@@ -35,6 +35,7 @@ import com.android.tools.idea.common.editor.SplitEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.io.TestFileUtils;
+import com.android.tools.idea.profilers.performance.TimeUnit;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.VisualizationFixture;
@@ -224,6 +225,13 @@ public class EditorFixture {
    */
   public void waitForFileToActivate() {
     Wait.seconds(10).expecting("File editor is active").until(() -> getCurrentFile() != null);
+  }
+
+  /**
+   * Wait for the editor to become active.
+   */
+  public void waitForFileToActivate(long secondsToWait) {
+    Wait.seconds(secondsToWait).expecting("File editor is active").until(() -> getCurrentFile() != null);
   }
 
   /**
