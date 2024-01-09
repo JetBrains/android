@@ -42,6 +42,8 @@
     <registryKey key="unknown.sdk.show.editor.actions" defaultValue="false" description="Show editor suggestions to fix missing SKDs"/>
     <!-- Disable Gradle auto-import by overriding the corresponding registry flag. -->
     <registryKey key="external.system.auto.import.disabled" defaultValue="true" description="Disable build system auto-import"/>
+    <!-- Disable Kotlin not configured banner. -->
+    <registryKey key="kotlin.not.configured.show.notification" defaultValue="false" description="Show notification about Kotlin missing configuration"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
