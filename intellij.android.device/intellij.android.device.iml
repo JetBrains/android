@@ -23,7 +23,6 @@
       </configuration>
     </facet>
   </component>
-
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
@@ -38,5 +37,6 @@
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
   </component>
 </module>

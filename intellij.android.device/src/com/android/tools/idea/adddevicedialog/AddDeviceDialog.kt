@@ -16,6 +16,7 @@
 package com.android.tools.idea.adddevicedialog
 
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.ui.SimpleStudioWizardLayout
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.intellij.openapi.project.Project
@@ -30,7 +31,14 @@ internal object AddDeviceDialog {
   ): DialogWrapper {
     val model = AddDeviceWizardModel(images, skins)
 
-    return StudioWizardDialogBuilder(ConfigureDeviceStep(model, project), "Add Device")
+    return StudioWizardDialogBuilder(
+        ModelWizard.Builder(
+            ChooseDeviceStep(model),
+            ConfigureDeviceStep(model, project),
+          )
+          .build(),
+        "Add Device"
+      )
       .setProject(project)
       .build(SimpleStudioWizardLayout())
   }
