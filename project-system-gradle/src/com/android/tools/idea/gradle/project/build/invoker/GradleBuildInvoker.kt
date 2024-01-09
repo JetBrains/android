@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -80,7 +81,8 @@ interface GradleBuildInvoker {
      * If true, the build output window will not automatically be shown on failure.
      */
     val doNotShowBuildOutputOnFailure: Boolean = false,
-    val listener: ExternalSystemTaskNotificationListener? = null
+    val listener: ExternalSystemTaskNotificationListener? = null,
+    val executionEnvironment: ExecutionEnvironment? = null
   ) {
     val mode: BuildMode? get() = data.mode
     val rootProjectPath: File get() = data.rootProjectPath
@@ -151,8 +153,9 @@ interface GradleBuildInvoker {
       fun builder(
         project: Project,
         rootProjectPath: File,
-        gradleTasks: Collection<String>
-      ): Builder = Builder(project, rootProjectPath, gradleTasks.toList())
+        gradleTasks: Collection<String>,
+        executionEnvironment: ExecutionEnvironment? = null,
+      ): Builder = Builder(project, rootProjectPath, gradleTasks.toList(), executionEnvironment)
 
       @JvmStatic
       fun copyRequest(request: Request): Request =
@@ -190,19 +193,22 @@ interface GradleBuildInvoker {
 
     class Builder constructor(
       project: Project,
-      requestData: RequestData
+      requestData: RequestData,
+      executionEnvironment: ExecutionEnvironment?
     ) {
       private var request: Request = Request(
         project = project,
         data = requestData,
-        taskId = ExternalSystemTaskId.create(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
+        taskId = ExternalSystemTaskId.create(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
+        executionEnvironment = executionEnvironment
       )
 
       constructor(
         project: Project,
         rootProjectPath: File,
-        gradleTasks: List<String>
-      ) : this(project, RequestData(null, rootProjectPath, gradleTasks))
+        gradleTasks: List<String>,
+        executionEnvironment: ExecutionEnvironment? = null
+      ) : this(project, RequestData(null, rootProjectPath, gradleTasks), executionEnvironment)
 
       fun updateData(update: (RequestData) -> RequestData): Builder {
         request = request.copy(data = update(request.data))

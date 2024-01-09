@@ -231,11 +231,11 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     ).toArray(new Module[0]);
     GradleBuildInvoker buildInvoker = createBuildInvoker(myTaskFinder);
     var requests = List.of(GradleBuildInvoker.Request
-              .builder(myProject, ProjectUtil.guessProjectDir(myProject).toNioPath().toFile(), List.of())
+              .builder(myProject, ProjectUtil.guessProjectDir(myProject).toNioPath().toFile(), List.of(), null)
               .setMode(BUNDLE)
               .build(),
             GradleBuildInvoker.Request
-              .builder(myProject, ProjectUtil.guessProjectDir(myProject).toNioPath().toFile(), List.of())
+              .builder(myProject, ProjectUtil.guessProjectDir(myProject).toNioPath().toFile(), List.of(), null)
               .setMode(ASSEMBLE)
               .build());
     assertThrows(IllegalArgumentException.class,

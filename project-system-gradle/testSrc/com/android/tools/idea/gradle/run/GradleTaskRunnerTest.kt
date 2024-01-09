@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.fileUnderGradleRoot
 import com.android.tools.idea.testing.gradleModule
 import com.google.common.truth.Expect
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.runWriteActionAndWait
 import org.junit.Rule
 import org.junit.Test
@@ -47,7 +48,9 @@ class GradleTaskRunnerTest {
           project,
           arrayOf(appModule),
           tasksToRun,
-          BuildMode.ASSEMBLE, listOf()
+          BuildMode.ASSEMBLE,
+          listOf(),
+          ExecutionEnvironment()
         ).isBuildSuccessful
       ).named("Successful build result").isTrue()
 
@@ -63,7 +66,9 @@ class GradleTaskRunnerTest {
           project,
           arrayOf(appModule),
           tasksToRun,
-          BuildMode.ASSEMBLE, listOf()
+          BuildMode.ASSEMBLE,
+          listOf(),
+          ExecutionEnvironment()
         )
           .isBuildSuccessful.let { !it }
       ).named("Failed build result").isTrue()

@@ -283,7 +283,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
         return false
       }
     val targetDeviceVersion = targetDeviceSpec?.commonVersion
-    val buildResult = build(modules, runConfigurationGradleContext, targetDeviceVersion, task.goal, cmdLineArgs)
+    val buildResult = build(modules, runConfigurationGradleContext, targetDeviceVersion, task.goal, cmdLineArgs, env)
     if (configuration is UserDataHolderEx && buildResult != null) {
       val model = buildResult.invocationResult.models.firstOrNull()
       if (model is PostBuildProjectModels) {
@@ -459,7 +459,8 @@ private fun build(
   configuration: RunConfigurationGradleContext?,
   targetDeviceVersion: AndroidVersion?,
   userGoal: String?,
-  commandLineArgs: List<String>
+  commandLineArgs: List<String>,
+  executionEnvironment: ExecutionEnvironment
 ): AssembleInvocationResult? {
 
   check(modules.isNotEmpty()) { "Unable to determine list of modules to build" }
@@ -471,7 +472,7 @@ private fun build(
       logger<MakeBeforeRunTaskProvider>().error("Unable to determine gradle tasks to execute")
       return null
     }
-    return GradleTaskRunner.run(modules[0].project, modules, tasks, buildMode, commandLineArgs)
+    return GradleTaskRunner.run(modules[0].project, modules, tasks, buildMode, commandLineArgs, executionEnvironment)
   }
 
   if (!userGoal.isNullOrEmpty()) {
