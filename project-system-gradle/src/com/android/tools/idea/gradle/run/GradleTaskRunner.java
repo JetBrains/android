@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationRes
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -38,14 +39,15 @@ public class GradleTaskRunner {
                                              @NotNull Module[] assembledModules,
                                              @NotNull Map<Path, Collection<String>> tasks,
                                              @NotNull BuildMode buildMode,
-                                             @NotNull List<String> commandLineArguments) {
+                                             @NotNull List<String> commandLineArguments,
+                                             @NotNull ExecutionEnvironment executionEnvironment) {
     assert !ApplicationManager.getApplication().isDispatchThread();
     GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
 
     List<GradleBuildInvoker.Request> requests = tasks.keySet().stream()
       .map(path ->
              GradleBuildInvoker.Request
-               .builder(project, path.toFile(), tasks.get(path))
+               .builder(project, path.toFile(), tasks.get(path), executionEnvironment)
                .setMode(buildMode)
                .setCommandLineArguments(commandLineArguments)
                .build())

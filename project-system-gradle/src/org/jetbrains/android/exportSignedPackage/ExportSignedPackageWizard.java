@@ -415,7 +415,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       gradleBuildInvoker.executeAssembleTasks(
         modules.toArray(new Module[0]),
         ImmutableList.of(
-          GradleBuildInvoker.Request.builder(gradleBuildInvoker.getProject(), rootProjectFile, gradleTasks)
+          GradleBuildInvoker.Request.builder(gradleBuildInvoker.getProject(), rootProjectFile, gradleTasks, null)
             .setCommandLineArguments(signingProperties)
             .setMode(getBuildModeFromTarget(targetType))
             .build()))

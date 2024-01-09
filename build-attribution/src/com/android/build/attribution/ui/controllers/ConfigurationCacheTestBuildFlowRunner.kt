@@ -118,7 +118,7 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
     onBuildFailure: (GradleInvocationResult) -> Unit,
     onSuccess: () -> Unit
   ) {
-    val request = GradleBuildInvoker.Request.Builder(project, originalBuildRequestData)
+    val request = GradleBuildInvoker.Request.Builder(project, originalBuildRequestData, null)
       .setCommandLineArguments(originalBuildRequestData.commandLineArguments.plus("--configuration-cache"))
       .build()
 

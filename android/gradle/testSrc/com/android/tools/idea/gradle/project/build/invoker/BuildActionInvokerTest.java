@@ -36,7 +36,8 @@ public class BuildActionInvokerTest extends AndroidGradleTestCase {
         new GradleBuildInvoker.Request.Builder(
           getProject(),
           new File(getProject().getBasePath()),
-          ImmutableList.of("assembleDebug")
+          ImmutableList.of("assembleDebug"),
+          null
         )
           .setMode(BuildMode.ASSEMBLE)
           .build(),

@@ -426,6 +426,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
         val buildDescriptor = DefaultBuildDescriptor(id, executionName, workingDir, eventTime)
           .withRestartAction(restartAction).withAction(stopAction)
           .withExecutionFilter(AndroidReRunBuildFilter(workingDir))
+          .withExecutionEnvironment(request.executionEnvironment)
           .withContextAction {
             // add a new item to the build output popup menu
             ExplainSyncOrBuildOutput()
