@@ -38,6 +38,9 @@ internal class WearHealthServicesToolWindowStateManagerImpl(private val deviceMa
   private val capabilityToState = ConcurrentMap<WhsCapability, MutableStateFlow<CapabilityState>>()
   private val progress = MutableStateFlow<WhsStateManagerStatus>(WhsStateManagerStatus.Idle)
 
+  // TODO(b/305924111): Update this value periodically to reflect it on the UI
+  private val ongoingExercise = MutableStateFlow(false)
+
   override var serialNumber: String? = null
     set(value) {
       // Only accept non-null values to avoid tool window unbinding completely
@@ -61,6 +64,7 @@ internal class WearHealthServicesToolWindowStateManagerImpl(private val deviceMa
   }
 
   override fun getStatus(): StateFlow<WhsStateManagerStatus> = progress.asStateFlow()
+  override fun getOngoingExercise(): StateFlow<Boolean> = ongoingExercise.asStateFlow()
 
   // TODO(b/309609475): Check the actual WHS version using the device manager
   override suspend fun isWhsVersionSupported(): Boolean = true

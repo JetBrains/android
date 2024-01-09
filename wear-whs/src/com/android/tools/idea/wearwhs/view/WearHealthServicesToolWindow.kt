@@ -32,6 +32,7 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.layout.selected
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders
+import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -122,7 +123,19 @@ internal class WearHealthServicesToolWindow(private val stateManager: WearHealth
         capabilitiesComboBox.selectedItem = it
       }.launchIn(uiScope)
       add(capabilitiesComboBox, BorderLayout.WEST)
-      add(JLabel(message("wear.whs.panel.test.data.inactive")), BorderLayout.EAST)
+      add(JLabel(message("wear.whs.panel.test.data.inactive")).apply {
+        icon = StudioIcons.Common.INFO
+        stateManager.getOngoingExercise().onEach {
+          if (it) {
+            this.text = message("wear.whs.panel.test.data.active")
+            this.toolTipText = message("wear.whs.panel.press.apply.for.overrides")
+          }
+          else {
+            this.text = message("wear.whs.panel.test.data.inactive")
+            this.toolTipText = message("wear.whs.panel.press.apply.for.toggles")
+          }
+        }.launchIn(uiScope)
+      }, BorderLayout.EAST)
     }
     val content = JBScrollPane().apply {
       stateManager.getCapabilitiesList().onEach { capabilities ->

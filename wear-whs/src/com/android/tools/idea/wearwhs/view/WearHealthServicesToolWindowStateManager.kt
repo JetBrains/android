@@ -80,6 +80,12 @@ internal interface WearHealthServicesToolWindowStateManager {
   suspend fun isWhsVersionSupported(): Boolean
 
   /**
+   * State flow for the ongoing exercise status, emits a single boolean, true if there's an
+   * ongoing exercise on the device, false otherwise.
+   */
+  fun getOngoingExercise(): StateFlow<Boolean>
+
+  /**
    * Used to get/set the serial number of the currently running emulator.
    */
   var serialNumber: String?
