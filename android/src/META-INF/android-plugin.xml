@@ -344,7 +344,6 @@
 
     <facetType implementation="com.android.tools.idea.apk.ApkFacetType"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>
-    <postStartupActivity implementation="com.android.tools.idea.stats.CompletionStats$MyStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.project.LibraryToolWindowInitializer"/>
     <completion.contributor language="JAVA"
                             id="AndroidJavaCompletionContributor"
@@ -752,6 +751,8 @@
   </extensions>
 
   <applicationListeners>
+    <listener class="com.android.tools.idea.stats.CompletionStats$MyCompletionPhaseListener"
+              topic="com.intellij.codeInsight.completion.CompletionPhaseListener"/>
     <listener class="com.android.tools.idea.editors.liveedit.LiveEditAnActionListener"
               topic="com.intellij.openapi.actionSystem.ex.AnActionListener"/>
     <listener class="com.android.tools.idea.stats.ManifestMergerStatsTracker"
@@ -759,6 +760,8 @@
   </applicationListeners>
 
   <projectListeners>
+    <listener class="com.android.tools.idea.stats.CompletionStats$MyLookupManagerListener"
+              topic="com.intellij.codeInsight.lookup.LookupManagerListener"/>
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
     <listener class="com.android.tools.idea.stats.ProjectSizeUsageTrackerListener"
