@@ -219,7 +219,7 @@ class FakeScreenSharingAgentRule : TestRule {
       val connectedDevice = mock<ConnectedDevice>().apply {
         whenever(deviceInfoFlow).thenReturn(MutableStateFlow(DeviceInfo(device.serialNumber, ONLINE)))
       }
-      return ProvisionerDeviceState.Connected(deviceProperties, connectedDevice, null)
+      return ProvisionerDeviceState.Connected(deviceProperties, connectedDevice)
     }
   }
 }
