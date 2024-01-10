@@ -13,40 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.diagnostics;
+package com.android.tools.idea.diagnostics
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.extensions.ExtensionNotApplicableException;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
-import com.intellij.openapi.util.SystemInfo;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.extensions.ExtensionNotApplicableException
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.util.SystemInfo
+import java.nio.file.Paths
 
 /**
  * Looks for the existence of system32\\ucrtbase.dll to check whether Universal C Runtime for Windows is installed
  */
-public class WindowsCRuntimeChecker implements StartupActivity.Background {
-
-  public WindowsCRuntimeChecker() {
+class WindowsCRuntimeChecker : StartupActivity.Background {
+  init {
     if (!SystemInfo.isWindows || !StudioFlags.WINDOWS_UCRT_CHECK_ENABLED.get()) {
-      throw ExtensionNotApplicableException.create();
+      throw ExtensionNotApplicableException.create()
     }
   }
 
-  @Override
-  public void runActivity(@NotNull Project project) {
-    ApplicationManager.getApplication().executeOnPooledThread(WindowsCRuntimeChecker::checkCRT);
+  override fun runActivity(project: Project) {
+    ApplicationManager.getApplication().executeOnPooledThread(::checkCRT)
   }
 
-  private static void checkCRT() {
-    Path dllPath = Paths.get(System.getenv("SystemRoot"), "system32", "ucrtbase.dll");
+  private fun checkCRT() {
+    val dllPath = Paths.get(System.getenv("SystemRoot"), "system32", "ucrtbase.dll")
     if (!dllPath.toFile().exists()) {
-      var systemHealthMonitor = AndroidStudioSystemHealthMonitor.getInstance();
-      systemHealthMonitor.showNotification("windows.ucrt.warn.message", AndroidStudioSystemHealthMonitor.detailsAction(
-        "https://support.microsoft.com/en-ca/help/2999226/update-for-universal-c-runtime-in-windows"));
+      val systemHealthMonitor = AndroidStudioSystemHealthMonitor.getInstance()
+      systemHealthMonitor.showNotification(
+        "windows.ucrt.warn.message", AndroidStudioSystemHealthMonitor.detailsAction(
+          "https://support.microsoft.com/en-ca/help/2999226/update-for-universal-c-runtime-in-windows"
+        )
+      )
     }
   }
 }
