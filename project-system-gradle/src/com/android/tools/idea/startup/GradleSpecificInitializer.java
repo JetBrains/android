@@ -20,7 +20,6 @@ import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.checks.GradleDetector;
 import com.intellij.ide.AppLifecycleListener;
-import com.intellij.ide.ApplicationInitializedListenerJavaShim;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationDisplayType;
@@ -33,10 +32,8 @@ import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ConfigImportHelper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.util.registry.Registry;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverExtension;
 
 /**
  * Performs Gradle-specific IDE initialization
@@ -47,39 +44,11 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
   // Any heavy work should be moved to a background thread and/or moved to a later phase.
   @Override
   public void appFrameCreated(@NotNull List<String> arguments) {
-    componentsInitialized();
-  }
-
-  private void componentsInitialized() {
     checkInstallPath();
 
     if (ConfigImportHelper.isConfigImported()) {
-      IdeInfo ideInfo = IdeInfo.getInstance();
-      if (ideInfo.isAndroidStudio() || ideInfo.isGameTools()) {
-        // In older versions of Android Studio, we cleaned and recreated the Project Jdk Table here because
-        // otherwise a change in the bundled version of the JDK (among other possibilities) would lead to
-        // red symbols in Gradle build files (b/185562147).
-        //
-        // We now check the project Jdk used for Gradle during Gradle sync, fixing it if it does not exist, and
-        // also recreate the table in the UI for the Gradle JVM drop-down, so this cleanup step at application
-        // initialization is somewhat less necessary.  There are other JDK drop-downs in the system, though (for
-        // example, choosing a JVM for unit-test Run Configurations) so a clean project Jdk table is better than
-        // not.
-        ApplicationManager.getApplication().invokeLater(IdeSdks.getInstance()::recreateProjectJdkTable);
-      }
-      // Recreate AGP Upgrade Assistant notification settings for the application if notifications are disabled.
-      PropertiesComponent properties = PropertiesComponent.getInstance();
-      String propertyKey = "recommended.upgrade.do.not.show.again";
-      if (properties.isValueSet(propertyKey)) {
-        if (properties.getBoolean(propertyKey, false)) {
-          ApplicationManager.getApplication().invokeLater(() -> {
-            String groupId = "Android Gradle Upgrade Notification";
-            NotificationsConfiguration.getNotificationsConfiguration()
-              .changeSettings(groupId, NotificationDisplayType.NONE, /* do not log */ false, /* silence */ false);
-          });
-        }
-        properties.unsetValue(propertyKey);
-      }
+      cleanProjectJdkTableForNewIdeVersion();
+      migrateAgpUpgradeAssistantSettingForNewIdeVersion();
     }
 
     useIdeGooglePlaySdkIndexInGradleDetector();
@@ -124,7 +93,40 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
     return group;
   }
 
-  private void useIdeGooglePlaySdkIndexInGradleDetector() {
+  private static void cleanProjectJdkTableForNewIdeVersion() {
+    IdeInfo ideInfo = IdeInfo.getInstance();
+    if (ideInfo.isAndroidStudio() || ideInfo.isGameTools()) {
+      // In older versions of Android Studio, we cleaned and recreated the Project Jdk Table here because
+      // otherwise a change in the bundled version of the JDK (among other possibilities) would lead to
+      // red symbols in Gradle build files (b/185562147).
+      //
+      // We now check the project Jdk used for Gradle during Gradle sync, fixing it if it does not exist, and
+      // also recreate the table in the UI for the Gradle JVM drop-down, so this cleanup step at application
+      // initialization is somewhat less necessary.  There are other JDK drop-downs in the system, though (for
+      // example, choosing a JVM for unit-test Run Configurations) so a clean project Jdk table is better than
+      // not.
+      ApplicationManager.getApplication().invokeLater(IdeSdks.getInstance()::recreateProjectJdkTable);
+    }
+  }
+
+  private static void migrateAgpUpgradeAssistantSettingForNewIdeVersion() {
+    // If the user previously set the application-wide custom setting to not see AGP Upgrade Assistant notifications, migrate that
+    // preference to the new, more standard, setting in the NotificationsConfiguration.
+    PropertiesComponent properties = PropertiesComponent.getInstance();
+    String propertyKey = "recommended.upgrade.do.not.show.again";
+    if (properties.isValueSet(propertyKey)) {
+      if (properties.getBoolean(propertyKey, false)) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+          String groupId = "Android Gradle Upgrade Notification";
+          NotificationsConfiguration.getNotificationsConfiguration()
+            .changeSettings(groupId, NotificationDisplayType.NONE, /* do not log */ false, /* silence */ false);
+        });
+      }
+      properties.unsetValue(propertyKey);
+    }
+  }
+
+  private static void useIdeGooglePlaySdkIndexInGradleDetector() {
     GradleDetector.setPlaySdkIndexFactory((path, client) -> {
       IdeGooglePlaySdkIndex playIndex = IdeGooglePlaySdkIndex.INSTANCE;
       playIndex.initializeAndSetFlags();
