@@ -54,17 +54,25 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
     checkInstallPath();
 
     if (ConfigImportHelper.isConfigImported()) {
-      // Recreate JDKs since they can be invalid when changing Java versions (b/185562147)
       IdeInfo ideInfo = IdeInfo.getInstance();
       if (ideInfo.isAndroidStudio() || ideInfo.isGameTools()) {
-        ApplicationManager.getApplication().invokeLaterOnWriteThread(IdeSdks.getInstance()::recreateProjectJdkTable);
+        // In older versions of Android Studio, we cleaned and recreated the Project Jdk Table here because
+        // otherwise a change in the bundled version of the JDK (among other possibilities) would lead to
+        // red symbols in Gradle build files (b/185562147).
+        //
+        // We now check the project Jdk used for Gradle during Gradle sync, fixing it if it does not exist, and
+        // also recreate the table in the UI for the Gradle JVM drop-down, so this cleanup step at application
+        // initialization is somewhat less necessary.  There are other JDK drop-downs in the system, though (for
+        // example, choosing a JVM for unit-test Run Configurations) so a clean project Jdk table is better than
+        // not.
+        ApplicationManager.getApplication().invokeLater(IdeSdks.getInstance()::recreateProjectJdkTable);
       }
-      // Recreate AGP Upgrade Assistant notification settings for the application if notifications are disabled
+      // Recreate AGP Upgrade Assistant notification settings for the application if notifications are disabled.
       PropertiesComponent properties = PropertiesComponent.getInstance();
       String propertyKey = "recommended.upgrade.do.not.show.again";
       if (properties.isValueSet(propertyKey)) {
         if (properties.getBoolean(propertyKey, false)) {
-          ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
+          ApplicationManager.getApplication().invokeLater(() -> {
             String groupId = "Android Gradle Upgrade Notification";
             NotificationsConfiguration.getNotificationsConfiguration()
               .changeSettings(groupId, NotificationDisplayType.NONE, /* do not log */ false, /* silence */ false);
