@@ -28,6 +28,7 @@ import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.properties.PropertiesFileType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -86,6 +87,7 @@ import org.jetbrains.plugins.gradle.config.GradleFileType
  * * [ResourceNotificationManager]
  * * [EditorNotifications] when a Gradle file is modified
  */
+@Service(Service.Level.PROJECT)
 class AndroidFileChangeListener(private val project: Project) : Disposable {
   private val registry = ResourceFolderRegistry.getInstance(project)
   private val resourceNotificationManager = ResourceNotificationManager.getInstance(project)
@@ -95,8 +97,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
 
   class MyStartupActivity : StartupActivity.DumbAware {
     override fun runActivity(project: Project) {
-      val listener = getInstance(project)
-      listener.onProjectOpened()
+      getInstance(project).onProjectOpened()
     }
   }
 
@@ -139,10 +140,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
   private fun dispatchToResourceNotificationManager(
     invokeCallback: Consumer<PsiTreeChangeListener?>
   ) {
-    val resourceNotificationPsiListener = resourceNotificationManager.psiListener
-    if (resourceNotificationPsiListener != null) {
-      invokeCallback.consume(resourceNotificationPsiListener)
-    }
+    resourceNotificationManager.psiListener?.let(invokeCallback::consume)
   }
 
   /**
@@ -169,8 +167,9 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
           is VFileCopyEvent -> onFileOrDirectoryCreated(event.newParent, event.newChildName)
           is VFileMoveEvent -> onFileOrDirectoryCreated(event.newParent, event.file.name)
           is VFilePropertyChangeEvent ->
-            if (event.isRename)
+            if (event.isRename) {
               event.file.parent?.let { onFileOrDirectoryCreated(it, event.newValue as String) }
+            }
         // VFileContentChangeEvent changes are not handled at the VFS level, but either in
         // fileWithNoDocumentChanged, documentChanged or MyPsiListener.
         }
@@ -179,9 +178,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
 
     private fun onFileOrDirectoryCreated(parent: VirtualFile?, childName: String) {
       ResourceUpdateTracer.log {
-        "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated(" +
-          pathForLogging(parent, childName) +
-          ")"
+        "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated(${pathForLogging(parent, childName)})"
       }
       val created = parent?.takeIf(VirtualFile::exists)?.findChild(childName) ?: return
       val resDir = if (created.isDirectory) parent else parent.parent ?: return
@@ -191,13 +188,14 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
       }
     }
 
-    private fun pathForLogging(parent: VirtualFile?, childName: String): String {
-      if (parent == null) return childName
-      return ResourceUpdateTracer.pathForLogging(
-        parent.toPathString().resolve(childName),
-        registry.project
-      )
-    }
+    private fun pathForLogging(parent: VirtualFile?, childName: String) =
+      if (parent == null) childName
+      else {
+        ResourceUpdateTracer.pathForLogging(
+          parent.toPathString().resolve(childName),
+          registry.project
+        )
+      }
 
     private fun onFileOrDirectoryRemoved(file: VirtualFile) {
       registry.dispatchToRepositories(file) { obj, f ->
@@ -213,11 +211,7 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
         if (repository == null) return
 
         ResourceUpdateTracer.log {
-          "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated(" +
-            created +
-            ", " +
-            repository.displayName +
-            ")"
+          "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated($created, ${repository.displayName})"
         }
         if (!created.isDirectory) {
           repository.onFileCreated(created)
@@ -441,9 +435,8 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
       }
 
       // TODO: Do we need to handle PROP_DIRECTORY_NAME for users renaming any of the resource
-      // folders?
-      // and what about PROP_FILE_TYPES -- can users change the type of an XML File to something
-      // else?
+      // folders? And what about PROP_FILE_TYPES -- can users change the type of an XML File to
+      // something else?
     }
 
     private fun dispatchPropertyChanged(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
@@ -523,28 +516,11 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
       // active.
       if (name.endsWith(SdkConstants.DOT_VERSIONS_DOT_TOML)) return true
 
-      if (
-        fileType === PropertiesFileType.INSTANCE &&
-          (SdkConstants.FN_GRADLE_PROPERTIES == name ||
-            SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == name)
-      ) {
-        return true
-      }
-
-      if (fileType === PropertiesFileType.INSTANCE) {
-        if (
-          SdkConstants.FN_GRADLE_PROPERTIES == name ||
-            SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == name
-        )
-          return true
-        if (
-          SdkConstants.FN_GRADLE_CONFIG_PROPERTIES == name &&
-            SdkConstants.FD_GRADLE_CACHE == psiFile.parent?.name
-        )
-          return true
-      }
-
-      return false
+      return fileType === PropertiesFileType.INSTANCE &&
+        (SdkConstants.FN_GRADLE_PROPERTIES == name ||
+          SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == name ||
+          (SdkConstants.FN_GRADLE_CONFIG_PROPERTIES == name &&
+            SdkConstants.FD_GRADLE_CACHE == psiFile.parent?.name))
     }
   }
 }
