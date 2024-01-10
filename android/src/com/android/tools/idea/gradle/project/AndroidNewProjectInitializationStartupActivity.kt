@@ -52,8 +52,8 @@ class AndroidNewProjectInitializationStartupActivity : StartupActivity {
       assert(project.getUserData(INITIALIZER_KEY) == null)
       project.putUserData(INITIALIZER_KEY, initializer)
     }
+
+    private val INITIALIZER_KEY = Key.create<() -> Unit>("ANDROID_INIT")
+    private val log = logger<AndroidNewProjectInitializationStartupActivity>()
   }
 }
-
-private val INITIALIZER_KEY = Key.create<() -> Unit>("ANDROID_INIT")
-private val log = logger<AndroidNewProjectInitializationStartupActivity>()
