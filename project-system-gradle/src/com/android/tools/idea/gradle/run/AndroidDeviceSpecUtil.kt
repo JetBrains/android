@@ -17,6 +17,7 @@
 package com.android.tools.idea.gradle.run
 
 import com.android.ddmlib.IDevice
+import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.util.getLanguages
 import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
@@ -170,7 +171,7 @@ private fun combineDeviceLanguages(devices: List<AndroidDevice>, timeout: Long, 
  *   uint32 sdk_version = 6;
  * }
  */
-private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
+private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer, moduleAgpVersions: List<AgpVersion>) {
   JsonWriter(out).use { writer ->
     writer.beginObject()
     commonVersion?.let {
@@ -192,7 +193,9 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
       }
       writer.endArray()
     }
-    if (supportsSdkRuntime) {
+    if (supportsSdkRuntime &&
+        // The DeviceConfig 'sdk_runtime' field exists in > AGP 7.4.0, the field is not recognised by older AGP versions.
+        moduleAgpVersions.all { it.isAtLeast(7, 4, 0) }) {
       writer.name("sdk_runtime")
         .beginObject()
         .name("supported")
@@ -229,9 +232,9 @@ fun IDevice.createSpec(): AndroidDeviceSpec {
 private val log: Logger
   get() = Logger.getInstance(AndroidDeviceSpec::class.java)
 
-fun AndroidDeviceSpec.writeToJsonTempFile(writeLanguages: Boolean): File {
+fun AndroidDeviceSpec.writeToJsonTempFile(writeLanguages: Boolean, moduleAgpVersions: List<AgpVersion> = emptyList()): File {
   val jsonString = StringWriter().use {
-    writeJson(writeLanguages, it)
+    writeJson(writeLanguages, it, moduleAgpVersions)
     it.flush()
     it.toString()
   }
