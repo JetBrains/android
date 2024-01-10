@@ -16,7 +16,8 @@
 package com.android.tools.idea.gradle.project.build.quickFixes
 
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8AllQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
+import com.intellij.pom.java.LanguageLevel
 import com.intellij.util.lang.JavaVersion
 import java.util.regex.Pattern
 
@@ -41,10 +42,12 @@ class JavaDeprecatedProvider : AndroidGradlePluginQuickFixProvider {
     val obsoleteMatcher = obsoletePattern.matcher(message)
     val currentVersion: JavaVersion?
     val minimumVersion: JavaVersion?
+    val minimumLevel: LanguageLevel?
     if (obsoleteMatcher.matches()) { // TODO: Use currently used Android SDK to suggest the minimum supported target?
       typeOfCompatibilityIssue = obsoleteMatcher.group(1)
       currentVersion = JavaVersion.tryParse(obsoleteMatcher.group(2))
       minimumVersion = null
+      minimumLevel = null
     }
     else {
       val notSupportedMatcher = notSupportedPattern.matcher(message)
@@ -52,18 +55,20 @@ class JavaDeprecatedProvider : AndroidGradlePluginQuickFixProvider {
         typeOfCompatibilityIssue = notSupportedMatcher.group(1).lowercase()
         currentVersion = JavaVersion.tryParse(notSupportedMatcher.group(2))
         minimumVersion = JavaVersion.tryParse(notSupportedMatcher.group(3))
+        minimumLevel = LanguageLevel.parse(minimumVersion.toString())
       }
       else {
         return emptyList()
       }
     }
     val fixes = mutableListOf<DescribedBuildIssueQuickFix>()
-    // Apply level 8 if
-    if (currentVersion == null || !currentVersion.isAtLeast(8)) {
-      // Current is lower than 8, suggest to use 8 if minimum is not defined or if it is lower or equal to 8
-      if (minimumVersion == null || !minimumVersion.isAtLeast(9)) {
-        fixes.add(SetLanguageLevel8AllQuickFix(setJvmTarget = true))
-      }
+    // Suggest a version if the message suggests one and it is at least 8
+    if (minimumLevel != null && minimumVersion!!.isAtLeast(8)) {
+      fixes.add(SetJavaLanguageLevelAllQuickFix(minimumLevel, setJvmTarget = true))
+    }
+    // Suggest 8 if no version is suggested and current is not at least 8 (or cannot be parsed)
+    else if (currentVersion == null || !currentVersion.isAtLeast(8)) {
+      fixes.add(SetJavaLanguageLevelAllQuickFix(LanguageLevel.JDK_1_8, setJvmTarget = true))
     }
     fixes.add(PickLanguageLevelInPSDQuickFix())
     if (typeOfCompatibilityIssue == "source") {

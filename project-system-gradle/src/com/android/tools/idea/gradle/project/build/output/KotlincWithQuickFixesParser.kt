@@ -17,13 +17,14 @@ package com.android.tools.idea.gradle.project.build.output
 
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8AllQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.build.output.KotlincOutputParser
+import com.intellij.pom.java.LanguageLevel
 import java.util.function.Consumer
 
 const val JVM_TARGET_FIX_BYTECODE = "Cannot inline bytecode built with JVM target 1.8 into bytecode that is being built with JVM target"
@@ -35,9 +36,9 @@ const val JAVA_8_SUPPORT_LINK = "https://developer.android.com/studio/write/java
  * Wrapper class for [KotlincOutputParser] that adds quickfixes based on the error messages.
  *
  * Current quick fixes:
- *   - Errors that contain (JVM_TARGET_FIX_BYTECODE and JVM_TARGET_JVM_TARGET_SPECIFY_OPTION) or JVM_TARGET_FIX_STATIC display a [SetLanguageLevel8AllQuickFix]
+ *   - Errors that contain (JVM_TARGET_FIX_BYTECODE and JVM_TARGET_JVM_TARGET_SPECIFY_OPTION) or JVM_TARGET_FIX_STATIC display a [SetJavaLanguageLevelAllQuickFix]
  */
-class KotlincWithQuickFixesParser: BuildOutputParser {
+class KotlincWithQuickFixesParser : BuildOutputParser {
   private val myKotlinParser = KotlincOutputParser()
   override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
     val wrappedConsumer = Consumer<BuildEvent> {
@@ -55,7 +56,7 @@ class KotlincWithQuickFixesParser: BuildOutputParser {
       if (originalEvent is MessageEvent) {
         val buildIssueComposer = BuildIssueComposer(originalEvent.description!!.trim(), originalMessage)
         buildIssueComposer.addDescription("Adding support for Java 8 language features could solve this issue.")
-        buildIssueComposer.addQuickFix(SetLanguageLevel8AllQuickFix(setJvmTarget = true))
+        buildIssueComposer.addQuickFix(SetJavaLanguageLevelAllQuickFix(LanguageLevel.JDK_1_8, setJvmTarget = true))
         buildIssueComposer.addQuickFix("More information...", OpenLinkQuickFix(JAVA_8_SUPPORT_LINK))
         return BuildIssueEventImpl(originalEvent.parentId!!, buildIssueComposer.composeBuildIssue(), originalEvent.kind)
       }

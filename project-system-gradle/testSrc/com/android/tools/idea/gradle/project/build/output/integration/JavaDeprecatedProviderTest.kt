@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.build.quickFixes.OpenSourceCompatib
 import com.android.tools.idea.gradle.project.build.quickFixes.OpenTargetCompatibilityLinkQuickFix
 import com.android.tools.idea.gradle.project.build.quickFixes.PickLanguageLevelInPSDQuickFix
 import com.android.tools.idea.gradle.project.sync.idea.issues.OpenLinkDescribedQuickFix
-import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8AllQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -62,7 +62,7 @@ class JavaDeprecatedProviderTest {
 
   /**
    * Verify that using Java 6 language level causes a build issue (error) that has the following quick fixes:
-   * -SetLanguageLevel8AllQuickFix
+   * -SetJavaLanguageLevelAllQuickFix
    * -PickLanguageLevelInPSDQuickFix
    * -Open<Source|Target>CompatibilityLinkQuickFix
    * -OpenJavaLanguageSpecQuickFix
@@ -78,7 +78,7 @@ class JavaDeprecatedProviderTest {
 
   /**
    * Verify that using Java 7 language level causes a build issue (warning) that has the following quick fixes:
-   * -SetLanguageLevel8AllQuickFix
+   * -SetJavaLanguageLevelAllQuickFix
    * -PickLanguageLevelInPSDQuickFix
    * -Open<Source|Target>CompatibilityLinkQuickFix
    * -OpenJavaLanguageSpecQuickFix
@@ -105,17 +105,18 @@ class JavaDeprecatedProviderTest {
                                     expectedMessage: String,
                                     expectedKind: MessageEvent.Kind,
                                     compatibilityFix: Class<out OpenLinkDescribedQuickFix>) {
-    assertThat(events.map {it.message}).contains(expectedMessage)
+    assertThat(events.map { it.message }).contains(expectedMessage)
     val event = events.find { it.message == expectedMessage }
     assertThat(event).isNotNull()
     assertThat(event!!.kind).isEqualTo(expectedKind)
     val issue = event.issue
     assertThat(issue).isNotNull()
     val fixes = issue!!.quickFixes
-    assertThat(fixes.map{ it.javaClass}).containsExactly(
-      SetLanguageLevel8AllQuickFix::class.java, PickLanguageLevelInPSDQuickFix::class.java, compatibilityFix,
+    assertThat(fixes.map { it.javaClass }).containsExactly(
+      SetJavaLanguageLevelAllQuickFix::class.java, PickLanguageLevelInPSDQuickFix::class.java, compatibilityFix,
       OpenJavaLanguageSpecQuickFix::class.java
     ).inOrder()
+    assertThat((fixes[0] as SetJavaLanguageLevelAllQuickFix).level).isEqualTo(LanguageLevel.JDK_1_8)
   }
 
   private fun getBuildIssues(languageLevel: LanguageLevel, expectSuccess: Boolean): MutableList<BuildIssueEvent> {
