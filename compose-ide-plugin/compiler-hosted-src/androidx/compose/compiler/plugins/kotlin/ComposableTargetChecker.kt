@@ -30,7 +30,6 @@ import androidx.compose.compiler.plugins.kotlin.inference.Scheme
 import androidx.compose.compiler.plugins.kotlin.inference.Token
 import androidx.compose.compiler.plugins.kotlin.inference.deserializeScheme
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.backend.jvm.ir.psiElement
 import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.codegen.kotlinType
 import org.jetbrains.kotlin.container.StorageComponentContainer
@@ -66,6 +65,7 @@ import org.jetbrains.kotlin.resolve.calls.model.VariableAsFunctionResolvedCall
 import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.resolve.sam.getSingleAbstractMethodOrNull
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
+import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.types.KotlinType
 
 private sealed class InferenceNode(val element: PsiElement) {
@@ -447,7 +447,7 @@ private fun CallableDescriptor.toScheme(callContext: CallCheckerContext): Scheme
         )
 
 private fun CallableDescriptor.fileScopeTarget(callContext: CallCheckerContext): Item? =
-    (psiElement?.containingFile as? KtFile)?.let {
+    (source.getPsi()?.containingFile as? KtFile)?.let {
         for (entry in it.annotationEntries) {
             val annotationDescriptor =
                 callContext.trace.bindingContext[BindingContext.ANNOTATION, entry]
