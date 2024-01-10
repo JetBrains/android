@@ -19,6 +19,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.checks.GradleDetector;
+import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.ApplicationInitializedListenerJavaShim;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
@@ -33,17 +34,23 @@ import com.intellij.openapi.application.ConfigImportHelper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.util.registry.Registry;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverExtension;
 
 /**
  * Performs Gradle-specific IDE initialization
  */
-public class GradleSpecificInitializer extends ApplicationInitializedListenerJavaShim {
+public class GradleSpecificInitializer implements AppLifecycleListener {
 
   // Note: this code runs quite early during Android Studio startup and directly affects app startup performance.
   // Any heavy work should be moved to a background thread and/or moved to a later phase.
   @Override
-  public void componentsInitialized() {
+  public void appFrameCreated(@NotNull List<String> arguments) {
+    componentsInitialized();
+  }
+
+  private void componentsInitialized() {
     checkInstallPath();
 
     if (ConfigImportHelper.isConfigImported()) {
