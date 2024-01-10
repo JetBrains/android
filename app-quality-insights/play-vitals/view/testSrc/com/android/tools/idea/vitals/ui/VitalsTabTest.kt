@@ -26,6 +26,7 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
 import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
 import com.android.tools.idea.insights.DetailedIssueStats
+import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE1_DETAILS
@@ -330,5 +331,33 @@ class VitalsTabTest {
       fakeUi
         .findAllComponents<DistributionPanel>()[0]
         .assertContent(ISSUE1_DETAILS.deviceStats, "device")
+    }
+
+  @Test
+  fun `missing sample event does not cause crash when shown`() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val tab = createTab()
+      val fakeUi = FakeUi(tab)
+      controllerRule.consumeInitialState(
+        LoadingState.Ready(
+          IssueResponse(
+            listOf(ISSUE1.copy(sampleEvent = Event())),
+            listOf(DEFAULT_FETCHED_VERSIONS),
+            listOf(DEFAULT_FETCHED_DEVICES),
+            listOf(DEFAULT_FETCHED_OSES),
+            DEFAULT_FETCHED_PERMISSIONS
+          )
+        ),
+        detailsState =
+          LoadingState.Ready(
+            DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))
+          )
+      )
+
+      delayUntilCondition(200) {
+        fakeUi.findComponent<JLabel> {
+          it.icon == StudioIcons.LayoutEditor.Toolbar.ANDROID_API && it.text == "unknown"
+        } != null
+      }
     }
 }

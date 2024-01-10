@@ -47,6 +47,7 @@ import com.android.tools.idea.insights.ui.transparentPanel
 import com.android.tools.idea.insights.ui.vcs.VcsCommitLabel
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.HyperlinkLabel
@@ -362,11 +363,20 @@ class VitalsIssueDetailsPanel(
     deviceLabel.text = issue.sampleEvent.eventData.device.displayName
     eventIdLabel.text = "Event ${issue.sampleEvent.name.shortenEventId()}"
     affectedApiLevelsLabel.text =
-      computeFullReleaseName(
-        issue.sampleEvent.eventData.operatingSystemInfo.displayVersion.toInt(),
-        null,
-        includeApiLevel = true
-      )
+      try {
+        computeFullReleaseName(
+          issue.sampleEvent.eventData.operatingSystemInfo.displayVersion.toInt(),
+          null,
+          includeApiLevel = true
+        )
+      } catch (e: NumberFormatException) {
+        Logger.getInstance(this::class.java)
+          .warn(
+            "Unable to read OS version number. Sample event may be missing for Issue ${issue.id.value}"
+          )
+        "unknown"
+      }
+
     timestampLabel.text = dateFormatter.format(issue.sampleEvent.eventData.eventTime)
 
     commitLabel.updateOnIssueChange(issue.sampleEvent.appVcsInfo, project)
