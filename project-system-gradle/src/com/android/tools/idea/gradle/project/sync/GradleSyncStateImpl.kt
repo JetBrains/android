@@ -549,8 +549,6 @@ class GradleSyncStateHolder(private val project: Project)  {
       GradleSyncStateHolder.getInstance(project).syncFailed(null, e, rootProjectPath)
     }
 
-    override fun onStart(id: ExternalSystemTaskId) = error("Not expected to be called. onStart with a different signature is implemented")
-
     override fun onEnd(id: ExternalSystemTaskId) = Unit
     override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) = Unit
     override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) = Unit
