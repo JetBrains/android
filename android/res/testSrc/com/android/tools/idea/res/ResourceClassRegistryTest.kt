@@ -20,7 +20,6 @@ import com.android.ide.common.resources.ResourceRepository
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.res.ResourceNamespacing
 import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.res.ids.ResourceIdManagerBase
 import com.android.tools.res.ids.ResourceIdManagerModelModule
@@ -46,12 +45,9 @@ class ResourceClassRegistryTest {
 
   private val registry = ResourceClassRegistry(1.days) // Not testing the TimeoutCachedValue
   private val disposable = Disposer.newDisposable()
-  private val module =
-    object : ResourceIdManagerModelModule {
-      override val isAppOrFeature: Boolean = true
-      override val namespacing: ResourceNamespacing = ResourceNamespacing.REQUIRED
-    }
-  private val idManager by lazy { ResourceIdManagerBase(module) }
+  private val idManager by lazy {
+    ResourceIdManagerBase(ResourceIdManagerModelModule.NO_NAMESPACING_APP)
+  }
   private val manager: ResourceRepositoryManager = mock()
   private val repository: ResourceRepository = mock()
   private val disposableRepository: ResourceRepository =

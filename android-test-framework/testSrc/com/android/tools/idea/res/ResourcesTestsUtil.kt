@@ -22,12 +22,10 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
-import com.android.resources.getTestAarRepositoryFromExplodedAar
 import com.android.tools.idea.testing.Facets
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toPathString
 import com.android.tools.idea.util.toVirtualFile
-import com.android.tools.res.LocalResourceRepository
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.ModuleFileType
 import com.intellij.openapi.application.runWriteAction
@@ -43,20 +41,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.function.Predicate
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
-
-fun createTestAppResourceRepository(facet: AndroidFacet): LocalResourceRepository<VirtualFile> {
-  val moduleResources = ModuleResourceRepository.createForTest(facet, emptyList())
-  val projectResources = ProjectResourceRepository.createForTest(facet, listOf(moduleResources))
-  val appResources = AppResourceRepository.createForTest(facet, listOf(projectResources), emptyList())
-  val aar = getTestAarRepositoryFromExplodedAar()
-  appResources.refreshChildren(listOf(projectResources), listOf(aar))
-  return appResources
-}
 
 /**
  * Creates and adds an Android Module to the given project.

@@ -21,6 +21,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceRepositoryFixture;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
@@ -30,11 +31,13 @@ import com.android.resources.ResourceType;
 import com.android.resources.aar.AarSourceResourceRepository;
 import com.android.testutils.TestUtils;
 import com.android.tools.res.LocalResourceRepository;
+import com.android.tools.res.MultiResourceRepository;
 import com.android.tools.res.ids.ResourceClassGenerator;
 import com.android.tools.res.ids.ResourceIdManager;
+import com.android.tools.res.ids.ResourceIdManagerBase;
+import com.android.tools.res.ids.ResourceIdManagerModelModule;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
-import com.intellij.openapi.vfs.VirtualFile;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
@@ -51,11 +54,13 @@ import org.jetbrains.annotations.Nullable;
 public class ResourceClassGeneratorTest extends AndroidTestCase {
   private static final String LIBRARY_NAME = "com.test:test-library:1.0.0";
   private final ResourceRepositoryFixture resourceFixture = new ResourceRepositoryFixture();
+  private ResourceIdManager idManager;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     resourceFixture.setUp();
+    idManager = new ResourceIdManagerBase(ResourceIdManagerModelModule.NO_NAMESPACING_APP, false);
   }
 
   @Override
@@ -106,11 +111,8 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
                                "<resources>\n" +
                                "    <string name=\"show_all_apps\">Todo</string>\n" +
                                "</resources>\n",});
-    LocalResourceRepository<VirtualFile> resources = new LocalResourceRepositoryDelegate("test", repository);
-    AppResourceRepository appResources =
-        AppResourceRepository.createForTest(myFacet, Collections.singletonList(resources), Collections.emptyList());
 
-    ResourceClassGenerator generator = buildGenerator(appResources);
+    ResourceClassGenerator generator = buildGenerator(idManager, repository);
     assertNotNull(generator);
     String name = "my.test.pkg.R";
     Class<?> clz = generateClass(generator, name);
@@ -154,7 +156,6 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     r = clz.newInstance();
     assertNotNull(r);
 
-    ResourceIdManager idManager = ResourceIdManager.get(myModule);
     // Make sure the id's match what we've dynamically allocated in the resource repository
     ResourceReference resource = idManager.findById((Integer)clz.getField("menu_wallpaper").get(null));
     assertNotNull(resource);
@@ -222,11 +223,10 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
         "    <declare-styleable name=\"AppStyleable\">\n" +
         "    </declare-styleable>" +
         "</resources>\n"});
-    LocalResourceRepository<VirtualFile> resourcesA = new LocalResourceRepositoryDelegate("A", repositoryA);
+    LocalResourceRepository<String> resourcesA = new LocalResourceRepositoryDelegate("A", repositoryA);
     Path aarPath = TestUtils.resolveWorkspacePath(AarTestUtils.TEST_DATA_DIR + "/my_aar_lib/res");
     AarSourceResourceRepository libraryRepository = AarSourceResourceRepository.create(aarPath, LIBRARY_NAME);
-    AppResourceRepository appResources =
-        AppResourceRepository.createForTest(myFacet, ImmutableList.of(resourcesA), ImmutableList.of(libraryRepository));
+    MultiResourceRepository<String> combinedResources = new TestMultiResourceRepository(ImmutableList.of(resourcesA), ImmutableList.of(libraryRepository));
 
     // 3 declared in the library, 3 declared in the "project", 2 of them are duplicated so:
     //
@@ -235,9 +235,9 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     //    2 styles declared in both
     //------------------------------------------
     //    4 total styles
-    assertEquals(4, appResources.getResourceNames(RES_AUTO, ResourceType.STYLEABLE).size());
+    assertEquals(4, combinedResources.getResourceNames(RES_AUTO, ResourceType.STYLEABLE).size());
 
-    ResourceClassGenerator generator = buildGenerator(appResources);
+    ResourceClassGenerator generator = buildGenerator(idManager, combinedResources);
     assertNotNull(generator);
     String name = "my.test.pkg.R";
     Class<?> clz = generateClass(generator, name);
@@ -280,8 +280,8 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   @NotNull
-  private ResourceClassGenerator buildGenerator(AppResourceRepository appResources) {
-    return ResourceClassGenerator.create(ResourceIdManager.get(myModule), appResources, RES_AUTO);
+  private ResourceClassGenerator buildGenerator(ResourceIdManager idManager, ResourceRepository resources) {
+    return ResourceClassGenerator.create(idManager, resources, RES_AUTO);
   }
 
   public void testIndexOverflow() throws Exception {
@@ -297,12 +297,9 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
                            attributes.toString() +
                            "    </declare-styleable>\n" +
                            "</resources>\n"});
-    LocalResourceRepository<VirtualFile> resources = new LocalResourceRepositoryDelegate("resources", repository);
-    AppResourceRepository appResources = AppResourceRepository.createForTest(myFacet, ImmutableList.of(resources), Collections.emptyList());
+    assertEquals(1, repository.getResources(RES_AUTO, ResourceType.STYLEABLE).size());
 
-    assertEquals(1, appResources.getResources(RES_AUTO, ResourceType.STYLEABLE).size());
-
-    ResourceClassGenerator generator = buildGenerator(appResources);
+    ResourceClassGenerator generator = buildGenerator(idManager, repository);
     assertNotNull(generator);
 
     String name = "my.test.pkg.R$styleable";
@@ -315,7 +312,17 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     assertEquals(1000, iArray.length);
   }
 
-  private static class LocalResourceRepositoryDelegate extends LocalResourceRepository<VirtualFile> implements SingleNamespaceResourceRepository {
+  private static class TestMultiResourceRepository extends MultiResourceRepository<String> {
+    public TestMultiResourceRepository(List<LocalResourceRepository<String>> locals, List<AarSourceResourceRepository> aars) {
+      super("test repository");
+      setChildren(locals, aars, Collections.emptyList());
+    }
+
+    @Override
+    protected void refreshChildren() { }
+  }
+
+  private static class LocalResourceRepositoryDelegate extends LocalResourceRepository<String> implements SingleNamespaceResourceRepository {
     private final TestResourceRepository myDelegate;
 
     protected LocalResourceRepositoryDelegate(@NotNull String displayName, TestResourceRepository delegate) {
@@ -361,7 +368,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
 
     @Override
     @NotNull
-    protected Set<VirtualFile> computeResourceDirs() {
+    protected Set<String> computeResourceDirs() {
       return Collections.emptySet();
     }
   }
@@ -432,8 +439,8 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   public void testWithAars() throws Exception {
-    AppResourceRepository appResources = (AppResourceRepository)ResourcesTestsUtil.createTestAppResourceRepository(myFacet);
-    ResourceClassGenerator generator = buildGenerator(appResources);
+    ResourceRepository aarRepo = AarTestUtils.getTestAarRepositoryFromExplodedAar();
+    ResourceClassGenerator generator = buildGenerator(idManager, aarRepo);
     assertNotNull(generator);
     Class<?> clz = generateClass(generator, "pkg.R$id");
     assertNotNull(clz);

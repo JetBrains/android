@@ -15,15 +15,9 @@
  */
 package com.android.tools.res.ids
 
-import com.android.tools.res.ResourceNamespacing
 import com.intellij.openapi.module.Module
 
-private val STUB_MODULE = object : ResourceIdManagerModelModule {
-  override val isAppOrFeature: Boolean = true
-  override val namespacing: ResourceNamespacing = ResourceNamespacing.DISABLED
-}
-
-open class StubbedResourceIdManager : ResourceIdManagerBase(STUB_MODULE)
+open class StubbedResourceIdManager : ResourceIdManagerBase(ResourceIdManagerModelModule.NO_NAMESPACING_APP)
 
 class TestResourceIdManager private constructor(module: Module) : StubbedResourceIdManager() {
   private var _finalIdsUsed = true

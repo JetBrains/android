@@ -17,7 +17,6 @@ package com.android.tools.res.ids.apk
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.res.ResourceNamespacing
 import com.android.tools.res.apk.extractNameAndNamespace
 import com.android.tools.res.apk.forEveryResource
 import com.android.tools.res.ids.ResourceIdManager
@@ -32,10 +31,7 @@ import java.util.function.Consumer
  * [ResourceIdManagerBase] allows it to resolve android framework ids.
  */
 class ApkResourceIdManager : ResourceIdManagerBase(
-  object : ResourceIdManagerModelModule {
-    override val isAppOrFeature: Boolean = true
-    override val namespacing: ResourceNamespacing = ResourceNamespacing.DISABLED
-  },
+  ResourceIdManagerModelModule.NO_NAMESPACING_APP,
   true
 ) {
   private val apkResources = SingleNamespaceIdMapping(ResourceNamespace.RES_AUTO)
