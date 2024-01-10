@@ -60,6 +60,7 @@ import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 
 class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
+
   @Mock
   private lateinit var myDevice: AndroidDevice
   @Mock
@@ -83,7 +84,8 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     vararg modules: Pair<String, AndroidProjectBuilder> = arrayOf(":" to AndroidProjectBuilder())
   ) = setUpTestProject(null, *modules)
 
-  private fun setUpTestProject(agpVersion: String?, vararg modules: Pair<String, AndroidProjectBuilder>) {
+  private fun setUpTestProject(agpVersion: String?,
+                               vararg modules: Pair<String, AndroidProjectBuilder>) {
     setupTestProjectFromAndroidModel(
       project,
       File(project.basePath!!),
@@ -404,6 +406,27 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     finally {
       StudioFlags.PROFILEABLE_BUILDS.clearOverride()
     }
+  }
+
+  fun testSdkRuntimeDeviceSpecIncludedInCurrentAgp() {
+    setUpTestProject(":" to AndroidProjectBuilder())
+    whenever(myDevice.supportsSdkRuntime).thenReturn(true)
+    whenever(myDevice.version).thenReturn(AndroidVersion(34, "14"))
+
+    val bundleRunConfig = myRunConfiguration.copy(alwaysDeployApkFromBundle = true)
+    val argsCurrentAgp = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, bundleRunConfig, deviceSpec(myDevice))
+    assertExpectedJsonFile(argsCurrentAgp, "{\"sdk_version\":34,\"codename\":\"14\",\"sdk_runtime\":{\"supported\":true},\"supported_locales\":[\"es\",\"fr\"]}")
+  }
+
+  fun testSdkRuntimeDeviceSpecNotIncludedInAgp7_3() {
+    // DeviceSpec 'sdk_runtime' config only supported from AGP >= 7.4 .
+    setUpTestProject("7.3.0", ":" to AndroidProjectBuilder())
+    whenever(myDevice.supportsSdkRuntime).thenReturn(true)
+    whenever(myDevice.version).thenReturn(AndroidVersion(34, "14"))
+
+    val bundleRunConfig = myRunConfiguration.copy(alwaysDeployApkFromBundle = true)
+    val argsAgp7_3 = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, bundleRunConfig, deviceSpec(myDevice))
+    assertExpectedJsonFile(argsAgp7_3, "{\"sdk_version\":34,\"codename\":\"14\",\"supported_locales\":[\"es\",\"fr\"]}")
   }
 
   companion object {

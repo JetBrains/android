@@ -49,6 +49,7 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.RunConfigurationGradleContext
 import com.android.tools.idea.projectsystem.gradle.getGradleContext
+import com.android.tools.idea.projectsystem.gradle.getGradlePluginVersion
 import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.android.tools.idea.run.AndroidDeviceSpec
 import com.android.tools.idea.run.DeviceFutures
@@ -345,7 +346,8 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
         // For the bundle tool, we create a temporary json file with the device spec and
         // pass the file path to the gradle task.
         val collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, deviceSpec.minVersion)
-        val deviceSpecFile = deviceSpec.writeToJsonTempFile(collectListOfLanguages)
+        val moduleAgpVersions = modules.mapNotNull { it.getGradlePluginVersion() }
+        val deviceSpecFile = deviceSpec.writeToJsonTempFile(collectListOfLanguages, moduleAgpVersions)
         properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_APK_SELECT_CONFIG, deviceSpecFile.absolutePath))
         if (configuration.deployAsInstant) {
           properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_EXTRACT_INSTANT_APK, true))
