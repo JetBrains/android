@@ -53,7 +53,9 @@ class BoxedLabel(
   var timelineUnit: ComposeUnit.TimelineUnit? = null
     set(value) {
       field = value
-      value.alsoIfNull { boxRect = Rectangle(0, 0, 0, 0) }
+      if (value == null) {
+        boxRect = Rectangle(0, 0, 0, 0)
+      }
     }
   private var boxRect = Rectangle(0, 0, 0, 0)
 
