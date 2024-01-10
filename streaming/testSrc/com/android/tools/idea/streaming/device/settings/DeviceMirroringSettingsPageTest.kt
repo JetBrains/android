@@ -46,6 +46,11 @@ class DeviceMirroringSettingsPageTest {
   val ruleChain = RuleChain(projectRule, EdtRule(), HeadlessDialogRule())
 
   private val settings by lazy { DeviceMirroringSettings.getInstance() }
+  private val settingsPage by lazy {
+    val provider = DeviceMirroringConfigurableProvider()
+    assertThat(provider.canCreateConfigurable()).isTrue()
+    provider.createConfigurable()
+  }
 
   @Before
   fun setUp() {
@@ -56,15 +61,12 @@ class DeviceMirroringSettingsPageTest {
   @After
   fun tearDown() {
     settings.loadState(DeviceMirroringSettings())
+    settingsPage.disposeUIResources()
   }
 
   @Test
-  fun testSettingsUi() {
-    settings.loadState(DeviceMirroringSettings())
-    val provider = DeviceMirroringConfigurableProvider()
-    assertThat(provider.canCreateConfigurable()).isTrue()
-    val settingsUi = provider.createConfigurable()
-    val component = settingsUi.createComponent()!!
+  fun testSettingsPage() {
+    val component = settingsPage.createComponent()!!
     val ui = FakeUi(component)
     val activateOnConnectionCheckBox =
         ui.getComponent<JCheckBox> { it.text == "Activate mirroring when a new physical device is connected" }
@@ -77,7 +79,7 @@ class DeviceMirroringSettingsPageTest {
     val maxSyncedClipboardLengthTextField = ui.getComponent<JTextField>()
     val turnOffDisplayWhileMirroringCheckBox = ui.getComponent<JCheckBox> { it.text == "Turn off device display while mirroring" }
 
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
     assertThat(activateOnConnectionCheckBox.isEnabled).isTrue()
     assertThat(activateOnAppLaunchCheckBox.isEnabled).isTrue()
     assertThat(activateOnTestLaunchCheckBox.isEnabled).isTrue()
@@ -98,60 +100,60 @@ class DeviceMirroringSettingsPageTest {
       dialog.close(MirroringConfirmationDialog.REJECT_EXIT_CODE)
     }
     assertThat(activateOnConnectionCheckBox.isSelected).isFalse()
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
 
     createModalDialogAndInteractWithIt(activateOnAppLaunchCheckBox::doClick) { dialog ->
       assertThat(dialog.title).isEqualTo("Privacy Notice")
       dialog.close(MirroringConfirmationDialog.ACCEPT_EXIT_CODE)
     }
     assertThat(activateOnAppLaunchCheckBox.isSelected).isTrue()
-    assertThat(settingsUi.isModified).isTrue()
+    assertThat(settingsPage.isModified).isTrue()
 
-    settingsUi.apply()
+    settingsPage.apply()
     assertThat(settings.activateOnAppLaunch).isTrue()
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
 
     activateOnTestLaunchCheckBox.doClick()
     assertThat(activateOnTestLaunchCheckBox.isSelected).isTrue()
-    assertThat(settingsUi.isModified).isTrue()
-    settingsUi.apply()
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.apply()
     assertThat(settings.activateOnTestLaunch).isTrue()
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
 
     streamAudioCheckBox.isSelected = false
-    assertThat(settingsUi.isModified).isTrue()
-    settingsUi.apply()
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.apply()
     assertThat(settings.streamAudio).isFalse()
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
     streamAudioCheckBox.isSelected = true
-    assertThat(settingsUi.isModified).isTrue()
+    assertThat(settingsPage.isModified).isTrue()
 
     maxSyncedClipboardLengthTextField.text = " 3000 "
-    assertThat(settingsUi.isModified).isTrue()
-    settingsUi.apply()
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.apply()
     assertThat(settings.maxSyncedClipboardLength).isEqualTo(3000)
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
     maxSyncedClipboardLengthTextField.text = "   3000   "
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
 
     synchronizeClipboardCheckBox.isSelected = false
     assertThat(maxSyncedClipboardLengthTextField.isEnabled).isFalse()
-    assertThat(settingsUi.isModified).isTrue()
-    settingsUi.apply()
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.apply()
     assertThat(settings.synchronizeClipboard).isFalse()
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
     synchronizeClipboardCheckBox.isSelected = true
-    assertThat(settingsUi.isModified).isTrue()
+    assertThat(settingsPage.isModified).isTrue()
 
     turnOffDisplayWhileMirroringCheckBox.isSelected = false
-    assertThat(settingsUi.isModified).isTrue()
-    settingsUi.apply()
+    assertThat(settingsPage.isModified).isTrue()
+    settingsPage.apply()
     assertThat(settings.turnOffDisplayWhileMirroring).isFalse()
-    assertThat(settingsUi.isModified).isFalse()
+    assertThat(settingsPage.isModified).isFalse()
 
     settings.loadState(DeviceMirroringSettings())
-    settingsUi.reset()
-    assertThat(settingsUi.isModified).isFalse()
+    settingsPage.reset()
+    assertThat(settingsPage.isModified).isFalse()
     assertThat(activateOnConnectionCheckBox.isSelected).isFalse()
     assertThat(activateOnAppLaunchCheckBox.isSelected).isFalse()
     assertThat(activateOnTestLaunchCheckBox.isSelected).isFalse()
