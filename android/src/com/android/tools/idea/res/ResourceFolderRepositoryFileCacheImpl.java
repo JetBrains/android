@@ -24,8 +24,11 @@ import com.intellij.ide.caches.CachesInvalidator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbModeTask;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupActivity;
@@ -41,6 +44,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
@@ -412,14 +416,16 @@ public class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepo
     }
   }
 
-  public static class PopulateCachesActivity implements StartupActivity {
+  public static class PopulateCachesActivity implements StartupActivity.RequiredForSmartMode {
     @Override
     public void runActivity(@NotNull Project project) {
       if (ApplicationManager.getApplication().isUnitTestMode()) return;
 
       // Pre-populate the in-memory resource folder registry for the project.
       ResourceFolderRegistry.PopulateCachesTask task = new ResourceFolderRegistry.PopulateCachesTask(project);
-      task.queue(project);
+      var indicator = Objects.requireNonNullElseGet(ProgressManager.getGlobalProgressIndicator(), EmptyProgressIndicator::new);
+      getLogger().assertTrue(DumbService.isDumb(project));
+      task.performInDumbMode(indicator);
     }
   }
 }
