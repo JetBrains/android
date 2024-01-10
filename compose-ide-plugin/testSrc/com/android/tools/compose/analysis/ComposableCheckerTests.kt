@@ -1404,6 +1404,31 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
       )
     }
 
+  @Test
+  fun testComposableCallInsideNonComposableNonInlinedLambda() {
+    val errorMessage =
+      if (!isK2Plugin()) {
+        "<</error><error descr=\"[DEBUG] Reference is not resolved to anything, but is not marked unresolved\">!</error><error descr=\"[UNRESOLVED_REFERENCE] Unresolved reference: COMPOSABLE_INVOCATION\">"
+      } else {
+        "<</error>!<error descr=\"[UNRESOLVED_REFERENCE] Unresolved reference 'COMPOSABLE_INVOCATION'.\">"
+      }
+    doTest(
+      """
+    import androidx.compose.runtime.Composable
+
+    @Composable fun ComposableFunction() {}
+
+    fun functionThatTakesALambda(content: () -> Unit) { content() }
+
+    fun NonComposableFunction() {
+        functionThatTakesALambda {
+            <error descr="Expecting an element">${errorMessage}COMPOSABLE_INVOCATION</error><error descr="Unexpected tokens (use ';' to separate expressions on the same line)">!>ComposableFunction<!>()</error>  // invocation
+        }
+    }
+    """
+    )
+  }
+
   @Before
   fun setUp() {
     (androidProject.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
