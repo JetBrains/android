@@ -22,16 +22,16 @@ import kotlin.test.assertEquals
 class DurationUtilTest {
   @Test
   fun testLessThanMinute() {
-    assertEquals("0 s 000 ms", Duration.ofNanos(42).toDisplayString())
-    assertEquals("0 s 987 ms", Duration.ofMillis(987).toDisplayString())
-    assertEquals("59 s 000 ms", Duration.ofSeconds(59).toDisplayString())
+    assertEquals("0 ms", Duration.ofNanos(42).toDisplayString())
+    assertEquals("987 ms", Duration.ofMillis(987).toDisplayString())
+    assertEquals("59 s", Duration.ofSeconds(59).toDisplayString())
   }
 
   @Test
   fun testMinuteOrMore() {
-    assertEquals("1 m 0 s 000 ms", Duration.ofSeconds(60).toDisplayString())
-    assertEquals("1 m 0 s 000 ms", Duration.ofMinutes(1).toDisplayString())
-    assertEquals("1 m 1 s 000 ms", Duration.ofSeconds(61).toDisplayString())
-    assertEquals("3 m 0 s 000 ms", Duration.ofMinutes(3).toDisplayString())
+    assertEquals("1 m", Duration.ofSeconds(60).toDisplayString())
+    assertEquals("1 m", Duration.ofMinutes(1).toDisplayString())
+    assertEquals("1 m 1 s", Duration.ofSeconds(61).toDisplayString())
+    assertEquals("3 m", Duration.ofMinutes(3).toDisplayString())
   }
 }

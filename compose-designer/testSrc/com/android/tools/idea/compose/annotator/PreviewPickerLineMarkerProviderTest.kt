@@ -32,7 +32,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffset

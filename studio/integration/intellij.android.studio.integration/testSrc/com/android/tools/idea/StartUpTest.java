@@ -21,12 +21,12 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.TestFileSystem;
+import com.intellij.openapi.util.SystemInfoRt;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
-import org.apache.commons.lang.SystemUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -128,7 +128,7 @@ public class StartUpTest {
         "YAML"
       ));
 
-      if (SystemUtils.IS_OS_LINUX) {
+      if (SystemInfoRt.isLinux) {
         expectedPlugins.add("Emoji Picker");
       }
 

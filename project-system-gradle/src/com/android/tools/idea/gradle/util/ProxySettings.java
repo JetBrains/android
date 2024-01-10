@@ -20,13 +20,13 @@ import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
+import com.intellij.openapi.util.text.Strings;
 import com.intellij.util.net.HttpConfigurable;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -99,7 +99,7 @@ public class ProxySettings {
     }
     return emptyToNull(Arrays.stream(list.replace(separator, replacement).split(Pattern.quote(replacement.trim())))
       .map(String::trim)
-      .filter(StringUtils::isNotEmpty)
+      .filter(Strings::isNotEmpty)
       .collect(Collectors.joining(replacement)));
   }
 

@@ -39,7 +39,7 @@ import com.intellij.util.ui.UIUtil
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import org.apache.commons.lang.time.DurationFormatUtils
+import org.apache.commons.lang3.time.DurationFormatUtils
 
 /** A generic implementation of [PreviewViewModel]. */
 open class CommonPreviewViewModel(

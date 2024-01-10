@@ -54,6 +54,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.AppUIUtil
 import com.intellij.ui.layout.panel
@@ -65,7 +66,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import org.apache.commons.compress.utils.FileNameUtils
-import org.apache.commons.lang.StringEscapeUtils
 import java.awt.Image
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -580,7 +580,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
 
 private fun Long.formatTime() = DateFormat.getDateTimeInstance().format(Date(this))
 
-private fun String.escapeHtml() = StringEscapeUtils.escapeHtml(this)
+private fun String.escapeHtml() = StringUtil.escapeXmlEntities(this)
 
 private sealed class RetentionViewState(val isValidating: Boolean,
                                         val loadable: Boolean,
