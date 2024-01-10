@@ -410,17 +410,17 @@ class LayoutInspectorManagerTest {
   fun testEnableLiveUpdatesOnProcessChange() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
-    layoutInspector.inspectorClientSettings.isCapturingModeOn = false
-    assertThat(layoutInspector.inspectorClientSettings.isCapturingModeOn).isFalse()
+    layoutInspector.inspectorClientSettings.inLiveMode = false
+    assertThat(layoutInspector.inspectorClientSettings.inLiveMode).isFalse()
 
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
-    assertThat(layoutInspector.inspectorClientSettings.isCapturingModeOn).isFalse()
+    assertThat(layoutInspector.inspectorClientSettings.inLiveMode).isFalse()
 
     layoutInspector.processModel?.selectedProcess = MODERN_DEVICE.createProcess()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    assertThat(layoutInspector.inspectorClientSettings.isCapturingModeOn).isTrue()
+    assertThat(layoutInspector.inspectorClientSettings.inLiveMode).isTrue()
   }
 
   @Test

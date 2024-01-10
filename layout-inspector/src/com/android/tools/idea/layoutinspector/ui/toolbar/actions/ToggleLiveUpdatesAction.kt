@@ -68,7 +68,7 @@ class ToggleLiveUpdatesAction(
 
   // When disconnected: display the default value after the inspector is connected to the device.
   override fun isSelected(event: AnActionEvent): Boolean {
-    return layoutInspector.inspectorClientSettings.isCapturingModeOn
+    return layoutInspector.inspectorClientSettings.inLiveMode
   }
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
@@ -80,7 +80,7 @@ class ToggleLiveUpdatesAction(
         false -> layoutInspector.coroutineScope.launch { currentClient.stopFetching() }
       }
     }
-    layoutInspector.inspectorClientSettings.isCapturingModeOn = state
+    layoutInspector.inspectorClientSettings.inLiveMode = state
   }
 
   private fun client(event: AnActionEvent): InspectorClient =

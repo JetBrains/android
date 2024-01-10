@@ -83,7 +83,7 @@ class Toggle3dActionTest {
     val client: InspectorClient = mock()
     whenever(client.capabilities).thenReturn(capabilities)
     whenever(client.isConnected).thenReturn(true)
-    whenever(client.isCapturing).thenReturn(true)
+    whenever(client.inLiveMode).thenReturn(true)
     whenever(client.stats).thenAnswer { mock<SessionStatistics>() }
     whenever(device.apiLevel).thenReturn(29)
     val launcher: InspectorClientLauncher = mock()

@@ -19,7 +19,7 @@ import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
 
-private const val IS_CAPTURING_KEY = "live.layout.inspector.capturing"
+private const val IN_LIVE_MODE_KEY = "live.layout.inspector.capturing"
 
 /**
  * Inspector pipeline settings that should be considered global within a project and preserved
@@ -30,9 +30,9 @@ class InspectorClientSettings(private val project: Project) {
    * The user's preference to use continuous capturing mode in the layout inspector, whenever
    * supported by the current client.
    */
-  var isCapturingModeOn
-    get() = PropertiesComponent.getInstance(project).getBoolean(IS_CAPTURING_KEY, true)
-    set(value) = PropertiesComponent.getInstance(project).setValue(IS_CAPTURING_KEY, value, true)
+  var inLiveMode
+    get() = PropertiesComponent.getInstance(project).getBoolean(IN_LIVE_MODE_KEY, true)
+    set(value) = PropertiesComponent.getInstance(project).setValue(IN_LIVE_MODE_KEY, value, true)
 
   /**
    * Disable capturing of bitmap screenshots. The agent will only capture view boundaries and SKP

@@ -34,7 +34,7 @@ object RefreshAction :
 
   override fun update(event: AnActionEvent) {
     val currentClient = LayoutInspector.get(event)?.currentClient
-    event.presentation.isEnabled = currentClient?.isConnected == true && !currentClient.isCapturing
+    event.presentation.isEnabled = currentClient?.isConnected == true && !currentClient.inLiveMode
     event.presentation.description =
       "When live updates are disabled, click to manually refresh the layout information and images."
   }

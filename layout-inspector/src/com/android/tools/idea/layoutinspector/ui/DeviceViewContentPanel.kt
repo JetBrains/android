@@ -304,7 +304,7 @@ class DeviceViewContentPanel(
       if (
         (inspectorModel.pictureType == AndroidWindow.ImageType.SKP ||
           inspectorModel.pictureType == AndroidWindow.ImageType.SKP_PENDING) &&
-          currentClient?.isCapturing == true &&
+          currentClient?.inLiveMode == true &&
           !renderModel.isRotated &&
           !inspectorModel.hasHiddenNodes()
       ) {

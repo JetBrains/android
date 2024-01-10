@@ -356,7 +356,7 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun inspectorStartsFetchingContinuouslyOnConnectIfLiveMode() = runBlocking {
-    inspectorClientSettings.isCapturingModeOn = true
+    inspectorClientSettings.inLiveMode = true
 
     val startFetchReceived = ReportingCountDownLatch(1)
     inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) { command ->
@@ -478,7 +478,7 @@ class AppInspectionInspectorClientTest {
       FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
     inspectorState.simulateComposeVersionWithoutUpdateSettingsCommand()
 
-    inspectorClientSettings.isCapturingModeOn = true
+    inspectorClientSettings.inLiveMode = true
     inspectorRule.inspector.treeSettings.showRecompositions = true
 
     val startFetchReceived = ReportingCountDownLatch(1)
@@ -516,7 +516,7 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun inspectorRequestsSingleFetchIfSnapshotMode() = runBlocking {
-    inspectorClientSettings.isCapturingModeOn = false
+    inspectorClientSettings.inLiveMode = false
 
     val startFetchReceived = ReportingCountDownLatch(1)
     inspectionRule.viewInspector.listenWhen({ it.hasStartFetchCommand() }) { command ->
@@ -997,7 +997,7 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun errorShownOnConnectException() {
-    inspectorClientSettings.isCapturingModeOn = true
+    inspectorClientSettings.inLiveMode = true
     inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
         .newBuilder()
@@ -1013,7 +1013,7 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun errorShownOnRefreshException() {
-    inspectorClientSettings.isCapturingModeOn = false
+    inspectorClientSettings.inLiveMode = false
     inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
         .newBuilder()

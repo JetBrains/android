@@ -141,7 +141,7 @@ class AbstractInspectorClientTest {
     override fun saveSnapshot(path: Path) {}
 
     override val treeLoader: TreeLoader = mock()
-    override val isCapturing = false
+    override val inLiveMode = false
     override val provider: PropertiesProvider = mock()
   }
 }

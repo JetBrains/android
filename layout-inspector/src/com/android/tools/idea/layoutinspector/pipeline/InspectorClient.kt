@@ -134,7 +134,7 @@ interface InspectorClient : Disposable {
   /**
    * Start fetching information continuously off the device.
    *
-   * If this is currently happening, then [isCapturing] will be set to true.
+   * If this is currently happening, then [inLiveMode] will be set to true.
    *
    * See also [refresh], which is used for pulling the state of the device one piece at a time
    * instead.
@@ -160,7 +160,7 @@ interface InspectorClient : Disposable {
    * Refresh the content of the inspector.
    *
    * This shouldn't be necessary if the client is already continuously fetching off the device, i.e.
-   * [isCapturing] is true.
+   * [inLiveMode] is true.
    */
   fun refresh()
 
@@ -204,7 +204,7 @@ interface InspectorClient : Disposable {
   val treeLoader: TreeLoader
 
   /** True, if the current connection is currently receiving live updates. */
-  val isCapturing: Boolean
+  val inLiveMode: Boolean
 
   /** Return a provider of properties from the current agent. */
   val provider: PropertiesProvider
@@ -278,7 +278,7 @@ object DisconnectedClient : InspectorClient {
 
       override fun getAllWindowIds(data: Any?): List<*> = emptyList<Any>()
     }
-  override val isCapturing = false
+  override val inLiveMode = false
   override val provider = EmptyPropertiesProvider
 }
 

@@ -108,7 +108,7 @@ class AppInspectionPropertiesProviderTest {
     // mode.
     inspectionRule.composeInspector.listenWhen({ it.hasGetComposablesCommand() }) { command ->
       assertThat(command.getComposablesCommand.extractAllParameters)
-        .isEqualTo(!inspectorClientSettings.isCapturingModeOn)
+        .isEqualTo(!inspectorClientSettings.inLiveMode)
     }
 
     inspectorState =
@@ -125,7 +125,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun canQueryPropertiesForViewsWithResourceResolver() {
-    inspectorClientSettings.isCapturingModeOn =
+    inspectorClientSettings.inLiveMode =
       true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedLatch =
@@ -215,7 +215,7 @@ class AppInspectionPropertiesProviderTest {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     AndroidModel.set(facet, TestAndroidModel(applicationId = "com.nonmatching.app"))
 
-    inspectorClientSettings.isCapturingModeOn =
+    inspectorClientSettings.inLiveMode =
       true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedLatch =
@@ -266,7 +266,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun syntheticPropertiesAlwaysAdded() {
-    inspectorClientSettings.isCapturingModeOn =
+    inspectorClientSettings.inLiveMode =
       true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedLatch =
@@ -334,7 +334,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun propertiesAreCachedUntilNextLayoutEvent() {
-    inspectorClientSettings.isCapturingModeOn =
+    inspectorClientSettings.inLiveMode =
       true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedSignal =
@@ -393,7 +393,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun snapshotModeSendsAllPropertiesAtOnce() {
-    inspectorClientSettings.isCapturingModeOn = false // i.e. snapshot mode
+    inspectorClientSettings.inLiveMode = false // i.e. snapshot mode
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
@@ -429,7 +429,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun canQueryParametersForComposables() {
-    inspectorClientSettings.isCapturingModeOn =
+    inspectorClientSettings.inLiveMode =
       true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedLatch =
@@ -624,7 +624,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun parametersAreCachedUntilNextLayoutEvent() {
-    inspectorClientSettings.isCapturingModeOn =
+    inspectorClientSettings.inLiveMode =
       true // Enable live mode, so we only fetch properties on demand
 
     val modelUpdatedSignal =
@@ -674,7 +674,7 @@ class AppInspectionPropertiesProviderTest {
 
   @Test
   fun snapshotModeSendsAllParametersAtOnce() {
-    inspectorClientSettings.isCapturingModeOn = false // i.e. snapshot mode
+    inspectorClientSettings.inLiveMode = false // i.e. snapshot mode
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch

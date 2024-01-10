@@ -155,7 +155,7 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
     event.presentation.isVisible =
       isActionActive(event, Capability.SUPPORTS_COMPOSE) &&
         StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
-        isCapturing(event)
+        inLiveMode(event)
     event.presentation.isEnabled =
       isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
     event.presentation.text =
@@ -170,8 +170,8 @@ fun isActionActive(event: AnActionEvent, vararg capabilities: Capability): Boole
     !client.isConnected || capabilities.all { client.capabilities.contains(it) }
   } ?: true
 
-fun isCapturing(event: AnActionEvent): Boolean =
+fun inLiveMode(event: AnActionEvent): Boolean =
   // If not running, default to visible so user can modify selection when next client is connected
   LayoutInspector.get(event)?.currentClient?.let { client ->
-    client.isCapturing || !client.isConnected
+    client.inLiveMode || !client.isConnected
   } ?: true

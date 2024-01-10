@@ -100,7 +100,7 @@ class AppInspectionSnapshotSupportTest {
 
   @Test
   fun saveAndLoadLiveSnapshot() {
-    inspectorClientSettings.isCapturingModeOn = false
+    inspectorClientSettings.inLiveMode = false
     runBlocking { inspectorRule.inspectorClient.stopFetching() }
     appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       appInspectorRule.viewInspector.connection.sendEvent { rootsEventBuilder.apply { addIds(1L) } }
@@ -138,7 +138,7 @@ class AppInspectionSnapshotSupportTest {
 
   @Test
   fun saveAndLoadLiveSnapshotWithDeepComposeNesting() {
-    inspectorClientSettings.isCapturingModeOn = true
+    inspectorClientSettings.inLiveMode = true
     val inspectorState =
       FakeInspectorState(appInspectorRule.viewInspector, appInspectorRule.composeInspector)
     inspectorState.createFakeViewTree()
@@ -174,7 +174,7 @@ class AppInspectionSnapshotSupportTest {
 
   @Test
   fun saveAndLoadNonLiveSnapshot() {
-    inspectorClientSettings.isCapturingModeOn = false
+    inspectorClientSettings.inLiveMode = false
     runBlocking { inspectorRule.inspectorClient.stopFetching() }
     appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       appInspectorRule.viewInspector.connection.sendEvent { rootsEventBuilder.apply { addIds(1L) } }
@@ -214,7 +214,7 @@ class AppInspectionSnapshotSupportTest {
   @Test
   fun saveNonLiveSnapshotImmediately() {
     // Connect initially in live mode
-    inspectorClientSettings.isCapturingModeOn = true
+    inspectorClientSettings.inLiveMode = true
     appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       appInspectorRule.viewInspector.connection.sendEvent { rootsEventBuilder.apply { addIds(2L) } }
 
@@ -256,7 +256,7 @@ class AppInspectionSnapshotSupportTest {
     inspectorRule.processes.selectedProcess = PROCESS
 
     // Now switch to non-live
-    inspectorClientSettings.isCapturingModeOn = false
+    inspectorClientSettings.inLiveMode = false
     runBlocking { inspectorRule.inspectorClient.stopFetching() }
 
     val startedLatch = CountDownLatch(1)

@@ -220,7 +220,7 @@ private constructor(
 
   private fun updateConnection(client: InspectorClient) {
     inspectorModel.updateConnection(client)
-    client.stats.currentModeIsLive = client.isCapturing
+    client.stats.currentModeIsLive = client.inLiveMode
     client.stats.hideSystemNodes = treeSettings.hideSystemNodes
     client.stats.showRecompositions = treeSettings.showRecompositions
   }

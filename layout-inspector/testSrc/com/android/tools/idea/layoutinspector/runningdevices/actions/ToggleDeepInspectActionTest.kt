@@ -121,7 +121,7 @@ private open class FakeInspectorClient(
   override val treeLoader: TreeLoader
     get() = throw NotImplementedError()
 
-  override val isCapturing: Boolean
+  override val inLiveMode: Boolean
     get() = false
 
   override val provider: PropertiesProvider

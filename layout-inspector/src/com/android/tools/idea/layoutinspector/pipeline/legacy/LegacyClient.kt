@@ -59,7 +59,7 @@ class LegacyClient(
 
   private val lookup: ViewNodeAndResourceLookup = model
 
-  override val isCapturing = false
+  override val inLiveMode = false
 
   override val provider = LegacyPropertiesProvider()
 

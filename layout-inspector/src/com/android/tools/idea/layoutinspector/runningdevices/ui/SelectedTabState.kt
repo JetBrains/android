@@ -287,7 +287,7 @@ data class SelectedTabState(
     // Sometimes on project close "SelectedTabContent#dispose" can be called after the listeners
     // are invoked.
     if (!project.isDisposed) {
-      layoutInspector.inspectorClientSettings.isCapturingModeOn = true
+      layoutInspector.inspectorClientSettings.inLiveMode = true
       layoutInspectorRenderer.interceptClicks = false
     }
   }

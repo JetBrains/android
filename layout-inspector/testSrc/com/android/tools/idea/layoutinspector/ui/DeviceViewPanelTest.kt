@@ -174,7 +174,7 @@ class DeviceViewPanelWithFullInspectorTest {
   @Test
   fun testShowAndClearPerformanceWarnings() {
     val clientSettings = InspectorClientSettings(projectRule.project)
-    clientSettings.isCapturingModeOn = true
+    clientSettings.inLiveMode = true
 
     installCommandHandlers()
     latch = CountDownLatch(1)

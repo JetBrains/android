@@ -115,7 +115,7 @@ class LayoutInspectorMainToolbarTest {
   fun testLiveControlEnabledAndNotSetInSnapshotModeWhenDisconnected() =
     withEmbeddedLayoutInspector(false) {
       val clientSettings = InspectorClientSettings(androidProjectRule.project)
-      clientSettings.isCapturingModeOn = false
+      clientSettings.inLiveMode = false
 
       val toolbar = createToolbar()
 
@@ -161,7 +161,7 @@ class LayoutInspectorMainToolbarTest {
   fun testLiveControlEnabledAndNotSetInSnapshotModeWhenConnected() =
     withEmbeddedLayoutInspector(false) {
       val clientSettings = InspectorClientSettings(androidProjectRule.project)
-      clientSettings.isCapturingModeOn = false
+      clientSettings.inLiveMode = false
 
       installCommandHandlers()
       latch = CountDownLatch(1)
@@ -191,7 +191,7 @@ class LayoutInspectorMainToolbarTest {
       installCommandHandlers()
 
       val clientSettings = InspectorClientSettings(androidProjectRule.project)
-      clientSettings.isCapturingModeOn = true
+      clientSettings.inLiveMode = true
 
       val stats = layoutInspectorRule.inspector.currentClient.stats
       stats.currentModeIsLive = true
@@ -215,7 +215,7 @@ class LayoutInspectorMainToolbarTest {
         )
 
       assertThat(commands).isEmpty()
-      assertThat(clientSettings.isCapturingModeOn).isFalse()
+      assertThat(clientSettings.inLiveMode).isFalse()
       assertThat(stats.currentModeIsLive).isTrue() // unchanged
     }
 
@@ -224,7 +224,7 @@ class LayoutInspectorMainToolbarTest {
     withEmbeddedLayoutInspector(false) {
       installCommandHandlers()
       val clientSettings = InspectorClientSettings(androidProjectRule.project)
-      clientSettings.isCapturingModeOn = false
+      clientSettings.inLiveMode = false
 
       val stats = layoutInspectorRule.inspector.currentClient.stats
       stats.currentModeIsLive = false
@@ -247,7 +247,7 @@ class LayoutInspectorMainToolbarTest {
         )
 
       assertThat(commands).isEmpty()
-      assertThat(clientSettings.isCapturingModeOn).isTrue()
+      assertThat(clientSettings.inLiveMode).isTrue()
       assertThat(stats.currentModeIsLive).isFalse() // unchanged
     }
 
@@ -295,7 +295,7 @@ class LayoutInspectorMainToolbarTest {
       installCommandHandlers()
 
       val clientSettings = InspectorClientSettings(androidProjectRule.project)
-      clientSettings.isCapturingModeOn = false
+      clientSettings.inLiveMode = false
 
       connect(MODERN_PROCESS)
       assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()

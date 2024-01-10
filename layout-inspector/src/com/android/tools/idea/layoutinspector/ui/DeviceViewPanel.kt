@@ -331,7 +331,7 @@ class DeviceViewPanel(
     contentPanel.renderModel.modificationListeners.add {
       ApplicationManager.getApplication().invokeLater {
         val performanceWarningNeeded =
-          layoutInspector.currentClient.isCapturing &&
+          layoutInspector.currentClient.inLiveMode &&
             (contentPanel.renderModel.isRotated || model.hasHiddenNodes())
         if (performanceWarningNeeded != performanceWarningGiven) {
           if (performanceWarningNeeded) {
@@ -395,7 +395,7 @@ class DeviceViewPanel(
     var prevZoom = renderSettings.scalePercent
     renderSettings.modificationListeners.add {
       val client = layoutInspector.currentClient
-      if (client.isCapturing) {
+      if (client.inLiveMode) {
         client.updateScreenshotType(null, renderSettings.scaleFraction.toFloat())
       }
       if (prevZoom != renderSettings.scalePercent) {

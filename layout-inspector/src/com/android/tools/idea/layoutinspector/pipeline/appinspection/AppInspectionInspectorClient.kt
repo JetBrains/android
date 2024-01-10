@@ -149,8 +149,8 @@ class AppInspectionInspectorClient(
   override val provider: PropertiesProvider
     get() = propertiesProvider
 
-  override val isCapturing: Boolean
-    get() = inspectorClientSettings.isCapturingModeOn
+  override val inLiveMode: Boolean
+    get() = inspectorClientSettings.inLiveMode
 
   override suspend fun doConnect() {
     // we run this function outside the runCatching because it sets a banner in case of exception.
@@ -216,7 +216,7 @@ class AppInspectionInspectorClient(
           disableBitmapScreenshots(true)
         }
 
-        if (isCapturing) {
+        if (inLiveMode) {
           startFetchingInternal()
         } else {
           refreshInternal()
