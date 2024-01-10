@@ -73,7 +73,6 @@ import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
 import org.jetbrains.android.AndroidStartupManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.base.util.isAndroidModule
-import org.jetbrains.plugins.gradle.config.GradleSettingsListenerAdapter
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
@@ -123,7 +122,7 @@ private val LOG = Logger.getInstance(AndroidGradleProjectStartupActivity::class.
 private fun subscribeToGradleSettingChanges(project: Project) {
   val disposable = project.getService(AndroidStartupManager.ProjectDisposableScope::class.java)
   val connection = project.messageBus.connect(disposable)
-  connection.subscribe(GradleSettingsListener.TOPIC, object : GradleSettingsListenerAdapter() {
+  connection.subscribe(GradleSettingsListener.TOPIC, object : GradleSettingsListener {
     override fun onGradleJvmChange(oldGradleJvm: String?, newGradleJvm: String?, linkedProjectPath: String) {
       GradleSyncStateHolder.getInstance(project).recordGradleJvmConfigurationChanged()
     }
