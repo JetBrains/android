@@ -156,6 +156,8 @@
                              implementationClass="com.android.tools.idea.gradle.navigation.KotlinRefManipulator"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFiles$UpdateHashesStartupActivity"/>
+    <!-- TODO(b/287942576): encode (in code) the ordering between the following two startup activities -->
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity" order="first"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity" order="last"/>
     <intentionAction>
       <language>UAST</language>

@@ -20,7 +20,6 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.repository.AgpVersion
 import com.android.io.CancellableFileIo
 import com.android.tools.idea.gradle.plugin.AgpVersions
-import com.android.tools.idea.gradle.plugin.AgpVersions.newProject
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProviderUtil
