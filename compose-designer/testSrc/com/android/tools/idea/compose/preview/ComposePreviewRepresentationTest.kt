@@ -216,6 +216,8 @@ class ComposePreviewRepresentationTest {
   @Test
   fun testUiCheckMode() {
     StudioFlags.NELE_ATF_FOR_COMPOSE.override(true)
+    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
+
     runBlocking(workerThread) {
       val composeTest = createComposeTest()
 
@@ -280,7 +282,7 @@ class ComposePreviewRepresentationTest {
 
       assertTrue(preview.atfChecksEnabled)
       assertThat(preview.availableGroupsFlow.value.map { it.displayName })
-        .containsExactly("Screen sizes", "Font scales", "Light/Dark")
+        .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
         .inOrder()
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
@@ -333,6 +335,27 @@ class ComposePreviewRepresentationTest {
 
           TestKt.Preview1
           PreviewDisplaySettings(name=Dark - Preview1, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Original - Preview1, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Protanopes - Preview1, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Protanomaly - Preview1, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Deuteranopes - Preview1, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Deuteranomaly - Preview1, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Tritanopes - Preview1, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Tritanomaly - Preview1, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
         """
           .trimIndent(),

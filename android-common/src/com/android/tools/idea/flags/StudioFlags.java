@@ -270,10 +270,10 @@ public final class StudioFlags {
     "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting",
     true);
 
-  public static final Flag<Boolean> NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE = Flag.create(
+  public static final Flag<Boolean> NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE = new BooleanFlag(
     NELE, "compose.ui.check.mode.colorblind", "Enable colorblind mode in UI Check for Compose preview",
     "Enable colorblind Check mode in UI Check Mode for Compose preview",
-    false);
+    ChannelDefault.of(false).withOverride(true, DEV, NIGHTLY, CANARY));
 
   public static final Flag<Boolean> NELE_COMPOSE_VISUAL_LINT_RUN = Flag.create(
     NELE, "compose.visual.lint.run", "Enable visual lint for Compose Preview",

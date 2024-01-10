@@ -28,6 +28,7 @@ import com.android.tools.idea.compose.preview.TestComposePreviewView
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.StaticPreviewProvider
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -105,6 +106,7 @@ class ParametrizedPreviewTest {
   @After
   fun tearDown() {
     StudioRenderService.setForTesting(projectRule.project, null)
+    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.clearOverride()
   }
 
   /** Checks the rendering of the default `@Preview` in the Compose template. */
@@ -256,6 +258,8 @@ class ParametrizedPreviewTest {
 
   @Test
   fun testUiCheckForParametrizedPreview(): Unit = runBlocking {
+    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
+
     val project = projectRule.project
 
     val parametrizedPreviews =
@@ -296,7 +300,7 @@ class ParametrizedPreviewTest {
     assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
 
     assertThat(preview.availableGroupsFlow.value.map { it.displayName })
-      .containsExactly("Screen sizes", "Font scales", "Light/Dark")
+      .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
       .inOrder()
     preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
       "Failed waiting to start UI check mode",
@@ -313,6 +317,13 @@ class ParametrizedPreviewTest {
 
       stringValue ==
         """
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
           google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
           google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
           google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2

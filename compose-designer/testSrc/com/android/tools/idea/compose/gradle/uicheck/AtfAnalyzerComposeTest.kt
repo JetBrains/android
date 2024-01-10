@@ -42,7 +42,11 @@ class AtfAnalyzerComposeTest {
   }
 
   @Test
-  fun testColorContrastIssueOnAllPreviews() {
+  fun testColorContrastIssueOnNotVisiblePreviewWhenColorblindFlagIsOff() {
+    // We can delete this test when the feature flag NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE
+    // is fully enabled
+    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(false)
+
     val elementInstanceTest =
       SingleComposePreviewElementInstance.forTesting(
         "google.simpleapplication.VisualLintPreviewKt.ColorContrastIssuePreview",
@@ -59,7 +63,31 @@ class AtfAnalyzerComposeTest {
   }
 
   @Test
-  fun testNoColorBlindIssuesWhenFeatureFlagOff() {
+  fun testColorContrastIssueOnNotVisiblePreviewWhenColorblindFlagIsOn() {
+    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(true)
+
+    val elementInstanceTest =
+      SingleComposePreviewElementInstance.forTesting(
+        "google.simpleapplication.VisualLintPreviewKt.ColorContrastIssuePreview",
+      )
+    val uiCheckPreviews = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest)
+
+    val facet = projectRule.androidFacet(":app")
+
+    val issues = collectIssuesFromRenders(uiCheckPreviews, facet)
+    val issueMessages = issues.map { it.message }.distinct()
+
+    Assert.assertEquals(2, issueMessages.size)
+    Assert.assertEquals("Insufficient text color contrast ratio", issueMessages[0])
+    Assert.assertEquals("Insufficient color contrast for color blind users", issueMessages[1])
+  }
+
+  @Test
+  fun testNoColorErrorOnColorblindPreviewWhenColorblindFlagIsOff() {
+    // We can delete this test when the feature flag NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE
+    // is fully enabled
+    StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.override(false)
+
     val elementInstanceTest =
       SingleComposePreviewElementInstance.forTesting(
         "google.simpleapplication.VisualLintPreviewKt.ThreeColorBlindErrorPreview",
