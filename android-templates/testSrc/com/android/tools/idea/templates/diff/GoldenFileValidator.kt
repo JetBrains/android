@@ -32,12 +32,11 @@ import com.android.utils.FileUtils
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import java.io.IOException
+import java.nio.file.Path
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
-import java.io.IOException
-import java.nio.file.Path
 
 /**
  * Generates files from a template and performs checks on them to ensure they're valid and can be
@@ -48,13 +47,15 @@ import java.nio.file.Path
 class GoldenFileValidator(
   template: Template,
   goldenDirName: String,
-  private val generateLintBaseline: Boolean,
   private val gradleProjectRule: AndroidGradleProjectRule
 ) : ProjectRenderer(template, goldenDirName) {
   override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
     checkProjectProperties(projectDir)
     performBuild()
-    //checkLint(projectDir)
+
+    // Although this is generating files, it's run as part of GoldenFileValidator instead of
+    // GoldenFileGenerator to avoid Gradle syncing twice
+    //generateLintBaseline(projectDir)
   }
 
   /**
@@ -102,82 +103,42 @@ class GoldenFileValidator(
   }
 
   /**
-   * Runs Gradle Lint on the project, failing validation if there are any warnings not ignored by
-   * the baseline file. To generate and update the baseline file, run the test again with
-   * --test_env=GENERATE_LINT_BASELINE
+   * Runs Gradle Lint on the project and generates the baseline files to the output directory. The
+   * baseline files should be unzipped to the source tree along with the golden files, and the
+   * resulting CL acts as a manual diff to ensure that potentially added warnings are intentional.
    *
    * See go/template-diff-tests for more details
    */
-  private fun checkLint(projectDir: Path) {
+  private fun generateLintBaseline(projectDir: Path) {
     // The baseline for each TemplateDiffTest#testMethodName is stored as
     // android-templates/testData/lintBaseline/testMethodName.xml
-    val testDataBaseline =
-      TemplateDiffTestUtils.getTestDataRoot().resolve("lintBaseline").resolve("$goldenDirName.xml")
     val projectBaseline = projectDir.resolve("Template test module").resolve("lint-baseline.xml")
-    val setBaselinePath: Boolean
 
-    // If GENERATE_LINT_BASELINE is specified, we need to not have the existing baseline file. When
-    // there is no baseline but there are Lint errors, the baseline file will be generated
-    if (generateLintBaseline) {
-      setBaselinePath = true
-    } else {
-      // Otherwise, if we have a Lint baseline, we should copy it into the project.
-      if (testDataBaseline.toFile().exists()) {
-        FileUtils.copyFile(testDataBaseline, projectBaseline)
-        setBaselinePath = true
-        println("Using $goldenDirName.xml as lint baseline")
-      } else {
-        setBaselinePath = false
-        println("No lint baseline for $goldenDirName found; assuming there should be no errors")
-      }
-    }
-
-    setLintOptions(setBaselinePath)
+    setLintOptions()
 
     gradleProjectRule.invokeTasks("lint").apply {
       println("\n================================================================\n")
 
       val lintReportParser = LintReportParser(System.out)
-      when (val numErrors = lintReportParser.parseLintReportInProject(projectDir)) {
-        0 -> println("0 errors found")
-        else -> {
-          if (generateLintBaseline) {
-            copyBaselineFile(projectBaseline)
-            println("$numErrors lint warnings exist! Generated baseline file $goldenDirName.xml")
-          } else {
-            fail(
-              "$numErrors lint warnings exist! Either there is no baseline, or there are new warnings not in the baseline.\n" +
-                "Please fix the warnings and re-run the golden generator. " +
-                "If this is intentional, you can generate a new baseline file to ignore these warnings.\n" +
-                "To generate the baseline file, re-run the generator with --test_env=GENERATE_LINT_BASELINE=true"
-            )
-          }
-        }
-      }
-      // TODO: fail validation if a fixed warning isn't removed from the baseline (may require
-      // parsing the XML?)
+      val numErrors = lintReportParser.parseLintReportInProject(projectDir)
+      copyBaselineFile(projectBaseline)
+      println("$numErrors lint warnings exist! Generated baseline file $goldenDirName.xml")
+
       println("\n================================================================\n")
     }
   }
 
-  /**
-   * Modifies gradle.build's lint block to include the options we need in order to run lint
-   *
-   * @param setBaselinePath whether to add a baseline option. This should only be false when there
-   *   is no checked-in baseline; it needs to be true when generating one
-   */
-  private fun setLintOptions(setBaselinePath: Boolean) {
+  /** Modifies gradle.build's lint block to include the options we need in order to run lint */
+  private fun setLintOptions() {
     val gradleBuildModel =
       ProjectBuildModel.get(gradleProjectRule.project)
         .getModuleBuildModel(gradleProjectRule.project.findModule("Template_test_module"))
     val lintBlock = gradleBuildModel!!.android().lint()
 
-    // If we have a baseline or if we intend to generate the baseline, we need to set the file path.
-    // If the baseline already exists, it's used to ignore those errors. If it doesn't exist, this
-    // path is where the new baseline will be generated to
-    if (setBaselinePath) {
-      lintBlock.baseline().setValue("lint-baseline.xml")
-    }
+    // Since we intend to generate the baseline, we need to set the file path, which is where the
+    // new baseline will be generated to, relative to the module directory. The same path is also
+    // used to provide the baseline to Lint, but we aren't doing that
+    lintBlock.baseline().setValue("lint-baseline.xml")
 
     // Set "warningsAsErrors" to turn the lint warnings into errors, since invokeTasks doesn't have
     // warnings output, only buildError

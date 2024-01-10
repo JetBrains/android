@@ -34,14 +34,15 @@ import com.intellij.testFramework.DisposableRule
 import kotlin.system.measureTimeMillis
 import org.jetbrains.android.AndroidTestBase
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import org.junit.runners.Parameterized.*
+import org.junit.runners.Parameterized.Parameters
 
 /**
  * Template test that generates the template files and diffs them against golden files located in
@@ -84,21 +85,9 @@ class TemplateDiffTest(private val testMode: TestMode) {
     /**
      * Gets the system property for whether to generate and overwrite the golden files. This can be
      * run from Bazel with the option: --test_env=GENERATE_GOLDEN=true
-     *
-     * If GENERATE_LINT_BASELINE=true, then this is also assumed to be true.
      */
     private fun shouldGenerateGolden(): Boolean {
-      return shouldGenerateLintBaseline() ||
-        System.getenv("GENERATE_GOLDEN")?.equals("true") ?: false
-    }
-
-    /**
-     * Gets the system property for whether to generate and overwrite the Lint baseline files while
-     * running template validation. This can be run from Bazel with the option:
-     * --test_env=GENERATE_LINT_BASELINE=true
-     */
-    private fun shouldGenerateLintBaseline(): Boolean {
-      return System.getenv("GENERATE_LINT_BASELINE")?.equals("true") ?: false
+      return System.getenv("GENERATE_GOLDEN")?.equals("true") ?: false
     }
   }
 
@@ -169,12 +158,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
         when (testMode) {
           TestMode.DIFFING -> ProjectDiffer(template, goldenDirName)
           TestMode.VALIDATING ->
-            GoldenFileValidator(
-              template,
-              goldenDirName,
-              shouldGenerateLintBaseline(),
-              projectRule as AndroidGradleProjectRule
-            )
+            GoldenFileValidator(template, goldenDirName, projectRule as AndroidGradleProjectRule)
           TestMode.GENERATING -> GoldenFileGenerator(template, goldenDirName)
         }
 
@@ -247,31 +231,19 @@ class TemplateDiffTest(private val testMode: TestMode) {
     }
 
   private fun printUnzipInstructions() {
-    val generatedBaseline = shouldGenerateLintBaseline()
-
-    val remoteBaseline =
-      if (generatedBaseline)
-        "    unzip outputs.zip \"lintBaseline/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"\n"
-      else ""
-
-    val localBaseline =
-      if (generatedBaseline)
-        "\n    unzip $(bazel info bazel-testlogs)/tools/adt/idea/android-templates/intellij.android.templates.tests_tests__TemplateDiffTest/test.outputs/outputs.zip \\\n" +
-          "    \"lintBaseline/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\""
-      else ""
-
     println("\n----------------------------------------")
     println(
-      "Outputting generated golden${if (generatedBaseline) " and Lint baseline" else ""} files to undeclared outputs\n\n" +
-        "To update these files, unzip golden/${if (generatedBaseline) " and lintBaseline/" else ""} from outputs.zip to the android-templates/testData/golden directory.\n" +
-        "For a remote invocation, download and unzip golden/${if (generatedBaseline) " and lintBaseline/" else ""} from outputs.zip:\n" +
+      "Outputting generated golden and Lint baseline files to undeclared outputs\n\n" +
+        "To update these files, unzip golden/ and lintBaseline/ from outputs.zip to the android-templates/testData/golden directory.\n" +
+        "For a remote invocation, download and unzip golden/ and lintBaseline/ from outputs.zip:\n" +
         "    unzip outputs.zip \"golden/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"\n" +
-        remoteBaseline +
+        "    unzip outputs.zip \"lintBaseline/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"\n" +
         "\n" +
         "For a local invocation, outputs.zip will be in bazel-testlogs:\n" +
         "    unzip $(bazel info bazel-testlogs)/tools/adt/idea/android-templates/intellij.android.templates.tests_tests__TemplateDiffTest/test.outputs/outputs.zip \\\n" +
-        "    \"golden/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"" +
-        localBaseline
+        "    \"golden/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"\n" +
+        "    unzip $(bazel info bazel-testlogs)/tools/adt/idea/android-templates/intellij.android.templates.tests_tests__TemplateDiffTest/test.outputs/outputs.zip \\\n" +
+        "    \"lintBaseline/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\""
     )
     println("----------------------------------------\n")
   }
@@ -755,7 +727,11 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
   @Test
   fun testGeminiStarter() {
-    checkCreateTemplate("Gemini API Starter", withSpecificKotlin, templateStateCustomizer = mapOf("API Key" to "abcd"))
+    checkCreateTemplate(
+      "Gemini API Starter",
+      withSpecificKotlin,
+      templateStateCustomizer = mapOf("API Key" to "abcd")
+    )
   }
 }
 
