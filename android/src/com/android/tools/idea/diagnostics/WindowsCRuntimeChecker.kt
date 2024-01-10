@@ -16,25 +16,28 @@
 package com.android.tools.idea.diagnostics
 
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.ExtensionNotApplicableException
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.util.SystemInfo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.nio.file.Paths
 
 /**
  * Looks for the existence of system32\\ucrtbase.dll to check whether Universal C Runtime for Windows is installed
  */
-class WindowsCRuntimeChecker : StartupActivity.Background {
+class WindowsCRuntimeChecker : ProjectActivity {
   init {
     if (!SystemInfo.isWindows || !StudioFlags.WINDOWS_UCRT_CHECK_ENABLED.get()) {
       throw ExtensionNotApplicableException.create()
     }
   }
 
-  override fun runActivity(project: Project) {
-    ApplicationManager.getApplication().executeOnPooledThread(::checkCRT)
+  override suspend fun execute(project: Project) {
+    withContext(Dispatchers.IO) {
+      checkCRT()
+    }
   }
 
   private fun checkCRT() {
