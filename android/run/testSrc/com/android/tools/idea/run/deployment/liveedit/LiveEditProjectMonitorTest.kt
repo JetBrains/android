@@ -29,12 +29,14 @@ import com.android.tools.deployer.TestLogger
 import com.android.tools.deployer.tasks.LiveUpdateDeployer
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.liveedit.LiveEditService
+import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.LiveEditEvent
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
 import junit.framework.Assert
 import junit.framework.Assert.assertTrue
+import org.jetbrains.kotlin.psi.KtFile
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -87,13 +89,29 @@ class LiveEditProjectMonitorTest {
 
   @Test
   fun autoModeCompileSuccess() {
-    var monitor = LiveEditProjectMonitor(
+    val monitor = LiveEditProjectMonitor(
       LiveEditService.getInstance(myProject), myProject);
-    var file = projectRule.fixture.configureByText("A.kt", "fun foo() : Int { return 1}")
-    var foo = findFunction(file, "foo")
+    val file = projectRule.fixture.configureByText("A.kt", "fun foo() : Int { return 1}") as KtFile
+
+    // Push A.class into the class cache and pretend we already modified it once already.
+    monitor.irClassCache.update(projectRule.directApiCompileIr(file).values.first())
+    val foo = findFunction(file, "foo")
+
+    // Fake a UpToDate Physical Device
+    val device1: IDevice = MockitoKt.mock()
+    MockitoKt.whenever(device1.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+    MockitoKt.whenever(device1.isEmulator).thenReturn(false)
+    monitor.liveEditDevices.addDevice(device1, LiveEditStatus.UpToDate)
+
     monitor.processChanges(myProject, listOf(EditEvent(file, foo)), LiveEditEvent.Mode.AUTO)
     monitor.onPsiChanged(EditEvent(file, foo))
     Assert.assertEquals(0, monitor.numFilesWithCompilationErrors())
+
+    val hasPhysicalDevice = usageTracker.usages.any() {
+      it.studioEvent.liveEditEvent.targetDevice == LiveEditEvent.Device.PHYSICAL
+    }
+
+    Assert.assertTrue(hasPhysicalDevice)
   }
 
   @Test
