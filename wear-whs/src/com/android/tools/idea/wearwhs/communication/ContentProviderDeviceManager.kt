@@ -25,7 +25,8 @@ import com.android.tools.idea.wearwhs.WhsDataType
 import com.intellij.openapi.diagnostic.Logger
 
 const val whsPackage: String = "com.google.android.wearable.healthservices"
-const val whsUri: String = "content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config"
+const val whsUri: String = "content://$whsPackage.dev.synthetic/synthetic_config"
+const val whsDevVersionCode = 1
 
 /**
  * Content provider implementation of [WearHealthServicesDeviceManager].
@@ -53,6 +54,20 @@ internal class ContentProviderDeviceManager(private val adbSession: AdbSession, 
 
     val device = DeviceSelector.fromSerialNumber(serialNumber!!)
     adbSession.deviceServices.shellAsText(device, "content delete --uri $whsUri")
+  }
+
+  override suspend fun isWhsVersionSupported(): Boolean {
+    if (serialNumber == null) {
+      // TODO: Log this error
+      return false
+    }
+
+    val device = DeviceSelector.fromSerialNumber(serialNumber!!)
+    val output = adbSession.deviceServices.shellAsText(device, "dumpsys package $whsPackage | grep versionCode | head -n1")
+
+    val versionCode: Int? = Regex("versionCode=(\\d+)").find(output.stdout)?.groupValues?.get(1)?.toInt()
+
+    return versionCode != null && versionCode == whsDevVersionCode
   }
 
   override fun setSerialNumber(serialNumber: String) {

@@ -81,6 +81,7 @@ class DeviceManagerTest {
   private val adbCommandMultipleFloatOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind DISTANCE:f:12.0 --bind FLOORS:f:5.0 --bind TOTAL_CALORIES:f:123.0"
   private val adbCommandFloatIntOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:f:5.0 --bind STEPS:i:55"
   private val adbCommandFloatIntNullOverrides = "content update --uri content://com.google.android.wearable.healthservices.dev.synthetic/synthetic_config --bind ELEVATION_LOSS:f:5.0 --bind PACE:s:\"\" --bind STEPS:i:55"
+  private val adbCommandCheckWhsVersionCode = "dumpsys package com.google.android.wearable.healthservices | grep versionCode | head -n1"
 
   private val capabilities = mapOf(
     WhsDataType.STEPS to WhsCapability(
@@ -484,5 +485,57 @@ class DeviceManagerTest {
       WhsDataType.PACE to null,
       WhsDataType.LOCATION to null,
     )) }, adbCommandFloatIntNullOverrides)
+  }
+
+  @Test
+  fun `Checking is WHS version is supported without setting serial number does not result in crash`() = runTest {
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+
+    val job = launch {
+      deviceManager.isWhsVersionSupported()
+    }
+    job.join()
+  }
+
+  private fun assertWhsVersionCheckAdbResponseIsParsedCorrectly(response: String, expectedIsSupportedBool: Boolean) = runTest {
+    adbSession.deviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(serialNumber), adbCommandCheckWhsVersionCode, response)
+
+    val deviceManager = ContentProviderDeviceManager(adbSession)
+    deviceManager.setSerialNumber(serialNumber)
+
+    val previousCount = adbSession.deviceServices.shellV2Requests.size
+
+    var isSupported = false
+    val job = launch {
+      isSupported = deviceManager.isWhsVersionSupported()
+    }
+    job.join()
+
+    val currentCount = adbSession.deviceServices.shellV2Requests.size
+    val newRequestsCount = currentCount - previousCount
+
+    assertEquals(1, newRequestsCount)
+
+    val shellRequest = adbSession.deviceServices.shellV2Requests.last
+
+    assert(shellRequest.deviceSelector.contains(serialNumber))
+    assertEquals(adbCommandCheckWhsVersionCode, shellRequest.command)
+
+    assertEquals(expectedIsSupportedBool, isSupported)
+  }
+
+  @Test
+  fun `Unexpected ADB response results in WHS version being reported as unsupported`() {
+    assertWhsVersionCheckAdbResponseIsParsedCorrectly("Unexpected response", false)
+  }
+
+  @Test
+  fun `Dev WHS version codes are supported`() {
+    assertWhsVersionCheckAdbResponseIsParsedCorrectly("    versionCode=1 minSdk=30 targetSdk=33", true)
+  }
+
+  @Test
+  fun `Non dev WHS version codes are not supported`() {
+    assertWhsVersionCheckAdbResponseIsParsedCorrectly("    versionCode=1417661 minSdk=30 targetSdk=33", false)
   }
 }

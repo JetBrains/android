@@ -97,6 +97,13 @@ internal class FakeDeviceManager(
     clearContentProviderInvocations++
   }
 
+  override suspend fun isWhsVersionSupported(): Boolean {
+    if (failState) {
+      throw ConnectionLostException("Failed to load capability states")
+    }
+    return true
+  }
+
   override fun setSerialNumber(serialNumber: String) {}
 
   override suspend fun triggerEvent(eventTrigger: EventTrigger) {

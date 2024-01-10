@@ -67,8 +67,14 @@ internal class WearHealthServicesToolWindowStateManagerImpl(
   override fun getStatus(): StateFlow<WhsStateManagerStatus> = progress.asStateFlow()
   override fun getOngoingExercise(): StateFlow<Boolean> = ongoingExercise.asStateFlow()
 
-  // TODO(b/309609475): Check the actual WHS version using the device manager
-  override suspend fun isWhsVersionSupported(): Boolean = true
+  override suspend fun isWhsVersionSupported(): Boolean {
+    return try {
+      deviceManager.isWhsVersionSupported()
+    } catch (exception: ConnectionLostException) {
+      // TODO(b/320432666): For now catch this error and show whs version not supported UI, eventually show separate could not connect UI
+      false
+    }
+  }
 
   override fun getCapabilitiesList(): StateFlow<List<WhsCapability>> = capabilitiesList.asStateFlow()
 

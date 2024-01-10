@@ -73,6 +73,8 @@ internal interface WearHealthServicesDeviceManager {
    */
   suspend fun clearContentProvider()
 
+  suspend fun isWhsVersionSupported(): Boolean
+
   /**
    * Sets the serial number of the emulator to connect.
    */

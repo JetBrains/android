@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert
+import org.junit.Assert.assertFalse
 
 private val capabilities = listOf(WhsCapability(
   WhsDataType.HEART_RATE_BPM,
@@ -212,5 +213,14 @@ class WearHealthServicesToolWindowStateManagerTest {
     catch (ex: TimeoutCancellationException) {
       Assert.fail("Timed out waiting for value $value. Received values so far $received")
     }
+  }
+
+  @Test
+  fun `test isWhsVersionSupported fail state reports whs version as not supported`(): Unit = runBlocking {
+    deviceManager.failState = true
+
+    val isSupported = stateManager.isWhsVersionSupported()
+
+    assertFalse(isSupported)
   }
 }
