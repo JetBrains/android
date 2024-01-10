@@ -84,7 +84,6 @@ class TreeDropDownActionTest {
   private val scope: CoroutineScope
     get() = AndroidCoroutineScope(projectRule.testRootDisposable)
 
-  @org.junit.Ignore("b/250064419")
   @Test
   fun `open popup shows correct selection`(): Unit =
     runBlocking(AndroidDispatchers.uiThread) {
@@ -485,7 +484,7 @@ class TreeDropDownActionTest {
         .filterIsInstance<FakeComponentPopup>()
         .map { it.contentPanel }
         .filterIsInstance<TreeDropDownPopup<SimpleValue, GroupAware.Empty>>()
-        .first()
+        .last()
 }
 
 fun TreeNode.checkedChildren(): List<CheckedTreeNode> =
