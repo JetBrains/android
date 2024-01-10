@@ -73,6 +73,13 @@ abstract class SingleArtifactTaskHandler<T : InterimStage>(sessionsManager: Sess
       handleError("Cannot start the task as the InterimStage was null")
       return
     }
+
+    // Prevent redundant capture initiation from AndroidProfilerLaunchTaskContributor if the task has already started from startup,
+    // avoiding potential issues caused by initiating multiple captures in succession.
+    if (args.isFromStartup) {
+      return
+    }
+
     TaskHandlerUtils.executeTaskAction(action = { startCapture(stage!!) }, errorHandler = ::handleError)
   }
 
