@@ -63,32 +63,28 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.GradleFileType
 
 /**
- * Project component that tracks events that are potentially relevant to Android-specific IDE features.
+ * Project component that tracks events that are potentially relevant to Android-specific IDE
+ * features.
  *
+ * It dispatches these events to other services and components. Having such a centralized dispatcher
+ * means we can reuse code written over time to correctly (hopefully) handle different supported
+ * scenarios:
+ * * Files being created, deleted or moved are handled on the VFS level by a [BulkFileListener].
+ * * Changes to files with no cached [Document] or binary files are handled by a
+ *   [FileDocumentManagerListener].
+ * * Changes to files with a [Document] but no cached [PsiFile] are handled by [DocumentListener].
+ * * Changes to files with a cached [PsiFile] are handled by a [PsiTreeChangeListener].
  *
- * It dispatches these events to other services and components. Having such a centralized dispatcher means we can reuse code written over
- * time to correctly (hopefully) handle different supported scenarios:
- *
- *
- *  * Files being created, deleted or moved are handled on the VFS level by a [BulkFileListener].
- *  * Changes to files with no cached [Document] or binary files are handled by a [FileDocumentManagerListener].
- *  * Changes to files with a [Document] but no cached [PsiFile] are handled by [DocumentListener].
- *  * Changes to files with a cached [PsiFile] are handled by a [PsiTreeChangeListener].
- *
- *
- *
- * Note that these cases are exclusive, so only one event is actually handled by the receiver, no matter what action the user took. This
- * includes cases like user typing with auto-save off (modifies Document and PSI but not VFS), background git checkouts (modifies VFS, but
- * not Document or PSI in some cases).
- *
+ * Note that these cases are exclusive, so only one event is actually handled by the receiver, no
+ * matter what action the user took. This includes cases like user typing with auto-save off
+ * (modifies Document and PSI but not VFS), background git checkouts (modifies VFS, but not Document
+ * or PSI in some cases).
  *
  * Information is forwarded to:
- *
- *  * [ResourceFolderRegistry] and from there to [ResourceFolderRepository] and [LayoutLibrary]
- *  * [SampleDataListener] and from there to [SampleDataResourceRepository]
- *  * [ResourceNotificationManager]
- *  * [EditorNotifications] when a Gradle file is modified
- *
+ * * [ResourceFolderRegistry] and from there to [ResourceFolderRepository] and [LayoutLibrary]
+ * * [SampleDataListener] and from there to [SampleDataResourceRepository]
+ * * [ResourceNotificationManager]
+ * * [EditorNotifications] when a Gradle file is modified
  */
 class AndroidFileChangeListener(private val project: Project) : Disposable {
   private val registry = ResourceFolderRegistry.getInstance(project)
@@ -106,7 +102,9 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
 
   private fun onProjectOpened() {
     PsiManager.getInstance(project).addPsiTreeChangeListener(MyPsiListener(), this)
-    EditorFactory.getInstance().eventMulticaster.addDocumentListener(MyDocumentListener(project, registry), this)
+    EditorFactory.getInstance()
+      .eventMulticaster
+      .addDocumentListener(MyDocumentListener(project, registry), this)
 
     val connection = project.messageBus.connect(this)
     connection.subscribe(VirtualFileManager.VFS_CHANGES, MyVfsListener(registry))
@@ -116,14 +114,13 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
   override fun dispose() {}
 
   /**
-   * Registers a [SampleDataListener] to be notified of possibly relevant PSI events.
-   * Because there should only be a single instance of [SampleDataListener] per project
-   * (it's a project service), this method can only be called once.
-   *
+   * Registers a [SampleDataListener] to be notified of possibly relevant PSI events. Because there
+   * should only be a single instance of [SampleDataListener] per project (it's a project service),
+   * this method can only be called once.
    *
    * We register the listener with this method instead of doing it right away in the constructor
-   * because [SampleDataListener] only needs to know about PSI updates if the user is working
-   * with resource or activity files.
+   * because [SampleDataListener] only needs to know about PSI updates if the user is working with
+   * resource or activity files.
    *
    * @param sampleDataListener the project's [SampleDataListener]
    */
@@ -139,7 +136,9 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     dispatchToResourceNotificationManager(invokeCallback)
   }
 
-  private fun dispatchToResourceNotificationManager(invokeCallback: Consumer<PsiTreeChangeListener?>) {
+  private fun dispatchToResourceNotificationManager(
+    invokeCallback: Consumer<PsiTreeChangeListener?>
+  ) {
     val resourceNotificationPsiListener = resourceNotificationManager.psiListener
     if (resourceNotificationPsiListener != null) {
       invokeCallback.consume(resourceNotificationPsiListener)
@@ -147,9 +146,9 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
   }
 
   /**
-   * [BulkFileListener] which handles [VFileEvent]s for resource folder.
-   * When an event happens on a file within a folder with a corresponding
-   * [ResourceFolderRepository], the event is delegated to it.
+   * [BulkFileListener] which handles [VFileEvent]s for resource folder. When an event happens on a
+   * file within a folder with a corresponding [ResourceFolderRepository], the event is delegated to
+   * it.
    */
   internal class MyVfsListener(private val registry: ResourceFolderRegistry) : BulkFileListener {
     @UiThread
@@ -169,10 +168,11 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
           is VFileCreateEvent -> onFileOrDirectoryCreated(event.parent, event.childName)
           is VFileCopyEvent -> onFileOrDirectoryCreated(event.newParent, event.newChildName)
           is VFileMoveEvent -> onFileOrDirectoryCreated(event.newParent, event.file.name)
-          is VFilePropertyChangeEvent -> if (event.isRename)
-            event.file.parent?.let { onFileOrDirectoryCreated(it, event.newValue as String) }
-          // VFileContentChangeEvent changes are not handled at the VFS level, but either in
-          // fileWithNoDocumentChanged, documentChanged or MyPsiListener.
+          is VFilePropertyChangeEvent ->
+            if (event.isRename)
+              event.file.parent?.let { onFileOrDirectoryCreated(it, event.newValue as String) }
+        // VFileContentChangeEvent changes are not handled at the VFS level, but either in
+        // fileWithNoDocumentChanged, documentChanged or MyPsiListener.
         }
       }
     }
@@ -180,40 +180,50 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     private fun onFileOrDirectoryCreated(parent: VirtualFile?, childName: String) {
       ResourceUpdateTracer.log {
         "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated(" +
-          pathForLogging(parent, childName) + ")"
+          pathForLogging(parent, childName) +
+          ")"
       }
       val created = parent?.takeIf(VirtualFile::exists)?.findChild(childName) ?: return
       val resDir = if (created.isDirectory) parent else parent.parent ?: return
 
       registry.dispatchToRepositories(resDir) { repository, _ ->
-        onFileOrDirectoryCreated(
-          created,
-          repository
-        )
+        onFileOrDirectoryCreated(created, repository)
       }
     }
 
     private fun pathForLogging(parent: VirtualFile?, childName: String): String {
       if (parent == null) return childName
-      return ResourceUpdateTracer.pathForLogging(parent.toPathString().resolve(childName), registry.project)
+      return ResourceUpdateTracer.pathForLogging(
+        parent.toPathString().resolve(childName),
+        registry.project
+      )
     }
 
     private fun onFileOrDirectoryRemoved(file: VirtualFile) {
-      registry.dispatchToRepositories(file) { obj, f -> f?.let { obj?.onFileOrDirectoryRemoved(it) } }
+      registry.dispatchToRepositories(file) { obj, f ->
+        f?.let { obj?.onFileOrDirectoryRemoved(it) }
+      }
     }
 
     companion object {
-      private fun onFileOrDirectoryCreated(created: VirtualFile, repository: ResourceFolderRepository?) {
+      private fun onFileOrDirectoryCreated(
+        created: VirtualFile,
+        repository: ResourceFolderRepository?
+      ) {
         if (repository == null) return
 
         ResourceUpdateTracer.log {
-          "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated(" + created + ", " +
-            repository.displayName + ")"
+          "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated(" +
+            created +
+            ", " +
+            repository.displayName +
+            ")"
         }
         if (!created.isDirectory) {
           repository.onFileCreated(created)
         } else {
-          // ResourceFolderRepository doesn't handle event on a whole folder, so we pass all the children.
+          // ResourceFolderRepository doesn't handle event on a whole folder, so we pass all the
+          // children.
           for (child in created.children) {
             if (!child.isDirectory) {
               // There is no need to visit subdirectories because Android does not support them.
@@ -228,13 +238,17 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     }
   }
 
-  internal class MyFileDocumentManagerListener(private val registry: ResourceFolderRegistry) : FileDocumentManagerListener {
+  internal class MyFileDocumentManagerListener(private val registry: ResourceFolderRegistry) :
+    FileDocumentManagerListener {
     override fun fileWithNoDocumentChanged(file: VirtualFile) {
-      registry.dispatchToRepositories(file) { obj, virtualFile -> virtualFile?.let { obj?.scheduleScan(it) } }
+      registry.dispatchToRepositories(file) { obj, virtualFile ->
+        virtualFile?.let { obj?.scheduleScan(it) }
+      }
     }
   }
 
-  internal class MyDocumentListener internal constructor(private val project: Project, private val registry: ResourceFolderRegistry) :
+  internal class MyDocumentListener
+  internal constructor(private val project: Project, private val registry: ResourceFolderRegistry) :
     DocumentListener {
     private val fileDocumentManager = FileDocumentManager.getInstance()
     private val psiDocumentManager: PsiDocumentManager = PsiDocumentManager.getInstance(project)
@@ -274,10 +288,11 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
       when {
         psiFile == null -> {
           when (val child = event.child) {
-            is PsiFile -> child.virtualFile?.let {
-              computeModulesToInvalidateAttributeDefinitions(it)
-              if (isRelevantFile(it)) dispatchChildAdded(event, it)
-            }
+            is PsiFile ->
+              child.virtualFile?.let {
+                computeModulesToInvalidateAttributeDefinitions(it)
+                if (isRelevantFile(it)) dispatchChildAdded(event, it)
+              }
             is PsiDirectory -> dispatchChildAdded(event, child.virtualFile)
           }
         }
@@ -302,10 +317,12 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
       when {
         psiFile == null -> {
           when (val child = event.child) {
-            is PsiFile -> child.virtualFile?.takeIf(::isRelevantFile)?.let { dispatchChildRemoved(event, it)}
-            is PsiDirectory ->  if (ResourceFolderType.getFolderType(child.name) != null) {
-              dispatchChildRemoved(event, child.virtualFile)
-            }
+            is PsiFile ->
+              child.virtualFile?.takeIf(::isRelevantFile)?.let { dispatchChildRemoved(event, it) }
+            is PsiDirectory ->
+              if (ResourceFolderType.getFolderType(child.name) != null) {
+                dispatchChildRemoved(event, child.virtualFile)
+              }
           }
         }
         isRelevantFile(psiFile) -> dispatchChildRemoved(event, psiFile.virtualFile)
@@ -348,7 +365,9 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     }
 
     override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
-      event.file?.takeIf(::isRelevantFile)?.let { dispatchBeforeChildrenChange(event, it.virtualFile) }
+      event.file?.takeIf(::isRelevantFile)?.let {
+        dispatchBeforeChildrenChange(event, it.virtualFile)
+      }
     }
 
     private fun dispatchBeforeChildrenChange(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
@@ -394,7 +413,8 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
     private fun dispatchChildMoved(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
       dispatch(virtualFile) { it?.childMoved(event) }
 
-      // If you moved the file between resource directories, potentially notify that previous repository as well
+      // If you moved the file between resource directories, potentially notify that previous
+      // repository as well
       if (event.file == null) {
         val oldParent = event.oldParent as? PsiDirectory ?: return
         dispatch(oldParent.virtualFile) { it?.childMoved(event) }
@@ -403,7 +423,9 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
 
     override fun beforePropertyChange(event: PsiTreeChangeEvent) {
       if (PsiTreeChangeEvent.PROP_FILE_NAME == event.propertyName) {
-        (event.child as? PsiFile)?.takeIf(::isRelevantFile)?.let {dispatchBeforePropertyChange(event, it.virtualFile) }
+        (event.child as? PsiFile)?.takeIf(::isRelevantFile)?.let {
+          dispatchBeforePropertyChange(event, it.virtualFile)
+        }
       }
     }
 
@@ -413,27 +435,31 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
 
     override fun propertyChanged(event: PsiTreeChangeEvent) {
       if (PsiTreeChangeEvent.PROP_FILE_NAME == event.propertyName) {
-        (event.element as? PsiFile)?.takeIf(::isRelevantFile)?.let { dispatchPropertyChanged(event, it.virtualFile) }
+        (event.element as? PsiFile)?.takeIf(::isRelevantFile)?.let {
+          dispatchPropertyChanged(event, it.virtualFile)
+        }
       }
 
-      // TODO: Do we need to handle PROP_DIRECTORY_NAME for users renaming any of the resource folders?
-      // and what about PROP_FILE_TYPES -- can users change the type of an XML File to something else?
+      // TODO: Do we need to handle PROP_DIRECTORY_NAME for users renaming any of the resource
+      // folders?
+      // and what about PROP_FILE_TYPES -- can users change the type of an XML File to something
+      // else?
     }
 
     private fun dispatchPropertyChanged(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
       dispatch(virtualFile) { it?.propertyChanged(event) }
     }
 
-    /**
-     * Invalidates attribute definitions of relevant modules after changes to a given file
-     */
+    /** Invalidates attribute definitions of relevant modules after changes to a given file */
     private fun computeModulesToInvalidateAttributeDefinitions(file: VirtualFile) {
       if (!isRelevantFile(file)) return
       val facet = AndroidFacet.getInstance(file, project) ?: return
 
       for (module in AndroidUtils.getSetWithBackwardDependencies(facet.module)) {
         AndroidFacet.getInstance(module)?.let {
-          ModuleResourceManagers.getInstance(it).localResourceManager.invalidateAttributeDefinitions()
+          ModuleResourceManagers.getInstance(it)
+            .localResourceManager
+            .invalidateAttributeDefinitions()
         }
       }
     }
@@ -451,13 +477,11 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
 
       // TODO: ensure that only Android-compatible images are recognized.
       return fileType.isBinary &&
-             (fileType === ImageFileTypeManager.getInstance().imageFileType ||
-              fileType === FontFileType.INSTANCE)
+        (fileType === ImageFileTypeManager.getInstance().imageFileType ||
+          fileType === FontFileType.INSTANCE)
     }
 
-    /**
-     * Checks if the file is relevant. May perform file I/O.
-     */
+    /** Checks if the file is relevant. May perform file I/O. */
     @JvmStatic
     @Slow
     fun isRelevantFile(file: VirtualFile): Boolean {
@@ -466,7 +490,8 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
       // try to infer the type based on the extension.
       val extension = file.extension
       if (StringUtil.isEmpty(extension)) return false
-      if (JavaFileType.DEFAULT_EXTENSION == extension || KotlinFileType.EXTENSION == extension) return false
+      if (JavaFileType.DEFAULT_EXTENSION == extension || KotlinFileType.EXTENSION == extension)
+        return false
       if (XmlFileType.DEFAULT_EXTENSION == extension) return true
       if (SdkConstants.FN_ANDROID_MANIFEST_XML == file.name) return true
       if (AidlFileType.DEFAULT_ASSOCIATED_EXTENSION == extension) return true
@@ -494,22 +519,32 @@ class AndroidFileChangeListener(private val project: Project) : Disposable {
       val name = psiFile.name
       if (fileType.name == "Kotlin" && name.endsWith(SdkConstants.EXT_GRADLE_KTS)) return true
 
-      // Do not test getFileType() as this will differ depending on whether the TOML plugin is active.
+      // Do not test getFileType() as this will differ depending on whether the TOML plugin is
+      // active.
       if (name.endsWith(SdkConstants.DOT_VERSIONS_DOT_TOML)) return true
 
-      if (fileType === PropertiesFileType.INSTANCE &&
-          (SdkConstants.FN_GRADLE_PROPERTIES == name || SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == name)
+      if (
+        fileType === PropertiesFileType.INSTANCE &&
+          (SdkConstants.FN_GRADLE_PROPERTIES == name ||
+            SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == name)
       ) {
         return true
       }
 
       if (fileType === PropertiesFileType.INSTANCE) {
-        if (SdkConstants.FN_GRADLE_PROPERTIES == name || SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == name) return true
-        if (SdkConstants.FN_GRADLE_CONFIG_PROPERTIES == name && SdkConstants.FD_GRADLE_CACHE == psiFile.parent?.name) return true
+        if (
+          SdkConstants.FN_GRADLE_PROPERTIES == name ||
+            SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == name
+        )
+          return true
+        if (
+          SdkConstants.FN_GRADLE_CONFIG_PROPERTIES == name &&
+            SdkConstants.FD_GRADLE_CACHE == psiFile.parent?.name
+        )
+          return true
       }
 
       return false
     }
   }
 }
-
