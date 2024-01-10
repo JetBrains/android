@@ -13,328 +13,176 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.idea.res
 
-import static com.android.SdkConstants.DOT_VERSIONS_DOT_TOML;
-import static com.android.SdkConstants.EXT_GRADLE_KTS;
-import static com.android.SdkConstants.FD_GRADLE_CACHE;
-import static com.android.SdkConstants.FD_RES_RAW;
-import static com.android.SdkConstants.FN_GRADLE_CONFIG_PROPERTIES;
-import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
-import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
-
-import com.android.SdkConstants;
-import com.android.annotations.concurrency.Slow;
-import com.android.annotations.concurrency.UiThread;
-import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.fileTypes.FontFileType;
-import com.android.tools.idea.lang.aidl.AidlFileType;
-import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.util.FileExtensions;
-import com.intellij.ide.highlighter.JavaFileType;
-import com.intellij.ide.highlighter.XmlFileType;
-import com.intellij.lang.properties.PropertiesFileType;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.EditorFactory;
-import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.editor.event.DocumentListener;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.newvfs.BulkFileListener;
-import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent;
-import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent;
-import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
-import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent;
-import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiTreeChangeEvent;
-import com.intellij.psi.PsiTreeChangeListener;
-import com.intellij.testFramework.LightVirtualFile;
-import com.intellij.ui.EditorNotifications;
-import com.intellij.util.Consumer;
-import com.intellij.util.messages.MessageBusConnection;
-import java.util.List;
-import org.intellij.images.fileTypes.ImageFileTypeManager;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.KotlinFileType;
-import org.jetbrains.plugins.gradle.config.GradleFileType;
+import com.android.SdkConstants
+import com.android.annotations.concurrency.Slow
+import com.android.annotations.concurrency.UiThread
+import com.android.resources.ResourceFolderType
+import com.android.tools.idea.fileTypes.FontFileType
+import com.android.tools.idea.lang.aidl.AidlFileType
+import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType
+import com.android.tools.idea.util.toPathString
+import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.lang.properties.PropertiesFileType
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.FileDocumentManagerListener
+import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.newvfs.BulkFileListener
+import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent
+import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent
+import com.intellij.psi.PsiDirectory
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiTreeChangeEvent
+import com.intellij.psi.PsiTreeChangeListener
+import com.intellij.testFramework.LightVirtualFile
+import com.intellij.ui.EditorNotifications
+import com.intellij.util.Consumer
+import org.intellij.images.fileTypes.ImageFileTypeManager
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers
+import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.kotlin.idea.KotlinFileType
 
 /**
  * Project component that tracks events that are potentially relevant to Android-specific IDE features.
  *
- * <p>It dispatches these events to other services and components. Having such a centralized dispatcher means we can reuse code written over
+ *
+ * It dispatches these events to other services and components. Having such a centralized dispatcher means we can reuse code written over
  * time to correctly (hopefully) handle different supported scenarios:
  *
- * <ul>
- *   <li>Files being created, deleted or moved are handled on the VFS level by a {@link BulkFileListener}.
- *   <li>Changes to files with no cached {@link Document} or binary files are handled by a {@link FileDocumentManagerListener}.
- *   <li>Changes to files with a {@link Document} but no cached {@link PsiFile} are handled by {@link DocumentListener}.
- *   <li>Changes to files with a cached {@link PsiFile} are handled by a {@link PsiTreeChangeListener}.
- * </ul>
  *
- * <p>Note that these cases are exclusive, so only one event is actually handled by the receiver, no matter what action the user took. This
+ *  * Files being created, deleted or moved are handled on the VFS level by a [BulkFileListener].
+ *  * Changes to files with no cached [Document] or binary files are handled by a [FileDocumentManagerListener].
+ *  * Changes to files with a [Document] but no cached [PsiFile] are handled by [DocumentListener].
+ *  * Changes to files with a cached [PsiFile] are handled by a [PsiTreeChangeListener].
+ *
+ *
+ *
+ * Note that these cases are exclusive, so only one event is actually handled by the receiver, no matter what action the user took. This
  * includes cases like user typing with auto-save off (modifies Document and PSI but not VFS), background git checkouts (modifies VFS, but
  * not Document or PSI in some cases).
  *
- * <p>Information is forwarded to:
- * <ul>
- *   <li>{@link ResourceFolderRegistry} and from there to {@link ResourceFolderRepository} and {@link LayoutLibrary}
- *   <li>{@link SampleDataListener} and from there to {@link SampleDataResourceRepository}
- *   <li>{@link ResourceNotificationManager}
- *   <li>{@link EditorNotifications} when a Gradle file is modified
- * </ul>
+ *
+ * Information is forwarded to:
+ *
+ *  * [ResourceFolderRegistry] and from there to [ResourceFolderRepository] and [LayoutLibrary]
+ *  * [SampleDataListener] and from there to [SampleDataResourceRepository]
+ *  * [ResourceNotificationManager]
+ *  * [EditorNotifications] when a Gradle file is modified
+ *
  */
-public class AndroidFileChangeListener implements Disposable {
-  private final ResourceFolderRegistry myRegistry;
-  private final Project myProject;
-  private final ResourceNotificationManager myResourceNotificationManager;
-  private final EditorNotifications myEditorNotifications;
+class AndroidFileChangeListener(private val myProject: Project) : Disposable {
+  private val myRegistry = ResourceFolderRegistry.getInstance(myProject)
+  private val myResourceNotificationManager = ResourceNotificationManager.getInstance(myProject)
+  private val myEditorNotifications = EditorNotifications.getInstance(myProject)
 
-  @Nullable private SampleDataListener mySampleDataListener;
+  private var mySampleDataListener: SampleDataListener? = null
 
-  public AndroidFileChangeListener(Project project) {
-    myProject = project;
-    myResourceNotificationManager = ResourceNotificationManager.getInstance(myProject);
-    myRegistry = ResourceFolderRegistry.getInstance(myProject);
-    myEditorNotifications = EditorNotifications.getInstance(myProject);
-  }
-
-  @NotNull
-  public static AndroidFileChangeListener getInstance(@NotNull Project project) {
-    return project.getService(AndroidFileChangeListener.class);
-  }
-
-  public static class MyStartupActivity implements StartupActivity.DumbAware {
-    @Override
-    public void runActivity(@NotNull Project project) {
-      AndroidFileChangeListener listener = getInstance(project);
-      listener.onProjectOpened();
+  class MyStartupActivity : DumbAware {
+    override fun runActivity(project: Project) {
+      val listener = getInstance(project)
+      listener.onProjectOpened()
     }
   }
 
-  private void onProjectOpened() {
-    PsiManager.getInstance(myProject).addPsiTreeChangeListener(new MyPsiListener(), this);
-    EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new MyDocumentListener(myProject, myRegistry), this);
+  private fun onProjectOpened() {
+    PsiManager.getInstance(myProject).addPsiTreeChangeListener(MyPsiListener(), this)
+    EditorFactory.getInstance().eventMulticaster.addDocumentListener(MyDocumentListener(myProject, myRegistry), this)
 
-    MessageBusConnection connection = myProject.getMessageBus().connect(this);
-    connection.subscribe(VirtualFileManager.VFS_CHANGES, new MyVfsListener(myRegistry));
-    connection.subscribe(FileDocumentManagerListener.TOPIC, new MyFileDocumentManagerListener(myRegistry));
+    val connection = myProject.messageBus.connect(this)
+    connection.subscribe(VirtualFileManager.VFS_CHANGES, MyVfsListener(myRegistry))
+    connection.subscribe(FileDocumentManagerListener.TOPIC, MyFileDocumentManagerListener(myRegistry))
   }
 
-  @Override
-  public void dispose() {}
+  override fun dispose() {}
 
   /**
-   * Registers a {@link SampleDataListener} to be notified of possibly relevant PSI events.
-   * Because there should only be a single instance of {@link SampleDataListener} per project
+   * Registers a [SampleDataListener] to be notified of possibly relevant PSI events.
+   * Because there should only be a single instance of [SampleDataListener] per project
    * (it's a project service), this method can only be called once.
    *
-   * <p>We register the listener with this method instead of doing it right away in the constructor
-   * because {@link SampleDataListener} only needs to know about PSI updates if the user is working
+   *
+   * We register the listener with this method instead of doing it right away in the constructor
+   * because [SampleDataListener] only needs to know about PSI updates if the user is working
    * with resource or activity files.
    *
-   * @param sampleDataListener the project's {@link SampleDataListener}
+   * @param sampleDataListener the project's [SampleDataListener]
    */
-  void setSampleDataListener(SampleDataListener sampleDataListener) {
-    assert mySampleDataListener == null : "SampleDataListener already set!";
-    mySampleDataListener = sampleDataListener;
+  fun setSampleDataListener(sampleDataListener: SampleDataListener?) {
+    assert(mySampleDataListener == null) { "SampleDataListener already set!" }
+    mySampleDataListener = sampleDataListener
   }
 
-  static boolean isRelevantFileType(@NotNull FileType fileType) {
-    if (fileType == JavaFileType.INSTANCE || fileType == KotlinFileType.INSTANCE) { // fail fast for vital file type
-      return false;
-    }
-    if (fileType == XmlFileType.INSTANCE) {
-      return true;
-    }
-
-    // TODO: ensure that only android compatible images are recognized.
-    if (fileType.isBinary()) {
-      return fileType == ImageFileTypeManager.getInstance().getImageFileType() ||
-             fileType == FontFileType.INSTANCE;
-    }
-
-    return false;
-  }
-
-  /**
-   * Checks if the file is relevant. May perform file I/O.
-   */
-  @Slow
-  public static boolean isRelevantFile(@NotNull VirtualFile file) {
-    // VirtualFile.getFileType will try to read from the file the first time it's
-    // called, so we try to avoid it as much as possible. Instead, we will just
-    // try to infer the type based on the extension.
-    String extension = file.getExtension();
-    if (StringUtil.isEmpty(extension)) {
-      return false;
-    }
-
-    if (JavaFileType.DEFAULT_EXTENSION.equals(extension) || KotlinFileType.EXTENSION.equals(extension)) {
-      return false;
-    }
-
-    if (XmlFileType.DEFAULT_EXTENSION.equals(extension)) {
-      return true;
-    }
-
-    if (SdkConstants.FN_ANDROID_MANIFEST_XML.equals(file.getName())) {
-      return true;
-    }
-
-    if (AidlFileType.DEFAULT_ASSOCIATED_EXTENSION.equals(extension)) {
-      return true;
-    }
-
-    VirtualFile parent = file.getParent();
-    if (parent != null) {
-      String parentName = parent.getName();
-      if (parentName.startsWith(FD_RES_RAW)) {
-        return true;
-      }
-    }
-
-    // Unable to determine based on filename, use the slow method.
-    FileType fileType = file.getFileType();
-    return fileType.equals(AndroidRenderscriptFileType.INSTANCE) || isRelevantFileType(fileType);
-  }
-
-  static boolean isRelevantFile(@NotNull PsiFile file) {
-    FileType fileType = file.getFileType();
-    if (fileType == JavaFileType.INSTANCE || fileType == KotlinFileType.INSTANCE) {
-      return false;
-    }
-
-    if (isRelevantFileType(fileType)) {
-      return true;
-    }
-
-    PsiDirectory parent = file.getParent();
-    if (parent == null) {
-      return false;
-    }
-
-    String parentName = parent.getName();
-    return parentName.startsWith(FD_RES_RAW);
-  }
-
-  public static boolean isGradleFile(@NotNull PsiFile psiFile) {
-    if (GradleFileType.isGradleFile(psiFile)) {
-      return true;
-    }
-    FileType fileType = psiFile.getFileType();
-    if (fileType.getName().equals("Kotlin") && psiFile.getName().endsWith(EXT_GRADLE_KTS)) {
-      return true;
-    }
-    // Do not test getFileType() as this will differ depending on whether the Toml plugin is active or not.
-    if (psiFile.getName().endsWith(DOT_VERSIONS_DOT_TOML)) {
-      return true;
-    }
-    if (fileType == PropertiesFileType.INSTANCE &&
-        (FN_GRADLE_PROPERTIES.equals(psiFile.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFile.getName()))) {
-      return true;
-    }
-
-    if (fileType == PropertiesFileType.INSTANCE) {
-      String psiFileName = psiFile.getName();
-      if (FN_GRADLE_PROPERTIES.equals(psiFileName) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFileName)) {
-        return true;
-      }
-
-      PsiDirectory psiParent = psiFile.getParent();
-      if (FN_GRADLE_CONFIG_PROPERTIES.equals(psiFileName) && psiParent != null && FD_GRADLE_CACHE.equals(psiParent.getName())) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  private void dispatch(@Nullable VirtualFile file, @NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
+  private fun dispatch(file: VirtualFile?, invokeCallback: Consumer<PsiTreeChangeListener?>) {
     if (file != null) {
-      myRegistry.dispatchToRepositories(file, invokeCallback);
+      myRegistry.dispatchToRepositories(file, invokeCallback)
     }
-    dispatchToResourceNotificationManager(invokeCallback);
+    dispatchToResourceNotificationManager(invokeCallback)
   }
 
-  private void dispatchToResourceNotificationManager(@NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
-    PsiTreeChangeListener resourceNotificationPsiListener = myResourceNotificationManager.getPsiListener();
+  private fun dispatchToResourceNotificationManager(invokeCallback: Consumer<PsiTreeChangeListener?>) {
+    val resourceNotificationPsiListener = myResourceNotificationManager.psiListener
     if (resourceNotificationPsiListener != null) {
-      invokeCallback.consume(resourceNotificationPsiListener);
+      invokeCallback.consume(resourceNotificationPsiListener)
     }
   }
 
   /**
-   * {@link BulkFileListener} which handles {@link VFileEvent}s for resource folder.
+   * [BulkFileListener] which handles [VFileEvent]s for resource folder.
    * When an event happens on a file within a folder with a corresponding
-   * {@link ResourceFolderRepository}, the event is delegated to it.
+   * [ResourceFolderRepository], the event is delegated to it.
    */
-  static class MyVfsListener implements BulkFileListener {
-
-    private final ResourceFolderRegistry myRegistry;
-
-    private MyVfsListener(@NotNull ResourceFolderRegistry registry) {
-      myRegistry = registry;
-    }
-
+  internal class MyVfsListener(private val myRegistry: ResourceFolderRegistry) : BulkFileListener {
     @UiThread
-    @Override
-    public void before(@NotNull List<? extends VFileEvent> events) {
-      for (VFileEvent event : events) {
-        if (event instanceof VFileMoveEvent) {
-          onFileOrDirectoryRemoved(((VFileMoveEvent)event).getFile());
-        }
-        else if (event instanceof VFileDeleteEvent) {
-          onFileOrDirectoryRemoved(((VFileDeleteEvent)event).getFile());
-        }
-        else if (event instanceof VFilePropertyChangeEvent &&
-                 ((VFilePropertyChangeEvent)event).isRename()) {
-          onFileOrDirectoryRemoved(((VFilePropertyChangeEvent)event).getFile());
+    override fun before(events: List<VFileEvent>) {
+      for (event in events) {
+        if (event is VFileMoveEvent) {
+          onFileOrDirectoryRemoved(event.file)
+        } else if (event is VFileDeleteEvent) {
+          onFileOrDirectoryRemoved(event.file)
+        } else if (event is VFilePropertyChangeEvent &&
+          event.isRename
+        ) {
+          onFileOrDirectoryRemoved(event.file)
         }
       }
     }
 
-    @Override
-    public void after(@NotNull List<? extends VFileEvent> events) {
-      for (VFileEvent event : events) {
-        if (event instanceof VFileCreateEvent) {
-          VFileCreateEvent createEvent = (VFileCreateEvent)event;
-          onFileOrDirectoryCreated(createEvent.getParent(), createEvent.getChildName());
-        }
-        else if (event instanceof VFileCopyEvent) {
-          VFileCopyEvent copyEvent = (VFileCopyEvent)event;
-          onFileOrDirectoryCreated(copyEvent.getNewParent(), copyEvent.getNewChildName());
-        }
-        else if (event instanceof VFileMoveEvent) {
-          VFileMoveEvent moveEvent = (VFileMoveEvent)event;
-          onFileOrDirectoryCreated(moveEvent.getNewParent(), moveEvent.getFile().getName());
-        }
-        else if (event instanceof VFilePropertyChangeEvent &&
-                 ((VFilePropertyChangeEvent)event).isRename()) {
-          VFilePropertyChangeEvent renameEvent = (VFilePropertyChangeEvent)event;
-          VirtualFile parentFile = renameEvent.getFile().getParent();
+    override fun after(events: List<VFileEvent>) {
+      for (event in events) {
+        if (event is VFileCreateEvent) {
+          val createEvent = event
+          onFileOrDirectoryCreated(createEvent.parent, createEvent.childName)
+        } else if (event is VFileCopyEvent) {
+          val copyEvent = event
+          onFileOrDirectoryCreated(copyEvent.newParent, copyEvent.newChildName)
+        } else if (event is VFileMoveEvent) {
+          val moveEvent = event
+          onFileOrDirectoryCreated(moveEvent.newParent, moveEvent.file.name)
+        } else if (event is VFilePropertyChangeEvent &&
+          event.isRename
+        ) {
+          val renameEvent = event
+          val parentFile = renameEvent.file.parent
           if (parentFile != null) {
-            onFileOrDirectoryCreated(parentFile, (String)renameEvent.getNewValue());
+            onFileOrDirectoryCreated(parentFile, renameEvent.newValue as String)
           }
         }
         // VFileContentChangeEvent changes are not handled at the VFS level, but either in
@@ -342,356 +190,334 @@ public class AndroidFileChangeListener implements Disposable {
       }
     }
 
-    private void onFileOrDirectoryCreated(@Nullable VirtualFile parent, @NotNull String childName) {
-      ResourceUpdateTracer.log(() -> "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated(" +
-                                     pathForLogging(parent, childName) + ")");
+    private fun onFileOrDirectoryCreated(parent: VirtualFile?, childName: String) {
+      ResourceUpdateTracer.log {
+        "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated(" +
+          pathForLogging(parent, childName) + ")"
+      }
       if (parent == null || !parent.exists()) {
-        return;
+        return
       }
-      VirtualFile created = parent.findChild(childName);
-      if (created == null) {
-        return;
-      }
+      val created = parent.findChild(childName) ?: return
 
-      VirtualFile resDir = created.isDirectory() ? parent : parent.getParent();
+      val resDir = if (created.isDirectory) parent else parent.parent
       if (resDir != null) {
-        myRegistry.dispatchToRepositories(resDir, (repository, dir) -> onFileOrDirectoryCreated(created, repository));
+        myRegistry.dispatchToRepositories(resDir) { repository: ResourceFolderRepository?, dir: VirtualFile? ->
+          onFileOrDirectoryCreated(
+            created,
+            repository
+          )
+        }
       }
     }
 
-    private @NotNull String pathForLogging(@Nullable VirtualFile parent, @NotNull String childName) {
+    private fun pathForLogging(parent: VirtualFile?, childName: String): String {
       if (parent == null) {
-        return childName;
+        return childName
       }
-      return ResourceUpdateTracer.pathForLogging(FileExtensions.toPathString(parent).resolve(childName), myRegistry.getProject());
+      return ResourceUpdateTracer.pathForLogging(parent.toPathString().resolve(childName), myRegistry.project)
     }
 
-    private static void onFileOrDirectoryCreated(@NotNull VirtualFile created, @Nullable ResourceFolderRepository repository) {
-      if (repository == null) {
-        return;
+    private fun onFileOrDirectoryRemoved(file: VirtualFile) {
+      myRegistry.dispatchToRepositories(file) { obj: ResourceFolderRepository?, file: VirtualFile? ->
+        obj!!.onFileOrDirectoryRemoved(
+          file!!
+        )
       }
+    }
 
-      ResourceUpdateTracer.log(() -> "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated(" + created + ", " +
-                                     repository.getDisplayName() + ")");
-      if (!created.isDirectory()) {
-        repository.onFileCreated(created);
-      }
-      else {
-        // ResourceFolderRepository doesn't handle event on a whole folder, so we pass all the children.
-        for (VirtualFile child : created.getChildren()) {
-          if (!child.isDirectory()) {
-            // There is no need to visit subdirectories because Android does not support them.
-            // If a base resource directory is created (e.g res/), a whole
-            // ResourceFolderRepository will be created separately, so we don't need to handle
-            // this case here.
-            repository.onFileCreated(child);
-          }
+    companion object {
+      private fun onFileOrDirectoryCreated(created: VirtualFile, repository: ResourceFolderRepository?) {
+        if (repository == null) {
+          return
         }
-      }
-    }
 
-    private void onFileOrDirectoryRemoved(@NotNull VirtualFile file) {
-      myRegistry.dispatchToRepositories(file, ResourceFolderRepository::onFileOrDirectoryRemoved);
-    }
-  }
-
-  static class MyFileDocumentManagerListener implements FileDocumentManagerListener {
-    private final ResourceFolderRegistry myRegistry;
-
-    private MyFileDocumentManagerListener(@NotNull ResourceFolderRegistry registry) {
-      myRegistry = registry;
-    }
-
-    @Override
-    public void fileWithNoDocumentChanged(@NotNull VirtualFile file) {
-      myRegistry.dispatchToRepositories(file, ResourceFolderRepository::scheduleScan);
-    }
-  }
-
-  static class MyDocumentListener implements DocumentListener {
-    private final Project myProject;
-    private final FileDocumentManager myFileDocumentManager;
-    private final PsiDocumentManager myPsiDocumentManager;
-    private final ResourceFolderRegistry myRegistry;
-
-    private MyDocumentListener(@NotNull Project project, @NotNull ResourceFolderRegistry registry) {
-      myProject = project;
-      myPsiDocumentManager = PsiDocumentManager.getInstance(project);
-      myFileDocumentManager = FileDocumentManager.getInstance();
-      myRegistry = registry;
-    }
-
-    @Override
-    public void documentChanged(@NotNull DocumentEvent event) {
-      if (myProject.isDisposed()) {
-        // Note that event may arrive from any project, not only from myProject.
-        // myProject can be temporarily disposed in light tests
-        return;
-      }
-
-      Document document = event.getDocument();
-      PsiFile psiFile = myPsiDocumentManager.getCachedPsiFile(document);
-      if (psiFile == null) {
-        VirtualFile virtualFile = myFileDocumentManager.getFile(document);
-        if (virtualFile != null && !(virtualFile instanceof LightVirtualFile) && isRelevantFile(virtualFile)) {
-          runInWriteAction(() -> myRegistry.dispatchToRepositories(virtualFile, ResourceFolderRepository::scheduleScan));
+        ResourceUpdateTracer.log {
+          "AndroidFileChangeListener.MyVfsListener.onFileOrDirectoryCreated(" + created + ", " +
+            repository.displayName + ")"
         }
-      }
-    }
-
-    private void runInWriteAction(@NotNull Runnable runnable) {
-      Application application = ApplicationManager.getApplication();
-      if (application.isWriteAccessAllowed()) {
-        runnable.run();
-      }
-      else {
-        application.invokeLater(() -> application.runWriteAction(runnable));
-      }
-    }
-  }
-
-  private class MyPsiListener implements PsiTreeChangeListener {
-
-    @Override
-    public void beforeChildAddition(@NotNull PsiTreeChangeEvent event) {
-    }
-
-    @Override
-    public void childAdded(@NotNull PsiTreeChangeEvent event) {
-      PsiFile psiFile = event.getFile();
-      if (psiFile == null) {
-        PsiElement child = event.getChild();
-        if (child instanceof PsiFile) {
-          VirtualFile file = ((PsiFile)child).getVirtualFile();
-          if (file != null) {
-            computeModulesToInvalidateAttributeDefinitions(file);
-            if (isRelevantFile(file)) {
-              dispatchChildAdded(event, file);
+        if (!created.isDirectory) {
+          repository.onFileCreated(created)
+        } else {
+          // ResourceFolderRepository doesn't handle event on a whole folder, so we pass all the children.
+          for (child in created.children) {
+            if (!child.isDirectory) {
+              // There is no need to visit subdirectories because Android does not support them.
+              // If a base resource directory is created (e.g res/), a whole
+              // ResourceFolderRepository will be created separately, so we don't need to handle
+              // this case here.
+              repository.onFileCreated(child)
             }
           }
         }
-        else if (child instanceof PsiDirectory) {
-          PsiDirectory directory = (PsiDirectory)child;
-          dispatchChildAdded(event, directory.getVirtualFile());
-        }
-      }
-      else if (isRelevantFile(psiFile)) {
-        dispatchChildAdded(event, psiFile.getVirtualFile());
-      }
-      else if (isGradleFile(psiFile)) {
-        notifyGradleEdit();
-      }
-
-      if (mySampleDataListener != null) {
-        mySampleDataListener.childAdded(event);
       }
     }
+  }
 
-    private void dispatchChildAdded(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-      dispatch(virtualFile, listener -> listener.childAdded(event));
+  internal class MyFileDocumentManagerListener(private val myRegistry: ResourceFolderRegistry) : FileDocumentManagerListener {
+    override fun fileWithNoDocumentChanged(file: VirtualFile) {
+      myRegistry.dispatchToRepositories(file) { obj: ResourceFolderRepository?, virtualFile: VirtualFile? ->
+        obj!!.scheduleScan(
+          virtualFile!!
+        )
+      }
     }
+  }
 
-    @Override
-    public void beforeChildRemoval(@NotNull PsiTreeChangeEvent event) {}
+  internal class MyDocumentListener internal constructor(private val myProject: Project, private val myRegistry: ResourceFolderRegistry) :
+    DocumentListener {
+    private val myFileDocumentManager = FileDocumentManager.getInstance()
+    private val myPsiDocumentManager: PsiDocumentManager = PsiDocumentManager.getInstance(myProject)
 
-    @Override
-    public void childRemoved(@NotNull PsiTreeChangeEvent event) {
-      PsiFile psiFile = event.getFile();
-
-      if (psiFile != null && psiFile.getVirtualFile() != null) {
-        computeModulesToInvalidateAttributeDefinitions(psiFile.getVirtualFile());
+    override fun documentChanged(event: DocumentEvent) {
+      if (myProject.isDisposed) {
+        // Note that event may arrive from any project, not only from myProject.
+        // myProject can be temporarily disposed in light tests
+        return
       }
 
+      val document = event.document
+      val psiFile = myPsiDocumentManager.getCachedPsiFile(document)
       if (psiFile == null) {
-        PsiElement child = event.getChild();
-        if (child instanceof PsiFile) {
-          VirtualFile file = ((PsiFile)child).getVirtualFile();
-          if (file != null && isRelevantFile(file)) {
-            dispatchChildRemoved(event, file);
-          }
-        }
-        else if (child instanceof PsiDirectory) {
-          PsiDirectory directory = (PsiDirectory)child;
-          if (ResourceFolderType.getFolderType(directory.getName()) != null) {
-            VirtualFile file = directory.getVirtualFile();
-            dispatchChildRemoved(event, file);
+        val virtualFile = myFileDocumentManager.getFile(document)
+        if (virtualFile != null && virtualFile !is LightVirtualFile && isRelevantFile(virtualFile)) {
+          runInWriteAction {
+            myRegistry.dispatchToRepositories(virtualFile) { obj: ResourceFolderRepository?, virtualFile: VirtualFile? ->
+              obj!!.scheduleScan(
+                virtualFile!!
+              )
+            }
           }
         }
       }
-      else if (isRelevantFile(psiFile)) {
-        VirtualFile file = psiFile.getVirtualFile();
-        dispatchChildRemoved(event, file);
-      }
-      else if (isGradleFile(psiFile)) {
-        notifyGradleEdit();
-      }
+    }
 
-      if (mySampleDataListener != null) {
-        mySampleDataListener.childRemoved(event);
+    private fun runInWriteAction(runnable: Runnable) {
+      val application = ApplicationManager.getApplication()
+      if (application.isWriteAccessAllowed) {
+        runnable.run()
+      } else {
+        application.invokeLater { application.runWriteAction(runnable) }
       }
     }
+  }
 
-    private void dispatchChildRemoved(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-      dispatch(virtualFile, listener -> listener.childRemoved(event));
+  private inner class MyPsiListener : PsiTreeChangeListener {
+    override fun beforeChildAddition(event: PsiTreeChangeEvent) {
     }
 
-    @Override
-    public void beforeChildReplacement(@NotNull PsiTreeChangeEvent event) {
-    }
-
-    @Override
-    public void childReplaced(@NotNull PsiTreeChangeEvent event) {
-      PsiFile psiFile = event.getFile();
-      if (psiFile != null) {
-        VirtualFile file = psiFile.getVirtualFile();
-        if (file != null) {
-          computeModulesToInvalidateAttributeDefinitions(file);
-        }
-
-        if (isRelevantFile(psiFile)) {
-          dispatchChildReplaced(event, file);
-        }
-        else if (isGradleFile(psiFile)) {
-          notifyGradleEdit();
-        }
-
-        if (mySampleDataListener != null) {
-          mySampleDataListener.childReplaced(event);
-        }
-      }
-      else {
-        PsiElement parent = event.getParent();
-        if (parent instanceof PsiDirectory) {
-          PsiDirectory directory = (PsiDirectory)parent;
-          dispatchChildReplaced(event, directory.getVirtualFile());
-        }
-      }
-    }
-
-    private void dispatchChildReplaced(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-      dispatch(virtualFile, listener -> listener.childReplaced(event));
-    }
-
-    private void notifyGradleEdit() {
-      myEditorNotifications.updateAllNotifications();
-    }
-
-    @Override
-    public void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
-      PsiFile psiFile = event.getFile();
-      if (psiFile != null && isRelevantFile(psiFile)) {
-        VirtualFile file = psiFile.getVirtualFile();
-        dispatchBeforeChildrenChange(event, file);
-      }
-    }
-
-    private void dispatchBeforeChildrenChange(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-      dispatch(virtualFile, listener -> listener.beforeChildrenChange(event));
-    }
-
-    @Override
-    public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
-      PsiFile psiFile = event.getFile();
-      if (psiFile != null) {
-        VirtualFile file = psiFile.getVirtualFile();
-        if (file != null) {
-          computeModulesToInvalidateAttributeDefinitions(file);
-        }
-
-        if (isRelevantFile(psiFile)) {
-          dispatchChildrenChanged(event, file);
-        }
-
-        if (mySampleDataListener != null) {
-          mySampleDataListener.childrenChanged(event);
-        }
-      }
-    }
-
-    private void dispatchChildrenChanged(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-      dispatch(virtualFile, listener -> listener.childrenChanged(event));
-    }
-
-    @Override
-    public void beforeChildMovement(@NotNull PsiTreeChangeEvent event) {
-    }
-
-    @Override
-    public void childMoved(@NotNull PsiTreeChangeEvent event) {
-      PsiElement child = event.getChild();
-      PsiFile psiFile = event.getFile();
+    override fun childAdded(event: PsiTreeChangeEvent) {
+      val psiFile = event.file
       if (psiFile == null) {
-        if (child instanceof PsiFile && isRelevantFile((PsiFile)child)) {
-          VirtualFile file = ((PsiFile)child).getVirtualFile();
+        val child = event.child
+        if (child is PsiFile) {
+          val file = child.virtualFile
           if (file != null) {
-            dispatchChildMoved(event, file);
-            return;
+            computeModulesToInvalidateAttributeDefinitions(file)
+            if (isRelevantFile(file)) {
+              dispatchChildAdded(event, file)
+            }
           }
+        } else if (child is PsiDirectory) {
+          dispatchChildAdded(event, child.virtualFile)
+        }
+      } else if (isRelevantFile(psiFile)) {
+        dispatchChildAdded(event, psiFile.virtualFile)
+      } else if (isGradleFile(psiFile)) {
+        notifyGradleEdit()
+      }
 
-          PsiElement oldParent = event.getOldParent();
-          if (oldParent instanceof PsiDirectory) {
-            PsiDirectory directory = (PsiDirectory)oldParent;
-            VirtualFile dir = directory.getVirtualFile();
-            dispatchChildMoved(event, dir);
+      if (mySampleDataListener != null) {
+        mySampleDataListener!!.childAdded(event)
+      }
+    }
+
+    private fun dispatchChildAdded(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
+      dispatch(virtualFile) { listener: PsiTreeChangeListener? -> listener!!.childAdded(event) }
+    }
+
+    override fun beforeChildRemoval(event: PsiTreeChangeEvent) {}
+
+    override fun childRemoved(event: PsiTreeChangeEvent) {
+      val psiFile = event.file
+
+      if (psiFile != null && psiFile.virtualFile != null) {
+        computeModulesToInvalidateAttributeDefinitions(psiFile.virtualFile)
+      }
+
+      if (psiFile == null) {
+        val child = event.child
+        if (child is PsiFile) {
+          val file = child.virtualFile
+          if (file != null && isRelevantFile(file)) {
+            dispatchChildRemoved(event, file)
+          }
+        } else if (child is PsiDirectory) {
+          val directory = child
+          if (ResourceFolderType.getFolderType(directory.name) != null) {
+            val file = directory.virtualFile
+            dispatchChildRemoved(event, file)
           }
         }
+      } else if (isRelevantFile(psiFile)) {
+        val file = psiFile.virtualFile
+        dispatchChildRemoved(event, file)
+      } else if (isGradleFile(psiFile)) {
+        notifyGradleEdit()
       }
-      else {
-        // Change inside a file
-        VirtualFile file = psiFile.getVirtualFile();
+
+      if (mySampleDataListener != null) {
+        mySampleDataListener!!.childRemoved(event)
+      }
+    }
+
+    private fun dispatchChildRemoved(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
+      dispatch(virtualFile) { listener: PsiTreeChangeListener? -> listener!!.childRemoved(event) }
+    }
+
+    override fun beforeChildReplacement(event: PsiTreeChangeEvent) {
+    }
+
+    override fun childReplaced(event: PsiTreeChangeEvent) {
+      val psiFile = event.file
+      if (psiFile != null) {
+        val file = psiFile.virtualFile
         if (file != null) {
-          computeModulesToInvalidateAttributeDefinitions(file);
+          computeModulesToInvalidateAttributeDefinitions(file)
+        }
+
+        if (isRelevantFile(psiFile)) {
+          dispatchChildReplaced(event, file)
+        } else if (isGradleFile(psiFile)) {
+          notifyGradleEdit()
+        }
+
+        if (mySampleDataListener != null) {
+          mySampleDataListener!!.childReplaced(event)
+        }
+      } else {
+        val parent = event.parent
+        if (parent is PsiDirectory) {
+          dispatchChildReplaced(event, parent.virtualFile)
+        }
+      }
+    }
+
+    private fun dispatchChildReplaced(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
+      dispatch(virtualFile) { listener: PsiTreeChangeListener? -> listener!!.childReplaced(event) }
+    }
+
+    private fun notifyGradleEdit() {
+      myEditorNotifications.updateAllNotifications()
+    }
+
+    override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
+      val psiFile = event.file
+      if (psiFile != null && isRelevantFile(psiFile)) {
+        val file = psiFile.virtualFile
+        dispatchBeforeChildrenChange(event, file)
+      }
+    }
+
+    private fun dispatchBeforeChildrenChange(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
+      dispatch(virtualFile) { listener: PsiTreeChangeListener? -> listener!!.beforeChildrenChange(event) }
+    }
+
+    override fun childrenChanged(event: PsiTreeChangeEvent) {
+      val psiFile = event.file
+      if (psiFile != null) {
+        val file = psiFile.virtualFile
+        if (file != null) {
+          computeModulesToInvalidateAttributeDefinitions(file)
+        }
+
+        if (isRelevantFile(psiFile)) {
+          dispatchChildrenChanged(event, file)
+        }
+
+        if (mySampleDataListener != null) {
+          mySampleDataListener!!.childrenChanged(event)
+        }
+      }
+    }
+
+    private fun dispatchChildrenChanged(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
+      dispatch(virtualFile) { listener: PsiTreeChangeListener? -> listener!!.childrenChanged(event) }
+    }
+
+    override fun beforeChildMovement(event: PsiTreeChangeEvent) {
+    }
+
+    override fun childMoved(event: PsiTreeChangeEvent) {
+      val child = event.child
+      val psiFile = event.file
+      if (psiFile == null) {
+        if (child is PsiFile && isRelevantFile(child)) {
+          val file = child.virtualFile
+          if (file != null) {
+            dispatchChildMoved(event, file)
+            return
+          }
+
+          val oldParent = event.oldParent
+          if (oldParent is PsiDirectory) {
+            val dir = oldParent.virtualFile
+            dispatchChildMoved(event, dir)
+          }
+        }
+      } else {
+        // Change inside a file
+        val file = psiFile.virtualFile
+        if (file != null) {
+          computeModulesToInvalidateAttributeDefinitions(file)
           if (isRelevantFile(file)) {
-            dispatchChildMoved(event, file);
+            dispatchChildMoved(event, file)
           }
 
           if (mySampleDataListener != null) {
-            mySampleDataListener.childMoved(event);
+            mySampleDataListener!!.childMoved(event)
           }
         }
       }
     }
 
-    private void dispatchChildMoved(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-      dispatch(virtualFile, listener -> listener.childMoved(event));
+    private fun dispatchChildMoved(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
+      dispatch(virtualFile) { listener: PsiTreeChangeListener? -> listener!!.childMoved(event) }
 
       // If you moved the file between resource directories, potentially notify that previous repository as well
-      if (event.getFile() == null) {
-        PsiElement oldParent = event.getOldParent();
-        if (oldParent instanceof PsiDirectory) {
-          PsiDirectory sourceDir = (PsiDirectory)oldParent;
-          dispatch(sourceDir.getVirtualFile(), listener -> listener.childMoved(event));
+      if (event.file == null) {
+        val oldParent = event.oldParent
+        if (oldParent is PsiDirectory) {
+          dispatch(oldParent.virtualFile) { listener: PsiTreeChangeListener? -> listener!!.childMoved(event) }
         }
       }
     }
 
-    @Override
-    public void beforePropertyChange(@NotNull PsiTreeChangeEvent event) {
-      if (PsiTreeChangeEvent.PROP_FILE_NAME.equals(event.getPropertyName())) {
-        PsiElement child = event.getChild();
-        if (child instanceof PsiFile) {
-          PsiFile psiFile = (PsiFile)child;
+    override fun beforePropertyChange(event: PsiTreeChangeEvent) {
+      if (PsiTreeChangeEvent.PROP_FILE_NAME == event.propertyName) {
+        val child = event.child
+        if (child is PsiFile) {
+          val psiFile = child
           if (isRelevantFile(psiFile)) {
-            VirtualFile file = psiFile.getVirtualFile();
-            dispatchBeforePropertyChange(event, file);
+            val file = psiFile.virtualFile
+            dispatchBeforePropertyChange(event, file)
           }
         }
       }
     }
 
-    private void dispatchBeforePropertyChange(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-      dispatch(virtualFile, listener -> listener.beforePropertyChange(event));
+    private fun dispatchBeforePropertyChange(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
+      dispatch(virtualFile) { listener: PsiTreeChangeListener? -> listener!!.beforePropertyChange(event) }
     }
 
-    @Override
-    public void propertyChanged(@NotNull PsiTreeChangeEvent event) {
-      if (PsiTreeChangeEvent.PROP_FILE_NAME.equals(event.getPropertyName())) {
-        PsiElement child = event.getElement();
-        if (child instanceof PsiFile) {
-          PsiFile psiFile = (PsiFile)child;
+    override fun propertyChanged(event: PsiTreeChangeEvent) {
+      if (PsiTreeChangeEvent.PROP_FILE_NAME == event.propertyName) {
+        val child = event.element
+        if (child is PsiFile) {
+          val psiFile = child
           if (isRelevantFile(psiFile)) {
-            VirtualFile file = psiFile.getVirtualFile();
-            dispatchPropertyChanged(event, file);
+            val file = psiFile.virtualFile
+            dispatchPropertyChanged(event, file)
           }
         }
       }
@@ -700,28 +526,145 @@ public class AndroidFileChangeListener implements Disposable {
       // and what about PROP_FILE_TYPES -- can users change the type of an XML File to something else?
     }
 
-    private void dispatchPropertyChanged(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
-      dispatch(virtualFile, listener -> listener.propertyChanged(event));
+    private fun dispatchPropertyChanged(event: PsiTreeChangeEvent, virtualFile: VirtualFile?) {
+      dispatch(virtualFile) { listener: PsiTreeChangeListener? -> listener!!.propertyChanged(event) }
     }
 
     /**
      * Invalidates attribute definitions of relevant modules after changes to a given file
      */
-    private void computeModulesToInvalidateAttributeDefinitions(@NotNull VirtualFile file) {
+    private fun computeModulesToInvalidateAttributeDefinitions(file: VirtualFile) {
       if (!isRelevantFile(file)) {
-        return;
+        return
       }
 
-      AndroidFacet facet = AndroidFacet.getInstance(file, myProject);
+      val facet = AndroidFacet.getInstance(file, myProject)
       if (facet != null) {
-        for (Module module : AndroidUtils.getSetWithBackwardDependencies(facet.getModule())) {
-          AndroidFacet moduleFacet = AndroidFacet.getInstance(module);
+        for (module in AndroidUtils.getSetWithBackwardDependencies(facet.module)) {
+          val moduleFacet = AndroidFacet.getInstance(module)
 
           if (moduleFacet != null) {
-            ModuleResourceManagers.getInstance(moduleFacet).getLocalResourceManager().invalidateAttributeDefinitions();
+            ModuleResourceManagers.getInstance(moduleFacet).localResourceManager.invalidateAttributeDefinitions()
           }
         }
       }
+    }
+  }
+
+  companion object {
+    fun getInstance(project: Project): AndroidFileChangeListener {
+      return project.getService(AndroidFileChangeListener::class.java)
+    }
+
+    fun isRelevantFileType(fileType: FileType): Boolean {
+      if (fileType === JavaFileType.INSTANCE || fileType === KotlinFileType.INSTANCE) { // fail fast for vital file type
+        return false
+      }
+      if (fileType === XmlFileType.INSTANCE) {
+        return true
+      }
+
+      // TODO: ensure that only android compatible images are recognized.
+      if (fileType.isBinary) {
+        return fileType === ImageFileTypeManager.getInstance().imageFileType ||
+          fileType === FontFileType.INSTANCE
+      }
+
+      return false
+    }
+
+    /**
+     * Checks if the file is relevant. May perform file I/O.
+     */
+    @JvmStatic
+    @Slow
+    fun isRelevantFile(file: VirtualFile): Boolean {
+      // VirtualFile.getFileType will try to read from the file the first time it's
+      // called, so we try to avoid it as much as possible. Instead, we will just
+      // try to infer the type based on the extension.
+      val extension = file.extension
+      if (StringUtil.isEmpty(extension)) {
+        return false
+      }
+
+      if (JavaFileType.DEFAULT_EXTENSION == extension || KotlinFileType.EXTENSION == extension) {
+        return false
+      }
+
+      if (XmlFileType.DEFAULT_EXTENSION == extension) {
+        return true
+      }
+
+      if (SdkConstants.FN_ANDROID_MANIFEST_XML == file.name) {
+        return true
+      }
+
+      if (AidlFileType.DEFAULT_ASSOCIATED_EXTENSION == extension) {
+        return true
+      }
+
+      val parent = file.parent
+      if (parent != null) {
+        val parentName = parent.name
+        if (parentName.startsWith(SdkConstants.FD_RES_RAW)) {
+          return true
+        }
+      }
+
+      // Unable to determine based on filename, use the slow method.
+      val fileType = file.fileType
+      return fileType == AndroidRenderscriptFileType.INSTANCE || isRelevantFileType(fileType)
+    }
+
+    @JvmStatic
+    fun isRelevantFile(file: PsiFile): Boolean {
+      val fileType = file.fileType
+      if (fileType === JavaFileType.INSTANCE || fileType === KotlinFileType.INSTANCE) {
+        return false
+      }
+
+      if (isRelevantFileType(fileType)) {
+        return true
+      }
+
+      val parent = file.parent ?: return false
+
+      val parentName = parent.name
+      return parentName.startsWith(SdkConstants.FD_RES_RAW)
+    }
+
+    @JvmStatic
+    fun isGradleFile(psiFile: PsiFile): Boolean {
+      if (isGradleFile(psiFile)) {
+        return true
+      }
+      val fileType = psiFile.fileType
+      if (fileType.name == "Kotlin" && psiFile.name.endsWith(SdkConstants.EXT_GRADLE_KTS)) {
+        return true
+      }
+      // Do not test getFileType() as this will differ depending on whether the Toml plugin is active or not.
+      if (psiFile.name.endsWith(SdkConstants.DOT_VERSIONS_DOT_TOML)) {
+        return true
+      }
+      if (fileType === PropertiesFileType.INSTANCE &&
+        (SdkConstants.FN_GRADLE_PROPERTIES == psiFile.name || SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == psiFile.name)
+      ) {
+        return true
+      }
+
+      if (fileType === PropertiesFileType.INSTANCE) {
+        val psiFileName = psiFile.name
+        if (SdkConstants.FN_GRADLE_PROPERTIES == psiFileName || SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES == psiFileName) {
+          return true
+        }
+
+        val psiParent = psiFile.parent
+        if (SdkConstants.FN_GRADLE_CONFIG_PROPERTIES == psiFileName && psiParent != null && SdkConstants.FD_GRADLE_CACHE == psiParent.name) {
+          return true
+        }
+      }
+
+      return false
     }
   }
 }
