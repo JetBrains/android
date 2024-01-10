@@ -24,16 +24,14 @@ import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.codeInsight.lookup.LookupEvent
 import com.intellij.codeInsight.lookup.LookupListener
 import com.intellij.codeInsight.lookup.LookupManager
+import com.intellij.codeInsight.lookup.LookupManagerListener
 import com.intellij.codeInsight.lookup.impl.LookupImpl
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
 import com.intellij.psi.PsiElement
 import com.intellij.util.Alarm
-import java.beans.PropertyChangeListener
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
@@ -42,36 +40,27 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClass
 class ComposeAutoDocumentation(private val project: Project) {
   private var documentationOpenedByCompose = false
 
-  private val lookupListener = PropertyChangeListener { evt ->
-    if (LookupManager.PROP_ACTIVE_LOOKUP == evt.propertyName && evt.newValue is Lookup) {
-      val lookup = evt.newValue as Lookup
-
+  class MyLookupManagerListener(private val project: Project) : LookupManagerListener {
+    override fun activeLookupChanged(oldLookup: Lookup?, newLookup: Lookup?) {
+      if (newLookup == null) {
+        return
+      }
       val moduleSystem =
         FileDocumentManager.getInstance()
-          .getFile(lookup.editor.document)
-          ?.let { ModuleUtilCore.findModuleForFile(it, lookup.project) }
+          .getFile(newLookup.editor.document)
+          ?.let { ModuleUtilCore.findModuleForFile(it, newLookup.project) }
           ?.getModuleSystem()
 
       if (moduleSystem?.usesCompose == true) {
-        lookup.addLookupListener(
+        newLookup.addLookupListener(
           object : LookupListener {
             override fun currentItemChanged(event: LookupEvent) {
-              showJavaDoc(lookup)
+              getInstance(project).showJavaDoc(newLookup)
             }
           }
         )
       }
     }
-  }
-
-  fun onProjectOpened() {
-    if (!ApplicationManager.getApplication().isUnitTestMode) {
-      LookupManager.getInstance(project).addPropertyChangeListener(lookupListener)
-    }
-  }
-
-  class MyStartupActivity : StartupActivity {
-    override fun runActivity(project: Project) = getInstance(project).onProjectOpened()
   }
 
   companion object {
