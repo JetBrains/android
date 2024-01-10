@@ -339,9 +339,9 @@ internal class DeviceClient(
     }
     else {
       // Installed Studio.
-      val pluginDir = PluginPathManager.getPluginHome("android").toPath()
-      soFile = pluginDir.resolve("resources/screen-sharing-agent/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
-      jarFile = pluginDir.resolve("resources/screen-sharing-agent/$SCREEN_SHARING_AGENT_JAR_NAME")
+      val agentDir = PluginPathManager.getPluginHome("android/resources/screen-sharing-agent").toPath()
+      soFile = agentDir.resolve("$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
+      jarFile = agentDir.resolve(SCREEN_SHARING_AGENT_JAR_NAME)
     }
 
     coroutineScope {
