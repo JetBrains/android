@@ -39,7 +39,7 @@ object ProfilerTaskLauncher {
                          taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>,
                          session: Common.Session,
                          sessionIdToSessionItems: Map<Long, SessionItem>,
-                         openTaskTab: BiConsumer<ProfilerTaskType, TaskArgs?>) {
+                         openTaskTab: BiConsumer<ProfilerTaskType, TaskArgs>) {
     if (!taskHandlers.containsKey(selectedTaskType)) {
       getLogger().error("The task type, " + selectedTaskType.description + ", " + "does not have a corresponding task handler.")
       return

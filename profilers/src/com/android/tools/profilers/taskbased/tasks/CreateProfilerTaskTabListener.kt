@@ -30,7 +30,7 @@ fun interface CreateProfilerTaskTabListener {
    * @param taskType The [ProfilerTaskType] that should be opened.
    * @param args A serialized representation of the arguments needed to open the requested task.
    */
-  fun createProfilerTaskTab(taskType: ProfilerTaskType, args: TaskArgs?)
+  fun createProfilerTaskTab(taskType: ProfilerTaskType, args: TaskArgs)
 
   companion object {
     @JvmField

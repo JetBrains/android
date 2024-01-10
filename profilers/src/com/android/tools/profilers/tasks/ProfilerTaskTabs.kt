@@ -32,7 +32,7 @@ object ProfilerTaskTabs {
    * @param taskType The [ProfilerTaskType] that should be opened.
    * @param args A serialized representation of the arguments needed to open the requested task.
    */
-  fun create(project: Project, taskType: ProfilerTaskType, args: TaskArgs?) {
+  fun create(project: Project, taskType: ProfilerTaskType, args: TaskArgs) {
     project.messageBus.syncPublisher(CreateProfilerTaskTabListener.TOPIC).createProfilerTaskTab(taskType, args)
   }
 

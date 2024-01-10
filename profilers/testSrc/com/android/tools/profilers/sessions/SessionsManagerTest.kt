@@ -39,6 +39,7 @@ import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemTraceTaskHandler
+import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.NativeAllocationsTaskHandler
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -880,7 +881,7 @@ class SessionsManagerTest {
   @Test
   fun `explicitly selecting a complete FULL session with non-UNSPECIFIED task type triggers session selection in task-based ux`() {
     ideProfilerServices.enableTaskBasedUx(true)
-    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, SystemTraceTaskHandler(myManager, false))
+    myProfilers.addTaskHandler(ProfilerTaskType.NATIVE_ALLOCATIONS, NativeAllocationsTaskHandler(myManager))
     val sessionId = 123L
     val streamId = 1L
     val startTimestamp = 1L
@@ -889,9 +890,17 @@ class SessionsManagerTest {
     myTransportService.addEventToStream(streamId,
                                         ProfilersTestData.generateSessionStartEvent(streamId, sessionId, startTimestamp,
                                                                                     Common.SessionData.SessionStarted.SessionType.FULL,
-                                                                                    Common.ProfilerTaskType.SYSTEM_TRACE,
+                                                                                    Common.ProfilerTaskType.NATIVE_ALLOCATIONS,
                                                                                     startTimestamp, pid).build())
     myTransportService.addEventToStream(streamId, ProfilersTestData.generateSessionEndEvent(streamId, sessionId, endTimestamp).build())
+    // Populate the underlying session artifact so that createArgs successfully construct an artifact to load. Otherwise, an
+    // IllegalStateException will be raised.
+    val nativeHeapTimestamp = 30L
+    val nativeHeapInfo = Trace.TraceData.newBuilder().setTraceStarted(Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(
+      Trace.TraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(
+        nativeHeapTimestamp + 1))).build()
+    val nativeHeapData = ProfilersTestData.generateMemoryTraceData(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
+    myTransportService.addEventToStream(streamId, nativeHeapData.setPid(pid).build())
     myManager.update()
 
     // Auto-selection should not have occurred (explicit session selection is required in Task-Based UX for complete sessions).

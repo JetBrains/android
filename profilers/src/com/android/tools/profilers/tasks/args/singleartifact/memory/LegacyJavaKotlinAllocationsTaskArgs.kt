@@ -21,7 +21,7 @@ import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
  * The following class serves as a wrapper for all arguments/data passed to the legacy java/kotlin allocations task handler.
  */
 class LegacyJavaKotlinAllocationsTaskArgs(override val isFromStartup: Boolean = false,
-                                          private val artifact: LegacyAllocationsSessionArtifact)
+                                          private val artifact: LegacyAllocationsSessionArtifact?)
   : AllocationsTaskArgs<LegacyAllocationsSessionArtifact>() {
   override fun getAllocationSessionArtifact() = artifact
 }

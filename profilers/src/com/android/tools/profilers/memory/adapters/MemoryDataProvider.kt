@@ -55,14 +55,6 @@ open class MemoryDataProvider(val profilers: StudioProfilers,
   val legends = MemoryStageLegends(detailedMemoryUsage, timeline.dataRange, false, ::isLiveAllocationTrackingReady)
   val tooltipLegends = MemoryStageLegends(detailedMemoryUsage, timeline.tooltipRange, true, ::isLiveAllocationTrackingReady)
 
-  val isLiveAllocationTrackingSupported: Boolean
-    get() = with(getDeviceForSelectedSession()) { this != null && featureLevel >= AndroidVersion.VersionCodes.O }
-
-  fun getDeviceForSelectedSession() = profilers.getStream(profilers.session.streamId).let { stream ->
-    if (stream.type === Common.Stream.Type.DEVICE) stream.device
-    else null
-  }
-
   fun forceGarbageCollection() {
     profilers.client.transportClient.execute(
       Transport.ExecuteRequest.newBuilder()
@@ -89,5 +81,17 @@ open class MemoryDataProvider(val profilers: StudioProfilers,
   companion object {
     val MEMORY_AXIS_FORMATTER: BaseAxisFormatter = MemoryAxisFormatter(1, 5, 5)
     val OBJECT_COUNT_AXIS_FORMATTER: BaseAxisFormatter = SingleUnitAxisFormatter(1, 5, 5, "")
+
+    /**
+     * Returns whether the device, provided by StudioProfilers' selected session, supports live allocation tracking with an API level of
+     * Android O or higher.
+     */
+    fun getIsLiveAllocationTrackingSupported(profilers: StudioProfilers) = with(
+      getDeviceForSelectedSession(profilers)) { this != null && featureLevel >= AndroidVersion.VersionCodes.O }
+
+    fun getDeviceForSelectedSession(profilers: StudioProfilers) = profilers.getStream(profilers.session.streamId).let { stream ->
+      if (stream.type === Common.Stream.Type.DEVICE) stream.device
+      else null
+    }
   }
 }

@@ -37,6 +37,7 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.google.common.truth.Truth.assertThat
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -113,7 +114,7 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
     // To start the task and thus the capture, the stage must be set up before. This will be taken care of via the setupStage() method call,
     // on enter of the task handler, but this test is testing the explicit invocation of startTask.
     myJavaKotlinMethodTraceTaskHandler.setupStage()
-    myJavaKotlinMethodTraceTaskHandler.startTask()
+    myJavaKotlinMethodTraceTaskHandler.startTask(CpuTaskArgs(false, null))
     assertThat(myJavaKotlinMethodTraceTaskHandler.stage!!.recordingModel.isRecording).isTrue()
   }
 
@@ -122,7 +123,7 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
     // To start the task and thus the capture, the stage must be set up before. Here we will test the case where startTask is invoked
     // without the stage being set precondition being met.
     val exception = assertFailsWith<Throwable> {
-      myJavaKotlinMethodTraceTaskHandler.startTask()
+      myJavaKotlinMethodTraceTaskHandler.startTask(CpuTaskArgs(false, null))
     }
     assertThat(myJavaKotlinMethodTraceTaskHandler.stage).isNull()
     assertThat(exception.message).isEqualTo(
@@ -139,7 +140,7 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
       .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
       .build()
     myJavaKotlinMethodTraceTaskHandler.setupStage()
-    myJavaKotlinMethodTraceTaskHandler.startTask()
+    myJavaKotlinMethodTraceTaskHandler.startTask(CpuTaskArgs(false, null))
     assertThat(myJavaKotlinMethodTraceTaskHandler.stage!!.recordingModel.isRecording).isTrue()
 
     // Wait for successful start event to be consumed.
@@ -165,7 +166,7 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
       .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
       .build()
     myJavaKotlinMethodTraceTaskHandler.setupStage()
-    myJavaKotlinMethodTraceTaskHandler.startTask()
+    myJavaKotlinMethodTraceTaskHandler.startTask(CpuTaskArgs(false, null))
     assertThat(myManager.isSessionAlive).isTrue()
 
     // Wait for successful start event to be consumed.
@@ -227,7 +228,7 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
   }
 
   @Test
-  fun testLoadTaskWithNullTaskArgs() {
+  fun testLoadTaskWithNullTaskArgsArtifact() {
     TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
                                              Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE)
 
@@ -235,12 +236,12 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
 
     val exception = assertFailsWith<Throwable> {
-      myJavaKotlinMethodTraceTaskHandler.loadTask(null)
+      myJavaKotlinMethodTraceTaskHandler.loadTask(CpuTaskArgs(false, null))
     }
 
     assertThat(exception.message).isEqualTo(
-      "There was an error with the Java/Kotlin Method Trace task. Error message: The task arguments (TaskArgs) supplied are not of the " +
-      "expected type (CpuTaskArgs).")
+      "There was an error with the Java/Kotlin Method Trace task. Error message: The task arguments (CpuTaskArgs) supplied do not " +
+      "contains a valid artifact to load.")
 
     // Verify that the artifact doSelect behavior was not called by checking if the stage was not set to CpuProfilerStage.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
@@ -259,7 +260,8 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
     val cpuTaskArgs = myJavaKotlinMethodTraceTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(cpuTaskArgs).isNotNull()
     assertThat(cpuTaskArgs).isInstanceOf(CpuTaskArgs::class.java)
-    assertThat(cpuTaskArgs!!.getCpuCaptureArtifact()).isNotNull()
+    cpuTaskArgs as CpuTaskArgs
+    assertThat(cpuTaskArgs.getCpuCaptureArtifact()).isNotNull()
     assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.configuration.hasArtOptions()).isTrue()
     assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.configuration.artOptions.traceMode).isEqualTo(TraceMode.INSTRUMENTED)
     assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.fromTimestamp).isEqualTo(5L)
@@ -267,7 +269,7 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
   }
 
   @Test
-  fun testCreateArgsFails() {
+  fun testCreateArgsFailsToFindArtifact() {
     // By setting a session id that does not match any of the session items, the task artifact will not be found in the call to createArgs
     // will fail to be constructed.
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
@@ -278,10 +280,9 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
                                                                        createDefaultArtInstrumentedTraceConfiguration()))),
     )
 
-    val cpuTaskArgs = myJavaKotlinMethodTraceTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
-    // A return value of null indicates the task args were not constructed correctly (the underlying artifact was not found or supported by
-    // the task).
-    assertThat(cpuTaskArgs).isNull()
+    assertThrows(IllegalStateException::class.java) {
+      myJavaKotlinMethodTraceTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
+    }
   }
 
   @Test

@@ -203,7 +203,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   /**
    * Creates and opens a Profiler task tab for a specified task type. If a task tab has been opened beforehand, the existing tab is reused.
    */
-  fun createTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs?) {
+  fun createTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs) {
     val taskTab = findTaskTab()
     val taskName = taskHandlers[taskType]?.getTaskName() ?: "Task Not Supported Yet"
     val taskIcon = TaskBasedUxIcons.getTaskIcon(taskType).swingIcon

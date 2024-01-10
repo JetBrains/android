@@ -42,6 +42,7 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.JavaKotlinAllocationsTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.LegacyJavaKotlinAllocationsTaskArgs
 import com.google.common.truth.Truth.assertThat
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -140,7 +141,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
     // To start the task and thus the capture, the stage must be set up before. This will be taken care of via the setupStage() method call,
     // on enter of the task handler, but this test is testing the explicit invocation of startTask.
     myJavaKotlinAllocationsTaskHandler.setupStage()
-    myJavaKotlinAllocationsTaskHandler.startTask()
+    myJavaKotlinAllocationsTaskHandler.startTask(JavaKotlinAllocationsTaskArgs(false, null))
     assertThat(myJavaKotlinAllocationsTaskHandler.stage!!.recordingOptionsModel.isRecording).isTrue()
   }
 
@@ -149,7 +150,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
     // To start the task and thus the capture, the stage must be set up before. Here we will test the case where startTask is invoked
     // without the stage being set precondition being met.
     val exception = assertFailsWith<Throwable> {
-      myJavaKotlinAllocationsTaskHandler.startTask()
+      myJavaKotlinAllocationsTaskHandler.startTask(JavaKotlinAllocationsTaskArgs(false, null))
     }
     assertThat(myJavaKotlinAllocationsTaskHandler.stage).isNull()
     assertThat(exception.message).isEqualTo(
@@ -173,7 +174,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
     myProfilers.timeline.dataRange.set(0.0, 1.0)
 
     myJavaKotlinAllocationsTaskHandler.setupStage()
-    myJavaKotlinAllocationsTaskHandler.startTask()
+    myJavaKotlinAllocationsTaskHandler.startTask(JavaKotlinAllocationsTaskArgs(false, null))
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     // Because the Java/Kotlin task's stop is self-contained within the AllocationStage, we must force stop tracking allocations.
@@ -260,7 +261,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
   }
 
   @Test
-  fun testLoadTaskWithNullTaskArgs() {
+  fun testLoadTaskWithNullTaskArgsArtifact() {
     TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer,
                                              Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
 
@@ -268,12 +269,12 @@ class JavaKotlinAllocationsTaskHandlerTest {
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
     val exception = assertFailsWith<Throwable> {
-      myJavaKotlinAllocationsTaskHandler.loadTask(null)
+      myJavaKotlinAllocationsTaskHandler.loadTask(JavaKotlinAllocationsTaskArgs(false, null))
     }
 
     assertThat(exception.message).isEqualTo(
-      "There was an error with the Java/Kotlin Allocations task. Error message: The task arguments (TaskArgs) supplied are not of the " +
-      "expected type (JavaKotlinAllocationTaskArgs).")
+      "There was an error with the Java/Kotlin Allocations task. Error message: The task arguments (AllocationsTaskArgs) supplied do " +
+      "not contains a valid artifact to load.")
 
     // Verify that the artifact doSelect behavior was not called by checking if the stage was not set to MainMemoryProfilerStage.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -290,9 +291,10 @@ class JavaKotlinAllocationsTaskHandlerTest {
     val allocationsTaskArgs = myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(allocationsTaskArgs).isNotNull()
     assertThat(allocationsTaskArgs).isInstanceOf(JavaKotlinAllocationsTaskArgs::class.java)
-    assertThat(allocationsTaskArgs!!.getAllocationSessionArtifact()).isNotNull()
-    assertThat(allocationsTaskArgs.getAllocationSessionArtifact().artifactProto.startTime).isEqualTo(1L)
-    assertThat(allocationsTaskArgs.getAllocationSessionArtifact().artifactProto.endTime).isEqualTo(100L)
+    allocationsTaskArgs as JavaKotlinAllocationsTaskArgs
+    assertThat(allocationsTaskArgs.getAllocationSessionArtifact()).isNotNull()
+    assertThat(allocationsTaskArgs.getAllocationSessionArtifact()!!.artifactProto.startTime).isEqualTo(1L)
+    assertThat(allocationsTaskArgs.getAllocationSessionArtifact()!!.artifactProto.endTime).isEqualTo(100L)
   }
 
   @Test
@@ -306,13 +308,14 @@ class JavaKotlinAllocationsTaskHandlerTest {
     val legacyAllocationsTaskArgs = myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(legacyAllocationsTaskArgs).isNotNull()
     assertThat(legacyAllocationsTaskArgs).isInstanceOf(LegacyJavaKotlinAllocationsTaskArgs::class.java)
-    assertThat(legacyAllocationsTaskArgs!!.getAllocationSessionArtifact()).isNotNull()
-    assertThat(legacyAllocationsTaskArgs.getAllocationSessionArtifact().artifactProto.startTime).isEqualTo(1L)
-    assertThat(legacyAllocationsTaskArgs.getAllocationSessionArtifact().artifactProto.endTime).isEqualTo(100L)
+    legacyAllocationsTaskArgs as LegacyJavaKotlinAllocationsTaskArgs
+    assertThat(legacyAllocationsTaskArgs.getAllocationSessionArtifact()).isNotNull()
+    assertThat(legacyAllocationsTaskArgs.getAllocationSessionArtifact()!!.artifactProto.startTime).isEqualTo(1L)
+    assertThat(legacyAllocationsTaskArgs.getAllocationSessionArtifact()!!.artifactProto.endTime).isEqualTo(100L)
   }
 
   @Test
-  fun testCreateArgsFails() {
+  fun testCreateArgsFailsToFindArtifact() {
     // By setting a session id that does not match any of the session items, the task artifact will not be found in the call to createArgs
     // will fail to be constructed.
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
@@ -321,10 +324,9 @@ class JavaKotlinAllocationsTaskHandlerTest {
         createAllocationSessionArtifact(myProfilers, selectedSession, 1, 100))),
     )
 
-    val allocationsTaskArgs = myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
-    // A return value of null indicates the task args were not constructed correctly (the underlying artifact was not found or supported by
-    // the task).
-    assertThat(allocationsTaskArgs).isNull()
+    assertThrows(IllegalStateException::class.java) {
+      myJavaKotlinAllocationsTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
+    }
   }
 
   @Test

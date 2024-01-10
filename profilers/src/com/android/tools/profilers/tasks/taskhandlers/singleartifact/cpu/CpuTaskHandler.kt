@@ -19,13 +19,11 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
-import com.android.tools.profilers.sessions.SessionItem
+import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
-import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerUtils.findTaskArtifact
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.SingleArtifactTaskHandler
-import com.intellij.util.asSafely
 
 abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : SingleArtifactTaskHandler<CpuProfilerStage>(sessionsManager) {
   override fun setupStage() {
@@ -44,7 +42,7 @@ abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : Si
     stage.stopCpuRecording()
   }
 
-  override fun loadTask(args: TaskArgs?): Boolean {
+  override fun loadTask(args: TaskArgs): Boolean {
     if (args !is CpuTaskArgs) {
       handleError("The task arguments (TaskArgs) supplied are not of the expected type (CpuTaskArgs)")
       return false
@@ -59,27 +57,9 @@ abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : Si
     return true
   }
 
-  override fun createArgs(
-    isStartupTask: Boolean,
-    sessionItems: Map<Long, SessionItem>,
-    selectedSession: Common.Session
-  ): CpuTaskArgs? {
-    return if (SessionsManager.isSessionAlive(selectedSession)) {
-      // If the session/task is ongoing, then the args only need to contain data on whether it is a startup task or not.
-      CpuTaskArgs(isStartupTask, null)
-    }
-    else {
-      // If the session/task is complete, then the args only need to contain data on the underlying capture/artifact to load.
-      val artifact = findTaskArtifact(selectedSession, sessionItems, ::supportsArtifact)
-      // Only if the underlying artifact is non-null should the TaskArgs be non-null
-      if (supportsArtifact(artifact)) {
-        artifact.asSafely<CpuCaptureSessionArtifact>()?.let { CpuTaskArgs(isStartupTask, it) }
-      }
-      else {
-        null
-      }
-    }
-  }
+  override fun createStartTaskArgs(isStartupTask: Boolean) = CpuTaskArgs(isStartupTask, null)
+
+  override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = CpuTaskArgs(false, artifact as CpuCaptureSessionArtifact)
 
   override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =
     device.featureLevel >= getCpuRecordingConfig().requiredDeviceLevel

@@ -58,11 +58,11 @@ class TaskHandlerUtilsTest {
   }
 
   @Test
-  fun `test executeTaskAction with null arg`() {
+  fun `test executeTaskAction with null arg artifact`() {
     var actionExecuted = false
     val action = {
-      val args: CpuTaskArgs? = null
-      args!!.getCpuCaptureArtifact()
+      val args = CpuTaskArgs(false, null)
+      args.getCpuCaptureArtifact()!!.doSelect()
       actionExecuted = true
     }
     var errorMessage = ""

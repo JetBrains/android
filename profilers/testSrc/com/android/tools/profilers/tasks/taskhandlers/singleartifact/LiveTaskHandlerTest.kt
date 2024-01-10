@@ -37,6 +37,7 @@ import com.android.tools.profilers.tasks.args.singleartifact.memory.HeapDumpTask
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.google.common.truth.Truth.assertThat
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -105,7 +106,7 @@ class LiveTaskHandlerTest {
     liveViewHandlerSpy.enter(mockArgs)
 
     // Verify that the setupStage method is only invoked once on enter.
-    Mockito.verify(liveViewHandlerSpy, Mockito.times(1)).startTask()
+    Mockito.verify(liveViewHandlerSpy, Mockito.times(1)).startTask(mockArgs)
   }
 
 
@@ -130,7 +131,7 @@ class LiveTaskHandlerTest {
 
   @Test
   fun `test startTask calling the enter method of LiveStage`() {
-    liveTaskHandler.startTask()
+    liveTaskHandler.startTask(LiveTaskArgs(false, null))
     val liveStage = myProfilers.stage as LiveStage
 
     // Should have Cpu and Memory live data models
@@ -162,11 +163,12 @@ class LiveTaskHandlerTest {
     val liveTaskHandlerCreateArgs = liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(liveTaskHandlerCreateArgs).isNotNull()
     assertThat(liveTaskHandlerCreateArgs).isInstanceOf(LiveTaskArgs::class.java)
-    assertThat(liveTaskHandlerCreateArgs?.getLiveTaskArtifact()).isEqualTo(sessionIdToSessionItems[selectedSession.sessionId])
+    assertThat((liveTaskHandlerCreateArgs as LiveTaskArgs).getLiveTaskArtifact()).isEqualTo(
+      sessionIdToSessionItems[selectedSession.sessionId])
   }
 
   @Test
-  fun testCreateArgsFailsDueToSessionIdMisMatch() {
+  fun testCreateArgsFailsToFindArtifactDueToMismatchedSessionIds() {
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
     val sessionIdToSessionItems = mapOf(
       1L to createSessionItem(myProfilers, selectedSession, 1, listOf()),
@@ -174,13 +176,13 @@ class LiveTaskHandlerTest {
     // Begin live view session
     TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
                                       myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.LIVE_VIEW)
-
-    val liveTaskHandlerCreateArgs = liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
-    assertThat(liveTaskHandlerCreateArgs).isNull()
+    assertThrows(IllegalStateException::class.java) {
+      liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
+    }
   }
 
   @Test
-  fun testCreateArgsFailsDueToNotLiveViewTaskType() {
+  fun testCreateArgsFailsToFindArtifactDueToNotLiveViewTaskType() {
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
     val sessionIdToSessionItems = mapOf(
       1L to createSessionItem(myProfilers, selectedSession, 1, listOf()),
@@ -189,8 +191,9 @@ class LiveTaskHandlerTest {
     TaskHandlerTestUtils.startSession(Common.Process.ExposureLevel.DEBUGGABLE,
                                       myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE)
 
-    val liveTaskHandlerCreateArgs = liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
-    assertThat(liveTaskHandlerCreateArgs).isNull()
+    assertThrows(IllegalStateException::class.java) {
+      liveTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
+    }
   }
 
   @Test

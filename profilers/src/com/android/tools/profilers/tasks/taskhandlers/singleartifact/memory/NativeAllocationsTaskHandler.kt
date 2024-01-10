@@ -40,7 +40,7 @@ class NativeAllocationsTaskHandler(sessionsManager: SessionsManager) : MemoryTas
     stage.stopMemoryRecording()
   }
 
-  override fun loadTask(args: TaskArgs?): Boolean {
+  override fun loadTask(args: TaskArgs): Boolean {
     if (args !is NativeAllocationsTaskArgs) {
       handleError("The task arguments (TaskArgs) supplied are not of the expected type (NativeAllocationsTaskArgs)")
       return false
@@ -55,25 +55,10 @@ class NativeAllocationsTaskHandler(sessionsManager: SessionsManager) : MemoryTas
     return true
   }
 
-  override fun createArgs(isStartupTask: Boolean,
-                          sessionItems: Map<Long, SessionItem>,
-                          selectedSession: Common.Session): NativeAllocationsTaskArgs? {
-    // If the session/task is ongoing, then the args only need to contain data on whether it is a startup task or not.
-    return if (SessionsManager.isSessionAlive(selectedSession)) {
-      NativeAllocationsTaskArgs(isStartupTask, null)
-    }
-    else {
-      // If the session/task is complete, then the args only need to contain data on the underlying capture/artifact to load.
-      val artifact = findTaskArtifact(selectedSession, sessionItems, ::supportsArtifact)
-      // Only if the underlying artifact is non-null should the TaskArgs be non-null.
-      return if (supportsArtifact(artifact)) {
-        artifact.asSafely<HeapProfdSessionArtifact>()?.let { NativeAllocationsTaskArgs(isStartupTask, it) }
-      }
-      else {
-        null
-      }
-    }
-  }
+  override fun createStartTaskArgs(isStartupTask: Boolean) = NativeAllocationsTaskArgs(isStartupTask, null)
+
+  override fun createLoadingTaskArgs(artifact: SessionArtifact<*>) = NativeAllocationsTaskArgs(false,
+                                                                                               artifact as HeapProfdSessionArtifact)
 
   override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =
     SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_NATIVE_RECORDING)

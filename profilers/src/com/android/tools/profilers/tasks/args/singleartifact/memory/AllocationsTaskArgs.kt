@@ -23,5 +23,5 @@ import com.android.tools.profilers.tasks.args.singleartifact.SingleArtifactTaskA
  * The following class serves as a wrapper for all arguments/data passed to allocations task handlers.
  */
 abstract class AllocationsTaskArgs<T: SessionArtifact<Memory.AllocationsInfo>> : SingleArtifactTaskArgs {
-  abstract fun getAllocationSessionArtifact(): T
+  abstract fun getAllocationSessionArtifact(): T?
 }

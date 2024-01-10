@@ -52,7 +52,7 @@ class ProfilerTaskHandlerTest {
     val mockProfilerTaskHandler = createMockProfilerTaskHandler(mockSessionsManager, mockArgs)
     val args = mockProfilerTaskHandler.enter(mockArgs)
     // Verify that the startTask method was invoked once.
-    verify(mockProfilerTaskHandler, times(1)).startTask()
+    verify(mockProfilerTaskHandler, times(1)).startTask(mockArgs)
     // Verify that the loadTask method was not invoked.
     verify(mockProfilerTaskHandler, never()).loadTask(any())
     assertThat(args).isTrue()
@@ -68,7 +68,7 @@ class ProfilerTaskHandlerTest {
     val mockProfilerTaskHandler = createMockProfilerTaskHandler(mockSessionsManager, mockArgs)
     val args = mockProfilerTaskHandler.enter(mockArgs)
     // Verify that the startTask method was never invoked.
-    verify(mockProfilerTaskHandler, never()).startTask()
+    verify(mockProfilerTaskHandler, never()).startTask(mockArgs)
     // Verify that the loadTask method was invoked once.
     verify(mockProfilerTaskHandler, times(1)).loadTask(any())
     assertThat(args).isTrue()

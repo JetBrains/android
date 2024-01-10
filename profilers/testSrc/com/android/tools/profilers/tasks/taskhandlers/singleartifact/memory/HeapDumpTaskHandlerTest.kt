@@ -37,6 +37,7 @@ import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.HeapDumpTaskArgs
 import com.google.common.truth.Truth.assertThat
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -113,7 +114,7 @@ class HeapDumpTaskHandlerTest {
     // To start the task and thus the capture, the stage must be set up before. This will be taken care of via the setupStage() method call,
     // on enter of the task handler, but this test is testing the explicit invocation of startTask.
     myHeapDumpTaskHandler.setupStage()
-    myHeapDumpTaskHandler.startTask()
+    myHeapDumpTaskHandler.startTask(HeapDumpTaskArgs(false, null))
     assertThat(myHeapDumpTaskHandler.stage!!.recordingOptionsModel.isRecording).isTrue()
   }
 
@@ -122,7 +123,7 @@ class HeapDumpTaskHandlerTest {
     // To start the task and thus the capture, the stage must be set up before. Here we will test the case where startTask is invoked
     // without the stage being set precondition being met.
     val exception = assertFailsWith<Throwable> {
-      myHeapDumpTaskHandler.startTask()
+      myHeapDumpTaskHandler.startTask(HeapDumpTaskArgs(false, null))
     }
     assertThat(myHeapDumpTaskHandler.stage).isNull()
     assertThat(exception.message).isEqualTo("There was an error with the Heap Dump task. Error message: Cannot start the task as the " +
@@ -138,7 +139,7 @@ class HeapDumpTaskHandlerTest {
       dumpStatus = Memory.HeapDumpStatus.Status.SUCCESS
     }
     myHeapDumpTaskHandler.setupStage()
-    myHeapDumpTaskHandler.startTask()
+    myHeapDumpTaskHandler.startTask(HeapDumpTaskArgs(false, null))
     // Wait for successful end event to be consumed.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     // Issuing a heap dump command should result in the session terminating as well.
@@ -182,7 +183,7 @@ class HeapDumpTaskHandlerTest {
   }
 
   @Test
-  fun testLoadTaskWithNullTaskArgs() {
+  fun testLoadTaskWithNullTaskArgsArtifact() {
     TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer,
                                              Common.ProfilerTaskType.HEAP_DUMP)
 
@@ -190,12 +191,12 @@ class HeapDumpTaskHandlerTest {
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
 
     val exception = assertFailsWith<Throwable> {
-      myHeapDumpTaskHandler.loadTask(null)
+      myHeapDumpTaskHandler.loadTask(HeapDumpTaskArgs(false, null))
     }
 
     assertThat(exception.message).isEqualTo(
-      "There was an error with the Heap Dump task. Error message: The task arguments (TaskArgs) supplied are not of the expected type " +
-      "(HeapDumpTaskArgs).")
+      "There was an error with the Heap Dump task. Error message: The task arguments (HeapDumpTaskArgs) supplied do not contains a valid " +
+      "artifact to load.")
 
     // Verify that the artifact doSelect behavior was not called by checking if the stage was not set to MainMemoryProfilerStage.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -211,13 +212,14 @@ class HeapDumpTaskHandlerTest {
     val heapDumpTaskArgs = myHeapDumpTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(heapDumpTaskArgs).isNotNull()
     assertThat(heapDumpTaskArgs).isInstanceOf(HeapDumpTaskArgs::class.java)
-    assertThat(heapDumpTaskArgs!!.getMemoryCaptureArtifact()).isNotNull()
-    assertThat(heapDumpTaskArgs.getMemoryCaptureArtifact().artifactProto.startTime).isEqualTo(1L)
-    assertThat(heapDumpTaskArgs.getMemoryCaptureArtifact().artifactProto.endTime).isEqualTo(100L)
+    heapDumpTaskArgs as HeapDumpTaskArgs
+    assertThat(heapDumpTaskArgs.getMemoryCaptureArtifact()).isNotNull()
+    assertThat(heapDumpTaskArgs.getMemoryCaptureArtifact()!!.artifactProto.startTime).isEqualTo(1L)
+    assertThat(heapDumpTaskArgs.getMemoryCaptureArtifact()!!.artifactProto.endTime).isEqualTo(100L)
   }
 
   @Test
-  fun testCreateArgsFails() {
+  fun testCreateArgsFailsToFindArtifact() {
     // By setting a session id that does not match any of the session items, the task artifact will not be found in the call to createArgs
     // will fail to be constructed.
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
@@ -225,10 +227,9 @@ class HeapDumpTaskHandlerTest {
       1L to createSessionItem(myProfilers, selectedSession, 1, listOf(createHprofSessionArtifact(myProfilers, selectedSession, 1, 100))),
     )
 
-    val heapDumpTaskArgs = myHeapDumpTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
-    // A return value of null indicates the task args were not constructed correctly (the underlying artifact was not found or supported by
-    // the task).
-    assertThat(heapDumpTaskArgs).isNull()
+    assertThrows(IllegalStateException::class.java) {
+      myHeapDumpTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
+    }
   }
 
   @Test

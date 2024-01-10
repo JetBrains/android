@@ -39,6 +39,7 @@ import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createDevice
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createProcess
 import com.google.common.truth.Truth.assertThat
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -113,7 +114,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     // To start the task and thus the capture, the stage must be set up before. This will be taken care of via the setupStage() method call,
     // on enter of the task handler, but this test is testing the explicit invocation of startTask.
     mySystemTraceTaskHandler.setupStage()
-    mySystemTraceTaskHandler.startTask()
+    mySystemTraceTaskHandler.startTask(CpuTaskArgs(false, null))
     assertThat(mySystemTraceTaskHandler.stage!!.recordingModel.isRecording).isTrue()
   }
 
@@ -122,7 +123,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     // To start the task and thus the capture, the stage must be set up before. Here we will test the case where startTask is invoked
     // without the stage being set precondition being met.
     val exception = assertFailsWith<Throwable> {
-      mySystemTraceTaskHandler.startTask()
+      mySystemTraceTaskHandler.startTask(CpuTaskArgs(false, null))
     }
     assertThat(mySystemTraceTaskHandler.stage).isNull()
     assertThat(exception.message).isEqualTo("There was an error with the System Trace task. Error message: Cannot start the task as the " +
@@ -138,7 +139,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
       .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
       .build()
     mySystemTraceTaskHandler.setupStage()
-    mySystemTraceTaskHandler.startTask()
+    mySystemTraceTaskHandler.startTask(CpuTaskArgs(false, null))
     assertThat(mySystemTraceTaskHandler.stage!!.recordingModel.isRecording).isTrue()
 
     // Wait for successful start event to be consumed.
@@ -163,7 +164,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
       .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
       .build()
     mySystemTraceTaskHandler.setupStage()
-    mySystemTraceTaskHandler.startTask()
+    mySystemTraceTaskHandler.startTask(CpuTaskArgs(false, null))
     assertThat(myManager.isSessionAlive).isTrue()
 
     // Wait for successful start event to be consumed.
@@ -223,7 +224,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
   }
 
   @Test
-  fun testLoadTaskWithNullTaskArgs() {
+  fun testLoadTaskWithNullTaskArgsArtifact() {
     TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
                                              Common.ProfilerTaskType.SYSTEM_TRACE)
 
@@ -231,11 +232,11 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
 
     val exception = assertFailsWith<Throwable> {
-      mySystemTraceTaskHandler.loadTask(null)
+      mySystemTraceTaskHandler.loadTask(CpuTaskArgs(false, null))
     }
 
-    assertThat(exception.message).isEqualTo("There was an error with the System Trace task. Error message: The task arguments (TaskArgs) " +
-                                            "supplied are not of the expected type (CpuTaskArgs).")
+    assertThat(exception.message).isEqualTo("There was an error with the System Trace task. Error message: The task arguments " +
+                                            "(CpuTaskArgs) supplied do not contains a valid artifact to load.")
 
     // Verify that the artifact doSelect behavior was not called by checking if the stage was not set to CpuProfilerStage.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
@@ -254,14 +255,15 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     val cpuTaskArgs = mySystemTraceTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
     assertThat(cpuTaskArgs).isNotNull()
     assertThat(cpuTaskArgs).isInstanceOf(CpuTaskArgs::class.java)
-    assertThat(cpuTaskArgs!!.getCpuCaptureArtifact()).isNotNull()
+    cpuTaskArgs as CpuTaskArgs
+    assertThat(cpuTaskArgs.getCpuCaptureArtifact()).isNotNull()
     assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.configuration.hasPerfettoOptions()).isTrue()
     assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.fromTimestamp).isEqualTo(5L)
     assertThat(cpuTaskArgs.getCpuCaptureArtifact()!!.artifactProto.toTimestamp).isEqualTo(500L)
   }
 
   @Test
-  fun testCreateArgsFails() {
+  fun testCreateArgsFailsToFindArtifact() {
     // By setting a session id that does not match any of the session items, the task artifact will not be found in the call to createArgs
     // will fail to be constructed.
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
@@ -272,10 +274,9 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
                                                                        createDefaultPerfettoTraceConfiguration()))),
     )
 
-    val cpuTaskArgs = mySystemTraceTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
-    // A return value of null indicates the task args were not constructed correctly (the underlying artifact was not found or supported by
-    // the task).
-    assertThat(cpuTaskArgs).isNull()
+    assertThrows(IllegalStateException::class.java) {
+      mySystemTraceTaskHandler.createArgs(false, sessionIdToSessionItems, selectedSession)
+    }
   }
 
   @Test
