@@ -154,7 +154,8 @@ class VisualLintAtfIssue(
   }
 
   fun appliedColorBlindFilter(): ColorBlindMode {
-    return ColorBlindMode.values().firstOrNull { it.displayName == sourceModel.modelDisplayName }
-      ?: ColorBlindMode.NONE
+    return ColorBlindMode.values().firstOrNull {
+      sourceModel.modelDisplayName?.startsWith(it.displayName) ?: false
+    } ?: ColorBlindMode.NONE
   }
 }

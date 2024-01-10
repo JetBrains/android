@@ -201,7 +201,7 @@ private fun colorBlindPreviews(
       )
     val displaySettings =
       baseDisplaySettings.copy(
-        name = colorBlindMode.displayName,
+        name = "${colorBlindMode.displayName} - ${baseDisplaySettings.name}",
         group = message("ui.check.mode.screen.accessibility.group"),
         showDecoration = false,
       )

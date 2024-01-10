@@ -598,25 +598,25 @@ class ComposePreviewRepresentationTest {
           PreviewDisplaySettings(name=Dark - Preview1, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Original, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Original - Preview1, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Protanopes, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Protanopes - Preview1, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Protanomaly, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Protanomaly - Preview1, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Deuteranopes, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Deuteranopes - Preview1, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Deuteranomaly, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Deuteranomaly - Preview1, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Tritanopes, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Tritanopes - Preview1, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Tritanomaly, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Tritanomaly - Preview1, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
         """
           .trimIndent(),
