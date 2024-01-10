@@ -92,8 +92,8 @@ class FakeInspectorState(
       // placeholder for ANIM property
       ViewString(118, "stateListAnimator"), // ANIMATOR
       // placeholder for INTERPOLATOR property
-      // placeholder for DIMENSION property
       ViewString(119, "backgroundTint"), // COLOR
+      ViewString(120, "width"), // DIMENSION
 
       // property values
       ViewString(201, "Next"),
@@ -126,6 +126,8 @@ class FakeInspectorState(
       ViewString(228, "Widget.AppCompat.TextView"),
       ViewString(229, "Base.Widget.AppCompat.TextView"),
       ViewString(230, "Widget.Material.TextView"),
+      ViewString(231, "secondaryValue"),
+      ViewString(232, "tertiaryValue"),
 
       // class names
       ViewString(301, "android.graphics.drawable.VectorDrawable"),
@@ -195,9 +197,9 @@ class FakeInspectorState(
     )
 
   private val propertyGroups =
-    mutableMapOf<Long, List<LayoutInspectorViewProtocol.PropertyGroup>>().apply {
+    mutableMapOf<Long, MutableList<LayoutInspectorViewProtocol.PropertyGroup>>().apply {
       this[layoutTrees[0].id] =
-        listOf(
+        mutableListOf(
           PropertyGroup {
             viewId = 3
             Property {
@@ -223,6 +225,12 @@ class FakeInspectorState(
               namespace = 100
               type = LayoutInspectorViewProtocol.Property.Type.FLOAT
               floatValue = 1.0f
+            }
+            Property {
+              name = 120
+              namespace = 100
+              type = LayoutInspectorViewProtocol.Property.Type.INT32
+              int32Value = 200
             }
           },
           PropertyGroup {
@@ -335,7 +343,7 @@ class FakeInspectorState(
         )
       // As tests don't need them, just skip defining properties for anything in the second layout
       // tree
-      this[layoutTrees[1].id] = emptyList()
+      this[layoutTrees[1].id] = mutableListOf()
     }
 
   private val composeStrings =
@@ -875,6 +883,29 @@ class FakeInspectorState(
         )
         .build()
     }
+  }
+
+  fun changePropertyValue(rootId: Long, viewId: Long, name: String) {
+    val propertyGroupIndex = propertyGroups[rootId]!!.indexOfFirst { it.viewId == viewId }
+    val propertyGroup = propertyGroups[rootId]!![propertyGroupIndex].toBuilder()
+    val nameId = viewStrings.first { it.str == name }.id
+    val propertyIndex = propertyGroup.propertyList.indexOfFirst { it.name == nameId }
+    val property = propertyGroup.propertyList[propertyIndex].toBuilder()
+    val secondaryId = viewStrings.first { it.str == "secondaryValue" }.id
+    val tertiaryId = viewStrings.first { it.str == "tertiaryValue" }.id
+    when (property.type) {
+      LayoutInspectorViewProtocol.Property.Type.STRING ->
+        property.int32Value = if (property.int32Value == secondaryId) tertiaryId else secondaryId
+      LayoutInspectorViewProtocol.Property.Type.FLOAT ->
+        property.floatValue = if (property.floatValue == 4.0f) 6.7f else 4.0f
+      LayoutInspectorViewProtocol.Property.Type.BOOLEAN ->
+        property.int32Value = if (property.int32Value == 0) 1 else 0
+      LayoutInspectorViewProtocol.Property.Type.INT32 ->
+        property.int32Value = if (property.int32Value == 500) 100 else 500
+      else -> {}
+    }
+    propertyGroup.setProperty(propertyIndex, property)
+    propertyGroups[rootId]!![propertyGroupIndex] = propertyGroup.build()
   }
 
   fun createFakeComposeTree(withSemantics: Boolean = true, latch: CommandLatch? = null) {

@@ -142,13 +142,26 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
     if (from != provider || selectedView == null || selectedView.drawId != view.drawId) {
       return
     }
-    properties = table
-    firePropertiesGenerated()
+    if (properties.sameKeys(table)) {
+      for (property in table.values) {
+        properties[property.namespace, property.name].value = property.snapshotValue
+      }
+      firePropertyValuesChanged()
+    } else {
+      properties = table
+      firePropertiesGenerated()
+    }
   }
 
   private fun firePropertiesGenerated() {
     modelListeners.forEach {
       ApplicationManager.getApplication().invokeLater { it.propertiesGenerated(this) }
+    }
+  }
+
+  private fun firePropertyValuesChanged() {
+    modelListeners.forEach {
+      ApplicationManager.getApplication().invokeLater { it.propertyValuesChanged(this) }
     }
   }
 }

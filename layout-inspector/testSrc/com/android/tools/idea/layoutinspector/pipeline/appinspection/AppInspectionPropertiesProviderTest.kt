@@ -24,12 +24,14 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
@@ -39,6 +41,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Sho
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.parameterNamespaceOf
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
+import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
@@ -48,6 +51,8 @@ import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.property.panel.api.PropertiesModel
+import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableGroupItem
@@ -337,8 +342,8 @@ class AppInspectionPropertiesProviderTest {
     inspectorClientSettings.inLiveMode =
       true // Enable live mode, so we only fetch properties on demand
 
-    val modelUpdatedSignal =
-      ArrayBlockingQueue<Unit>(2) // We should get no more than two updates before continuing
+    // We should get no more than two updates before continuing
+    val modelUpdatedSignal = ArrayBlockingQueue<Unit>(2)
     inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedSignal.offer(Unit)
     }
@@ -706,6 +711,69 @@ class AppInspectionPropertiesProviderTest {
         assertThat(inspectorState.getPropertiesRequestCountFor(id)).isEqualTo(0)
       }
     }
+  }
+
+  @Test
+  fun testPropertiesModelNotifications() {
+    projectRule.fixture.addFileToProject(
+      "src/java/com/google/android/material/textview/MaterialTextView.java",
+      """
+        package com.google.android.material.textview;
+        public class MaterialTextView extends android.widget.TextView {}
+      """
+        .trimIndent()
+    )
+    val propertiesModel = InspectorPropertiesModel(inspectorRule.disposable)
+    propertiesModel.layoutInspector = inspectorRule.inspector
+
+    val modelUpdatedSignal = ArrayBlockingQueue<Unit>(2)
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
+      modelUpdatedSignal.offer(Unit)
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!! // Event triggered by tree #1
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!! // Event triggered by tree #1
+
+    var generatedCount = 0
+    var valuesChangedCount = 0
+    propertiesModel.addListener(
+      object : PropertiesModelListener<InspectorPropertyItem> {
+        override fun propertiesGenerated(model: PropertiesModel<InspectorPropertyItem>) {
+          generatedCount++
+        }
+
+        override fun propertyValuesChanged(model: PropertiesModel<InspectorPropertyItem>) {
+          valuesChangedCount++
+        }
+      }
+    )
+
+    val targetNode = inspectorRule.inspectorModel[3]!!
+    inspectorRule.inspectorModel.setSelection(targetNode, SelectionOrigin.COMPONENT_TREE)
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { generatedCount == 1 }
+    assertThat(propertiesModel.properties.assertProperty("text", PropertyType.STRING, "Next"))
+    assertThat(propertiesModel.properties.assertProperty("clickable", PropertyType.BOOLEAN, "true"))
+    assertThat(propertiesModel.properties.assertProperty("alpha", PropertyType.FLOAT, "1.0"))
+    assertThat(propertiesModel.properties.assertProperty("width", PropertyType.DIMENSION, "200px"))
+
+    inspectorState.changePropertyValue(rootId = 1, viewId = targetNode.drawId, "text")
+    inspectorState.changePropertyValue(rootId = 1, viewId = targetNode.drawId, "alpha")
+    inspectorState.changePropertyValue(rootId = 1, viewId = targetNode.drawId, "width")
+
+    inspectorState.triggerLayoutCapture(rootId = 1)
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!!
+
+    waitForCondition(TIMEOUT, TIMEOUT_UNIT) { valuesChangedCount == 1 }
+    assertThat(
+      propertiesModel.properties.assertProperty("text", PropertyType.STRING, "secondaryValue")
+    )
+    assertThat(propertiesModel.properties.assertProperty("clickable", PropertyType.BOOLEAN, "true"))
+    assertThat(propertiesModel.properties.assertProperty("alpha", PropertyType.FLOAT, "4.0"))
+    assertThat(propertiesModel.properties.assertProperty("width", PropertyType.DIMENSION, "500px"))
+
+    // Verify that we did not fire a properties generated notification after the original
+    assertThat(generatedCount).isEqualTo(1)
   }
 
   private fun layout(name: String, namespace: String = APP_NAMESPACE): ResourceReference =

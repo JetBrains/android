@@ -46,7 +46,7 @@ open class InspectorPropertyItem(
   initialType: PropertyType,
 
   /** The value of the attribute when the snapshot was taken */
-  val initialValue: String?,
+  var snapshotValue: String?,
 
   /** Which section this attribute belongs to in the attributes tool window */
   val section: PropertySection,
@@ -97,11 +97,11 @@ open class InspectorPropertyItem(
 
   private fun computeDimensionValue(type: PropertyType): Int =
     when (type) {
-      PropertyType.DIMENSION -> initialValue?.toIntOrNull() ?: -1
+      PropertyType.DIMENSION -> snapshotValue?.toIntOrNull() ?: -1
       PropertyType.DIMENSION_EM,
       PropertyType.DIMENSION_DP,
       PropertyType.DIMENSION_FLOAT,
-      PropertyType.DIMENSION_SP -> (initialValue?.toFloatOrNull() ?: Float.NaN).toRawBits()
+      PropertyType.DIMENSION_SP -> (snapshotValue?.toFloatOrNull() ?: Float.NaN).toRawBits()
       else -> -1
     }
 
@@ -113,9 +113,12 @@ open class InspectorPropertyItem(
         PropertyType.DIMENSION_EM -> formatDimensionFloatAsEm(Float.fromBits(dimensionValue))
         PropertyType.DIMENSION_FLOAT -> formatDimensionFloat(Float.fromBits(dimensionValue))
         PropertyType.DIMENSION_SP -> formatDimensionFloatAsSp(Float.fromBits(dimensionValue))
-        else -> initialValue
+        else -> snapshotValue
       }
-    set(_) {}
+    set(newValue) {
+      snapshotValue = newValue
+      dimensionValue = computeDimensionValue(type)
+    }
 
   override fun hashCode(): Int =
     HashCodes.mix(namespace.hashCode(), attrName.hashCode(), source?.hashCode() ?: 0)
@@ -144,7 +147,7 @@ open class InspectorPropertyItem(
       // MIN_VALUE means not supported for some attributes e.g. layout_marginStart in
       // ViewGroup.MarginLayoutParams
       // MAX-VALUE means not specified for some attributes e.g. maxWidth of TextView
-      return initialValue
+      return snapshotValue
     }
     val resourceLookup = lookup.resourceLookup
     // If we are unable to get the dpi from the device, just show pixels
@@ -157,7 +160,7 @@ open class InspectorPropertyItem(
 
   private fun formatDimensionFloat(pixels: Float): String? {
     if (pixels.isNaN()) {
-      return initialValue
+      return snapshotValue
     }
     val resourceLookup = lookup.resourceLookup
     // If we are unable to get the dpi from the device, just show pixels
@@ -180,7 +183,7 @@ open class InspectorPropertyItem(
 
   private fun formatDimensionFloatDp(dp: Float): String? {
     if (dp.isNaN()) {
-      return initialValue
+      return snapshotValue
     }
     val resourceLookup = lookup.resourceLookup
     // If we are unable to get the dpi from the device, just show dp
@@ -193,7 +196,7 @@ open class InspectorPropertyItem(
 
   private fun formatDimensionFloatAsSp(sp: Float): String? {
     if (sp.isNaN()) {
-      return initialValue
+      return snapshotValue
     }
     // If we are unable to get the dpi or scale factor from the device, just show in sp
     val spFactor = pixelsToSpFactor ?: return "${formatFloat(sp)}sp"
@@ -205,7 +208,7 @@ open class InspectorPropertyItem(
 
   private fun formatDimensionFloatAsEm(em: Float): String? {
     if (em.isNaN()) {
-      return initialValue
+      return snapshotValue
     }
     return "${formatFloat(em)}em"
   }
