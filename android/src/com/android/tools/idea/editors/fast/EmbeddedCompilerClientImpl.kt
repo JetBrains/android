@@ -20,6 +20,8 @@ import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
 import com.android.tools.idea.run.deployment.liveedit.isKotlinPluginBundled
+import com.android.tools.idea.run.deployment.liveedit.k2.OutputFileForKtCompiledFile
+import com.android.tools.idea.run.deployment.liveedit.k2.backendCodeGenForK2
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
@@ -39,6 +41,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.backend.common.output.OutputFile
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
 import java.nio.file.Path
@@ -116,6 +120,11 @@ class EmbeddedCompilerClientImpl private constructor(
   private suspend fun compileKtFiles(inputs: List<KtFile>, module: Module, outputDirectory: Path) = withContext(AndroidDispatchers.workerThread) {
     log.debug("compileKtFile($inputs, $outputDirectory)")
 
+    if (isK2Plugin()) {
+      compileKtFilesForK2(inputs, module, outputDirectory)
+      return@withContext
+    }
+
     val generationState =
       readAction {
         runWithCompileLock {
@@ -164,12 +173,30 @@ class EmbeddedCompilerClientImpl private constructor(
       }
     log.debug("backCodeGen completed")
 
-    generationState.factory.asList().forEach {
-      log.debug("output: ${it.relativePath}")
-      val path = outputDirectory.resolve(it.relativePath)
-      path.createFile()
-      Files.write(path, it.asByteArray())
+    generationState.factory.asList().forEach { it.writeTo(outputDirectory) }
+  }
+
+  private suspend fun compileKtFilesForK2(inputs: List<KtFile>, module: Module, outputDirectory: Path) {
+    readAction {
+      runWithCompileLock {
+        beforeCompilationStarts()
+        log.debug("backCodeGen")
+        inputs.forEach { inputFile ->
+          val result = backendCodeGenForK2(inputFile, module)
+          log.debug("backCodeGen for ${inputFile.virtualFilePath} completed")
+          result.output.map { OutputFileForKtCompiledFile(it) }.forEach {
+            it.writeTo(outputDirectory)
+          }
+        }
+      }
     }
+  }
+
+  private fun OutputFile.writeTo(outputDirectory: Path) {
+    log.debug("output: $relativePath")
+    val path = outputDirectory.resolve(relativePath)
+    path.createFile()
+    Files.write(path, asByteArray())
   }
 
   override suspend fun compileRequest(

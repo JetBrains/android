@@ -40,7 +40,6 @@ import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.components.KtCompilationResult
-import org.jetbrains.kotlin.analysis.api.components.KtCompiledFile
 import org.jetbrains.kotlin.analysis.api.components.KtCompilerTarget
 import org.jetbrains.kotlin.analysis.api.diagnostics.getDefaultMessageWithFactoryName
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
@@ -60,21 +59,8 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedDeclarationUtil
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import java.io.File
 
 private val ComposableFqName = ClassId(FqName("androidx.compose.runtime"), FqName("Composable"), false)
-
-private class OutputFileForKtCompiledFile(private val compiledFile: KtCompiledFile): OutputFile {
-  override val relativePath: String
-    get() = compiledFile.path
-
-  override val sourceFiles: List<File>
-    get() = compiledFile.sourceFiles
-
-  override fun asByteArray(): ByteArray = compiledFile.content
-
-  override fun asText(): String = String(compiledFile.content)
-}
 
 /**
  * A class to help [LiveEditCompilerForK2.getGeneratedCode] function to collect internal class names and seal classes.
