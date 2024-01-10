@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -68,8 +67,7 @@ class InspectorTreeSettings(private val activeClient: () -> InspectorClient) : T
   override var showRecompositions: Boolean
     get() =
       hasCapability(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) &&
-        get(KEY_RECOMPOSITIONS, DEFAULT_RECOMPOSITIONS) &&
-        StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get()
+        get(KEY_RECOMPOSITIONS, DEFAULT_RECOMPOSITIONS)
     set(value) = set(KEY_RECOMPOSITIONS, value, DEFAULT_RECOMPOSITIONS)
 
   @Suppress("SameParameterValue")

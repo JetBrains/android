@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
@@ -44,10 +42,6 @@ import org.mockito.Mockito.doAnswer
 class InspectorTreeSettingsTest {
 
   @get:Rule val cleaner = MockitoCleanerRule()
-
-  @get:Rule
-  val recompositionFlagRule =
-    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
 
   @get:Rule val disposableRule = DisposableRule()
 
@@ -129,9 +123,6 @@ class InspectorTreeSettingsTest {
     capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
     settings.showRecompositions = true
     assertThat(settings.showRecompositions).isTrue()
-
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.override(false)
-    assertThat(settings.showRecompositions).isFalse()
   }
 
   private fun testFlag(

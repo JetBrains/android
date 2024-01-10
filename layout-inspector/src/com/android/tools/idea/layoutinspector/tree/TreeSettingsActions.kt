@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -153,9 +152,7 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isVisible =
-      isActionActive(event, Capability.SUPPORTS_COMPOSE) &&
-        StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
-        inLiveMode(event)
+      isActionActive(event, Capability.SUPPORTS_COMPOSE) && inLiveMode(event)
     event.presentation.isEnabled =
       isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
     event.presentation.text =

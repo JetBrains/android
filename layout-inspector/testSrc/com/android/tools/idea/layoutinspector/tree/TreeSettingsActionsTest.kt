@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.flags.junit.FlagRule
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.ToolContent
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
@@ -68,10 +66,6 @@ class TreeSettingsActionsTest {
   }
 
   @get:Rule val disposableRule = DisposableRule()
-
-  @get:Rule
-  val recompositionFlagRule =
-    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
 
   private val treeSettings = FakeTreeSettings()
   private val model = createModel()

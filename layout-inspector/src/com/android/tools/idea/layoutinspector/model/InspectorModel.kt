@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -359,11 +358,7 @@ class InspectorModel(
         hiddenNodes.removeIf { !allNodes.contains(it) }
         maxRecomposition.reset()
         root.flatten().forEach { maxRecomposition.maxOf(it) }
-        if (
-          StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get() &&
-            scheduler != null &&
-            maxHighlight < maxRecomposition.highlightCount
-        ) {
+        if (scheduler != null && maxHighlight < maxRecomposition.highlightCount) {
           if (maxHighlight == 0f) {
             scheduler.schedule(::decreaseHighlights, DECREASE_DELAY, DECREASE_TIMEUNIT)
           }

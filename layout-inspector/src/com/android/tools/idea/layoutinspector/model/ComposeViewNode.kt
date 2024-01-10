@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import java.awt.Rectangle
 import java.awt.Shape
@@ -121,9 +120,7 @@ class RecompositionData(var count: Int, var skips: Int, var highlightCount: Floa
   }
 
   fun update(newNumbers: RecompositionData) {
-    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get()) {
-      highlightCount += maxOf(0, newNumbers.count - count)
-    }
+    highlightCount += maxOf(0, newNumbers.count - count)
     count = newNumbers.count
     skips = newNumbers.skips
   }

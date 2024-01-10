@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.tree.isActionActive
@@ -115,9 +114,7 @@ class HighlightColorAction(renderSettingsProvider: () -> RenderSettings) :
     val layoutInspector = LayoutInspector.get(event)
     val isConnected = layoutInspector?.currentClient?.isConnected ?: false
     event.presentation.isVisible =
-      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get() &&
-        StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
-        layoutInspector?.treeSettings?.showRecompositions ?: false &&
+      layoutInspector?.treeSettings?.showRecompositions ?: false &&
         (!isConnected || isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS))
     event.presentation.isEnabled = isConnected
   }

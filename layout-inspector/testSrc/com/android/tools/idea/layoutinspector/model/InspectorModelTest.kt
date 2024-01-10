@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.flags.junit.FlagRule
 import com.android.io.readImage
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
@@ -23,7 +22,6 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
@@ -46,9 +44,6 @@ import org.mockito.Mockito.verify
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class InspectorModelTest {
-  @get:Rule
-  val highlightFlag =
-    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true)
   @get:Rule val disposableRule = DisposableRule()
 
   val disposable

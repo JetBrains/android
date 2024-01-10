@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_DEFAULT_COLOR
 import com.intellij.ide.util.PropertiesComponent
 import kotlin.properties.Delegates
@@ -105,10 +104,7 @@ class InspectorRenderSettings(scalePercent: Int = 100) : RenderSettings {
     }
 
   override var highlightColor: Int
-    get() =
-      if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get())
-        PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, HIGHLIGHT_DEFAULT_COLOR)
-      else HIGHLIGHT_DEFAULT_COLOR
+    get() = PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, HIGHLIGHT_DEFAULT_COLOR)
     set(value) {
       val actual = value.and(0xFFFFFF)
       val old =
